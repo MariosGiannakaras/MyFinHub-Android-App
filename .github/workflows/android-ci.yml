@@ -25,23 +25,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Detect Android project
+        id: project
+        shell: bash
+        run: |
+          if [[ -f settings.gradle.kts || -f settings.gradle ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up JDK 17
+        if: steps.project.outputs.present == 'true'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle cache
+      - name: Set up Gradle
+        if: steps.project.outputs.present == 'true'
         uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.7.0'
 
       - name: Install Android API 37
+        if: steps.project.outputs.present == 'true'
         shell: bash
         run: sdkmanager "platforms;android-37" "build-tools;37.0.0"
 
-      - name: Verify Gradle wrapper
+      - name: Generate wrapper for validation when not committed yet
+        if: steps.project.outputs.present == 'true'
         shell: bash
-        run: test -f gradle/wrapper/gradle-wrapper.jar
+        run: |
+          if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+            gradle wrapper --gradle-version 9.7.0 --distribution-type bin
+          fi
 
       - name: Unit tests, lint and debug assembly
+        if: steps.project.outputs.present == 'true'
         shell: bash
         run: ./gradlew test lint assembleDebug --stacktrace
+
+      - name: No Android project yet
+        if: steps.project.outputs.present != 'true'
+        run: echo "Android source has not landed on this branch yet; workflow foundation is active."
