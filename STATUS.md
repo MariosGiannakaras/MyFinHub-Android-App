@@ -1,50 +1,46 @@
 # MyFinHub Android status
 
-## 2026-08-22 — Phase 0 research foundation
+## 2026-08-22 — Phase 1 implementation started
 
-The repository has been bootstrapped for a native Android client. No Android feature UI or production backend integration has been implemented yet.
+Phase 0 research is complete: PR #2 was squash-merged into `develop` at `f388e4f3f44e3b3c539fd957a6bb65261fbb4e97`, and issue #1 is closed as completed.
 
-### Settled baseline decisions
+Implementation is now tracked by issue #3 on `feature/android-bootstrap`. The backend native-client dependency is tracked separately by issue #4 so the Android client cannot accidentally bypass existing MyFinHub security contracts.
 
-- Native Kotlin + Jetpack Compose; no WebView/PWA shell/browser launcher.
-- Material 3 + Material 3 Adaptive.
-- Mobile-first redesign that preserves MyFinHub product capability and finance semantics rather than desktop layout geometry.
-- Window-size/posture adaptive layouts; no orientation/aspect-ratio lock.
-- Compact primary navigation uses a small stable destination set; initial prototype hypothesis is Home / Activity / Money / Plan / Insights, with Settings outside the bottom bar.
-- Complex desktop tables become task-specific compact lists + detail; wider windows may use list-detail/supporting panes.
-- Quick Entry remains a first-class fast action.
-- Accessibility, predictive back, edge-to-edge, 48dp targets, large font behavior, and non-gesture-only actions are implementation gates.
-- Existing MyFinHub backend/Supabase remains canonical; Android does not create a second finance database.
-- Android requires a reviewed native bearer-auth path in the main MyFinHub backend while preserving existing web/desktop cookie + same-origin security.
-- PAN/expiry remain server-vault-backed; CVV remains device-local with Android Keystore-backed encryption.
-- Public source repository is intentional for GitHub Actions economics.
-- Signed private APKs must not be uploaded as public-repo Releases or workflow artifacts.
-- Recommended private distribution path: release job in the public source repo signs on an ephemeral runner and uploads directly to a separate private GitHub distribution repository.
+### Repository branches
 
-### Phase 0 documentation
+- `main` — release/promotion baseline.
+- `develop` — primary integration branch.
+- `extensions` — long-lived holding branch for future/deferred expansion specs/prototypes; not a second integration branch.
+- `feature/android-bootstrap` — active Phase 1 implementation branch.
 
-- `AGENTS.md` — durable engineering/security/workflow rules.
-- `docs/RESEARCH_MOBILE_UX_2026.md` — current Android standards and product-example research.
-- `docs/MOBILE_DESIGN_CONTRACT.md` — MyFinHub-specific mobile interaction contract and prototype targets.
-- `docs/ANDROID_ARCHITECTURE.md` — native client, auth, storage, sync, and security boundaries.
-- `docs/GITHUB_DELIVERY.md` — GitHub Actions, testing, signing, private distribution, and unavoidable non-GitHub steps.
+### Phase 1 checkpoint A
 
-### External constraints identified in advance
+The active branch now defines the first native Android source baseline:
 
-Most engineering/release work can remain in GitHub, but four activities cannot be honestly treated as fully GitHub-only:
+- application id `app.myfinhub.android`, version `0.1.0` / versionCode 1;
+- AGP 9.3.0, Kotlin/Compose compiler 2.3.21, Compose BOM 2026.08.00;
+- compileSdk 37, targetSdk 36, minSdk 26, Java/JVM target 17;
+- single-activity Jetpack Compose app with edge-to-edge activity setup;
+- Material 3 light/dark theme;
+- ViewModel + StateFlow + pure reducer example;
+- synthetic bootstrap UI explicitly stating that production finance data is not connected;
+- unit test plus initial Compose instrumentation test source;
+- README, contribution/branch rules, Issue forms and PR template;
+- GitHub Actions definitions for one-time Gradle-wrapper generation and normal PR CI.
 
-1. the phone must authorize/install an APK;
-2. Android's 2027 global developer-verification model may make a one-time Android Developer Console limited-distribution/device-registration flow the cleanest personal-use path;
-3. the long-lived Android signing key needs a recoverable offline encrypted backup in addition to its GitHub Actions CI copy;
-4. final real-device/TalkBack/biometric/install smoke is valuable because emulator CI cannot perfectly model hardware/OEM/human behavior.
+The first push intentionally relies on a dedicated bootstrap workflow to generate and commit the Gradle 9.7.0 wrapper from the pinned Gradle distribution, validate `test lint assembleDebug`, and push only wrapper files. This avoids manually sourcing a binary wrapper JAR and keeps bootstrap reproducible inside GitHub.
 
-### Git state
+### Still open in Phase 1
 
-- `main`: bootstrap commit only.
-- `develop`: created from bootstrap.
-- `research/mobile-ux-2026`: Phase 0 research/documentation branch.
-- Tracker: issue #1.
+- wrapper bootstrap workflow must complete successfully;
+- normal PR CI must then pass against the committed wrapper;
+- Navigation 3 / Material 3 Adaptive root scaffold;
+- typed fake network boundary;
+- Android Keystore abstraction/tests;
+- official screenshot testing and build-managed device matrix.
 
-### Next gate
+### Security/data state
 
-Before production data integration, implement and test the native-bearer authentication/API contract in the main `MyFinHub` repository. Before broad feature implementation, bootstrap the Android project and build representative synthetic-data prototypes for Home, Activity/Quick Entry, secure card flow, Plan editor, Insights, and adaptive list-detail.
+No production Supabase login, finance API, real FinanceData, PAN/expiry/CVV, signing credential or private APK is part of this checkpoint. No WebView dependency exists.
+
+Direct signed-APK sideloading remains the intended personal distribution model. Developer verification is not a current implementation requirement; it is only a future platform-policy note if device behavior changes.

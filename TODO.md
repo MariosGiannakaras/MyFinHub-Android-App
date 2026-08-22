@@ -9,21 +9,26 @@
 - [x] Define mobile-first MyFinHub design contract.
 - [x] Define Android architecture/security boundary.
 - [x] Define GitHub Actions/signing/private-distribution strategy.
-- [x] Identify unavoidable non-GitHub/device/Google verification steps in advance.
-- [ ] Review/merge Phase 0 PR into `develop` after repository documentation review.
+- [x] Identify unavoidable non-GitHub/device steps in advance.
+- [x] Review and squash-merge Phase 0 PR #2 into `develop`.
 
 ## Phase 1 — Android project bootstrap
 
-- [ ] Create Gradle/Kotlin/Compose project with pinned JDK/AGP/Kotlin/Compose versions.
-- [ ] Define application/package ID and versioning policy.
-- [ ] Configure Material 3 theme, dark/light, typography, spacing and synthetic preview fixtures.
+Tracker: issue #3.
+
+- [x] Create initial Gradle/Kotlin/Compose project with pinned AGP/Kotlin/Compose/JDK/SDK versions.
+- [x] Define application/package ID `app.myfinhub.android` and initial `0.1.0` / versionCode 1 policy baseline.
+- [x] Configure Material 3 light/dark theme and synthetic bootstrap UI.
 - [ ] Configure Navigation 3 and Material 3 Adaptive root scaffolding.
-- [ ] Configure ViewModel/StateFlow/UDF foundations.
-- [ ] Configure OkHttp/serialization network boundary with fake/synthetic implementation first.
+- [x] Configure ViewModel/StateFlow/UDF bootstrap foundation.
+- [ ] Configure typed network boundary with fake/synthetic implementation first.
 - [ ] Configure Keystore-backed secure storage primitives with tests.
-- [ ] Configure Android Lint, unit tests, Compose tests and official screenshot testing.
-- [ ] Configure build-managed virtual device matrix for compact/medium/expanded checks.
-- [ ] Add PR CI; no release secrets or signed APK artifacts yet.
+- [x] Add unit test and initial Compose instrumentation test source.
+- [ ] Configure official screenshot testing and build-managed compact/medium/expanded device matrix.
+- [x] Add public-repo-safe PR CI definition; no release secrets or signed APK artifacts.
+- [ ] Generate/commit Gradle wrapper through automated bootstrap workflow and confirm CI build passes.
+- [x] Add repository README, contribution/branch rules, Issue templates and PR template.
+- [x] Create long-lived `extensions` branch for explicitly deferred future expansion work.
 
 ## Phase 2 — Representative mobile prototypes
 
@@ -41,7 +46,7 @@ Use synthetic finance data only until the backend native-auth gate is complete.
 
 ## Phase 3 — Main MyFinHub backend native-client gate
 
-Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR workflow.
+Dependency tracker: issue #4. Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR workflow.
 
 - [ ] Define native bearer authentication contract.
 - [ ] Preserve existing cookie + same-origin behavior unchanged for web/desktop.
@@ -49,7 +54,7 @@ Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR w
 - [ ] Enforce owner UID + AAL2 + RLS/RPC for native access.
 - [ ] Preserve `If-Match` revision conflict semantics.
 - [ ] Preserve card-secret authorization/validation.
-- [ ] Add tests for valid bearer, expired/invalid token, AAL1, non-owner, mutation CSRF separation, revision conflict, card-secret access.
+- [ ] Add negative/positive auth, CSRF-separation, revision and card-secret tests.
 - [ ] Document endpoint/client contract consumed by Android.
 
 ## Phase 4 — Real backend integration and feature parity
@@ -85,10 +90,10 @@ Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR w
 
 ## Phase 6 — GitHub private APK delivery
 
-- [ ] Create separate private GitHub distribution repository (one-time GitHub setup).
+- [ ] Create separate private GitHub distribution repository when release delivery is ready.
 - [ ] Create protected `android-release` GitHub environment.
-- [ ] Generate long-lived Android signing key and keep an offline encrypted recovery backup.
-- [ ] Store CI signing copy/passwords in GitHub protected secrets.
+- [ ] Generate long-lived Android signing key and keep a recoverable encrypted backup.
+- [ ] Store CI signing copy/passwords in protected GitHub secrets.
 - [ ] Store least-privilege private-distribution repository credential in GitHub secret.
 - [ ] Record expected signing certificate SHA-256 fingerprint in public config/docs.
 - [ ] Implement tag-gated `android-v*` release workflow from `main` only.
@@ -96,7 +101,6 @@ Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR w
 - [ ] Upload signed APK + SHA-256 directly to private GitHub distribution release; never public artifacts/releases.
 - [ ] Track release evidence in GitHub Issue/PR/release metadata.
 
-## Future Android distribution requirement
+## Future platform note — not a current requirement
 
-- [ ] Before Android developer-verification global enforcement affects the device/use case, choose between Google's free limited-distribution path (recommended for personal use) and the advanced unregistered-app sideload flow.
-- [ ] If using limited distribution, complete the one-time Android Developer Console package/device authorization outside GitHub; document completion/evidence in GitHub without committing personal identity data.
+Direct signed-APK sideloading is the baseline. Android developer verification / limited distribution is not part of the current implementation workflow. Reassess only if future Android enforcement materially affects the personal device/use case.

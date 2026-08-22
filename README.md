@@ -2,20 +2,43 @@
 
 Native Android client for MyFinHub.
 
-## Product contract
+## Current state
 
-- Native Android application; not a WebView, PWA shell, or browser launcher.
-- Kotlin + Jetpack Compose is the baseline Android stack.
-- The Android client uses the same canonical MyFinHub backend and Supabase/PostgreSQL source of truth as web and Windows.
-- Finance semantics, validation, owner authorization, AAL2 MFA, RLS/RPC checks, optimistic revisions, backups, audit behavior, and card-vault boundaries must remain compatible with the main MyFinHub application.
-- The UI is designed mobile-first for Android rather than copied or shrunk from the desktop/web interface.
+Phase 1 bootstrap is in progress. The application is intentionally disconnected from production finance data until the native bearer-authentication gate is implemented and verified in the main `MariosGiannakaras/MyFinHub` backend.
 
-## Repository workflow
+## Stack
 
-Research, design decisions, implementation, tests, packaging, and CI/CD are tracked in GitHub. The public source repository is intentional for GitHub Actions economics; secrets and private signed APK distribution must remain outside public repository contents and public release assets.
+- Kotlin / Jetpack Compose
+- Material 3
+- AGP 9.3.0
+- Compose BOM 2026.08.00
+- compileSdk 37 / targetSdk 36 / minSdk 26
+- JDK 17
+- Gradle 9.7.0 wrapper (generated and committed by the one-time bootstrap workflow)
 
-Phase 0 is tracked in issue #1. Feature implementation must follow the research/design contracts under `docs/` once they are merged.
+The project is a native Android application. It must not introduce a WebView/browser wrapper for MyFinHub.
 
-## Security
+## Repository model
 
-Never commit real finance data, credentials, access/refresh tokens, card secrets, signing keystores/passwords, service-role credentials, or private release APKs.
+- `main` — deliberate release/promotion baseline.
+- `develop` — normal integration branch.
+- `extensions` — long-lived holding branch for explicitly deferred future expansion specifications/prototypes; it is not a substitute for `develop`.
+- `feature/*`, `fix/*`, `research/*` — short-lived issue branches, normally based on `develop` and merged through PRs.
+
+See `CONTRIBUTING.md`, `AGENTS.md`, `STATUS.md`, `TODO.md`, and `docs/` before changing implementation contracts.
+
+## Build
+
+After the Gradle wrapper bootstrap commit exists:
+
+```bash
+./gradlew test lint assembleDebug
+```
+
+CI installs the required Android SDK and runs the same baseline automatically.
+
+## Privacy and secrets
+
+This source repository is public intentionally. Never commit real finance data, credentials, access/refresh tokens, Supabase secret/service-role keys, `CARD_VAULT_KEY`, PAN/expiry/CVV, Android signing keys/passwords, or private APKs.
+
+Synthetic preview/test fixtures only are permitted until explicitly replaced by safe integration boundaries.
