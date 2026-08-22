@@ -4,41 +4,45 @@ Native Android client for MyFinHub.
 
 ## Current state
 
-Phase 1 bootstrap is in progress. The application is intentionally disconnected from production finance data until the native bearer-authentication gate is implemented and verified in the main `MariosGiannakaras/MyFinHub` backend.
+The repository is in Phase 1 bootstrap. The app is intentionally disconnected from production finance data while the Android architecture, security boundary, test harness and GitHub workflow are established.
 
-## Stack
+- Kotlin + Jetpack Compose
+- Material 3 + Material 3 Adaptive
+- application id: `app.myfinhub.android`
+- no WebView/site wrapper
+- same future MyFinHub API/Supabase source of truth
+- public source repository with no production secrets or private APKs
 
-- Kotlin / Jetpack Compose
-- Material 3
-- AGP 9.3.0
-- Compose BOM 2026.08.00
-- compileSdk 37 / targetSdk 36 / minSdk 26
-- JDK 17
-- Gradle 9.7.0 wrapper (generated and committed by the one-time bootstrap workflow)
+See `STATUS.md`, `TODO.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCHITECTURE.md` and issue #3 for the current implementation checkpoint.
 
-The project is a native Android application. It must not introduce a WebView/browser wrapper for MyFinHub.
+## Branch model
 
-## Repository model
+- `main`: release/promotion baseline
+- `develop`: normal integration branch
+- `extensions`: future/deferred expansion holding branch only
+- short-lived `feature/*`, `fix/*`, `research/*`, `chore/*`: issue-scoped work into `develop`
 
-- `main` — deliberate release/promotion baseline.
-- `develop` — normal integration branch.
-- `extensions` — long-lived holding branch for explicitly deferred future expansion specifications/prototypes; it is not a substitute for `develop`.
-- `feature/*`, `fix/*`, `research/*` — short-lived issue branches, normally based on `develop` and merged through PRs.
+See `CONTRIBUTING.md` for the full workflow.
 
-See `CONTRIBUTING.md`, `AGENTS.md`, `STATUS.md`, `TODO.md`, and `docs/` before changing implementation contracts.
+## Local / CI validation contract
 
-## Build
-
-After the Gradle wrapper bootstrap commit exists:
+Once the Gradle wrapper is committed, the normal baseline is:
 
 ```bash
 ./gradlew test lint assembleDebug
 ```
 
-CI installs the required Android SDK and runs the same baseline automatically.
+UI-quality automation is separately configured for the official Compose Preview Screenshot Testing tool and Gradle Managed Devices:
 
-## Privacy and secrets
+```bash
+./gradlew validateDebugScreenshotTest
+./gradlew compactApi36DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+```
 
-This source repository is public intentionally. Never commit real finance data, credentials, access/refresh tokens, Supabase secret/service-role keys, `CARD_VAULT_KEY`, PAN/expiry/CVV, Android signing keys/passwords, or private APKs.
+The full foldable/tablet matrix is automated by `.github/workflows/android-ui-quality.yml` through `workflow_dispatch`. Before the first approved screenshot references are committed, that workflow generates checkout-local references only to smoke-test the official renderer; those generated images are not treated as an approved visual baseline.
 
-Synthetic preview/test fixtures only are permitted until explicitly replaced by safe integration boundaries.
+## Security rule
+
+Never commit real FinanceData, `.env` files, credentials, JWT/refresh tokens, PAN/expiry/CVV, Supabase secret/service-role keys, `CARD_VAULT_KEY`, signing keystores/passwords, or private APK binaries.
+
+Production-data integration remains gated by the reviewed native bearer-auth contract tracked in issue #4.
