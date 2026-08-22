@@ -28,12 +28,28 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.home.HomeAction
 import app.myfinhub.android.feature.home.HomeScreen
+import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeViewModel
 
 @Composable
 fun MyFinHubApp(homeViewModel: HomeViewModel = viewModel()) {
     val homeState by homeViewModel.state.collectAsStateWithLifecycle()
+
+    MyFinHubTheme {
+        MyFinHubAppContent(
+            homeState = homeState,
+            onHomeAction = homeViewModel::onAction,
+        )
+    }
+}
+
+@Composable
+internal fun MyFinHubAppContent(
+    homeState: HomeUiState,
+    onHomeAction: (HomeAction) -> Unit,
+) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
 
     val homeBackStack = rememberNavBackStack(AppRoute.Home)
@@ -50,53 +66,51 @@ fun MyFinHubApp(homeViewModel: HomeViewModel = viewModel()) {
         TopLevelDestination.INSIGHTS -> insightsBackStack
     }
 
-    MyFinHubTheme {
-        NavigationSuiteScaffold(
-            navigationSuiteItems = {
-                TopLevelDestination.entries.forEach { destination ->
-                    item(
-                        selected = currentDestination == destination,
-                        onClick = { currentDestination = destination },
-                        icon = {
-                            Icon(
-                                imageVector = destination.icon,
-                                contentDescription = stringResource(destination.label),
-                            )
-                        },
-                        label = { Text(stringResource(destination.label)) },
-                    )
+    NavigationSuiteScaffold(
+        navigationSuiteItems = {
+            TopLevelDestination.entries.forEach { destination ->
+                item(
+                    selected = currentDestination == destination,
+                    onClick = { currentDestination = destination },
+                    icon = {
+                        Icon(
+                            imageVector = destination.icon,
+                            contentDescription = stringResource(destination.label),
+                        )
+                    },
+                    label = { Text(stringResource(destination.label)) },
+                )
+            }
+        },
+    ) {
+        NavDisplay(
+            backStack = activeBackStack,
+            onBack = {
+                if (activeBackStack.size > 1) {
+                    activeBackStack.removeLastOrNull()
                 }
             },
-        ) {
-            NavDisplay(
-                backStack = activeBackStack,
-                onBack = {
-                    if (activeBackStack.size > 1) {
-                        activeBackStack.removeLastOrNull()
-                    }
-                },
-                entryProvider = entryProvider {
-                    entry<AppRoute.Home> {
-                        HomeScreen(
-                            state = homeState,
-                            onAction = homeViewModel::onAction,
-                        )
-                    }
-                    entry<AppRoute.Activity> {
-                        DestinationPlaceholder(destination = TopLevelDestination.ACTIVITY)
-                    }
-                    entry<AppRoute.Money> {
-                        DestinationPlaceholder(destination = TopLevelDestination.MONEY)
-                    }
-                    entry<AppRoute.Plan> {
-                        DestinationPlaceholder(destination = TopLevelDestination.PLAN)
-                    }
-                    entry<AppRoute.Insights> {
-                        DestinationPlaceholder(destination = TopLevelDestination.INSIGHTS)
-                    }
-                },
-            )
-        }
+            entryProvider = entryProvider {
+                entry<AppRoute.Home> {
+                    HomeScreen(
+                        state = homeState,
+                        onAction = onHomeAction,
+                    )
+                }
+                entry<AppRoute.Activity> {
+                    DestinationPlaceholder(destination = TopLevelDestination.ACTIVITY)
+                }
+                entry<AppRoute.Money> {
+                    DestinationPlaceholder(destination = TopLevelDestination.MONEY)
+                }
+                entry<AppRoute.Plan> {
+                    DestinationPlaceholder(destination = TopLevelDestination.PLAN)
+                }
+                entry<AppRoute.Insights> {
+                    DestinationPlaceholder(destination = TopLevelDestination.INSIGHTS)
+                }
+            },
+        )
     }
 }
 
