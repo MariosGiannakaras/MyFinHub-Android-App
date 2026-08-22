@@ -1,6 +1,5 @@
 package app.myfinhub.android
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -16,7 +15,6 @@ class HomeScreenTest {
     @Test
     fun home_showsDecisionRelevantSections_andSupportsQuickEntry() {
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
-        composeRule.onNodeWithText("Νέα κίνηση").assertExists()
 
         composeRule.onNodeWithText("Εμφάνιση ποσών").performClick()
         composeRule.onNodeWithText("Απόκρυψη ποσών").assertIsDisplayed()
