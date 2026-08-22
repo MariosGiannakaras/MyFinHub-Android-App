@@ -5,6 +5,14 @@ plugins {
     id("com.android.compose.screenshot")
 }
 
+private fun String.asBuildConfigString(): String = "\"" +
+    replace("\\", "\\\\").replace("\"", "\\\"") +
+    "\""
+
+val myFinHubApiBaseUrl = providers.gradleProperty("MYFINHUB_API_BASE_URL").orElse("")
+val supabaseUrl = providers.gradleProperty("SUPABASE_URL").orElse("")
+val supabasePublishableKey = providers.gradleProperty("SUPABASE_PUBLISHABLE_KEY").orElse("")
+
 android {
     namespace = "app.myfinhub.android"
     compileSdk = 37
@@ -18,6 +26,22 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        buildConfigField(
+            "String",
+            "MYFINHUB_API_BASE_URL",
+            myFinHubApiBaseUrl.get().asBuildConfigString(),
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            supabaseUrl.get().asBuildConfigString(),
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            supabasePublishableKey.get().asBuildConfigString(),
+        )
     }
 
     buildTypes {
@@ -37,6 +61,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     experimentalProperties["android.experimental.enableScreenshotTest"] = true
@@ -74,16 +99,24 @@ android {
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2026.08.00")
+    val okhttpBom = platform("com.squareup.okhttp3:okhttp-bom:5.4.0")
+
     implementation(composeBom)
     androidTestImplementation(composeBom)
     screenshotTestImplementation(composeBom)
+    implementation(okhttpBom)
+    testImplementation(okhttpBom)
 
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
     implementation("androidx.navigation3:navigation3-runtime:1.1.6")
     implementation("androidx.navigation3:navigation3-ui:1.1.6")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("androidx.biometric:biometric:1.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+    implementation("com.squareup.okhttp3:okhttp")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-adaptive-navigation-suite")
     implementation("androidx.compose.material:material-icons-core")
@@ -95,6 +128,7 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver3")
 
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
