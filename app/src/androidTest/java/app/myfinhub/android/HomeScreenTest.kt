@@ -24,7 +24,7 @@ class HomeScreenTest {
             .performScrollTo()
             .assertIsDisplayed()
 
-        composeRule.onNodeWithText("Νέα κίνηση").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έξοδο").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Επιλέχθηκε: Έξοδο").assertIsDisplayed()
     }
