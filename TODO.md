@@ -20,15 +20,18 @@ Tracker: issue #3. Active implementation PR: #5.
 - [x] Define application/package ID `app.myfinhub.android` and initial `0.1.0` / versionCode 1 policy baseline.
 - [x] Configure Material 3 light/dark theme and synthetic bootstrap UI.
 - [x] Configure Material 3 Adaptive `NavigationSuiteScaffold` root shell for bottom-bar/rail adaptation.
-- [ ] Integrate Navigation 3 back stacks after the basic build gate is green.
+- [ ] Integrate Navigation 3 stable back stacks after the basic executable build gate is green.
 - [x] Configure ViewModel/StateFlow/UDF bootstrap foundation.
-- [x] Configure typed API boundary with fake/synthetic implementation first.
+- [x] Configure typed `MyFinHubApi` boundary with fake/synthetic implementation first.
 - [x] Configure Android Keystore AES-GCM primitive and an instrumented round-trip test source; no real secret storage yet.
-- [x] Add unit test and initial Compose instrumentation test source.
-- [ ] Configure official screenshot testing and build-managed compact/medium/expanded device matrix.
+- [x] Add unit tests and initial Compose instrumentation test source.
+- [x] Configure official Compose Preview Screenshot Testing `0.0.1-alpha15` with compact/light, 150%-font and expanded/dark fixtures.
+- [x] Configure Gradle Managed Devices for compact (`Pixel 6`), foldable (`Pixel Fold`) and expanded (`Pixel Tablet`) API 36 classes.
+- [x] Add Android UI Quality workflow: host screenshot path, compact PR device test, and full adaptive matrix on explicit workflow dispatch.
+- [ ] Generate and commit the first approved screenshot reference images; before references exist, CI only smoke-tests the renderer then validates the generated checkout-local baseline.
 - [x] Add public-repo-safe PR CI definition; no release secrets or signed APK artifacts.
 - [x] Correct CI SDK setup to API 37 + AGP 9.3 default Build Tools 36.0.0 (PR #7).
-- [ ] Generate/commit Gradle wrapper and confirm `test lint assembleDebug` passes.
+- [ ] Generate/commit Gradle 9.7.0 wrapper and confirm `test lint assembleDebug` passes.
 - [x] Add repository README, contribution/branch rules, Issue templates and PR template.
 - [x] Create long-lived `extensions` branch and branch-local `EXTENSIONS.md` for explicitly deferred future expansion work.
 
