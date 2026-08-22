@@ -27,12 +27,31 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
 
 @Composable
 fun MyFinHubApp(viewModel: BootstrapViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+
+    val homeBackStack = rememberNavBackStack(AppRoute.Home)
+    val activityBackStack = rememberNavBackStack(AppRoute.Activity)
+    val moneyBackStack = rememberNavBackStack(AppRoute.Money)
+    val planBackStack = rememberNavBackStack(AppRoute.Plan)
+    val insightsBackStack = rememberNavBackStack(AppRoute.Insights)
+
+    val activeBackStack: NavBackStack<NavKey> = when (currentDestination) {
+        TopLevelDestination.HOME -> homeBackStack
+        TopLevelDestination.ACTIVITY -> activityBackStack
+        TopLevelDestination.MONEY -> moneyBackStack
+        TopLevelDestination.PLAN -> planBackStack
+        TopLevelDestination.INSIGHTS -> insightsBackStack
+    }
 
     MyFinHubTheme {
         NavigationSuiteScaffold(
@@ -52,14 +71,36 @@ fun MyFinHubApp(viewModel: BootstrapViewModel = viewModel()) {
                 }
             },
         ) {
-            when (currentDestination) {
-                TopLevelDestination.HOME -> BootstrapScreen(
-                    state = state,
-                    onAcknowledge = { viewModel.onAction(BootstrapAction.AcknowledgeNativeBaseline) },
-                )
-
-                else -> DestinationPlaceholder(destination = currentDestination)
-            }
+            NavDisplay(
+                backStack = activeBackStack,
+                onBack = {
+                    if (activeBackStack.size > 1) {
+                        activeBackStack.removeLastOrNull()
+                    }
+                },
+                entryProvider = entryProvider {
+                    entry<AppRoute.Home> {
+                        BootstrapScreen(
+                            state = state,
+                            onAcknowledge = {
+                                viewModel.onAction(BootstrapAction.AcknowledgeNativeBaseline)
+                            },
+                        )
+                    }
+                    entry<AppRoute.Activity> {
+                        DestinationPlaceholder(destination = TopLevelDestination.ACTIVITY)
+                    }
+                    entry<AppRoute.Money> {
+                        DestinationPlaceholder(destination = TopLevelDestination.MONEY)
+                    }
+                    entry<AppRoute.Plan> {
+                        DestinationPlaceholder(destination = TopLevelDestination.PLAN)
+                    }
+                    entry<AppRoute.Insights> {
+                        DestinationPlaceholder(destination = TopLevelDestination.INSIGHTS)
+                    }
+                },
+            )
         }
     }
 }
