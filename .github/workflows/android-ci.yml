@@ -48,10 +48,10 @@ jobs:
         with:
           gradle-version: '9.7.0'
 
-      - name: Install Android API 37
+      - name: Provision Android SDK
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+        run: bash scripts/install-android-sdk.sh
 
       - name: Generate wrapper for validation when not committed yet
         if: steps.project.outputs.present == 'true'
