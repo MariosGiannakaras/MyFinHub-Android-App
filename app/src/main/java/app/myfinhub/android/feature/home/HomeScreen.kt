@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -83,82 +82,126 @@ fun HomeScreen(
                 .padding(innerPadding),
         ) {
             if (maxWidth >= 840.dp) {
-                HomeExpandedContent(state = state, onAction = onAction)
+                ExpandedHomeContent(
+                    state = state,
+                    onAction = onAction,
+                )
             } else {
-                HomeCompactContent(state = state, onAction = onAction)
+                CompactHomeContent(
+                    state = state,
+                    onAction = onAction,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun HomeCompactContent(
+private fun CompactHomeContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 104.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 108.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        item { HomeHeading() }
-        item { PositionCard(state = state, onToggleAmounts = { onAction(HomeAction.ToggleAmounts) }) }
-        item { AccountsCard(state = state) }
-        item { AttentionCard(items = state.attentionItems) }
-        item { UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible) }
-        item { QuickEntryCard(onOpen = { onAction(HomeAction.OpenQuickEntry) }) }
-        item { MonthFlowCard(flow = state.monthFlow, amountsVisible = state.amountsVisible) }
+        item {
+            PositionSection(state = state, onAction = onAction)
+        }
+        item {
+            AccountsSection(state = state)
+        }
+        if (state.attentionItems.isNotEmpty()) {
+            item {
+                AttentionSection(state = state)
+            }
+        }
+        if (state.upcomingItems.isNotEmpty()) {
+            item {
+                UpcomingSection(state = state)
+            }
+        }
+        item {
+            QuickEntrySection(onAction = onAction)
+        }
+        item {
+            MonthlyFlowSection(state = state)
+        }
     }
 }
 
 @Composable
-private fun HomeExpandedContent(
+private fun ExpandedHomeContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 28.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+            .padding(horizontal = 28.dp, vertical = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .weight(1.15f)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            HomeHeading()
-            PositionCard(state = state, onToggleAmounts = { onAction(HomeAction.ToggleAmounts) })
-            AccountsCard(state = state)
-            MonthFlowCard(flow = state.monthFlow, amountsVisible = state.amountsVisible)
-            Spacer(modifier = Modifier.height(88.dp))
+            PositionSection(state = state, onAction = onAction)
+            AccountsSection(state = state)
+            QuickEntrySection(onAction = onAction)
         }
         Column(
             modifier = Modifier
-                .weight(1f)
+                .weight(0.85f)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            AttentionCard(items = state.attentionItems)
-            UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible)
-            QuickEntryCard(onOpen = { onAction(HomeAction.OpenQuickEntry) })
+            if (state.attentionItems.isNotEmpty()) {
+                AttentionSection(state = state)
+            }
+            if (state.upcomingItems.isNotEmpty()) {
+                UpcomingSection(state = state)
+            }
+            MonthlyFlowSection(state = state)
             Spacer(modifier = Modifier.height(88.dp))
         }
     }
 }
 
 @Composable
-private fun HomeHeading() {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun PositionSection(
+    state: HomeUiState,
+    onAction: (HomeAction) -> Unit,
+) {
+    SectionCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                SectionHeading("Διαθέσιμη θέση")
+                Text(
+                    text = state.formattedAmount(state.liquidPositionCents),
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.semantics {
+                        contentDescription = if (state.amountsVisible) {
+                            "Διαθέσιμη θέση ${state.formattedAmount(state.liquidPositionCents)}"
+                        } else {
+                            "Διαθέσιμη θέση, ποσό κρυφό"
+                        }
+                    },
+                )
+            }
+            TextButton(onClick = { onAction(HomeAction.ToggleAmounts) }) {
+                Text(if (state.amountsVisible) "Απόκρυψη" else "Εμφάνιση")
+            }
+        }
         Text(
-            text = "Η οικονομική σου εικόνα",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.semantics { heading() },
-        )
-        Text(
-            text = "Τι έχεις διαθέσιμο, τι χρειάζεται προσοχή και τι ακολουθεί.",
+            text = "Μετρητά και άμεσα διαθέσιμα υπόλοιπα",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -166,194 +209,32 @@ private fun HomeHeading() {
 }
 
 @Composable
-private fun PositionCard(
-    state: HomeUiState,
-    onToggleAmounts: () -> Unit,
-) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = "ΔΙΑΘΕΣΙΜΑ",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = displayAmount(state.liquidTotal, state.amountsVisible),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.semantics {
-                    contentDescription = if (state.amountsVisible) {
-                        "Διαθέσιμα ${formatEuro(state.liquidTotal)}"
-                    } else {
-                        "Διαθέσιμα ποσά κρυφά"
-                    }
-                },
-            )
-            Text(
-                text = "Μετρητά και λογαριασμοί καθημερινής χρήσης",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            TextButton(onClick = onToggleAmounts) {
-                Text(if (state.amountsVisible) "Απόκρυψη ποσών" else "Εμφάνιση ποσών")
-            }
-        }
-    }
-}
-
-@Composable
-private fun AccountsCard(state: HomeUiState) {
-    SectionCard(
-        title = "Λογαριασμοί",
-        subtitle = "Ρευστότητα και αποταμίευση",
-    ) {
-        state.accounts.forEachIndexed { index, account ->
-            AccountRow(account = account, amountsVisible = state.amountsVisible)
-            if (index != state.accounts.lastIndex) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun AccountRow(
-    account: HomeAccount,
-    amountsVisible: Boolean,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(account.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = account.role,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Text(
-            text = displayAmount(account.balance, amountsVisible),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-    }
-}
-
-@Composable
-private fun AttentionCard(items: List<HomeAttentionItem>) {
-    SectionCard(
-        title = "Χρειάζεται προσοχή",
-        subtitle = "Οι επόμενες χρήσιμες ενέργειες",
-    ) {
-        if (items.isEmpty()) {
-            Text("Δεν υπάρχει κάτι που χρειάζεται άμεση ενέργεια.")
-        } else {
-            items.forEachIndexed { index, item ->
-                AttentionRow(item = item)
-                if (index != items.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AttentionRow(item: HomeAttentionItem) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = if (item.tone == HomeAttentionTone.URGENT) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer
-            },
-        ) {
-            Text(
-                text = if (item.tone == HomeAttentionTone.URGENT) "!" else "i",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Text(item.title, style = MaterialTheme.typography.titleSmall)
-            Text(
-                text = item.reason,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = item.dueLabel,
-                style = MaterialTheme.typography.labelMedium,
-                color = if (item.tone == HomeAttentionTone.URGENT) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun UpcomingCard(
-    items: List<HomeUpcomingItem>,
-    amountsVisible: Boolean,
-) {
-    SectionCard(
-        title = "Επόμενα",
-        subtitle = "Προγραμματισμένες υποχρεώσεις",
-    ) {
-        if (items.isEmpty()) {
-            Text("Δεν υπάρχουν προγραμματισμένες υποχρεώσεις.")
-        } else {
-            items.forEachIndexed { index, item ->
+private fun AccountsSection(state: HomeUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionHeading("Λογαριασμοί")
+        state.accounts.forEach { account ->
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 18.dp, vertical = 16.dp)
                         .semantics(mergeDescendants = true) {},
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(item.title, style = MaterialTheme.typography.titleSmall)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(account.name, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = item.dateLabel,
+                            account.subtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     Text(
-                        text = displayAmount(item.amount, amountsVisible),
-                        style = MaterialTheme.typography.titleSmall,
+                        text = state.formattedAmount(account.balanceCents),
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
-                }
-                if (index != items.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                 }
             }
         }
@@ -361,39 +242,94 @@ private fun UpcomingCard(
 }
 
 @Composable
-private fun QuickEntryCard(onOpen: () -> Unit) {
-    SectionCard(
-        title = "Γρήγορη καταχώριση",
-        subtitle = "Για μια καθημερινή κίνηση χωρίς περιττά βήματα",
-    ) {
-        FilledTonalButton(
-            onClick = onOpen,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Επίλεξε τύπο κίνησης")
+private fun AttentionSection(state: HomeUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionHeading("Χρειάζεται προσοχή")
+        state.attentionItems.forEach { item ->
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(item.title, style = MaterialTheme.typography.titleMedium)
+                    Text(item.detail, style = MaterialTheme.typography.bodyMedium)
+                    if (item.amountCents != null) {
+                        Text(
+                            state.formattedAmount(item.amountCents),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun MonthFlowCard(
-    flow: HomeMonthFlow,
-    amountsVisible: Boolean,
-) {
-    SectionCard(
-        title = "Αυτόν τον μήνα",
-        subtitle = "Καθαρή εικόνα πριν το αναλυτικό report",
-    ) {
-        FlowMetric(label = "Έσοδα", value = displayAmount(flow.income, amountsVisible))
-        FlowMetric(label = "Έξοδα", value = displayAmount(flow.expense, amountsVisible))
-        FlowMetric(label = "Αποταμίευση", value = displayAmount(flow.saving, amountsVisible))
-        Spacer(modifier = Modifier.height(2.dp))
+private fun UpcomingSection(state: HomeUiState) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionHeading("Επόμενα")
+        state.upcomingItems.forEach { item ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                tonalElevation = 1.dp,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .semantics(mergeDescendants = true) {},
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(item.title, style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            item.whenText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(state.formattedAmount(item.amountCents), fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickEntrySection(onAction: (HomeAction) -> Unit) {
+    SectionCard {
+        SectionHeading("Γρήγορη καταχώριση")
+        Text(
+            "Καταχώρισε νέα κίνηση χωρίς να ψάχνεις σε μενού.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(onClick = { onAction(HomeAction.OpenQuickEntry) }) {
+            Text("Νέα κίνηση")
+        }
+    }
+}
+
+@Composable
+private fun MonthlyFlowSection(state: HomeUiState) {
+    SectionCard {
+        SectionHeading("Αυτός ο μήνας")
+        FlowRow("Έσοδα", state.formattedAmount(state.monthlyFlow.incomeCents))
+        FlowRow("Έξοδα", state.formattedAmount(state.monthlyFlow.expenseCents))
+        HorizontalDivider()
+        FlowRow("Καθαρή ροή", state.formattedAmount(state.monthlyFlow.netCents), emphasize = true)
         LinearProgressIndicator(
-            progress = { flow.budgetProgress },
+            progress = { state.monthlyFlow.savingsRate },
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            text = "${(flow.budgetProgress * 100).toInt()}% του μηνιαίου προϋπολογισμού",
+            "Αποταμίευση ${(state.monthlyFlow.savingsRate * 100).toInt()}% των εσόδων",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -401,82 +337,56 @@ private fun MonthFlowCard(
 }
 
 @Composable
-private fun FlowMetric(label: String, value: String) {
+private fun FlowRow(label: String, value: String, emphasize: Boolean = false) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
+        Text(label)
+        Text(value, fontWeight = if (emphasize) FontWeight.Bold else FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
         )
     }
 }
 
 @Composable
-private fun SectionCard(
-    title: String,
-    subtitle: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            content()
-        }
-    }
+private fun SectionHeading(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.semantics { heading() },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickEntrySheet(
-    selectedType: HomeQuickEntryType?,
-    onSelect: (HomeQuickEntryType) -> Unit,
+    selectedType: QuickEntryType?,
+    onSelect: (QuickEntryType) -> Unit,
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "Γρήγορη καταχώριση",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.semantics { heading() },
-            )
-            Text(
-                text = "Επίλεξε πρώτα τον τύπο της κίνησης.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            HomeQuickEntryType.entries.forEach { type ->
-                if (selectedType == type) {
-                    Button(
+            SectionHeading("Τι θέλεις να καταχωρίσεις;")
+            QuickEntryType.entries.forEach { type ->
+                val selected = selectedType == type
+                if (selected) {
+                    FilledTonalButton(
                         onClick = { onSelect(type) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
@@ -491,30 +401,16 @@ private fun QuickEntrySheet(
                     }
                 }
             }
-            selectedType?.let { type ->
-                Text(
-                    text = "Επιλέχθηκε: ${type.label}",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.align(Alignment.End),
-            ) {
-                Text("Κλείσιμο")
-            }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
-private fun displayAmount(value: Double, visible: Boolean): String = if (visible) {
-    formatEuro(value)
-} else {
-    "•••• €"
-}
-
-private fun formatEuro(value: Double): String {
-    val symbols = DecimalFormatSymbols(Locale.forLanguageTag("el-GR"))
-    return DecimalFormat("#,##0.00 '€'", symbols).format(value)
+internal fun formatEuroCents(cents: Long): String {
+    val symbols = DecimalFormatSymbols(Locale("el", "GR")).apply {
+        decimalSeparator = ','
+        groupingSeparator = '.'
+    }
+    val formatter = DecimalFormat("#,##0.00", symbols)
+    return "${formatter.format(cents / 100.0)} €"
 }
