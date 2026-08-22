@@ -14,25 +14,30 @@
 
 ## Phase 1 — Android project bootstrap
 
-Tracker: issue #3. Active implementation PR: #5.
+Tracker: issue #3. Implementation PR: #5.
 
 - [x] Create initial Gradle/Kotlin/Compose project with pinned AGP/Kotlin/Compose/JDK/SDK versions.
 - [x] Define application/package ID `app.myfinhub.android` and initial `0.1.0` / versionCode 1 policy baseline.
 - [x] Configure Material 3 light/dark theme and synthetic bootstrap UI.
 - [x] Configure Material 3 Adaptive `NavigationSuiteScaffold` root shell for bottom-bar/rail adaptation.
-- [ ] Integrate Navigation 3 stable back stacks after the basic executable build gate is green.
+- [x] Integrate Navigation 3 stable 1.1.6 with persistent per-top-level-destination back stacks.
 - [x] Configure ViewModel/StateFlow/UDF bootstrap foundation.
 - [x] Configure typed `MyFinHubApi` boundary with fake/synthetic implementation first.
-- [x] Configure Android Keystore AES-GCM primitive and an instrumented round-trip test source; no real secret storage yet.
-- [x] Add unit tests and initial Compose instrumentation test source.
-- [x] Configure official Compose Preview Screenshot Testing `0.0.1-alpha15` with compact/light, 150%-font and expanded/dark fixtures.
-- [x] Configure Gradle Managed Devices for compact (`Pixel 6`), foldable (`Pixel Fold`) and expanded (`Pixel Tablet`) API 36 classes.
-- [x] Add Android UI Quality workflow: host screenshot path, compact PR device test, and full adaptive matrix on explicit workflow dispatch.
-- [x] Publish rendered synthetic UI screenshots as short-retention GitHub Actions artifacts so implementation visuals can be reviewed without a local IDE.
-- [ ] Generate and commit the first approved screenshot reference images; before references exist, CI only smoke-tests the renderer then validates the generated checkout-local baseline.
-- [x] Add public-repo-safe PR CI definition; no release secrets or signed APK artifacts.
-- [x] Correct Android 17 SDK provisioning to the minor-versioned `platforms;android-37.0` / Build Tools `37.0.0` packages used by current tooling.
-- [ ] Generate/commit Gradle 9.7.0 wrapper and confirm `test lint assembleDebug` passes.
+- [x] Configure Android Keystore AES-GCM primitive and an instrumented round-trip test; no real secret storage yet.
+- [x] Add unit tests and initial Compose instrumentation tests.
+- [x] Configure official Compose Preview Screenshot Testing `0.0.1-alpha15` renderer/validation infrastructure.
+- [x] Keep compact/light, 150%-font and expanded/dark preview coverage as the basis for later product goldens.
+- [x] Configure Gradle Managed Devices for compact (`Pixel 6`), foldable (`Pixel Fold`) and expanded (`Pixel Tablet`) API 36 classes for optional/full-matrix validation.
+- [x] Add Android UI Quality workflow with screenshot smoke/validation, required compact PR instrumentation, and full adaptive matrix on explicit workflow dispatch.
+- [x] Use a pinned Android emulator runner for the required compact PR smoke and prove `connectedDebugAndroidTest` green.
+- [x] Publish rendered screenshots as short-retention GitHub Actions artifacts for internal visual evidence.
+- [x] Remove bootstrap/placeholder golden PNGs before merge; first committed product goldens are deferred intentionally to the real Home screen in issue #8.
+- [x] Add public-repo-safe PR CI; no release secrets or signed APK artifacts.
+- [x] Correct Android 17 SDK provisioning to `platforms;android-37.0` / Build Tools `37.0.0`.
+- [x] Generate and commit the Gradle 9.7.0 wrapper.
+- [x] Prove `test lint assembleDebug` green on the Phase 1 cleanup head.
+- [x] Prove screenshot renderer/validation smoke green with no committed placeholder goldens.
+- [x] Prove compact API 35 instrumentation green on the Phase 1 cleanup head.
 - [x] Add repository README, contribution/branch rules, Issue templates and PR template.
 - [x] Create long-lived `extensions` branch and branch-local `EXTENSIONS.md` for explicitly deferred future expansion work.
 
@@ -40,7 +45,8 @@ Tracker: issue #3. Active implementation PR: #5.
 
 Use synthetic finance data only until the backend native-auth deployment gate is complete.
 
-- [ ] Home compact + expanded prototype.
+- [ ] Home compact + expanded prototype — issue #8 / planned `feature/home-screen`.
+- [ ] Commit real Home product screenshot goldens: compact light, compact 150% font, expanded dark.
 - [ ] Activity list -> detail/edit -> back, filters/search.
 - [ ] Quick Entry prototypes: expense, transfer, card payment, split.
 - [ ] Money/Cards list -> secure-detail prototype with fake vault.
@@ -65,6 +71,8 @@ Dependency tracker: issue #4. Implementation occurred in `MariosGiannakaras/MyFi
 - [x] Pass exact-head CI, CodeQL, cross-engine, performance and Windows Desktop regression gates.
 - [x] Squash-merge backend PR #197 to MyFinHub `develop` (`53b14e7cde63e7d84e6a552f55c709f2d746f42f`).
 - [ ] Promote/deploy the backend contract through the normal MyFinHub `develop -> main` release path before Android production-data integration is enabled.
+
+Any future base-repo Android change must be isolated in an Android-owned `android/integration-*` branch and must document why it is required, exactly what changes, the Android feature served, web/desktop impact, and the handoff needed by the other workstream.
 
 ## Phase 4 — Real backend integration and feature parity
 
