@@ -24,10 +24,7 @@ class SupabaseAuthGateway(
     override suspend fun signInWithPassword(email: String, password: CharArray): AuthResult<AuthSession> {
         if (!configuration.isConfigured) return notConfigured()
         val body = json.encodeToString(
-            PasswordGrantRequest(
-                email = email.trim(),
-                password = password.concatToString(),
-            ),
+            PasswordGrantRequest(email = email.trim(), password = password.concatToString()),
         )
         return tokenRequest("password", body, AuthFailureKind.INVALID_CREDENTIALS)
     }
@@ -37,6 +34,11 @@ class SupabaseAuthGateway(
         val body = json.encodeToString(RefreshGrantRequest(refreshToken))
         return tokenRequest("refresh_token", body, AuthFailureKind.SESSION_EXPIRED)
     }
+
+    override suspend fun validateSession(accessToken: String): AuthResult<Unit> = request(
+        request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/user", accessToken).get().build(),
+        parse = { AuthResult.Success(Unit) },
+    )
 
     override suspend fun listFactors(accessToken: String): AuthResult<List<AuthFactor>> = request(
         request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/factors", accessToken).get().build(),
@@ -64,10 +66,7 @@ class SupabaseAuthGateway(
         code: CharArray,
     ): AuthResult<AuthSession> {
         val requestBody = json.encodeToString(
-            VerifyChallengeRequest(
-                challengeId = challengeId,
-                code = code.concatToString(),
-            ),
+            VerifyChallengeRequest(challengeId = challengeId, code = code.concatToString()),
         )
         return request(
             request = authorizedRequest(
@@ -128,14 +127,10 @@ class SupabaseAuthGateway(
                     val body = response.body.string()
                     when {
                         response.isSuccessful -> parse(body)
-                        response.code == 400 || response.code == 422 ->
-                            AuthResult.Failure(invalidInputKind)
-                        response.code == 401 || response.code == 403 ->
-                            AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
-                        response.code == 429 ->
-                            AuthResult.Failure(AuthFailureKind.RATE_LIMITED, retryable = true)
-                        response.code in 500..599 ->
-                            AuthResult.Failure(AuthFailureKind.SERVER, retryable = true)
+                        response.code == 400 || response.code == 422 -> AuthResult.Failure(invalidInputKind)
+                        response.code == 401 || response.code == 403 -> AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
+                        response.code == 429 -> AuthResult.Failure(AuthFailureKind.RATE_LIMITED, retryable = true)
+                        response.code in 500..599 -> AuthResult.Failure(AuthFailureKind.SERVER, retryable = true)
                         else -> AuthResult.Failure(AuthFailureKind.SERVER)
                     }
                 }
@@ -165,15 +160,10 @@ class SupabaseAuthGateway(
 }
 
 @Serializable
-private data class PasswordGrantRequest(
-    val email: String,
-    val password: String,
-)
+private data class PasswordGrantRequest(val email: String, val password: String)
 
 @Serializable
-private data class RefreshGrantRequest(
-    @SerialName("refresh_token") val refreshToken: String,
-)
+private data class RefreshGrantRequest(@SerialName("refresh_token") val refreshToken: String)
 
 @Serializable
 private data class VerifyChallengeRequest(
@@ -194,9 +184,7 @@ private data class TokenResponse(
 private data class TokenUser(val id: String)
 
 @Serializable
-private data class FactorListResponse(
-    val all: List<FactorResponse> = emptyList(),
-)
+private data class FactorListResponse(val all: List<FactorResponse> = emptyList())
 
 @Serializable
 private data class FactorResponse(
