@@ -1,9 +1,9 @@
 name: Commit approved Home goldens
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/home-screen
+      - develop
     paths:
       - '.github/workflows/commit-home-goldens.yml'
 
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   commit-goldens:
+    if: github.head_ref == 'feature/home-screen'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
