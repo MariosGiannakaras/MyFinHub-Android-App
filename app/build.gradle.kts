@@ -27,21 +27,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        buildConfigField(
-            "String",
-            "MYFINHUB_API_BASE_URL",
-            myFinHubApiBaseUrl.get().asBuildConfigString(),
-        )
-        buildConfigField(
-            "String",
-            "SUPABASE_URL",
-            supabaseUrl.get().asBuildConfigString(),
-        )
-        buildConfigField(
-            "String",
-            "SUPABASE_PUBLISHABLE_KEY",
-            supabasePublishableKey.get().asBuildConfigString(),
-        )
+        buildConfigField("String", "MYFINHUB_API_BASE_URL", myFinHubApiBaseUrl.get().asBuildConfigString())
+        buildConfigField("String", "SUPABASE_URL", supabaseUrl.get().asBuildConfigString())
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", supabasePublishableKey.get().asBuildConfigString())
     }
 
     buildTypes {
@@ -114,6 +102,7 @@ dependencies {
     implementation("androidx.navigation3:navigation3-ui:1.1.6")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
     implementation("com.squareup.okhttp3:okhttp")
