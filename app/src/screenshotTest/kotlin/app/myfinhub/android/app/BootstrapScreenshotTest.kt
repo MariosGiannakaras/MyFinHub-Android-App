@@ -1,11 +1,9 @@
 package app.myfinhub.android.app
 
 import android.content.res.Configuration
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.designsystem.MyFinHubTheme
-import app.myfinhub.android.feature.home.HomeScreen
 import app.myfinhub.android.feature.home.syntheticHomeUiState
 import com.android.tools.screenshot.PreviewTest
 
@@ -18,7 +16,7 @@ import com.android.tools.screenshot.PreviewTest
 )
 @Composable
 fun HomeCompactLightScreenshot() {
-    HomeScreenshotFixture(darkTheme = false)
+    HomeAppScreenshotFixture(darkTheme = false)
 }
 
 @PreviewTest
@@ -31,7 +29,7 @@ fun HomeCompactLightScreenshot() {
 )
 @Composable
 fun HomeCompactLargeFontScreenshot() {
-    HomeScreenshotFixture(darkTheme = false)
+    HomeAppScreenshotFixture(darkTheme = false)
 }
 
 @PreviewTest
@@ -44,17 +42,15 @@ fun HomeCompactLargeFontScreenshot() {
 )
 @Composable
 fun HomeExpandedDarkScreenshot() {
-    HomeScreenshotFixture(darkTheme = true)
+    HomeAppScreenshotFixture(darkTheme = true)
 }
 
 @Composable
-private fun HomeScreenshotFixture(darkTheme: Boolean) {
+private fun HomeAppScreenshotFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
-        Surface {
-            HomeScreen(
-                state = syntheticHomeUiState(),
-                onAction = {},
-            )
-        }
+        MyFinHubAppContent(
+            homeState = syntheticHomeUiState(),
+            onHomeAction = {},
+        )
     }
 }
