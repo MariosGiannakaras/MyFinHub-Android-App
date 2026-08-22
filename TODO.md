@@ -8,28 +8,45 @@
 - [x] Research finance/productivity examples for translating complex desktop/web capability to mobile.
 - [x] Define mobile-first MyFinHub design contract.
 - [x] Define Android architecture/security boundary.
-- [x] Define GitHub Actions/signing/private-distribution strategy.
-- [x] Identify unavoidable non-GitHub/device/Google verification steps in advance.
-- [ ] Review/merge Phase 0 PR into `develop` after repository documentation review.
+- [x] Define GitHub Actions/signing/private-distribution constraints.
+- [x] Identify unavoidable device-local steps in advance.
+- [x] Review and squash-merge Phase 0 PR #2 into `develop`.
 
 ## Phase 1 — Android project bootstrap
 
-- [ ] Create Gradle/Kotlin/Compose project with pinned JDK/AGP/Kotlin/Compose versions.
-- [ ] Define application/package ID and versioning policy.
-- [ ] Configure Material 3 theme, dark/light, typography, spacing and synthetic preview fixtures.
-- [ ] Configure Navigation 3 and Material 3 Adaptive root scaffolding.
-- [ ] Configure ViewModel/StateFlow/UDF foundations.
-- [ ] Configure OkHttp/serialization network boundary with fake/synthetic implementation first.
-- [ ] Configure Keystore-backed secure storage primitives with tests.
-- [ ] Configure Android Lint, unit tests, Compose tests and official screenshot testing.
-- [ ] Configure build-managed virtual device matrix for compact/medium/expanded checks.
-- [ ] Add PR CI; no release secrets or signed APK artifacts yet.
+Tracker: issue #3. Implementation PR: #5.
+
+- [x] Create initial Gradle/Kotlin/Compose project with pinned AGP/Kotlin/Compose/JDK/SDK versions.
+- [x] Define application/package ID `app.myfinhub.android` and initial `0.1.0` / versionCode 1 policy baseline.
+- [x] Configure Material 3 light/dark theme and synthetic bootstrap UI.
+- [x] Configure Material 3 Adaptive `NavigationSuiteScaffold` root shell for bottom-bar/rail adaptation.
+- [x] Integrate Navigation 3 stable 1.1.6 with persistent per-top-level-destination back stacks.
+- [x] Configure ViewModel/StateFlow/UDF bootstrap foundation.
+- [x] Configure typed `MyFinHubApi` boundary with fake/synthetic implementation first.
+- [x] Configure Android Keystore AES-GCM primitive and an instrumented round-trip test; no real secret storage yet.
+- [x] Add unit tests and initial Compose instrumentation tests.
+- [x] Configure official Compose Preview Screenshot Testing `0.0.1-alpha15` renderer/validation infrastructure.
+- [x] Keep compact/light, 150%-font and expanded/dark preview coverage as the basis for later product goldens.
+- [x] Configure Gradle Managed Devices for compact (`Pixel 6`), foldable (`Pixel Fold`) and expanded (`Pixel Tablet`) API 36 classes for optional/full-matrix validation.
+- [x] Add Android UI Quality workflow with screenshot smoke/validation, required compact PR instrumentation, and full adaptive matrix on explicit workflow dispatch.
+- [x] Use a pinned Android emulator runner for the required compact PR smoke and prove `connectedDebugAndroidTest` green.
+- [x] Publish rendered screenshots as short-retention GitHub Actions artifacts for internal visual evidence.
+- [x] Remove bootstrap/placeholder golden PNGs before merge; first committed product goldens are deferred intentionally to the real Home screen in issue #8.
+- [x] Add public-repo-safe PR CI; no release secrets or signed APK artifacts.
+- [x] Correct Android 17 SDK provisioning to `platforms;android-37.0` / Build Tools `37.0.0`.
+- [x] Generate and commit the Gradle 9.7.0 wrapper.
+- [x] Prove `test lint assembleDebug` green on the Phase 1 cleanup head.
+- [x] Prove screenshot renderer/validation smoke green with no committed placeholder goldens.
+- [x] Prove compact API 35 instrumentation green on the Phase 1 cleanup head.
+- [x] Add repository README, contribution/branch rules, Issue templates and PR template.
+- [x] Create long-lived `extensions` branch and branch-local `EXTENSIONS.md` for explicitly deferred future expansion work.
 
 ## Phase 2 — Representative mobile prototypes
 
-Use synthetic finance data only until the backend native-auth gate is complete.
+Use synthetic finance data only until the backend native-auth deployment gate is complete.
 
-- [ ] Home compact + expanded prototype.
+- [ ] Home compact + expanded prototype — issue #8 / planned `feature/home-screen`.
+- [ ] Commit real Home product screenshot goldens: compact light, compact 150% font, expanded dark.
 - [ ] Activity list -> detail/edit -> back, filters/search.
 - [ ] Quick Entry prototypes: expense, transfer, card payment, split.
 - [ ] Money/Cards list -> secure-detail prototype with fake vault.
@@ -41,16 +58,21 @@ Use synthetic finance data only until the backend native-auth gate is complete.
 
 ## Phase 3 — Main MyFinHub backend native-client gate
 
-Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR workflow.
+Dependency tracker: issue #4. Implementation occurred in `MariosGiannakaras/MyFinHub` through issue #196 / PR #197.
 
-- [ ] Define native bearer authentication contract.
-- [ ] Preserve existing cookie + same-origin behavior unchanged for web/desktop.
-- [ ] Accept valid Supabase bearer JWT for native client.
-- [ ] Enforce owner UID + AAL2 + RLS/RPC for native access.
-- [ ] Preserve `If-Match` revision conflict semantics.
-- [ ] Preserve card-secret authorization/validation.
-- [ ] Add tests for valid bearer, expired/invalid token, AAL1, non-owner, mutation CSRF separation, revision conflict, card-secret access.
-- [ ] Document endpoint/client contract consumed by Android.
+- [x] Define and implement explicit native bearer authentication contract.
+- [x] Preserve existing cookie + same-origin behavior unchanged for web/desktop.
+- [x] Accept valid Supabase bearer JWT only on explicitly opted-in finance/card endpoints.
+- [x] Enforce owner UID + AAL2 + RLS/RPC for native access.
+- [x] Preserve `If-Match` revision conflict semantics.
+- [x] Preserve card-secret authorization/validation and CVV rejection.
+- [x] Add negative/positive auth, CSRF-separation, revision and card-secret tests.
+- [x] Document endpoint/client contract consumed by Android.
+- [x] Pass exact-head CI, CodeQL, cross-engine, performance and Windows Desktop regression gates.
+- [x] Squash-merge backend PR #197 to MyFinHub `develop` (`53b14e7cde63e7d84e6a552f55c709f2d746f42f`).
+- [ ] Promote/deploy the backend contract through the normal MyFinHub `develop -> main` release path before Android production-data integration is enabled.
+
+Any future base-repo Android change must be isolated in an Android-owned `android/integration-*` branch and must document why it is required, exactly what changes, the Android feature served, web/desktop impact, and the handoff needed by the other workstream.
 
 ## Phase 4 — Real backend integration and feature parity
 
@@ -81,22 +103,25 @@ Work occurs in `MariosGiannakaras/MyFinHub` through its normal Issue/branch/PR w
 - [ ] App-specific Baseline Profile generation.
 - [ ] Macrobenchmark startup/Home/Activity/Quick Entry critical journeys.
 - [ ] Release R8/minification/resource shrinking checks.
-- [ ] Install/upgrade smoke from previous signed version.
+- [ ] Final emulator/device-class regression matrix.
 
-## Phase 6 — GitHub private APK delivery
+## Phase 6 — Final run/build handoff
 
-- [ ] Create separate private GitHub distribution repository (one-time GitHub setup).
-- [ ] Create protected `android-release` GitHub environment.
-- [ ] Generate long-lived Android signing key and keep an offline encrypted recovery backup.
-- [ ] Store CI signing copy/passwords in GitHub protected secrets.
-- [ ] Store least-privilege private-distribution repository credential in GitHub secret.
-- [ ] Record expected signing certificate SHA-256 fingerprint in public config/docs.
-- [ ] Implement tag-gated `android-v*` release workflow from `main` only.
-- [ ] Verify signing/package/version/checksum before upload.
-- [ ] Upload signed APK + SHA-256 directly to private GitHub distribution release; never public artifacts/releases.
-- [ ] Track release evidence in GitHub Issue/PR/release metadata.
+The user will install Android Studio only when the application reaches the final run/build checkpoint. APK generation is therefore not a routine development artifact.
 
-## Future Android distribution requirement
+- [ ] Freeze release candidate on `main` after all functional/security/quality gates pass.
+- [ ] Document the exact Android Studio/JDK/SDK prerequisites and one-command Gradle validation path.
+- [ ] Ensure the repository opens and Gradle-syncs without secret files or local-only project surgery.
+- [ ] Provide final first-run configuration instructions for the real backend/auth values that cannot be committed to the public repository.
+- [ ] Perform final `test lint assembleDebug`/release-config validation in GitHub before handoff.
+- [ ] Have the user perform the first real-device run only at the final checkpoint.
+- [ ] Generate/sign an APK only when explicitly requested: either via Android Studio/local Gradle at handoff or through a dedicated secure release workflow added at that time.
+- [ ] Preserve one long-lived signing key once release signing begins so future versions can update the installed app.
 
-- [ ] Before Android developer-verification global enforcement affects the device/use case, choose between Google's free limited-distribution path (recommended for personal use) and the advanced unregistered-app sideload flow.
-- [ ] If using limited distribution, complete the one-time Android Developer Console package/device authorization outside GitHub; document completion/evidence in GitHub without committing personal identity data.
+### Optional future automation, not required now
+
+A private GitHub distribution repository, protected signing environment and tag-gated signed-APK workflow may be added later if automated APK delivery becomes useful. They are intentionally not prerequisites for ongoing application development.
+
+## Future platform note — not a current requirement
+
+Direct signed-APK sideloading remains the baseline. Android developer verification / limited distribution is not part of the current implementation workflow. Reassess only if future Android enforcement materially affects the personal device/use case.

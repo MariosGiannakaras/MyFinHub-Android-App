@@ -1,0 +1,133 @@
+name: Android UI Quality
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'app/**'
+      - 'scripts/install-android-sdk.sh'
+      - 'build.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/android-ui-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshot-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Screenshot renderer / visual regression
+        shell: bash
+        run: |
+          if find app/src/screenshotTestDebug/reference -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
+            ./gradlew validateDebugScreenshotTest --stacktrace
+          else
+            echo 'No committed product screenshot references yet; smoke the official renderer only.'
+            ./gradlew updateDebugScreenshotTest --stacktrace
+            ./gradlew validateDebugScreenshotTest --stacktrace
+          fi
+
+      - name: Publish rendered UI screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-ui-screenshots-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/**/*.png
+            app/build/reports/screenshotTest/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+  compact-instrumented:
+    runs-on: macos-15-intel
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision compile SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Compact emulator UI tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
+
+  full-adaptive-matrix:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Foldable and expanded managed-device tests
+        shell: bash
+        run: >-
+          ./gradlew foldableApi36DebugAndroidTest expandedApi36DebugAndroidTest
+          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+          --stacktrace
