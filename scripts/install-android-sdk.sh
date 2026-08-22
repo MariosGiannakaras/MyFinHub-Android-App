@@ -16,9 +16,11 @@ if [[ -z "$sdkmanager" || ! -x "$sdkmanager" ]]; then
   exit 1
 fi
 
-# CI images can change PATH composition; call sdkmanager by its SDK-relative path.
+# Compose 1.12 / BOM 2026.08.00 requires compileSdk 37. Android 17's SDK
+# platform is currently distributed through the beta channel, while Build Tools
+# 36.0.0 remains AGP 9.3's stable default.
 yes | "$sdkmanager" --licenses >/dev/null 2>&1 || true
-"$sdkmanager" \
+"$sdkmanager" --channel=1 \
   "platform-tools" \
   "platforms;android-37" \
   "build-tools;36.0.0"
