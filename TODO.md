@@ -14,21 +14,23 @@
 
 ## Phase 1 — Android project bootstrap
 
-Tracker: issue #3.
+Tracker: issue #3. Active implementation PR: #5.
 
 - [x] Create initial Gradle/Kotlin/Compose project with pinned AGP/Kotlin/Compose/JDK/SDK versions.
 - [x] Define application/package ID `app.myfinhub.android` and initial `0.1.0` / versionCode 1 policy baseline.
 - [x] Configure Material 3 light/dark theme and synthetic bootstrap UI.
-- [ ] Configure Navigation 3 and Material 3 Adaptive root scaffolding.
+- [x] Configure Material 3 Adaptive `NavigationSuiteScaffold` root shell for bottom-bar/rail adaptation.
+- [ ] Integrate Navigation 3 back stacks after the basic build gate is green.
 - [x] Configure ViewModel/StateFlow/UDF bootstrap foundation.
-- [ ] Configure typed network boundary with fake/synthetic implementation first.
-- [ ] Configure Keystore-backed secure storage primitives with tests.
+- [x] Configure typed API boundary with fake/synthetic implementation first.
+- [x] Configure Android Keystore AES-GCM primitive and an instrumented round-trip test source; no real secret storage yet.
 - [x] Add unit test and initial Compose instrumentation test source.
 - [ ] Configure official screenshot testing and build-managed compact/medium/expanded device matrix.
 - [x] Add public-repo-safe PR CI definition; no release secrets or signed APK artifacts.
-- [ ] Generate/commit Gradle wrapper through automated bootstrap workflow and confirm CI build passes.
+- [x] Correct CI SDK setup to API 37 + AGP 9.3 default Build Tools 36.0.0 (PR #7).
+- [ ] Generate/commit Gradle wrapper and confirm `test lint assembleDebug` passes.
 - [x] Add repository README, contribution/branch rules, Issue templates and PR template.
-- [x] Create long-lived `extensions` branch for explicitly deferred future expansion work.
+- [x] Create long-lived `extensions` branch and branch-local `EXTENSIONS.md` for explicitly deferred future expansion work.
 
 ## Phase 2 — Representative mobile prototypes
 
