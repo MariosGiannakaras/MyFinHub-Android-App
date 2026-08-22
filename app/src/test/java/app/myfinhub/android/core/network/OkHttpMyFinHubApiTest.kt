@@ -6,6 +6,7 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
