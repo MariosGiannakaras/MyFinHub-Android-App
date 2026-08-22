@@ -42,21 +42,23 @@ android {
 
     testOptions {
         animationsDisabled = true
-        managedDevices.devices {
-            create<com.android.build.api.dsl.ManagedVirtualDevice>("compactApi36") {
-                device = "Pixel 6"
-                apiLevel = 36
-                systemImageSource = "aosp"
-            }
-            create<com.android.build.api.dsl.ManagedVirtualDevice>("foldableApi36") {
-                device = "Pixel Fold"
-                apiLevel = 36
-                systemImageSource = "aosp"
-            }
-            create<com.android.build.api.dsl.ManagedVirtualDevice>("expandedApi36") {
-                device = "Pixel Tablet"
-                apiLevel = 36
-                systemImageSource = "aosp"
+        managedDevices {
+            localDevices {
+                create("compactApi36") {
+                    device = "Pixel 6"
+                    apiLevel = 36
+                    systemImageSource = "aosp"
+                }
+                create("foldableApi36") {
+                    device = "Pixel Fold"
+                    apiLevel = 36
+                    systemImageSource = "aosp"
+                }
+                create("expandedApi36") {
+                    device = "Pixel Tablet"
+                    apiLevel = 36
+                    systemImageSource = "aosp"
+                }
             }
         }
     }
