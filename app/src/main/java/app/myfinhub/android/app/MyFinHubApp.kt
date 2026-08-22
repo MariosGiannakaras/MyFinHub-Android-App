@@ -16,9 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,6 +53,7 @@ internal fun MyFinHubAppContent(
     onHomeAction: (HomeAction) -> Unit,
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    val alwaysShowNavigationLabels = LocalDensity.current.fontScale < 1.3f
 
     val homeBackStack = rememberNavBackStack(AppRoute.Home)
     val activityBackStack = rememberNavBackStack(AppRoute.Activity)
@@ -78,7 +81,14 @@ internal fun MyFinHubAppContent(
                             contentDescription = stringResource(destination.label),
                         )
                     },
-                    label = { Text(stringResource(destination.label)) },
+                    label = {
+                        Text(
+                            text = stringResource(destination.label),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    alwaysShowLabel = alwaysShowNavigationLabels,
                 )
             }
         },
