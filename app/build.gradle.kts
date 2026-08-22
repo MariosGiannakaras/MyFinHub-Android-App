@@ -48,16 +48,19 @@ android {
                     device = "Pixel 6"
                     apiLevel = 36
                     systemImageSource = "aosp"
+                    testedAbi = "x86_64"
                 }
                 create("foldableApi36") {
                     device = "Pixel Fold"
                     apiLevel = 36
                     systemImageSource = "aosp"
+                    testedAbi = "x86_64"
                 }
                 create("expandedApi36") {
                     device = "Pixel Tablet"
                     apiLevel = 36
                     systemImageSource = "aosp"
+                    testedAbi = "x86_64"
                 }
             }
         }
