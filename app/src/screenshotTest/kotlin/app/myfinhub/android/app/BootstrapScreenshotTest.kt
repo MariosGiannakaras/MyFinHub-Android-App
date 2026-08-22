@@ -2,7 +2,10 @@ package app.myfinhub.android.app
 
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
+import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.syntheticHomeUiState
 import com.android.tools.screenshot.PreviewTest
@@ -47,10 +50,16 @@ fun HomeExpandedDarkScreenshot() {
 
 @Composable
 private fun HomeAppScreenshotFixture(darkTheme: Boolean) {
-    MyFinHubTheme(darkTheme = darkTheme) {
-        MyFinHubAppContent(
-            homeState = syntheticHomeUiState(),
-            onHomeAction = {},
-        )
+    val navigationEventDispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
+
+    CompositionLocalProvider(
+        LocalNavigationEventDispatcherOwner provides navigationEventDispatcherOwner,
+    ) {
+        MyFinHubTheme(darkTheme = darkTheme) {
+            MyFinHubAppContent(
+                homeState = syntheticHomeUiState(),
+                onHomeAction = {},
+            )
+        }
     }
 }
