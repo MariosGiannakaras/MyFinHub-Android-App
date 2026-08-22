@@ -9,6 +9,7 @@ on:
       - 'app/src/main/**'
       - 'app/build.gradle.kts'
       - 'build.gradle.kts'
+      - 'gradle/wrapper/**'
       - 'scripts/install-android-sdk.sh'
       - '.github/workflows/bootstrap-screenshot-baseline.yml'
 
@@ -30,6 +31,7 @@ jobs:
         with:
           ref: feature/android-bootstrap
           fetch-depth: 0
+          persist-credentials: true
 
       - name: Detect existing references
         id: refs
@@ -80,7 +82,12 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app/src/screenshotTestDebug/reference
+          if git diff --cached --quiet; then
+            echo 'No screenshot reference changes to commit.'
+            exit 0
+          fi
           git commit -m 'test: commit initial Compose screenshot baseline'
+          git pull --rebase origin feature/android-bootstrap
           git push origin HEAD:feature/android-bootstrap
 
       - name: Baseline already committed
