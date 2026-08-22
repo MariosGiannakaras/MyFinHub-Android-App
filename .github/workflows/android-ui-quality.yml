@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   screenshot-and-compact:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
       - name: Checkout
@@ -87,7 +87,7 @@ jobs:
 
   full-adaptive-matrix:
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
       - name: Checkout
