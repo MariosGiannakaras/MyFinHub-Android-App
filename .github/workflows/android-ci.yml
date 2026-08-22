@@ -51,7 +51,7 @@ jobs:
       - name: Install Android API 37
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: sdkmanager "platforms;android-37" "build-tools;37.0.0"
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
 
       - name: Generate wrapper for validation when not committed yet
         if: steps.project.outputs.present == 'true'
