@@ -91,7 +91,7 @@ private fun BootstrapScreen(
 }
 
 @Composable
-private fun BootstrapContent(
+internal fun BootstrapContent(
     state: BootstrapUiState,
     contentPadding: PaddingValues,
     onAcknowledge: () -> Unit,
