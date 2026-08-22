@@ -7,7 +7,6 @@ on:
     paths:
       - 'app/**'
       - 'scripts/install-android-sdk.sh'
-      - 'scripts/run-compact-emulator-tests.sh'
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-ui-quality.yml'
@@ -49,7 +48,7 @@ jobs:
           if find app/src/screenshotTestDebug/reference -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
             ./gradlew validateDebugScreenshotTest --stacktrace
           else
-            echo 'No committed screenshot references yet; smoke the official renderer in this checkout.'
+            echo 'No committed product screenshot references yet; smoke the official renderer only.'
             ./gradlew updateDebugScreenshotTest validateDebugScreenshotTest --stacktrace
           fi
 
@@ -66,7 +65,7 @@ jobs:
 
   compact-instrumented:
     runs-on: macos-15-intel
-    timeout-minutes: 35
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -87,8 +86,20 @@ jobs:
         run: bash scripts/install-android-sdk.sh
 
       - name: Compact emulator UI tests
-        shell: bash
-        run: bash scripts/run-compact-emulator-tests.sh
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
 
   full-adaptive-matrix:
     if: github.event_name == 'workflow_dispatch'
