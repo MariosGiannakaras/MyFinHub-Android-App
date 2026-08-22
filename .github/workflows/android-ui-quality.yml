@@ -59,6 +59,17 @@ jobs:
             ./gradlew updateDebugScreenshotTest validateDebugScreenshotTest --stacktrace
           fi
 
+      - name: Publish rendered UI screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-ui-screenshots-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/**/*.png
+            app/build/reports/screenshotTest/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Compact managed-device UI tests
         shell: bash
         run: >-
