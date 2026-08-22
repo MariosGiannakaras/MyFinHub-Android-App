@@ -49,7 +49,8 @@ jobs:
             ./gradlew validateDebugScreenshotTest --stacktrace
           else
             echo 'No committed product screenshot references yet; smoke the official renderer only.'
-            ./gradlew updateDebugScreenshotTest validateDebugScreenshotTest --stacktrace
+            ./gradlew updateDebugScreenshotTest --stacktrace
+            ./gradlew validateDebugScreenshotTest --stacktrace
           fi
 
       - name: Publish rendered UI screenshots
