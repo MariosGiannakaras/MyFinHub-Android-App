@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - 'app/**'
+      - 'scripts/install-android-sdk.sh'
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-ui-quality.yml'
@@ -36,6 +37,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
 
       - name: Ensure wrapper exists for repository-equivalent execution
         shell: bash
@@ -79,6 +84,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
 
       - name: Ensure wrapper exists
         shell: bash
