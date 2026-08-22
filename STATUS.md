@@ -4,7 +4,7 @@
 
 Phase 0 research is complete: PR #2 was squash-merged into `develop` at `f388e4f3f44e3b3c539fd957a6bb65261fbb4e97`, and issue #1 is closed as completed.
 
-Implementation is tracked by issue #3 on `feature/android-bootstrap`; draft PR #5 targets `develop`. The backend native-client dependency is tracked separately by issue #4 so the Android client cannot bypass existing MyFinHub security contracts.
+Implementation is tracked by issue #3 on `feature/android-bootstrap`; draft PR #5 targets `develop`. The backend native-client dependency is tracked separately by issue #4.
 
 ### Repository workflow
 
@@ -12,14 +12,14 @@ Implementation is tracked by issue #3 on `feature/android-bootstrap`; draft PR #
 - `develop` — primary integration branch.
 - `extensions` — long-lived holding branch for future/deferred expansion specs/prototypes; branch-local `EXTENSIONS.md` documents its rules.
 - `feature/android-bootstrap` — active Phase 1 implementation branch.
-- CI foundation PR #6 and SDK-tool correction PR #7 were squash-merged into `develop` before the Android implementation is eligible for merge.
+- CI foundation PR #6 and SDK-tool correction PR #7 were squash-merged into `develop` before the Android implementation becomes eligible for merge.
 
 ### Phase 1 implemented checkpoints
 
 - native application id `app.myfinhub.android`, version `0.1.0` / versionCode 1;
 - AGP 9.3.0, Compose compiler 2.3.21, Compose BOM 2026.08.00;
 - compileSdk 37, targetSdk 36, minSdk 26, Java/JVM 17;
-- AGP 9 built-in Kotlin configuration corrected against current Android guidance;
+- Android 17 SDK provisioning corrected to the minor-versioned `platforms;android-37.0` + Build Tools `37.0.0` packages used by current tooling;
 - single-activity edge-to-edge Jetpack Compose app with Material 3 light/dark theme;
 - ViewModel + StateFlow + pure reducer bootstrap state;
 - Material 3 Adaptive `NavigationSuiteScaffold` using the Phase 0 five-destination hypothesis; compact and wider windows share one destination model;
@@ -28,34 +28,39 @@ Implementation is tracked by issue #3 on `feature/android-bootstrap`; draft PR #
 - unit/bootstrap Compose test sources;
 - official Compose Preview Screenshot Testing plugin `0.0.1-alpha15` configured with compact/light, compact 150%-font, and expanded/dark synthetic fixtures;
 - Gradle Managed Devices configured for compact `Pixel 6`, foldable `Pixel Fold`, and expanded `Pixel Tablet` API 36 classes;
-- `Android UI Quality` GitHub workflow added: host screenshot renderer/visual-regression path, compact managed-device test on relevant PRs, and full foldable/tablet matrix through `workflow_dispatch`;
+- `Android UI Quality` GitHub workflow: screenshot renderer/visual-regression path, compact managed-device test on relevant PRs, and full foldable/tablet matrix through `workflow_dispatch`;
+- rendered UI PNGs are now uploaded as short-retention GitHub Actions artifacts so screenshots can be reviewed directly during development without a local IDE;
 - README, contribution rules, Issue forms, PR template, TODO/status tracking;
-- public-repo-safe Android CI and a narrowly scoped wrapper-bootstrap workflow.
+- public-repo-safe Android CI with immutable action SHA pins and no release/signing secrets.
 
-### Current validation gate
+### Backend native-client gate
 
-The Gradle wrapper binary is not yet committed and no green Android build is being claimed. The connected GitHub integration used in this session has not dispatched observable Actions runs for its repository mutations, so PR #5 remains draft.
+The MyFinHub backend native bearer contract was implemented through main-repo issue #196 / PR #197 and passed exact-head CI, CodeQL, cross-engine, performance and Windows Desktop package validation. PR #197 was squash-merged to MyFinHub `develop` as `53b14e7cde63e7d84e6a552f55c709f2d746f42f`.
 
-The repository itself is prepared to automate the validation on normal GitHub events:
+The remaining backend gate is production promotion through the normal MyFinHub `develop -> main` release path before the Android client is allowed to use real production finance data. Android issue #4 remains open specifically for that deployment/consumption boundary.
 
-- bootstrap/generate Gradle 9.7.0 wrapper when absent;
-- run `test lint assembleDebug`;
-- run official Compose screenshot tooling;
-- run compact managed-device Compose tests on relevant PRs;
-- run the full foldable/expanded managed-device matrix on explicit workflow dispatch.
+### Current executable validation
 
-Before approved screenshot references exist, the UI-quality job creates a checkout-local reference set and immediately validates it. That proves the renderer/test harness path but is not treated as a visual-regression baseline. The first committed approved reference images remain an explicit unchecked gate.
+GitHub Actions are now dispatching normally from the active Android PR. The Android 17 SDK provisioning step has been proven green with `platforms;android-37.0`, and the workflows are reaching real Gradle/Compose execution.
 
-No user action is requested at this point; unresolved executable validation remains explicitly unchecked in issue #3 and `TODO.md`.
+Current gates remain conservative:
 
-### Still open in Phase 1
+- the Gradle 9.7.0 wrapper is generated in CI when missing but is not yet committed to the repository;
+- `test lint assembleDebug` must complete green before the basic build gate is checked off;
+- screenshot rendering has executed successfully in earlier runs, but the first reviewed/committed reference set is still an explicit unchecked gate;
+- the compact managed-device test must complete green before Phase 1 is closed;
+- Navigation 3 stable back-stack integration follows the green basic-build checkpoint.
 
-- obtain executable build evidence and commit the generated Gradle wrapper;
-- generate/review/commit the first screenshot reference images;
-- integrate Navigation 3 stable back stacks once the basic executable build gate is green.
+No green result is claimed until the corresponding workflow has completed successfully on the exact relevant head.
+
+### Development/run/build handoff decision
+
+The user does not need to install Android Studio during ongoing implementation. GitHub CI/emulators/screenshot artifacts are the primary development validation environment.
+
+Android Studio will be installed only when the application reaches the final run/build checkpoint. Routine development will therefore not create or distribute signed APKs. At final handoff, the repository will provide reproducible Gradle/SDK/JDK prerequisites and the first real-device run/build will be performed then. APK signing/build automation can be added at that point only if explicitly useful.
 
 ### Security/data state
 
-No production Supabase login, finance API integration, real FinanceData, PAN/expiry/CVV, signing credential or private APK is part of this checkpoint. Screenshot fixtures are synthetic. The Keystore class is a primitive only and does not persist real secrets. No WebView dependency exists.
+No production Supabase login, real FinanceData, PAN/expiry/CVV, signing credential or signed APK is part of the current Android branch. Screenshot fixtures are synthetic. The Keystore class is a primitive only and does not persist real secrets. No WebView dependency exists.
 
-Direct signed-APK sideloading remains the intended personal distribution model. Developer verification is not a current implementation requirement.
+Direct signed-APK sideloading remains the intended personal distribution model once release signing begins. Android developer verification is not a current implementation requirement.
