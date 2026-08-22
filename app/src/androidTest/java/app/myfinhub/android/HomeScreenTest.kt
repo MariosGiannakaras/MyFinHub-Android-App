@@ -24,12 +24,7 @@ class HomeScreenTest {
             .performScrollTo()
             .assertIsDisplayed()
 
-        composeRule
-            .onNodeWithText("Επίλεξε τύπο κίνησης")
-            .performScrollTo()
-            .assertIsDisplayed()
-            .performClick()
-
+        composeRule.onNodeWithText("Νέα κίνηση").performClick()
         composeRule.onNodeWithText("Έξοδο").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Επιλέχθηκε: Έξοδο").assertIsDisplayed()
     }
