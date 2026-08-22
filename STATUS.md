@@ -26,23 +26,36 @@ Implementation is tracked by issue #3 on `feature/android-bootstrap`; draft PR #
 - typed `MyFinHubApi` boundary with synthetic-only implementation and no production endpoint/credential;
 - Android Keystore AES-GCM encryption primitive plus instrumented synthetic round-trip test source;
 - unit/bootstrap Compose test sources;
+- official Compose Preview Screenshot Testing plugin `0.0.1-alpha15` configured with compact/light, compact 150%-font, and expanded/dark synthetic fixtures;
+- Gradle Managed Devices configured for compact `Pixel 6`, foldable `Pixel Fold`, and expanded `Pixel Tablet` API 36 classes;
+- `Android UI Quality` GitHub workflow added: host screenshot renderer/visual-regression path, compact managed-device test on relevant PRs, and full foldable/tablet matrix through `workflow_dispatch`;
 - README, contribution rules, Issue forms, PR template, TODO/status tracking;
 - public-repo-safe Android CI and a narrowly scoped wrapper-bootstrap workflow.
 
 ### Current validation gate
 
-The Gradle wrapper binary is not yet committed and no green Android build is being claimed. GitHub commits made through the connected GitHub integration have not dispatched observable Actions runs in this session, so PR #5 remains draft. The repository workflows are still in place for normal GitHub events and are designed to generate the Gradle 9.7.0 wrapper, run `test lint assembleDebug`, then commit only wrapper files.
+The Gradle wrapper binary is not yet committed and no green Android build is being claimed. The connected GitHub integration used in this session has not dispatched observable Actions runs for its repository mutations, so PR #5 remains draft.
 
-No user action is requested at this point; unresolved validation remains explicitly unchecked in issue #3 and `TODO.md`.
+The repository itself is prepared to automate the validation on normal GitHub events:
+
+- bootstrap/generate Gradle 9.7.0 wrapper when absent;
+- run `test lint assembleDebug`;
+- run official Compose screenshot tooling;
+- run compact managed-device Compose tests on relevant PRs;
+- run the full foldable/expanded managed-device matrix on explicit workflow dispatch.
+
+Before approved screenshot references exist, the UI-quality job creates a checkout-local reference set and immediately validates it. That proves the renderer/test harness path but is not treated as a visual-regression baseline. The first committed approved reference images remain an explicit unchecked gate.
+
+No user action is requested at this point; unresolved executable validation remains explicitly unchecked in issue #3 and `TODO.md`.
 
 ### Still open in Phase 1
 
 - obtain executable build evidence and commit the generated Gradle wrapper;
-- integrate Navigation 3 back stacks once the basic build gate is green;
-- add official Compose screenshot tests and build-managed compact/medium/expanded device matrix.
+- generate/review/commit the first screenshot reference images;
+- integrate Navigation 3 stable back stacks once the basic executable build gate is green.
 
 ### Security/data state
 
-No production Supabase login, finance API integration, real FinanceData, PAN/expiry/CVV, signing credential or private APK is part of this checkpoint. The Keystore class is a primitive only and does not persist real secrets. No WebView dependency exists.
+No production Supabase login, finance API integration, real FinanceData, PAN/expiry/CVV, signing credential or private APK is part of this checkpoint. Screenshot fixtures are synthetic. The Keystore class is a primitive only and does not persist real secrets. No WebView dependency exists.
 
 Direct signed-APK sideloading remains the intended personal distribution model. Developer verification is not a current implementation requirement.
