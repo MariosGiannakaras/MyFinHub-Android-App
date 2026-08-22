@@ -2,15 +2,10 @@ package app.myfinhub.android.app
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,10 +28,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.home.HomeScreen
+import app.myfinhub.android.feature.home.HomeViewModel
 
 @Composable
-fun MyFinHubApp(viewModel: BootstrapViewModel = viewModel()) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+fun MyFinHubApp(homeViewModel: HomeViewModel = viewModel()) {
+    val homeState by homeViewModel.state.collectAsStateWithLifecycle()
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
 
     val homeBackStack = rememberNavBackStack(AppRoute.Home)
@@ -80,11 +77,9 @@ fun MyFinHubApp(viewModel: BootstrapViewModel = viewModel()) {
                 },
                 entryProvider = entryProvider {
                     entry<AppRoute.Home> {
-                        BootstrapScreen(
-                            state = state,
-                            onAcknowledge = {
-                                viewModel.onAction(BootstrapAction.AcknowledgeNativeBaseline)
-                            },
+                        HomeScreen(
+                            state = homeState,
+                            onAction = homeViewModel::onAction,
                         )
                     }
                     entry<AppRoute.Activity> {
@@ -101,72 +96,6 @@ fun MyFinHubApp(viewModel: BootstrapViewModel = viewModel()) {
                     }
                 },
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BootstrapScreen(
-    state: BootstrapUiState,
-    onAcknowledge: () -> Unit,
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = state.title,
-                        modifier = Modifier.semantics { heading() },
-                    )
-                },
-            )
-        },
-    ) { innerPadding ->
-        BootstrapContent(
-            state = state,
-            contentPadding = innerPadding,
-            onAcknowledge = onAcknowledge,
-        )
-    }
-}
-
-@Composable
-internal fun BootstrapContent(
-    state: BootstrapUiState,
-    contentPadding: PaddingValues,
-    onAcknowledge: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            text = state.subtitle,
-            style = MaterialTheme.typography.headlineSmall,
-        )
-        Text(
-            text = state.phase,
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text("Implementation baseline", style = MaterialTheme.typography.titleMedium)
-                Text(state.architectureNote)
-                Text("Production finance data is intentionally not connected in this checkpoint.")
-            }
-        }
-        Button(
-            onClick = onAcknowledge,
-            enabled = !state.acknowledged,
-        ) {
-            Text(if (state.acknowledged) "Baseline confirmed" else "Confirm native baseline")
         }
     }
 }
@@ -193,10 +122,7 @@ private fun DestinationPlaceholder(destination: TopLevelDestination) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "Mobile-first prototype pending",
-                style = MaterialTheme.typography.headlineSmall,
-            )
+            Text(text = "Mobile-first prototype pending")
             Text("This destination is reserved by the Phase 0 information-architecture hypothesis. No desktop UI has been copied into it.")
         }
     }
