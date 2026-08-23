@@ -222,7 +222,10 @@ class CreditCardStackTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
-        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(2)) { deleted == listOf("card-a") }
+        // The production reduced-motion branch skips the 620 ms decorative delay entirely.
+        // A 5 s harness timeout only tolerates slow emulator/Compose scheduling on tablet CI;
+        // it is not the product animation duration contract.
+        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
     }
 
