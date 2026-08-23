@@ -160,6 +160,7 @@ data class EditCanonicalActivity(
         val normalizedNote = note.trim()
         require(normalizedNote.isNotBlank()) { "Η σημείωση δεν μπορεί να είναι κενή." }
         val normalizedCategory = category.trim()
+        val categoryValue = normalizedCategory.takeIf { it.isNotBlank() }?.let { JsonPrimitive(it) }
 
         val events = document.state.array("events")
         val eventIndex = events.indexOfFirst { (it as? JsonObject)?.string("id") == transactionId }
@@ -167,7 +168,7 @@ data class EditCanonicalActivity(
             val current = events[eventIndex] as JsonObject
             val updatedEvent = current
                 .updated("note", JsonPrimitive(normalizedNote))
-                .updated("category", normalizedCategory.takeIf(String::isNotBlank)?.let(::JsonPrimitive))
+                .updated("category", categoryValue)
                 .updated("updatedAt", JsonPrimitive(nowIso))
             val updatedEvents = events.toMutableList().apply { this[eventIndex] = updatedEvent }
             return document.withMutableState(document.state.updated("events", JsonArray(updatedEvents)), nowIso)
@@ -179,7 +180,7 @@ data class EditCanonicalActivity(
             val current = custom[customIndex] as JsonObject
             val updatedTx = current
                 .updated("note", JsonPrimitive(normalizedNote))
-                .updated("category", normalizedCategory.takeIf(String::isNotBlank)?.let(::JsonPrimitive))
+                .updated("category", categoryValue)
             val updatedCustom = custom.toMutableList().apply { this[customIndex] = updatedTx }
             return document.withMutableState(document.state.updated("customTransactions", JsonArray(updatedCustom)), nowIso)
         }
@@ -192,7 +193,7 @@ data class EditCanonicalActivity(
         val currentOverride = overrides[transactionId] as? JsonObject ?: seedTransaction
         val updatedOverride = currentOverride
             .updated("note", JsonPrimitive(normalizedNote))
-            .updated("category", normalizedCategory.takeIf(String::isNotBlank)?.let(::JsonPrimitive))
+            .updated("category", categoryValue)
         return document.withMutableState(
             document.state.updated("overrides", overrides.updated(transactionId, updatedOverride)),
             nowIso,
