@@ -1,0 +1,61 @@
+name: Auth golden import
+
+on:
+  push:
+    branches:
+      - feature/auth-shell
+    paths:
+      - .github/workflows/auth-golden-import.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  import-reviewed-auth-goldens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Download reviewed renderer artifact
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -o /tmp/auth-goldens.zip \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/9491779758/zip"
+          rm -rf /tmp/auth-goldens
+          mkdir -p /tmp/auth-goldens
+          unzip -q /tmp/auth-goldens.zip -d /tmp/auth-goldens
+
+      - name: Copy exact reviewed auth references
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=/tmp/auth-goldens/src/screenshotTestDebug/reference/app/myfinhub/android/feature/auth/AuthShellScreenshotTestKt
+          dest=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/auth/AuthShellScreenshotTestKt
+          mkdir -p "${dest}"
+          cp "${src}/AuthLoginCompactLightScreenshot_auth_login_compact_light_3e5c8e84_0.png" "${dest}/"
+          cp "${src}/AuthPinEnrollmentCompactLargeFontScreenshot_auth_pin_enrollment_compact_large_font_3464a141_0.png" "${dest}/"
+          cp "${src}/AuthLockedPinFallbackCompactLightScreenshot_auth_locked_pin_fallback_compact_light_35ee1851_0.png" "${dest}/"
+          test "$(find "${dest}" -maxdepth 1 -type f -name 'Auth*.png' | wc -l | tr -d ' ')" = "3"
+
+      - name: Commit reviewed binary references
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/auth/AuthShellScreenshotTestKt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${dest}"
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "test: add reviewed auth screenshot references"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
