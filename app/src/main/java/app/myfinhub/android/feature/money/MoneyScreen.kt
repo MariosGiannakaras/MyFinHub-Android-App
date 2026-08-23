@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -19,6 +21,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +36,8 @@ fun MoneyScreen(
     state: MoneyUiState,
     onOpenCard: (String) -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Χρήματα", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
@@ -44,15 +50,26 @@ fun MoneyScreen(
             }
             items(state.accounts, key = MoneyAccount::id) { account ->
                 ElevatedCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
+                    if (largeFont) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             Text(account.name, fontWeight = FontWeight.SemiBold)
                             Text(account.kind, style = MaterialTheme.typography.bodySmall)
+                            Text(formatEuro(account.balance), fontWeight = FontWeight.SemiBold)
                         }
-                        Text(formatEuro(account.balance), fontWeight = FontWeight.SemiBold)
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column {
+                                Text(account.name, fontWeight = FontWeight.SemiBold)
+                                Text(account.kind, style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text(formatEuro(account.balance), fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
@@ -75,7 +92,7 @@ fun MoneyScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .clickable { onOpenCard(card.id) },
+                        .clickable(role = Role.Button) { onOpenCard(card.id) },
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(card.nickname, fontWeight = FontWeight.SemiBold)
@@ -115,7 +132,11 @@ fun CardDetailScreen(
         },
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (card == null) {
