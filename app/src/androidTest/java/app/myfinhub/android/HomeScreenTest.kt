@@ -10,7 +10,7 @@ import org.junit.Test
 
 class HomeScreenTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
     fun home_showsDecisionRelevantSections_andSupportsQuickEntry() {

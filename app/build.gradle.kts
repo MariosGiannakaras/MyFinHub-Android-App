@@ -9,9 +9,14 @@ private fun String.asBuildConfigString(): String = "\"" +
     replace("\\", "\\\\").replace("\"", "\\\"") +
     "\""
 
-val myFinHubApiBaseUrl = providers.gradleProperty("MYFINHUB_API_BASE_URL").orElse("")
-val supabaseUrl = providers.gradleProperty("SUPABASE_URL").orElse("")
-val supabasePublishableKey = providers.gradleProperty("SUPABASE_PUBLISHABLE_KEY").orElse("")
+// Public client configuration. These values identify public endpoints and are not server secrets.
+// A developer/release environment can still override them with Gradle properties when necessary.
+val myFinHubApiBaseUrl = providers.gradleProperty("MYFINHUB_API_BASE_URL")
+    .orElse("https://mgfinhub.vercel.app")
+val supabaseUrl = providers.gradleProperty("SUPABASE_URL")
+    .orElse("https://ahsukppxwaiagampsuzb.supabase.co")
+val supabasePublishableKey = providers.gradleProperty("SUPABASE_PUBLISHABLE_KEY")
+    .orElse("sb_publishable_Ee7nzCpHN5AKwjXkPBvxdw_bTJXoJGC")
 
 android {
     namespace = "app.myfinhub.android"

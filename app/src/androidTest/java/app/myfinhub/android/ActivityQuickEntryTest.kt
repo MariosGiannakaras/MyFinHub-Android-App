@@ -10,7 +10,7 @@ import org.junit.Test
 
 class ActivityQuickEntryTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
     fun activity_supportsDetailBackAndQuickEntryNavigation() {

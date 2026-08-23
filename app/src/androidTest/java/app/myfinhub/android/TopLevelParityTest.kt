@@ -12,7 +12,7 @@ import org.junit.Test
 
 class TopLevelParityTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
     fun moneyPlanAndInsights_haveRealMobileContent() {

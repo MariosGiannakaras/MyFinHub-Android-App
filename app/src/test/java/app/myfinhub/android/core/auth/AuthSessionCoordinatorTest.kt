@@ -94,6 +94,20 @@ class AuthSessionCoordinatorTest {
         assertEquals(aal2, store.value)
     }
 
+    @Test
+    fun logout_attemptsServerRevokeAndAlwaysClearsEncryptedSessionBoundary() = runBlocking {
+        val session = aal2Session()
+        val store = InMemorySessionStore(session)
+        val gateway = FakeAuthGateway()
+        val coordinator = AuthSessionCoordinator(configured, gateway, store)
+
+        val state = coordinator.logout(session)
+
+        assertEquals(AuthAppState.LoginRequired, state)
+        assertNull(store.value)
+        assertEquals(1, gateway.signOutCalls)
+    }
+
     private fun aal1Session() = AuthSession(
         accessToken = "synthetic-aal1-token",
         refreshToken = "synthetic-refresh",
@@ -128,6 +142,7 @@ private class FakeAuthGateway(
     private val verifyResult: AuthResult<AuthSession> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
 ) : AuthGateway {
     var validateCalls: Int = 0
+    var signOutCalls: Int = 0
 
     override suspend fun signInWithPassword(email: String, password: CharArray) = signInResult
     override suspend fun refreshSession(refreshToken: String) = refreshResult
@@ -143,5 +158,8 @@ private class FakeAuthGateway(
         challengeId: String,
         code: CharArray,
     ) = verifyResult
-    override suspend fun signOut(accessToken: String): AuthResult<Unit> = AuthResult.Success(Unit)
+    override suspend fun signOut(accessToken: String): AuthResult<Unit> {
+        signOutCalls += 1
+        return AuthResult.Success(Unit)
+    }
 }
