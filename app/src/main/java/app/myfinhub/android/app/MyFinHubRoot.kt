@@ -28,6 +28,7 @@ import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
+import kotlinx.coroutines.flow.collect
 
 /**
  * Production application root.
@@ -56,6 +57,11 @@ fun MyFinHubRoot(
                 financeViewModel.clear()
                 cardSecretViewModel.clear()
             }
+        }
+    }
+    LaunchedEffect(financeViewModel, cardSecretViewModel) {
+        financeViewModel.committedCardDeletions.collect { cardId ->
+            cardSecretViewModel.purgeCard(cardId)
         }
     }
     LaunchedEffect(financeState, cardSecretState) {
