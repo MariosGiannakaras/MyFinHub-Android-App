@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -79,7 +82,9 @@ class CreditCardStackTest {
         composeRule.onNodeWithText("06/30").assertIsDisplayed()
         composeRule.onNodeWithText("418").assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription("Αντιγραφή αριθμού").performClick()
+        composeRule.onAllNodesWithContentDescription("Αντιγραφή αριθμού")
+            .filterToOne(isEnabled())
+            .performClick()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val copiedPan = clipboard.primaryClip
@@ -146,6 +151,7 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider")
             .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.89f) }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
         composeRule.runOnIdle { assertEquals(emptyList<String>(), deleted) }
@@ -175,6 +181,7 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider")
             .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.90f) }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
@@ -204,6 +211,7 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider")
             .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(1f) }
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(2)) { deleted == listOf("card-a") }
