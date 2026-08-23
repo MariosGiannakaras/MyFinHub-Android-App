@@ -44,6 +44,15 @@ android {
                 enable = true
             }
         }
+        // The Baseline Profile plugin creates this build type automatically when absent.
+        // Declaring it explicitly makes src/nonMinifiedRelease a normal AGP source set so the
+        // deterministic profiling host is actually packaged into the target APK. The plugin
+        // still overrides debuggability/minification/profileable flags for safe profile capture.
+        create("nonMinifiedRelease") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            signingConfig = signingConfigs.getByName("debug")
+        }
         create("benchmark") {
             initWith(getByName("release"))
             matchingFallbacks += listOf("release")
