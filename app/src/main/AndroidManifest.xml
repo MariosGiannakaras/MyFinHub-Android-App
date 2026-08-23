@@ -18,9 +18,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Removed by normal debug/release overlays; profiling variants explicitly retain it. -->
-        <activity
-            android:name=".BenchmarkProductActivity"
-            android:exported="true" />
     </application>
 </manifest>
