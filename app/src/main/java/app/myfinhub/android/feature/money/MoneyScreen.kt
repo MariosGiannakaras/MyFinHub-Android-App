@@ -72,12 +72,12 @@ fun MoneyScreen(
                 }
             }
             item {
-                SectionHeader("Αποταμίευση")
+                val goal = state.savingsGoal
+                SectionHeader(if (goal != null) "Στόχος αποταμίευσης" else "Αποταμίευση")
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val goal = state.savingsGoal
                     if (goal != null && goal > 0.0) {
                         LinearProgressIndicator(
                             progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
