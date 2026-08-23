@@ -11,9 +11,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyFinHub">
         <activity
-            android:name=".BenchmarkProductActivity"
-            android:exported="true" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
