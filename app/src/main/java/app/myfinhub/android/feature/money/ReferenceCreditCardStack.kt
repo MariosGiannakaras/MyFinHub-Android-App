@@ -307,8 +307,8 @@ fun CreditCardStack(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .widthIn(max = 540.dp)
+                .fillMaxWidth()
                 .aspectRatio(REFERENCE_CARD_ASPECT_RATIO)
                 .then(
                     if (stackFocused) {
@@ -762,14 +762,18 @@ private fun ReferenceSecretLine(
     copyEnabled: Boolean,
     onCopy: () -> Unit,
 ) {
+    val fontScale = LocalDensity.current.fontScale
+    val numberFontSize = if (fontScale >= 1.3f) 13.sp else 17.sp
+    val numberLetterSpacing = if (fontScale >= 1.3f) .6.sp else 1.2.sp
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text,
             color = color,
             fontFamily = FontFamily.Monospace,
-            fontSize = 17.sp,
+            fontSize = numberFontSize,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.2.sp,
+            letterSpacing = numberLetterSpacing,
             maxLines = 1,
             modifier = Modifier.weight(1f),
         )
