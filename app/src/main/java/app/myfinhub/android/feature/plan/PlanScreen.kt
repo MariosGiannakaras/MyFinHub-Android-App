@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,8 @@ fun PlanScreen(
     state: PlanUiState,
     onAction: (PlanAction) -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Πλάνο", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
@@ -41,19 +44,34 @@ fun PlanScreen(
             item { SectionTitle("Επόμενες υποχρεώσεις") }
             items(state.items, key = PlannedItem::id) { item ->
                 ElevatedCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column {
+                    if (largeFont) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             Text(item.title, fontWeight = FontWeight.SemiBold)
                             Text(
                                 "${if (item.kind == PlannedKind.RECURRING) "Επαναλαμβανόμενο" else "Προγραμματισμένο"} · ${item.dueLabel}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            Text(formatEuro(item.amount), fontWeight = FontWeight.SemiBold)
                         }
-                        Text(formatEuro(item.amount), fontWeight = FontWeight.SemiBold)
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.title, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "${if (item.kind == PlannedKind.RECURRING) "Επαναλαμβανόμενο" else "Προγραμματισμένο"} · ${item.dueLabel}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Text(formatEuro(item.amount), fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
