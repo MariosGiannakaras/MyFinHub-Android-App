@@ -8,6 +8,7 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalEventDraft
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
+import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalActivity
 import app.myfinhub.android.core.data.FinanceRepository
 import app.myfinhub.android.core.data.FinanceSyncState
@@ -148,6 +149,18 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         updateReady { ready ->
             ready.copy(projection = ready.projection.copy(activityState = reduceActivity(ready.projection.activityState, action)))
         }
+    }
+
+    fun deleteCard(cardId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null) return
+        if (ready.projection.document.canonicalCards().none { it.id == cardId && it.active }) return
+        applyMutation(
+            DeactivateCanonicalCard(
+                cardId = cardId,
+                nowIso = Instant.now().toString(),
+            ),
+        )
     }
 
     fun onQuickEntryAction(action: QuickEntryAction) {
