@@ -1,0 +1,114 @@
+package app.myfinhub.android.feature.insights
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import java.text.NumberFormat
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InsightsScreen(state: InsightsUiState) {
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Αναλύσεις", modifier = Modifier.semantics { heading() }) }) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                SectionTitle("Σύνοψη")
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ElevatedCard(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Μέση δαπάνη", style = MaterialTheme.typography.labelMedium)
+                            Text(formatEuro(state.averageMonthlySpend), style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                    ElevatedCard(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Ρυθμός αποταμίευσης", style = MaterialTheme.typography.labelMedium)
+                            Text("${state.savingsRate}%", style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                }
+            }
+            item { SectionTitle("Μηνιαία ροή") }
+            items(state.monthlyTrend, key = TrendPoint::label) { point ->
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(point.label, fontWeight = FontWeight.SemiBold)
+                    Text("Έσοδα ${formatEuro(point.income)} · Έξοδα ${formatEuro(point.expense)}")
+                    LinearProgressIndicator(
+                        progress = { (point.expense / point.income).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            item {
+                Text(
+                    "Κείμενο γραφήματος: τον Αύγουστο οι synthetic δαπάνες είναι χαμηλότερες από τον Ιούλιο και ο ρυθμός αποταμίευσης είναι θετικός.",
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item { SectionTitle("Κορυφαίες κατηγορίες") }
+            items(state.categories, key = InsightCategory::name) { category ->
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(category.name)
+                        Text(formatEuro(category.amount))
+                    }
+                    LinearProgressIndicator(progress = { category.share }, modifier = Modifier.fillMaxWidth())
+                }
+            }
+            item {
+                Text(
+                    "Τα trends είναι read projections. Drill-down θα χρησιμοποιεί τα ίδια canonical FinanceEvent δεδομένα της καρτέλας Κινήσεις, χωρίς δεύτερο analytics store.",
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp).semantics { heading() },
+    )
+}
+
+private fun formatEuro(value: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
