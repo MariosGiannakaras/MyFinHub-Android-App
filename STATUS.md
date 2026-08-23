@@ -1,8 +1,8 @@
 # MyFinHub Android status
 
-## 2026-08-23 — Production integration in progress
+## 2026-08-23 — Production canonical product integration
 
-The Android repository has completed the native foundation, representative product UI, production auth shell and canonical API/sync foundation. The active workstream is now wiring the authenticated product UI to the existing server-authoritative MyFinHub finance state.
+The Android repository has completed the native foundation, representative product UI, production auth shell and canonical API/sync foundation. PR #20 implements the production bridge from the validated authenticated session to the existing server-authoritative MyFinHub finance state.
 
 ### Integrated baseline
 
@@ -20,6 +20,7 @@ The Android repository has completed the native foundation, representative produ
 - Native auth/session foundation merged through PR #11.
 - Canonical `/api/data` bearer/revision sync foundation merged through PR #18 as `97e1578b83a1f191562c37bd2eb2038fce08a3ab`.
 - User-facing auth/local-unlock shell merged through PR #19 as `447abf20044f146a146bdd68dcca0c78c3757689`.
+- PR #20 implements authenticated canonical product state, real screen projections/writes, conflict UX and finance-state logout clearing.
 
 ### Production backend/auth state
 
@@ -35,18 +36,22 @@ The Android repository has completed the native foundation, representative produ
 
 ### Canonical finance-data state
 
-Merged PR #18 provides:
+Merged PR #18 provides the lossless canonical document, bearer/revision API client and in-memory `FinanceRepository`. PR #20 builds the product layer on top of that foundation:
 
-- lossless raw canonical JSON retention, including unknown fields;
-- typed account/event/scheduled/card projections as a foundation;
-- bearer-only GET `/api/data`;
-- AAL2 preflight;
-- PUT `/api/data` with `If-Match`;
-- explicit `REVISION_CONFLICT` mapping for HTTP 409;
-- an in-memory revision-tagged `FinanceRepository` with the server as source of truth;
-- no canonical Room/SQLite database and no sensitive HTTP logging.
-
-The active `feature/canonical-product-integration` workstream must connect the authenticated product shell to this repository, combine legacy seed/custom/override data with canonical events for complete projections, implement real writes and conflict UX, and clear finance state on logout/auth rejection.
+- validated AAL2 `AuthSession` is required before finance data can load;
+- production Ready auth loads canonical `/api/data` before exposing the product shell;
+- server remains the source of truth and loaded state remains revision-tagged in memory only;
+- Home, Activity, Money, Plan and Insights are projected from canonical seed/state data;
+- balances follow snapshot + legacy mutable delta + canonical event-leg semantics;
+- Quick Entry writes expense, transfer, card-payment and cent-exact split events;
+- Activity edits use explicit canonical note/category saves rather than per-keystroke writes;
+- Plan writes overall monthly budgets through the same revision-aware canonical state;
+- failed mutations retain a replayable local intent and 409 conflicts require an explicit replay-over-latest or discard choice;
+- finance 401/403 rejection clears finance state and returns through the normal auth logout/login path;
+- logout/session removal clears in-memory finance state;
+- MockWebServer and fail-closed tests cover bearer/no-cookie GET/PUT, `If-Match`, 409, 401 and malformed successful responses;
+- raw unknown canonical fields remain preserved across Android mutations;
+- no canonical Room/SQLite database and no sensitive HTTP logging are introduced.
 
 ### Security boundaries
 
@@ -58,7 +63,7 @@ The active `feature/canonical-product-integration` workstream must connect the a
 
 ### Remaining path
 
-1. Complete canonical product projections/writes and user-visible revision conflict handling under issue #15.
+1. Finish issue #15 with backup/import and `/api/card-secrets` client boundaries where applicable; broader desktop parity remains explicitly separate from the core production wiring.
 2. Complete card-secret/CVV, secure-screen, performance, R8, profile/benchmark and accessibility hardening under issue #13.
 3. Complete production smoke, release configuration and final Android Studio/physical-device/signing handoff under issue #14.
 
