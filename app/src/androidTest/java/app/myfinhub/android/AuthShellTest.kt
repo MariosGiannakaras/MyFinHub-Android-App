@@ -1,7 +1,6 @@
 package app.myfinhub.android
 
 import android.content.Context
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -25,21 +24,12 @@ class AuthShellTest {
     val composeRule = createAndroidComposeRule<AuthTestActivity>()
 
     @Test
-    fun loginAndTotpExposeOnlyAccountAuthenticationInputs() {
+    fun loginExposesOnlyAccountAuthenticationInputs() {
         composeRule.setContent {
-            MyFinHubTheme {
-                AuthShellScreen(
-                    state = AuthShellUiState.Login(),
-                    onSignIn = { _, password -> password.fill('\u0000') },
-                    onSubmitTotp = { code -> code.fill('\u0000') },
-                    onEnrollPin = { pin, confirmation -> pin.fill('\u0000'); confirmation.fill('\u0000') },
-                    onVerifyPin = { pin -> pin.fill('\u0000') },
-                    onBiometricSuccess = {},
-                    onPinFallbackRequested = {},
-                    readyContent = {},
-                    biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
-                )
-            }
+            AuthShellTestContent(
+                state = AuthShellUiState.Login(),
+                biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
+            )
         }
 
         composeRule.onNodeWithText("Σύνδεση στο MyFinHub").assertIsDisplayed()
@@ -47,24 +37,18 @@ class AuthShellTest {
         composeRule.onNodeWithText("Κωδικός").assertIsDisplayed()
         composeRule.onNodeWithText("Supabase URL").assertDoesNotExist()
         composeRule.onNodeWithText("Vercel project").assertDoesNotExist()
+    }
 
+    @Test
+    fun totpStateExposesAuthenticatorChallengeOnly() {
         composeRule.setContent {
-            MyFinHubTheme {
-                AuthShellScreen(
-                    state = AuthShellUiState.Mfa(
-                        session = aal1Session(),
-                        factor = AuthFactor("factor-synthetic", "totp", "verified", "Authenticator"),
-                    ),
-                    onSignIn = { _, password -> password.fill('\u0000') },
-                    onSubmitTotp = { code -> code.fill('\u0000') },
-                    onEnrollPin = { pin, confirmation -> pin.fill('\u0000'); confirmation.fill('\u0000') },
-                    onVerifyPin = { pin -> pin.fill('\u0000') },
-                    onBiometricSuccess = {},
-                    onPinFallbackRequested = {},
-                    readyContent = {},
-                    biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
-                )
-            }
+            AuthShellTestContent(
+                state = AuthShellUiState.Mfa(
+                    session = aal1Session(),
+                    factor = AuthFactor("factor-synthetic", "totp", "verified", "Authenticator"),
+                ),
+                biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
+            )
         }
 
         composeRule.onNodeWithText("Επαλήθευση δύο παραγόντων").assertIsDisplayed()
@@ -80,23 +64,15 @@ class AuthShellTest {
         var pinFallbackRequests = 0
 
         composeRule.setContent {
-            MyFinHubTheme {
-                AuthShellScreen(
-                    state = AuthShellUiState.Locked(
-                        session = aal2Session(),
-                        showPin = false,
-                        pinStatus = PinAttemptStatus(allowed = true, attemptsRemaining = 5),
-                    ),
-                    onSignIn = { _, password -> password.fill('\u0000') },
-                    onSubmitTotp = { code -> code.fill('\u0000') },
-                    onEnrollPin = { pin, confirmation -> pin.fill('\u0000'); confirmation.fill('\u0000') },
-                    onVerifyPin = { pin -> pin.fill('\u0000') },
-                    onBiometricSuccess = {},
-                    onPinFallbackRequested = { pinFallbackRequests += 1 },
-                    readyContent = {},
-                    biometricGateway = gateway,
-                )
-            }
+            AuthShellTestContent(
+                state = AuthShellUiState.Locked(
+                    session = aal2Session(),
+                    showPin = false,
+                    pinStatus = PinAttemptStatus(allowed = true, attemptsRemaining = 5),
+                ),
+                biometricGateway = gateway,
+                onPinFallbackRequested = { pinFallbackRequests += 1 },
+            )
         }
 
         composeRule.waitForIdle()
@@ -114,6 +90,30 @@ class AuthShellTest {
     )
 
     private fun aal2Session() = aal1Session().copy(assuranceLevel = AssuranceLevel.AAL2)
+}
+
+@androidx.compose.runtime.Composable
+private fun AuthShellTestContent(
+    state: AuthShellUiState,
+    biometricGateway: BiometricGateway,
+    onPinFallbackRequested: () -> Unit = {},
+) {
+    MyFinHubTheme {
+        AuthShellScreen(
+            state = state,
+            onSignIn = { _, password -> password.fill('\u0000') },
+            onSubmitTotp = { code -> code.fill('\u0000') },
+            onEnrollPin = { pin, confirmation ->
+                pin.fill('\u0000')
+                confirmation.fill('\u0000')
+            },
+            onVerifyPin = { pin -> pin.fill('\u0000') },
+            onBiometricSuccess = {},
+            onPinFallbackRequested = onPinFallbackRequested,
+            readyContent = {},
+            biometricGateway = biometricGateway,
+        )
+    }
 }
 
 private class FakeBiometricGateway(
