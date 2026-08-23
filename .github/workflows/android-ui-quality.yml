@@ -146,9 +146,7 @@ jobs:
             -camera-back none -camera-front none
           script: |
             adb shell settings put system font_scale 1.5
-            ./gradlew connectedDebugAndroidTest \
-              -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.money.CreditCardStackTest \
-              --stacktrace
+            ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.money.CreditCardStackTest --stacktrace
 
   full-adaptive-matrix:
     # PR #25 acceptance-only validation; Phase 5 PR #23 owns the permanent matrix.
