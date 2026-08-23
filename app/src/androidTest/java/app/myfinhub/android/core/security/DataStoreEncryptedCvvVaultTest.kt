@@ -21,11 +21,13 @@ class DataStoreEncryptedCvvVaultTest {
     private val vault = DataStoreEncryptedCvvVault(context, AndroidKeystoreCipher(alias))
 
     @After
-    fun cleanup() = runBlocking {
-        runCatching { vault.delete(cardId) }
-        KeyStore.getInstance("AndroidKeyStore").apply {
-            load(null)
-            deleteEntry(alias)
+    fun cleanup() {
+        runBlocking {
+            runCatching { vault.delete(cardId) }
+            KeyStore.getInstance("AndroidKeyStore").apply {
+                load(null)
+                deleteEntry(alias)
+            }
         }
     }
 
