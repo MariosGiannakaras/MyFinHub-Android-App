@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +34,7 @@ import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
 import app.myfinhub.android.feature.money.CardDetailScreen
+import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyScreen
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
@@ -86,6 +88,13 @@ internal fun MyFinHubAppContent(
     quickEntryState: QuickEntryUiState = QuickEntryUiState(),
     onQuickEntryAction: (QuickEntryAction) -> Unit = {},
     moneyState: MoneyUiState = MoneyUiState(),
+    cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    onCardDetailOpened: (String) -> Unit = {},
+    onCardDetailClosed: (String) -> Unit = {},
+    onRevealCardSecrets: () -> Unit = {},
+    onHideCardSecrets: () -> Unit = {},
+    onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
+    onDeleteLocalCvv: () -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
@@ -172,8 +181,17 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.CardDetail> { route ->
+                    DisposableEffect(route.cardId) {
+                        onCardDetailOpened(route.cardId)
+                        onDispose { onCardDetailClosed(route.cardId) }
+                    }
                     CardDetailScreen(
                         card = moneyState.cards.firstOrNull { it.id == route.cardId },
+                        secretState = cardSecretState,
+                        onReveal = onRevealCardSecrets,
+                        onHideSecrets = onHideCardSecrets,
+                        onSaveCvv = onSaveLocalCvv,
+                        onDeleteCvv = onDeleteLocalCvv,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
