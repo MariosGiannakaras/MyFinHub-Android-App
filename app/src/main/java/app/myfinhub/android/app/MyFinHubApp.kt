@@ -30,19 +30,38 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.activity.ActivityAction
+import app.myfinhub.android.feature.activity.ActivityDetailScreen
+import app.myfinhub.android.feature.activity.ActivityScreen
+import app.myfinhub.android.feature.activity.ActivityUiState
+import app.myfinhub.android.feature.activity.ActivityViewModel
 import app.myfinhub.android.feature.home.HomeAction
 import app.myfinhub.android.feature.home.HomeScreen
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeViewModel
+import app.myfinhub.android.feature.quickentry.QuickEntryAction
+import app.myfinhub.android.feature.quickentry.QuickEntryScreen
+import app.myfinhub.android.feature.quickentry.QuickEntryUiState
+import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 
 @Composable
-fun MyFinHubApp(homeViewModel: HomeViewModel = viewModel()) {
+fun MyFinHubApp(
+    homeViewModel: HomeViewModel = viewModel(),
+    activityViewModel: ActivityViewModel = viewModel(),
+    quickEntryViewModel: QuickEntryViewModel = viewModel(),
+) {
     val homeState by homeViewModel.state.collectAsStateWithLifecycle()
+    val activityState by activityViewModel.state.collectAsStateWithLifecycle()
+    val quickEntryState by quickEntryViewModel.state.collectAsStateWithLifecycle()
 
     MyFinHubTheme {
         MyFinHubAppContent(
             homeState = homeState,
             onHomeAction = homeViewModel::onAction,
+            activityState = activityState,
+            onActivityAction = activityViewModel::onAction,
+            quickEntryState = quickEntryState,
+            onQuickEntryAction = quickEntryViewModel::onAction,
         )
     }
 }
@@ -51,6 +70,10 @@ fun MyFinHubApp(homeViewModel: HomeViewModel = viewModel()) {
 internal fun MyFinHubAppContent(
     homeState: HomeUiState,
     onHomeAction: (HomeAction) -> Unit,
+    activityState: ActivityUiState = ActivityUiState(),
+    onActivityAction: (ActivityAction) -> Unit = {},
+    quickEntryState: QuickEntryUiState = QuickEntryUiState(),
+    onQuickEntryAction: (QuickEntryAction) -> Unit = {},
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     val alwaysShowNavigationLabels = LocalDensity.current.fontScale < 1.3f
@@ -96,19 +119,39 @@ internal fun MyFinHubAppContent(
         NavDisplay(
             backStack = activeBackStack,
             onBack = {
-                if (activeBackStack.size > 1) {
-                    activeBackStack.removeLastOrNull()
-                }
+                if (activeBackStack.size > 1) activeBackStack.removeLastOrNull()
             },
             entryProvider = entryProvider {
                 entry<AppRoute.Home> {
-                    HomeScreen(
-                        state = homeState,
-                        onAction = onHomeAction,
-                    )
+                    HomeScreen(state = homeState, onAction = onHomeAction)
                 }
                 entry<AppRoute.Activity> {
-                    DestinationPlaceholder(destination = TopLevelDestination.ACTIVITY)
+                    ActivityScreen(
+                        state = activityState,
+                        onAction = onActivityAction,
+                        onOpenDetail = { eventId -> activityBackStack.add(AppRoute.ActivityDetail(eventId)) },
+                        onOpenQuickEntry = { activityBackStack.add(AppRoute.QuickEntry) },
+                    )
+                }
+                entry<AppRoute.ActivityDetail> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    ActivityDetailScreen(
+                        item = item,
+                        onBack = { activityBackStack.removeLastOrNull() },
+                        onUpdateNote = { note ->
+                            onActivityAction(ActivityAction.UpdateNote(route.eventId, note))
+                        },
+                        onUpdateCategory = { category ->
+                            onActivityAction(ActivityAction.UpdateCategory(route.eventId, category))
+                        },
+                    )
+                }
+                entry<AppRoute.QuickEntry> {
+                    QuickEntryScreen(
+                        state = quickEntryState,
+                        onAction = onQuickEntryAction,
+                        onBack = { activeBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.Money> {
                     DestinationPlaceholder(destination = TopLevelDestination.MONEY)
