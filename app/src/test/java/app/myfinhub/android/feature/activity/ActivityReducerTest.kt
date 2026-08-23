@@ -21,11 +21,16 @@ class ActivityReducerTest {
     }
 
     @Test
-    fun detailEdits_updateOnlySelectedEvent() {
+    fun explicitSaveEdit_updatesOnlySelectedEvent() {
         val initial = ActivityUiState()
-        val updated = reduceActivity(initial, ActivityAction.UpdateNote("evt-1", "Νέα σημείωση"))
+        val updated = reduceActivity(
+            initial,
+            ActivityAction.SaveEdit("evt-1", note = "Νέα σημείωση", category = "Νέα κατηγορία"),
+        )
 
-        assertEquals("Νέα σημείωση", updated.items.first { it.id == "evt-1" }.subtitle)
+        val edited = updated.items.first { it.id == "evt-1" }
+        assertEquals("Νέα σημείωση", edited.subtitle)
+        assertEquals("Νέα κατηγορία", edited.category)
         assertEquals(initial.items.first { it.id == "evt-2" }, updated.items.first { it.id == "evt-2" })
     }
 }
