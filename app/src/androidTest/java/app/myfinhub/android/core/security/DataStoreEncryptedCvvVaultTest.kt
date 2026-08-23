@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,8 +37,9 @@ class DataStoreEncryptedCvvVaultTest {
         cvv.fill('\u0000')
         val loaded = vault.load(cardId)
 
-        assertArrayEquals(charArrayOf('1', '2', '3'), loaded)
-        loaded?.fill('\u0000')
+        assertNotNull(loaded)
+        assertArrayEquals(charArrayOf('1', '2', '3'), loaded!!)
+        loaded.fill('\u0000')
 
         val dataStoreFile = context.filesDir.resolve("datastore/cvv_vault.preferences_pb")
         if (dataStoreFile.exists()) {
