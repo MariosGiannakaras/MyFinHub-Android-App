@@ -1,10 +1,12 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,9 +34,9 @@ class TopLevelParityTest {
     @Test
     fun insights_drillsIntoExpenseActivityProjection() {
         composeRule.onNodeWithText("Αναλύσεις").performClick()
-        composeRule.onNodeWithText("Προβολή σχετικών κινήσεων")
-            .performScrollTo()
-            .performClick()
+        composeRule.onNodeWithTag("insights_list")
+            .performScrollToNode(hasText("Προβολή σχετικών κινήσεων"))
+        composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
         composeRule.onNodeWithText("Σούπερ μάρκετ").assertIsDisplayed()
