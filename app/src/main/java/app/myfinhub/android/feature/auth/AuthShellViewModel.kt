@@ -78,7 +78,21 @@ class AuthShellViewModel(
                     "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                 )
                 AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
-                is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                is AuthAppState.Locked -> {
+                    if (pinVerifier.isEnrolled()) {
+                        mutableState.value = lockedState(result.session)
+                    } else {
+                        // A stored AAL2 session can exist if the process died after server auth but
+                        // before local PIN enrollment completed. Do not bypass local unlock or leave
+                        // a device without enrolled biometrics permanently locked: discard that
+                        // incomplete local session and require a fresh normal login.
+                        coordinator.logout(result.session)
+                        pinLimiter.recordSuccess()
+                        mutableState.value = AuthShellUiState.Login(
+                            "Η τοπική ρύθμιση ξεκλειδώματος δεν ολοκληρώθηκε. Συνδέσου ξανά.",
+                        )
+                    }
+                }
                 is AuthAppState.Ready -> routeReady(result.session)
                 is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                 is AuthAppState.Failure -> mutableState.value = AuthShellUiState.Login(failureMessage(result.failure.kind))
