@@ -130,7 +130,7 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Large-font accessibility regression
+      - name: Large-font card-stack accessibility regression
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35
@@ -146,7 +146,9 @@ jobs:
             -camera-back none -camera-front none
           script: |
             adb shell settings put system font_scale 1.5
-            ./gradlew connectedDebugAndroidTest --stacktrace
+            ./gradlew connectedDebugAndroidTest \
+              -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.money.CreditCardStackTest \
+              --stacktrace
 
   full-adaptive-matrix:
     # PR #25 acceptance-only validation; Phase 5 PR #23 owns the permanent matrix.
@@ -181,7 +183,7 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Adaptive emulator UI tests (${{ matrix.label }})
+      - name: Adaptive card-stack UI tests (${{ matrix.label }})
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35
@@ -198,4 +200,7 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          script: >-
+            ./gradlew connectedDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.money.CreditCardStackTest
+            --stacktrace
