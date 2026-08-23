@@ -225,7 +225,7 @@ fun CardDetailScreen(
                         OutlinedTextField(
                             value = cvvDraft,
                             onValueChange = { input ->
-                                cvvDraft = input.filter(Char::isDigit).take(4)
+                                cvvDraft = input.filter { it in '0'..'9' }.take(4)
                             },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Νέο CVV για αυτή τη συσκευή") },
