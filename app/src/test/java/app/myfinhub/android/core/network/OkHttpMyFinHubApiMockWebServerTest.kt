@@ -192,7 +192,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
-    fun cardSecret404_hasDistinctFailClosedResult() = runBlocking {
+    fun cardSecret404_failsClosedWithoutExpandingGlobalFailureContract() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
@@ -206,7 +206,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val result = api.loadCardSecrets(session, "card-1")
 
             assertTrue(result is ApiResult.Failure)
-            assertEquals(ApiFailureKind.CARD_SECRET_NOT_FOUND, (result as ApiResult.Failure).kind)
+            assertEquals(ApiFailureKind.INVALID_DATA, (result as ApiResult.Failure).kind)
         }
     }
 
