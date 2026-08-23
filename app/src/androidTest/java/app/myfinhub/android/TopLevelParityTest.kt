@@ -1,8 +1,10 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +20,8 @@ class TopLevelParityTest {
     fun moneyPlanAndInsights_haveRealMobileContent() {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasText("Πιστωτική"))
         composeRule.onNodeWithText("Πιστωτική").performClick()
         composeRule.onNodeWithText(
             "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
