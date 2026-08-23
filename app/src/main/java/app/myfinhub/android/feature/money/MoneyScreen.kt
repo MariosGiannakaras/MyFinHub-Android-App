@@ -10,23 +10,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.core.security.SecureWindowProtection
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -124,8 +135,24 @@ fun MoneyScreen(
 @Composable
 fun CardDetailScreen(
     card: MoneyCard?,
+    secretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    onReveal: () -> Unit = {},
+    onHideSecrets: () -> Unit = {},
+    onSaveCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
+    onDeleteCvv: () -> Unit = {},
     onBack: () -> Unit,
 ) {
+    val relevantState = when (secretState) {
+        is CardSecretUiState.Hidden -> secretState.takeIf { it.cardId == null || it.cardId == card?.id }
+        is CardSecretUiState.Loading -> secretState.takeIf { it.cardId == card?.id }
+        is CardSecretUiState.Revealed -> secretState.takeIf { it.cardId == card?.id }
+        is CardSecretUiState.Failure -> secretState.takeIf { it.cardId == card?.id }
+        CardSecretUiState.AuthRejected -> secretState
+    } ?: CardSecretUiState.Hidden(card?.id)
+
+    SecureWindowProtection(active = relevantState is CardSecretUiState.Revealed)
+    var cvvDraft by remember(card?.id) { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -147,19 +174,103 @@ fun CardDetailScreen(
             } else {
                 Text(card.nickname, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 Text("${card.kind} •••• ${card.last4}")
-                Text("PAN/λήξη παραμένουν στο server vault και θα αποκαλύπτονται μόνο μετά από έγκυρο owner+AAL2 session.")
                 Text(
-                    if (card.vaultState == VaultState.AVAILABLE) {
-                        "Υπάρχει server-vault αναφορά για αυτή την κάρτα. Η αποκάλυψη ενεργοποιείται στο Phase 5 secure flow."
-                    } else {
-                        "Δεν υπάρχει διαθέσιμη server-vault αναφορά για αυτή την κάρτα."
-                    },
+                    "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text("Το CVV δεν αποθηκεύεται στον server και θα παραμένει αποκλειστικά device-local.")
+
+                when (relevantState) {
+                    is CardSecretUiState.Hidden -> {
+                        Button(onClick = onReveal, modifier = Modifier.fillMaxWidth()) {
+                            Text("Αποκάλυψη ασφαλών στοιχείων")
+                        }
+                        Text(
+                            "Η οθόνη και το recent-app thumbnail προστατεύονται μόνο όσο εμφανίζονται τα πραγματικά στοιχεία.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    is CardSecretUiState.Loading -> {
+                        CircularProgressIndicator()
+                        Text("Ανάκτηση ασφαλών στοιχείων…")
+                    }
+
+                    is CardSecretUiState.Failure -> {
+                        Text(relevantState.message, color = MaterialTheme.colorScheme.error)
+                        if (relevantState.retryable) {
+                            Button(onClick = onReveal, modifier = Modifier.fillMaxWidth()) {
+                                Text("Δοκιμή ξανά")
+                            }
+                        }
+                    }
+
+                    CardSecretUiState.AuthRejected -> {
+                        Text(
+                            "Η ασφαλής συνεδρία δεν είναι πλέον έγκυρη. Θα χρειαστεί νέα σύνδεση.",
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+
+                    is CardSecretUiState.Revealed -> {
+                        SecretValue(label = "PAN", value = relevantState.pan ?: "Δεν έχει αποθηκευτεί")
+                        SecretValue(label = "Λήξη", value = relevantState.expiry ?: "Δεν έχει αποθηκευτεί")
+                        SecretValue(label = "CVV", value = relevantState.cvv ?: "Δεν έχει αποθηκευτεί στη συσκευή")
+
+                        TextButton(onClick = onHideSecrets) {
+                            Text("Απόκρυψη στοιχείων")
+                        }
+
+                        OutlinedTextField(
+                            value = cvvDraft,
+                            onValueChange = { input ->
+                                cvvDraft = input.filter { it in '0'..'9' }.take(4)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Νέο CVV για αυτή τη συσκευή") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                            visualTransformation = PasswordVisualTransformation(),
+                            singleLine = true,
+                        )
+                        Button(
+                            onClick = {
+                                val chars = cvvDraft.toCharArray()
+                                cvvDraft = ""
+                                onSaveCvv(chars)
+                            },
+                            enabled = !relevantState.cvvSaving && cvvDraft.length in 3..4,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(if (relevantState.cvvSaving) "Αποθήκευση…" else "Αποθήκευση CVV στη συσκευή")
+                        }
+                        if (relevantState.cvv != null) {
+                            TextButton(
+                                onClick = onDeleteCvv,
+                                enabled = !relevantState.cvvSaving,
+                            ) {
+                                Text("Διαγραφή τοπικού CVV")
+                            }
+                        }
+                        relevantState.message?.let { message ->
+                            Text(
+                                message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun SecretValue(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
 

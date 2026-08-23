@@ -26,31 +26,42 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
+import app.myfinhub.android.feature.money.CardSecretUiState
+import app.myfinhub.android.feature.money.CardSecretViewModel
 
 /**
  * Production application root.
  *
  * Local biometric/PIN success is handled by [AuthShellViewModel]. Only an Auth Ready session is
- * handed to [FinanceProductViewModel], which loads the server-authoritative canonical document
- * before exposing the product UI.
+ * handed to production finance and card-secret controllers. Sensitive card values are never part of
+ * the canonical product state and are cleared whenever auth leaves Ready.
  */
 @Composable
 fun MyFinHubRoot(
     authViewModel: AuthShellViewModel = viewModel(),
     financeViewModel: FinanceProductViewModel = viewModel(),
+    cardSecretViewModel: CardSecretViewModel = viewModel(),
 ) {
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
+    val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState) {
         when (val state = authState) {
-            is AuthShellUiState.Ready -> financeViewModel.attachSession(state.session)
-            else -> financeViewModel.clear()
+            is AuthShellUiState.Ready -> {
+                financeViewModel.attachSession(state.session)
+                cardSecretViewModel.attachSession(state.session)
+            }
+            else -> {
+                financeViewModel.clear()
+                cardSecretViewModel.clear()
+            }
         }
     }
-    LaunchedEffect(financeState) {
-        if (financeState is FinanceProductState.AuthRejected) {
+    LaunchedEffect(financeState, cardSecretState) {
+        if (financeState is FinanceProductState.AuthRejected || cardSecretState is CardSecretUiState.AuthRejected) {
             financeViewModel.clear()
+            cardSecretViewModel.clear()
             authViewModel.logout()
         }
     }
@@ -67,6 +78,7 @@ fun MyFinHubRoot(
             readyContent = {
                 FinanceProductSurface(
                     state = financeState,
+                    cardSecretState = cardSecretState,
                     onRetryLoad = financeViewModel::retryLoad,
                     onRetryMutation = financeViewModel::retryPendingMutation,
                     onDiscardMutation = financeViewModel::discardPendingAndReload,
@@ -75,6 +87,12 @@ fun MyFinHubRoot(
                     onActivityAction = financeViewModel::onActivityAction,
                     onQuickEntryAction = financeViewModel::onQuickEntryAction,
                     onPlanAction = financeViewModel::onPlanAction,
+                    onCardDetailOpened = cardSecretViewModel::openCard,
+                    onCardDetailClosed = cardSecretViewModel::closeCard,
+                    onRevealCardSecrets = cardSecretViewModel::reveal,
+                    onHideCardSecrets = cardSecretViewModel::hideSecrets,
+                    onSaveLocalCvv = cardSecretViewModel::saveCvv,
+                    onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
                 )
             },
         )
@@ -84,6 +102,7 @@ fun MyFinHubRoot(
 @Composable
 private fun FinanceProductSurface(
     state: FinanceProductState,
+    cardSecretState: CardSecretUiState,
     onRetryLoad: () -> Unit,
     onRetryMutation: () -> Unit,
     onDiscardMutation: () -> Unit,
@@ -92,6 +111,12 @@ private fun FinanceProductSurface(
     onActivityAction: (app.myfinhub.android.feature.activity.ActivityAction) -> Unit,
     onQuickEntryAction: (app.myfinhub.android.feature.quickentry.QuickEntryAction) -> Unit,
     onPlanAction: (app.myfinhub.android.feature.plan.PlanAction) -> Unit,
+    onCardDetailOpened: (String) -> Unit,
+    onCardDetailClosed: (String) -> Unit,
+    onRevealCardSecrets: () -> Unit,
+    onHideCardSecrets: () -> Unit,
+    onSaveLocalCvv: (CharArray) -> Unit,
+    onDeleteLocalCvv: () -> Unit,
 ) {
     when (state) {
         FinanceProductState.Idle,
@@ -116,6 +141,13 @@ private fun FinanceProductSurface(
                     quickEntryState = projection.quickEntryState,
                     onQuickEntryAction = onQuickEntryAction,
                     moneyState = projection.moneyState,
+                    cardSecretState = cardSecretState,
+                    onCardDetailOpened = onCardDetailOpened,
+                    onCardDetailClosed = onCardDetailClosed,
+                    onRevealCardSecrets = onRevealCardSecrets,
+                    onHideCardSecrets = onHideCardSecrets,
+                    onSaveLocalCvv = onSaveLocalCvv,
+                    onDeleteLocalCvv = onDeleteLocalCvv,
                     planState = projection.planState,
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
