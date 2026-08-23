@@ -19,6 +19,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +39,7 @@ fun InsightsScreen(
         topBar = { TopAppBar(title = { Text("Αναλύσεις", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("insights_list"),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
