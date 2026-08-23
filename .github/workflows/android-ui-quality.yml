@@ -149,7 +149,17 @@ jobs:
 
   full-adaptive-matrix:
     runs-on: macos-15-intel
-    timeout-minutes: 60
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: foldable
+            profile: pixel_fold
+            avd_name: myfinhub-foldable
+          - label: tablet
+            profile: pixel_tablet
+            avd_name: myfinhub-tablet
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -169,9 +179,21 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Foldable and expanded managed-device tests
-        shell: bash
-        run: >-
-          ./gradlew foldableApi36DebugAndroidTest expandedApi36DebugAndroidTest
-          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-          --stacktrace
+      - name: Adaptive emulator UI tests (${{ matrix.label }})
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: ${{ matrix.profile }}
+          avd-name: ${{ matrix.avd_name }}
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: ./gradlew connectedDebugAndroidTest --stacktrace
