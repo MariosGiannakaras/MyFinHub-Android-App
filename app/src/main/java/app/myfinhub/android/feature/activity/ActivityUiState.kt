@@ -61,22 +61,20 @@ sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class Select(val id: String?) : ActivityAction
-    data class UpdateNote(val id: String, val note: String) : ActivityAction
-    data class UpdateCategory(val id: String, val category: String) : ActivityAction
+    data class SaveEdit(val id: String, val note: String, val category: String) : ActivityAction
 }
 
 fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiState = when (action) {
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     is ActivityAction.FilterChanged -> state.copy(filter = action.value)
     is ActivityAction.Select -> state.copy(selectedId = action.id)
-    is ActivityAction.UpdateNote -> state.copy(
+    is ActivityAction.SaveEdit -> state.copy(
         items = state.items.map { item ->
-            if (item.id == action.id) item.copy(subtitle = action.note) else item
-        },
-    )
-    is ActivityAction.UpdateCategory -> state.copy(
-        items = state.items.map { item ->
-            if (item.id == action.id) item.copy(category = action.category) else item
+            if (item.id == action.id) {
+                item.copy(subtitle = action.note, category = action.category.takeIf(String::isNotBlank))
+            } else {
+                item
+            }
         },
     )
 }
