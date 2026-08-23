@@ -23,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,6 +66,25 @@ class CardSecretViewModelTest {
 
         viewModel.closeCard("card-1")
         assertTrue(viewModel.state.value is CardSecretUiState.Hidden)
+    }
+
+    @Test
+    fun purgeCard_clearsRevealedStateAndDeviceLocalCvv() = runBlocking {
+        val api = FakeCardApi(ApiResult.Success(CardSecrets("4242424242424242", "12/30")))
+        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))
+        val viewModel = CardSecretViewModel(application, api, vault)
+
+        viewModel.attachSession(session)
+        viewModel.openCard("card-1")
+        viewModel.reveal()
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+
+        viewModel.purgeCard("card-1")
+        waitUntil { vault.deletedCardId == "card-1" }
+
+        assertTrue(viewModel.state.value is CardSecretUiState.Hidden)
+        assertNull(vault.load("card-1"))
+        assertEquals(0, api.serverSecretWriteCalls)
     }
 
     @Test
@@ -117,6 +137,8 @@ private class FakeCvvVault(
     private var stored: CharArray? = initial?.copyOf()
     var saved: CharArray? = null
         private set
+    var deletedCardId: String? = null
+        private set
 
     override suspend fun load(cardId: String): CharArray? = stored?.copyOf()
 
@@ -128,6 +150,7 @@ private class FakeCvvVault(
 
     override suspend fun delete(cardId: String) {
         if (failDelete) error("synthetic delete failure")
+        deletedCardId = cardId
         stored?.fill('\u0000')
         stored = null
     }
