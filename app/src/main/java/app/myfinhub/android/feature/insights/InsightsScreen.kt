@@ -18,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,8 @@ fun InsightsScreen(
     state: InsightsUiState,
     onOpenSupportingActivity: () -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Αναλύσεις", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
@@ -40,21 +43,21 @@ fun InsightsScreen(
         ) {
             item {
                 SectionTitle("Σύνοψη")
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    ElevatedCard(modifier = Modifier.weight(1f)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Μέση δαπάνη", style = MaterialTheme.typography.labelMedium)
-                            Text(formatEuro(state.averageMonthlySpend), style = MaterialTheme.typography.titleLarge)
-                        }
+                if (largeFont) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SummaryCard("Μέση δαπάνη", formatEuro(state.averageMonthlySpend), Modifier.fillMaxWidth())
+                        SummaryCard("Ρυθμός αποταμίευσης", "${state.savingsRate}%", Modifier.fillMaxWidth())
                     }
-                    ElevatedCard(modifier = Modifier.weight(1f)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Ρυθμός αποταμίευσης", style = MaterialTheme.typography.labelMedium)
-                            Text("${state.savingsRate}%", style = MaterialTheme.typography.titleLarge)
-                        }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        SummaryCard("Μέση δαπάνη", formatEuro(state.averageMonthlySpend), Modifier.weight(1f))
+                        SummaryCard("Ρυθμός αποταμίευσης", "${state.savingsRate}%", Modifier.weight(1f))
                     }
                 }
             }
@@ -86,9 +89,16 @@ fun InsightsScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(category.name)
-                        Text(formatEuro(category.amount))
+                    if (largeFont) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(category.name)
+                            Text(formatEuro(category.amount))
+                        }
+                    } else {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(category.name)
+                            Text(formatEuro(category.amount))
+                        }
                     }
                     LinearProgressIndicator(progress = { category.share }, modifier = Modifier.fillMaxWidth())
                 }
@@ -108,6 +118,16 @@ fun InsightsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SummaryCard(label: String, value: String, modifier: Modifier) {
+    ElevatedCard(modifier = modifier) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium)
+            Text(value, style = MaterialTheme.typography.titleLarge)
         }
     }
 }
