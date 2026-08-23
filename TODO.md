@@ -63,27 +63,27 @@ Tracker: issue #15.
 - [x] No canonical Room/SQLite database.
 - [x] Bearer/no-cookie, unknown-field and revision tests.
 
-### Active production product integration
-- [ ] Combine seed legacy transactions, deletions, overrides/custom transactions and canonical events in Android projections.
-- [ ] Derive account balances from snapshots + legacy deltas + event legs.
-- [ ] Wire real Home projections.
-- [ ] Wire real Activity projections and canonical note/category edits.
-- [ ] Wire Quick Entry expense, transfer, card-payment and cent-exact split writes.
-- [ ] Wire Money accounts/cards/savings/loan/lending projections without exposing secrets.
-- [ ] Wire Plan recurring/scheduled/budget projections and budget writes.
-- [ ] Wire Insights monthly/category projections and supporting Activity drill-down.
-- [ ] Surface loading/retry and explicit revision-conflict UX.
-- [ ] On finance authorization rejection, clear encrypted auth session and return to normal login.
-- [ ] Clear in-memory finance state on logout/session removal.
+### Core production product integration — PR #20
+- [x] Combine seed legacy transactions, deletions, overrides/custom transactions and canonical events in Android projections.
+- [x] Derive account balances from snapshots + legacy deltas + event legs.
+- [x] Wire real Home projections.
+- [x] Wire real Activity projections and canonical note/category edits.
+- [x] Wire Quick Entry expense, transfer, card-payment and cent-exact split writes.
+- [x] Wire Money accounts/cards/savings/loan/lending projections without exposing secrets.
+- [x] Wire Plan recurring/scheduled/budget projections and budget writes.
+- [x] Wire Insights monthly/category projections and supporting Activity drill-down.
+- [x] Surface loading/retry and explicit revision-conflict UX.
+- [x] On finance authorization rejection, clear finance state and return through normal auth logout/login.
+- [x] Clear in-memory finance state on logout/session removal.
+- [x] Expand malformed/unauthorized, MockWebServer and canonical mutation tests.
 - [ ] Add backup/import client boundaries where appropriate for mobile.
 - [ ] Add `/api/card-secrets` client boundary without CVV support.
-- [ ] Expand malformed/unauthorized and canonical mutation tests.
 
 ### Additional parity after core production wiring
-- [ ] Smart Review and Needs Attention parity.
+- [ ] Smart Review and Needs Attention parity beyond the canonical semantics already consumed by current projections.
 - [ ] Savings-specific workflows beyond current overview.
-- [ ] Loan/installment management parity.
-- [ ] Lending/receivable management parity.
+- [ ] Loan/installment management parity beyond current outstanding-balance projection.
+- [ ] Lending/receivable management parity beyond current outstanding-balance projection.
 - [ ] Recurring/scheduled edit parity.
 - [ ] Budget/rule/forecast planning parity beyond representative editor.
 - [ ] Settings parity.
