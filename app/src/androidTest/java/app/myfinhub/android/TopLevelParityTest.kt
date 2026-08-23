@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
 import org.junit.Test
 
@@ -31,7 +32,9 @@ class TopLevelParityTest {
     @Test
     fun insights_drillsIntoExpenseActivityProjection() {
         composeRule.onNodeWithText("Αναλύσεις").performClick()
-        composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
+        composeRule.onNodeWithText("Προβολή σχετικών κινήσεων")
+            .performScrollTo()
+            .performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
         composeRule.onNodeWithText("Σούπερ μάρκετ").assertIsDisplayed()
