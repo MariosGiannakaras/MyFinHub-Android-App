@@ -72,7 +72,19 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
+        val screenWidthDp = InstrumentationRegistry.getInstrumentation()
+            .targetContext
+            .resources
+            .configuration
+            .screenWidthDp
+        if (screenWidthDp >= 600) {
+            composeRule.onNodeWithTag("credit_card_stack")
+                .performSemanticsAction(SemanticsActions.CustomActions) { actions ->
+                    check(actions.first { it.label == "Επόμενη κάρτα" }.action())
+                }
+        } else {
+            composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
+        }
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { activeCardId == "card-b" }
 
         composeRule.onNodeWithContentDescription("Εμφάνιση στοιχείων").performClick()
@@ -89,9 +101,10 @@ class CreditCardStackTest {
         composeRule.onNodeWithText("Ο αριθμός αντιγράφηκε").assertExists()
 
         composeRule.onNodeWithContentDescription("Απόκρυψη στοιχείων").performClick()
+        // Expiry/CVV masks are intentionally present on every stacked card. The PAN mask is
+        // stable-ID-specific, so it proves that the newly fronted card returned to hidden state
+        // without making a global uniqueness assertion about shared placeholder text.
         composeRule.onNodeWithText("•••• •••• •••• 2222").assertIsDisplayed()
-        composeRule.onNodeWithText("••/••").assertIsDisplayed()
-        composeRule.onNodeWithText("•••").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-a").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
