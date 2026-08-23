@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,6 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -73,8 +78,9 @@ fun ActivityScreen(
                     if (selected != null) {
                         ActivityDetailContent(
                             item = selected,
-                            onUpdateNote = { onAction(ActivityAction.UpdateNote(selected.id, it)) },
-                            onUpdateCategory = { onAction(ActivityAction.UpdateCategory(selected.id, it)) },
+                            onSave = { note, category ->
+                                onAction(ActivityAction.SaveEdit(selected.id, note, category))
+                            },
                             modifier = Modifier.weight(0.85f),
                         )
                     }
@@ -178,8 +184,7 @@ private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
 fun ActivityDetailScreen(
     item: ActivityItem?,
     onBack: () -> Unit,
-    onUpdateNote: (String) -> Unit,
-    onUpdateCategory: (String) -> Unit,
+    onSave: (String, String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -194,8 +199,7 @@ fun ActivityDetailScreen(
         } else {
             ActivityDetailContent(
                 item = item,
-                onUpdateNote = onUpdateNote,
-                onUpdateCategory = onUpdateCategory,
+                onSave = onSave,
                 modifier = Modifier.padding(padding).padding(20.dp),
             )
         }
@@ -205,37 +209,44 @@ fun ActivityDetailScreen(
 @Composable
 private fun ActivityDetailContent(
     item: ActivityItem,
-    onUpdateNote: (String) -> Unit,
-    onUpdateCategory: (String) -> Unit,
+    onSave: (String, String) -> Unit,
     modifier: Modifier,
 ) {
+    var note by rememberSaveable(item.id, item.subtitle) { mutableStateOf(item.subtitle) }
+    var category by rememberSaveable(item.id, item.category) { mutableStateOf(item.category.orEmpty()) }
+
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
         Text(formatSignedEuro(item.amount), style = MaterialTheme.typography.headlineMedium)
         Text("${item.kind.label} · ${item.dateLabel}", color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         OutlinedTextField(
-            value = item.subtitle,
-            onValueChange = onUpdateNote,
+            value = note,
+            onValueChange = { note = it },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Σημείωση") },
         )
         OutlinedTextField(
-            value = item.category.orEmpty(),
-            onValueChange = onUpdateCategory,
+            value = category,
+            onValueChange = { category = it },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Κατηγορία") },
             singleLine = true,
         )
-        Text(
-            text = if (item.kind == ActivityKind.TRANSFER) {
-                "Η εσωτερική μεταφορά δεν μετρά ως έσοδο ή έξοδο."
-            } else {
-                "Οι αλλαγές αυτού του prototype είναι τοπικές και synthetic μέχρι να ενεργοποιηθεί το canonical API."
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Button(
+            onClick = { onSave(note, category) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
+        ) {
+            Text("Αποθήκευση αλλαγών")
+        }
+        if (item.kind == ActivityKind.TRANSFER) {
+            Text(
+                "Η εσωτερική μεταφορά δεν μετρά ως έσοδο ή έξοδο.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
