@@ -3,16 +3,15 @@ package app.myfinhub.android.benchmark
 import android.content.ComponentName
 import android.content.Intent
 import androidx.benchmark.macro.BaselineProfileMode
-import androidx.benchmark.macro.BaselineProfileRule
 import androidx.benchmark.macro.CompilationMode
 import androidx.benchmark.macro.ExperimentalMetricApi
 import androidx.benchmark.macro.FrameTimingMetric
-import androidx.benchmark.macro.MacrobenchmarkRule
 import androidx.benchmark.macro.MemoryUsageMetric
 import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
+import androidx.benchmark.macro.junit4.BaselineProfileRule
+import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.Until
@@ -39,11 +38,9 @@ class BaselineProfileGenerator {
         packageName = TARGET_PACKAGE,
         includeInStartupProfile = true,
     ) {
-        // Real production launcher/auth shell startup.
         pressHome()
         startActivityAndWait()
 
-        // Deterministic representative product journeys, available only in profiling variants.
         pressHome()
         startActivityAndWait(benchmarkProductIntent())
         device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)
@@ -55,7 +52,6 @@ class BaselineProfileGenerator {
     }
 }
 
-@LargeTest
 @RunWith(AndroidJUnit4::class)
 class StartupBenchmark {
     @get:Rule
@@ -78,7 +74,6 @@ class StartupBenchmark {
 }
 
 @OptIn(ExperimentalMetricApi::class)
-@LargeTest
 @RunWith(AndroidJUnit4::class)
 class CriticalJourneyBenchmark {
     @get:Rule
