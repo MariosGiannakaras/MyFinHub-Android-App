@@ -1,5 +1,7 @@
 package app.myfinhub.android.feature.money
 
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.SemanticsActions
@@ -36,7 +38,7 @@ class CreditCardStackTest {
     }
 
     @Test
-    fun verticalSwipe_reordersByStableId_andRevealFollowsFrontCard() {
+    fun verticalSwipe_reordersByStableId_revealAndCopyFollowFrontCard_andPaginationStaysStable() {
         val secretState = mutableStateOf<CardSecretUiState>(CardSecretUiState.Hidden())
         var activeCardId: String? = null
         val cards = testCards(3)
@@ -65,6 +67,11 @@ class CreditCardStackTest {
         }
 
         composeRule.waitUntil { activeCardId == "card-a" }
+        composeRule.onNodeWithTag("credit_card_stack_dots").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-a").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
+
         composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { activeCardId == "card-b" }
 
@@ -73,10 +80,23 @@ class CreditCardStackTest {
         composeRule.onNodeWithText("06/30").assertIsDisplayed()
         composeRule.onNodeWithText("418").assertIsDisplayed()
 
+        composeRule.onNodeWithContentDescription("Αντιγραφή αριθμού").performClick()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val copiedPan = clipboard.primaryClip
+            ?.takeIf { it.itemCount > 0 }
+            ?.getItemAt(0)
+            ?.coerceToText(context)
+            ?.toString()
+        assertEquals("4321 8765 2109 1234", copiedPan)
+
         composeRule.onNodeWithContentDescription("Απόκρυψη στοιχείων").performClick()
         composeRule.onNodeWithText("•••• •••• •••• 2222").assertIsDisplayed()
         composeRule.onNodeWithText("••/••").assertIsDisplayed()
         composeRule.onNodeWithText("•••").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-a").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
     }
 
     @Test
@@ -107,6 +127,34 @@ class CreditCardStackTest {
     }
 
     @Test
+    fun deleteBelowThreshold_doesNotCommit() {
+        val deleted = mutableListOf<String>()
+
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = testCards(1),
+                    secretState = CardSecretUiState.Hidden("card-a"),
+                    onActiveCardChanged = {},
+                    onRevealSecrets = {},
+                    onHideSecrets = {},
+                    onOpenCard = {},
+                    onDeleteCard = deleted::add,
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
+        composeRule.onNodeWithTag("card_delete_slider")
+            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.89f) }
+        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+
+        composeRule.runOnIdle { assertEquals(emptyList<String>(), deleted) }
+        composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_card-a").assertIsDisplayed()
+    }
+
+    @Test
     fun deleteAtThreshold_removesStableId_andAllowsEmptyStack() {
         val deleted = mutableListOf<String>()
         val cards = testCards(1)
@@ -127,7 +175,7 @@ class CreditCardStackTest {
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(1f) }
+            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.90f) }
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
