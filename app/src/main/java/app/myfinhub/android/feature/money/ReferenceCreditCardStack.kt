@@ -305,7 +305,7 @@ fun CreditCardStack(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(54.dp),
     ) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
