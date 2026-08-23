@@ -21,6 +21,7 @@ import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.ActivityDetailScreen
+import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityScreen
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.ActivityViewModel
@@ -179,7 +180,13 @@ internal fun MyFinHubAppContent(
                     PlanScreen(state = planState, onAction = onPlanAction)
                 }
                 entry<AppRoute.Insights> {
-                    InsightsScreen(state = insightsState)
+                    InsightsScreen(
+                        state = insightsState,
+                        onOpenSupportingActivity = {
+                            onActivityAction(ActivityAction.FilterChanged(ActivityFilter.EXPENSE))
+                            currentDestination = TopLevelDestination.ACTIVITY
+                        },
+                    )
                 }
             },
         )
