@@ -23,6 +23,7 @@ data class QuickEntryUiState(
     val splitPeople: Int = 2,
     val validationMessage: String? = null,
     val savedSummary: String? = null,
+    val persisted: Boolean = false,
 ) {
     val amount: Double?
         get() = amountText.replace(',', '.').toDoubleOrNull()
@@ -40,37 +41,38 @@ sealed interface QuickEntryAction {
 }
 
 fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickEntryUiState = when (action) {
-    is QuickEntryAction.SelectKind -> state.copy(kind = action.kind, validationMessage = null, savedSummary = null)
-    is QuickEntryAction.AmountChanged -> state.copy(amountText = action.value, validationMessage = null, savedSummary = null)
-    is QuickEntryAction.NoteChanged -> state.copy(note = action.value, savedSummary = null)
-    is QuickEntryAction.CategoryChanged -> state.copy(category = action.value, savedSummary = null)
-    is QuickEntryAction.DestinationChanged -> state.copy(destination = action.value, savedSummary = null)
-    is QuickEntryAction.SplitPeopleChanged -> state.copy(splitPeople = action.value.coerceIn(2, 12), savedSummary = null)
-    QuickEntryAction.Reset -> QuickEntryUiState(kind = state.kind)
-    QuickEntryAction.Save -> validateAndSave(state)
+    is QuickEntryAction.SelectKind -> state.copy(kind = action.kind, validationMessage = null, savedSummary = null, persisted = false)
+    is QuickEntryAction.AmountChanged -> state.copy(amountText = action.value, validationMessage = null, savedSummary = null, persisted = false)
+    is QuickEntryAction.NoteChanged -> state.copy(note = action.value, savedSummary = null, persisted = false)
+    is QuickEntryAction.CategoryChanged -> state.copy(category = action.value, savedSummary = null, persisted = false)
+    is QuickEntryAction.DestinationChanged -> state.copy(destination = action.value, savedSummary = null, persisted = false)
+    is QuickEntryAction.SplitPeopleChanged -> state.copy(splitPeople = action.value.coerceIn(2, 12), savedSummary = null, persisted = false)
+    QuickEntryAction.Reset -> QuickEntryUiState(kind = state.kind, fromAccount = state.fromAccount, destination = state.destination)
+    QuickEntryAction.Save -> validateAndPreview(state)
 }
 
-private fun validateAndSave(state: QuickEntryUiState): QuickEntryUiState {
+private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     val amount = state.amount
     if (amount == null || amount <= 0.0) {
-        return state.copy(validationMessage = "Βάλε ποσό μεγαλύτερο από μηδέν.", savedSummary = null)
+        return state.copy(validationMessage = "Βάλε ποσό μεγαλύτερο από μηδέν.", savedSummary = null, persisted = false)
     }
     if (state.note.isBlank()) {
-        return state.copy(validationMessage = "Πρόσθεσε μια σύντομη περιγραφή.", savedSummary = null)
+        return state.copy(validationMessage = "Πρόσθεσε μια σύντομη περιγραφή.", savedSummary = null, persisted = false)
     }
     if (state.kind == QuickEntryKind.TRANSFER && state.destination.isBlank()) {
-        return state.copy(validationMessage = "Διάλεξε προορισμό μεταφοράς.", savedSummary = null)
+        return state.copy(validationMessage = "Διάλεξε προορισμό μεταφοράς.", savedSummary = null, persisted = false)
     }
 
     val kindSummary = when (state.kind) {
         QuickEntryKind.EXPENSE -> "Έξοδο"
         QuickEntryKind.TRANSFER -> "Μεταφορά προς ${state.destination}"
         QuickEntryKind.CARD_PAYMENT -> "Πληρωμή κάρτας"
-        QuickEntryKind.SPLIT -> "Μοίρασμα σε ${state.splitPeople} άτομα"
+        QuickEntryKind.SPLIT -> "Μοίρασμα σε ${state.splitPeople} μέρη"
     }
     return state.copy(
         validationMessage = null,
         savedSummary = "$kindSummary · ${state.amountText} € · ${state.note}",
+        persisted = false,
     )
 }
 
