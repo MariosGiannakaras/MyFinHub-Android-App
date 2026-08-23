@@ -153,8 +153,9 @@ internal fun MyFinHubAppContent(
                     ActivityDetailScreen(
                         item = item,
                         onBack = { activityBackStack.removeLastOrNull() },
-                        onUpdateNote = { note -> onActivityAction(ActivityAction.UpdateNote(route.eventId, note)) },
-                        onUpdateCategory = { category -> onActivityAction(ActivityAction.UpdateCategory(route.eventId, category)) },
+                        onSave = { note, category ->
+                            onActivityAction(ActivityAction.SaveEdit(route.eventId, note, category))
+                        },
                     )
                 }
                 entry<AppRoute.QuickEntry> {

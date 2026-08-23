@@ -19,7 +19,8 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
         composeRule.onNodeWithText("Πιστωτική").performClick()
-        composeRule.onNodeWithText("PAN/λήξη παραμένουν σε server vault και αποκαλύπτονται μόνο μετά από έγκυρο owner+AAL2 session.").assertIsDisplayed()
+        composeRule.onNodeWithText("PAN/λήξη παραμένουν στο server vault και θα αποκαλύπτονται μόνο μετά από έγκυρο owner+AAL2 session.").assertIsDisplayed()
+        composeRule.onNodeWithText("Το CVV δεν αποθηκεύεται στον server και θα παραμένει αποκλειστικά device-local.").assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
         composeRule.onNodeWithText("Πλάνο").performClick()

@@ -1,68 +1,70 @@
 # MyFinHub Android status
 
-## 2026-08-22 — Phase 1 ready for merge
+## 2026-08-23 — Production canonical product integration
 
-Phase 0 research is complete: PR #2 was squash-merged into `develop` at `f388e4f3f44e3b3c539fd957a6bb65261fbb4e97`, and issue #1 is closed as completed.
+The Android repository has completed the native foundation, representative product UI, production auth shell and canonical API/sync foundation. PR #20 implements the production bridge from the validated authenticated session to the existing server-authoritative MyFinHub finance state.
 
-Phase 1 implementation is tracked by issue #3 and PR #5 on `feature/android-bootstrap`. The backend native-client dependency is tracked separately by issue #4. Phase 2A Home implementation is scoped in issue #8 and starts only after PR #5 is merged.
+### Integrated baseline
 
-### Repository workflow
+- Kotlin + Jetpack Compose + Material 3/Adaptive, single activity, Navigation 3 and ViewModel/StateFlow/UDF.
+- compileSdk 37, targetSdk 36, minSdk 26, AGP 9.3.0, Gradle 9.7.0 and Java 17.
+- Five top-level mobile destinations retained by ADR-0002: Home, Activity, Money, Plan and Insights.
+- Real product screenshot references cover Home, Phase 2B flows and native auth states; placeholder screenshots are not approved product evidence.
+- PR UI quality gate runs strict screenshot regression plus compact API 35 instrumentation. Foldable/tablet managed-device validation remains available through workflow dispatch.
 
-- `main` — release/promotion baseline.
-- `develop` — primary integration branch.
-- `extensions` — long-lived holding branch for future/deferred expansion specs/prototypes; branch-local `EXTENSIONS.md` documents its rules.
-- `feature/android-bootstrap` — Phase 1 implementation branch, now eligible for merge after final review hygiene.
-- CI foundation PR #6 and SDK-tool correction PR #7 were squash-merged into `develop` before the Android implementation.
+### Completed product work
 
-### Phase 1 completed implementation
+- Phase 1 Android bootstrap merged through PR #5.
+- Phase 2A Home merged through PR #9.
+- Phase 2B Activity, Quick Entry, Money, Plan and Insights merged through PR #17 as `eefcdaf03327a09835cd8547b688879f7a5b49ab`; issue #12 is complete.
+- Native auth/session foundation merged through PR #11.
+- Canonical `/api/data` bearer/revision sync foundation merged through PR #18 as `97e1578b83a1f191562c37bd2eb2038fce08a3ab`.
+- User-facing auth/local-unlock shell merged through PR #19 as `447abf20044f146a146bdd68dcca0c78c3757689`.
+- PR #20 implements authenticated canonical product state, real screen projections/writes, conflict UX and finance-state logout clearing.
 
-- native application id `app.myfinhub.android`, version `0.1.0` / versionCode 1;
-- AGP 9.3.0, Compose compiler 2.3.21, Compose BOM 2026.08.00;
-- compileSdk 37, targetSdk 36, minSdk 26, Java/JVM 17;
-- committed Gradle 9.7.0 wrapper;
-- Android 17 SDK provisioning using `platforms;android-37.0` + Build Tools `37.0.0`;
-- single-activity edge-to-edge Jetpack Compose app with Material 3 light/dark baseline;
-- Material 3 Adaptive `NavigationSuiteScaffold` with the five-destination prototype IA;
-- Navigation 3 stable 1.1.6 with a persistent independent back stack per top-level destination;
-- ViewModel + StateFlow + pure reducer bootstrap state;
-- typed `MyFinHubApi` boundary with synthetic-only implementation and no production endpoint/credential;
-- Android Keystore AES-GCM primitive plus instrumented synthetic round-trip test;
-- unit and Compose instrumentation tests;
-- official Compose Preview Screenshot Testing `0.0.1-alpha15` renderer/validation infrastructure;
-- optional Gradle Managed Device definitions for Pixel 6, Pixel Fold and Pixel Tablet API 36 classes;
-- required compact PR instrumentation through pinned `ReactiveCircus/android-emulator-runner` commit `a421e43855164a8197daf9d8d40fe71c6996bb0d`, API 35/default/x86_64 Pixel 6, running `connectedDebugAndroidTest`;
-- full adaptive managed-device matrix available through explicit workflow dispatch;
-- repository README, contribution/branch rules, Issue forms, PR template, TODO/status tracking;
-- public-repo-safe CI with immutable Action SHA pins and no signing/release secrets.
+### Production backend/auth state
 
-### UI screenshot policy
+- The MyFinHub native bearer contract is deployed in production through MyFinHub v1.2.0.
+- Android uses the production MyFinHub API base and public Supabase client configuration without asking the user for infrastructure keys.
+- Email/password and exact six-digit TOTP authentication are implemented.
+- AAL2 session material is encrypted at rest with Android Keystore-backed cryptography.
+- Routine relaunch is biometric-first with a local PIN fallback. The PIN is local unlock only and never substitutes for server authorization or TOTP/AAL2.
+- PIN retry throttling is persistent and escalates 30s → 2m → 10m → 1h.
+- After biometric/PIN success, the stored server session is validated/refreshed before the product shell becomes Ready. Invalid/revoked sessions return to normal login.
+- Production `MainActivity` is auth-gated. Product/auth test hosts exist only in the debug source set and are non-exported.
+- Real-device production Auth/API validation is intentionally deferred to the final Phase 6 checkpoint.
 
-Bootstrap/placeholder golden PNGs were removed before Phase 1 merge. Screenshot infrastructure remains active as an internal renderer smoke test, but placeholder renders are not treated as approved product UI and are not surfaced to the user.
+### Canonical finance-data state
 
-The first committed visual-regression references will be generated from the real Home product screen in issue #8: compact light, compact 150% font scale, and expanded dark. Only implemented application screens/flows are shown to the user.
+Merged PR #18 provides the lossless canonical document, bearer/revision API client and in-memory `FinanceRepository`. PR #20 builds the product layer on top of that foundation:
 
-### Executable validation
+- validated AAL2 `AuthSession` is required before finance data can load;
+- production Ready auth loads canonical `/api/data` before exposing the product shell;
+- server remains the source of truth and loaded state remains revision-tagged in memory only;
+- Home, Activity, Money, Plan and Insights are projected from canonical seed/state data;
+- balances follow snapshot + legacy mutable delta + canonical event-leg semantics;
+- Quick Entry writes expense, transfer, card-payment and cent-exact split events;
+- Activity edits use explicit canonical note/category saves rather than per-keystroke writes;
+- Plan writes overall monthly budgets through the same revision-aware canonical state;
+- failed mutations retain a replayable local intent and 409 conflicts require an explicit replay-over-latest or discard choice;
+- finance 401/403 rejection clears finance state and returns through the normal auth logout/login path;
+- logout/session removal clears in-memory finance state;
+- MockWebServer and fail-closed tests cover bearer/no-cookie GET/PUT, `If-Match`, 409, 401 and malformed successful responses;
+- raw unknown canonical fields remain preserved across Android mutations;
+- no canonical Room/SQLite database and no sensitive HTTP logging are introduced.
 
-On cleanup head `21741ff16b9f585e6394cd95b9890555276a90b4`:
+### Security boundaries
 
-- Android CI run #59: `test`, `lint`, and `assembleDebug` completed successfully.
-- Android UI Quality run #44: screenshot renderer/validation smoke completed successfully with no committed bootstrap goldens.
-- Android UI Quality run #44: compact API 35 instrumentation completed successfully using the pinned emulator runner.
+- Never log passwords, PINs, TOTP, bearer/refresh tokens, FinanceData, PAN, expiry or CVV.
+- PAN/expiry remain server-vault data behind owner+AAL2 `/api/card-secrets` access.
+- CVV will be device-local Android Keystore AES-GCM only and will never be synchronized, logged or backed up.
+- No service-role/server-vault secret, `CARD_VAULT_KEY`, signing password or GitHub token belongs in source or the APK.
+- No signed APK is generated during routine development.
 
-The immediately preceding emulator-runner checkpoint also completed `connectedDebugAndroidTest` with 2 tests, 0 skipped, 0 failed, confirming the runner path independently of the cleanup-only changes.
+### Remaining path
 
-### Backend native-client gate
+1. Finish issue #15 with backup/import and `/api/card-secrets` client boundaries where applicable; broader desktop parity remains explicitly separate from the core production wiring.
+2. Complete card-secret/CVV, secure-screen, performance, R8, profile/benchmark and accessibility hardening under issue #13.
+3. Complete production smoke, release configuration and final Android Studio/physical-device/signing handoff under issue #14.
 
-The MyFinHub backend native bearer contract was implemented through main-repo issue #196 / PR #197 and squash-merged to MyFinHub `develop` as `53b14e7cde63e7d84e6a552f55c709f2d746f42f` after its required checks passed.
-
-Future Android-related changes to the base `MyFinHub` repository must use a dedicated Android-owned `android/integration-*` branch and remain strictly limited to the minimum Android integration scope. The remaining backend gate is production promotion through the normal MyFinHub release workstream before Android production finance-data integration is enabled.
-
-### Development/run/build handoff
-
-Android Studio is not required from the user during ongoing implementation. GitHub CI/emulators are the primary development validation environment. Android Studio will be installed only when the application reaches the final run/build checkpoint. Routine development will not generate or distribute signed APKs.
-
-### Security/data state
-
-No production Supabase login, real FinanceData, PAN/expiry/CVV, signing credential or signed APK is part of Phase 1. Test/screenshot fixtures are synthetic. The Keystore class is a primitive only and does not persist real secrets. No WebView dependency exists.
-
-Direct signed-APK sideloading remains the intended personal distribution model once release signing begins. Android developer verification is not a current implementation requirement.
+Android Studio remains unnecessary for the user until the final handoff. GitHub CI and emulators remain the development validation environment.

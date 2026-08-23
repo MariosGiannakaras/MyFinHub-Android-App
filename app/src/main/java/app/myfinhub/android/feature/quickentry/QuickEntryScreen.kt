@@ -85,7 +85,11 @@ fun QuickEntryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Περιγραφή") },
             )
-            if (state.kind == QuickEntryKind.EXPENSE || state.kind == QuickEntryKind.CARD_PAYMENT) {
+            if (
+                state.kind == QuickEntryKind.EXPENSE ||
+                state.kind == QuickEntryKind.CARD_PAYMENT ||
+                state.kind == QuickEntryKind.SPLIT
+            ) {
                 OutlinedTextField(
                     value = state.category,
                     onValueChange = { onAction(QuickEntryAction.CategoryChanged(it)) },
@@ -126,15 +130,17 @@ fun QuickEntryScreen(
             }
             state.savedSummary?.let { summary ->
                 Text(
-                    text = "Έτοιμο: $summary",
+                    text = if (state.persisted) "Αποθηκεύτηκε: $summary" else "Έτοιμο: $summary",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleSmall,
                 )
-                Text(
-                    "Στο prototype δεν γράφεται πραγματικό FinanceData μέχρι να ενεργοποιηθεί το canonical API.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (!state.persisted) {
+                    Text(
+                        "Το debug/test host κρατά μόνο preview και δεν γράφει canonical δεδομένα.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Button(
                 onClick = { onAction(QuickEntryAction.Save) },

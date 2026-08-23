@@ -27,7 +27,7 @@ enum class VaultState { LOCKED, AVAILABLE }
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = syntheticMoneyAccounts(),
     val cards: List<MoneyCard> = syntheticMoneyCards(),
-    val savingsGoal: Double = 6_000.0,
+    val savingsGoal: Double? = 6_000.0,
     val savingsCurrent: Double = 2_850.0,
     val loanOutstanding: Double = 4_240.0,
     val lendingReceivable: Double = 310.0,

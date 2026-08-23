@@ -45,9 +45,7 @@ fun MoneyScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item {
-                SectionHeader("Λογαριασμοί")
-            }
+            item { SectionHeader("Λογαριασμοί") }
             items(state.accounts, key = MoneyAccount::id) { account ->
                 ElevatedCard(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
                     if (largeFont) {
@@ -74,16 +72,21 @@ fun MoneyScreen(
                 }
             }
             item {
-                SectionHeader("Στόχος αποταμίευσης")
+                val goal = state.savingsGoal
+                SectionHeader(if (goal != null) "Στόχος αποταμίευσης" else "Αποταμίευση")
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    LinearProgressIndicator(
-                        progress = { (state.savingsCurrent / state.savingsGoal).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text("${formatEuro(state.savingsCurrent)} από ${formatEuro(state.savingsGoal)}")
+                    if (goal != null && goal > 0.0) {
+                        LinearProgressIndicator(
+                            progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text("${formatEuro(state.savingsCurrent)} από ${formatEuro(goal)}")
+                    } else {
+                        Text("Τρέχον υπόλοιπο αποταμίευσης: ${formatEuro(state.savingsCurrent)}")
+                    }
                 }
             }
             item { SectionHeader("Κάρτες") }
@@ -144,17 +147,17 @@ fun CardDetailScreen(
             } else {
                 Text(card.nickname, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 Text("${card.kind} •••• ${card.last4}")
-                Text("PAN/λήξη παραμένουν σε server vault και αποκαλύπτονται μόνο μετά από έγκυρο owner+AAL2 session.")
+                Text("PAN/λήξη παραμένουν στο server vault και θα αποκαλύπτονται μόνο μετά από έγκυρο owner+AAL2 session.")
                 Text(
                     if (card.vaultState == VaultState.AVAILABLE) {
-                        "Synthetic vault status: διαθέσιμο για ασφαλή αποκάλυψη όταν συνδεθεί το Phase 5 flow."
+                        "Υπάρχει server-vault αναφορά για αυτή την κάρτα. Η αποκάλυψη ενεργοποιείται στο Phase 5 secure flow."
                     } else {
-                        "Synthetic vault status: κλειδωμένο."
+                        "Δεν υπάρχει διαθέσιμη server-vault αναφορά για αυτή την κάρτα."
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text("CVV δεν υπάρχει σε server ή synthetic fixture· θα παραμένει αποκλειστικά device-local.")
+                Text("Το CVV δεν αποθηκεύεται στον server και θα παραμένει αποκλειστικά device-local.")
             }
         }
     }

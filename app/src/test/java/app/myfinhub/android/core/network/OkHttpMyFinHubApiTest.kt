@@ -104,6 +104,41 @@ class OkHttpMyFinHubApiTest {
     }
 
     @Test
+    fun unauthorizedResponse_failsClosedAsAuthRequired() = runBlocking {
+        val interceptor = RecordingInterceptor(401, """{"error":"invalid bearer"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.AUTH_REQUIRED, result.kind)
+        assertEquals("Bearer synthetic-bearer", interceptor.request?.header("Authorization"))
+        assertFalse(interceptor.request?.headers?.names()?.contains("Cookie") ?: true)
+    }
+
+    @Test
+    fun malformedSuccessfulEnvelope_failsClosed() = runBlocking {
+        val interceptor = RecordingInterceptor(200, """{"data":{"state":{}},"lastSavedAt":"x"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+        val result = api.loadFinanceData(session) as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.MALFORMED_RESPONSE, result.kind)
+    }
+
+    @Test
+    fun malformedSuccessfulWriteReceipt_failsClosed() = runBlocking {
+        val interceptor = RecordingInterceptor(200, """{"lastSavedAt":"x"}""")
+        val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
+        val document = CanonicalFinanceDocument(
+            Json.parseToJsonElement("""{"updatedAt":"2026-08-22T00:00:00Z","state":{},"seed":{}}""").jsonObject,
+        )
+
+        val result = api.saveMutableState(session, document, "7") as ApiResult.Failure
+
+        assertEquals(ApiFailureKind.MALFORMED_RESPONSE, result.kind)
+    }
+
+    @Test
     fun aal1Session_failsBeforeNetwork() = runBlocking {
         val interceptor = RecordingInterceptor(200, "{}")
         val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
