@@ -8,7 +8,7 @@
 
 - [x] Kotlin/Compose project, Material 3/Adaptive, Navigation 3 and ViewModel/StateFlow/UDF.
 - [x] compileSdk 37 / targetSdk 36 / minSdk 26, AGP 9.3.0, Gradle 9.7.0, Java 17.
-- [x] Keystore primitive, tests, screenshot infrastructure, compact instrumentation and adaptive managed-device definitions.
+- [x] Keystore primitive, tests, screenshot infrastructure, compact instrumentation and adaptive test foundations.
 - [x] Public-repo-safe CI and repository contribution/branch documentation.
 - [x] Phase 1 merged through PR #5.
 
@@ -20,7 +20,7 @@
 - [x] Money/Cards, Plan and Insights mobile flows.
 - [x] Insights → Activity drill-down.
 - [x] Representative adaptive list-detail layout.
-- [x] Large-font, TalkBack semantics and touch-target validation.
+- [x] Large-font, TalkBack semantics and touch-target validation foundation.
 - [x] Retain five top-level destinations and record ADR-0002.
 - [x] Phase 2B merged through PR #17; issue #12 complete.
 
@@ -52,7 +52,7 @@ Tracker: issue #4.
 
 ## Phase 4B — Canonical finance API and product integration
 
-Tracker: issue #15.
+Tracker: issue #15 — complete.
 
 ### Foundation merged through PR #18
 - [x] Lossless canonical JSON document wrapper retaining unknown fields.
@@ -76,8 +76,13 @@ Tracker: issue #15.
 - [x] On finance authorization rejection, clear finance state and return through normal auth logout/login.
 - [x] Clear in-memory finance state on logout/session removal.
 - [x] Expand malformed/unauthorized, MockWebServer and canonical mutation tests.
-- [ ] Add backup/import client boundaries where appropriate for mobile.
-- [ ] Add `/api/card-secrets` client boundary without CVV support.
+
+### Native API boundaries — PR #21
+- [x] Add owner+AAL2 backup boundary.
+- [x] Add destructive import boundary with explicit replacement confirmation header.
+- [x] Add `/api/card-secrets` POST/PUT/DELETE boundary for PAN/expiry only; no CVV parameter exists.
+- [x] Redact sensitive card-secret request/response representations and retain fail-closed parsing.
+- [x] Close issue #15.
 
 ### Additional parity after core production wiring
 - [ ] Smart Review and Needs Attention parity beyond the canonical semantics already consumed by current projections.
@@ -90,20 +95,28 @@ Tracker: issue #15.
 - [ ] Import/backup UX where applicable.
 - [ ] Privacy-safe Undo/Redo / Change History semantics appropriate to Android.
 
+These broader parity items are not release blockers for the defined Android v0.1 product contract unless the final post-web reconciliation changes that contract.
+
 ## Phase 5 — Security/performance/release hardening
 
 Tracker: issue #13.
 
-- [ ] Owner+AAL2 server PAN/expiry vault integration.
-- [ ] Device-local CVV Android Keystore AES-GCM vault; never sync/log/backup.
-- [ ] Scoped secure-window/recent-thumbnail protection for secret reveal.
-- [ ] Sensitive-log/source/preview audit.
-- [ ] Baseline Profile generation.
+### Security — merged through PR #22
+- [x] Owner+AAL2 server PAN/expiry vault reveal integration.
+- [x] Device-local CVV Android Keystore AES-GCM vault; never sync/log/backup/device-transfer.
+- [x] Scoped secure-window/recent-thumbnail protection for secret reveal.
+- [x] Sensitive-log/source/preview audit.
+- [x] Explicit backup and device-transfer exclusions for local session/PIN/throttle/CVV security stores.
+
+### Performance/release hardening — PR #23 in progress
+- [ ] Baseline Profile generation and checked-in release profile.
 - [ ] Macrobenchmark cold startup/Home/Activity/Quick Entry journeys.
-- [ ] Representative recomposition/memory/jank review.
-- [ ] Enable and validate release R8/minification/resource shrinking with narrow keep rules.
-- [ ] Final compact/foldable/tablet and large-font/accessibility matrix.
-- [ ] Release assembly/config validation without signing secrets.
+- [ ] Representative recomposition/memory/jank review, including a 500-item benchmark Activity data set.
+- [ ] Enable and validate release R8/minification/resource shrinking with no broad keep-everything rules.
+- [ ] Final compact/foldable/tablet and 150%-font/accessibility matrix.
+- [ ] Screen-reader/TalkBack semantics guard for critical clickable surfaces.
+- [ ] Release manifest/network/debug-leakage and unsigned release assembly validation.
+- [ ] Validate direct-sideload update continuity assumptions without creating a production signing key yet.
 
 ## Phase 6 — Final production/release handoff
 
@@ -121,4 +134,12 @@ Tracker: issue #14.
 - [ ] Generate a signed APK only when explicitly requested at handoff.
 - [ ] Preserve direct signed-APK sideloading as the personal distribution baseline.
 
-Android Studio and signing material are intentionally unnecessary during ongoing development.
+### Final post-web reconciliation gate
+
+The main MyFinHub frontend/backend is being changed in parallel and may continue changing after the Android implementation reaches Phase 6 completion.
+
+- [ ] After the user explicitly confirms the parallel web/backend implementation is finished, compare the final web/backend contracts and canonical semantics against Android.
+- [ ] Patch and revalidate Android for any material API/auth/canonical/domain delta before final sign-off.
+- [ ] Do not assume the backend/frontend contract observed during Android development is the final contract until that confirmation arrives.
+
+Android Studio and signing material remain intentionally unnecessary until the final handoff.
