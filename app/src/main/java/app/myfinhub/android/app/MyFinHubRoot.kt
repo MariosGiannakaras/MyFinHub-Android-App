@@ -93,6 +93,7 @@ fun MyFinHubRoot(
                     onHideCardSecrets = cardSecretViewModel::hideSecrets,
                     onSaveLocalCvv = cardSecretViewModel::saveCvv,
                     onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
+                    onDeleteCard = financeViewModel::deleteCard,
                 )
             },
         )
@@ -117,6 +118,7 @@ private fun FinanceProductSurface(
     onHideCardSecrets: () -> Unit,
     onSaveLocalCvv: (CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
+    onDeleteCard: (String) -> Unit,
 ) {
     when (state) {
         FinanceProductState.Idle,
@@ -148,6 +150,7 @@ private fun FinanceProductSurface(
                     onHideCardSecrets = onHideCardSecrets,
                     onSaveLocalCvv = onSaveLocalCvv,
                     onDeleteLocalCvv = onDeleteLocalCvv,
+                    onDeleteCard = onDeleteCard,
                     planState = projection.planState,
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
