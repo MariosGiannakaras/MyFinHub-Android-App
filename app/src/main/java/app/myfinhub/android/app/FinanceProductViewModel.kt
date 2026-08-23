@@ -34,8 +34,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -79,6 +82,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private val mutableState = MutableStateFlow<FinanceProductState>(FinanceProductState.Idle)
     val state: StateFlow<FinanceProductState> = mutableState.asStateFlow()
+
+    /** Emits only after a card deactivation is accepted by the canonical server revision. */
+    private val mutableCommittedCardDeletions = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val committedCardDeletions: SharedFlow<String> = mutableCommittedCardDeletions.asSharedFlow()
 
     private var currentSession: AuthSession? = null
     private var pendingMutation: CanonicalFinanceMutation? = null
@@ -349,6 +356,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 }
                 pendingMutation = null
                 mutableState.value = FinanceProductState.Ready(projection)
+                if (mutation is DeactivateCanonicalCard) {
+                    mutableCommittedCardDeletions.emit(mutation.cardId)
+                }
             }
             is FinanceSyncState.Conflict -> {
                 localProjection = projectCanonicalProduct(saved.localDocument, LocalDate.now(), localProjection)
