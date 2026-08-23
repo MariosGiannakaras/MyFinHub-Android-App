@@ -158,7 +158,7 @@ class CardSecretViewModel internal constructor(
 
         val copy = cvv.copyOf()
         cvv.fill('\u0000')
-        if (copy.size !in 3..4 || copy.any { !it.isDigit() }) {
+        if (copy.size !in 3..4 || copy.any { it !in '0'..'9' }) {
             copy.fill('\u0000')
             mutableState.value = current.copy(message = "Το CVV πρέπει να έχει 3 ή 4 αριθμητικά ψηφία.")
             return
