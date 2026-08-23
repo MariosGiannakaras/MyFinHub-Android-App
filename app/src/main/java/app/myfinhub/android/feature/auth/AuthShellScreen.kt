@@ -96,7 +96,7 @@ private fun LoginScreen(
     AuthSurface {
         Text("Σύνδεση στο MyFinHub", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         Text(
-            "Χρησιμοποίησε μόνο τα στοιχεία του λογαριασμού σου. Δεν χρειάζονται API ή project keys.",
+            "Συνδέσου με το email και τον κωδικό του λογαριασμού σου.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         OutlinedTextField(
@@ -143,7 +143,7 @@ private fun MfaScreen(
         Text("Άνοιξε την εφαρμογή authenticator και πληκτρολόγησε τον τρέχοντα κωδικό TOTP.")
         OutlinedTextField(
             value = code,
-            onValueChange = { value -> code = value.filter(Char::isDigit).take(8) },
+            onValueChange = { value -> code = value.filter(Char::isDigit).take(6) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Κωδικός TOTP") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -158,7 +158,7 @@ private fun MfaScreen(
                 onSubmitTotp(chars)
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = code.length >= 6,
+            enabled = code.length == 6,
         ) {
             Text("Επαλήθευση")
         }
