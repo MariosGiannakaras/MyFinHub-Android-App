@@ -205,14 +205,21 @@ class CardSecretViewModel internal constructor(
         mutableState.value = current.copy(cvvSaving = true, message = null)
 
         viewModelScope.launch {
-            runCatching { cvvVault.delete(cardId) }
+            val deletion = runCatching { cvvVault.delete(cardId) }
             if (!stillCurrent(session, cardId)) return@launch
             val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
-            mutableState.value = latest.copy(
-                cvv = null,
-                cvvSaving = false,
-                message = "Το CVV αφαιρέθηκε από αυτή τη συσκευή.",
-            )
+            mutableState.value = if (deletion.isSuccess) {
+                latest.copy(
+                    cvv = null,
+                    cvvSaving = false,
+                    message = "Το CVV αφαιρέθηκε από αυτή τη συσκευή.",
+                )
+            } else {
+                latest.copy(
+                    cvvSaving = false,
+                    message = "Η διαγραφή από το τοπικό CVV vault δεν ολοκληρώθηκε.",
+                )
+            }
         }
     }
 
