@@ -12,10 +12,8 @@ on:
       - '.github/workflows/android-ui-quality.yml'
   workflow_dispatch:
 
-# TEMPORARY bootstrap permission for PR #25 only. Removed immediately after the reviewed
-# CreditCardStack screenshot references have been committed to the feature branch.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -59,34 +57,6 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
-
-      - name: Bootstrap reviewed card screenshot references
-        if: >-
-          failure() &&
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository &&
-          github.head_ref == 'feature/card-stack-reference-parity'
-        shell: bash
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-          source_dir='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CreditCardStackScreenshotTestKt'
-          staging_dir="$(mktemp -d)"
-          test -d "$source_dir"
-          find "$source_dir" -maxdepth 1 -type f -name 'CreditCardStack*.png' -exec cp '{}' "$staging_dir/" \;
-          test "$(find "$staging_dir" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')" -eq 3
-
-          git fetch origin "$HEAD_REF"
-          git checkout -B "$HEAD_REF" "origin/$HEAD_REF"
-          mkdir -p "$source_dir"
-          cp "$staging_dir"/*.png "$source_dir/"
-          git add "$source_dir"
-          test "$(git diff --cached --name-only -- "$source_dir" | wc -l | tr -d ' ')" -eq 3
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'test: add reviewed card screenshot baselines'
-          git push origin "HEAD:$HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
@@ -138,7 +108,10 @@ jobs:
           script: ./gradlew connectedDebugAndroidTest --stacktrace
 
   full-adaptive-matrix:
-    if: github.event_name == 'workflow_dispatch'
+    # PR #25 validation-only enablement. Revert to workflow_dispatch-only after this evidence run.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.head_ref == 'feature/card-stack-reference-parity')
     runs-on: macos-15-intel
     timeout-minutes: 60
     steps:
