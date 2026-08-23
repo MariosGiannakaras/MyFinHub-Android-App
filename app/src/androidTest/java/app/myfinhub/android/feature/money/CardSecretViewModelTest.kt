@@ -68,6 +68,27 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun failedLocalDelete_keepsExistingCvvVisibleAndReportsFailure() = runBlocking {
+        val api = FakeCardApi(ApiResult.Success(CardSecrets(null, null)))
+        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'), failDelete = true)
+        val viewModel = CardSecretViewModel(application, api, vault)
+
+        viewModel.attachSession(session)
+        viewModel.openCard("card-1")
+        viewModel.reveal()
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+        viewModel.deleteCvv()
+        waitUntil {
+            (viewModel.state.value as? CardSecretUiState.Revealed)?.cvvSaving == false &&
+                (viewModel.state.value as? CardSecretUiState.Revealed)?.message != null
+        }
+
+        val state = viewModel.state.value as CardSecretUiState.Revealed
+        assertEquals("321", state.cvv)
+        assertTrue(state.message.orEmpty().contains("δεν ολοκληρώθηκε"))
+    }
+
+    @Test
     fun authFailureFromCardVault_requestsNormalAuthRecovery() = runBlocking {
         val api = FakeCardApi(
             revealResult = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED),
@@ -89,7 +110,10 @@ class CardSecretViewModelTest {
     }
 }
 
-private class FakeCvvVault(initial: CharArray? = null) : CvvVault {
+private class FakeCvvVault(
+    initial: CharArray? = null,
+    private val failDelete: Boolean = false,
+) : CvvVault {
     private var stored: CharArray? = initial?.copyOf()
     var saved: CharArray? = null
         private set
@@ -103,6 +127,7 @@ private class FakeCvvVault(initial: CharArray? = null) : CvvVault {
     }
 
     override suspend fun delete(cardId: String) {
+        if (failDelete) error("synthetic delete failure")
         stored?.fill('\u0000')
         stored = null
     }
