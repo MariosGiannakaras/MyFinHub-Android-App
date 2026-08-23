@@ -18,7 +18,7 @@ class PinAttemptLimiterTest {
     }
 
     @Test
-    fun fifthFailureLocksPinFallbackAndDoesNotExposePinMaterial() = runBlocking {
+    fun fifthFailureLocksPinFallback() = runBlocking {
         val now = 1_000L
 
         repeat(4) { index ->
@@ -34,18 +34,27 @@ class PinAttemptLimiterTest {
     }
 
     @Test
-    fun lockExpiresAndSuccessfulUnlockResetsFailureCount() = runBlocking {
-        val now = 5_000L
-        repeat(5) { limiter.recordFailure(now) }
+    fun repeatedLockCyclesEscalateUntilSuccessfulUnlockResetsPenalty() = runBlocking {
+        val firstCycle = 5_000L
+        repeat(5) { limiter.recordFailure(firstCycle) }
 
-        assertFalse(limiter.status(now + 29_999).allowed)
-        assertTrue(limiter.status(now + 30_000).allowed)
+        assertFalse(limiter.status(firstCycle + 29_999).allowed)
+        assertTrue(limiter.status(firstCycle + 30_000).allowed)
 
-        limiter.recordFailure(now + 30_001)
+        val secondCycle = firstCycle + 30_001
+        repeat(4) { limiter.recordFailure(secondCycle) }
+        val secondLock = limiter.recordFailure(secondCycle)
+        assertFalse(secondLock.allowed)
+        assertEquals(120_000L, secondLock.retryAfterMillis)
+
         limiter.recordSuccess()
-
-        val reset = limiter.status(now + 30_002)
+        val resetAt = secondCycle + 120_001
+        val reset = limiter.status(resetAt)
         assertTrue(reset.allowed)
         assertEquals(5, reset.attemptsRemaining)
+
+        repeat(4) { limiter.recordFailure(resetAt) }
+        val lockAfterReset = limiter.recordFailure(resetAt)
+        assertEquals(30_000L, lockAfterReset.retryAfterMillis)
     }
 }
