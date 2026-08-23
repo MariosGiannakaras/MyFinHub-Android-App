@@ -14,6 +14,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,7 +27,10 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InsightsScreen(state: InsightsUiState) {
+fun InsightsScreen(
+    state: InsightsUiState,
+    onOpenSupportingActivity: () -> Unit,
+) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Αναλύσεις", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
@@ -90,12 +94,19 @@ fun InsightsScreen(state: InsightsUiState) {
                 }
             }
             item {
-                Text(
-                    "Τα trends είναι read projections. Drill-down θα χρησιμοποιεί τα ίδια canonical FinanceEvent δεδομένα της καρτέλας Κινήσεις, χωρίς δεύτερο analytics store.",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        "Τα trends είναι read projections πάνω στα ίδια FinanceEvent δεδομένα της καρτέλας Κινήσεις, χωρίς δεύτερο analytics store.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = onOpenSupportingActivity) {
+                        Text("Προβολή σχετικών κινήσεων")
+                    }
+                }
             }
         }
     }
