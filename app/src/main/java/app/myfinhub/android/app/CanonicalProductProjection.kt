@@ -152,6 +152,7 @@ fun projectCanonicalProduct(
     )
 
     val activeCards = document.canonicalCards().filter { it.active }
+    val bankIdsByCard = document.cards().associate { it.id to it.bankId }
     val activeCreditCards = activeCards.filter { it.kind == "credit" }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
@@ -170,7 +171,6 @@ fun projectCanonicalProduct(
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
                 last4 = card.last4.orEmpty(),
                 kind = cardKindLabel(card.kind),
-                network = card.network.ifBlank { "VISA" },
                 currentBalance = if (card.kind == "credit" && activeCreditCards.size == 1) {
                     maxOf(eventOutstanding, globalCreditOutstanding)
                 } else {
@@ -178,6 +178,8 @@ fun projectCanonicalProduct(
                 },
                 limit = card.creditLimit,
                 vaultState = if (card.vaultRef.isNullOrBlank()) VaultState.LOCKED else VaultState.AVAILABLE,
+                network = card.network.ifBlank { "VISA" },
+                bankId = bankIdsByCard[card.id].orEmpty(),
             )
         },
         savingsGoal = null,
