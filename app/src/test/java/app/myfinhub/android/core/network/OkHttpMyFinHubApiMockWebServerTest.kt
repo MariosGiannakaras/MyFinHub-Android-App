@@ -4,6 +4,7 @@ import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -93,7 +94,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val request = server.takeRequest()
 
             assertTrue(result is ApiResult.Success)
-            assertEquals("supabase://rheomiq_backups/77", (result as ApiResult.Success).value.path)
+            assertEquals("supabase://rheomiq_backups/77", (result as ApiResult.Success<BackupReceipt>).value.path)
             assertEquals("POST", request.method)
             assertEquals("/api/backup", request.url.encodedPath)
             assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
@@ -119,7 +120,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val sent = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
 
             assertTrue(result is ApiResult.Success)
-            assertEquals("52", (result as ApiResult.Success).value.revision)
+            assertEquals("52", (result as ApiResult.Success<CanonicalFinanceEnvelope>).value.revision)
             assertEquals("POST", request.method)
             assertEquals("/api/import", request.url.encodedPath)
             assertEquals("replace", request.headers["X-RheomIQ-Confirm-Import"])
@@ -156,7 +157,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
             )
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
 
-            val revealed = api.loadCardSecrets(session, "card-1") as ApiResult.Success
+            val revealed = api.loadCardSecrets(session, "card-1") as ApiResult.Success<CardSecrets>
             val revealRequest = server.takeRequest()
             val revealBody = Json.parseToJsonElement(revealRequest.body!!.utf8()).jsonObject
             assertEquals("4242", revealed.value.pan?.takeLast(4))
@@ -167,7 +168,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
 
             val update = CardSecretUpdate(pan = "4242424242424242", expiry = "12/30")
             assertFalse(update.toString().contains("4242424242424242"))
-            val saved = api.saveCardSecrets(session, "card-1", update) as ApiResult.Success
+            val saved = api.saveCardSecrets(session, "card-1", update) as ApiResult.Success<CardSecretWriteReceipt>
             val saveRequest = server.takeRequest()
             val saveBody = Json.parseToJsonElement(saveRequest.body!!.utf8()).jsonObject
             assertEquals("4242", saved.value.last4)
@@ -176,7 +177,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
             assertFalse(saveBody.containsKey("cvv"))
             assertFalse(saveBody.containsKey("cvc"))
 
-            val deleted = api.deleteCardSecrets(session, "card-1") as ApiResult.Success
+            val deleted = api.deleteCardSecrets(session, "card-1") as ApiResult.Success<CardSecretDeleteReceipt>
             val deleteRequest = server.takeRequest()
             val deleteBody = Json.parseToJsonElement(deleteRequest.body!!.utf8()).jsonObject
             assertTrue(deleted.value.deleted)
