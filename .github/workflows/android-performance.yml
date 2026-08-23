@@ -60,6 +60,8 @@ jobs:
             -camera-back none -camera-front none
           script: |
             ./gradlew :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace
+            echo '--- Generated Baseline Profile sources ---'
+            find app/src -path '*/generated/baselineProfiles/*.txt' -type f -print -exec sh -c 'echo "--- $1"; cat "$1"' _ {} \;
             ./gradlew :benchmark:connectedBenchmarkAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark --stacktrace
 
       - name: Publish profile and benchmark evidence
