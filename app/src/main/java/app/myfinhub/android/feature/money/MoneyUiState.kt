@@ -19,6 +19,7 @@ data class MoneyCard(
     val last4: String,
     val kind: String,
     val network: String = "VISA",
+    val bankId: String = "",
     val currentBalance: Double,
     val limit: Double?,
     val vaultState: VaultState,
@@ -51,6 +52,26 @@ fun syntheticMoneyAccounts() = listOf(
 )
 
 fun syntheticMoneyCards() = listOf(
-    MoneyCard("card-1", "Piraeus Καθημερινή", "4242", "Χρεωστική", "VISA", 0.0, null, VaultState.AVAILABLE),
-    MoneyCard("card-2", "Revolut Πιστωτική", "1881", "Πιστωτική", "MASTERCARD", 312.20, 2_000.0, VaultState.LOCKED),
+    MoneyCard(
+        id = "card-1",
+        nickname = "Καθημερινή",
+        last4 = "4242",
+        kind = "Χρεωστική",
+        network = "VISA",
+        bankId = "piraeus",
+        currentBalance = 0.0,
+        limit = null,
+        vaultState = VaultState.AVAILABLE,
+    ),
+    MoneyCard(
+        id = "card-2",
+        nickname = "Πιστωτική",
+        last4 = "1881",
+        kind = "Πιστωτική",
+        network = "MASTERCARD",
+        bankId = "revolut",
+        currentBalance = 312.20,
+        limit = 2_000.0,
+        vaultState = VaultState.LOCKED,
+    ),
 )
