@@ -170,6 +170,7 @@ fun projectCanonicalProduct(
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
                 last4 = card.last4.orEmpty(),
                 kind = cardKindLabel(card.kind),
+                network = card.network.ifBlank { "VISA" },
                 currentBalance = if (card.kind == "credit" && activeCreditCards.size == 1) {
                     maxOf(eventOutstanding, globalCreditOutstanding)
                 } else {
@@ -344,6 +345,7 @@ private fun cardKindLabel(kind: String): String = when (kind) {
     "debit" -> "Χρεωστική"
     "prepaid" -> "Προπληρωμένη"
     "credit" -> "Πιστωτική"
+    "virtual" -> "Virtual"
     else -> kind.ifBlank { "Κάρτα" }
 }
 
