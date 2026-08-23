@@ -72,6 +72,7 @@ fun MyFinHubApp(
             quickEntryState = quickEntryState,
             onQuickEntryAction = quickEntryViewModel::onAction,
             moneyState = moneyState,
+            onDeleteCard = moneyViewModel::deleteCard,
             planState = planState,
             onPlanAction = planViewModel::onAction,
             insightsState = insightsState,
@@ -95,6 +96,7 @@ internal fun MyFinHubAppContent(
     onHideCardSecrets: () -> Unit = {},
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteLocalCvv: () -> Unit = {},
+    onDeleteCard: (String) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
@@ -177,6 +179,12 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Money> {
                     MoneyScreen(
                         state = moneyState,
+                        secretState = cardSecretState,
+                        onCardActivated = onCardDetailOpened,
+                        onCardDeactivated = onCardDetailClosed,
+                        onRevealCardSecrets = onRevealCardSecrets,
+                        onHideCardSecrets = onHideCardSecrets,
+                        onDeleteCard = onDeleteCard,
                         onOpenCard = { cardId -> moneyBackStack.add(AppRoute.CardDetail(cardId)) },
                     )
                 }
