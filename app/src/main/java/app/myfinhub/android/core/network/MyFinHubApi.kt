@@ -13,11 +13,64 @@ interface MyFinHubApi {
         document: CanonicalFinanceDocument,
         expectedRevision: String,
     ): ApiResult<CanonicalWriteReceipt>
+
+    suspend fun createBackup(session: AuthSession): ApiResult<BackupReceipt> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
+    suspend fun importFinanceData(
+        session: AuthSession,
+        document: CanonicalFinanceDocument,
+    ): ApiResult<CanonicalFinanceEnvelope> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
+    suspend fun loadCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecrets> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
+    suspend fun saveCardSecrets(
+        session: AuthSession,
+        cardId: String,
+        update: CardSecretUpdate,
+    ): ApiResult<CardSecretWriteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
+    suspend fun deleteCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 }
 
 data class BootstrapSummary(
     val source: DataSource,
     val revision: Long?,
+)
+
+data class BackupReceipt(
+    val path: String,
+)
+
+/** Sensitive PAN/expiry response. Intentionally redacts values from toString(). */
+class CardSecrets(
+    val pan: String?,
+    val expiry: String?,
+) {
+    override fun toString(): String = "CardSecrets(pan=<redacted>, expiry=<redacted>)"
+}
+
+/** Server-vault update. There is deliberately no CVV/CVC field in this API surface. */
+class CardSecretUpdate(
+    val pan: String? = null,
+    val expiry: String? = null,
+) {
+    override fun toString(): String = "CardSecretUpdate(pan=<redacted>, expiry=<redacted>)"
+}
+
+data class CardSecretWriteReceipt(
+    val saved: Boolean,
+    val last4: String?,
+)
+
+data class CardSecretDeleteReceipt(
+    val deleted: Boolean,
 )
 
 enum class DataSource {
