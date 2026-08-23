@@ -79,9 +79,10 @@ class CreditCardStackTest {
             .screenWidthDp
         if (screenWidthDp >= 600) {
             composeRule.onNodeWithTag("credit_card_stack")
-                .performSemanticsAction(SemanticsActions.CustomActions) { actions ->
-                    check(actions.first { it.label == "Επόμενη κάρτα" }.action())
-                }
+                .performSemanticsAction(SemanticsActions.RequestFocus)
+            composeRule.waitForIdle()
+            composeRule.onNodeWithTag("credit_card_stack")
+                .performKeyInput { pressKey(Key.DirectionDown) }
         } else {
             composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
         }
