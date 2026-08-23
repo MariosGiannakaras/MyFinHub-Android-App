@@ -61,6 +61,11 @@ jobs:
             gradle wrapper --gradle-version 9.7.0 --distribution-type bin
           fi
 
+      - name: Benchmark and Baseline Profile tooling build
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: ./gradlew :benchmark:assembleBenchmark --stacktrace
+
       - name: Unit tests, lint and debug assembly
         if: steps.project.outputs.present == 'true'
         shell: bash
@@ -71,10 +76,41 @@ jobs:
         shell: bash
         run: ./gradlew assembleRelease analyzeReleaseR8Config --stacktrace
 
-      - name: Benchmark and Baseline Profile tooling build
+      - name: Audit release manifest and unsigned APK policy
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: ./gradlew :benchmark:assembleBenchmark --stacktrace
+        run: |
+          set -euo pipefail
+
+          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/release/*' -print)
+          if [[ ${#manifests[@]} -eq 0 ]]; then
+            echo 'No processed release manifest found.' >&2
+            exit 1
+          fi
+
+          forbidden='BenchmarkProductActivity|ProductTestActivity|AuthTestActivity|<profileable|android:debuggable="true"|android:usesCleartextTraffic="true"'
+          for manifest in "${manifests[@]}"; do
+            if grep -E "$forbidden" "$manifest"; then
+              echo "Forbidden release manifest content found in $manifest" >&2
+              exit 1
+            fi
+          done
+
+          apk=$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)
+          if [[ -z "$apk" ]]; then
+            echo 'Unsigned release APK was not produced.' >&2
+            exit 1
+          fi
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$aapt" dump badging "$apk" | grep -F "package: name='app.myfinhub.android' versionCode='1'"
+
+          if "$apksigner" verify "$apk" >/dev/null 2>&1; then
+            echo 'Public CI release APK must remain unsigned.' >&2
+            exit 1
+          fi
+          echo 'Release artifact is unsigned and free of benchmark/debug manifest leakage.'
 
       - name: No Android project yet
         if: steps.project.outputs.present != 'true'
