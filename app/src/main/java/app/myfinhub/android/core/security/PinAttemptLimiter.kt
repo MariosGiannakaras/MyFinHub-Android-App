@@ -21,11 +21,22 @@ interface PinAttemptLimiter {
     suspend fun recordSuccess()
 }
 
+/**
+ * Persistent local-PIN throttling with escalating lock periods.
+ *
+ * Only counters/timestamps are stored. PIN material and verification digests remain outside this
+ * store. A successful local unlock resets the penalty level.
+ */
 class DataStorePinAttemptLimiter(
     private val context: Context,
     private val maxAttempts: Int = 5,
-    private val lockDurationMillis: Long = 30_000,
+    private val lockDurationsMillis: List<Long> = DEFAULT_LOCK_DURATIONS_MILLIS,
 ) : PinAttemptLimiter {
+    init {
+        require(maxAttempts > 0)
+        require(lockDurationsMillis.isNotEmpty() && lockDurationsMillis.all { it > 0 })
+    }
+
     override suspend fun status(nowMillis: Long): PinAttemptStatus {
         val preferences = context.pinThrottleDataStore.data.first()
         val lockedUntil = preferences[LOCKED_UNTIL_KEY] ?: 0L
@@ -63,10 +74,15 @@ class DataStorePinAttemptLimiter(
 
             val failures = (preferences[FAILURE_COUNT_KEY] ?: 0) + 1
             if (failures >= maxAttempts) {
-                val nextLockedUntil = nowMillis + lockDurationMillis
+                val penaltyLevel = (preferences[PENALTY_LEVEL_KEY] ?: 0)
+                    .coerceIn(0, lockDurationsMillis.lastIndex)
+                val lockDuration = lockDurationsMillis[penaltyLevel]
+                val nextPenaltyLevel = (penaltyLevel + 1).coerceAtMost(lockDurationsMillis.lastIndex)
+                val nextLockedUntil = nowMillis + lockDuration
                 preferences[FAILURE_COUNT_KEY] = 0
                 preferences[LOCKED_UNTIL_KEY] = nextLockedUntil
-                nextStatus = PinAttemptStatus(false, 0, lockDurationMillis)
+                preferences[PENALTY_LEVEL_KEY] = nextPenaltyLevel
+                nextStatus = PinAttemptStatus(false, 0, lockDuration)
             } else {
                 preferences[FAILURE_COUNT_KEY] = failures
                 preferences.remove(LOCKED_UNTIL_KEY)
@@ -80,11 +96,14 @@ class DataStorePinAttemptLimiter(
         context.pinThrottleDataStore.edit { preferences ->
             preferences.remove(FAILURE_COUNT_KEY)
             preferences.remove(LOCKED_UNTIL_KEY)
+            preferences.remove(PENALTY_LEVEL_KEY)
         }
     }
 
     private companion object {
+        val DEFAULT_LOCK_DURATIONS_MILLIS = listOf(30_000L, 120_000L, 600_000L, 3_600_000L)
         val FAILURE_COUNT_KEY = intPreferencesKey("failure_count")
         val LOCKED_UNTIL_KEY = longPreferencesKey("locked_until")
+        val PENALTY_LEVEL_KEY = intPreferencesKey("penalty_level")
     }
 }
