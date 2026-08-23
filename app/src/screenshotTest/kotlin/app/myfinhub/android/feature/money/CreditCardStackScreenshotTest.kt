@@ -11,6 +11,9 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+private const val COMPACT_SCREENSHOT_DEVICE = "spec:width=412dp,height=390dp,dpi=160"
+private const val EXPANDED_SCREENSHOT_DEVICE = "spec:width=840dp,height=520dp,dpi=160"
+
 private val referenceScreenshotCards = listOf(
     MoneyCard(
         id = "reference-piraeus",
@@ -72,8 +75,7 @@ private val referenceScreenshotCards = listOf(
 @PreviewTest
 @Preview(
     name = "card_stack_compact_light",
-    widthDp = 412,
-    heightDp = 390,
+    device = COMPACT_SCREENSHOT_DEVICE,
     showBackground = true,
 )
 @Composable
@@ -84,8 +86,7 @@ fun CreditCardStackCompactLightScreenshot() {
 @PreviewTest
 @Preview(
     name = "card_stack_compact_150_percent_font",
-    widthDp = 412,
-    heightDp = 390,
+    device = COMPACT_SCREENSHOT_DEVICE,
     fontScale = 1.5f,
     showBackground = true,
 )
@@ -97,8 +98,7 @@ fun CreditCardStackCompactLargeFontScreenshot() {
 @PreviewTest
 @Preview(
     name = "card_stack_expanded_tablet_light",
-    widthDp = 840,
-    heightDp = 520,
+    device = EXPANDED_SCREENSHOT_DEVICE,
     showBackground = true,
 )
 @Composable
