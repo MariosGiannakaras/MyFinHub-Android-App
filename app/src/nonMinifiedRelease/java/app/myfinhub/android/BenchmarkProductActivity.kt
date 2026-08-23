@@ -7,7 +7,7 @@ import app.myfinhub.android.app.MyFinHubAppContent
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.syntheticActivityItems
-import app.myfinhub.android.feature.home.HomeUiState
+import app.myfinhub.android.feature.home.syntheticHomeUiState
 
 /**
  * Deterministic product host used only while generating the non-minified Baseline Profile.
@@ -23,7 +23,7 @@ class BenchmarkProductActivity : FragmentActivity() {
         setContent {
             MyFinHubTheme {
                 MyFinHubAppContent(
-                    homeState = HomeUiState(),
+                    homeState = syntheticHomeUiState(),
                     onHomeAction = {},
                     activityState = activityState,
                 )
