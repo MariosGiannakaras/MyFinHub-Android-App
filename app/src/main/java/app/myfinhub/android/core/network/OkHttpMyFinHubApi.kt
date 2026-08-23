@@ -121,7 +121,7 @@ class OkHttpMyFinHubApi(
         val request = authenticatedRequest(session, "/api/card-secrets")
             .post(body.toRequestBody(JSON_MEDIA_TYPE))
             .build()
-        return execute(request, notFoundKind = ApiFailureKind.CARD_SECRET_NOT_FOUND) { responseBody ->
+        return execute(request, notFoundKind = ApiFailureKind.INVALID_DATA) { responseBody ->
             runCatching {
                 val payload = json.parseToJsonElement(responseBody).jsonObject
                 val pan = payload.nullableString("pan")
