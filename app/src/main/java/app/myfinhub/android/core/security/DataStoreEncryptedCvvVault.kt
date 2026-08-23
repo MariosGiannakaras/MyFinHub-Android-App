@@ -46,7 +46,7 @@ class DataStoreEncryptedCvvVault(
         }
 
         return try {
-            if (plaintext.size !in 3..4 || plaintext.any { it !in DIGIT_ZERO..DIGIT_NINE }) {
+            if (plaintext.size !in 3..4 || plaintext.any { it < DIGIT_ZERO || it > DIGIT_NINE }) {
                 delete(normalizedCardId)
                 null
             } else {
@@ -59,7 +59,7 @@ class DataStoreEncryptedCvvVault(
 
     override suspend fun save(cardId: String, cvv: CharArray) {
         val normalizedCardId = normalizeCardId(cardId)
-        require(cvv.size in 3..4 && cvv.all(Char::isDigit)) { "CVV must contain 3 or 4 digits." }
+        require(cvv.size in 3..4 && cvv.all { it in '0'..'9' }) { "CVV must contain 3 or 4 digits." }
 
         val plaintext = ByteArray(cvv.size) { index -> cvv[index].code.toByte() }
         val encrypted = try {
