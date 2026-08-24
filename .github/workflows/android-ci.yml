@@ -64,7 +64,21 @@ jobs:
       - name: Benchmark and Baseline Profile tooling build
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: ./gradlew :benchmark:assembleBenchmark --stacktrace
+        run: |
+          set -euo pipefail
+          ./gradlew :benchmark:assembleBenchmark :app:assembleNonMinifiedRelease --stacktrace
+
+          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/nonMinifiedRelease/*' -print)
+          if [[ ${#manifests[@]} -eq 0 ]]; then
+            echo 'No processed nonMinifiedRelease manifest found.' >&2
+            exit 1
+          fi
+
+          if ! grep -R -F 'app.myfinhub.android.BenchmarkProductActivity' "${manifests[@]}"; then
+            echo 'BenchmarkProductActivity is missing from the Baseline Profile target manifest.' >&2
+            exit 1
+          fi
+          echo 'Baseline Profile target includes the deterministic profiling activity.'
 
       - name: Unit tests, lint and debug assembly
         if: steps.project.outputs.present == 'true'
