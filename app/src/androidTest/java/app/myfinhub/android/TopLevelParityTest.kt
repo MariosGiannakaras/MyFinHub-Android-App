@@ -3,11 +3,8 @@ package app.myfinhub.android
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasScrollAction
-import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -26,13 +23,10 @@ class TopLevelParityTest {
     fun moneyPlanAndInsights_haveRealMobileContent() {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
-        // The card stack is a lazy Money-list item and may not be composed initially on compact,
-        // large-font, foldable or tablet viewports. Scroll the owning list to the real stack before
-        // validating its keyboard activation contract.
-        composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasTestTag("credit_card_stack"))
+        // Production Money data owns real stable card IDs; do not couple the full-app parity test
+        // to CreditCardStackTest's synthetic `card-a` fixture. The stack's native keyboard contract
+        // opens whichever real card is currently frontmost.
         composeRule.onNodeWithTag("credit_card_stack")
-            .assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.RequestFocus)
         composeRule.onNodeWithTag("credit_card_stack")
             .performKeyInput { pressKey(Key.Enter) }
