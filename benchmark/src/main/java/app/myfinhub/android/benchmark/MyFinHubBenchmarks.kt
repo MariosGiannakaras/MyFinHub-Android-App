@@ -49,12 +49,27 @@ class BaselineProfileGenerator {
     ) {
         pressHome()
         startActivityAndWait(benchmarkProductIntent())
-        device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)
-        device.findObject(By.text("Κινήσεις"))?.click()
-        device.wait(Until.hasObject(By.text("Αναζήτηση κινήσεων")), UI_TIMEOUT_MS)
-        device.findObject(By.scrollable(true))?.fling(Direction.DOWN)
-        device.findObject(By.text("Νέα κίνηση"))?.click()
-        device.wait(Until.hasObject(By.textContains("Ποσό")), UI_TIMEOUT_MS)
+        check(device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)) {
+            "Baseline Profile journey did not reach the Home navigation target."
+        }
+        checkNotNull(device.findObject(By.text("Κινήσεις"))) {
+            "Baseline Profile journey lost the Home navigation target after waiting for it."
+        }.click()
+        check(device.wait(Until.hasObject(By.text("Αναζήτηση κινήσεων")), UI_TIMEOUT_MS)) {
+            "Baseline Profile journey did not reach Activity."
+        }
+        checkNotNull(device.findObject(By.scrollable(true))) {
+            "Baseline Profile journey did not expose the Activity scroll surface."
+        }.fling(Direction.DOWN)
+        check(device.wait(Until.hasObject(By.text("Νέα κίνηση")), UI_TIMEOUT_MS)) {
+            "Baseline Profile journey did not expose Quick Entry from Activity."
+        }
+        checkNotNull(device.findObject(By.text("Νέα κίνηση"))) {
+            "Baseline Profile journey lost the Quick Entry action after waiting for it."
+        }.click()
+        check(device.wait(Until.hasObject(By.textContains("Ποσό")), UI_TIMEOUT_MS)) {
+            "Baseline Profile journey did not reach the Quick Entry form."
+        }
     }
 }
 
@@ -102,11 +117,16 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)
+            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
+                "Home benchmark did not reach the deterministic product host."
+            }
         },
     ) {
-        device.findObject(By.scrollable(true))?.fling(Direction.DOWN)
-        device.findObject(By.scrollable(true))?.fling(Direction.UP)
+        val scrollable = checkNotNull(device.findObject(By.scrollable(true))) {
+            "Home benchmark did not expose a scrollable Home surface."
+        }
+        scrollable.fling(Direction.DOWN)
+        scrollable.fling(Direction.UP)
     }
 
     @Test
@@ -121,13 +141,22 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)
+            check(device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)) {
+                "Activity benchmark did not reach the Home navigation target."
+            }
         },
     ) {
-        device.findObject(By.text("Κινήσεις"))?.click()
-        device.wait(Until.hasObject(By.text("Αναζήτηση κινήσεων")), UI_TIMEOUT_MS)
-        device.findObject(By.scrollable(true))?.fling(Direction.DOWN)
-        device.findObject(By.scrollable(true))?.fling(Direction.UP)
+        checkNotNull(device.findObject(By.text("Κινήσεις"))) {
+            "Activity benchmark lost the navigation target after waiting for it."
+        }.click()
+        check(device.wait(Until.hasObject(By.text("Αναζήτηση κινήσεων")), UI_TIMEOUT_MS)) {
+            "Activity benchmark did not reach Activity."
+        }
+        val scrollable = checkNotNull(device.findObject(By.scrollable(true))) {
+            "Activity benchmark did not expose the Activity scroll surface."
+        }
+        scrollable.fling(Direction.DOWN)
+        scrollable.fling(Direction.UP)
     }
 
     @Test
@@ -142,12 +171,22 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)
-            device.findObject(By.text("Κινήσεις"))?.click()
-            device.wait(Until.hasObject(By.text("Νέα κίνηση")), UI_TIMEOUT_MS)
+            check(device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)) {
+                "Quick Entry benchmark did not reach the Home navigation target."
+            }
+            checkNotNull(device.findObject(By.text("Κινήσεις"))) {
+                "Quick Entry benchmark lost the navigation target after waiting for it."
+            }.click()
+            check(device.wait(Until.hasObject(By.text("Νέα κίνηση")), UI_TIMEOUT_MS)) {
+                "Quick Entry benchmark did not reach Activity."
+            }
         },
     ) {
-        device.findObject(By.text("Νέα κίνηση"))?.click()
-        device.wait(Until.hasObject(By.textContains("Ποσό")), UI_TIMEOUT_MS)
+        checkNotNull(device.findObject(By.text("Νέα κίνηση"))) {
+            "Quick Entry benchmark lost the entry action after waiting for it."
+        }.click()
+        check(device.wait(Until.hasObject(By.textContains("Ποσό")), UI_TIMEOUT_MS)) {
+            "Quick Entry benchmark did not reach the entry form."
+        }
     }
 }
