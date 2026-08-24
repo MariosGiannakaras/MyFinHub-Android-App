@@ -1,6 +1,5 @@
 package app.myfinhub.android
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -27,6 +26,8 @@ class HomeScreenTest {
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έξοδο").assertIsDisplayed().performClick()
-        composeRule.onNodeWithText("Επιλέχθηκε: Έξοδο").assertExists()
+        // Existence proves the state transition without requiring the confirmation marker to be
+        // inside the current viewport on every supported screen/font configuration.
+        composeRule.onNodeWithText("Επιλέχθηκε: Έξοδο").fetchSemanticsNode()
     }
 }
