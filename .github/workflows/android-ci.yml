@@ -66,19 +66,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./gradlew :benchmark:assembleBenchmark :app:assembleNonMinifiedRelease --stacktrace
+          ./gradlew \
+            :benchmark:assembleBenchmark \
+            :app:assembleBenchmarkRelease \
+            :app:assembleNonMinifiedRelease \
+            --stacktrace
 
-          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/nonMinifiedRelease/*' -print)
-          if [[ ${#manifests[@]} -eq 0 ]]; then
-            echo 'No processed nonMinifiedRelease manifest found.' >&2
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          for variant in benchmarkRelease nonMinifiedRelease; do
+            apk=$(find "app/build/outputs/apk/$variant" -type f -name '*.apk' -print -quit)
+            if [[ -z "$apk" ]]; then
+              echo "No $variant APK was produced." >&2
+              exit 1
+            fi
+            if ! "$aapt" dump xmltree "$apk" AndroidManifest.xml | grep -F 'BenchmarkProductActivity'; then
+              echo "BenchmarkProductActivity is missing from packaged $variant manifest." >&2
+              exit 1
+            fi
+          done
+
+          if [[ -s app/build/outputs/mapping/nonMinifiedRelease/mapping.txt ]]; then
+            echo 'nonMinifiedRelease unexpectedly produced a non-empty R8 mapping file.' >&2
             exit 1
           fi
-
-          if ! grep -R -F 'app.myfinhub.android.BenchmarkProductActivity' "${manifests[@]}"; then
-            echo 'BenchmarkProductActivity is missing from the Baseline Profile target manifest.' >&2
-            exit 1
-          fi
-          echo 'Baseline Profile target includes the deterministic profiling activity.'
+          echo 'Baseline Profile targets package the deterministic host and remain unminified where required.'
 
       - name: Unit tests, lint and debug assembly
         if: steps.project.outputs.present == 'true'
