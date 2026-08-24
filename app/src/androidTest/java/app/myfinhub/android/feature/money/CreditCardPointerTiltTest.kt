@@ -3,7 +3,7 @@ package app.myfinhub.android.feature.money
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performMouseInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -31,17 +31,21 @@ class CreditCardPointerTiltTest {
         renderStack()
 
         val card = composeRule.onNodeWithTag("credit_card_card-a")
-        val before = card.captureToImage()
-
         card.performMouseInput {
             moveTo(Offset(width * .88f, height * .12f))
         }
         composeRule.waitForIdle()
+        val topRight = card.captureToImage()
 
-        val after = card.captureToImage()
+        card.performMouseInput {
+            moveTo(Offset(width * .12f, height * .88f))
+        }
+        composeRule.waitForIdle()
+        val bottomLeft = card.captureToImage()
+
         assertTrue(
-            "A real Compose mouse-move event must alter the rendered front-card transform.",
-            changedPixelCount(before, after) > 100,
+            "Moving an already-hovering mouse across the card must alter the pointer-follow transform.",
+            changedPixelCount(topRight, bottomLeft) > 100,
         )
     }
 
@@ -51,17 +55,23 @@ class CreditCardPointerTiltTest {
         renderStack()
 
         val card = composeRule.onNodeWithTag("credit_card_card-a")
-        val before = card.captureToImage()
-
         card.performMouseInput {
             moveTo(Offset(width * .88f, height * .12f))
         }
         composeRule.waitForIdle()
+        val topRight = card.captureToImage()
 
-        val after = card.captureToImage()
+        card.performMouseInput {
+            moveTo(Offset(width * .12f, height * .88f))
+        }
+        composeRule.waitForIdle()
+        val bottomLeft = card.captureToImage()
+
+        // Both captures are already in the same hovered state. Any material pixel delta would
+        // therefore come from pointer-position-dependent tilt, which reduced motion must disable.
         assertTrue(
-            "Reduced motion must keep pointer-follow tilt disabled.",
-            changedPixelCount(before, after) == 0,
+            "Reduced motion must keep pointer-position-dependent tilt disabled.",
+            changedPixelCount(topRight, bottomLeft) == 0,
         )
     }
 
