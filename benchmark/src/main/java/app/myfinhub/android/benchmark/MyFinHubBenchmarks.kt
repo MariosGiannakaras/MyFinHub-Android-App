@@ -72,7 +72,7 @@ class StartupBenchmark {
             warmupIterations = 1,
         ),
         startupMode = StartupMode.COLD,
-        iterations = 5,
+        iterations = 3,
         setupBlock = { pressHome() },
     ) {
         startActivityAndWait()
