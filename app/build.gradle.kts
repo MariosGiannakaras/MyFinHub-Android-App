@@ -44,30 +44,15 @@ android {
                 enable = true
             }
         }
-        // The Baseline Profile plugin creates this build type automatically when absent.
-        // Declaring it explicitly makes src/nonMinifiedRelease a normal AGP source set so the
-        // deterministic profiling host is actually packaged into the target APK. The plugin
-        // still overrides debuggability/minification/profileable flags for safe profile capture.
-        create("nonMinifiedRelease") {
-            initWith(getByName("release"))
-            matchingFallbacks += listOf("release")
-            signingConfig = signingConfigs.getByName("debug")
-        }
-        create("benchmark") {
-            initWith(getByName("release"))
-            matchingFallbacks += listOf("release")
-            signingConfig = signingConfigs.getByName("debug")
-            isDebuggable = false
-        }
-    }
 
-    // Bind the Baseline Profile target sources explicitly. AGP compiles the Kotlin source for the
-    // generated target variant, but the manifest overlay must also be attached explicitly so the
-    // exported deterministic profiling host is resolvable by Macrobenchmark on-device.
-    sourceSets {
-        getByName("nonMinifiedRelease") {
-            java.srcDir("src/nonMinifiedRelease/java")
-            manifest.srcFile("src/nonMinifiedRelease/AndroidManifest.xml")
+        // These names are owned by the Baseline Profile Gradle plugin for the release variant.
+        // Only signing is customized. In particular, do not initWith(release): the plugin must
+        // keep nonMinifiedRelease unminified/unshrunk so generated method signatures are valid.
+        create("benchmarkRelease") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        create("nonMinifiedRelease") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -90,6 +75,13 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+}
+
+baselineProfile {
+    // Keep the generated profile as reviewable source so release builds consume the exact
+    // profile that passed CI/device generation rather than an opaque build-directory artifact.
+    saveInSrc = true
+    mergeIntoMain = true
 }
 
 dependencies {
