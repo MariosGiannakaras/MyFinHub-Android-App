@@ -34,13 +34,19 @@ class BaselineProfileGenerator {
     val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() = baselineProfileRule.collect(
+    fun startup() = baselineProfileRule.collect(
         packageName = TARGET_PACKAGE,
         includeInStartupProfile = true,
     ) {
         pressHome()
         startActivityAndWait()
+    }
 
+    @Test
+    fun criticalJourneys() = baselineProfileRule.collect(
+        packageName = TARGET_PACKAGE,
+        includeInStartupProfile = false,
+    ) {
         pressHome()
         startActivityAndWait(benchmarkProductIntent())
         device.wait(Until.hasObject(By.text("Κινήσεις")), UI_TIMEOUT_MS)
