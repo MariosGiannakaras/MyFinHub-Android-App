@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import android.os.ParcelFileDescriptor
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.test.captureToImage
@@ -116,8 +117,24 @@ class CreditCardPointerTiltTest {
     }
 
     private fun setAnimatorDurationScale(value: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("settings put global animator_duration_scale $value")
-            .close()
+        val expected = value.toFloat()
+        runShell("settings put global animator_duration_scale $value")
+
+        repeat(20) {
+            val actual = runShell("settings get global animator_duration_scale").toFloatOrNull()
+            if (actual == expected) return
+            Thread.sleep(50)
+        }
+
+        error("Animator duration scale did not settle to $value before rendering the card stack.")
+    }
+
+    private fun runShell(command: String): String {
+        val descriptor = InstrumentationRegistry.getInstrumentation()
+            .uiAutomation
+            .executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+            .bufferedReader()
+            .use { it.readText().trim() }
     }
 }
