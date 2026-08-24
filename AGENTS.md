@@ -1,5 +1,7 @@
 # MyFinHub Android repository instructions
 
+> **Mandatory start:** Before any Android work, read permanent issue #27 first. Then inspect the whole repository plus active Issues/PRs and continue from the real current state.
+
 ## Mission
 
 Build a native Android client for MyFinHub that preserves the product's finance semantics and security boundaries while providing a mobile-first Android experience. The app must not be a WebView, PWA shell, browser launcher, or thin wrapper around the web UI.

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 data class MoneyAccount(
     val id: String,
@@ -20,6 +21,8 @@ data class MoneyCard(
     val currentBalance: Double,
     val limit: Double?,
     val vaultState: VaultState,
+    val network: String = "VISA",
+    val bankId: String = "",
 )
 
 enum class VaultState { LOCKED, AVAILABLE }
@@ -36,6 +39,10 @@ data class MoneyUiState(
 class MoneyViewModel : ViewModel() {
     private val mutableState = MutableStateFlow(MoneyUiState())
     val state: StateFlow<MoneyUiState> = mutableState.asStateFlow()
+
+    fun deleteCard(cardId: String) {
+        mutableState.update { state -> state.copy(cards = state.cards.filterNot { it.id == cardId }) }
+    }
 }
 
 fun syntheticMoneyAccounts() = listOf(
@@ -45,6 +52,26 @@ fun syntheticMoneyAccounts() = listOf(
 )
 
 fun syntheticMoneyCards() = listOf(
-    MoneyCard("card-1", "Καθημερινή", "4242", "Χρεωστική", 0.0, null, VaultState.AVAILABLE),
-    MoneyCard("card-2", "Πιστωτική", "1881", "Πιστωτική", 312.20, 2_000.0, VaultState.LOCKED),
+    MoneyCard(
+        id = "card-1",
+        nickname = "Καθημερινή",
+        last4 = "4242",
+        kind = "Χρεωστική",
+        currentBalance = 0.0,
+        limit = null,
+        vaultState = VaultState.AVAILABLE,
+        network = "VISA",
+        bankId = "piraeus",
+    ),
+    MoneyCard(
+        id = "card-2",
+        nickname = "Πιστωτική",
+        last4 = "1881",
+        kind = "Πιστωτική",
+        currentBalance = 312.20,
+        limit = 2_000.0,
+        vaultState = VaultState.LOCKED,
+        network = "MASTERCARD",
+        bankId = "revolut",
+    ),
 )

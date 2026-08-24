@@ -103,6 +103,22 @@ class CardSecretViewModel internal constructor(
         mutableState.value = CardSecretUiState.Hidden(currentCardId)
     }
 
+    /**
+     * Removes device-local secret material when a canonical card is deleted/deactivated.
+     * The canonical mutation is owned by FinanceProductViewModel; this method only clears the
+     * Android-only CVV boundary and any currently revealed in-memory state for the same stable ID.
+     */
+    fun purgeCard(cardId: String) {
+        if (!CARD_ID_REGEX.matches(cardId)) return
+        if (currentCardId == cardId) {
+            currentCardId = null
+            mutableState.value = CardSecretUiState.Hidden()
+        }
+        viewModelScope.launch {
+            runCatching { cvvVault.delete(cardId) }
+        }
+    }
+
     fun reveal() {
         val session = currentSession ?: return
         val cardId = currentCardId ?: return
@@ -126,9 +142,6 @@ class CardSecretViewModel internal constructor(
                         mutableState.value = CardSecretUiState.AuthRejected
                     }
 
-                    // The card-vault route returns 404 for an empty vault entry. The shared HTTP
-                    // contract intentionally maps that fail-closed into INVALID_DATA; canonical card
-                    // ids are already validated, so the reveal surface treats it as "not stored".
                     serverResult.kind == ApiFailureKind.INVALID_DATA -> revealWithLocalCvv(
                         session = session,
                         cardId = cardId,
