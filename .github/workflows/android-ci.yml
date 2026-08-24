@@ -91,10 +91,10 @@ jobs:
           fi
           echo 'Baseline Profile targets package the deterministic host and remain unminified where required.'
 
-      - name: Unit tests, lint and debug assembly
+      - name: Unit, instrumentation compile, lint and debug assembly
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: ./gradlew test lint assembleDebug --stacktrace
+        run: ./gradlew test :app:compileDebugAndroidTestKotlin lint assembleDebug --stacktrace
 
       - name: Optimized unsigned release assembly and R8 analysis
         if: steps.project.outputs.present == 'true'
