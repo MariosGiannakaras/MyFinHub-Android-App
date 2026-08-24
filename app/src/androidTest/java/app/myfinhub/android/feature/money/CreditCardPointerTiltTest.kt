@@ -31,17 +31,18 @@ class CreditCardPointerTiltTest {
         renderStack()
 
         val card = composeRule.onNodeWithTag("credit_card_card-a")
+        val stack = composeRule.onNodeWithTag("credit_card_stack")
         card.performMouseInput {
             moveTo(Offset(width * .88f, height * .12f))
         }
         composeRule.waitForIdle()
-        val topRight = card.captureToImage()
+        val topRight = stack.captureToImage()
 
         card.performMouseInput {
             moveTo(Offset(width * .12f, height * .88f))
         }
         composeRule.waitForIdle()
-        val bottomLeft = card.captureToImage()
+        val bottomLeft = stack.captureToImage()
 
         assertTrue(
             "Moving an already-hovering mouse across the card must alter the pointer-follow transform.",
@@ -55,17 +56,18 @@ class CreditCardPointerTiltTest {
         renderStack()
 
         val card = composeRule.onNodeWithTag("credit_card_card-a")
+        val stack = composeRule.onNodeWithTag("credit_card_stack")
         card.performMouseInput {
             moveTo(Offset(width * .88f, height * .12f))
         }
         composeRule.waitForIdle()
-        val topRight = card.captureToImage()
+        val topRight = stack.captureToImage()
 
         card.performMouseInput {
             moveTo(Offset(width * .12f, height * .88f))
         }
         composeRule.waitForIdle()
-        val bottomLeft = card.captureToImage()
+        val bottomLeft = stack.captureToImage()
 
         // Both captures are already in the same hovered state. Any material pixel delta would
         // therefore come from pointer-position-dependent tilt, which reduced motion must disable.
