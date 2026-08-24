@@ -1,9 +1,56 @@
+import com.android.build.api.artifact.SingleArtifact
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.android.compose.screenshot")
     id("androidx.baselineprofile")
+}
+
+abstract class InjectBenchmarkHostManifestTask : DefaultTask() {
+    @get:InputFile
+    abstract val mergedManifest: RegularFileProperty
+
+    @get:OutputFile
+    abstract val updatedManifest: RegularFileProperty
+
+    @TaskAction
+    fun injectHost() {
+        val input = mergedManifest.get().asFile.readText()
+        val applicationClose = "</application>"
+        require(applicationClose in input) { "Merged manifest has no <application> element." }
+
+        var output = input
+        if ("<profileable" in output) {
+            output = output.replace(
+                Regex("<profileable[^>]*/>"),
+                "<profileable android:shell=\"true\" />",
+            )
+        }
+
+        if ("BenchmarkProductActivity" !in output) {
+            val profilingEntries = buildString {
+                if ("<profileable" !in output) {
+                    appendLine("        <profileable android:shell=\"true\" />")
+                }
+                appendLine("        <activity")
+                appendLine("            android:name=\"app.myfinhub.android.BenchmarkProductActivity\"")
+                appendLine("            android:exported=\"true\" />")
+            }
+            output = output.replace(applicationClose, "$profilingEntries    $applicationClose")
+        }
+
+        updatedManifest.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(output)
+        }
+    }
 }
 
 private fun String.asBuildConfigString(): String = "\"" +
@@ -56,20 +103,6 @@ android {
         }
     }
 
-    // AGP recognizes the plugin build types, but their profiling-only manifest overlays are not
-    // inferred reliably when the build types are created alongside the Baseline Profile plugin.
-    // Bind both source sets explicitly while leaving their optimization flags plugin-controlled.
-    sourceSets {
-        getByName("benchmarkRelease") {
-            java.setSrcDirs(listOf("src/benchmarkRelease/java"))
-            manifest.srcFile("src/benchmarkRelease/AndroidManifest.xml")
-        }
-        getByName("nonMinifiedRelease") {
-            java.setSrcDirs(listOf("src/nonMinifiedRelease/java"))
-            manifest.srcFile("src/nonMinifiedRelease/AndroidManifest.xml")
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -88,6 +121,22 @@ android {
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant.name == "benchmarkRelease" || variant.name == "nonMinifiedRelease") {
+            val taskName = "inject" + variant.name.replaceFirstChar { it.uppercase() } + "BenchmarkHostManifest"
+            val manifestUpdater = tasks.register<InjectBenchmarkHostManifestTask>(taskName)
+            variant.artifacts
+                .use(manifestUpdater)
+                .wiredWithFiles(
+                    InjectBenchmarkHostManifestTask::mergedManifest,
+                    InjectBenchmarkHostManifestTask::updatedManifest,
+                )
+                .toTransform(SingleArtifact.MERGED_MANIFEST)
+        }
     }
 }
 
