@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import android.os.ParcelFileDescriptor
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
@@ -23,6 +24,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,9 +34,22 @@ class CreditCardStackTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    private var originalAnimatorDurationScale: Float? = null
+
+    @Before
+    fun useDeterministicMotionPreference() {
+        if (originalAnimatorDurationScale == null) {
+            originalAnimatorDurationScale = readAnimatorDurationScale()
+        }
+        // These tests validate interaction/state contracts, not decorative timing. Keeping the
+        // runner's reduced-motion preference deterministic also removes the independent mouse
+        // tilt pointer layer while exercising the real touch drag path on large foldable bounds.
+        setAnimatorDurationScale(0f)
+    }
+
     @After
-    fun restoreAnimations() {
-        setAnimatorDurationScale("1")
+    fun restoreMotionPreference() {
+        originalAnimatorDurationScale?.let(::setAnimatorDurationScale)
     }
 
     @Test
@@ -72,10 +87,8 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
 
-        // Exercise the actual vertical-swipe contract on every window class. The previous
-        // tablet-only D-pad fallback depended on focus delivery and could time out before the
-        // production restack path was invoked; keyboard behavior is covered independently by
-        // the stack semantics/parity tests.
+        // Exercise the actual vertical-swipe contract on every window class. Keyboard and
+        // accessibility restacking are covered independently by the stack semantics/parity tests.
         composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(10)) { activeCardId == "card-b" }
 
@@ -190,7 +203,6 @@ class CreditCardStackTest {
 
     @Test
     fun reducedMotion_deleteFinalCard_completesWithoutDecorativeDelay() {
-        setAnimatorDurationScale("0")
         val deleted = mutableListOf<String>()
 
         composeRule.setContent {
@@ -213,17 +225,34 @@ class CreditCardStackTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
 
-        // The production reduced-motion branch skips the 620 ms decorative delay entirely.
-        // A 5 s harness timeout only tolerates slow emulator/Compose scheduling on tablet CI;
-        // it is not the product animation duration contract.
+        // The deterministic reduced-motion setup above verifies that the production branch skips
+        // the 620 ms decorative delay entirely. A 5 s harness timeout only tolerates emulator and
+        // Compose scheduling latency; it is not the product animation duration contract.
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
     }
 
-    private fun setAnimatorDurationScale(value: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("settings put global animator_duration_scale $value")
-            .close()
+    private fun readAnimatorDurationScale(): Float =
+        runShell("settings get global animator_duration_scale").toFloatOrNull() ?: 1f
+
+    private fun setAnimatorDurationScale(value: Float) {
+        runShell("settings put global animator_duration_scale $value")
+
+        repeat(20) {
+            if (readAnimatorDurationScale() == value) return
+            Thread.sleep(50)
+        }
+
+        error("Animator duration scale did not settle to $value before rendering the card stack.")
+    }
+
+    private fun runShell(command: String): String {
+        val descriptor = InstrumentationRegistry.getInstrumentation()
+            .uiAutomation
+            .executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+            .bufferedReader()
+            .use { it.readText().trim() }
     }
 
     private fun testCards(count: Int): List<MoneyCard> = listOf(
