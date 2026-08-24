@@ -3,6 +3,7 @@ package app.myfinhub.android
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -62,7 +63,9 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
-        composeRule.onNodeWithText("Σούπερ μάρκετ").assertIsDisplayed()
+        // Expanded Activity can show the same title in both list and detail pane. The clickable
+        // row is the projection under test; the detail copy is not a second transaction.
+        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
         composeRule.onNodeWithText("Μισθός").assertDoesNotExist()
     }
 }
