@@ -56,6 +56,20 @@ android {
         }
     }
 
+    // AGP recognizes the plugin build types, but their profiling-only manifest overlays are not
+    // inferred reliably when the build types are created alongside the Baseline Profile plugin.
+    // Bind both source sets explicitly while leaving their optimization flags plugin-controlled.
+    sourceSets {
+        getByName("benchmarkRelease") {
+            java.setSrcDirs(listOf("src/benchmarkRelease/java"))
+            manifest.srcFile("src/benchmarkRelease/AndroidManifest.xml")
+        }
+        getByName("nonMinifiedRelease") {
+            java.setSrcDirs(listOf("src/nonMinifiedRelease/java"))
+            manifest.srcFile("src/nonMinifiedRelease/AndroidManifest.xml")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
