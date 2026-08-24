@@ -24,7 +24,7 @@ concurrency:
 jobs:
   profile-and-benchmark:
     runs-on: macos-15-intel
-    timeout-minutes: 50
+    timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
