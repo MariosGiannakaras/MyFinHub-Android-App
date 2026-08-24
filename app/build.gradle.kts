@@ -61,6 +61,16 @@ android {
         }
     }
 
+    // Bind the Baseline Profile target sources explicitly. AGP compiles the Kotlin source for the
+    // generated target variant, but the manifest overlay must also be attached explicitly so the
+    // exported deterministic profiling host is resolvable by Macrobenchmark on-device.
+    sourceSets {
+        getByName("nonMinifiedRelease") {
+            java.srcDir("src/nonMinifiedRelease/java")
+            manifest.srcFile("src/nonMinifiedRelease/AndroidManifest.xml")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
