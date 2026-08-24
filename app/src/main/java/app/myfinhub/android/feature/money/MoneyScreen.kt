@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,13 +23,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -45,9 +44,24 @@ import java.util.Locale
 @Composable
 fun MoneyScreen(
     state: MoneyUiState,
+    secretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    onCardActivated: (String) -> Unit = {},
+    onCardDeactivated: (String) -> Unit = {},
+    onRevealCardSecrets: () -> Unit = {},
+    onHideCardSecrets: () -> Unit = {},
+    onDeleteCard: (String) -> Unit = {},
     onOpenCard: (String) -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
+    var activeCardId by remember { mutableStateOf<String?>(state.cards.firstOrNull()?.id) }
+    val revealedCardId = (secretState as? CardSecretUiState.Revealed)?.cardId
+
+    SecureWindowProtection(active = revealedCardId != null && revealedCardId == activeCardId)
+
+    DisposableEffect(activeCardId) {
+        activeCardId?.let(onCardActivated)
+        onDispose { activeCardId?.let(onCardDeactivated) }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Χρήματα", modifier = Modifier.semantics { heading() }) }) },
@@ -101,21 +115,17 @@ fun MoneyScreen(
                 }
             }
             item { SectionHeader("Κάρτες") }
-            items(state.cards, key = MoneyCard::id) { card ->
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clickable(role = Role.Button) { onOpenCard(card.id) },
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(card.nickname, fontWeight = FontWeight.SemiBold)
-                        Text("${card.kind} •••• ${card.last4}", style = MaterialTheme.typography.bodySmall)
-                        if (card.limit != null) {
-                            Text("Υπόλοιπο ${formatEuro(card.currentBalance)} / όριο ${formatEuro(card.limit)}")
-                        }
-                    }
-                }
+            item {
+                CreditCardStack(
+                    cards = state.cards,
+                    secretState = secretState,
+                    onActiveCardChanged = { activeCardId = it },
+                    onRevealSecrets = onRevealCardSecrets,
+                    onHideSecrets = onHideCardSecrets,
+                    onOpenCard = onOpenCard,
+                    onDeleteCard = onDeleteCard,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                )
             }
             item {
                 SectionHeader("Υποχρεώσεις & απαιτήσεις")

@@ -28,6 +28,7 @@ import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
+import kotlinx.coroutines.flow.collect
 
 /**
  * Production application root.
@@ -56,6 +57,11 @@ fun MyFinHubRoot(
                 financeViewModel.clear()
                 cardSecretViewModel.clear()
             }
+        }
+    }
+    LaunchedEffect(financeViewModel, cardSecretViewModel) {
+        financeViewModel.committedCardDeletions.collect { cardId ->
+            cardSecretViewModel.purgeCard(cardId)
         }
     }
     LaunchedEffect(financeState, cardSecretState) {
@@ -93,6 +99,7 @@ fun MyFinHubRoot(
                     onHideCardSecrets = cardSecretViewModel::hideSecrets,
                     onSaveLocalCvv = cardSecretViewModel::saveCvv,
                     onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
+                    onDeleteCard = financeViewModel::deleteCard,
                 )
             },
         )
@@ -117,6 +124,7 @@ private fun FinanceProductSurface(
     onHideCardSecrets: () -> Unit,
     onSaveLocalCvv: (CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
+    onDeleteCard: (String) -> Unit,
 ) {
     when (state) {
         FinanceProductState.Idle,
@@ -148,6 +156,7 @@ private fun FinanceProductSurface(
                     onHideCardSecrets = onHideCardSecrets,
                     onSaveLocalCvv = onSaveLocalCvv,
                     onDeleteLocalCvv = onDeleteLocalCvv,
+                    onDeleteCard = onDeleteCard,
                     planState = projection.planState,
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
