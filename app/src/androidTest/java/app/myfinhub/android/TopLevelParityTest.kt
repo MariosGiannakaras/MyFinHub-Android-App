@@ -1,13 +1,17 @@
 package app.myfinhub.android
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.pressKey
 import org.junit.Rule
 import org.junit.Test
 
@@ -19,9 +23,13 @@ class TopLevelParityTest {
     fun moneyPlanAndInsights_haveRealMobileContent() {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
-        composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasText("Πιστωτική"))
-        composeRule.onNodeWithText("Πιστωτική").performClick()
+        // Production Money data owns real stable card IDs; do not couple the full-app parity test
+        // to CreditCardStackTest's synthetic `card-a` fixture. The stack's native keyboard contract
+        // opens whichever real card is currently frontmost.
+        composeRule.onNodeWithTag("credit_card_stack")
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+        composeRule.onNodeWithTag("credit_card_stack")
+            .performKeyInput { pressKey(Key.Enter) }
         composeRule.onNodeWithText(
             "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
         ).assertIsDisplayed()
