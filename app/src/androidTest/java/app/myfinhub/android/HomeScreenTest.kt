@@ -8,7 +8,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
-import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
 import org.junit.Test
 
@@ -23,23 +22,24 @@ class HomeScreenTest {
         composeRule.onNodeWithText("Εμφάνιση ποσών").performClick()
         composeRule.onNodeWithText("Απόκρυψη ποσών").assertIsDisplayed()
 
-        val screenWidthDp = InstrumentationRegistry.getInstrumentation()
-            .targetContext
-            .resources
-            .configuration
-            .screenWidthDp
-        if (screenWidthDp < 840) {
-            // Compact Home uses a LazyColumn, so an off-screen section is not composed yet.
-            // Scroll through the owning lazy container before asking for the section node.
-            composeRule.onNode(hasScrollAction())
-                .performScrollToNode(hasText("Χρειάζεται προσοχή"))
-            composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
-        } else {
-            // Expanded Home uses regular vertically-scrollable columns, whose children are
+        // NavigationSuiteScaffold can reduce the actual Home content width below the physical
+        // device width, especially on foldables. Infer the Compose branch from the semantics tree
+        // instead of guessing it from Configuration.screenWidthDp.
+        val attentionAlreadyComposed = runCatching {
+            composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode()
+        }.isSuccess
+        if (attentionAlreadyComposed) {
+            // Expanded Home uses regular vertically-scrollable columns, whose children remain
             // composed even when outside the viewport.
             composeRule.onNodeWithText("Χρειάζεται προσοχή")
                 .performScrollTo()
                 .assertIsDisplayed()
+        } else {
+            // Compact Home uses a LazyColumn, so the off-screen section must first be composed by
+            // scrolling the owning lazy container to that semantic target.
+            composeRule.onNode(hasScrollAction())
+                .performScrollToNode(hasText("Χρειάζεται προσοχή"))
+            composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
         }
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
