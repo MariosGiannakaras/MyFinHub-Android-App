@@ -6,7 +6,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.isEnabled
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -72,21 +72,12 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
 
-        val screenWidthDp = InstrumentationRegistry.getInstrumentation()
-            .targetContext
-            .resources
-            .configuration
-            .screenWidthDp
-        if (screenWidthDp >= 600) {
-            composeRule.onNodeWithTag("credit_card_stack")
-                .performSemanticsAction(SemanticsActions.RequestFocus)
-            composeRule.waitForIdle()
-            composeRule.onNodeWithTag("credit_card_stack")
-                .performKeyInput { pressKey(Key.DirectionDown) }
-        } else {
-            composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
-        }
-        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { activeCardId == "card-b" }
+        // Exercise the actual vertical-swipe contract on every window class. The previous
+        // tablet-only D-pad fallback depended on focus delivery and could time out before the
+        // production restack path was invoked; keyboard behavior is covered independently by
+        // the stack semantics/parity tests.
+        composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
+        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(10)) { activeCardId == "card-b" }
 
         composeRule.onNodeWithContentDescription("Εμφάνιση στοιχείων").performClick()
         composeRule.onNodeWithText("4321 8765 2109 1234").assertIsDisplayed()
