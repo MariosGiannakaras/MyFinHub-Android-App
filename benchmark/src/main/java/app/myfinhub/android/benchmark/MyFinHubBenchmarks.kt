@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 
 private const val TARGET_PACKAGE = "app.myfinhub.android"
 private const val PRODUCT_ACTIVITY = "app.myfinhub.android.BenchmarkProductActivity"
+private const val QUICK_ENTRY_ACTION_DESCRIPTION = "Δημιουργία νέας κίνησης"
 private const val UI_TIMEOUT_MS = 10_000L
 private const val UI_POLL_MS = 100L
 
@@ -53,10 +54,9 @@ private fun MacrobenchmarkScope.openActivityFromHome(context: String) {
 }
 
 private fun MacrobenchmarkScope.openQuickEntryFromActivity(context: String) {
-    // Compose may merge the Extended FAB icon and label into one accessibility node. Match the
-    // spoken label as a substring rather than depending on a raw exact-text representation.
     val quickEntryAction = requireObject("$context did not expose Quick Entry from Activity.") {
-        device.findObject(By.textContains("Νέα κίνηση")) ?:
+        device.findObject(By.desc(QUICK_ENTRY_ACTION_DESCRIPTION)) ?:
+            device.findObject(By.textContains("Νέα κίνηση")) ?:
             device.findObject(By.descContains("Νέα κίνηση"))
     }
     quickEntryAction.click()
@@ -146,8 +146,10 @@ class CriticalJourneyBenchmark {
         val scrollable = checkNotNull(device.findObject(By.scrollable(true))) {
             "Home benchmark did not expose a scrollable Home surface."
         }
-        scrollable.fling(Direction.DOWN)
-        scrollable.fling(Direction.UP)
+        scrollable.scroll(Direction.DOWN, .8f)
+        device.waitForIdle()
+        scrollable.scroll(Direction.UP, .8f)
+        device.waitForIdle()
     }
 
     @Test
