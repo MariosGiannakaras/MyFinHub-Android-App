@@ -6,6 +6,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface AppRoute : NavKey {
     @Serializable data object Home : AppRoute
+    @Serializable data class HomeAttention(val attentionId: String) : AppRoute
+    @Serializable data object Settings : AppRoute
+    @Serializable data object DataTransfer : AppRoute
+    @Serializable data object ChangeHistory : AppRoute
     @Serializable data object Activity : AppRoute
     @Serializable data class ActivityDetail(val eventId: String) : AppRoute
     @Serializable data object QuickEntry : AppRoute
