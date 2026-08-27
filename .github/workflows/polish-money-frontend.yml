@@ -23,6 +23,8 @@ jobs:
       - name: Bring in current Plan frontend state
         shell: bash
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin feature/frontend-product-parity
           git merge --no-edit origin/feature/frontend-product-parity
 
@@ -120,8 +122,6 @@ jobs:
         shell: bash
         run: |
           git rm .github/workflows/polish-money-frontend.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app/src/main/java/app/myfinhub/android/feature/money/MoneyScreen.kt \
                   app/src/main/java/app/myfinhub/android/feature/money/MoneyUiState.kt \
                   app/src/test/java/app/myfinhub/android/feature/money/MoneyReducerTest.kt \
