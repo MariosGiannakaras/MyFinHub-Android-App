@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
@@ -38,11 +39,31 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNodeWithText("Μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets").assertIsDisplayed()
+        composeRule.onNodeWithText("Πρόβλεψη").assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
         composeRule.onNodeWithText("Κορυφαίες κατηγορίες").assertIsDisplayed()
+    }
+
+    @Test
+    fun plan_drillsIntoItemBudgetAndForecastWorkflows() {
+        composeRule.onNodeWithText("Πλάνο").performClick()
+
+        composeRule.onNodeWithText("Ενοίκιο").performClick()
+        composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Budgets").performClick()
+        composeRule.onNodeWithText("Συνολικό μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Πρόβλεψη").performClick()
+        composeRule.onNodeWithText("Προβλεπόμενο διαθέσιμο").assertIsDisplayed()
+        composeRule.onNodeWithText("Τι επηρεάζει την πρόβλεψη").assertIsDisplayed()
     }
 
     @Test
