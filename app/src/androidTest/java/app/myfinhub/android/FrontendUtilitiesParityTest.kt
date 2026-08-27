@@ -1,6 +1,7 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -18,7 +19,9 @@ class FrontendUtilitiesParityTest {
 
     @Test
     fun homeReviewAndUtilityFlows_areNestedAndReachable() {
-        composeRule.onNodeWithTag("attention-scheduled-review").performClick()
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("attention-scheduled-review"))
+        composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Γιατί εμφανίζεται").fetchSemanticsNodes().isNotEmpty()
         }
