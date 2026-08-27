@@ -161,8 +161,11 @@ fun MoneyScreen(
                 ) {
                     MoneySummaryCardContent(
                         title = "Δάνεια",
-                        amount = state.loans.filterNot(LoanItem::paused).sumOf(LoanItem::remaining).takeIf { it > 0.0 }
-                            ?: state.loanOutstanding,
+                        amount = if (state.loans.isNotEmpty()) {
+                            state.loans.filterNot(LoanItem::paused).sumOf(LoanItem::remaining)
+                        } else {
+                            state.loanOutstanding
+                        },
                         subtitle = "${state.loans.count { !it.paused }} ενεργό · επόμενες δόσεις και πρόοδος αποπληρωμής",
                         largeFont = largeFont,
                     )
@@ -175,8 +178,11 @@ fun MoneyScreen(
                 ) {
                     MoneySummaryCardContent(
                         title = "Απαιτήσεις",
-                        amount = state.lendingItems.filterNot(LendingItem::settled).sumOf(LendingItem::amount).takeIf { it > 0.0 }
-                            ?: state.lendingReceivable,
+                        amount = if (state.lendingItems.isNotEmpty()) {
+                            state.lendingItems.filterNot(LendingItem::settled).sumOf(LendingItem::amount)
+                        } else {
+                            state.lendingReceivable
+                        },
                         subtitle = "${state.lendingItems.count { !it.settled }} ανοιχτή · αναμενόμενες επιστροφές χρημάτων",
                         largeFont = largeFont,
                     )
@@ -267,7 +273,7 @@ fun SavingsScreen(
                 onClick = { onAction(MoneyAction.SaveSavingsDraft) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Έλεγχος στόχου")
+                Text("Αποθήκευση")
             }
             OutlinedButton(
                 onClick = { onAction(MoneyAction.ToggleSavingsPause) },
