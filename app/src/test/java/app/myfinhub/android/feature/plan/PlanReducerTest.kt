@@ -16,12 +16,12 @@ class PlanReducerTest {
     }
 
     @Test
-    fun validBudget_isReadyForCanonicalSave() {
+    fun validBudget_isAccepted() {
         val state = PlanUiState(budget = BudgetDraft(monthlyLimitText = "850,50", alertThresholdText = "80"))
 
         val result = reducePlan(state, PlanAction.SaveBudget)
 
-        assertTrue(result.message.orEmpty().contains("έγκυρο"))
+        assertEquals("Το μηνιαίο budget ενημερώθηκε.", result.message)
     }
 
     @Test
@@ -46,7 +46,7 @@ class PlanReducerTest {
         assertEquals("Νέο ενοίκιο", result.items.first().title)
         assertEquals(700.0, result.items.first().amount, 0.0)
         assertEquals(untouched, result.items[1])
-        assertTrue(result.itemMessage.orEmpty().contains("Android UI"))
+        assertEquals("Η υποχρέωση ενημερώθηκε.", result.itemMessage)
     }
 
     @Test
@@ -69,7 +69,7 @@ class PlanReducerTest {
     }
 
     @Test
-    fun disabledCategoryBudget_doesNotBlockFrontendDraftValidation() {
+    fun disabledCategoryBudget_doesNotBlockValidation() {
         val state = PlanUiState(
             categoryBudgets = listOf(
                 CategoryBudget(
@@ -85,7 +85,7 @@ class PlanReducerTest {
 
         val result = reducePlan(state, PlanAction.SaveCategoryBudgets)
 
-        assertTrue(result.categoryBudgetMessage.orEmpty().contains("frontend draft"))
+        assertEquals("Τα budgets ανά κατηγορία ενημερώθηκαν.", result.categoryBudgetMessage)
     }
 
     @Test
