@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
@@ -26,9 +27,8 @@ class TopLevelParityTest {
     fun moneyPlanAndInsights_haveRealMobileContent() {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
-        // The card stack is a lazy Money-list item and may not be composed initially on compact,
-        // large-font, foldable or tablet viewports. Scroll the owning list to the real stack before
-        // validating its keyboard activation contract.
+        // Production Money data owns real stable card IDs; the stack is also a lazy item on
+        // compact/large-font/adaptive viewports, so scroll the owning list to the real stack.
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_stack")
@@ -44,15 +44,33 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasText("Μηνιαίο budget"))
-        composeRule.onNodeWithText("Μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets").assertIsDisplayed()
+        composeRule.onNodeWithText("Πρόβλεψη").assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Κορυφαίες κατηγορίες"))
         composeRule.onNodeWithText("Κορυφαίες κατηγορίες").assertIsDisplayed()
+    }
+
+    @Test
+    fun plan_drillsIntoItemBudgetAndForecastWorkflows() {
+        composeRule.onNodeWithText("Πλάνο").performClick()
+
+        composeRule.onNodeWithText("Ενοίκιο").performClick()
+        composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Budgets").performClick()
+        composeRule.onNodeWithText("Συνολικό μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Πρόβλεψη").performClick()
+        composeRule.onNodeWithText("Προβλεπόμενο διαθέσιμο").assertIsDisplayed()
+        composeRule.onNodeWithText("Τι επηρεάζει την πρόβλεψη").assertIsDisplayed()
     }
 
     @Test
