@@ -114,7 +114,7 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
     )
     MoneyAction.ToggleSavingsPause -> state.copy(
         savingsPlan = state.savingsPlan.copy(paused = !state.savingsPlan.paused),
-        frontendMessage = "Η κατάσταση του στόχου ενημερώθηκε τοπικά στο Android UI.",
+        frontendMessage = "Η κατάσταση του στόχου ενημερώθηκε.",
     )
     MoneyAction.SaveSavingsDraft -> {
         val target = state.savingsPlan.targetAmountText.replace(',', '.').toDoubleOrNull()
@@ -123,7 +123,7 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
             target == null || target <= 0.0 -> state.copy(frontendMessage = "Ο στόχος πρέπει να είναι μεγαλύτερος από μηδέν.")
             contribution == null || contribution < 0.0 -> state.copy(frontendMessage = "Η μηνιαία συνεισφορά δεν μπορεί να είναι αρνητική.")
             state.savingsPlan.targetDateLabel.isBlank() -> state.copy(frontendMessage = "Συμπλήρωσε χρονικό στόχο.")
-            else -> state.copy(frontendMessage = "Ο στόχος αποταμίευσης είναι έγκυρος ως frontend draft.")
+            else -> state.copy(frontendMessage = "Οι αλλαγές του στόχου αποθηκεύτηκαν προσωρινά.")
         }
     }
     is MoneyAction.UpdateLoan -> state.copy(
@@ -136,11 +136,11 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
                 nextPaymentLabel = action.nextPaymentLabel.trim(),
             )
         },
-        frontendMessage = "Η αλλαγή δανείου διατηρείται στο Android UI μέχρι το backend integration pass.",
+        frontendMessage = "Οι αλλαγές του δανείου αποθηκεύτηκαν προσωρινά.",
     )
     is MoneyAction.ToggleLoanPause -> state.copy(
         loans = state.loans.map { loan -> if (loan.id == action.id) loan.copy(paused = !loan.paused) else loan },
-        frontendMessage = "Η κατάσταση δανείου ενημερώθηκε τοπικά στο Android UI.",
+        frontendMessage = "Η κατάσταση του δανείου ενημερώθηκε.",
     )
     is MoneyAction.UpdateLending -> state.copy(
         lendingItems = state.lendingItems.map { item ->
@@ -151,13 +151,13 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
                 note = action.note.trim(),
             )
         },
-        frontendMessage = "Η απαίτηση διατηρείται στο Android UI μέχρι το backend integration pass.",
+        frontendMessage = "Οι αλλαγές της απαίτησης αποθηκεύτηκαν προσωρινά.",
     )
     is MoneyAction.ToggleLendingSettled -> state.copy(
         lendingItems = state.lendingItems.map { item ->
             if (item.id == action.id) item.copy(settled = !item.settled) else item
         },
-        frontendMessage = "Η κατάσταση απαίτησης ενημερώθηκε τοπικά στο Android UI.",
+        frontendMessage = "Η κατάσταση της απαίτησης ενημερώθηκε.",
     )
 }
 

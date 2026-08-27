@@ -33,7 +33,7 @@ class MoneyReducerTest {
 
         val result = reduceMoney(state, MoneyAction.SaveSavingsDraft)
 
-        assertTrue(result.frontendMessage.orEmpty().contains("έγκυρος"))
+        assertTrue(result.frontendMessage.orEmpty().contains("αποθηκεύτηκαν"))
     }
 
     @Test

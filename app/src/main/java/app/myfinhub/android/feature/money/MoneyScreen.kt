@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +76,7 @@ fun MoneyScreen(
         topBar = { TopAppBar(title = { Text("Χρήματα", modifier = Modifier.semantics { heading() }) }) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("money_list"),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { SectionHeader("Λογαριασμοί") }
@@ -275,11 +276,6 @@ fun SavingsScreen(
                 Text(if (plan.paused) "Επανενεργοποίηση στόχου" else "Παύση στόχου")
             }
             state.frontendMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Text(
-                "Ο στόχος και η μηνιαία συνεισφορά είναι frontend drafts. Η τελική persistence θα συνδεθεί αργότερα με το canonical finance contract.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -346,7 +342,7 @@ fun LoansScreen(
                 }
             }
             if (state.loans.isEmpty()) {
-                item { EmptyMoneyState("Δεν υπάρχουν δάνεια στο τρέχον frontend state.") }
+                item { EmptyMoneyState("Δεν υπάρχουν δάνεια.") }
             }
             state.frontendMessage?.let { message ->
                 item { FrontendMessage(message) }
@@ -431,16 +427,11 @@ fun LoanEditorScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Αποθήκευση draft") }
+                ) { Text("Αποθήκευση") }
                 OutlinedButton(
                     onClick = { onAction(MoneyAction.ToggleLoanPause(loan.id)) },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(if (loan.paused) "Επανενεργοποίηση" else "Παύση δανείου") }
-                Text(
-                    "Το edit flow είναι frontend-first και δεν δηλώνει server persistence πριν ολοκληρωθεί το backend integration pass.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
@@ -501,7 +492,7 @@ fun LendingScreen(
                 }
             }
             if (state.lendingItems.isEmpty()) {
-                item { EmptyMoneyState("Δεν υπάρχουν απαιτήσεις στο τρέχον frontend state.") }
+                item { EmptyMoneyState("Δεν υπάρχουν ανοιχτές απαιτήσεις.") }
             }
             state.frontendMessage?.let { message -> item { FrontendMessage(message) } }
         }
@@ -568,16 +559,11 @@ fun LendingEditorScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Αποθήκευση draft") }
+                ) { Text("Αποθήκευση") }
                 OutlinedButton(
                     onClick = { onAction(MoneyAction.ToggleLendingSettled(item.id)) },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(if (item.settled) "Άνοιγμα ξανά" else "Σήμανση ως τακτοποιημένη") }
-                Text(
-                    "Η απαίτηση είναι frontend draft μέχρι να συνδεθεί με το canonical lending contract.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
