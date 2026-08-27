@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import android.os.ParcelFileDescriptor
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.test.captureToImage
@@ -116,8 +117,17 @@ class CreditCardPointerTiltTest {
     }
 
     private fun setAnimatorDurationScale(value: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("settings put global animator_duration_scale $value")
-            .close()
+        runShellCommand("settings put global animator_duration_scale $value")
+        val expected = value.toFloat()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            runShellCommand("settings get global animator_duration_scale").trim().toFloatOrNull() == expected
+        }
+    }
+
+    private fun runShellCommand(command: String): String {
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+            .bufferedReader()
+            .use { it.readText() }
     }
 }
