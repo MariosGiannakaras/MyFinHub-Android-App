@@ -39,7 +39,7 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Budgets").assertIsDisplayed()
-        composeRule.onNodeWithText("Forecast").assertIsDisplayed()
+        composeRule.onNodeWithText("Πρόβλεψη").assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
@@ -52,7 +52,7 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Ενοίκιο").performClick()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση draft").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση").assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
         composeRule.onNodeWithText("Budgets").performClick()
@@ -60,9 +60,9 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
-        composeRule.onNodeWithText("Forecast").performClick()
+        composeRule.onNodeWithText("Πρόβλεψη").performClick()
         composeRule.onNodeWithText("Προβλεπόμενο διαθέσιμο").assertIsDisplayed()
-        composeRule.onNodeWithText("Τι επηρεάζει το forecast").assertIsDisplayed()
+        composeRule.onNodeWithText("Τι επηρεάζει την πρόβλεψη").assertIsDisplayed()
     }
 
     @Test
