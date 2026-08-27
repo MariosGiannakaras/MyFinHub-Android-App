@@ -148,10 +148,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.89f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(.89f)
 
         composeRule.runOnIdle { assertEquals(emptyList<String>(), deleted) }
         composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
@@ -178,10 +175,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.91f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(.91f)
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
@@ -208,16 +202,22 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(1f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(1f)
 
         // The production reduced-motion branch skips the 620 ms decorative delay entirely.
         // A 5 s harness timeout only tolerates slow emulator/Compose scheduling on tablet CI;
         // it is not the product animation duration contract.
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
+    }
+
+    private fun setDeleteProgressAndPressEnter(progress: Float) {
+        val slider = composeRule.onNodeWithTag("card_delete_slider")
+        slider.performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(progress) }
+        composeRule.waitForIdle()
+        slider.performSemanticsAction(SemanticsActions.RequestFocus) { requestFocus -> requestFocus() }
+        composeRule.waitForIdle()
+        slider.performKeyInput { pressKey(Key.Enter) }
     }
 
     private fun setAnimatorDurationScale(value: String) {
