@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
@@ -52,7 +53,7 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Ενοίκιο").performClick()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
         composeRule.onNodeWithText("Budgets").performClick()
