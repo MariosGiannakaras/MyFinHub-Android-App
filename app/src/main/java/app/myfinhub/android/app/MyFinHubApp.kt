@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
@@ -35,9 +36,16 @@ import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
 import app.myfinhub.android.feature.money.CardDetailScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
+import app.myfinhub.android.feature.money.LendingEditorScreen
+import app.myfinhub.android.feature.money.LendingScreen
+import app.myfinhub.android.feature.money.LoanEditorScreen
+import app.myfinhub.android.feature.money.LoansScreen
+import app.myfinhub.android.feature.money.MoneyAction
 import app.myfinhub.android.feature.money.MoneyScreen
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
+import app.myfinhub.android.feature.money.SavingsScreen
+import app.myfinhub.android.feature.money.reduceMoney
 import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanBudgetsScreen
 import app.myfinhub.android.feature.plan.PlanForecastScreen
@@ -105,6 +113,10 @@ internal fun MyFinHubAppContent(
     insightsState: InsightsUiState = InsightsUiState(),
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
+    val onFrontendMoneyAction: (MoneyAction) -> Unit = { action ->
+        frontendMoneyState = reduceMoney(frontendMoneyState, action)
+    }
     val alwaysShowNavigationLabels = LocalDensity.current.fontScale < 1.3f
 
     val homeBackStack = rememberNavBackStack(AppRoute.Home)
@@ -181,7 +193,7 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Money> {
                     MoneyScreen(
-                        state = moneyState,
+                        state = frontendMoneyState,
                         secretState = cardSecretState,
                         onCardActivated = onCardDetailOpened,
                         onCardDeactivated = onCardDetailClosed,
@@ -189,6 +201,9 @@ internal fun MyFinHubAppContent(
                         onHideCardSecrets = onHideCardSecrets,
                         onDeleteCard = onDeleteCard,
                         onOpenCard = { cardId -> moneyBackStack.add(AppRoute.CardDetail(cardId)) },
+                        onOpenSavings = { moneyBackStack.add(AppRoute.Savings) },
+                        onOpenLoans = { moneyBackStack.add(AppRoute.Loans) },
+                        onOpenLending = { moneyBackStack.add(AppRoute.Lending) },
                     )
                 }
                 entry<AppRoute.CardDetail> { route ->
@@ -197,12 +212,47 @@ internal fun MyFinHubAppContent(
                         onDispose { onCardDetailClosed(route.cardId) }
                     }
                     CardDetailScreen(
-                        card = moneyState.cards.firstOrNull { it.id == route.cardId },
+                        card = frontendMoneyState.cards.firstOrNull { it.id == route.cardId },
                         secretState = cardSecretState,
                         onReveal = onRevealCardSecrets,
                         onHideSecrets = onHideCardSecrets,
                         onSaveCvv = onSaveLocalCvv,
                         onDeleteCvv = onDeleteLocalCvv,
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.Savings> {
+                    SavingsScreen(
+                        state = frontendMoneyState,
+                        onAction = onFrontendMoneyAction,
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.Loans> {
+                    LoansScreen(
+                        state = frontendMoneyState,
+                        onOpenLoan = { loanId -> moneyBackStack.add(AppRoute.LoanDetail(loanId)) },
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.LoanDetail> { route ->
+                    LoanEditorScreen(
+                        loan = frontendMoneyState.loans.firstOrNull { it.id == route.loanId },
+                        onAction = onFrontendMoneyAction,
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.Lending> {
+                    LendingScreen(
+                        state = frontendMoneyState,
+                        onOpenItem = { itemId -> moneyBackStack.add(AppRoute.LendingDetail(itemId)) },
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.LendingDetail> { route ->
+                    LendingEditorScreen(
+                        item = frontendMoneyState.lendingItems.firstOrNull { it.id == route.lendingId },
+                        onAction = onFrontendMoneyAction,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
