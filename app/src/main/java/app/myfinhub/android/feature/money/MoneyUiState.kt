@@ -27,6 +27,34 @@ data class MoneyCard(
 
 enum class VaultState { LOCKED, AVAILABLE }
 
+data class SavingsPlan(
+    val name: String = "Ταμείο ασφαλείας",
+    val targetAmountText: String,
+    val targetDateLabel: String = "Δεκ 2027",
+    val monthlyContributionText: String = "250",
+    val paused: Boolean = false,
+)
+
+data class LoanItem(
+    val id: String,
+    val name: String,
+    val lender: String,
+    val remaining: Double,
+    val monthlyPayment: Double,
+    val nextPaymentLabel: String,
+    val originalAmount: Double,
+    val paused: Boolean = false,
+)
+
+data class LendingItem(
+    val id: String,
+    val personLabel: String,
+    val amount: Double,
+    val dueLabel: String,
+    val note: String = "",
+    val settled: Boolean = false,
+)
+
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = syntheticMoneyAccounts(),
     val cards: List<MoneyCard> = syntheticMoneyCards(),
@@ -34,7 +62,104 @@ data class MoneyUiState(
     val savingsCurrent: Double = 2_850.0,
     val loanOutstanding: Double = 4_240.0,
     val lendingReceivable: Double = 310.0,
+    val savingsPlan: SavingsPlan = SavingsPlan(
+        targetAmountText = savingsGoal?.toMoneyInput().orEmpty(),
+    ),
+    val loans: List<LoanItem> = syntheticLoans(loanOutstanding),
+    val lendingItems: List<LendingItem> = syntheticLendingItems(lendingReceivable),
+    val frontendMessage: String? = null,
 )
+
+sealed interface MoneyAction {
+    data class SavingsTargetChanged(val value: String) : MoneyAction
+    data class SavingsDateChanged(val value: String) : MoneyAction
+    data class SavingsContributionChanged(val value: String) : MoneyAction
+    data object ToggleSavingsPause : MoneyAction
+    data object SaveSavingsDraft : MoneyAction
+
+    data class UpdateLoan(
+        val id: String,
+        val name: String,
+        val lender: String,
+        val remaining: Double,
+        val monthlyPayment: Double,
+        val nextPaymentLabel: String,
+    ) : MoneyAction
+
+    data class ToggleLoanPause(val id: String) : MoneyAction
+
+    data class UpdateLending(
+        val id: String,
+        val personLabel: String,
+        val amount: Double,
+        val dueLabel: String,
+        val note: String,
+    ) : MoneyAction
+
+    data class ToggleLendingSettled(val id: String) : MoneyAction
+}
+
+fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (action) {
+    is MoneyAction.SavingsTargetChanged -> state.copy(
+        savingsPlan = state.savingsPlan.copy(targetAmountText = action.value),
+        frontendMessage = null,
+    )
+    is MoneyAction.SavingsDateChanged -> state.copy(
+        savingsPlan = state.savingsPlan.copy(targetDateLabel = action.value),
+        frontendMessage = null,
+    )
+    is MoneyAction.SavingsContributionChanged -> state.copy(
+        savingsPlan = state.savingsPlan.copy(monthlyContributionText = action.value),
+        frontendMessage = null,
+    )
+    MoneyAction.ToggleSavingsPause -> state.copy(
+        savingsPlan = state.savingsPlan.copy(paused = !state.savingsPlan.paused),
+        frontendMessage = "Η κατάσταση του στόχου ενημερώθηκε τοπικά στο Android UI.",
+    )
+    MoneyAction.SaveSavingsDraft -> {
+        val target = state.savingsPlan.targetAmountText.replace(',', '.').toDoubleOrNull()
+        val contribution = state.savingsPlan.monthlyContributionText.replace(',', '.').toDoubleOrNull()
+        when {
+            target == null || target <= 0.0 -> state.copy(frontendMessage = "Ο στόχος πρέπει να είναι μεγαλύτερος από μηδέν.")
+            contribution == null || contribution < 0.0 -> state.copy(frontendMessage = "Η μηνιαία συνεισφορά δεν μπορεί να είναι αρνητική.")
+            state.savingsPlan.targetDateLabel.isBlank() -> state.copy(frontendMessage = "Συμπλήρωσε χρονικό στόχο.")
+            else -> state.copy(frontendMessage = "Ο στόχος αποταμίευσης είναι έγκυρος ως frontend draft.")
+        }
+    }
+    is MoneyAction.UpdateLoan -> state.copy(
+        loans = state.loans.map { loan ->
+            if (loan.id != action.id) loan else loan.copy(
+                name = action.name.trim(),
+                lender = action.lender.trim(),
+                remaining = action.remaining,
+                monthlyPayment = action.monthlyPayment,
+                nextPaymentLabel = action.nextPaymentLabel.trim(),
+            )
+        },
+        frontendMessage = "Η αλλαγή δανείου διατηρείται στο Android UI μέχρι το backend integration pass.",
+    )
+    is MoneyAction.ToggleLoanPause -> state.copy(
+        loans = state.loans.map { loan -> if (loan.id == action.id) loan.copy(paused = !loan.paused) else loan },
+        frontendMessage = "Η κατάσταση δανείου ενημερώθηκε τοπικά στο Android UI.",
+    )
+    is MoneyAction.UpdateLending -> state.copy(
+        lendingItems = state.lendingItems.map { item ->
+            if (item.id != action.id) item else item.copy(
+                personLabel = action.personLabel.trim(),
+                amount = action.amount,
+                dueLabel = action.dueLabel.trim(),
+                note = action.note.trim(),
+            )
+        },
+        frontendMessage = "Η απαίτηση διατηρείται στο Android UI μέχρι το backend integration pass.",
+    )
+    is MoneyAction.ToggleLendingSettled -> state.copy(
+        lendingItems = state.lendingItems.map { item ->
+            if (item.id == action.id) item.copy(settled = !item.settled) else item
+        },
+        frontendMessage = "Η κατάσταση απαίτησης ενημερώθηκε τοπικά στο Android UI.",
+    )
+}
 
 class MoneyViewModel : ViewModel() {
     private val mutableState = MutableStateFlow(MoneyUiState())
@@ -42,6 +167,10 @@ class MoneyViewModel : ViewModel() {
 
     fun deleteCard(cardId: String) {
         mutableState.update { state -> state.copy(cards = state.cards.filterNot { it.id == cardId }) }
+    }
+
+    fun onAction(action: MoneyAction) {
+        mutableState.update { state -> reduceMoney(state, action) }
     }
 }
 
@@ -75,3 +204,37 @@ fun syntheticMoneyCards() = listOf(
         bankId = "revolut",
     ),
 )
+
+fun syntheticLoans(totalOutstanding: Double = 4_240.0): List<LoanItem> {
+    val primary = totalOutstanding.coerceAtLeast(0.0)
+    if (primary == 0.0) return emptyList()
+    val original = maxOf(primary, 7_500.0)
+    return listOf(
+        LoanItem(
+            id = "loan-main",
+            name = "Προσωπικό δάνειο",
+            lender = "Τράπεζα",
+            remaining = primary,
+            monthlyPayment = minOf(185.0, primary),
+            nextPaymentLabel = "12 Σεπ",
+            originalAmount = original,
+        ),
+    )
+}
+
+fun syntheticLendingItems(totalReceivable: Double = 310.0): List<LendingItem> {
+    val total = totalReceivable.coerceAtLeast(0.0)
+    if (total == 0.0) return emptyList()
+    return listOf(
+        LendingItem(
+            id = "lend-main",
+            personLabel = "Επιστροφή χρημάτων",
+            amount = total,
+            dueLabel = "15 Σεπ",
+            note = "Προσωπική απαίτηση",
+        ),
+    )
+}
+
+private fun Double.toMoneyInput(): String =
+    if (this % 1.0 == 0.0) toInt().toString() else String.format(java.util.Locale.US, "%.2f", this)
