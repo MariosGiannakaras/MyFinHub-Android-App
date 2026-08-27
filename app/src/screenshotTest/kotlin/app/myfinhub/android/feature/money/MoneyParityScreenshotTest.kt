@@ -24,6 +24,24 @@ fun MoneyOverviewCompactLightScreenshot() {
 
 @PreviewTest
 @Preview(
+    name = "money_overview_compact_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun MoneyOverviewCompactLargeFontScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        MoneyScreen(
+            state = MoneyUiState(),
+            onOpenCard = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(
     name = "money_savings_compact_light",
     widthDp = 412,
     heightDp = 915,
