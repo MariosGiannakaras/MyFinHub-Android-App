@@ -27,6 +27,8 @@ class FrontendUtilitiesParityTest {
         }
         composeRule.onNodeWithText("Γιατί εμφανίζεται").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Σήμανση ως ελεγμένο").performScrollTo().performClick()
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasText("Η οικονομική σου εικόνα"))
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Ρυθμίσεις & δεδομένα"))
