@@ -39,6 +39,9 @@ import app.myfinhub.android.feature.money.MoneyScreen
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.PlanAction
+import app.myfinhub.android.feature.plan.PlanBudgetsScreen
+import app.myfinhub.android.feature.plan.PlanForecastScreen
+import app.myfinhub.android.feature.plan.PlanItemEditorScreen
 import app.myfinhub.android.feature.plan.PlanScreen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
@@ -204,7 +207,34 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Plan> {
-                    PlanScreen(state = planState, onAction = onPlanAction)
+                    PlanScreen(
+                        state = planState,
+                        onAction = onPlanAction,
+                        onOpenItem = { itemId -> planBackStack.add(AppRoute.PlanItem(itemId)) },
+                        onOpenBudgets = { planBackStack.add(AppRoute.PlanBudgets) },
+                        onOpenForecast = { planBackStack.add(AppRoute.PlanForecast) },
+                    )
+                }
+                entry<AppRoute.PlanItem> { route ->
+                    PlanItemEditorScreen(
+                        item = planState.items.firstOrNull { it.id == route.itemId },
+                        onAction = onPlanAction,
+                        onBack = { planBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.PlanBudgets> {
+                    PlanBudgetsScreen(
+                        state = planState,
+                        onAction = onPlanAction,
+                        onBack = { planBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.PlanForecast> {
+                    PlanForecastScreen(
+                        state = planState,
+                        onAction = onPlanAction,
+                        onBack = { planBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.Insights> {
                     InsightsScreen(
