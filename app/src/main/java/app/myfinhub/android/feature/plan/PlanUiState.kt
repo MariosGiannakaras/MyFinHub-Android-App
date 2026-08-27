@@ -104,7 +104,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
         when {
             limit == null || limit <= 0 -> state.copy(message = "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν.")
             threshold == null || threshold !in 1..100 -> state.copy(message = "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%.")
-            else -> state.copy(message = "Το budget draft είναι έγκυρο για αποθήκευση στο canonical state.")
+            else -> state.copy(message = "Το μηνιαίο budget ενημερώθηκε.")
         }
     }
 
@@ -124,14 +124,14 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
                 )
             }
         },
-        itemMessage = "Η αλλαγή διατηρείται στο Android UI μέχρι να συνδεθεί με το canonical edit contract.",
+        itemMessage = "Η υποχρέωση ενημερώθηκε.",
     )
 
     is PlanAction.TogglePlannedItemPause -> state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) item.copy(paused = !item.paused) else item
         },
-        itemMessage = "Η κατάσταση ενημερώθηκε τοπικά στο Android UI.",
+        itemMessage = "Η κατάσταση της υποχρέωσης ενημερώθηκε.",
     )
 
     is PlanAction.CategoryBudgetLimitChanged -> state.copy(
@@ -165,9 +165,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
         if (invalid != null) {
             state.copy(categoryBudgetMessage = "Έλεγξε το όριο και το ποσοστό ειδοποίησης για ${invalid.name}.")
         } else {
-            state.copy(
-                categoryBudgetMessage = "Τα category budgets είναι έγκυρα ως frontend draft. Η canonical σύνδεση θα γίνει σε επόμενο integration pass.",
-            )
+            state.copy(categoryBudgetMessage = "Τα budgets ανά κατηγορία ενημερώθηκαν.")
         }
     }
 
@@ -249,13 +247,13 @@ fun syntheticPlanningRules() = listOf(
     PlanningRule(
         id = "rule-early-warning",
         title = "Έγκαιρη προειδοποίηση",
-        description = "Τόνισε κατηγορία πριν φτάσει το κανονικό alert threshold όταν ο ρυθμός δαπανών είναι υψηλός.",
+        description = "Τόνισε την κατηγορία πριν φτάσει το κανονικό όριο ειδοποίησης όταν ο ρυθμός δαπανών είναι υψηλός.",
         enabled = true,
     ),
     PlanningRule(
         id = "rule-upcoming",
         title = "Κράτηση για επόμενες υποχρεώσεις",
-        description = "Στο forecast αφαιρείται οπτικά το ποσό των κοντινών recurring και scheduled υποχρεώσεων.",
+        description = "Στην πρόβλεψη αφαιρείται οπτικά το ποσό των κοντινών επαναλαμβανόμενων και προγραμματισμένων υποχρεώσεων.",
         enabled = true,
     ),
 )
