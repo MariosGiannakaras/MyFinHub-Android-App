@@ -38,7 +38,8 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNodeWithText("Budgets & κανόνες").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets").assertIsDisplayed()
+        composeRule.onNodeWithText("Forecast").assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
