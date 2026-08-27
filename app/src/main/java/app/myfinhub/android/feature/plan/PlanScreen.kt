@@ -86,7 +86,7 @@ fun PlanScreen(
                                     Text("Budgets & κανόνες")
                                 }
                                 Button(onClick = onOpenForecast, modifier = Modifier.fillMaxWidth()) {
-                                    Text("Άνοιγμα forecast")
+                                    Text("Άνοιγμα πρόβλεψης")
                                 }
                             }
                         } else {
@@ -95,7 +95,7 @@ fun PlanScreen(
                                     Text("Budgets")
                                 }
                                 Button(onClick = onOpenForecast, modifier = Modifier.weight(1f)) {
-                                    Text("Forecast")
+                                    Text("Πρόβλεψη")
                                 }
                             }
                         }
@@ -165,7 +165,7 @@ fun PlanScreen(
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            "$enabledCategoryBudgets ενεργά category budgets · ${state.rules.count(PlanningRule::enabled)} ενεργοί κανόνες",
+                            "$enabledCategoryBudgets ενεργά budgets κατηγορίας · ${state.rules.count(PlanningRule::enabled)} ενεργοί κανόνες",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -242,11 +242,6 @@ fun PlanItemEditorScreen(
             }
 
             Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
-            Text(
-                "Το edit flow είναι frontend-first. Οι αλλαγές παραμένουν στο Android UI μέχρι να συνδεθεί αργότερα το αντίστοιχο canonical write contract.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             Text("Τύπος", style = MaterialTheme.typography.titleMedium)
             if (largeFont) {
@@ -334,7 +329,7 @@ fun PlanItemEditorScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Αποθήκευση draft")
+                Text("Αποθήκευση")
             }
 
             OutlinedButton(
@@ -451,7 +446,7 @@ fun PlanBudgetsScreen(
             item {
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
                     Button(onClick = { onAction(PlanAction.SaveCategoryBudgets) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Έλεγχος category budgets")
+                        Text("Αποθήκευση budgets")
                     }
                     state.categoryBudgetMessage?.let {
                         Spacer(Modifier.height(8.dp))
@@ -478,14 +473,7 @@ fun PlanBudgetsScreen(
                     }
                 }
             }
-            item {
-                Text(
-                    "Οι category budgets και οι νέοι planning rules είναι αυτή τη στιγμή frontend drafts. Δεν δηλώνεται server persistence μέχρι το επόμενο backend integration pass.",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            item { Spacer(Modifier.height(12.dp)) }
         }
     }
 }
@@ -506,7 +494,7 @@ fun PlanForecastScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Forecast", modifier = Modifier.semantics { heading() }) },
+                title = { Text("Πρόβλεψη", modifier = Modifier.semantics { heading() }) },
                 navigationIcon = { TextButton(onClick = onBack) { Text("Πίσω") } },
             )
         },
@@ -561,7 +549,7 @@ fun PlanForecastScreen(
                 }
             }
 
-            item { SectionTitle("Τι επηρεάζει το forecast") }
+            item { SectionTitle("Τι επηρεάζει την πρόβλεψη") }
             items(state.items.filterNot(PlannedItem::paused).take(8), key = PlannedItem::id) { item ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
@@ -575,14 +563,7 @@ fun PlanForecastScreen(
                     Text("−${formatEuro(item.amount)}", fontWeight = FontWeight.SemiBold)
                 }
             }
-            item {
-                Text(
-                    "Το forecast είναι UI εκτίμηση. Η τελική ενοποίηση θα χρησιμοποιήσει τα canonical recurring/scheduled δεδομένα χωρίς δεύτερη Android βάση αλήθειας.",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            item { Spacer(Modifier.height(12.dp)) }
         }
     }
 }
