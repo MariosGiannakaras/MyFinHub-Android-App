@@ -129,6 +129,13 @@ private fun HomeCompactContent(
         item { UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible) }
         item { QuickEntryCard(onOpen = { onAction(HomeAction.OpenQuickEntry) }) }
         item { MonthFlowCard(flow = state.monthFlow, amountsVisible = state.amountsVisible) }
+        item {
+            UtilitiesCard(
+                onOpenSettings = onOpenSettings,
+                onOpenDataTransfer = onOpenDataTransfer,
+                onOpenChangeHistory = onOpenChangeHistory,
+            )
+        }
     }
 }
 
