@@ -1,0 +1,49 @@
+name: Fix Money Summary
+
+on:
+  push:
+    branches:
+      - feature/money-product-parity
+    paths:
+      - '.github/workflows/fix-money-summary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Money branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/money-product-parity
+
+      - name: Correct local summary behavior
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/src/main/java/app/myfinhub/android/feature/money/MoneyScreen.kt')
+          text = path.read_text()
+          text = text.replace('Text("Έλεγχος στόχου")', 'Text("Αποθήκευση")')
+          text = text.replace(
+              '''amount = state.loans.filterNot(LoanItem::paused).sumOf(LoanItem::remaining).takeIf { it > 0.0 }\n                            ?: state.loanOutstanding,''',
+              '''amount = if (state.loans.isNotEmpty()) {\n                            state.loans.filterNot(LoanItem::paused).sumOf(LoanItem::remaining)\n                        } else {\n                            state.loanOutstanding\n                        },''',
+          )
+          text = text.replace(
+              '''amount = state.lendingItems.filterNot(LendingItem::settled).sumOf(LendingItem::amount).takeIf { it > 0.0 }\n                            ?: state.lendingReceivable,''',
+              '''amount = if (state.lendingItems.isNotEmpty()) {\n                            state.lendingItems.filterNot(LendingItem::settled).sumOf(LendingItem::amount)\n                        } else {\n                            state.lendingReceivable\n                        },''',
+          )
+          path.write_text(text)
+          PY
+
+      - name: Commit fix and remove one-shot workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/fix-money-summary.yml
+          git add app/src/main/java/app/myfinhub/android/feature/money/MoneyScreen.kt
+          git commit -m 'fix(money): keep local summary state consistent'
+          git push origin HEAD:feature/money-product-parity
