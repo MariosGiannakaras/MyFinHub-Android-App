@@ -38,11 +38,30 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNodeWithText("Μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets & κανόνες").assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
         composeRule.onNodeWithText("Κορυφαίες κατηγορίες").assertIsDisplayed()
+    }
+
+    @Test
+    fun plan_drillsIntoItemBudgetAndForecastWorkflows() {
+        composeRule.onNodeWithText("Πλάνο").performClick()
+
+        composeRule.onNodeWithText("Ενοίκιο").performClick()
+        composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση draft").assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Budgets").performClick()
+        composeRule.onNodeWithText("Συνολικό μηνιαίο budget").assertIsDisplayed()
+        composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
+        composeRule.onNodeWithText("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Forecast").performClick()
+        composeRule.onNodeWithText("Προβλεπόμενο διαθέσιμο").assertIsDisplayed()
+        composeRule.onNodeWithText("Τι επηρεάζει το forecast").assertIsDisplayed()
     }
 
     @Test
