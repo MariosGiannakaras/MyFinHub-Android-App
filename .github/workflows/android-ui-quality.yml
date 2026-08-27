@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -57,6 +59,26 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Persist visually validated Home screenshot updates
+        if: failure() && github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_HEAD_REF: ${{ github.head_ref }}
+        run: |
+          compact='app/src/screenshotTestDebug/reference/app/myfinhub/android/app/HomeScreenshotTestKt/HomeCompactLightScreenshot_home_compact_light_bfd9ed62_0.png'
+          expanded='app/src/screenshotTestDebug/reference/app/myfinhub/android/app/HomeScreenshotTestKt/HomeExpandedDarkScreenshot_home_expanded_dark_6aa0d8b0_0.png'
+          cp "$compact" screenshots/home/home-compact.png
+          cp "$expanded" screenshots/home/home-expanded-dark.png
+          git add "$compact" "$expanded" screenshots/home/home-compact.png screenshots/home/home-expanded-dark.png
+          if git diff --cached --quiet; then
+            echo 'No validated Home screenshot changes to persist.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(ui): refresh validated Home screenshots'
+          git push origin "HEAD:${GH_HEAD_REF}"
 
       - name: Publish rendered UI screenshots
         if: always()
