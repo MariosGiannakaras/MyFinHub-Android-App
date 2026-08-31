@@ -37,24 +37,27 @@ data class ActivityUiState(
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
 ) {
-    val visibleItems: List<ActivityItem>
-        get() = items.filter { item ->
+    // Activity can contain hundreds of canonical events. Compute projections once per immutable
+    // state instance instead of re-filtering/allocating every time Compose reads visibleItems in
+    // the same recomposition. Query/filter/edit reducers already create a fresh state instance.
+    val visibleItems: List<ActivityItem> = run {
+        val needle = query.trim()
+        items.filter { item ->
             val matchesFilter = when (filter) {
                 ActivityFilter.ALL -> true
                 ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE || item.kind == ActivityKind.CARD_PAYMENT
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
                 ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
-            val needle = query.trim()
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
                 item.subtitle.contains(needle, ignoreCase = true) ||
                 item.category?.contains(needle, ignoreCase = true) == true
             matchesFilter && matchesQuery
         }
+    }
 
-    val selectedItem: ActivityItem?
-        get() = items.firstOrNull { it.id == selectedId }
+    val selectedItem: ActivityItem? = items.firstOrNull { it.id == selectedId }
 }
 
 sealed interface ActivityAction {

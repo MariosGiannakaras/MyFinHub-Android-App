@@ -24,6 +24,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,9 +34,21 @@ class CreditCardStackTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    private var originalAnimatorDurationScale: Float? = null
+
+    @Before
+    fun useDeterministicMotionPreference() {
+        if (originalAnimatorDurationScale == null) {
+            originalAnimatorDurationScale = readAnimatorDurationScale()
+        }
+        // These tests validate interaction/state contracts, not decorative timing. Keep the
+        // runner deterministic while still exercising the real production touch paths.
+        setAnimatorDurationScale(0f)
+    }
+
     @After
-    fun restoreAnimations() {
-        setAnimatorDurationScale("1")
+    fun restoreMotionPreference() {
+        originalAnimatorDurationScale?.let(::setAnimatorDurationScale)
     }
 
     @Test
@@ -73,9 +86,8 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
 
-        // Exercise the actual vertical-swipe contract on every window class. Keep the gesture
-        // away from the transformed card edges so foldable emulators cannot drop the initial or
-        // final pointer sample while still moving far beyond the production 72 dp threshold.
+        // Keep the real swipe away from transformed card edges on large foldable bounds while
+        // still moving well beyond the production 72 dp restack threshold.
         composeRule.onNodeWithTag("credit_card_card-a").performTouchInput {
             val verticalInset = (bottom - top) * .18f
             swipeUp(
@@ -96,14 +108,10 @@ class CreditCardStackTest {
             .filterToOne(isEnabled())
             .performClick()
         // Android 13+ can deny clipboard reads to instrumentation even when the foreground app
-        // successfully writes. The live-region acknowledgement is emitted only after the
-        // production clipboard setText call has executed.
+        // successfully writes. This acknowledgement is emitted after production setText executes.
         composeRule.onNodeWithText("Ο αριθμός αντιγράφηκε").assertExists()
 
         composeRule.onNodeWithContentDescription("Απόκρυψη στοιχείων").performClick()
-        // Expiry/CVV masks are intentionally present on every stacked card. The PAN mask is
-        // stable-ID-specific, so it proves that the newly fronted card returned to hidden state
-        // without making a global uniqueness assertion about shared placeholder text.
         composeRule.onNodeWithText("•••• •••• •••• 2222").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-a").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
@@ -192,7 +200,6 @@ class CreditCardStackTest {
 
     @Test
     fun reducedMotion_deleteFinalCard_completesWithoutDecorativeDelay() {
-        setAnimatorDurationScale("0")
         val deleted = mutableListOf<String>()
 
         composeRule.setContent {
@@ -212,9 +219,8 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         setDeleteProgressAndPressEnter(1f)
 
-        // The production reduced-motion branch skips the 620 ms decorative delay entirely.
-        // A 5 s harness timeout only tolerates slow emulator/Compose scheduling on tablet CI;
-        // it is not the product animation duration contract.
+        // The deterministic reduced-motion setup verifies that production skips the 620 ms
+        // decorative delay. The 5 s harness timeout only tolerates emulator scheduling latency.
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
     }
@@ -228,11 +234,13 @@ class CreditCardStackTest {
         slider.performKeyInput { pressKey(Key.Enter) }
     }
 
-    private fun setAnimatorDurationScale(value: String) {
+    private fun readAnimatorDurationScale(): Float =
+        runShellCommand("settings get global animator_duration_scale").trim().toFloatOrNull() ?: 1f
+
+    private fun setAnimatorDurationScale(value: Float) {
         runShellCommand("settings put global animator_duration_scale $value")
-        val expected = value.toFloat()
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            runShellCommand("settings get global animator_duration_scale").trim().toFloatOrNull() == expected
+            readAnimatorDurationScale() == value
         }
     }
 

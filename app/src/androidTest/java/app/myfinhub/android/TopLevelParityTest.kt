@@ -3,6 +3,9 @@ package app.myfinhub.android
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -24,10 +27,12 @@ class TopLevelParityTest {
     fun moneyPlanAndInsights_haveRealMobileContent() {
         composeRule.onNodeWithText("Χρήματα").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
-        // Production Money data owns real stable card IDs; do not couple the full-app parity test
-        // to CreditCardStackTest's synthetic `card-a` fixture. The stack's native keyboard contract
-        // opens whichever real card is currently frontmost.
+        // Production Money data owns real stable card IDs; the stack is also a lazy item on
+        // compact/large-font/adaptive viewports, so scroll the owning list to the real stack.
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_stack")
+            .assertIsDisplayed()
             .performSemanticsAction(SemanticsActions.RequestFocus)
         composeRule.onNodeWithTag("credit_card_stack")
             .performKeyInput { pressKey(Key.Enter) }
@@ -39,11 +44,17 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNodeWithText("Budgets").assertIsDisplayed()
-        composeRule.onNodeWithText("Πρόβλεψη").assertIsDisplayed()
+        composeRule.onNode(hasText("Budgets", substring = true) and hasClickAction())
+            .performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNode(hasText("πρόβλεψη", substring = true, ignoreCase = true) and hasClickAction())
+            .performScrollTo()
+            .assertIsDisplayed()
 
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights_list")
+            .performScrollToNode(hasText("Κορυφαίες κατηγορίες"))
         composeRule.onNodeWithText("Κορυφαίες κατηγορίες").assertIsDisplayed()
     }
 
@@ -51,17 +62,23 @@ class TopLevelParityTest {
     fun plan_drillsIntoItemBudgetAndForecastWorkflows() {
         composeRule.onNodeWithText("Πλάνο").performClick()
 
-        composeRule.onNodeWithText("Ενοίκιο").performClick()
+        composeRule.onNode(hasText("Ενοίκιο") and hasClickAction())
+            .performScrollTo()
+            .performClick()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
         composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
-        composeRule.onNodeWithText("Budgets").performClick()
+        composeRule.onNode(hasText("Budgets", substring = true) and hasClickAction())
+            .performScrollTo()
+            .performClick()
         composeRule.onNodeWithText("Συνολικό μηνιαίο budget").assertIsDisplayed()
         composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
-        composeRule.onNodeWithText("Πρόβλεψη").performClick()
+        composeRule.onNode(hasText("πρόβλεψη", substring = true, ignoreCase = true) and hasClickAction())
+            .performScrollTo()
+            .performClick()
         composeRule.onNodeWithText("Προβλεπόμενο διαθέσιμο").assertIsDisplayed()
         composeRule.onNodeWithText("Τι επηρεάζει την πρόβλεψη").assertIsDisplayed()
     }
@@ -74,7 +91,9 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
-        composeRule.onNodeWithText("Σούπερ μάρκετ").assertIsDisplayed()
+        // Expanded Activity can show the same title in both list and detail pane. The clickable
+        // row is the projection under test; the detail copy is not a second transaction.
+        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
         composeRule.onNodeWithText("Μισθός").assertDoesNotExist()
     }
 }
