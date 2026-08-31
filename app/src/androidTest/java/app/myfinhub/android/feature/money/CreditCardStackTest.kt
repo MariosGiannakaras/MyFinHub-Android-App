@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import android.os.ParcelFileDescriptor
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
@@ -72,11 +73,18 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-b").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-c").assertIsDisplayed()
 
-        // Exercise the actual vertical-swipe contract on every window class. The previous
-        // tablet-only D-pad fallback depended on focus delivery and could time out before the
-        // production restack path was invoked; keyboard behavior is covered independently by
-        // the stack semantics/parity tests.
-        composeRule.onNodeWithTag("credit_card_card-a").performTouchInput { swipeUp() }
+        // Exercise the actual vertical-swipe contract on every window class. Keep the gesture
+        // away from the transformed card edges so foldable emulators cannot drop the initial or
+        // final pointer sample while still moving far beyond the production 72 dp threshold.
+        composeRule.onNodeWithTag("credit_card_card-a").performTouchInput {
+            val verticalInset = (bottom - top) * .18f
+            swipeUp(
+                startY = bottom - verticalInset,
+                endY = top + verticalInset,
+                durationMillis = 400L,
+            )
+        }
+        composeRule.waitForIdle()
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(10)) { activeCardId == "card-b" }
 
         composeRule.onNodeWithContentDescription("Εμφάνιση στοιχείων").performClick()
@@ -148,10 +156,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.89f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(.89f)
 
         composeRule.runOnIdle { assertEquals(emptyList<String>(), deleted) }
         composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
@@ -178,10 +183,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(.91f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(.91f)
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
@@ -208,10 +210,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
-        composeRule.onNodeWithTag("card_delete_slider")
-            .performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(1f) }
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("card_delete_slider").performKeyInput { pressKey(Key.Enter) }
+        setDeleteProgressAndPressEnter(1f)
 
         // The production reduced-motion branch skips the 620 ms decorative delay entirely.
         // A 5 s harness timeout only tolerates slow emulator/Compose scheduling on tablet CI;
@@ -220,10 +219,28 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
     }
 
+    private fun setDeleteProgressAndPressEnter(progress: Float) {
+        val slider = composeRule.onNodeWithTag("card_delete_slider")
+        slider.performSemanticsAction(SemanticsActions.SetProgress) { setProgress -> setProgress(progress) }
+        composeRule.waitForIdle()
+        slider.performSemanticsAction(SemanticsActions.RequestFocus) { requestFocus -> requestFocus() }
+        composeRule.waitForIdle()
+        slider.performKeyInput { pressKey(Key.Enter) }
+    }
+
     private fun setAnimatorDurationScale(value: String) {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("settings put global animator_duration_scale $value")
-            .close()
+        runShellCommand("settings put global animator_duration_scale $value")
+        val expected = value.toFloat()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            runShellCommand("settings get global animator_duration_scale").trim().toFloatOrNull() == expected
+        }
+    }
+
+    private fun runShellCommand(command: String): String {
+        val descriptor = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command)
+        return ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+            .bufferedReader()
+            .use { it.readText() }
     }
 
     private fun testCards(count: Int): List<MoneyCard> = listOf(

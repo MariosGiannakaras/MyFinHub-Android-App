@@ -79,16 +79,18 @@ Tracker: issue #15.
 - [ ] Add backup/import client boundaries where appropriate for mobile.
 - [ ] Add `/api/card-secrets` client boundary without CVV support.
 
-### Additional parity after core production wiring
-- [ ] Smart Review and Needs Attention parity beyond the canonical semantics already consumed by current projections.
-- [ ] Savings-specific workflows beyond current overview.
-- [ ] Loan/installment management parity beyond current outstanding-balance projection.
-- [ ] Lending/receivable management parity beyond current outstanding-balance projection.
-- [ ] Recurring/scheduled edit parity.
-- [ ] Budget/rule/forecast planning parity beyond representative editor.
-- [ ] Settings parity.
-- [ ] Import/backup UX where applicable.
-- [ ] Privacy-safe Undo/Redo / Change History semantics appropriate to Android.
+### Phase 2C native frontend parity — issue #30
+- [x] Smart Review and Needs Attention drill-down — Home/Utilities PR #33.
+- [x] Savings-specific workflows beyond overview — Money PR #32.
+- [x] Loan/installment management beyond outstanding-balance projection — Money PR #32.
+- [x] Lending/receivable management beyond outstanding-balance projection — Money PR #32.
+- [x] Recurring/scheduled detail and edit flows — Plan PR #31.
+- [x] Category budget/rule/forecast planning UI — Plan PR #31.
+- [x] Settings UI without infrastructure-key fields — Home/Utilities PR #33.
+- [x] Import/backup UI shell with explicit destructive confirmation — Home/Utilities PR #33.
+- [x] Privacy-safe Undo/Redo / Change History — Home/Utilities PR #33.
+
+Frontend parity uses native Compose and local deterministic state where canonical persistence is not yet available. The unchecked backup/import and `/api/card-secrets` items above remain backend/client-boundary work and are not considered complete by the frontend UI shell.
 
 ## Phase 5 — Security/performance/release hardening
 

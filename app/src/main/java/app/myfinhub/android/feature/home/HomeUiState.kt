@@ -70,6 +70,7 @@ sealed interface HomeAction {
     data object OpenQuickEntry : HomeAction
     data object CloseQuickEntry : HomeAction
     data class SelectQuickEntry(val type: HomeQuickEntryType) : HomeAction
+    data class DismissAttention(val id: String) : HomeAction
 }
 
 fun reduceHomeState(state: HomeUiState, action: HomeAction): HomeUiState = when (action) {
@@ -77,6 +78,9 @@ fun reduceHomeState(state: HomeUiState, action: HomeAction): HomeUiState = when 
     HomeAction.OpenQuickEntry -> state.copy(quickEntryOpen = true, selectedQuickEntryType = null)
     HomeAction.CloseQuickEntry -> state.copy(quickEntryOpen = false, selectedQuickEntryType = null)
     is HomeAction.SelectQuickEntry -> state.copy(selectedQuickEntryType = action.type)
+    is HomeAction.DismissAttention -> state.copy(
+        attentionItems = state.attentionItems.filterNot { it.id == action.id },
+    )
 }
 
 fun syntheticHomeUiState(): HomeUiState = HomeUiState(

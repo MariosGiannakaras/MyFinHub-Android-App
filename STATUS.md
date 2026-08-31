@@ -1,5 +1,21 @@
 # MyFinHub Android status
 
+## 2026-08-27 — Phase 2C native frontend parity
+
+Phase 2C frontend parity is implemented across the native Android app. The nine tracked workflows in issue #30 are covered by Plan PR #31, Money PR #32 and Home/Utilities PR #33.
+
+### Phase 2C frontend state
+
+- Home Smart Review / Needs Attention drill-down is implemented as nested native Compose UI.
+- Money savings, loan/installment and lending/receivable detail/management flows extend the previous overview-only surfaces.
+- Plan recurring/scheduled detail and edit flows plus category budget/rule/forecast UI are implemented.
+- Android Settings, import/backup UI shell with explicit destructive confirmation, and privacy-safe Undo/Redo / Change History are implemented.
+- The five top-level destinations remain Home, Activity, Money, Plan and Insights; new workflows are nested rather than promoted to new top-level destinations.
+- Frontend-local deterministic state is used where canonical persistence is not yet available. This does not mark the separate backup/import client boundary or `/api/card-secrets` integration as complete.
+- Compact Home exposes the Utilities entry points and the compact navigation path is covered by instrumentation.
+- Real app screenshot references for the affected Home and Utilities surfaces were rendered by the official screenshot-test path, visually inspected, and the stale Home baselines were replaced with the validated references.
+- Compact, large-font, foldable/tablet and screenshot-regression validation remains the merge gate for PR #33; no production signing or release artifact is part of this phase.
+
 ## 2026-08-23 — Production canonical product integration
 
 The Android repository has completed the native foundation, representative product UI, production auth shell and canonical API/sync foundation. PR #20 implements the production bridge from the validated authenticated session to the existing server-authoritative MyFinHub finance state.
@@ -63,7 +79,7 @@ Merged PR #18 provides the lossless canonical document, bearer/revision API clie
 
 ### Remaining path
 
-1. Finish issue #15 with backup/import and `/api/card-secrets` client boundaries where applicable; broader desktop parity remains explicitly separate from the core production wiring.
+1. Finish issue #15 with backup/import client boundaries and `/api/card-secrets` client boundaries where applicable; the Phase 2C import/backup screen is frontend-only and does not complete these integration boundaries.
 2. Complete card-secret/CVV, secure-screen, performance, R8, profile/benchmark and accessibility hardening under issue #13.
 3. Complete production smoke, release configuration and final Android Studio/physical-device/signing handoff under issue #14.
 

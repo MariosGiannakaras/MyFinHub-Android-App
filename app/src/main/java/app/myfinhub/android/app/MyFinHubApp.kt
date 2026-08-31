@@ -28,6 +28,7 @@ import app.myfinhub.android.feature.activity.ActivityScreen
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.ActivityViewModel
 import app.myfinhub.android.feature.home.HomeAction
+import app.myfinhub.android.feature.home.HomeAttentionDetailScreen
 import app.myfinhub.android.feature.home.HomeScreen
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeViewModel
@@ -57,6 +58,12 @@ import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
+import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
+import app.myfinhub.android.feature.utilities.DataTransferScreen
+import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
+import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
+import app.myfinhub.android.feature.utilities.SettingsScreen
+import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
 
 @Composable
 fun MyFinHubApp(
@@ -114,6 +121,10 @@ internal fun MyFinHubAppContent(
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
+    var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
+    val onFrontendUtilitiesAction: (FrontendUtilitiesAction) -> Unit = { action ->
+        frontendUtilitiesState = reduceFrontendUtilities(frontendUtilitiesState, action)
+    }
     val onFrontendMoneyAction: (MoneyAction) -> Unit = { action ->
         frontendMoneyState = reduceMoney(frontendMoneyState, action)
     }
@@ -164,7 +175,45 @@ internal fun MyFinHubAppContent(
             },
             entryProvider = entryProvider {
                 entry<AppRoute.Home> {
-                    HomeScreen(state = homeState, onAction = onHomeAction)
+                    HomeScreen(
+                        state = homeState,
+                        onAction = onHomeAction,
+                        onOpenAttention = { id -> homeBackStack.add(AppRoute.HomeAttention(id)) },
+                        onOpenSettings = { homeBackStack.add(AppRoute.Settings) },
+                        onOpenDataTransfer = { homeBackStack.add(AppRoute.DataTransfer) },
+                        onOpenChangeHistory = { homeBackStack.add(AppRoute.ChangeHistory) },
+                    )
+                }
+                entry<AppRoute.HomeAttention> { route ->
+                    HomeAttentionDetailScreen(
+                        item = homeState.attentionItems.firstOrNull { it.id == route.attentionId },
+                        onMarkReviewed = {
+                            onHomeAction(HomeAction.DismissAttention(route.attentionId))
+                            homeBackStack.removeLastOrNull()
+                        },
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.Settings> {
+                    SettingsScreen(
+                        state = frontendUtilitiesState,
+                        onAction = onFrontendUtilitiesAction,
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.DataTransfer> {
+                    DataTransferScreen(
+                        state = frontendUtilitiesState,
+                        onAction = onFrontendUtilitiesAction,
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.ChangeHistory> {
+                    ChangeHistoryScreen(
+                        state = frontendUtilitiesState,
+                        onAction = onFrontendUtilitiesAction,
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.Activity> {
                     ActivityScreen(

@@ -33,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -47,6 +48,10 @@ import java.util.Locale
 fun HomeScreen(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
+    onOpenAttention: (String) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+    onOpenDataTransfer: () -> Unit = {},
+    onOpenChangeHistory: () -> Unit = {},
 ) {
     if (state.quickEntryOpen) {
         QuickEntrySheet(
@@ -81,9 +86,23 @@ fun HomeScreen(
                 .padding(innerPadding),
         ) {
             if (maxWidth >= 840.dp) {
-                HomeExpandedContent(state = state, onAction = onAction)
+                HomeExpandedContent(
+                    state = state,
+                    onAction = onAction,
+                    onOpenAttention = onOpenAttention,
+                    onOpenSettings = onOpenSettings,
+                    onOpenDataTransfer = onOpenDataTransfer,
+                    onOpenChangeHistory = onOpenChangeHistory,
+                )
             } else {
-                HomeCompactContent(state = state, onAction = onAction)
+                HomeCompactContent(
+                    state = state,
+                    onAction = onAction,
+                    onOpenAttention = onOpenAttention,
+                    onOpenSettings = onOpenSettings,
+                    onOpenDataTransfer = onOpenDataTransfer,
+                    onOpenChangeHistory = onOpenChangeHistory,
+                )
             }
         }
     }
@@ -93,19 +112,30 @@ fun HomeScreen(
 private fun HomeCompactContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
+    onOpenAttention: (String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenDataTransfer: () -> Unit,
+    onOpenChangeHistory: () -> Unit,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("home_list"),
         contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 104.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { HomeHeading() }
         item { PositionCard(state = state, onToggleAmounts = { onAction(HomeAction.ToggleAmounts) }) }
         item { AccountsCard(state = state) }
-        item { AttentionCard(items = state.attentionItems) }
+        item { AttentionCard(items = state.attentionItems, onOpen = onOpenAttention) }
         item { UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible) }
         item { QuickEntryCard(onOpen = { onAction(HomeAction.OpenQuickEntry) }) }
         item { MonthFlowCard(flow = state.monthFlow, amountsVisible = state.amountsVisible) }
+        item {
+            UtilitiesCard(
+                onOpenSettings = onOpenSettings,
+                onOpenDataTransfer = onOpenDataTransfer,
+                onOpenChangeHistory = onOpenChangeHistory,
+            )
+        }
     }
 }
 
@@ -113,6 +143,10 @@ private fun HomeCompactContent(
 private fun HomeExpandedContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
+    onOpenAttention: (String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenDataTransfer: () -> Unit,
+    onOpenChangeHistory: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -138,9 +172,14 @@ private fun HomeExpandedContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            AttentionCard(items = state.attentionItems)
+            AttentionCard(items = state.attentionItems, onOpen = onOpenAttention)
             UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible)
             QuickEntryCard(onOpen = { onAction(HomeAction.OpenQuickEntry) })
+            UtilitiesCard(
+                onOpenSettings = onOpenSettings,
+                onOpenDataTransfer = onOpenDataTransfer,
+                onOpenChangeHistory = onOpenChangeHistory,
+            )
             Spacer(modifier = Modifier.height(88.dp))
         }
     }
@@ -249,7 +288,10 @@ private fun AccountRow(
 }
 
 @Composable
-private fun AttentionCard(items: List<HomeAttentionItem>) {
+private fun AttentionCard(
+    items: List<HomeAttentionItem>,
+    onOpen: (String) -> Unit,
+) {
     SectionCard(
         title = "Χρειάζεται προσοχή",
         subtitle = "Οι επόμενες χρήσιμες ενέργειες",
@@ -258,7 +300,7 @@ private fun AttentionCard(items: List<HomeAttentionItem>) {
             Text("Δεν υπάρχει κάτι που χρειάζεται άμεση ενέργεια.")
         } else {
             items.forEachIndexed { index, item ->
-                AttentionRow(item = item)
+                AttentionRow(item = item, onOpen = onOpen)
                 if (index != items.lastIndex) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
                 }
@@ -268,11 +310,12 @@ private fun AttentionCard(items: List<HomeAttentionItem>) {
 }
 
 @Composable
-private fun AttentionRow(item: HomeAttentionItem) {
+private fun AttentionRow(
+    item: HomeAttentionItem,
+    onOpen: (String) -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -309,6 +352,12 @@ private fun AttentionRow(item: HomeAttentionItem) {
                     MaterialTheme.colorScheme.primary
                 },
             )
+            TextButton(
+                onClick = { onOpen(item.id) },
+                modifier = Modifier.testTag("attention-${item.id}"),
+            ) {
+                Text("Έλεγχος")
+            }
         }
     }
 }
@@ -369,6 +418,28 @@ private fun QuickEntryCard(onOpen: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Επίλεξε τύπο κίνησης")
+        }
+    }
+}
+
+@Composable
+private fun UtilitiesCard(
+    onOpenSettings: () -> Unit,
+    onOpenDataTransfer: () -> Unit,
+    onOpenChangeHistory: () -> Unit,
+) {
+    SectionCard(
+        title = "Ρυθμίσεις & δεδομένα",
+        subtitle = "Προτιμήσεις, αντίγραφα και ασφαλές ιστορικό",
+    ) {
+        OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
+            Text("Ρυθμίσεις")
+        }
+        OutlinedButton(onClick = onOpenDataTransfer, modifier = Modifier.fillMaxWidth()) {
+            Text("Εισαγωγή & αντίγραφα")
+        }
+        OutlinedButton(onClick = onOpenChangeHistory, modifier = Modifier.fillMaxWidth()) {
+            Text("Ιστορικό αλλαγών")
         }
     }
 }
