@@ -32,6 +32,14 @@ private fun benchmarkProductIntent(): Intent = Intent(Intent.ACTION_MAIN).apply 
     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 }
 
+private fun UiObject2.clickNearestClickable(message: String) {
+    var candidate: UiObject2? = this
+    while (candidate != null && !candidate.isClickable) {
+        candidate = candidate.parent
+    }
+    checkNotNull(candidate) { message }.click()
+}
+
 private fun MacrobenchmarkScope.requireObject(
     message: String,
     finder: () -> UiObject2?,
@@ -206,18 +214,28 @@ class CriticalJourneyBenchmark {
         val transferKind = requireObject("Quick Entry benchmark did not expose the Transfer kind.") {
             device.findObject(By.text("Μεταφορά"))
         }
-        transferKind.click()
-        check(device.wait(Until.hasObject(By.text("Προς λογαριασμό")), UI_TIMEOUT_MS)) {
-            "Quick Entry benchmark did not render the Transfer fields."
+        transferKind.clickNearestClickable("Quick Entry benchmark Transfer label had no clickable ancestor.")
+        check(
+            device.wait(
+                Until.hasObject(By.textContains("εσωτερικές μεταφορές δεν μετρούν")),
+                UI_TIMEOUT_MS,
+            ),
+        ) {
+            "Quick Entry benchmark did not enter the Transfer state."
         }
         device.waitForIdle()
 
         val expenseKind = requireObject("Quick Entry benchmark did not expose the Expense kind.") {
             device.findObject(By.text("Έξοδο"))
         }
-        expenseKind.click()
-        check(device.wait(Until.hasObject(By.text("Κατηγορία")), UI_TIMEOUT_MS)) {
-            "Quick Entry benchmark did not restore the Expense fields."
+        expenseKind.clickNearestClickable("Quick Entry benchmark Expense label had no clickable ancestor.")
+        check(
+            device.wait(
+                Until.gone(By.textContains("εσωτερικές μεταφορές δεν μετρούν")),
+                UI_TIMEOUT_MS,
+            ) && device.hasObject(By.text("Τι θέλεις να καταχωρίσεις;")),
+        ) {
+            "Quick Entry benchmark did not return to the Expense state."
         }
         device.waitForIdle()
     }
