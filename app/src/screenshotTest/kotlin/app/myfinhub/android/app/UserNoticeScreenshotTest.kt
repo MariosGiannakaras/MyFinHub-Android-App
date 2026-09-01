@@ -64,7 +64,7 @@ fun UserNoticeSnackbarScreenshot() {
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 88.dp),
+                        .padding(bottom = 152.dp),
                 )
             }
         }

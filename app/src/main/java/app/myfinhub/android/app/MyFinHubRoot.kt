@@ -59,7 +59,7 @@ fun MyFinHubRoot(
     var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
     val snackbarBottomPadding = if (
         authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
-    ) 88.dp else 12.dp
+    ) 152.dp else 12.dp
 
     LaunchedEffect(authState) {
         when (val state = authState) {
