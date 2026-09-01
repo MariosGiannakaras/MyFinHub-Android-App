@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -23,11 +24,12 @@ class HomeScreenTest {
         composeRule.onNodeWithText("Απόκρυψη ποσών").assertIsDisplayed()
 
         // NavigationSuiteScaffold can reduce the actual Home content width below the physical
-        // device width, especially on foldables. Infer the Compose branch from the semantics tree
-        // instead of guessing it from Configuration.screenWidthDp.
+        // device width, especially on foldables. The compact branch exposes the canonical
+        // home_list tag, so infer the Compose branch from that explicit contract rather than from
+        // a section that may be eagerly composed by LazyColumn prefetch.
         val expandedHome = runCatching {
-            composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode()
-        }.isSuccess
+            composeRule.onNodeWithTag("home_list").fetchSemanticsNode()
+        }.isFailure
         if (expandedHome) {
             // Expanded Home uses regular vertically-scrollable columns, whose children remain
             // composed even when outside the viewport.
