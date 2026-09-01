@@ -114,7 +114,7 @@ class StartupBenchmark {
         iterations = 3,
         setupBlock = { pressHome() },
     ) {
-        startActivityAndWait()
+        startActivityAndWait(benchmarkProductIntent())
     }
 }
 
@@ -199,5 +199,12 @@ class CriticalJourneyBenchmark {
         },
     ) {
         openQuickEntryFromActivity("Quick Entry benchmark")
+        val scrollable = requireObject("Quick Entry benchmark did not expose its form scroll surface.") {
+            device.findObject(By.scrollable(true))
+        }
+        scrollable.scroll(Direction.DOWN, .7f)
+        device.waitForIdle()
+        scrollable.scroll(Direction.UP, .7f)
+        device.waitForIdle()
     }
 }
