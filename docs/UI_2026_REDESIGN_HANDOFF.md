@@ -7,7 +7,7 @@
 3. Read issue #37 and PR #38.
 4. Read `STATUS.md`, `TODO.md` and this file.
 5. Inspect the actual PR/branch/workflow state before changing anything.
-6. Continue the active redesign from the real state; do not restart discovery or reinterpret confirmed scope decisions.
+6. Continue from the real state; do not restart discovery or reinterpret confirmed scope decisions.
 
 ## Sole supported device
 
@@ -47,7 +47,7 @@ These are not Android user-facing features unless explicitly reversed later:
 - Desktop-style mass administration/configuration workspaces.
 - Windows install/update/recovery functionality.
 
-These exclusions do not permit Android to corrupt or strip canonical finance data. Unknown and desktop-owned fields must round-trip losslessly. Compatibility-only backend/domain code may remain when required for safe canonical behavior.
+These exclusions do not permit Android to corrupt or strip canonical finance data. Unknown and desktop-owned fields must round-trip losslessly.
 
 ## Approved visual/system direction
 
@@ -62,22 +62,23 @@ These exclusions do not permit Android to corrupt or strip canonical finance dat
 ## Current implementation state
 
 Completed:
-- shared 2026 light/dark theme, typography, shapes, compact spacing and finance semantics;
-- final centralized curated/static `MyFinHubIcons` vocabulary aligned with the main product;
-- authentic MyFinHub light/dark artwork and Android launcher/adaptive branding resources;
-- shared compact headers, cards, list rows, filters, finance amount treatments, icon badges and actions;
-- redesign of all retained top-level and secondary/auth/system flows;
+- shared 2026 light/dark visual system, authentic branding and centralized icon vocabulary;
+- redesign of all retained top-level, secondary, auth and system flows;
 - removal of Forecast and Backup/Import/Data Transfer user-facing Android routes/screens;
-- verification that the other confirmed desktop/admin exclusions have no Android entry point;
-- real screenshot refresh after branding/icon/scope correction and personal visual inspection;
-- stale UI-test selector repair for icon-based back navigation, search placeholder semantics and duplicated Settings text;
-- expanded Home overlap fix found during personal inspection: compact Home retains the floating `Νέα κίνηση` action, while expanded Home uses the in-card quick-entry primary action without a second floating action;
-- updated expanded Home screenshot reference rendered/replaced and personally inspected;
-- canonical screenshot regression passed after the reference replacement;
-- Samsung Galaxy S24 Ultra declared as the sole supported device;
-- automatic tablet/foldable/150%-font adaptive matrix removed;
-- one representative compact-phone instrumentation path retained for automated phone smoke coverage;
-- hosted-emulator Baseline Profile/Macrobenchmark workflows changed to manual diagnostic runs; normal CI still verifies the tooling builds.
+- verification of all confirmed Android exclusions while preserving canonical finance fields losslessly;
+- Samsung Galaxy S24 Ultra declared as the sole supported device and automatic tablet/foldable/150%-font CI removed;
+- one representative compact-phone instrumentation path retained and hosted-emulator performance/profile runs made manual diagnostics;
+- post-review cleanup of obsolete Phase-1 Bootstrap and obsolete Backup/Import Android API surface;
+- shared safe `UserNotice` error contract across auth/session, finance sync and secure card-secret flows;
+- typed containment of malformed network/auth responses and unexpected repository/API failures while preserving coroutine cancellation;
+- recoverable finance mutation/projection behavior that retains the last valid state;
+- secure CVV vault read/save/delete failure reporting without leaking card secrets;
+- global Material 3 Snackbar for operation/system failures with `Λεπτομέρειες`, while field validation remains inline;
+- safe details dialog exposing only operation/category/HTTP/retry/diagnostic-code metadata, never raw responses, credentials, tokens, PAN or CVV;
+- dedicated phone screenshot evidence for Snackbar and details dialog;
+- screenshot timing fixed to render Snackbar deterministically;
+- personal visual inspection caught and fixed Snackbar collisions with both bottom navigation and the Home floating primary action;
+- the final visually approved error-feedback renders are now committed as canonical screenshot references.
 
 ## Screenshot/validation rule
 
@@ -90,13 +91,13 @@ For UI changes follow issue #27:
 
 ## Exact remaining work
 
-1. Confirm final exact-state screenshot regression after the S24 Ultra CI/scope update.
-2. Confirm the single representative compact-phone instrumentation suite passes.
-3. Confirm normal Android CI passes on the final exact state.
-4. Update issue #37 / PR #38 completion text to reflect S24 Ultra-only acceptance and completed screenshots.
-5. Merge the redesign into `develop` only after zero unresolved S24 Ultra blockers.
+1. Confirm screenshot regression passes with the newly committed, visually approved error-feedback references.
+2. Confirm the representative compact-phone instrumentation suite passes on the same final state.
+3. Confirm normal Android CI passes on the same final state.
+4. Synchronize issue #37 / PR #38 completion text.
+5. Merge into `develop` only after zero unresolved Samsung Galaxy S24 Ultra blockers, then close issue #37.
 
-Hosted emulator performance/profile runs are not redesign merge blockers. They remain available manually; actual device-specific performance belongs to Phase 6 on the physical Galaxy S24 Ultra.
+Hosted emulator performance/profile runs are not redesign merge blockers. Actual device-specific performance belongs to Phase 6 on the physical Galaxy S24 Ultra.
 
 ## Active workstream
 
