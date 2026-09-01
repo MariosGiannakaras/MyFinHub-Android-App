@@ -7,6 +7,7 @@ on:
     paths:
       - 'app/**'
       - 'scripts/install-android-sdk.sh'
+      - 'scripts/run-connected-android-tests.sh'
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-ui-quality.yml'
@@ -111,15 +112,4 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: |
-            adb wait-for-device
-            ready=false
-            for attempt in {1..60}; do
-              if adb shell service check package 2>/dev/null | grep -q 'found' && adb shell service check activity 2>/dev/null | grep -q 'found'; then
-                ready=true
-                break
-              fi
-              sleep 2
-            done
-            test "$ready" = true
-            ./gradlew connectedDebugAndroidTest --stacktrace
+          script: bash scripts/run-connected-android-tests.sh
