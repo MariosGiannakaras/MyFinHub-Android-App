@@ -13,23 +13,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,11 +32,18 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubAmountText
+import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeUiState,
@@ -62,28 +62,22 @@ fun HomeScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "MyFinHub",
-                        modifier = Modifier.semantics { heading() },
-                    )
-                },
+            MyFinHubScreenHeader(
+                title = "MyFinHub",
+                subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
             )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            MyFinHubPrimaryAction(
+                label = "Νέα κίνηση",
                 onClick = { onAction(HomeAction.OpenQuickEntry) },
-                icon = { Text("+") },
-                text = { Text("Νέα κίνηση") },
             )
         },
     ) { innerPadding ->
         BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
         ) {
             if (maxWidth >= 840.dp) {
                 HomeExpandedContent(
@@ -119,8 +113,13 @@ private fun HomeCompactContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("home_list"),
-        contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 104.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(
+            start = MyFinHubSpacing.lg,
+            top = MyFinHubSpacing.xs,
+            end = MyFinHubSpacing.lg,
+            bottom = 96.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
     ) {
         item { HomeHeading() }
         item { PositionCard(state = state, onToggleAmounts = { onAction(HomeAction.ToggleAmounts) }) }
@@ -149,16 +148,12 @@ private fun HomeExpandedContent(
     onOpenChangeHistory: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 28.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.lg),
     ) {
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             HomeHeading()
             PositionCard(state = state, onToggleAmounts = { onAction(HomeAction.ToggleAmounts) })
@@ -167,10 +162,8 @@ private fun HomeExpandedContent(
             Spacer(modifier = Modifier.height(88.dp))
         }
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             AttentionCard(items = state.attentionItems, onOpen = onOpenAttention)
             UpcomingCard(items = state.upcomingItems, amountsVisible = state.amountsVisible)
@@ -187,11 +180,11 @@ private fun HomeExpandedContent(
 
 @Composable
 private fun HomeHeading() {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
         Text(
             text = "Η οικονομική σου εικόνα",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.semantics { heading() },
         )
         Text(
@@ -207,20 +200,35 @@ private fun PositionCard(
     state: HomeUiState,
     onToggleAmounts: () -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = "ΔΙΑΘΕΣΙΜΑ",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MyFinHubIconBadge(
+                    icon = MyFinHubIcons.Account,
+                    tone = FinanceTone.Savings,
+                    contentDescription = null,
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "ΔΙΑΘΕΣΙΜΑ",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = "Μετρητά και λογαριασμοί καθημερινής χρήσης",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             Text(
                 text = displayAmount(state.liquidTotal, state.amountsVisible),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.semantics {
                     contentDescription = if (state.amountsVisible) {
                         "Διαθέσιμα ${formatEuro(state.liquidTotal)}"
@@ -228,11 +236,6 @@ private fun PositionCard(
                         "Διαθέσιμα ποσά κρυφά"
                     }
                 },
-            )
-            Text(
-                text = "Μετρητά και λογαριασμοί καθημερινής χρήσης",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             TextButton(onClick = onToggleAmounts) {
                 Text(if (state.amountsVisible) "Απόκρυψη ποσών" else "Εμφάνιση ποσών")
@@ -250,7 +253,10 @@ private fun AccountsCard(state: HomeUiState) {
         state.accounts.forEachIndexed { index, account ->
             AccountRow(account = account, amountsVisible = state.amountsVisible)
             if (index != state.accounts.lastIndex) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = MyFinHubSpacing.xs),
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
             }
         }
     }
@@ -261,16 +267,17 @@ private fun AccountRow(
     account: HomeAccount,
     amountsVisible: Boolean,
 ) {
+    val tone = if (account.group == HomeAccountGroup.SAVINGS) FinanceTone.Savings else FinanceTone.Neutral
+    val icon = if (account.group == HomeAccountGroup.SAVINGS) MyFinHubIcons.Savings else MyFinHubIcons.Account
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        MyFinHubIconBadge(icon = icon, tone = tone, contentDescription = null)
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp),
         ) {
             Text(account.name, style = MaterialTheme.typography.titleMedium)
             Text(
@@ -297,12 +304,18 @@ private fun AttentionCard(
         subtitle = "Οι επόμενες χρήσιμες ενέργειες",
     ) {
         if (items.isEmpty()) {
-            Text("Δεν υπάρχει κάτι που χρειάζεται άμεση ενέργεια.")
+            Text(
+                "Δεν υπάρχει κάτι που χρειάζεται άμεση ενέργεια.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         } else {
             items.forEachIndexed { index, item ->
                 AttentionRow(item = item, onOpen = onOpen)
                 if (index != items.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = MyFinHubSpacing.xs),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
                 }
             }
         }
@@ -316,28 +329,19 @@ private fun AttentionRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         verticalAlignment = Alignment.Top,
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = if (item.tone == HomeAttentionTone.URGENT) {
-                MaterialTheme.colorScheme.errorContainer
-            } else {
-                MaterialTheme.colorScheme.secondaryContainer
-            },
-        ) {
-            Text(
-                text = if (item.tone == HomeAttentionTone.URGENT) "!" else "i",
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        MyFinHubIconBadge(
+            icon = MyFinHubIcons.Attention,
+            tone = if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Expense else FinanceTone.Attention,
+            contentDescription = "Χρειάζεται προσοχή",
+        )
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(item.title, style = MaterialTheme.typography.titleSmall)
+            Text(item.title, style = MaterialTheme.typography.titleMedium)
             Text(
                 text = item.reason,
                 style = MaterialTheme.typography.bodySmall,
@@ -372,21 +376,27 @@ private fun UpcomingCard(
         subtitle = "Προγραμματισμένες υποχρεώσεις",
     ) {
         if (items.isEmpty()) {
-            Text("Δεν υπάρχουν προγραμματισμένες υποχρεώσεις.")
+            Text(
+                "Δεν υπάρχουν προγραμματισμένες υποχρεώσεις.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         } else {
             items.forEachIndexed { index, item ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {},
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    MyFinHubIconBadge(
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                        contentDescription = null,
+                    )
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
                     ) {
-                        Text(item.title, style = MaterialTheme.typography.titleSmall)
+                        Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(
                             text = item.dateLabel,
                             style = MaterialTheme.typography.bodySmall,
@@ -395,12 +405,15 @@ private fun UpcomingCard(
                     }
                     Text(
                         text = displayAmount(item.amount, amountsVisible),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
                 if (index != items.lastIndex) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = MyFinHubSpacing.xs),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
                 }
             }
         }
@@ -411,14 +424,13 @@ private fun UpcomingCard(
 private fun QuickEntryCard(onOpen: () -> Unit) {
     SectionCard(
         title = "Γρήγορη καταχώριση",
-        subtitle = "Για μια καθημερινή κίνηση χωρίς περιττά βήματα",
+        subtitle = "Καθημερινή κίνηση χωρίς περιττά βήματα",
     ) {
-        FilledTonalButton(
+        MyFinHubPrimaryAction(
+            label = "Επίλεξε τύπο κίνησης",
             onClick = onOpen,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Επίλεξε τύπο κίνησης")
-        }
+        )
     }
 }
 
@@ -432,13 +444,25 @@ private fun UtilitiesCard(
         title = "Ρυθμίσεις & δεδομένα",
         subtitle = "Προτιμήσεις, αντίγραφα και ασφαλές ιστορικό",
     ) {
-        OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onOpenSettings,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+        ) {
             Text("Ρυθμίσεις")
         }
-        OutlinedButton(onClick = onOpenDataTransfer, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onOpenDataTransfer,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+        ) {
             Text("Εισαγωγή & αντίγραφα")
         }
-        OutlinedButton(onClick = onOpenChangeHistory, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onOpenChangeHistory,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+        ) {
             Text("Ιστορικό αλλαγών")
         }
     }
@@ -451,15 +475,32 @@ private fun MonthFlowCard(
 ) {
     SectionCard(
         title = "Αυτόν τον μήνα",
-        subtitle = "Καθαρή εικόνα πριν το αναλυτικό report",
+        subtitle = "Η ροή με μια ματιά",
     ) {
-        FlowMetric(label = "Έσοδα", value = displayAmount(flow.income, amountsVisible))
-        FlowMetric(label = "Έξοδα", value = displayAmount(flow.expense, amountsVisible))
-        FlowMetric(label = "Αποταμίευση", value = displayAmount(flow.saving, amountsVisible))
-        Spacer(modifier = Modifier.height(2.dp))
+        FlowMetric(
+            label = "Έσοδα",
+            value = displayAmount(flow.income, amountsVisible),
+            tone = FinanceTone.Income,
+            icon = MyFinHubIcons.Income,
+        )
+        FlowMetric(
+            label = "Έξοδα",
+            value = displayAmount(flow.expense, amountsVisible),
+            tone = FinanceTone.Expense,
+            icon = MyFinHubIcons.Expense,
+        )
+        FlowMetric(
+            label = "Αποταμίευση",
+            value = displayAmount(flow.saving, amountsVisible),
+            tone = FinanceTone.Savings,
+            icon = MyFinHubIcons.Savings,
+        )
+        Spacer(modifier = Modifier.height(MyFinHubSpacing.xxs))
         LinearProgressIndicator(
             progress = { flow.budgetProgress },
             modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.primaryContainer,
         )
         Text(
             text = "${(flow.budgetProgress * 100).toInt()}% του μηνιαίου προϋπολογισμού",
@@ -470,23 +511,25 @@ private fun MonthFlowCard(
 }
 
 @Composable
-private fun FlowMetric(label: String, value: String) {
+private fun FlowMetric(
+    label: String,
+    value: String,
+    tone: FinanceTone,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        MyFinHubIconBadge(icon = icon, tone = tone, contentDescription = null)
         Text(
             text = label,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
+        MyFinHubAmountText(text = value, tone = tone)
     }
 }
 
@@ -496,11 +539,8 @@ private fun SectionCard(
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
@@ -512,13 +552,12 @@ private fun SectionCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(1.dp))
             content()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickEntrySheet(
     selectedType: HomeQuickEntryType?,
@@ -527,10 +566,12 @@ private fun QuickEntrySheet(
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(
+                start = MyFinHubSpacing.lg,
+                end = MyFinHubSpacing.lg,
+                bottom = 28.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
         ) {
             Text(
                 text = "Γρήγορη καταχώριση",
@@ -548,6 +589,7 @@ private fun QuickEntrySheet(
                     Button(
                         onClick = { onSelect(type) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Text(type.label)
                     }
@@ -555,6 +597,7 @@ private fun QuickEntrySheet(
                     OutlinedButton(
                         onClick = { onSelect(type) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Text(type.label)
                     }
