@@ -44,22 +44,37 @@ Tracker: issue #37. Active workstream targets `develop`.
 ### Confirmed Android scope pruning
 
 - [x] Remove Forecast UI/navigation/screens while preserving canonical document compatibility.
-- [x] Remove Backup/Import/Data Transfer UI/navigation/screens while preserving compatibility-only backend/domain code where required.
+- [x] Remove Backup/Import/Data Transfer UI/navigation/screens and obsolete Android-only network endpoints while preserving canonical document compatibility.
 - [x] Confirm no category/subcategory administration screen is exposed; category selection remains only in finance-entry/edit flows where required.
 - [x] Confirm no category icon picker/icon administration is exposed.
 - [x] Confirm no Command Palette, desktop keyboard-shortcut workflow, desktop mass-administration/configuration workspace or Windows install/update/recovery UI is exposed.
 - [x] Keep lightweight `Insights / Αναλύσεις`; do not expand it into full desktop Reports.
 - [x] Preserve unknown/desktop-owned canonical finance fields losslessly despite Android UI exclusions.
 
+### Post-review reliability and clean-code hardening
+
+- [x] Introduce one safe `UserNotice` contract for operational failures across auth/session, finance sync and secure card-secret flows.
+- [x] Surface operation/system failures through a global Material 3 Snackbar with `Λεπτομέρειες`; keep field validation inline.
+- [x] Restrict user-visible diagnostics to safe operation/category/HTTP/retry/code metadata and never expose raw server payloads, credentials, tokens, PAN or CVV.
+- [x] Contain malformed network/auth success responses and unexpected API exceptions inside typed recoverable failures.
+- [x] Preserve coroutine cancellation instead of converting lifecycle cancellation into a false application error.
+- [x] Keep the last valid finance state when local mutation/projection fails; retain explicit retry/discard handling for sync conflicts and save failures.
+- [x] Report secure local CVV vault read/save/delete failures instead of silently ignoring them, without leaking card secrets.
+- [x] Remove obsolete Phase-1 Bootstrap scaffolding and obsolete Backup/Import Android API surface; retain only synthetic state holders still used by test/demo infrastructure.
+- [x] Remove unsupported expanded/tablet/foldable screenshot cases and references from S24 Ultra acceptance.
+- [x] Add unit coverage proving diagnostic messages do not leak raw failure/secret content.
+- [x] Add phone screenshot evidence for error Snackbar and safe details dialog.
+- [x] Fix screenshot timing so the Snackbar is deterministically rendered.
+- [x] Fix Snackbar placement so it clears both the S24 phone bottom navigation and the Home floating primary action.
+
 ### Screenshot and final S24 Ultra validation
 
 - [x] Regenerate real screenshots after scope pruning and branding/icon correction.
-- [x] Personally inspect the regenerated compact, auth, Money, Plan, Insights and relevant expanded screenshots.
-- [x] Fix the expanded Home quick-entry overlap found during personal screenshot inspection.
-- [x] Regenerate/replace the expanded Home screenshot reference after the overlap fix and personally validate the new rendered result.
+- [x] Personally inspect the regenerated compact, auth, Money, Plan, Insights and retained secondary-flow screenshots.
+- [x] Fix the expanded Home quick-entry overlap found before the device scope was narrowed.
 - [x] Align stale instrumented-test selectors with the redesigned search/accessibility semantics.
-- [x] Pass canonical screenshot regression after the expanded Home reference replacement.
-- [ ] Pass final exact-state screenshot regression after the S24 Ultra-only CI/docs scope change.
+- [x] Pass canonical screenshot regression before the post-review hardening pass.
+- [ ] Pass final exact-state screenshot regression with the new error-feedback references.
 - [ ] Pass final exact-state representative compact-phone instrumentation for the S24 Ultra target.
 - [ ] Confirm final normal Android verification.
 - [ ] Synchronize issue #37 / PR #38 completion status after the final supported-device gates pass.
