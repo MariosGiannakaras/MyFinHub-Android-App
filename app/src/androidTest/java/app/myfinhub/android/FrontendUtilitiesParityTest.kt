@@ -19,33 +19,75 @@ class FrontendUtilitiesParityTest {
 
     @Test
     fun homeReviewAndUtilityFlows_areNestedAndReachable() {
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasTestTag("attention-scheduled-review"))
+        scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Γιατί εμφανίζεται").fetchSemanticsNodes().isNotEmpty()
-        }
-        composeRule.onNodeWithText("Γιατί εμφανίζεται").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Σήμανση ως ελεγμένο").performScrollTo().performClick()
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasText("Η οικονομική σου εικόνα"))
+        waitForText("Γιατί εμφανίζεται")
+        assertTextIntoView("Γιατί εμφανίζεται")
+        clickTextIntoView("Σήμανση ως ελεγμένο")
+        scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Ρυθμίσεις & δεδομένα"))
-        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
-        composeRule.onNodeWithText("Προτιμήσεις εφαρμογής").assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        clickTextIntoView("Ρυθμίσεις")
+        waitForText("Προτιμήσεις εφαρμογής")
+        assertTextIntoView("Προτιμήσεις εφαρμογής")
+        clickTextIntoView("Πίσω")
 
-        composeRule.onNodeWithText("Εισαγωγή & αντίγραφα").performClick()
-        composeRule.onNodeWithText("Προεπισκόπηση εισαγωγής").performClick()
-        composeRule.onNodeWithText("Αντικατάσταση δεδομένων").performClick()
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        clickTextIntoView("Εισαγωγή & αντίγραφα")
+        waitForText("Προεπισκόπηση εισαγωγής")
+        clickTextIntoView("Προεπισκόπηση εισαγωγής")
+        clickTextIntoView("Αντικατάσταση δεδομένων")
+        waitForText("Αντικατάσταση όλων των δεδομένων;")
         composeRule.onNodeWithText("Αντικατάσταση όλων των δεδομένων;").assertIsDisplayed()
-        composeRule.onNodeWithText("Ακύρωση").performClick()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        clickTextIntoView("Ακύρωση")
+        clickTextIntoView("Πίσω")
 
-        composeRule.onNodeWithText("Ιστορικό αλλαγών").performClick()
-        composeRule.onNodeWithText("Αναίρεση & επανάληψη").assertIsDisplayed()
-        composeRule.onNodeWithText("Αναίρεση").performClick()
-        composeRule.onNodeWithText("2 από 3 αλλαγές εφαρμοσμένες").assertIsDisplayed()
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        clickTextIntoView("Ιστορικό αλλαγών")
+        waitForText("Αναίρεση & επανάληψη")
+        assertTextIntoView("Αναίρεση & επανάληψη")
+        clickTextIntoView("Αναίρεση")
+        waitForText("2 από 3 αλλαγές εφαρμοσμένες")
+        assertTextIntoView("2 από 3 αλλαγές εφαρμοσμένες")
+    }
+
+    private fun waitForText(text: String) {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun assertTextIntoView(text: String) {
+        val node = composeRule.onNodeWithText(text)
+        runCatching { node.performScrollTo() }
+        node.assertIsDisplayed()
+    }
+
+    private fun clickTextIntoView(text: String) {
+        assertTextIntoView(text)
+        composeRule.onNodeWithText(text).performClick()
+    }
+
+    private fun scrollHomeTagIntoView(tag: String) {
+        val targetAlreadyComposed = runCatching {
+            composeRule.onNodeWithTag(tag).fetchSemanticsNode()
+        }.isSuccess
+        if (targetAlreadyComposed) {
+            composeRule.onNodeWithTag(tag).performScrollTo()
+        } else {
+            composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag(tag))
+        }
+    }
+
+    private fun scrollHomeTextIntoView(text: String) {
+        val targetAlreadyComposed = runCatching {
+            composeRule.onNodeWithText(text).fetchSemanticsNode()
+        }.isSuccess
+        if (targetAlreadyComposed) {
+            composeRule.onNodeWithText(text).performScrollTo()
+        } else {
+            composeRule.onNodeWithTag("home_list").performScrollToNode(hasText(text))
+        }
     }
 }

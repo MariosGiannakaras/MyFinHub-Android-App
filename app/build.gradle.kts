@@ -1,8 +1,56 @@
+import com.android.build.api.artifact.SingleArtifact
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.android.compose.screenshot")
+    id("androidx.baselineprofile")
+}
+
+abstract class InjectBenchmarkHostManifestTask : DefaultTask() {
+    @get:InputFile
+    abstract val mergedManifest: RegularFileProperty
+
+    @get:OutputFile
+    abstract val updatedManifest: RegularFileProperty
+
+    @TaskAction
+    fun injectHost() {
+        val input = mergedManifest.get().asFile.readText()
+        val applicationClose = "</application>"
+        require(applicationClose in input) { "Merged manifest has no <application> element." }
+
+        var output = input
+        if ("<profileable" in output) {
+            output = output.replace(
+                Regex("<profileable[^>]*/>"),
+                "<profileable android:shell=\"true\" />",
+            )
+        }
+
+        if ("BenchmarkProductActivity" !in output) {
+            val profilingEntries = buildString {
+                if ("<profileable" !in output) {
+                    appendLine("        <profileable android:shell=\"true\" />")
+                }
+                appendLine("        <activity")
+                appendLine("            android:name=\"app.myfinhub.android.BenchmarkProductActivity\"")
+                appendLine("            android:exported=\"true\" />")
+            }
+            output = output.replace(applicationClose, "$profilingEntries    $applicationClose")
+        }
+
+        updatedManifest.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(output)
+        }
+    }
 }
 
 private fun String.asBuildConfigString(): String = "\"" +
@@ -39,11 +87,19 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            optimization {
+                enable = true
+            }
+        }
+
+        // These names are owned by the Baseline Profile Gradle plugin for the release variant.
+        // Only signing is customized. In particular, do not initWith(release): the plugin must
+        // keep nonMinifiedRelease unminified/unshrunk so generated method signatures are valid.
+        create("benchmarkRelease") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        create("nonMinifiedRelease") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -61,33 +117,34 @@ android {
 
     testOptions {
         animationsDisabled = true
-        managedDevices {
-            localDevices {
-                create("compactApi36") {
-                    device = "Pixel 6"
-                    apiLevel = 36
-                    systemImageSource = "aosp"
-                    testedAbi = "x86_64"
-                }
-                create("foldableApi36") {
-                    device = "Pixel Fold"
-                    apiLevel = 36
-                    systemImageSource = "aosp"
-                    testedAbi = "x86_64"
-                }
-                create("expandedApi36") {
-                    device = "Pixel Tablet"
-                    apiLevel = 36
-                    systemImageSource = "aosp"
-                    testedAbi = "x86_64"
-                }
-            }
-        }
     }
 
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant.name == "benchmarkRelease" || variant.name == "nonMinifiedRelease") {
+            val taskName = "inject" + variant.name.replaceFirstChar { it.uppercase() } + "BenchmarkHostManifest"
+            val manifestUpdater = tasks.register<InjectBenchmarkHostManifestTask>(taskName)
+            variant.artifacts
+                .use(manifestUpdater)
+                .wiredWithFiles(
+                    InjectBenchmarkHostManifestTask::mergedManifest,
+                    InjectBenchmarkHostManifestTask::updatedManifest,
+                )
+                .toTransform(SingleArtifact.MERGED_MANIFEST)
+        }
+    }
+}
+
+baselineProfile {
+    // Keep the generated profile as reviewable source so release builds consume the exact
+    // profile that passed CI/device generation rather than an opaque build-directory artifact.
+    saveInSrc = true
+    mergeIntoMain = true
 }
 
 dependencies {
@@ -107,6 +164,7 @@ dependencies {
     implementation("androidx.navigation3:navigation3-ui:1.1.6")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
@@ -116,6 +174,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
+
+    baselineProfile(project(":benchmark"))
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

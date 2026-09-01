@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MyFinHub-Android"
 include(":app")
+include(":benchmark")

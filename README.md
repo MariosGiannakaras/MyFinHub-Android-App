@@ -1,19 +1,22 @@
 # MyFinHub Android
 
-Native Android client for MyFinHub.
+Native Android client for MyFinHub. The Android product is implemented independently from the web UI while using the same server-authoritative MyFinHub auth, API and canonical finance contracts.
 
 ## Current state
 
-The repository is in Phase 1 bootstrap. The app is intentionally disconnected from production finance data while the Android architecture, security boundary, test harness and GitHub workflow are established.
+The repository is in Phase 5 performance/release hardening. The native product foundation, mobile product flows, production auth/session shell, canonical finance integration, backup/import/card-secret API boundaries and card-secret/CVV hardening are implemented. Final physical-device production validation and production signing remain intentionally deferred to Phase 6.
 
 - Kotlin + Jetpack Compose
 - Material 3 + Material 3 Adaptive
+- Navigation 3
 - application id: `app.myfinhub.android`
+- compileSdk 37 / targetSdk 36 / minSdk 26
+- AGP 9.3.0 / Gradle 9.7.0 / Java 17
 - no WebView/site wrapper
-- same future MyFinHub API/Supabase source of truth
-- public source repository with no production secrets or private APKs
+- server-authoritative MyFinHub API/Supabase source of truth
+- public source repository with no server secrets, signing material or private APKs
 
-See `STATUS.md`, `TODO.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCHITECTURE.md` and issue #3 for the current implementation checkpoint.
+See `STATUS.md`, `TODO.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCHITECTURE.md` and the active phase issues for the exact implementation checkpoint.
 
 ## Branch model
 
@@ -24,25 +27,33 @@ See `STATUS.md`, `TODO.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCH
 
 See `CONTRIBUTING.md` for the full workflow.
 
-## Local / CI validation contract
+## Build and validation contract
 
-Once the Gradle wrapper is committed, the normal baseline is:
+The normal non-device validation path is:
 
 ```bash
 ./gradlew test lint assembleDebug
 ```
 
-UI-quality automation is separately configured for the official Compose Preview Screenshot Testing tool and Gradle Managed Devices:
+Phase 5 also validates benchmark/profile tooling and the optimized unsigned release path:
 
 ```bash
-./gradlew validateDebugScreenshotTest
-./gradlew compactApi36DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+./gradlew :benchmark:assembleBenchmark
+./gradlew assembleRelease analyzeReleaseR8Config
 ```
 
-The full foldable/tablet matrix is automated by `.github/workflows/android-ui-quality.yml` through `workflow_dispatch`. Before the first approved screenshot references are committed, that workflow generates checkout-local references only to smoke-test the official renderer; those generated images are not treated as an approved visual baseline.
+`.github/workflows/android-ci.yml` runs those checks and audits the processed release manifest plus unsigned-APK policy. `.github/workflows/android-ui-quality.yml` runs screenshot regression, compact instrumentation, Pixel Fold/Pixel Tablet adaptive instrumentation and a 150% font accessibility pass. `.github/workflows/android-performance.yml` generates Baseline Profile evidence and runs cold-start/Home/Activity/Quick Entry Macrobenchmarks on an emulator.
 
-## Security rule
+The benchmark/profile host exists only in profiling variants and must never appear in the production release manifest.
 
-Never commit real FinanceData, `.env` files, credentials, JWT/refresh tokens, PAN/expiry/CVV, Supabase secret/service-role keys, `CARD_VAULT_KEY`, signing keystores/passwords, or private APK binaries.
+## Runtime configuration
 
-Production-data integration remains gated by the reviewed native bearer-auth contract tracked in issue #4.
+The app contains only public client configuration needed to reach the deployed MyFinHub API and Supabase project. The end user is never asked to enter Vercel/Supabase project configuration or infrastructure keys. Server-only credentials and vault keys must never be packaged into the Android app.
+
+Real production Auth/API validation on a physical device is a Phase 6 release-candidate gate and must not be inferred from emulator or unit-test results.
+
+## Security and release boundary
+
+Never commit real FinanceData, `.env` files, credentials, JWT/refresh tokens, passwords, PINs, TOTP values, PAN/expiry/CVV, Supabase secret/service-role keys, `CARD_VAULT_KEY`, signing keystores/passwords or private APK binaries.
+
+Routine CI intentionally produces only an unsigned release artifact. A long-lived production signing key and signed APK are created only at the explicit Phase 6 signing handoff, after exact-head release validation.

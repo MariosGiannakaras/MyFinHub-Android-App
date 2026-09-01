@@ -20,7 +20,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -61,10 +61,81 @@ jobs:
             gradle wrapper --gradle-version 9.7.0 --distribution-type bin
           fi
 
-      - name: Unit tests, lint and debug assembly
+      - name: Benchmark and Baseline Profile tooling build
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: ./gradlew test lint assembleDebug --stacktrace
+        run: |
+          set -euo pipefail
+          ./gradlew \
+            :benchmark:assembleBenchmark \
+            :app:assembleBenchmarkRelease \
+            :app:assembleNonMinifiedRelease \
+            --stacktrace
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          for variant in benchmarkRelease nonMinifiedRelease; do
+            apk=$(find "app/build/outputs/apk/$variant" -type f -name '*.apk' -print -quit)
+            if [[ -z "$apk" ]]; then
+              echo "No $variant APK was produced." >&2
+              exit 1
+            fi
+            if ! "$aapt" dump xmltree "$apk" AndroidManifest.xml | grep -F 'BenchmarkProductActivity'; then
+              echo "BenchmarkProductActivity is missing from packaged $variant manifest." >&2
+              exit 1
+            fi
+          done
+
+          if [[ -s app/build/outputs/mapping/nonMinifiedRelease/mapping.txt ]]; then
+            echo 'nonMinifiedRelease unexpectedly produced a non-empty R8 mapping file.' >&2
+            exit 1
+          fi
+          echo 'Baseline Profile targets package the deterministic host and remain unminified where required.'
+
+      - name: Unit, instrumentation compile, lint and debug assembly
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: ./gradlew test :app:compileDebugAndroidTestKotlin lint assembleDebug --stacktrace
+
+      - name: Optimized unsigned release assembly and R8 analysis
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: ./gradlew assembleRelease analyzeReleaseR8Config --stacktrace
+
+      - name: Audit release manifest and unsigned APK policy
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/release/*' -print)
+          if [[ ${#manifests[@]} -eq 0 ]]; then
+            echo 'No processed release manifest found.' >&2
+            exit 1
+          fi
+
+          forbidden='BenchmarkProductActivity|ProductTestActivity|AuthTestActivity|<profileable|android:debuggable="true"|android:usesCleartextTraffic="true"'
+          for manifest in "${manifests[@]}"; do
+            if grep -E "$forbidden" "$manifest"; then
+              echo "Forbidden release manifest content found in $manifest" >&2
+              exit 1
+            fi
+          done
+
+          apk=$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)
+          if [[ -z "$apk" ]]; then
+            echo 'Unsigned release APK was not produced.' >&2
+            exit 1
+          fi
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$aapt" dump badging "$apk" | grep -F "package: name='app.myfinhub.android' versionCode='1'"
+
+          if "$apksigner" verify "$apk" >/dev/null 2>&1; then
+            echo 'Public CI release APK must remain unsigned.' >&2
+            exit 1
+          fi
+          echo 'Release artifact is unsigned and free of benchmark/debug manifest leakage.'
 
       - name: No Android project yet
         if: steps.project.outputs.present != 'true'

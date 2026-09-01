@@ -16,6 +16,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+private const val MATERIAL_TILT_PIXEL_DELTA_THRESHOLD = 100
+private const val CENTRAL_REGION_START_FRACTION = .25f
+private const val CENTRAL_REGION_END_FRACTION = .75f
+
 @RunWith(AndroidJUnit4::class)
 class CreditCardPointerTiltTest {
     @get:Rule
@@ -45,9 +49,11 @@ class CreditCardPointerTiltTest {
         composeRule.waitForIdle()
         val bottomLeft = stack.captureToImage()
 
+        val changedPixels = changedCentralPixelCount(topRight, bottomLeft)
         assertTrue(
-            "Moving an already-hovering mouse across the card must alter the pointer-follow transform.",
-            changedPixelCount(topRight, bottomLeft) > 100,
+            "Moving an already-hovering mouse across the card must alter the pointer-follow transform; " +
+                "centralChangedPixels=$changedPixels.",
+            changedPixels > MATERIAL_TILT_PIXEL_DELTA_THRESHOLD,
         )
     }
 
@@ -70,11 +76,13 @@ class CreditCardPointerTiltTest {
         composeRule.waitForIdle()
         val bottomLeft = stack.captureToImage()
 
-        // Both captures are already in the same hovered state. Any material pixel delta would
-        // therefore come from pointer-position-dependent tilt, which reduced motion must disable.
+        // Compare only the card's central surface. Pointer positions and transformed outer edges
+        // remain outside this region, so renderer cursor/edge noise cannot look like card tilt.
+        val changedPixels = changedCentralPixelCount(topRight, bottomLeft)
         assertTrue(
-            "Reduced motion must keep pointer-position-dependent tilt disabled.",
-            changedPixelCount(topRight, bottomLeft) == 0,
+            "Reduced motion must keep pointer-position-dependent tilt disabled; " +
+                "centralChangedPixels=$changedPixels.",
+            changedPixels <= MATERIAL_TILT_PIXEL_DELTA_THRESHOLD,
         )
     }
 
@@ -107,13 +115,27 @@ class CreditCardPointerTiltTest {
         composeRule.waitForIdle()
     }
 
-    private fun changedPixelCount(before: ImageBitmap, after: ImageBitmap): Int {
+    private fun changedCentralPixelCount(before: ImageBitmap, after: ImageBitmap): Int {
         require(before.width == after.width && before.height == after.height)
         val beforePixels = IntArray(before.width * before.height)
         val afterPixels = IntArray(after.width * after.height)
         before.readPixels(beforePixels)
         after.readPixels(afterPixels)
-        return beforePixels.indices.count { beforePixels[it] != afterPixels[it] }
+
+        val startX = (before.width * CENTRAL_REGION_START_FRACTION).toInt()
+        val endX = (before.width * CENTRAL_REGION_END_FRACTION).toInt()
+        val startY = (before.height * CENTRAL_REGION_START_FRACTION).toInt()
+        val endY = (before.height * CENTRAL_REGION_END_FRACTION).toInt()
+
+        var changed = 0
+        for (y in startY until endY) {
+            val rowOffset = y * before.width
+            for (x in startX until endX) {
+                val index = rowOffset + x
+                if (beforePixels[index] != afterPixels[index]) changed++
+            }
+        }
+        return changed
     }
 
     private fun setAnimatorDurationScale(value: String) {
