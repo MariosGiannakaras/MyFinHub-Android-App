@@ -7,6 +7,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
 import app.myfinhub.android.core.data.CanonicalWriteReceipt
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -28,11 +29,6 @@ class OkHttpMyFinHubApi(
     private val client: OkHttpClient,
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) : MyFinHubApi {
-    override suspend fun loadBootstrapSummary(): ApiResult<BootstrapSummary> {
-        if (!configuration.isConfigured) return ApiResult.Failure(ApiFailureKind.BUILD_NOT_CONFIGURED)
-        return ApiResult.Success(BootstrapSummary(DataSource.CANONICAL_API, revision = null))
-    }
-
     override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> {
         val gate = requestGate(session)
         if (gate != null) return gate
@@ -41,7 +37,7 @@ class OkHttpMyFinHubApi(
             .get()
             .build()
 
-        return execute(request) { body -> parseEnvelope(body) }
+        return execute(request, ::parseEnvelope)
     }
 
     override suspend fun saveMutableState(
@@ -75,37 +71,6 @@ class OkHttpMyFinHubApi(
                 )
             }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
         }
-    }
-
-    override suspend fun createBackup(session: AuthSession): ApiResult<BackupReceipt> {
-        val gate = requestGate(session)
-        if (gate != null) return gate
-
-        val request = authenticatedRequest(session, "/api/backup")
-            .post(EMPTY_JSON_BODY)
-            .build()
-        return execute(request) { body ->
-            runCatching {
-                val payload = json.parseToJsonElement(body).jsonObject
-                val path = payload["path"]?.jsonPrimitive?.contentOrNull?.takeIf(String::isNotBlank)
-                    ?: error("Missing backup path")
-                ApiResult.Success(BackupReceipt(path))
-            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
-        }
-    }
-
-    override suspend fun importFinanceData(
-        session: AuthSession,
-        document: CanonicalFinanceDocument,
-    ): ApiResult<CanonicalFinanceEnvelope> {
-        val gate = requestGate(session)
-        if (gate != null) return gate
-
-        val request = authenticatedRequest(session, "/api/import")
-            .header("X-RheomIQ-Confirm-Import", "replace")
-            .post(document.raw.toString().toRequestBody(JSON_MEDIA_TYPE))
-            .build()
-        return execute(request) { body -> parseEnvelope(body) }
     }
 
     override suspend fun loadCardSecrets(
@@ -227,28 +192,45 @@ class OkHttpMyFinHubApi(
     ): ApiResult<T> = withContext(Dispatchers.IO) {
         try {
             client.newCall(request).execute().use { response ->
+                val status = response.code
                 val body = response.body.string()
                 when {
-                    response.isSuccessful -> parse(body)
-                    response.code == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
-                    response.code == 403 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED)
-                    response.code == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind)
-                    response.code == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT)
-                    response.code == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED)
-                    response.code == 400 -> ApiResult.Failure(ApiFailureKind.INVALID_DATA)
-                    response.code == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true)
-                    response.code in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
-                    else -> ApiResult.Failure(ApiFailureKind.SERVER)
+                    response.isSuccessful -> safeParse(status, body, parse)
+                    status == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED, statusCode = status)
+                    status == 403 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED, statusCode = status)
+                    status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
+                    status == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT, statusCode = status)
+                    status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
+                    status == 400 || status == 422 -> ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = status)
+                    status == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
+                    status in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true, statusCode = status)
+                    else -> ApiResult.Failure(ApiFailureKind.SERVER, statusCode = status)
                 }
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: IOException) {
             ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true)
+        } catch (_: Exception) {
+            ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
         }
+    }
+
+    private fun <T> safeParse(
+        status: Int,
+        body: String,
+        parse: (String) -> ApiResult<T>,
+    ): ApiResult<T> = try {
+        when (val parsed = parse(body)) {
+            is ApiResult.Success -> parsed
+            is ApiResult.Failure -> if (parsed.statusCode == null) parsed.copy(statusCode = status) else parsed
+        }
+    } catch (_: Exception) {
+        ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE, statusCode = status)
     }
 
     private companion object {
         val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
-        val EMPTY_JSON_BODY = "{}".toRequestBody(JSON_MEDIA_TYPE)
         val REVISION_REGEX = Regex("^(0|[1-9]\\d*)$")
         val CARD_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
     }
