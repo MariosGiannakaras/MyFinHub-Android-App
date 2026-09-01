@@ -1,0 +1,60 @@
+name: Sync canonical MyFinHub brand assets
+
+on:
+  push:
+    branches:
+      - feature/full-app-2026-ui-redesign
+    paths:
+      - .github/workflows/brand-assets-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync-brand-assets:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout redesign branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/full-app-2026-ui-redesign
+
+      - name: Import canonical MyFinHub runtime artwork
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p app/src/main/res/drawable-nodpi
+
+          light_url='https://raw.githubusercontent.com/MariosGiannakaras/MyFinHub/main/assets/branding/myfinhub/icon-light-192.png'
+          dark_url='https://raw.githubusercontent.com/MariosGiannakaras/MyFinHub/main/assets/branding/myfinhub/icon-dark-192.png'
+
+          curl -fsSL "$light_url" -o app/src/main/res/drawable-nodpi/myfinhub_brand_light.png
+          curl -fsSL "$dark_url" -o app/src/main/res/drawable-nodpi/myfinhub_brand_dark.png
+
+          light_blob=$(git hash-object app/src/main/res/drawable-nodpi/myfinhub_brand_light.png)
+          dark_blob=$(git hash-object app/src/main/res/drawable-nodpi/myfinhub_brand_dark.png)
+
+          [[ "$light_blob" == '5e7b1843f045636a4776e6180f32fccf552d0bfc' ]] || {
+            echo "Canonical light brand blob mismatch: $light_blob" >&2
+            exit 1
+          }
+          [[ "$dark_blob" == '7156f1c56fc89c770593d257a5cb22d62c8a6fdd' ]] || {
+            echo "Canonical dark brand blob mismatch: $dark_blob" >&2
+            exit 1
+          }
+
+      - name: Commit canonical artwork to redesign branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/res/drawable-nodpi/myfinhub_brand_light.png app/src/main/res/drawable-nodpi/myfinhub_brand_dark.png
+          if git diff --cached --quiet; then
+            echo 'Canonical brand assets already present.'
+            exit 0
+          fi
+          git commit -m 'ui: import canonical MyFinHub brand artwork'
+          git push origin HEAD:feature/full-app-2026-ui-redesign
