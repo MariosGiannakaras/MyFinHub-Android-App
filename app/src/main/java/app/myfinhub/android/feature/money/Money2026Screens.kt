@@ -188,7 +188,7 @@ fun Money2026Screen(
             item {
                 MyFinHubSectionHeading(
                     title = "Κάρτες",
-                    subtitle = "Το card stack παραμένει το native interaction contract",
+                    subtitle = "Οι κάρτες σου, με ασφαλή πρόσβαση στα στοιχεία τους",
                     icon = MyFinHubIcons.Card,
                     tone = FinanceTone.Transfer,
                 )
