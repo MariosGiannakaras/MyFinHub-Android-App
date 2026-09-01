@@ -51,6 +51,7 @@ private fun MacrobenchmarkScope.openActivityFromHome(context: String) {
     check(device.wait(Until.hasObject(By.text("Αναζήτηση κινήσεων")), UI_TIMEOUT_MS)) {
         "$context did not reach Activity."
     }
+    device.waitForIdle()
 }
 
 private fun MacrobenchmarkScope.openQuickEntryFromActivity(context: String) {
@@ -63,6 +64,7 @@ private fun MacrobenchmarkScope.openQuickEntryFromActivity(context: String) {
     check(device.wait(Until.hasObject(By.text("Τι θέλεις να καταχωρίσεις;")), UI_TIMEOUT_MS)) {
         "$context did not reach the Quick Entry form."
     }
+    device.waitForIdle()
 }
 
 @RunWith(AndroidJUnit4::class)
@@ -90,6 +92,7 @@ class BaselineProfileGenerator {
         checkNotNull(device.findObject(By.scrollable(true))) {
             "Baseline Profile journey did not expose the Activity scroll surface."
         }.fling(Direction.DOWN)
+        device.waitForIdle()
         openQuickEntryFromActivity("Baseline Profile journey")
     }
 }
@@ -105,7 +108,7 @@ class StartupBenchmark {
         metrics = listOf(StartupTimingMetric()),
         compilationMode = CompilationMode.Partial(
             baselineProfileMode = BaselineProfileMode.UseIfAvailable,
-            warmupIterations = 1,
+            warmupIterations = 0,
         ),
         startupMode = StartupMode.COLD,
         iterations = 3,
@@ -126,14 +129,16 @@ class CriticalJourneyBenchmark {
         MemoryUsageMetric(MemoryUsageMetric.Mode.Max),
     )
 
+    private val baselineProfileCompilation = CompilationMode.Partial(
+        baselineProfileMode = BaselineProfileMode.UseIfAvailable,
+        warmupIterations = 0,
+    )
+
     @Test
     fun home() = benchmarkRule.measureRepeated(
         packageName = TARGET_PACKAGE,
         metrics = journeyMetrics,
-        compilationMode = CompilationMode.Partial(
-            baselineProfileMode = BaselineProfileMode.UseIfAvailable,
-            warmupIterations = 1,
-        ),
+        compilationMode = baselineProfileCompilation,
         iterations = 3,
         setupBlock = {
             pressHome()
@@ -141,6 +146,7 @@ class CriticalJourneyBenchmark {
             check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
                 "Home benchmark did not reach the deterministic product host."
             }
+            device.waitForIdle()
         },
     ) {
         val scrollable = checkNotNull(device.findObject(By.scrollable(true))) {
@@ -156,14 +162,15 @@ class CriticalJourneyBenchmark {
     fun activity() = benchmarkRule.measureRepeated(
         packageName = TARGET_PACKAGE,
         metrics = journeyMetrics,
-        compilationMode = CompilationMode.Partial(
-            baselineProfileMode = BaselineProfileMode.UseIfAvailable,
-            warmupIterations = 1,
-        ),
+        compilationMode = baselineProfileCompilation,
         iterations = 3,
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
+            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
+                "Activity benchmark did not reach the deterministic product host."
+            }
+            device.waitForIdle()
         },
     ) {
         openActivityFromHome("Activity benchmark")
@@ -171,21 +178,23 @@ class CriticalJourneyBenchmark {
             "Activity benchmark did not expose the Activity scroll surface."
         }
         scrollable.fling(Direction.DOWN)
+        device.waitForIdle()
         scrollable.fling(Direction.UP)
+        device.waitForIdle()
     }
 
     @Test
     fun quickEntry() = benchmarkRule.measureRepeated(
         packageName = TARGET_PACKAGE,
         metrics = journeyMetrics,
-        compilationMode = CompilationMode.Partial(
-            baselineProfileMode = BaselineProfileMode.UseIfAvailable,
-            warmupIterations = 1,
-        ),
+        compilationMode = baselineProfileCompilation,
         iterations = 3,
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
+            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
+                "Quick Entry benchmark did not reach the deterministic product host."
+            }
             openActivityFromHome("Quick Entry benchmark setup")
         },
     ) {
