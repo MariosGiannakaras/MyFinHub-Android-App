@@ -42,6 +42,7 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -160,8 +161,8 @@ private fun ActivityList(
         } else {
             items(state.visibleItems, key = ActivityItem::id) { item ->
                 MyFinHubFinanceRow(
-                    icon = item.kind.icon(),
-                    iconDescription = item.kind.label,
+                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                    iconDescription = item.category ?: item.kind.label,
                     title = item.title,
                     subtitle = item.subtitle,
                     meta = "${item.dateLabel} · ${item.accountLabel}",
@@ -230,9 +231,9 @@ private fun ActivityDetailContent(
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             ) {
                 MyFinHubIconBadge(
-                    icon = item.kind.icon(),
+                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
                     tone = item.kind.tone(),
-                    contentDescription = item.kind.label,
+                    contentDescription = item.category ?: item.kind.label,
                 )
                 Column(
                     modifier = Modifier.weight(1f),
