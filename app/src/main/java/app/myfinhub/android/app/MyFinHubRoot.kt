@@ -11,17 +11,25 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.myfinhub.android.core.ui.UserNotice
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
@@ -29,6 +37,7 @@ import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
 
 /**
  * Production application root.
@@ -46,6 +55,8 @@ fun MyFinHubRoot(
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -71,39 +82,96 @@ fun MyFinHubRoot(
             authViewModel.logout()
         }
     }
+    LaunchedEffect(authViewModel, financeViewModel, cardSecretViewModel) {
+        merge(
+            authViewModel.notices,
+            financeViewModel.notices,
+            cardSecretViewModel.notices,
+        ).collect { notice ->
+            val result = snackbarHostState.showSnackbar(
+                message = notice.message,
+                actionLabel = "Λεπτομέρειες",
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                detailNotice = notice
+            }
+        }
+    }
 
     MyFinHubTheme {
-        AuthShellScreen(
-            state = authState,
-            onSignIn = authViewModel::signIn,
-            onSubmitTotp = authViewModel::submitTotp,
-            onEnrollPin = authViewModel::enrollPin,
-            onVerifyPin = authViewModel::verifyPin,
-            onBiometricSuccess = authViewModel::biometricSucceeded,
-            onPinFallbackRequested = authViewModel::requestPinFallback,
-            readyContent = {
-                FinanceProductSurface(
-                    state = financeState,
-                    cardSecretState = cardSecretState,
-                    onRetryLoad = financeViewModel::retryLoad,
-                    onRetryMutation = financeViewModel::retryPendingMutation,
-                    onDiscardMutation = financeViewModel::discardPendingAndReload,
-                    onLogout = authViewModel::logout,
-                    onHomeAction = financeViewModel::onHomeAction,
-                    onActivityAction = financeViewModel::onActivityAction,
-                    onQuickEntryAction = financeViewModel::onQuickEntryAction,
-                    onPlanAction = financeViewModel::onPlanAction,
-                    onCardDetailOpened = cardSecretViewModel::openCard,
-                    onCardDetailClosed = cardSecretViewModel::closeCard,
-                    onRevealCardSecrets = cardSecretViewModel::reveal,
-                    onHideCardSecrets = cardSecretViewModel::hideSecrets,
-                    onSaveLocalCvv = cardSecretViewModel::saveCvv,
-                    onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
-                    onDeleteCard = financeViewModel::deleteCard,
-                )
-            },
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            AuthShellScreen(
+                state = authState,
+                onSignIn = authViewModel::signIn,
+                onSubmitTotp = authViewModel::submitTotp,
+                onEnrollPin = authViewModel::enrollPin,
+                onVerifyPin = authViewModel::verifyPin,
+                onBiometricSuccess = authViewModel::biometricSucceeded,
+                onPinFallbackRequested = authViewModel::requestPinFallback,
+                readyContent = {
+                    FinanceProductSurface(
+                        state = financeState,
+                        cardSecretState = cardSecretState,
+                        onRetryLoad = financeViewModel::retryLoad,
+                        onRetryMutation = financeViewModel::retryPendingMutation,
+                        onDiscardMutation = financeViewModel::discardPendingAndReload,
+                        onLogout = authViewModel::logout,
+                        onHomeAction = financeViewModel::onHomeAction,
+                        onActivityAction = financeViewModel::onActivityAction,
+                        onQuickEntryAction = financeViewModel::onQuickEntryAction,
+                        onPlanAction = financeViewModel::onPlanAction,
+                        onCardDetailOpened = cardSecretViewModel::openCard,
+                        onCardDetailClosed = cardSecretViewModel::closeCard,
+                        onRevealCardSecrets = cardSecretViewModel::reveal,
+                        onHideCardSecrets = cardSecretViewModel::hideSecrets,
+                        onSaveLocalCvv = cardSecretViewModel::saveCvv,
+                        onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
+                        onDeleteCard = financeViewModel::deleteCard,
+                    )
+                },
+            )
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+        }
+
+        detailNotice?.let { notice ->
+            UserNoticeDetailsDialog(
+                notice = notice,
+                onDismiss = { detailNotice = null },
+            )
+        }
     }
+}
+
+@Composable
+internal fun UserNoticeDetailsDialog(
+    notice: UserNotice,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Λεπτομέρειες σφάλματος") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(notice.details)
+                Text(
+                    "Κωδικός: ${notice.diagnosticCode}",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Κλείσιμο")
+            }
+        },
+    )
 }
 
 @Composable
