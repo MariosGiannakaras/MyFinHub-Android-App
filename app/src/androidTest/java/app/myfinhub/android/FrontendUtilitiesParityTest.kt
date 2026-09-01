@@ -74,11 +74,9 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun scrollHomeTextIntoView(text: String) {
-        val targetAlreadyComposed = runCatching {
-            composeRule.onNodeWithText(text).fetchSemanticsNode()
-        }.isSuccess
-        if (targetAlreadyComposed) {
-            composeRule.onNodeWithText(text).performScrollTo()
+        val composedNodes = composeRule.onAllNodesWithText(text).fetchSemanticsNodes()
+        if (composedNodes.isNotEmpty()) {
+            runCatching { composeRule.onAllNodesWithText(text)[0].performScrollTo() }
         } else {
             composeRule.onNodeWithTag("home_list").performScrollToNode(hasText(text))
         }
