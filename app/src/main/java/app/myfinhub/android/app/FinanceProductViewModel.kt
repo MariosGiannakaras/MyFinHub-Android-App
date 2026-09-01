@@ -7,6 +7,7 @@ import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalEventDraft
+import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalActivity
@@ -20,7 +21,12 @@ import app.myfinhub.android.core.data.equalExpenseSplit
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.network.ApiFailureKind
+import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
+import app.myfinhub.android.core.ui.UserNotice
+import app.myfinhub.android.core.ui.apiFailureMessage
+import app.myfinhub.android.core.ui.toUserNotice
+import app.myfinhub.android.core.ui.unexpectedUserNotice
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.reduceActivity
 import app.myfinhub.android.feature.home.HomeAction
@@ -83,6 +89,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private val mutableState = MutableStateFlow<FinanceProductState>(FinanceProductState.Idle)
     val state: StateFlow<FinanceProductState> = mutableState.asStateFlow()
 
+    private val mutableNotices = MutableSharedFlow<UserNotice>(extraBufferCapacity = 8)
+    val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
+
     /** Emits only after a card deactivation is accepted by the canonical server revision. */
     private val mutableCommittedCardDeletions = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val committedCardDeletions: SharedFlow<String> = mutableCommittedCardDeletions.asSharedFlow()
@@ -123,8 +132,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     baseDocument = loaded.envelope.document,
                     previousProjection = previousProjection,
                 )
-                is FinanceSyncState.Error -> handleLoadFailure(loaded.failure.kind, loaded.failure.retryable)
-                else -> mutableState.value = FinanceProductState.Failure("Δεν ήταν δυνατή η επαναφόρτωση των δεδομένων.", true)
+                is FinanceSyncState.Error -> handleLoadFailure(loaded.failure, "Επαναφόρτωση οικονομικών δεδομένων")
+                else -> failLoad("Δεν ήταν δυνατή η επαναφόρτωση των δεδομένων.")
             }
         }
     }
@@ -144,13 +153,14 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (action is ActivityAction.SaveEdit) {
             val ready = mutableState.value as? FinanceProductState.Ready ?: return
             if (ready.saving || ready.issue != null) return
-            val mutation = EditCanonicalActivity(
-                transactionId = action.id,
-                note = action.note,
-                category = action.category,
-                nowIso = Instant.now().toString(),
+            applyMutation(
+                EditCanonicalActivity(
+                    transactionId = action.id,
+                    note = action.note,
+                    category = action.category,
+                    nowIso = Instant.now().toString(),
+                ),
             )
-            applyMutation(mutation)
             return
         }
         updateReady { ready ->
@@ -161,10 +171,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun deleteCard(cardId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null) return
-        if (ready.projection.document.canonicalCards().none { it.id == cardId && it.active }) return
+        val normalizedCardId = cardId.trim()
+        if (normalizedCardId.isBlank() || ready.projection.document.canonicalCards().none { it.id == normalizedCardId && it.active }) {
+            mutableNotices.tryEmit(
+                UserNotice(
+                    message = "Η κάρτα δεν είναι πλέον διαθέσιμη για διαγραφή.",
+                    details = "Ενέργεια: Διαγραφή κάρτας\nΚατηγορία: INVALID_CARD_STATE",
+                    diagnosticCode = "MFH-APP-INVALID_CARD_STATE",
+                ),
+            )
+            return
+        }
         applyMutation(
             DeactivateCanonicalCard(
-                cardId = cardId,
+                cardId = normalizedCardId,
                 nowIso = Instant.now().toString(),
             ),
         )
@@ -198,7 +218,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         val eventId = "evt-android-${UUID.randomUUID()}"
         val now = Instant.now().toString()
-        val amount = preview.amount!!
+        val amount = preview.amount
 
         val draft = when (preview.kind) {
             QuickEntryKind.EXPENSE -> CanonicalEventDraft(
@@ -260,8 +280,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
         val mutation = runCatching {
             createCanonicalEventMutation(document, draft, eventId, now)
-        }.getOrElse { error ->
-            setQuickEntryError(error.message ?: "Η κίνηση δεν είναι έγκυρη.")
+        }.getOrElse {
+            setQuickEntryError("Η κίνηση δεν είναι έγκυρη.")
+            mutableNotices.tryEmit(
+                unexpectedUserNotice(
+                    operation = "Δημιουργία κίνησης",
+                    throwable = it,
+                    message = "Η κίνηση δεν μπόρεσε να προετοιμαστεί.",
+                ),
+            )
             return
         }
         applyMutation(mutation)
@@ -303,12 +330,26 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             when (val loaded = repository.state.value) {
                 is FinanceSyncState.Ready -> {
                     pendingMutation = null
-                    mutableState.value = FinanceProductState.Ready(
-                        projectCanonicalProduct(loaded.envelope.document, LocalDate.now(), previous),
-                    )
+                    val projected = runCatching {
+                        projectCanonicalProduct(loaded.envelope.document, LocalDate.now(), previous)
+                    }.getOrElse {
+                        mutableNotices.emit(
+                            unexpectedUserNotice(
+                                operation = "Ανάγνωση οικονομικών δεδομένων",
+                                throwable = it,
+                                message = "Τα δεδομένα φορτώθηκαν αλλά δεν μπόρεσαν να εμφανιστούν σωστά.",
+                            ),
+                        )
+                        mutableState.value = FinanceProductState.Failure(
+                            "Τα οικονομικά δεδομένα έχουν μη αναμενόμενη μορφή.",
+                            retryable = true,
+                        )
+                        return@launch
+                    }
+                    mutableState.value = FinanceProductState.Ready(projected)
                 }
-                is FinanceSyncState.Error -> handleLoadFailure(loaded.failure.kind, loaded.failure.retryable)
-                else -> mutableState.value = FinanceProductState.Failure("Δεν ήταν δυνατή η φόρτωση των οικονομικών δεδομένων.", true)
+                is FinanceSyncState.Error -> handleLoadFailure(loaded.failure, "Φόρτωση οικονομικών δεδομένων")
+                else -> failLoad("Δεν ήταν δυνατή η φόρτωση των οικονομικών δεδομένων.")
             }
         }
     }
@@ -330,21 +371,56 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private suspend fun saveMutation(
         session: AuthSession,
         mutation: CanonicalFinanceMutation,
-        baseDocument: app.myfinhub.android.core.data.CanonicalFinanceDocument,
+        baseDocument: CanonicalFinanceDocument,
         previousProjection: CanonicalProductProjection?,
     ) {
-        val localDocument = runCatching { mutation.apply(baseDocument) }.getOrElse { error ->
-            mutableState.value = FinanceProductState.Failure(error.message ?: "Η αλλαγή δεν είναι έγκυρη.", false)
+        val localDocument = runCatching { mutation.apply(baseDocument) }.getOrElse {
+            previousProjection?.let { projection ->
+                mutableState.value = FinanceProductState.Ready(projection)
+            }
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Προετοιμασία αλλαγής",
+                    throwable = it,
+                    message = "Η αλλαγή δεν μπόρεσε να εφαρμοστεί με ασφάλεια.",
+                ),
+            )
             return
         }
         pendingMutation = mutation
-        var localProjection = projectCanonicalProduct(localDocument, LocalDate.now(), previousProjection)
+        var localProjection = runCatching {
+            projectCanonicalProduct(localDocument, LocalDate.now(), previousProjection)
+        }.getOrElse {
+            pendingMutation = null
+            previousProjection?.let { projection -> mutableState.value = FinanceProductState.Ready(projection) }
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Προεπισκόπηση αλλαγής",
+                    throwable = it,
+                    message = "Η αλλαγή ακυρώθηκε επειδή δεν μπόρεσε να εμφανιστεί με ασφάλεια.",
+                ),
+            )
+            return
+        }
         mutableState.value = FinanceProductState.Ready(localProjection, saving = true)
 
         repository.save(session, localDocument)
         when (val saved = repository.state.value) {
             is FinanceSyncState.Ready -> {
-                var projection = projectCanonicalProduct(saved.envelope.document, LocalDate.now(), localProjection)
+                var projection = runCatching {
+                    projectCanonicalProduct(saved.envelope.document, LocalDate.now(), localProjection)
+                }.getOrElse {
+                    mutableState.value = FinanceProductState.Ready(localProjection)
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Ανανέωση μετά την αποθήκευση",
+                            throwable = it,
+                            message = "Η αλλαγή αποθηκεύτηκε, αλλά η οθόνη δεν ανανεώθηκε πλήρως.",
+                        ),
+                    )
+                    pendingMutation = null
+                    return
+                }
                 projection = when (mutation) {
                     is AppendCanonicalEvent -> projection.copy(
                         quickEntryState = projection.quickEntryState.copy(persisted = true),
@@ -361,43 +437,72 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 }
             }
             is FinanceSyncState.Conflict -> {
-                localProjection = projectCanonicalProduct(saved.localDocument, LocalDate.now(), localProjection)
+                localProjection = runCatching {
+                    projectCanonicalProduct(saved.localDocument, LocalDate.now(), localProjection)
+                }.getOrElse { localProjection }
+                val message = "Τα δεδομένα άλλαξαν σε άλλη συνεδρία. Η δική σου αλλαγή διατηρείται τοπικά μέχρι να επιλέξεις επανάληψη ή επαναφόρτωση."
                 mutableState.value = FinanceProductState.Ready(
                     projection = localProjection,
-                    issue = FinanceSyncIssue(
-                        FinanceSyncIssueKind.REVISION_CONFLICT,
-                        "Τα δεδομένα άλλαξαν σε άλλη συνεδρία. Η δική σου αλλαγή διατηρείται τοπικά μέχρι να επιλέξεις επανάληψη ή επαναφόρτωση.",
+                    issue = FinanceSyncIssue(FinanceSyncIssueKind.REVISION_CONFLICT, message),
+                )
+                mutableNotices.emit(
+                    UserNotice(
+                        message = "Υπάρχει νεότερη έκδοση των δεδομένων.",
+                        details = "Ενέργεια: Αποθήκευση οικονομικών δεδομένων\nΚατηγορία: REVISION_CONFLICT\nΗ τοπική αλλαγή διατηρείται μέχρι να επιλέξεις επανάληψη ή επαναφόρτωση.",
+                        diagnosticCode = "MFH-API-REVISION_CONFLICT-409",
                     ),
                 )
             }
             is FinanceSyncState.Error -> {
                 if (saved.failure.kind.isAuthRejection()) {
+                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση οικονομικών δεδομένων"))
                     repository.clear()
                     mutableState.value = FinanceProductState.AuthRejected
                 } else {
+                    val message = apiFailureMessage(saved.failure.kind)
                     mutableState.value = FinanceProductState.Ready(
                         projection = localProjection,
-                        issue = FinanceSyncIssue(
-                            FinanceSyncIssueKind.SAVE_FAILED,
-                            failureMessage(saved.failure.kind),
-                        ),
+                        issue = FinanceSyncIssue(FinanceSyncIssueKind.SAVE_FAILED, message),
                     )
+                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση οικονομικών δεδομένων"))
                 }
             }
-            else -> mutableState.value = FinanceProductState.Ready(
-                localProjection,
-                issue = FinanceSyncIssue(FinanceSyncIssueKind.SAVE_FAILED, "Η αποθήκευση δεν ολοκληρώθηκε."),
-            )
+            else -> {
+                val message = "Η αποθήκευση δεν ολοκληρώθηκε."
+                mutableState.value = FinanceProductState.Ready(
+                    localProjection,
+                    issue = FinanceSyncIssue(FinanceSyncIssueKind.SAVE_FAILED, message),
+                )
+                mutableNotices.emit(
+                    UserNotice(
+                        message = message,
+                        details = "Ενέργεια: Αποθήκευση οικονομικών δεδομένων\nΚατηγορία: UNEXPECTED_SYNC_STATE",
+                        diagnosticCode = "MFH-APP-UNEXPECTED_SYNC_STATE",
+                    ),
+                )
+            }
         }
     }
 
-    private fun handleLoadFailure(kind: ApiFailureKind, retryable: Boolean) {
-        if (kind.isAuthRejection()) {
+    private suspend fun handleLoadFailure(failure: ApiResult.Failure, operation: String) {
+        mutableNotices.emit(failure.toUserNotice(operation))
+        if (failure.kind.isAuthRejection()) {
             repository.clear()
             mutableState.value = FinanceProductState.AuthRejected
         } else {
-            mutableState.value = FinanceProductState.Failure(failureMessage(kind), retryable)
+            mutableState.value = FinanceProductState.Failure(apiFailureMessage(failure.kind), failure.retryable)
         }
+    }
+
+    private suspend fun failLoad(message: String) {
+        mutableState.value = FinanceProductState.Failure(message, true)
+        mutableNotices.emit(
+            UserNotice(
+                message = message,
+                details = "Ενέργεια: Φόρτωση οικονομικών δεδομένων\nΚατηγορία: UNEXPECTED_SYNC_STATE",
+                diagnosticCode = "MFH-APP-UNEXPECTED_SYNC_STATE",
+            ),
+        )
     }
 
     private fun setQuickEntryError(message: String) {
@@ -422,18 +527,4 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private fun ApiFailureKind.isAuthRejection(): Boolean =
         this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED
-
-    private fun failureMessage(kind: ApiFailureKind): String = when (kind) {
-        ApiFailureKind.BUILD_NOT_CONFIGURED -> "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration."
-        ApiFailureKind.AUTH_REQUIRED -> "Η συνεδρία δεν είναι πλέον έγκυρη."
-        ApiFailureKind.MFA_REQUIRED -> "Η συνεδρία δεν έχει πλέον AAL2 πρόσβαση."
-        ApiFailureKind.REVISION_CONFLICT -> "Τα δεδομένα άλλαξαν σε άλλη συνεδρία."
-        ApiFailureKind.PRECONDITION_REQUIRED -> "Λείπει έγκυρη revision προϋπόθεση για την αποθήκευση."
-        ApiFailureKind.INVALID_DATA -> "Τα δεδομένα της αλλαγής δεν έγιναν δεκτά."
-        ApiFailureKind.RATE_LIMITED -> "Πολλά αιτήματα. Δοκίμασε ξανά αργότερα."
-        ApiFailureKind.NETWORK -> "Δεν υπάρχει σύνδεση με το MyFinHub. Η τοπική αλλαγή διατηρείται."
-        ApiFailureKind.SERVER -> "Το MyFinHub δεν είναι προσωρινά διαθέσιμο. Η τοπική αλλαγή διατηρείται."
-        ApiFailureKind.MALFORMED_RESPONSE -> "Το MyFinHub επέστρεψε μη αναμενόμενη απάντηση."
-        ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE -> "Η λειτουργία δεν είναι διαθέσιμη στο test host."
-    }
 }
