@@ -4,6 +4,7 @@ import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.MyFinHubApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +32,7 @@ class FinanceRepository(
 
     suspend fun load(session: AuthSession) {
         mutableState.value = FinanceSyncState.Loading
-        mutableState.value = when (val result = api.loadFinanceData(session)) {
+        mutableState.value = when (val result = safeApiCall { api.loadFinanceData(session) }) {
             is ApiResult.Success -> FinanceSyncState.Ready(result.value)
             is ApiResult.Failure -> FinanceSyncState.Error(result)
         }
@@ -41,7 +42,7 @@ class FinanceRepository(
         val current = mutableState.value as? FinanceSyncState.Ready ?: return
         val expectedRevision = current.envelope.revision
 
-        when (val result = api.saveMutableState(session, document, expectedRevision)) {
+        when (val result = safeApiCall { api.saveMutableState(session, document, expectedRevision) }) {
             is ApiResult.Success -> {
                 mutableState.value = FinanceSyncState.Ready(
                     CanonicalFinanceEnvelope(
@@ -66,5 +67,13 @@ class FinanceRepository(
 
     fun clear() {
         mutableState.value = FinanceSyncState.Empty
+    }
+
+    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
+        block()
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
     }
 }
