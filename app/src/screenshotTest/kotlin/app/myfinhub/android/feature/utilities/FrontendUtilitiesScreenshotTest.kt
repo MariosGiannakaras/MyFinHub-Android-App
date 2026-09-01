@@ -15,37 +15,6 @@ fun SettingsCompactLargeFontScreenshot() {
 }
 
 @PreviewTest
-@Preview(name = "data_transfer_compact", widthDp = 412, heightDp = 915, showBackground = true)
-@Composable
-fun DataTransferCompactScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        DataTransferScreen(
-            state = reduceFrontendUtilities(FrontendUtilitiesUiState(), FrontendUtilitiesAction.PrepareImportPreview),
-            onAction = {},
-            onBack = {},
-        )
-    }
-}
-
-@PreviewTest
-@Preview(name = "data_transfer_confirmation_compact", widthDp = 412, heightDp = 915, showBackground = true)
-@Composable
-fun DataTransferConfirmationCompactScreenshot() {
-    val preview = reduceFrontendUtilities(
-        FrontendUtilitiesUiState(),
-        FrontendUtilitiesAction.PrepareImportPreview,
-    )
-    val confirming = reduceFrontendUtilities(preview, FrontendUtilitiesAction.RequestReplaceImport)
-    MyFinHubTheme(darkTheme = false) {
-        DataTransferScreen(
-            state = confirming,
-            onAction = {},
-            onBack = {},
-        )
-    }
-}
-
-@PreviewTest
 @Preview(name = "change_history_compact", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun ChangeHistoryCompactScreenshot() {
