@@ -1,507 +1,267 @@
 package app.myfinhub.android.designsystem
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector.Builder
+import androidx.compose.ui.graphics.vector.PathBuilder
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 /**
  * Curated static icon registry for the native Android product.
  *
- * Feature screens should depend on this registry instead of choosing arbitrary Material icons.
- * This keeps the visual language replaceable in one place and avoids a desktop-style icon picker.
+ * The vocabulary deliberately uses one rounded 1.8dp stroke language instead of mixing arbitrary
+ * filled Material glyphs. Feature screens depend on semantic names here, so the visual vocabulary
+ * remains replaceable in one place and Android never needs a desktop-style icon picker.
  */
 object MyFinHubIcons {
-    val Add: ImageVector = Icons.Default.Add
-    val Back: ImageVector = Icons.Default.ArrowBack
-    val Search: ImageVector = Icons.Default.Search
-
-    val Home: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubHome",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(3f, 10.6f)
-                lineTo(12f, 3f)
-                lineTo(21f, 10.6f)
-                lineTo(19.45f, 12.35f)
-                lineTo(18f, 11.15f)
-                verticalLineTo(21f)
-                horizontalLineTo(14.2f)
-                verticalLineTo(15.4f)
-                horizontalLineTo(9.8f)
-                verticalLineTo(21f)
-                horizontalLineTo(6f)
-                verticalLineTo(11.15f)
-                lineTo(4.55f, 12.35f)
-                close()
+    val Add by lazy {
+        icon("MyFinHubAdd") {
+            strokePath {
+                moveTo(12f, 5f); lineTo(12f, 19f)
+                moveTo(5f, 12f); lineTo(19f, 12f)
             }
-        }.build()
+        }
     }
 
-    val Activity: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubActivity",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(4f, 5f)
-                horizontalLineTo(7f)
-                verticalLineTo(8f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(9f, 5.4f)
-                horizontalLineTo(21f)
-                verticalLineTo(7.6f)
-                horizontalLineTo(9f)
-                close()
-                moveTo(4f, 10.5f)
-                horizontalLineTo(7f)
-                verticalLineTo(13.5f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(9f, 10.9f)
-                horizontalLineTo(21f)
-                verticalLineTo(13.1f)
-                horizontalLineTo(9f)
-                close()
-                moveTo(4f, 16f)
-                horizontalLineTo(7f)
-                verticalLineTo(19f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(9f, 16.4f)
-                horizontalLineTo(21f)
-                verticalLineTo(18.6f)
-                horizontalLineTo(9f)
-                close()
+    val Back by lazy {
+        icon("MyFinHubBack", autoMirror = true) {
+            strokePath {
+                moveTo(19f, 12f); lineTo(5f, 12f)
+                moveTo(11f, 6f); lineTo(5f, 12f); lineTo(11f, 18f)
             }
-        }.build()
+        }
     }
 
-    val Money: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubMoney",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(3f, 6f)
-                horizontalLineTo(19f)
-                verticalLineTo(8f)
-                horizontalLineTo(21f)
-                verticalLineTo(19f)
-                horizontalLineTo(3f)
-                close()
-                moveTo(5.4f, 8.4f)
-                verticalLineTo(16.6f)
-                horizontalLineTo(18.6f)
-                verticalLineTo(13.8f)
-                horizontalLineTo(14.5f)
-                verticalLineTo(11f)
-                horizontalLineTo(18.6f)
-                verticalLineTo(8.4f)
-                close()
+    val Search by lazy {
+        icon("MyFinHubSearch") {
+            strokePath {
+                circle(10.5f, 10.5f, 5.5f)
+                moveTo(14.5f, 14.5f); lineTo(20f, 20f)
             }
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(15.7f, 11.7f)
-                horizontalLineTo(20.2f)
-                verticalLineTo(13.1f)
-                horizontalLineTo(15.7f)
-                close()
-            }
-        }.build()
+        }
     }
 
-    val Plan: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubPlan",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(4f, 5f)
-                horizontalLineTo(7f)
-                verticalLineTo(3f)
-                horizontalLineTo(9f)
-                verticalLineTo(5f)
-                horizontalLineTo(15f)
-                verticalLineTo(3f)
-                horizontalLineTo(17f)
-                verticalLineTo(5f)
-                horizontalLineTo(20f)
-                verticalLineTo(21f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(6.3f, 9f)
-                verticalLineTo(18.7f)
-                horizontalLineTo(17.7f)
-                verticalLineTo(9f)
-                close()
+    val Home by lazy {
+        icon("MyFinHubHome") {
+            strokePath {
+                moveTo(3.5f, 10.5f); lineTo(12f, 3.5f); lineTo(20.5f, 10.5f)
+                moveTo(5.5f, 9.2f); lineTo(5.5f, 20f); lineTo(18.5f, 20f); lineTo(18.5f, 9.2f)
+                moveTo(9.5f, 20f); lineTo(9.5f, 14.5f); lineTo(14.5f, 14.5f); lineTo(14.5f, 20f)
             }
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(8f, 11f)
-                horizontalLineTo(11f)
-                verticalLineTo(14f)
-                horizontalLineTo(8f)
-                close()
-                moveTo(13f, 11f)
-                horizontalLineTo(16f)
-                verticalLineTo(14f)
-                horizontalLineTo(13f)
-                close()
-            }
-        }.build()
+        }
     }
 
-    val Insights: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubInsights",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(4f, 14f)
-                horizontalLineTo(7.2f)
-                verticalLineTo(21f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(10.4f, 9f)
-                horizontalLineTo(13.6f)
-                verticalLineTo(21f)
-                horizontalLineTo(10.4f)
-                close()
-                moveTo(16.8f, 4f)
-                horizontalLineTo(20f)
-                verticalLineTo(21f)
-                horizontalLineTo(16.8f)
-                close()
+    val Activity by lazy {
+        icon("MyFinHubActivity") {
+            strokePath {
+                moveTo(5f, 4f); lineTo(19f, 4f); lineTo(19f, 20f); lineTo(5f, 20f); close()
+                moveTo(8f, 8f); lineTo(9f, 8f)
+                moveTo(12f, 8f); lineTo(16f, 8f)
+                moveTo(8f, 12f); lineTo(9f, 12f)
+                moveTo(12f, 12f); lineTo(16f, 12f)
+                moveTo(8f, 16f); lineTo(9f, 16f)
+                moveTo(12f, 16f); lineTo(16f, 16f)
             }
-        }.build()
+        }
     }
 
-    val All: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubAll",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(4f, 4f)
-                horizontalLineTo(10f)
-                verticalLineTo(10f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(14f, 4f)
-                horizontalLineTo(20f)
-                verticalLineTo(10f)
-                horizontalLineTo(14f)
-                close()
-                moveTo(4f, 14f)
-                horizontalLineTo(10f)
-                verticalLineTo(20f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(14f, 14f)
-                horizontalLineTo(20f)
-                verticalLineTo(20f)
-                horizontalLineTo(14f)
-                close()
+    val Money by lazy {
+        icon("MyFinHubMoney") {
+            strokePath {
+                moveTo(4f, 6f); lineTo(17f, 6f); cubicTo(18.7f, 6f, 20f, 7.3f, 20f, 9f)
+                lineTo(20f, 18f); lineTo(4f, 18f); cubicTo(2.9f, 18f, 2f, 17.1f, 2f, 16f)
+                lineTo(2f, 8f); cubicTo(2f, 6.9f, 2.9f, 6f, 4f, 6f)
+                moveTo(15f, 10f); lineTo(21f, 10f); lineTo(21f, 14f); lineTo(15f, 14f)
+                cubicTo(13.9f, 14f, 13f, 13.1f, 13f, 12f); cubicTo(13f, 10.9f, 13.9f, 10f, 15f, 10f)
+                moveTo(17f, 12f); lineTo(17.1f, 12f)
             }
-        }.build()
+        }
     }
 
-    val Income: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubIncome",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(10.6f, 3f)
-                horizontalLineTo(13.4f)
-                verticalLineTo(13.1f)
-                lineTo(16.9f, 9.7f)
-                lineTo(18.8f, 11.6f)
-                lineTo(12f, 18.4f)
-                lineTo(5.2f, 11.6f)
-                lineTo(7.1f, 9.7f)
-                lineTo(10.6f, 13.1f)
-                close()
-                moveTo(4f, 19f)
-                horizontalLineTo(20f)
-                verticalLineTo(21f)
-                horizontalLineTo(4f)
-                close()
+    val Plan by lazy {
+        icon("MyFinHubPlan") {
+            strokePath {
+                moveTo(5f, 5.5f); lineTo(19f, 5.5f); lineTo(19f, 20f); lineTo(5f, 20f); close()
+                moveTo(8f, 3.5f); lineTo(8f, 7.5f)
+                moveTo(16f, 3.5f); lineTo(16f, 7.5f)
+                moveTo(5f, 9f); lineTo(19f, 9f)
+                moveTo(8.5f, 14.5f); lineTo(11f, 17f); lineTo(16f, 12f)
             }
-        }.build()
+        }
     }
 
-    val Expense: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubExpense",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(12f, 3f)
-                lineTo(18.8f, 9.8f)
-                lineTo(16.9f, 11.7f)
-                lineTo(13.4f, 8.3f)
-                verticalLineTo(18.4f)
-                horizontalLineTo(10.6f)
-                verticalLineTo(8.3f)
-                lineTo(7.1f, 11.7f)
-                lineTo(5.2f, 9.8f)
-                close()
-                moveTo(4f, 19f)
-                horizontalLineTo(20f)
-                verticalLineTo(21f)
-                horizontalLineTo(4f)
-                close()
+    val Insights by lazy {
+        icon("MyFinHubInsights") {
+            strokePath {
+                moveTo(4f, 20f); lineTo(4f, 14f); lineTo(8f, 14f); lineTo(8f, 20f)
+                moveTo(10f, 20f); lineTo(10f, 10f); lineTo(14f, 10f); lineTo(14f, 20f)
+                moveTo(16f, 20f); lineTo(16f, 5f); lineTo(20f, 5f); lineTo(20f, 20f)
             }
-        }.build()
+        }
     }
 
-    val Savings: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubSavings",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(4f, 6f)
-                horizontalLineTo(20f)
-                verticalLineTo(21f)
-                horizontalLineTo(4f)
-                close()
-                moveTo(6.4f, 8.4f)
-                verticalLineTo(18.6f)
-                horizontalLineTo(17.6f)
-                verticalLineTo(8.4f)
-                close()
+    val All by lazy {
+        icon("MyFinHubAll") {
+            strokePath {
+                rect(4f, 4f, 6f, 6f)
+                rect(14f, 4f, 6f, 6f)
+                rect(4f, 14f, 6f, 6f)
+                rect(14f, 14f, 6f, 6f)
             }
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(8f, 3f)
-                horizontalLineTo(16f)
-                verticalLineTo(5f)
-                horizontalLineTo(8f)
-                close()
-                moveTo(12f, 10f)
-                lineTo(13.1f, 12.2f)
-                lineTo(15.5f, 12.6f)
-                lineTo(13.8f, 14.3f)
-                lineTo(14.2f, 16.7f)
-                lineTo(12f, 15.6f)
-                lineTo(9.8f, 16.7f)
-                lineTo(10.2f, 14.3f)
-                lineTo(8.5f, 12.6f)
-                lineTo(10.9f, 12.2f)
-                close()
-            }
-        }.build()
+        }
     }
 
-    val Transfer: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubTransfer",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(5f, 6f)
-                horizontalLineTo(16f)
-                lineTo(13.5f, 3.5f)
-                lineTo(15.4f, 1.7f)
-                lineTo(21f, 7.3f)
-                lineTo(15.4f, 12.9f)
-                lineTo(13.5f, 11.1f)
-                lineTo(16f, 8.6f)
-                horizontalLineTo(5f)
-                close()
-                moveTo(19f, 15.4f)
-                horizontalLineTo(8f)
-                lineTo(10.5f, 12.9f)
-                lineTo(8.6f, 11.1f)
-                lineTo(3f, 16.7f)
-                lineTo(8.6f, 22.3f)
-                lineTo(10.5f, 20.5f)
-                lineTo(8f, 18f)
-                horizontalLineTo(19f)
-                close()
+    val Income by lazy {
+        icon("MyFinHubIncome") {
+            strokePath {
+                moveTo(12f, 4f); lineTo(12f, 17f)
+                moveTo(7f, 12f); lineTo(12f, 17f); lineTo(17f, 12f)
+                moveTo(5f, 20f); lineTo(19f, 20f)
             }
-        }.build()
+        }
     }
 
-    val Attention: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubAttention",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(12f, 2f)
-                lineTo(22f, 12f)
-                lineTo(12f, 22f)
-                lineTo(2f, 12f)
-                close()
-                moveTo(10.6f, 7f)
-                horizontalLineTo(13.4f)
-                verticalLineTo(13.4f)
-                horizontalLineTo(10.6f)
-                close()
-                moveTo(10.6f, 16f)
-                horizontalLineTo(13.4f)
-                verticalLineTo(18.8f)
-                horizontalLineTo(10.6f)
-                close()
+    val Expense by lazy {
+        icon("MyFinHubExpense") {
+            strokePath {
+                moveTo(12f, 20f); lineTo(12f, 7f)
+                moveTo(7f, 12f); lineTo(12f, 7f); lineTo(17f, 12f)
+                moveTo(5f, 4f); lineTo(19f, 4f)
             }
-        }.build()
+        }
     }
 
-    val Filter: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubFilter",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(3f, 5f)
-                horizontalLineTo(21f)
-                lineTo(14f, 13f)
-                verticalLineTo(19f)
-                lineTo(10f, 21f)
-                verticalLineTo(13f)
-                close()
+    val Savings by lazy {
+        icon("MyFinHubSavings") {
+            strokePath {
+                circle(12f, 12f, 8f)
+                moveTo(12f, 8f); lineTo(12f, 16f)
+                moveTo(9f, 10f); cubicTo(9f, 8.9f, 10.3f, 8f, 12f, 8f)
+                cubicTo(13.7f, 8f, 15f, 8.9f, 15f, 10f)
+                cubicTo(15f, 11.2f, 13.8f, 12f, 12f, 12f)
+                cubicTo(10.2f, 12f, 9f, 12.8f, 9f, 14f)
+                cubicTo(9f, 15.1f, 10.3f, 16f, 12f, 16f)
+                cubicTo(13.7f, 16f, 15f, 15.1f, 15f, 14f)
             }
-        }.build()
+        }
     }
 
-    val Account: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubAccount",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(12f, 3f)
-                lineTo(21f, 8f)
-                horizontalLineTo(3f)
-                close()
-                moveTo(5f, 10f)
-                horizontalLineTo(8f)
-                verticalLineTo(18f)
-                horizontalLineTo(5f)
-                close()
-                moveTo(10.5f, 10f)
-                horizontalLineTo(13.5f)
-                verticalLineTo(18f)
-                horizontalLineTo(10.5f)
-                close()
-                moveTo(16f, 10f)
-                horizontalLineTo(19f)
-                verticalLineTo(18f)
-                horizontalLineTo(16f)
-                close()
-                moveTo(3f, 20f)
-                horizontalLineTo(21f)
-                verticalLineTo(22f)
-                horizontalLineTo(3f)
-                close()
+    val Transfer by lazy {
+        icon("MyFinHubTransfer") {
+            strokePath {
+                moveTo(4f, 8f); lineTo(18f, 8f)
+                moveTo(14f, 4f); lineTo(18f, 8f); lineTo(14f, 12f)
+                moveTo(20f, 16f); lineTo(6f, 16f)
+                moveTo(10f, 12f); lineTo(6f, 16f); lineTo(10f, 20f)
             }
-        }.build()
+        }
     }
 
-    val Card: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubCard",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(3f, 5f)
-                horizontalLineTo(21f)
-                verticalLineTo(19f)
-                horizontalLineTo(3f)
-                close()
-                moveTo(5.4f, 9.5f)
-                verticalLineTo(16.6f)
-                horizontalLineTo(18.6f)
-                verticalLineTo(9.5f)
-                close()
+    val Attention by lazy {
+        icon("MyFinHubAttention") {
+            strokePath {
+                moveTo(12f, 3f); lineTo(21f, 20f); lineTo(3f, 20f); close()
+                moveTo(12f, 9f); lineTo(12f, 14f)
+                moveTo(12f, 17f); lineTo(12.1f, 17f)
             }
-            path(fill = SolidColor(Color.Black)) {
-                moveTo(3f, 7f)
-                horizontalLineTo(21f)
-                verticalLineTo(10f)
-                horizontalLineTo(3f)
-                close()
-            }
-        }.build()
+        }
     }
 
-    val Goal: ImageVector by lazy {
-        ImageVector.Builder(
-            name = "MyFinHubGoal",
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
-        ).apply {
-            path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd) {
-                moveTo(12f, 2f)
-                lineTo(22f, 12f)
-                lineTo(12f, 22f)
-                lineTo(2f, 12f)
-                close()
-                moveTo(12f, 6f)
-                lineTo(18f, 12f)
-                lineTo(12f, 18f)
-                lineTo(6f, 12f)
-                close()
-                moveTo(12f, 9f)
-                lineTo(15f, 12f)
-                lineTo(12f, 15f)
-                lineTo(9f, 12f)
-                close()
+    val Filter by lazy {
+        icon("MyFinHubFilter") {
+            strokePath {
+                moveTo(4f, 7f); lineTo(20f, 7f)
+                circle(9f, 7f, 1.5f)
+                moveTo(4f, 12f); lineTo(20f, 12f)
+                circle(15f, 12f, 1.5f)
+                moveTo(4f, 17f); lineTo(20f, 17f)
+                circle(11f, 17f, 1.5f)
             }
-        }.build()
+        }
     }
+
+    val Account by lazy {
+        icon("MyFinHubAccount") {
+            strokePath {
+                moveTo(3f, 9f); lineTo(12f, 4f); lineTo(21f, 9f); close()
+                moveTo(5f, 10.5f); lineTo(19f, 10.5f)
+                moveTo(7f, 10.5f); lineTo(7f, 18f)
+                moveTo(12f, 10.5f); lineTo(12f, 18f)
+                moveTo(17f, 10.5f); lineTo(17f, 18f)
+                moveTo(4f, 18f); lineTo(20f, 18f)
+                moveTo(3f, 21f); lineTo(21f, 21f)
+            }
+        }
+    }
+
+    val Card by lazy {
+        icon("MyFinHubCard") {
+            strokePath {
+                moveTo(4f, 5f); lineTo(20f, 5f); cubicTo(21.1f, 5f, 22f, 5.9f, 22f, 7f)
+                lineTo(22f, 17f); cubicTo(22f, 18.1f, 21.1f, 19f, 20f, 19f)
+                lineTo(4f, 19f); cubicTo(2.9f, 19f, 2f, 18.1f, 2f, 17f)
+                lineTo(2f, 7f); cubicTo(2f, 5.9f, 2.9f, 5f, 4f, 5f)
+                moveTo(2f, 9f); lineTo(22f, 9f)
+                moveTo(6f, 15f); lineTo(10f, 15f)
+            }
+        }
+    }
+
+    val Goal by lazy {
+        icon("MyFinHubGoal") {
+            strokePath {
+                circle(12f, 12f, 8f)
+                circle(12f, 12f, 4f)
+                circle(12f, 12f, 0.8f)
+                moveTo(15f, 9f); lineTo(20f, 4f)
+                moveTo(17f, 4f); lineTo(20f, 4f); lineTo(20f, 7f)
+            }
+        }
+    }
+}
+
+private fun icon(
+    name: String,
+    autoMirror: Boolean = false,
+    content: Builder.() -> Unit,
+): ImageVector = Builder(
+    name = name,
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f,
+    autoMirror = autoMirror,
+).apply(content).build()
+
+private fun Builder.strokePath(block: PathBuilder.() -> Unit) {
+    path(
+        fill = null,
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.8f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round,
+        pathBuilder = block,
+    )
+}
+
+private fun PathBuilder.circle(cx: Float, cy: Float, radius: Float) {
+    val c = radius * 0.55228475f
+    moveTo(cx + radius, cy)
+    cubicTo(cx + radius, cy + c, cx + c, cy + radius, cx, cy + radius)
+    cubicTo(cx - c, cy + radius, cx - radius, cy + c, cx - radius, cy)
+    cubicTo(cx - radius, cy - c, cx - c, cy - radius, cx, cy - radius)
+    cubicTo(cx + c, cy - radius, cx + radius, cy - c, cx + radius, cy)
+    close()
+}
+
+private fun PathBuilder.rect(x: Float, y: Float, width: Float, height: Float) {
+    moveTo(x, y)
+    lineTo(x + width, y)
+    lineTo(x + width, y + height)
+    lineTo(x, y + height)
+    close()
 }
