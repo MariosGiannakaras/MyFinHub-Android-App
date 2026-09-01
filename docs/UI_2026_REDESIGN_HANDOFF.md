@@ -3,9 +3,10 @@
 ## Start here in a new chat
 1. Read permanent issue #27 first.
 2. Read issue #37 (`Android 2026 UI system — full-app compact redesign`).
-3. Read `STATUS.md`, `TODO.md` and this file.
-4. Inspect the actual open PR/branch state before changing anything.
-5. Continue the active redesign; do not restart discovery or reinterpret the approved visual direction.
+3. Read draft PR #38 (`ui: full-app 2026 redesign foundation`).
+4. Read `STATUS.md`, `TODO.md` and this file.
+5. Inspect the actual PR/branch/workflow state before changing anything.
+6. Continue the active redesign; do not restart discovery or reinterpret the approved visual direction.
 
 ## Scope
 The redesign covers the **entire existing native Android application**, not only Activity/Κινήσεις.
@@ -43,7 +44,7 @@ The user selected a combination of the earlier MyFinHub 2026 concept and the cle
 ## Architecture rule
 Treat the Compose design system like a React design-system layer: future style changes must be centralized rather than copied into every screen.
 
-Shared foundation should own:
+Shared foundation owns:
 - theme/color/typography/shape tokens;
 - semantic finance colors;
 - spacing/density tokens;
@@ -71,8 +72,31 @@ Phase 6 remains separate. Do not create a production signing key, signed product
 
 ## Active workstream
 - Tracker: issue #37.
+- Draft PR: #38.
 - Branch: `feature/full-app-2026-ui-redesign`.
 - Base: `develop`.
-- The first code layer is the shared design-system foundation; screen migrations then proceed across the whole application, not as isolated styling forks.
+
+## Implemented so far in PR #38
+- 2026 light/dark theme with explicit MyFinHub palette, typography, shapes and compact spacing tokens.
+- Central finance semantic palette for income/expense/savings/transfer/attention/neutral.
+- Central `MyFinHubIcons` registry with custom static top-level and finance icons plus shared control icons.
+- Top-level navigation now consumes the shared icon registry.
+- Shared Compose components for screen headers, section cards, search, semantic filter chips, icon badges, finance rows, amount styling and primary actions.
+- Activity / Κινήσεις and Activity detail are the first migrated consumers of the shared system.
+
+**This is not the completion boundary.** PR #38 remains open until the rest of the existing application is migrated and validated.
+
+## Remaining migration order
+The exact internal order may change to keep builds green, but the scope must remain full-app:
+1. Home + Home attention/detail + Utilities (Settings/Data Transfer/Change History).
+2. Money surrounding surfaces + Savings/Loans/Lending/detail flows, while preserving issue #24 card-stack contract.
+3. Plan + item editor + Budgets/rules + Forecast.
+4. Insights.
+5. Quick Entry.
+6. Auth/login/TOTP/PIN/unlock and shared loading/failure/conflict states.
+7. Final cross-screen consistency pass, real screenshot replacement and compact/adaptive/150%-font validation.
+
+## Exact next action
+Check the current PR #38 CI result first. Fix any shared-foundation compilation or UI regression before migrating the next screen group. Once the foundation is green, continue with Home and Utilities, then keep moving through the remaining groups without stopping after one page.
 
 Update this file whenever the active PR, completed screen migrations, validation state or exact next action changes so a memoryless new chat can continue safely.
