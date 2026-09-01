@@ -12,17 +12,21 @@
 - [x] Public-repo-safe CI and repository contribution/branch documentation.
 - [x] Phase 1 merged through PR #5.
 
-## Phase 2 — Representative mobile product UX
+## Phase 2 — Representative mobile product UX and frontend parity
 
 - [x] Home compact/expanded product screen and real Home screenshot references — PR #9.
 - [x] Activity list/detail/edit/filter/search.
-- [x] Quick Entry expense/transfer/card-payment/split prototypes.
+- [x] Quick Entry expense/transfer/card-payment/split flows.
 - [x] Money/Cards, Plan and Insights mobile flows.
 - [x] Insights → Activity drill-down.
 - [x] Representative adaptive list-detail layout.
 - [x] Large-font, TalkBack semantics and touch-target validation.
 - [x] Retain five top-level destinations and record ADR-0002.
 - [x] Phase 2B merged through PR #17; issue #12 complete.
+- [x] Plan recurring/scheduled detail/edit plus category budget/rule/forecast frontend parity — PR #31.
+- [x] Money savings, loan/installment and lending/receivable frontend parity — PR #32.
+- [x] Home Smart Review / Needs Attention, Settings, import/backup UI shell and privacy-safe Change History frontend parity — PR #35.
+- [x] Real screenshot rendering/regression plus compact, foldable, tablet and large-font validation for the Phase 2C UI delta.
 
 ## Phase 3 — Production native-client backend gate
 
@@ -47,69 +51,44 @@ Tracker: issue #4.
 - [x] Invalid/revoked session clears local session and returns to login.
 - [x] Production launcher auth-gated; debug test hosts non-exported and debug-only.
 - [x] Auth instrumentation and reviewed Login/PIN/Locked screenshot references.
-- [x] Auth shell merged through PR #19 as `447abf20044f146a146bdd68dcca0c78c3757689`.
+- [x] Auth shell merged through PR #19.
 - [ ] Validate full auth/unlock flow against production on the physical device at Phase 6 handoff.
 
 ## Phase 4B — Canonical finance API and product integration
 
 Tracker: issue #15.
 
-### Foundation merged through PR #18
-- [x] Lossless canonical JSON document wrapper retaining unknown fields.
+- [x] Lossless canonical JSON document retaining unknown fields.
 - [x] Bearer-only `/api/data` GET with AAL2 preflight.
 - [x] Revision-tagged in-memory `FinanceRepository`; server remains source of truth.
-- [x] PUT `/api/data` with `If-Match`.
-- [x] Explicit HTTP 409 `REVISION_CONFLICT`; no silent overwrite.
+- [x] PUT `/api/data` with `If-Match` and explicit 409 conflict handling.
 - [x] No canonical Room/SQLite database.
-- [x] Bearer/no-cookie, unknown-field and revision tests.
-
-### Core production product integration — PR #20
-- [x] Combine seed legacy transactions, deletions, overrides/custom transactions and canonical events in Android projections.
-- [x] Derive account balances from snapshots + legacy deltas + event legs.
-- [x] Wire real Home projections.
-- [x] Wire real Activity projections and canonical note/category edits.
-- [x] Wire Quick Entry expense, transfer, card-payment and cent-exact split writes.
-- [x] Wire Money accounts/cards/savings/loan/lending projections without exposing secrets.
-- [x] Wire Plan recurring/scheduled/budget projections and budget writes.
-- [x] Wire Insights monthly/category projections and supporting Activity drill-down.
-- [x] Surface loading/retry and explicit revision-conflict UX.
-- [x] On finance authorization rejection, clear finance state and return through normal auth logout/login.
+- [x] Real Home, Activity, Quick Entry, Money, Plan and Insights projections/writes over canonical state.
+- [x] Loading/retry, authorization rejection and explicit revision-conflict UX.
 - [x] Clear in-memory finance state on logout/session removal.
-- [x] Expand malformed/unauthorized, MockWebServer and canonical mutation tests.
-- [ ] Add backup/import client boundaries where appropriate for mobile.
-- [ ] Add `/api/card-secrets` client boundary without CVV support.
-
-### Phase 2C native frontend parity — issue #30
-- [x] Smart Review and Needs Attention drill-down — Home/Utilities PR #33.
-- [x] Savings-specific workflows beyond overview — Money PR #32.
-- [x] Loan/installment management beyond outstanding-balance projection — Money PR #32.
-- [x] Lending/receivable management beyond outstanding-balance projection — Money PR #32.
-- [x] Recurring/scheduled detail and edit flows — Plan PR #31.
-- [x] Category budget/rule/forecast planning UI — Plan PR #31.
-- [x] Settings UI without infrastructure-key fields — Home/Utilities PR #33.
-- [x] Import/backup UI shell with explicit destructive confirmation — Home/Utilities PR #33.
-- [x] Privacy-safe Undo/Redo / Change History — Home/Utilities PR #33.
-
-Frontend parity uses native Compose and local deterministic state where canonical persistence is not yet available. The unchecked backup/import and `/api/card-secrets` items above remain backend/client-boundary work and are not considered complete by the frontend UI shell.
+- [x] Typed bearer-only backup/import client boundaries — PR #21.
+- [x] Typed owner+AAL2 `/api/card-secrets` PAN/expiry client boundary with no CVV server surface — PR #21.
+- [x] MockWebServer/fail-closed coverage for finance, backup/import and card-secret boundaries.
 
 ## Phase 5 — Security/performance/release hardening
 
-Tracker: issue #13.
+Tracker: issue #13. Active implementation PR: #36.
 
-- [ ] Owner+AAL2 server PAN/expiry vault integration.
-- [ ] Device-local CVV Android Keystore AES-GCM vault; never sync/log/backup.
-- [ ] Scoped secure-window/recent-thumbnail protection for secret reveal.
-- [ ] Sensitive-log/source/preview audit.
-- [ ] Baseline Profile generation.
-- [ ] Macrobenchmark cold startup/Home/Activity/Quick Entry journeys.
-- [ ] Representative recomposition/memory/jank review.
-- [ ] Enable and validate release R8/minification/resource shrinking with narrow keep rules.
-- [ ] Final compact/foldable/tablet and large-font/accessibility matrix.
-- [ ] Release assembly/config validation without signing secrets.
+- [x] Owner+AAL2 server PAN/expiry vault integration.
+- [x] Device-local CVV Android Keystore AES-GCM vault; never sync/log/backup.
+- [x] Scoped secure-window/recent-thumbnail protection for secret reveal.
+- [x] Sensitive-log/source/preview audit.
+- [x] Representative recomposition/large-state review.
+- [x] Enable and validate release R8/minification/resource shrinking with narrow keep rules.
+- [x] Unsigned release assembly/config validation; no signing secrets or production-signed APK.
+- [x] Generate and check in the device-generated Baseline Profile and startup profile.
+- [ ] Obtain passing exact-head Macrobenchmark evidence for cold startup, Home, Activity and Quick Entry.
+- [ ] Obtain passing exact-head compact/foldable/tablet and 150% large-font/accessibility matrix evidence.
+- [ ] Complete final Phase 5 evidence/documentation sync and merge the active hardening PR into `develop`.
 
 ## Phase 6 — Final production/release handoff
 
-Tracker: issue #14.
+Tracker: issue #14. This phase remains separate and is not part of current autonomous implementation.
 
 - [ ] All functional/security/quality work merged to `develop`.
 - [ ] Validate production configured build against real Auth/API.
