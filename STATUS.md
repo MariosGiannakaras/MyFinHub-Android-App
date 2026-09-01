@@ -1,5 +1,22 @@
 # MyFinHub Android status
 
+## 2026-09-01 — Full-app 2026 UI redesign active
+
+The autonomous implementation remains complete through Phase 5. A new post-Phase-5 UI modernization workstream is now active under issue #37 on `feature/full-app-2026-ui-redesign`. This workstream redesigns the **entire existing Android application**, while Phase 6 remains the separate physical-device, production-validation and signing handoff.
+
+### Current redesign direction
+
+- Preserve the authentic MyFinHub branding/logo/product identity.
+- Apply the approved 2026 direction across Home, Activity, Money, Plan, Insights and all existing secondary/detail/auth/system flows.
+- Keep the UI compact and modern without becoming packed.
+- Build a shared Compose design-system foundation first so colors, typography, spacing, shapes, semantic finance colors, icons and reusable components are centralized rather than duplicated screen by screen.
+- Use a curated/static `MyFinHubIcons` system. Android does not need a desktop-style icon picker.
+- Finance semantics are intentional and centralized: income green, expense red/coral, savings purple/indigo, transfer blue, attention amber, neutral/info slate/gray.
+- Filters and finance rows should use consistent icon + label + semantic color treatment.
+- The main MyFinHub desktop/web application is still changing; this redesign does **not** automatically add every desktop feature to Android. Future mobile feature parity will be decided separately.
+- Issue #24 remains the source of truth for the special native credit-card stack component; the surrounding Money UI may be modernized without silently replacing that contract.
+- Memoryless-chat handoff is documented in `docs/UI_2026_REDESIGN_HANDOFF.md` and issue #37.
+
 ## 2026-09-01 — Phase 5 autonomous hardening complete
 
 The Android implementation is complete through Phase 5. Phases 0–5 are the completed autonomous implementation scope. Phase 6 remains the separate physical-device, production-validation and signing handoff and is intentionally not part of the completed autonomous scope.
@@ -46,4 +63,4 @@ The Android implementation is complete through Phase 5. Phases 0–5 are the com
 
 ### Phase 6 boundary
 
-Phase 6 remains intentionally deferred and separate. It includes the first physical-device run, production Auth/API smoke validation, final release-candidate promotion and any signing-key/signed-APK work. No release, production signing key or production-signed APK was created during Phase 5.
+Phase 6 remains intentionally deferred and separate. It includes the first physical-device run, production Auth/API smoke validation, final release-candidate promotion and any signing-key/signed-APK work. No release, production signing key or production-signed APK was created during Phase 5, and the active UI redesign must keep this boundary unchanged.
