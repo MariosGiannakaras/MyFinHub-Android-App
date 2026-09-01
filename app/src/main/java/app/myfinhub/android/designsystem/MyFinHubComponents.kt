@@ -67,6 +67,7 @@ fun MyFinHubScreenHeader(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    navigation: (@Composable () -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Surface(
@@ -83,6 +84,7 @@ fun MyFinHubScreenHeader(
             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            navigation?.invoke()
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
