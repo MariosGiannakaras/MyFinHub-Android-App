@@ -17,23 +17,23 @@ class ActivityQuickEntryTest {
     @Test
     fun activity_supportsDetailBackAndQuickEntryNavigation() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
-        composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
 
         // Expanded Activity renders the selected transaction in a parallel detail pane, so the
         // title can legitimately exist twice. Target the interactive list row explicitly.
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).performClick()
 
         val compactDetail = runCatching {
-            composeRule.onNodeWithText("Πίσω").fetchSemanticsNode()
+            composeRule.onNodeWithContentDescription("Πίσω").fetchSemanticsNode()
         }.isSuccess
         if (compactDetail) {
             composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
-            composeRule.onNodeWithText("Πίσω").performClick()
-            composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
+            composeRule.onNodeWithContentDescription("Πίσω").performClick()
+            composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         } else {
             // Tablet/expanded layout keeps the Activity list visible and updates the inline pane.
             composeRule.onNodeWithText("Σημείωση").assertIsDisplayed()
-            composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
+            composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         }
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
