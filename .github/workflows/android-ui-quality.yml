@@ -91,6 +91,10 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
+      - name: Prebuild instrumentation APKs
+        shell: bash
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
       - name: Compact emulator UI tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
@@ -98,6 +102,8 @@ jobs:
           target: default
           arch: x86_64
           profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
           disable-animations: true
           force-avd-creation: true
           emulator-options: >-
@@ -105,4 +111,15 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          script: |
+            adb wait-for-device
+            ready=false
+            for attempt in {1..60}; do
+              if adb shell service check package 2>/dev/null | grep -q 'found' && adb shell service check activity 2>/dev/null | grep -q 'found'; then
+                ready=true
+                break
+              fi
+              sleep 2
+            done
+            test "$ready" = true
+            ./gradlew connectedDebugAndroidTest --stacktrace
