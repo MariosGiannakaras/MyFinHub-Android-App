@@ -78,7 +78,11 @@ class BaselineProfileGenerator {
         includeInStartupProfile = true,
     ) {
         pressHome()
-        startActivityAndWait()
+        startActivityAndWait(benchmarkProductIntent())
+        check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
+            "Baseline Profile startup did not reach the deterministic product host."
+        }
+        device.waitForIdle()
     }
 
     @Test
@@ -199,12 +203,22 @@ class CriticalJourneyBenchmark {
         },
     ) {
         openQuickEntryFromActivity("Quick Entry benchmark")
-        val scrollable = requireObject("Quick Entry benchmark did not expose its form scroll surface.") {
-            device.findObject(By.scrollable(true))
+        val transferKind = requireObject("Quick Entry benchmark did not expose the Transfer kind.") {
+            device.findObject(By.text("Μεταφορά"))
         }
-        scrollable.scroll(Direction.DOWN, .7f)
+        transferKind.click()
+        check(device.wait(Until.hasObject(By.text("Προς λογαριασμό")), UI_TIMEOUT_MS)) {
+            "Quick Entry benchmark did not render the Transfer fields."
+        }
         device.waitForIdle()
-        scrollable.scroll(Direction.UP, .7f)
+
+        val expenseKind = requireObject("Quick Entry benchmark did not expose the Expense kind.") {
+            device.findObject(By.text("Έξοδο"))
+        }
+        expenseKind.click()
+        check(device.wait(Until.hasObject(By.text("Κατηγορία")), UI_TIMEOUT_MS)) {
+            "Quick Entry benchmark did not restore the Expense fields."
+        }
         device.waitForIdle()
     }
 }
