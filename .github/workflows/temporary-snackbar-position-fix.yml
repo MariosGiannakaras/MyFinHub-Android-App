@@ -40,8 +40,8 @@ jobs:
 
           fixture = Path('app/src/screenshotTest/kotlin/app/myfinhub/android/app/UserNoticeScreenshotTest.kt')
           text = fixture.read_text()
-          fixture_old = '''                    .align(Alignment.BottomCenter)\n                    .padding(horizontal = 16.dp, vertical = 12.dp),\n'''
-          fixture_new = '''                    .align(Alignment.BottomCenter)\n                    .padding(horizontal = 16.dp)\n                    .padding(bottom = 88.dp),\n'''
+          fixture_old = '''                        .align(Alignment.BottomCenter)\n                        .padding(horizontal = 16.dp, vertical = 12.dp),\n'''
+          fixture_new = '''                        .align(Alignment.BottomCenter)\n                        .padding(horizontal = 16.dp)\n                        .padding(bottom = 88.dp),\n'''
           assert text.count(fixture_old) == 1, 'Unexpected snackbar fixture padding anchor count'
           fixture.write_text(text.replace(fixture_old, fixture_new, 1))
           PY
