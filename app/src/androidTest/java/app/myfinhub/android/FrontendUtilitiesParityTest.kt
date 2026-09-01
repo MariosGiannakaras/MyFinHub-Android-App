@@ -1,10 +1,12 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -31,7 +33,7 @@ class FrontendUtilitiesParityTest {
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
         assertTextIntoView("Προτιμήσεις εφαρμογής")
-        clickTextIntoView("Πίσω")
+        composeRule.onNodeWithContentDescription("Πίσω").assertIsDisplayed().performClick()
 
         scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ιστορικό αλλαγών")
@@ -55,8 +57,9 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun clickTextIntoView(text: String) {
-        assertTextIntoView(text)
-        composeRule.onNodeWithText(text).performClick()
+        val node = composeRule.onNode(hasText(text) and hasClickAction())
+        runCatching { node.performScrollTo() }
+        node.assertIsDisplayed().performClick()
     }
 
     private fun scrollHomeTagIntoView(tag: String) {
