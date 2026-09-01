@@ -50,7 +50,6 @@ import app.myfinhub.android.feature.money.reduceMoney
 import app.myfinhub.android.feature.plan.Plan2026Screen
 import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanBudgets2026Screen
-import app.myfinhub.android.feature.plan.PlanForecast2026Screen
 import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
@@ -59,7 +58,6 @@ import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
-import app.myfinhub.android.feature.utilities.DataTransferScreen
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
 import app.myfinhub.android.feature.utilities.SettingsScreen
@@ -181,7 +179,6 @@ internal fun MyFinHubAppContent(
                         onAction = onHomeAction,
                         onOpenAttention = { id -> homeBackStack.add(AppRoute.HomeAttention(id)) },
                         onOpenSettings = { homeBackStack.add(AppRoute.Settings) },
-                        onOpenDataTransfer = { homeBackStack.add(AppRoute.DataTransfer) },
                         onOpenChangeHistory = { homeBackStack.add(AppRoute.ChangeHistory) },
                     )
                 }
@@ -197,13 +194,6 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Settings> {
                     SettingsScreen(
-                        state = frontendUtilitiesState,
-                        onAction = onFrontendUtilitiesAction,
-                        onBack = { homeBackStack.removeLastOrNull() },
-                    )
-                }
-                entry<AppRoute.DataTransfer> {
-                    DataTransferScreen(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
                         onBack = { homeBackStack.removeLastOrNull() },
@@ -311,7 +301,6 @@ internal fun MyFinHubAppContent(
                         onAction = onPlanAction,
                         onOpenItem = { itemId -> planBackStack.add(AppRoute.PlanItem(itemId)) },
                         onOpenBudgets = { planBackStack.add(AppRoute.PlanBudgets) },
-                        onOpenForecast = { planBackStack.add(AppRoute.PlanForecast) },
                     )
                 }
                 entry<AppRoute.PlanItem> { route ->
@@ -323,13 +312,6 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.PlanBudgets> {
                     PlanBudgets2026Screen(
-                        state = planState,
-                        onAction = onPlanAction,
-                        onBack = { planBackStack.removeLastOrNull() },
-                    )
-                }
-                entry<AppRoute.PlanForecast> {
-                    PlanForecast2026Screen(
                         state = planState,
                         onAction = onPlanAction,
                         onBack = { planBackStack.removeLastOrNull() },
