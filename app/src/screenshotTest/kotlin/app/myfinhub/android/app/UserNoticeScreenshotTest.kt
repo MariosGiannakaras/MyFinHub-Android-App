@@ -63,7 +63,8 @@ fun UserNoticeSnackbarScreenshot() {
                     snackbarData = screenshotSnackbarData,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 88.dp),
                 )
             }
         }

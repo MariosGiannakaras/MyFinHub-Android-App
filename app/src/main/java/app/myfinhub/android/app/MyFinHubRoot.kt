@@ -57,6 +57,9 @@ fun MyFinHubRoot(
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
+    val snackbarBottomPadding = if (
+        authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
+    ) 88.dp else 12.dp
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -136,7 +139,8 @@ fun MyFinHubRoot(
                 hostState = snackbarHostState,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = snackbarBottomPadding),
             )
         }
 
