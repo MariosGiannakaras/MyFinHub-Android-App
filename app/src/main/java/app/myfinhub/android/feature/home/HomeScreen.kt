@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubBrandMark
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
@@ -67,6 +68,7 @@ fun HomeScreen(
             MyFinHubScreenHeader(
                 title = "MyFinHub",
                 subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
+                navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
             )
         },
         floatingActionButton = {

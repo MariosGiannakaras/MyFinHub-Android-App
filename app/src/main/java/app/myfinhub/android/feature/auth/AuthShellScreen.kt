@@ -37,6 +37,8 @@ import app.myfinhub.android.core.security.AndroidBiometricGateway
 import app.myfinhub.android.core.security.BiometricCapability
 import app.myfinhub.android.core.security.BiometricGateway
 import app.myfinhub.android.core.security.BiometricResult
+import app.myfinhub.android.designsystem.MyFinHubBrandMark
+import app.myfinhub.android.designsystem.MyFinHubBrandMode
 
 @Composable
 fun AuthShellScreen(
@@ -304,8 +306,14 @@ private fun AuthSurface(content: @Composable ColumnScope.() -> Unit) {
                     .widthIn(max = 480.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
-                content = content,
-            )
+            ) {
+                MyFinHubBrandMark(
+                    mode = MyFinHubBrandMode.Lockup,
+                    iconSize = 40.dp,
+                    subtitle = "Smart. Clear. In Control.",
+                )
+                content()
+            }
         }
     }
 }
