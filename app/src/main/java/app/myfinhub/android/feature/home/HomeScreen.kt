@@ -51,7 +51,6 @@ fun HomeScreen(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    onOpenDataTransfer: () -> Unit = {},
     onOpenChangeHistory: () -> Unit = {},
 ) {
     if (state.quickEntryOpen) {
@@ -86,7 +85,6 @@ fun HomeScreen(
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
                     onOpenSettings = onOpenSettings,
-                    onOpenDataTransfer = onOpenDataTransfer,
                     onOpenChangeHistory = onOpenChangeHistory,
                 )
             } else {
@@ -95,7 +93,6 @@ fun HomeScreen(
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
                     onOpenSettings = onOpenSettings,
-                    onOpenDataTransfer = onOpenDataTransfer,
                     onOpenChangeHistory = onOpenChangeHistory,
                 )
             }
@@ -109,7 +106,6 @@ private fun HomeCompactContent(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenDataTransfer: () -> Unit,
     onOpenChangeHistory: () -> Unit,
 ) {
     LazyColumn(
@@ -129,7 +125,7 @@ private fun HomeCompactContent(
         item { UpcomingCard(state.upcomingItems, state.amountsVisible) }
         item { QuickEntryCard { onAction(HomeAction.OpenQuickEntry) } }
         item { MonthFlowCard(state.monthFlow, state.amountsVisible) }
-        item { UtilitiesCard(onOpenSettings, onOpenDataTransfer, onOpenChangeHistory) }
+        item { UtilitiesCard(onOpenSettings, onOpenChangeHistory) }
     }
 }
 
@@ -139,7 +135,6 @@ private fun HomeExpandedContent(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenDataTransfer: () -> Unit,
     onOpenChangeHistory: () -> Unit,
 ) {
     Row(
@@ -163,7 +158,7 @@ private fun HomeExpandedContent(
             AttentionCard(state.attentionItems, onOpenAttention)
             UpcomingCard(state.upcomingItems, state.amountsVisible)
             QuickEntryCard { onAction(HomeAction.OpenQuickEntry) }
-            UtilitiesCard(onOpenSettings, onOpenDataTransfer, onOpenChangeHistory)
+            UtilitiesCard(onOpenSettings, onOpenChangeHistory)
             Spacer(Modifier.height(88.dp))
         }
     }
@@ -326,15 +321,11 @@ private fun QuickEntryCard(onOpen: () -> Unit) {
 @Composable
 private fun UtilitiesCard(
     onOpenSettings: () -> Unit,
-    onOpenDataTransfer: () -> Unit,
     onOpenChangeHistory: () -> Unit,
 ) {
-    SectionCard("Ρυθμίσεις & δεδομένα", "Προτιμήσεις, αντίγραφα και ασφαλές ιστορικό") {
+    SectionCard("Ρυθμίσεις", "Προτιμήσεις και ασφαλές ιστορικό") {
         OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
             Text("Ρυθμίσεις")
-        }
-        OutlinedButton(onClick = onOpenDataTransfer, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-            Text("Εισαγωγή & αντίγραφα")
         }
         OutlinedButton(onClick = onOpenChangeHistory, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
             Text("Ιστορικό αλλαγών")
