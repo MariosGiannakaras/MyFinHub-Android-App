@@ -1,0 +1,52 @@
+name: Temporary accept error screenshots
+
+on:
+  push:
+    branches:
+      - feature/full-app-2026-ui-redesign
+    paths:
+      - .github/workflows/temporary-accept-error-screenshots.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  accept:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: feature/full-app-2026-ui-redesign
+          fetch-depth: 0
+
+      - name: Download visually approved rendered references
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf /tmp/mfh-screens
+          mkdir -p /tmp/mfh-screens
+          gh run download 33568817930 \
+            --repo MariosGiannakaras/MyFinHub-Android-App \
+            --name android-ui-screenshots-33568817930 \
+            --dir /tmp/mfh-screens
+
+          src=/tmp/mfh-screens/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt
+          dst=app/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt
+          test -s "$src/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png"
+          test -s "$src/UserNoticeDetailsScreenshot_user_notice_details_phone_4e79551d_0.png"
+          mkdir -p "$dst"
+          cp "$src/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png" "$dst/"
+          cp "$src/UserNoticeDetailsScreenshot_user_notice_details_phone_4e79551d_0.png" "$dst/"
+
+      - name: Commit approved references and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/temporary-accept-error-screenshots.yml
+          git add app/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt/
+          git commit -m "test: accept validated error feedback screenshots"
+          git push origin HEAD:feature/full-app-2026-ui-redesign
