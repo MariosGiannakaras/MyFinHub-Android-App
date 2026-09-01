@@ -20,7 +20,6 @@ fun PlanOverviewCompactLightScreenshot() {
             onAction = {},
             onOpenItem = {},
             onOpenBudgets = {},
-            onOpenForecast = {},
         )
     }
 }
@@ -41,7 +40,6 @@ fun PlanOverviewCompactLargeFontScreenshot() {
             onAction = {},
             onOpenItem = {},
             onOpenBudgets = {},
-            onOpenForecast = {},
         )
     }
 }
@@ -75,24 +73,6 @@ fun PlanItemEditorCompactLightScreenshot() {
 fun PlanBudgetsCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         PlanBudgets2026Screen(
-            state = PlanUiState(),
-            onAction = {},
-            onBack = {},
-        )
-    }
-}
-
-@PreviewTest
-@Preview(
-    name = "plan_forecast_compact_light",
-    widthDp = 412,
-    heightDp = 915,
-    showBackground = true,
-)
-@Composable
-fun PlanForecastCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        PlanForecast2026Screen(
             state = PlanUiState(),
             onAction = {},
             onBack = {},
