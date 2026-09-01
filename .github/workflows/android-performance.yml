@@ -1,17 +1,6 @@
 name: Android Performance
 
 on:
-  pull_request:
-    branches:
-      - develop
-    paths:
-      - 'app/**'
-      - 'benchmark/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - 'gradle.properties'
-      - 'scripts/install-android-sdk.sh'
-      - '.github/workflows/android-performance.yml'
   workflow_dispatch:
 
 permissions:
@@ -21,6 +10,9 @@ concurrency:
   group: android-performance-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Hosted-emulator performance data is optional diagnostic evidence only.
+# The user's physical Samsung Galaxy S24 Ultra is the sole supported device
+# and is the authoritative device-specific performance target during Phase 6.
 jobs:
   baseline-profile:
     runs-on: macos-15-intel
