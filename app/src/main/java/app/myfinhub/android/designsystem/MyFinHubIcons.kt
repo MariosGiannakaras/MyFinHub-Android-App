@@ -41,11 +41,11 @@ object MyFinHubIcons {
 
     val Money by lazy {
         icon("MyFinHubMoney") { strokePath {
-            moveTo(4f, 6f); lineTo(17f, 6f); cubicTo(18.7f, 6f, 20f, 7.3f, 20f, 9f)
-            lineTo(20f, 18f); lineTo(4f, 18f); cubicTo(2.9f, 18f, 2f, 17.1f, 2f, 16f)
-            lineTo(2f, 8f); cubicTo(2f, 6.9f, 2.9f, 6f, 4f, 6f)
+            moveTo(4f, 6f); lineTo(17f, 6f); curveTo(18.7f, 6f, 20f, 7.3f, 20f, 9f)
+            lineTo(20f, 18f); lineTo(4f, 18f); curveTo(2.9f, 18f, 2f, 17.1f, 2f, 16f)
+            lineTo(2f, 8f); curveTo(2f, 6.9f, 2.9f, 6f, 4f, 6f)
             moveTo(15f, 10f); lineTo(21f, 10f); lineTo(21f, 14f); lineTo(15f, 14f)
-            cubicTo(13.9f, 14f, 13f, 13.1f, 13f, 12f); cubicTo(13f, 10.9f, 13.9f, 10f, 15f, 10f)
+            curveTo(13.9f, 14f, 13f, 13.1f, 13f, 12f); curveTo(13f, 10.9f, 13.9f, 10f, 15f, 10f)
             moveTo(17f, 12f); lineTo(17.1f, 12f)
         } }
     }
@@ -73,9 +73,9 @@ object MyFinHubIcons {
     val Savings by lazy {
         icon("MyFinHubSavings") { strokePath {
             circle(12f, 12f, 8f); moveTo(12f, 8f); lineTo(12f, 16f)
-            moveTo(9f, 10f); cubicTo(9f, 8.9f, 10.3f, 8f, 12f, 8f); cubicTo(13.7f, 8f, 15f, 8.9f, 15f, 10f)
-            cubicTo(15f, 11.2f, 13.8f, 12f, 12f, 12f); cubicTo(10.2f, 12f, 9f, 12.8f, 9f, 14f)
-            cubicTo(9f, 15.1f, 10.3f, 16f, 12f, 16f); cubicTo(13.7f, 16f, 15f, 15.1f, 15f, 14f)
+            moveTo(9f, 10f); curveTo(9f, 8.9f, 10.3f, 8f, 12f, 8f); curveTo(13.7f, 8f, 15f, 8.9f, 15f, 10f)
+            curveTo(15f, 11.2f, 13.8f, 12f, 12f, 12f); curveTo(10.2f, 12f, 9f, 12.8f, 9f, 14f)
+            curveTo(9f, 15.1f, 10.3f, 16f, 12f, 16f); curveTo(13.7f, 16f, 15f, 15.1f, 15f, 14f)
         } }
     }
 
@@ -93,9 +93,9 @@ object MyFinHubIcons {
 
     val Card by lazy {
         icon("MyFinHubCard") { strokePath {
-            moveTo(4f, 5f); lineTo(20f, 5f); cubicTo(21.1f, 5f, 22f, 5.9f, 22f, 7f); lineTo(22f, 17f)
-            cubicTo(22f, 18.1f, 21.1f, 19f, 20f, 19f); lineTo(4f, 19f); cubicTo(2.9f, 19f, 2f, 18.1f, 2f, 17f)
-            lineTo(2f, 7f); cubicTo(2f, 5.9f, 2.9f, 5f, 4f, 5f); moveTo(2f, 9f); lineTo(22f, 9f); moveTo(6f, 15f); lineTo(10f, 15f)
+            moveTo(4f, 5f); lineTo(20f, 5f); curveTo(21.1f, 5f, 22f, 5.9f, 22f, 7f); lineTo(22f, 17f)
+            curveTo(22f, 18.1f, 21.1f, 19f, 20f, 19f); lineTo(4f, 19f); curveTo(2.9f, 19f, 2f, 18.1f, 2f, 17f)
+            lineTo(2f, 7f); curveTo(2f, 5.9f, 2.9f, 5f, 4f, 5f); moveTo(2f, 9f); lineTo(22f, 9f); moveTo(6f, 15f); lineTo(10f, 15f)
         } }
     }
 
@@ -103,9 +103,9 @@ object MyFinHubIcons {
 
     // Curated category vocabulary. These are presentation mappings, not user-configurable taxonomy.
     val Shopping by lazy { icon("MyFinHubShopping") { strokePath { moveTo(3f, 5f); lineTo(5f, 5f); lineTo(7f, 15f); lineTo(18f, 15f); lineTo(21f, 8f); lineTo(6f, 8f); moveTo(9f, 19f); circle(9f, 19f, 1f); moveTo(17f, 19f); circle(17f, 19f, 1f) } } }
-    val Dining by lazy { icon("MyFinHubDining") { strokePath { moveTo(6f, 3f); lineTo(6f, 10f); moveTo(3.5f, 3f); lineTo(3.5f, 7f); cubicTo(3.5f, 9f, 5f, 10f, 6f, 10f); moveTo(8.5f, 3f); lineTo(8.5f, 7f); cubicTo(8.5f, 9f, 7f, 10f, 6f, 10f); moveTo(6f, 10f); lineTo(6f, 21f); moveTo(15f, 3f); cubicTo(18f, 5f, 18f, 10f, 15f, 12f); lineTo(15f, 21f) } } }
-    val Work by lazy { icon("MyFinHubWork") { strokePath { moveTo(4f, 7f); lineTo(20f, 7f); lineTo(20f, 19f); lineTo(4f, 19f); close(); moveTo(9f, 7f); lineTo(9f, 5f); cubicTo(9f, 3.9f, 9.9f, 3f, 11f, 3f); lineTo(13f, 3f); cubicTo(14.1f, 3f, 15f, 3.9f, 15f, 5f); lineTo(15f, 7f); moveTo(4f, 11f); lineTo(20f, 11f); moveTo(10f, 11f); lineTo(10f, 13f); lineTo(14f, 13f); lineTo(14f, 11f) } } }
-    val Transport by lazy { icon("MyFinHubTransport") { strokePath { moveTo(4f, 14f); lineTo(5.5f, 9f); cubicTo(6f, 7.3f, 7f, 6f, 9f, 6f); lineTo(15f, 6f); cubicTo(17f, 6f, 18f, 7.3f, 18.5f, 9f); lineTo(20f, 14f); lineTo(20f, 18f); lineTo(4f, 18f); close(); moveTo(7f, 18f); circle(7f, 18f, 1.5f); moveTo(17f, 18f); circle(17f, 18f, 1.5f); moveTo(6f, 13f); lineTo(18f, 13f) } } }
+    val Dining by lazy { icon("MyFinHubDining") { strokePath { moveTo(6f, 3f); lineTo(6f, 10f); moveTo(3.5f, 3f); lineTo(3.5f, 7f); curveTo(3.5f, 9f, 5f, 10f, 6f, 10f); moveTo(8.5f, 3f); lineTo(8.5f, 7f); curveTo(8.5f, 9f, 7f, 10f, 6f, 10f); moveTo(6f, 10f); lineTo(6f, 21f); moveTo(15f, 3f); curveTo(18f, 5f, 18f, 10f, 15f, 12f); lineTo(15f, 21f) } } }
+    val Work by lazy { icon("MyFinHubWork") { strokePath { moveTo(4f, 7f); lineTo(20f, 7f); lineTo(20f, 19f); lineTo(4f, 19f); close(); moveTo(9f, 7f); lineTo(9f, 5f); curveTo(9f, 3.9f, 9.9f, 3f, 11f, 3f); lineTo(13f, 3f); curveTo(14.1f, 3f, 15f, 3.9f, 15f, 5f); lineTo(15f, 7f); moveTo(4f, 11f); lineTo(20f, 11f); moveTo(10f, 11f); lineTo(10f, 13f); lineTo(14f, 13f); lineTo(14f, 11f) } } }
+    val Transport by lazy { icon("MyFinHubTransport") { strokePath { moveTo(4f, 14f); lineTo(5.5f, 9f); curveTo(6f, 7.3f, 7f, 6f, 9f, 6f); lineTo(15f, 6f); curveTo(17f, 6f, 18f, 7.3f, 18.5f, 9f); lineTo(20f, 14f); lineTo(20f, 18f); lineTo(4f, 18f); close(); moveTo(7f, 18f); circle(7f, 18f, 1.5f); moveTo(17f, 18f); circle(17f, 18f, 1.5f); moveTo(6f, 13f); lineTo(18f, 13f) } } }
     val Bills by lazy { icon("MyFinHubBills") { strokePath { moveTo(6f, 3f); lineTo(18f, 3f); lineTo(18f, 21f); lineTo(15f, 19f); lineTo(12f, 21f); lineTo(9f, 19f); lineTo(6f, 21f); close(); moveTo(9f, 8f); lineTo(15f, 8f); moveTo(9f, 12f); lineTo(15f, 12f); moveTo(9f, 16f); lineTo(13f, 16f) } } }
     val Health by lazy { icon("MyFinHubHealth") { strokePath { circle(12f, 12f, 8f); moveTo(12f, 8f); lineTo(12f, 16f); moveTo(8f, 12f); lineTo(16f, 12f) } } }
     val Entertainment by lazy { icon("MyFinHubEntertainment") { strokePath { circle(12f, 12f, 8f); moveTo(10f, 8f); lineTo(16f, 12f); lineTo(10f, 16f); close() } } }
@@ -134,10 +134,10 @@ private fun Builder.strokePath(block: PathBuilder.() -> Unit) {
 private fun PathBuilder.circle(cx: Float, cy: Float, radius: Float) {
     val c = radius * 0.55228475f
     moveTo(cx + radius, cy)
-    cubicTo(cx + radius, cy + c, cx + c, cy + radius, cx, cy + radius)
-    cubicTo(cx - c, cy + radius, cx - radius, cy + c, cx - radius, cy)
-    cubicTo(cx - radius, cy - c, cx - c, cy - radius, cx, cy - radius)
-    cubicTo(cx + c, cy - radius, cx + radius, cy - c, cx + radius, cy)
+    curveTo(cx + radius, cy + c, cx + c, cy + radius, cx, cy + radius)
+    curveTo(cx - c, cy + radius, cx - radius, cy + c, cx - radius, cy)
+    curveTo(cx - radius, cy - c, cx - c, cy - radius, cx, cy - radius)
+    curveTo(cx + c, cy - radius, cx + radius, cy - c, cx + radius, cy)
     close()
 }
 
