@@ -22,7 +22,7 @@ class FrontendUtilitiesParityTest {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         waitForText("Γιατί εμφανίζεται")
-        composeRule.onNodeWithText("Γιατί εμφανίζεται").performScrollTo().assertIsDisplayed()
+        assertTextIntoView("Γιατί εμφανίζεται")
         clickTextIntoView("Σήμανση ως ελεγμένο")
         scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
@@ -30,7 +30,7 @@ class FrontendUtilitiesParityTest {
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
-        composeRule.onNodeWithText("Προτιμήσεις εφαρμογής").performScrollTo().assertIsDisplayed()
+        assertTextIntoView("Προτιμήσεις εφαρμογής")
         clickTextIntoView("Πίσω")
 
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
@@ -46,10 +46,10 @@ class FrontendUtilitiesParityTest {
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
         clickTextIntoView("Ιστορικό αλλαγών")
         waitForText("Αναίρεση & επανάληψη")
-        composeRule.onNodeWithText("Αναίρεση & επανάληψη").performScrollTo().assertIsDisplayed()
+        assertTextIntoView("Αναίρεση & επανάληψη")
         clickTextIntoView("Αναίρεση")
         waitForText("2 από 3 αλλαγές εφαρμοσμένες")
-        composeRule.onNodeWithText("2 από 3 αλλαγές εφαρμοσμένες").performScrollTo().assertIsDisplayed()
+        assertTextIntoView("2 από 3 αλλαγές εφαρμοσμένες")
     }
 
     private fun waitForText(text: String) {
@@ -58,8 +58,15 @@ class FrontendUtilitiesParityTest {
         }
     }
 
+    private fun assertTextIntoView(text: String) {
+        val node = composeRule.onNodeWithText(text)
+        runCatching { node.performScrollTo() }
+        node.assertIsDisplayed()
+    }
+
     private fun clickTextIntoView(text: String) {
-        composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed().performClick()
+        assertTextIntoView(text)
+        composeRule.onNodeWithText(text).performClick()
     }
 
     private fun scrollHomeTagIntoView(tag: String) {
