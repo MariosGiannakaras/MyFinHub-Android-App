@@ -111,17 +111,37 @@ fun MyFinHubScreenHeader(
 fun MyFinHubSectionCard(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(MyFinHubSpacing.md),
+    onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Box(modifier = Modifier.padding(contentPadding)) {
-            content()
+    val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    val elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    val shape = MaterialTheme.shapes.medium
+    if (onClick == null) {
+        Card(
+            modifier = modifier,
+            colors = colors,
+            elevation = elevation,
+            border = border,
+            shape = shape,
+        ) {
+            Box(modifier = Modifier.padding(contentPadding)) {
+                content()
+            }
+        }
+    } else {
+        Card(
+            onClick = onClick,
+            modifier = modifier,
+            colors = colors,
+            elevation = elevation,
+            border = border,
+            shape = shape,
+        ) {
+            Box(modifier = Modifier.padding(contentPadding)) {
+                content()
+            }
         }
     }
 }
