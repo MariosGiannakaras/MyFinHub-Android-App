@@ -86,9 +86,34 @@ Tracker: issue #13 complete. Implementation PR #36 merged into `develop`.
 - [x] Obtain passing exact-head compact/foldable/tablet and 150% large-font/accessibility matrix evidence.
 - [x] Complete final Phase 5 evidence/documentation sync and merge the active hardening PR into `develop`.
 
+## Post-Phase 5 — Full-app 2026 UI redesign
+
+Tracker: issue #37. Active branch: `feature/full-app-2026-ui-redesign`.
+
+- [ ] Build shared 2026 theme/tokens: color, typography, shape, spacing and compact density.
+- [ ] Add centralized semantic finance colors and helpers.
+- [ ] Add curated/static `MyFinHubIcons` registry and migrate top-level navigation to it.
+- [ ] Add reusable compact screen/header/card/list-row/filter/amount/action components.
+- [ ] Redesign Home / Αρχική on the shared foundation.
+- [ ] Redesign Activity / Κινήσεις on the shared foundation.
+- [ ] Redesign Money / Χρήματα on the shared foundation while preserving issue #24 card-stack contract.
+- [ ] Redesign Plan / Πλάνο on the shared foundation.
+- [ ] Redesign Insights / Αναλύσεις on the shared foundation.
+- [ ] Redesign Home attention detail, Settings, Data Transfer and Change History.
+- [ ] Redesign Activity detail/edit and Quick Entry.
+- [ ] Redesign Savings, Loans, Lending and their editor/detail flows.
+- [ ] Redesign Plan item detail/editor, Budgets/rules and Forecast.
+- [ ] Apply the shared system to auth/login/TOTP/PIN/unlock and loading/failure/conflict states without weakening security UX.
+- [ ] Replace stale screenshot references with real rendered redesigned screenshots and personally inspect them.
+- [ ] Pass compact, adaptive/foldable/tablet and 150% font/accessibility validation after the full migration.
+- [ ] Keep `docs/UI_2026_REDESIGN_HANDOFF.md`, STATUS/TODO and issue #37 synchronized for memoryless-chat continuation.
+- [ ] Merge the full-app redesign into `develop` only after exact-head validation and zero unresolved review blockers.
+
+Do not automatically add every desktop/web feature during this redesign. Mobile feature parity decisions remain separate because the main application is still changing. Desktop/admin-heavy capabilities may intentionally stay desktop-only; Android can use curated static behavior such as a fixed category-icon mapping.
+
 ## Phase 6 — Final production/release handoff
 
-Tracker: issue #14. This phase remains separate and is not part of the completed autonomous implementation.
+Tracker: issue #14. This phase remains separate and is not part of the completed autonomous implementation or the UI redesign workstream.
 
 - [ ] All functional/security/quality work merged to `develop` and handoff state accepted for Phase 6.
 - [ ] Validate production configured build against real Auth/API.
