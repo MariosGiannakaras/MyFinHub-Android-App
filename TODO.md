@@ -9,11 +9,19 @@
 - [x] Native auth, AAL2, biometric/PIN local unlock and encrypted session persistence.
 - [x] Owner+AAL2 PAN/expiry boundary and device-local Keystore CVV vault.
 - [x] Security/performance/release hardening through Phase 5, including R8, Baseline Profile/startup profile and Macrobenchmark infrastructure/evidence.
-- [x] Pre-redesign compact/foldable/tablet/150%-font/accessibility validation.
+- [x] Pre-redesign validation evidence.
 
 ## Post-Phase 5 — Full-app 2026 UI redesign
 
 Tracker: issue #37. Active workstream targets `develop`.
+
+### Supported-device contract
+
+- [x] Define the owner's Samsung Galaxy S24 Ultra as the sole supported Android device in `docs/SUPPORTED_DEVICE.md` and permanent issue #27.
+- [x] Remove tablet/foldable form factors from implementation/merge acceptance scope.
+- [x] Remove the automatic tablet/foldable/150%-font release UI matrix.
+- [x] Keep one representative compact-phone instrumentation path for automated S24 Ultra-target smoke coverage.
+- [x] Make hosted-emulator Baseline Profile/Macrobenchmark runs optional/manual diagnostics; retain benchmark/profile tooling compilation in normal CI.
 
 ### Shared system and retained product
 
@@ -43,22 +51,21 @@ Tracker: issue #37. Active workstream targets `develop`.
 - [x] Keep lightweight `Insights / Αναλύσεις`; do not expand it into full desktop Reports.
 - [x] Preserve unknown/desktop-owned canonical finance fields losslessly despite Android UI exclusions.
 
-### Screenshot and final validation
+### Screenshot and final S24 Ultra validation
 
 - [x] Regenerate real screenshots after scope pruning and branding/icon correction.
-- [x] Personally inspect the regenerated compact, large-font, auth, Money, Plan, Insights and expanded screenshots.
+- [x] Personally inspect the regenerated compact, auth, Money, Plan, Insights and relevant expanded screenshots.
 - [x] Fix the expanded Home quick-entry overlap found during personal screenshot inspection.
+- [x] Regenerate/replace the expanded Home screenshot reference after the overlap fix and personally validate the new rendered result.
 - [x] Align stale instrumented-test selectors with the redesigned search/accessibility semantics.
-- [x] Harden emulator validation against package/activity-service startup failures and avoid running the expensive suites before instrumentation APKs are built.
-- [ ] Regenerate/replace the expanded Home screenshot reference after the overlap fix and personally validate the new rendered result.
-- [ ] Pass final current-state screenshot regression.
-- [ ] Pass final current-state compact instrumentation.
-- [ ] Pass final current-state foldable and tablet suites.
-- [ ] Pass final current-state 150% font/accessibility suite.
-- [ ] Confirm final normal verification and performance/profile gates.
-- [x] Synchronize STATUS/TODO/handoff with the actual implementation state before final screenshot/reference validation.
-- [ ] Synchronize issue #37 / PR #38 completion status after all gates pass.
-- [ ] Merge the full-app redesign into `develop` only after final validation and zero unresolved blockers.
+- [x] Pass canonical screenshot regression after the expanded Home reference replacement.
+- [ ] Pass final exact-state screenshot regression after the S24 Ultra-only CI/docs scope change.
+- [ ] Pass final exact-state representative compact-phone instrumentation for the S24 Ultra target.
+- [ ] Confirm final normal Android verification.
+- [ ] Synchronize issue #37 / PR #38 completion status after the final supported-device gates pass.
+- [ ] Merge the full-app redesign into `develop` only after zero unresolved Samsung Galaxy S24 Ultra blockers.
+
+Tablet/foldable/desktop-like Android form factors are not supported targets and are not TODO/merge gates. Do not reopen work solely for those layouts unless the same defect affects the Galaxy S24 Ultra.
 
 ### Confirmed Android exclusions — 2026-09-01
 
@@ -79,12 +86,16 @@ Do not strip desktop-owned/canonical fields merely because Android does not expo
 
 Tracker: issue #14. This phase remains separate and is not part of the redesign workstream.
 
+The owner's physical Samsung Galaxy S24 Ultra is the authoritative device for all device-specific Phase 6 validation.
+
 - [ ] All functional/security/quality work merged to `develop` and accepted for Phase 6.
-- [ ] Validate production-configured build against real Auth/API.
+- [ ] Validate production-configured build against real Auth/API on the Galaxy S24 Ultra.
 - [ ] Freeze release versionCode/versionName and promote a release candidate only after Phase 6 gates pass.
 - [ ] Document final Android Studio/JDK/SDK prerequisites and clean-clone validation.
-- [ ] Perform the first physical-device run.
-- [ ] Validate auth → biometric/PIN relaunch → canonical data sync → logout → re-auth on the physical device.
+- [ ] Perform the first physical-device run on the Galaxy S24 Ultra.
+- [ ] Validate auth → biometric/PIN relaunch → canonical data sync → logout → re-auth on the physical Galaxy S24 Ultra.
+- [ ] Validate actual Samsung One UI rendering plus the owner's current display resolution/zoom/font settings.
+- [ ] Validate device-specific startup/performance behavior on the physical Galaxy S24 Ultra.
 - [ ] Create/preserve a long-lived signing key only when release signing explicitly begins; keep it outside the public repository.
 - [ ] Generate a signed APK only when explicitly requested during the Phase 6 handoff.
 
