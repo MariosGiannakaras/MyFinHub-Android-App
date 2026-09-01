@@ -33,7 +33,8 @@ enum class MyFinHubBrandMode {
  *
  * Artwork selection follows the active MyFinHub Material theme rather than the OS preference, so
  * explicit light/dark previews and future in-app theme selection always render the matching mark.
- * Runtime screens and screenshot validation share this same presentation component.
+ * Runtime screens and screenshot validation share this same presentation component, and the
+ * canonical screenshot baseline is regenerated from this exact runtime rendering path.
  */
 @Composable
 fun MyFinHubBrandMark(
