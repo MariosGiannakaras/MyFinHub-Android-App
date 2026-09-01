@@ -70,7 +70,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  compact-instrumented:
+  s24-ultra-target-instrumented:
+    # A stock compact-phone emulator is only a representative automated host.
+    # The user's physical Samsung Galaxy S24 Ultra is the sole supported device
+    # and remains the authoritative device-specific acceptance target.
     runs-on: macos-15-intel
     timeout-minutes: 30
     steps:
@@ -96,7 +99,7 @@ jobs:
         shell: bash
         run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
 
-      - name: Compact emulator UI tests
+      - name: S24 Ultra target phone UI tests
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 35
