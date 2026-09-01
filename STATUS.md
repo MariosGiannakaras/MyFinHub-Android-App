@@ -1,94 +1,54 @@
 # MyFinHub Android status
 
-## 2026-09-01 — Mobile scope narrowed before redesign merge
+## 2026-09-01 — Full-app 2026 redesign in final validation
 
-The active full-app redesign must **not** be merged yet. The user confirmed that the Android product should intentionally omit several desktop/web capabilities and also identified the current branding/icon work as provisional.
+The retained Android product has been migrated to the shared 2026 visual system on the active redesign workstream. The implementation is not merged yet because the final screenshot/reference refresh and exact-state validation must finish first.
+
+### Completed in the redesign
+
+- Shared light/dark theme, typography, shapes, compact spacing and semantic finance palette.
+- Shared headers, cards, finance rows, search/filter treatments, amount styles, icon badges and actions.
+- Central curated/static `MyFinHubIcons` vocabulary aligned with the main product's Lucide-style language; feature screens no longer depend on provisional one-off icon drawings.
+- Authentic MyFinHub light/dark brand artwork imported from the central product and used by the shared Android branding contract, including launcher/adaptive resources.
+- Home, Activity, Money, Plan, Insights, Quick Entry, auth, Home attention detail, Settings, Change History, Savings, Loans, Lending, Plan item/editor and Budgets/rules migrated to the shared visual system.
+- Forecast user-facing UI/navigation/screens removed from Android.
+- Backup/Import/Data Transfer user-facing UI/navigation/screens removed from Android.
+- Confirmed Android has no category/subcategory administration, category icon picker, Command Palette, desktop keyboard-shortcut workflow, desktop mass-administration/configuration workspace, Windows install/update/recovery UI or full desktop Reports module. Lightweight Android Insights remains.
+- Canonical/desktop-owned finance fields remain losslessly preserved even when Android exposes no corresponding UI.
+- Real screenshot references were regenerated after branding/icon/scope correction and personally inspected.
+- Instrumented UI tests were aligned with the redesigned accessibility/search semantics instead of relying on stale visible-text selectors.
+- Personal inspection found one expanded-Home collision between the global quick-entry action and the in-card quick-entry action; expanded Home now keeps only the unobstructed in-card primary action while compact Home retains the floating action.
+- Emulator CI was hardened to prebuild instrumentation APKs and verify Android package/activity services before executing compact/adaptive/150%-font suites, addressing a previous runner/emulator service failure that executed zero tests.
+
+### Remaining before redesign merge
+
+1. Render the updated expanded Home from the current implementation, replace the stale screenshot reference and personally verify the overlap is gone.
+2. Obtain passing current-state screenshot regression and compact instrumentation.
+3. Obtain passing current-state foldable, tablet and 150% font/accessibility suites.
+4. Confirm normal Android verification and performance/profile gates remain green for the final implementation state.
+5. Synchronize issue #37 / PR #38 completion status and merge the redesign into `develop` only with no unresolved blockers.
 
 ### Confirmed Android exclusions
 
-The following are not user-facing Android features unless the user explicitly reverses the decision later:
-- Forecast / cash-flow forecast UI and navigation.
-- Full desktop-style Reports module. The existing lightweight Android `Insights / Αναλύσεις` destination remains for now and must not silently grow into desktop Reports.
-- Category/subcategory administration screens. Category selection remains inside transactions/Quick Entry/budgets/other finance-entry flows where the canonical model requires it.
-- Category icon picker / icon administration; Android uses curated static icon mappings.
-- Backup / import / Data Transfer UI and navigation.
+The following are intentionally not user-facing Android features unless explicitly reversed later:
+- Forecast / cash-flow forecast.
+- Full desktop-style Reports module; lightweight `Insights / Αναλύσεις` remains.
+- Category/subcategory administration.
+- Category icon picker / icon administration.
+- Backup / Import / Data Transfer UI.
 - Command Palette.
 - Desktop keyboard-shortcut UI/workflows.
 - Desktop-style mass administration/configuration workspaces.
 - Windows install/update/recovery functionality.
 
-These are mobile UI/product-scope decisions only. Android must continue to preserve desktop-owned/unknown canonical finance fields losslessly during read/write round-trips.
+These exclusions do not permit Android to strip unknown or desktop-owned canonical finance fields.
 
-### Branding/icon correction required
+## Phases 0–5
 
-- The current `MyFinHubIcons` custom drawings are provisional and are not approved as final visual assets.
-- Android must use the authentic MyFinHub project artwork for launcher/adaptive icons and brand presentation; no invented replacement logo.
-- The final centralized icon language should align with the main product's coherent Lucide-style visual vocabulary while remaining a static Android mapping.
-- Screenshot baselines generated before these corrections are not final evidence.
+The autonomous Android implementation through Phase 5 is complete and merged into `develop`. It includes the native Compose product, auth/local unlock, canonical finance integration, owner+AAL2 card-secret boundaries, device-local CVV vault, secure-window handling, R8/minification/resource shrinking, Baseline Profile/startup profile tooling, Macrobenchmarks and the pre-redesign device/accessibility validation evidence.
 
-### Immediate implementation order
+No service-role/server-vault secret, production signing key or production-signed APK belongs in the completed autonomous workflow.
 
-1. Remove Forecast user-facing card/route/screen references and affected screenshot expectations.
-2. Remove Backup/Import/Data Transfer user-facing entry points/routes/screens and affected screenshot expectations.
-3. Verify excluded desktop/admin features have no Android entry point.
-4. Correct authentic MyFinHub branding/launcher resources.
-5. Replace provisional icon drawings with the final centralized icon vocabulary.
-6. Re-render and personally inspect real screenshots, then rerun compact/adaptive/150%-font and exact-head validation before merge.
+## Phase 6 boundary
 
-Features not explicitly excluded remain undecided unless already part of the retained Android product. Do not remove more functionality by inference.
-
-## 2026-09-01 — Full-app 2026 UI redesign active
-
-The autonomous implementation remains complete through Phase 5. A new post-Phase-5 UI modernization workstream is active under issue #37 on `feature/full-app-2026-ui-redesign`. This workstream redesigns the **entire retained Android application**, while Phase 6 remains the separate physical-device, production-validation and signing handoff.
-
-### Current redesign direction
-
-- Preserve the authentic MyFinHub branding/logo/product identity.
-- Apply the approved 2026 direction across retained Home, Activity, Money, Plan, Insights and retained secondary/detail/auth/system flows.
-- Keep the UI compact and modern without becoming packed.
-- Build a shared Compose design-system foundation first so colors, typography, spacing, shapes, semantic finance colors, icons and reusable components are centralized rather than duplicated screen by screen.
-- Use a curated/static `MyFinHubIcons` system. Android does not need a desktop-style icon picker.
-- Finance semantics are intentional and centralized: income green, expense red/coral, savings purple/indigo, transfer blue, attention amber, neutral/info slate/gray.
-- Filters and finance rows should use consistent icon + label + semantic color treatment.
-- The main MyFinHub desktop/web application is still changing; desktop/web differences are not automatically Android TODO items.
-- Issue #24 remains the source of truth for the special native credit-card stack component; the surrounding Money UI may be modernized without silently replacing that contract.
-- Memoryless-chat handoff is documented in `docs/UI_2026_REDESIGN_HANDOFF.md` and issue #37.
-
-## 2026-09-01 — Phase 5 autonomous hardening complete
-
-The Android implementation is complete through Phase 5. Phases 0–5 are the completed autonomous implementation scope. Phase 6 remains the separate physical-device, production-validation and signing handoff and is intentionally not part of the completed autonomous scope.
-
-### Current product state before post-Phase-5 scope pruning
-
-- Native Kotlin + Jetpack Compose + Material 3/Adaptive application with Navigation 3 and ViewModel/StateFlow/UDF.
-- Five top-level destinations remain Home, Activity, Money, Plan and Insights; detailed workflows stay nested.
-- The production launcher remains auth-gated; debug product/auth test hosts are debug-only and non-exported.
-
-### Canonical data and security state
-
-- Production auth/session, AAL2 validation, biometric-first local unlock and PIN fallback are implemented.
-- Canonical `/api/data` bearer/revision sync remains server-authoritative and revision-aware in memory; Android does not introduce a canonical Room/SQLite database.
-- Backup/import bearer client boundaries and PAN/expiry `/api/card-secrets` boundaries were completed through PR #21. Backup/import is now excluded as a user-facing Android feature, but compatibility-only code may remain if needed for safe canonical behavior.
-- Card-detail PAN/expiry reveal is owner+AAL2 gated.
-- CVV is device-local Android Keystore AES-GCM data only and has no server, sync, log, backup or device-transfer path.
-- Secret reveal is protected by scoped secure-window/recent-thumbnail handling and clears on navigation/session/auth transitions.
-- No service-role/server-vault secret, signing password, production signing key or production-signed APK belongs in the completed autonomous workflow.
-
-### Phase 5 completed work and final evidence
-
-- Sensitive log/source/preview audit.
-- Representative recomposition and large-state review.
-- Release R8/minification/resource shrinking with narrow keep rules.
-- Unsigned release/configuration validation; public CI creates no production-signed APK and requires no signing secret.
-- Device-generated Baseline Profile and startup profile are checked in and non-empty; final verification is read-only.
-- Benchmark/non-minified profiling hosts and a dedicated Macrobenchmark/Baseline Profile producer module are in place.
-- Exact-head Android CI passed benchmark/profile tooling build, unit and instrumentation compilation, lint, debug assembly, optimized unsigned release/R8 analysis, and packaged-manifest/unsigned-APK policy checks.
-- Exact-head screenshot regression and compact instrumentation passed.
-- Exact-head full-product Pixel Fold, Pixel Tablet and 150% font-scale/accessibility suites passed.
-- Exact-head Macrobenchmarks passed for cold startup, Home, Activity and Quick Entry.
-- Exact-head read-only Baseline Profile generation/verification passed on the targeted retry after an emulator-launch instability on the immediately preceding no-code-change attempt.
-- PR #36 is merged into `develop`.
-
-### Phase 6 boundary
-
-Phase 6 remains intentionally deferred and separate. It includes the first physical-device run, production Auth/API smoke validation, final release-candidate promotion and any signing-key/signed-APK work. No release, production signing key or production-signed APK was created during Phase 5, and the active UI redesign must keep this boundary unchanged.
+Phase 6 remains intentionally separate and untouched by this redesign. It covers the first physical-device run, production Auth/API smoke validation, final release-candidate promotion and eventual signing work. Do not create a release, production signing key or production-signed APK during the redesign merge.
