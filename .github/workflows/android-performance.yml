@@ -25,13 +25,10 @@ jobs:
   baseline-profile:
     runs-on: macos-15-intel
     timeout-minutes: 50
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 2
 
       - name: Set up JDK 17
@@ -67,28 +64,6 @@ jobs:
             ./gradlew :app:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile --stacktrace
             echo '--- Generated Baseline Profile sources ---'
             find app/src -path '*/generated/baselineProfiles/*.txt' -type f -print -exec sh -c 'echo "--- $1"; cat "$1"' _ {} \;
-
-      - name: Check in generated Baseline Profile once
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        shell: bash
-        env:
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          BASELINE='app/src/main/generated/baselineProfiles/baseline-prof.txt'
-          STARTUP='app/src/main/generated/baselineProfiles/startup-prof.txt'
-          if git ls-files --error-unmatch "$BASELINE" >/dev/null 2>&1 && \
-             git ls-files --error-unmatch "$STARTUP" >/dev/null 2>&1; then
-            echo 'Generated profiles are already tracked; no one-shot commit is needed.'
-            exit 0
-          fi
-          test -s "$BASELINE"
-          test -s "$STARTUP"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f "$BASELINE" "$STARTUP"
-          git commit -m 'perf: check in generated baseline profiles'
-          git push origin "HEAD:${HEAD_REF}"
 
       - name: Publish Baseline Profile evidence
         if: always()
