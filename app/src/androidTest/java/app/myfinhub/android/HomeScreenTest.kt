@@ -25,10 +25,10 @@ class HomeScreenTest {
         // NavigationSuiteScaffold can reduce the actual Home content width below the physical
         // device width, especially on foldables. Infer the Compose branch from the semantics tree
         // instead of guessing it from Configuration.screenWidthDp.
-        val attentionAlreadyComposed = runCatching {
+        val expandedHome = runCatching {
             composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode()
         }.isSuccess
-        if (attentionAlreadyComposed) {
+        if (expandedHome) {
             // Expanded Home uses regular vertically-scrollable columns, whose children remain
             // composed even when outside the viewport.
             composeRule.onNodeWithText("Χρειάζεται προσοχή")
@@ -42,7 +42,13 @@ class HomeScreenTest {
             composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
         }
 
-        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        if (expandedHome) {
+            composeRule.onNodeWithText("Επίλεξε τύπο κίνησης", useUnmergedTree = true)
+                .performScrollTo()
+                .performClick()
+        } else {
+            composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        }
         composeRule.onNodeWithText("Έξοδο").assertIsDisplayed().performClick()
         // Existence proves the state transition without requiring the confirmation marker to be
         // inside the current viewport on every supported screen/font configuration.
