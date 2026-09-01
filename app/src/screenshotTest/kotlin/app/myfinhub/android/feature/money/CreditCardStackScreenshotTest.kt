@@ -12,7 +12,6 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
 private const val COMPACT_SCREENSHOT_DEVICE = "spec:width=412dp,height=390dp,dpi=160"
-private const val EXPANDED_SCREENSHOT_DEVICE = "spec:width=840dp,height=520dp,dpi=160"
 
 private val referenceScreenshotCards = listOf(
     MoneyCard(
@@ -95,22 +94,11 @@ fun CreditCardStackCompactLargeFontScreenshot() {
     ReferenceCardStackScreenshotSurface()
 }
 
-@PreviewTest
-@Preview(
-    name = "card_stack_expanded_tablet_light",
-    device = EXPANDED_SCREENSHOT_DEVICE,
-    showBackground = true,
-)
 @Composable
-fun CreditCardStackExpandedScreenshot() {
-    ReferenceCardStackScreenshotSurface(horizontalPadding = 80)
-}
-
-@Composable
-private fun ReferenceCardStackScreenshotSurface(horizontalPadding: Int = 28) {
+private fun ReferenceCardStackScreenshotSurface() {
     MyFinHubTheme(darkTheme = false) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(horizontal = horizontalPadding.dp, vertical = 28.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 28.dp),
             contentAlignment = Alignment.TopCenter,
         ) {
             CreditCardStack(
