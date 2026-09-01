@@ -218,7 +218,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         val eventId = "evt-android-${UUID.randomUUID()}"
         val now = Instant.now().toString()
-        val amount = preview.amount
+        val amount = preview.amount ?: return
 
         val draft = when (preview.kind) {
             QuickEntryKind.EXPENSE -> CanonicalEventDraft(

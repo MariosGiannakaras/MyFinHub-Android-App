@@ -37,7 +37,7 @@ class OkHttpMyFinHubApi(
             .get()
             .build()
 
-        return execute(request, ::parseEnvelope)
+        return execute(request, parse = ::parseEnvelope)
     }
 
     override suspend fun saveMutableState(
