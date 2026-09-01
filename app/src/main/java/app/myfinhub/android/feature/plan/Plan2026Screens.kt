@@ -50,13 +50,12 @@ fun Plan2026Screen(
     onAction: (PlanAction) -> Unit,
     onOpenItem: (String) -> Unit,
     onOpenBudgets: () -> Unit,
-    onOpenForecast: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Πλάνο",
-                subtitle = "Υποχρεώσεις, budgets και πρόβλεψη",
+                subtitle = "Υποχρεώσεις και budgets",
             )
         },
     ) { padding ->
@@ -122,21 +121,6 @@ fun Plan2026Screen(
                             style = MaterialTheme.typography.titleLarge,
                         )
                     }
-                }
-            }
-            item {
-                MyFinHubActionCard(onClick = onOpenForecast, modifier = Modifier.fillMaxWidth()) {
-                    MyFinHubSectionHeading(
-                        title = "Ταμειακή πρόβλεψη",
-                        subtitle = "Πώς αλλάζει το διαθέσιμο με τις επόμενες υποχρεώσεις",
-                        icon = MyFinHubIcons.Insights,
-                        tone = FinanceTone.Transfer,
-                    )
-                    MyFinHubAmountText(
-                        text = formatEuroPlan2026(state.forecastEndBalance),
-                        tone = if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                        style = MaterialTheme.typography.titleLarge,
-                    )
                 }
             }
             state.itemMessage?.let { message ->
@@ -392,83 +376,6 @@ fun PlanBudgets2026Screen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun PlanForecast2026Screen(
-    state: PlanUiState,
-    onAction: (PlanAction) -> Unit,
-    onBack: () -> Unit,
-) {
-    val selected = state.forecastWindows.firstOrNull { it.days == state.forecastHorizonDays }
-        ?: state.forecastWindows.firstOrNull()
-
-    Scaffold(
-        topBar = {
-            MyFinHubScreenHeader(
-                title = "Πρόβλεψη",
-                subtitle = "Δες το επόμενο διάστημα χωρίς να χάνεις την αιτία",
-                navigation = { MyFinHubBackButton(onBack) },
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(MyFinHubSpacing.lg),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                state.forecastWindows.forEach { window ->
-                    FilterChip(
-                        selected = state.forecastHorizonDays == window.days,
-                        onClick = { onAction(PlanAction.ForecastHorizonChanged(window.days)) },
-                        label = { Text(window.label) },
-                    )
-                }
-            }
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    MyFinHubSectionHeading(
-                        title = "Προβλεπόμενο διαθέσιμο",
-                        icon = MyFinHubIcons.Insights,
-                        tone = FinanceTone.Transfer,
-                    )
-                    MyFinHubAmountText(
-                        text = formatEuroPlan2026(state.forecastEndBalance + (selected?.balanceDeltaFromThirtyDays ?: 0.0)),
-                        tone = FinanceTone.Income,
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                }
-            }
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    Text("Τι επηρεάζει την πρόβλεψη", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    ForecastMetric2026("Αναμενόμενα έσοδα", selected?.expectedIncome ?: 0.0, FinanceTone.Income)
-                    ForecastMetric2026("Αναμενόμενες εκροές", selected?.expectedOutflow ?: 0.0, FinanceTone.Expense)
-                    Text(
-                        "Η πρόβλεψη συνυπολογίζει τις ενεργές υποχρεώσεις και τους κανόνες σχεδιασμού. Δεν αποτελεί υπόσχεση μελλοντικού υπολοίπου.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ForecastMetric2026(label: String, value: Double, tone: FinanceTone) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        MyFinHubAmountText(formatEuroPlan2026(value), tone)
     }
 }
 
