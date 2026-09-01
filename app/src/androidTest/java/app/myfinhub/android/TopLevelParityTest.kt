@@ -2,12 +2,14 @@ package app.myfinhub.android
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -38,7 +40,7 @@ class TopLevelParityTest {
             "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
         ).assertIsDisplayed()
         composeRule.onNodeWithText("Αποκάλυψη ασφαλών στοιχείων").assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNodeWithText("Πλάνο").performClick()
         composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
@@ -62,7 +64,7 @@ class TopLevelParityTest {
             .performClick()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
         composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNode(hasText("Budgets", substring = true) and hasClickAction())
             .performScrollTo()
@@ -78,7 +80,7 @@ class TopLevelParityTest {
             .performScrollToNode(hasText("Προβολή σχετικών κινήσεων"))
         composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
 
-        composeRule.onNodeWithText("Αναζήτηση κινήσεων").assertIsDisplayed()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
         composeRule.onNodeWithText("Μισθός").assertDoesNotExist()
     }
