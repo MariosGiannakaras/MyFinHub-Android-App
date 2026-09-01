@@ -1,7 +1,6 @@
 package app.myfinhub.android.designsystem
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -30,6 +30,9 @@ enum class MyFinHubBrandMode {
  * The bitmap resources are byte-for-byte copies of the canonical runtime artwork from the main
  * MyFinHub repository. The responsive lockup follows the main product contract: authentic square
  * mark plus product word treatment rather than an invented Android-specific logo.
+ *
+ * Artwork selection follows the active MyFinHub Material theme rather than the OS preference, so
+ * explicit light/dark previews and future in-app theme selection always render the matching mark.
  */
 @Composable
 fun MyFinHubBrandMark(
@@ -37,8 +40,8 @@ fun MyFinHubBrandMark(
     mode: MyFinHubBrandMode = MyFinHubBrandMode.Icon,
     iconSize: Dp = 36.dp,
     subtitle: String? = null,
-    darkTheme: Boolean = isSystemInDarkTheme(),
 ) {
+    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val resource = if (darkTheme) R.drawable.myfinhub_brand_dark else R.drawable.myfinhub_brand_light
     val mark = @Composable {
         Image(
