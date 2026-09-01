@@ -60,6 +60,17 @@ jobs:
             adb shell settings put system font_scale 1.5
             ./gradlew connectedDebugAndroidTest --stacktrace
 
+      - name: Publish large-font instrumentation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-release-ui-large-font-${{ github.run_id }}
+          path: |
+            app/build/outputs/androidTest-results/connected/**
+            app/build/reports/androidTests/connected/**
+          if-no-files-found: warn
+          retention-days: 14
+
   adaptive-full-suite:
     runs-on: macos-15-intel
     timeout-minutes: 50
@@ -110,3 +121,14 @@ jobs:
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
           script: ./gradlew connectedDebugAndroidTest --stacktrace
+
+      - name: Publish adaptive instrumentation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-release-ui-${{ matrix.label }}-${{ github.run_id }}
+          path: |
+            app/build/outputs/androidTest-results/connected/**
+            app/build/reports/androidTests/connected/**
+          if-no-files-found: warn
+          retention-days: 14
