@@ -26,6 +26,19 @@ The redesign is not merged yet only because the final exact-state phone/CI valid
 - Automatic tablet/foldable/150%-font adaptive CI matrices were removed because those device classes/settings are not acceptance targets for this single-device app.
 - Hosted-emulator Baseline Profile/Macrobenchmark workflows remain available manually as diagnostics, while normal CI still verifies benchmark/profile tooling compilation. Device-specific performance acceptance belongs to the physical S24 Ultra handoff.
 
+### Post-review reliability and cleanup hardening
+
+- Operational failures now use a shared `UserNotice` contract across auth/session, canonical finance sync and secure card-secret flows.
+- User-facing operation/system failures are surfaced through a global Material 3 Snackbar with a `Λεπτομέρειες` action; field-level validation remains inline next to the relevant input instead of producing duplicate transient messages.
+- Error details expose only safe diagnostics such as operation, failure category, HTTP status, retryability and a diagnostic code. Raw server bodies, exception messages, credentials, access tokens, PAN and CVV are not exposed.
+- Network/auth parsing and malformed-success-response edge cases are contained inside typed failure results instead of escaping as uncaught exceptions.
+- Repository boundaries defensively convert unexpected API implementation failures into recoverable failures while preserving coroutine cancellation semantics.
+- Failed local finance mutations/projections retain the last valid product state instead of collapsing the whole UI into a fatal screen; sync conflicts/save failures remain explicitly retryable/discardable.
+- Secure local CVV vault read/save/delete failures are no longer silently ignored and are reported without leaking card secrets.
+- Obsolete Phase-1 Bootstrap scaffolding and obsolete Android Backup/Import API surface that no longer belongs to the retained product were removed; the standalone synthetic Home state holder was retained and documented because it is still used by test/demo UI infrastructure.
+- Unsupported expanded/tablet/foldable screenshot cases and references were removed from the S24 Ultra-only visual acceptance suite.
+- Dedicated phone screenshot evidence was added for the global error Snackbar and safe details dialog. Personal inspection caught and corrected both asynchronous preview timing and bottom-navigation overlap before accepting a new reference.
+
 ### Final merge gates
 
 1. Pass normal Android verification on the final exact state.
