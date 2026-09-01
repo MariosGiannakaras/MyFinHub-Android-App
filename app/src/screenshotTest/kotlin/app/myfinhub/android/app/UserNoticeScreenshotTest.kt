@@ -3,13 +3,12 @@ package app.myfinhub.android.app
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +26,19 @@ private val screenshotNotice = UserNotice(
     diagnosticCode = "MFH-API-SERVER-503",
 )
 
+private val screenshotSnackbarData = object : SnackbarData {
+    override val visuals: SnackbarVisuals = object : SnackbarVisuals {
+        override val message: String = screenshotNotice.message
+        override val actionLabel: String = "Λεπτομέρειες"
+        override val withDismissAction: Boolean = true
+        override val duration: SnackbarDuration = SnackbarDuration.Indefinite
+    }
+
+    override fun performAction() = Unit
+
+    override fun dismiss() = Unit
+}
+
 @PreviewTest
 @Preview(
     name = "user_notice_snackbar_phone",
@@ -36,17 +48,7 @@ private val screenshotNotice = UserNotice(
 )
 @Composable
 fun UserNoticeSnackbarScreenshot() {
-    val snackbarHostState = remember { SnackbarHostState() }
     val navigationEventDispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
-
-    LaunchedEffect(Unit) {
-        snackbarHostState.showSnackbar(
-            message = screenshotNotice.message,
-            actionLabel = "Λεπτομέρειες",
-            withDismissAction = true,
-            duration = SnackbarDuration.Indefinite,
-        )
-    }
 
     CompositionLocalProvider(
         LocalNavigationEventDispatcherOwner provides navigationEventDispatcherOwner,
@@ -57,8 +59,8 @@ fun UserNoticeSnackbarScreenshot() {
                     homeState = syntheticHomeUiState(),
                     onHomeAction = {},
                 )
-                SnackbarHost(
-                    hostState = snackbarHostState,
+                Snackbar(
+                    snackbarData = screenshotSnackbarData,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp, vertical = 12.dp),
