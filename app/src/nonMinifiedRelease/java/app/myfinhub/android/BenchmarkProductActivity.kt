@@ -2,12 +2,18 @@ package app.myfinhub.android
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import app.myfinhub.android.app.MyFinHubAppContent
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.syntheticActivityItems
 import app.myfinhub.android.feature.home.syntheticHomeUiState
+import app.myfinhub.android.feature.quickentry.QuickEntryUiState
+import app.myfinhub.android.feature.quickentry.reduceQuickEntry
 
 /**
  * Deterministic product host used only by the Baseline Profile target variant.
@@ -21,11 +27,16 @@ class BenchmarkProductActivity : FragmentActivity() {
 
         val activityState = ActivityUiState(items = representativeActivityItems())
         setContent {
+            var quickEntryState by remember { mutableStateOf(QuickEntryUiState()) }
             MyFinHubTheme {
                 MyFinHubAppContent(
                     homeState = syntheticHomeUiState(),
                     onHomeAction = {},
                     activityState = activityState,
+                    quickEntryState = quickEntryState,
+                    onQuickEntryAction = { action ->
+                        quickEntryState = reduceQuickEntry(quickEntryState, action)
+                    },
                 )
             }
         }
