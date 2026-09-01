@@ -3,14 +3,25 @@
 ## Start here in a new chat
 
 1. Read permanent issue #27 first.
-2. Read issue #37 and draft PR #38.
-3. Read `STATUS.md`, `TODO.md` and this file.
-4. Inspect the actual PR/branch/workflow state before changing anything.
-5. Continue the active redesign from the real state; do not restart discovery or reinterpret the confirmed mobile-scope decisions.
+2. Read `docs/SUPPORTED_DEVICE.md` immediately after it.
+3. Read issue #37 and PR #38.
+4. Read `STATUS.md`, `TODO.md` and this file.
+5. Inspect the actual PR/branch/workflow state before changing anything.
+6. Continue the active redesign from the real state; do not restart discovery or reinterpret confirmed scope decisions.
+
+## Sole supported device
+
+The Android app supports **only the owner's physical Samsung Galaxy S24 Ultra**.
+
+- `docs/SUPPORTED_DEVICE.md` is the source of truth for device acceptance scope.
+- Tablet, foldable and desktop-like Android layouts are unsupported and are not merge/release gates.
+- Do not spend work or CI time fixing problems that only occur on unsupported form factors unless the same defect affects the Galaxy S24 Ultra.
+- A hosted stock-Android compact-phone emulator is only a representative automated host; it is not an exact Samsung One UI / S24 Ultra simulation.
+- Actual device-specific rendering, display/font settings and performance are authoritative only on the owner's physical S24 Ultra during Phase 6.
 
 ## Scope
 
-The redesign covers the entire retained user-facing native Android application.
+The redesign covers the entire retained user-facing native Android application on the supported S24 Ultra phone target.
 
 Top-level destinations:
 - Home / Αρχική
@@ -23,7 +34,7 @@ Retained secondary/detail flows include Home attention/detail, Settings, Change 
 
 Issue #24 remains the source of truth for the native credit-card stack component.
 
-## Confirmed Android product-scope exclusions — user decision 2026-09-01
+## Confirmed Android product-scope exclusions
 
 These are not Android user-facing features unless explicitly reversed later:
 - Forecast / cash-flow forecast UI and navigation.
@@ -61,38 +72,40 @@ Completed:
 - real screenshot refresh after branding/icon/scope correction and personal visual inspection;
 - stale UI-test selector repair for icon-based back navigation, search placeholder semantics and duplicated Settings text;
 - expanded Home overlap fix found during personal inspection: compact Home retains the floating `Νέα κίνηση` action, while expanded Home uses the in-card quick-entry primary action without a second floating action;
-- emulator validation hardening: instrumentation APKs are prebuilt and Android package/activity service readiness is checked before compact/adaptive/150%-font suites.
+- updated expanded Home screenshot reference rendered/replaced and personally inspected;
+- canonical screenshot regression passed after the reference replacement;
+- Samsung Galaxy S24 Ultra declared as the sole supported device;
+- automatic tablet/foldable/150%-font adaptive matrix removed;
+- one representative compact-phone instrumentation path retained for automated phone smoke coverage;
+- hosted-emulator Baseline Profile/Macrobenchmark workflows changed to manual diagnostic runs; normal CI still verifies the tooling builds.
 
 ## Screenshot/validation rule
 
-For every UI change follow issue #27:
+For UI changes follow issue #27:
 - only real rendered application screenshots count as implementation evidence;
 - personally inspect them;
 - replace stale references instead of accumulating obsolete screenshots;
-- keep compact, foldable/tablet/adaptive and 150% font/accessibility coverage meaningful;
+- evaluate the supported S24 Ultra phone experience, not unsupported tablet/foldable layouts;
 - do not present concepts/mockups as implementation evidence.
-
-The latest UI change is the expanded Home action-overlap fix, so its previous screenshot reference is stale until regenerated and personally inspected.
 
 ## Exact remaining work
 
-1. Let the screenshot renderer produce the current expanded Home candidate.
-2. Replace the stale expanded Home reference with that real rendered image and personally verify the action overlap is gone.
-3. Run/confirm screenshot regression on the committed new reference.
-4. Confirm compact instrumentation passes with the corrected semantics selectors.
-5. Confirm foldable, tablet and 150% font/accessibility suites pass with the hardened emulator workflow.
-6. Confirm normal Android verification and performance/profile gates for the final implementation state.
-7. Update issue #37 / PR #38 completion text so it no longer describes branding/icons/scope pruning as pending.
-8. Merge the redesign into `develop` only after zero unresolved blockers.
+1. Confirm final exact-state screenshot regression after the S24 Ultra CI/scope update.
+2. Confirm the single representative compact-phone instrumentation suite passes.
+3. Confirm normal Android CI passes on the final exact state.
+4. Update issue #37 / PR #38 completion text to reflect S24 Ultra-only acceptance and completed screenshots.
+5. Merge the redesign into `develop` only after zero unresolved S24 Ultra blockers.
+
+Hosted emulator performance/profile runs are not redesign merge blockers. They remain available manually; actual device-specific performance belongs to Phase 6 on the physical Galaxy S24 Ultra.
 
 ## Active workstream
 
 - Tracker: issue #37.
-- Draft PR: #38.
+- PR: #38.
 - Base: `develop`.
 
 ## Release boundary
 
-Phase 6 remains separate. Do not create a release, production signing key or production-signed APK as part of this redesign. The first physical-device and production Auth/API validation stays in the later Phase 6 handoff.
+Phase 6 remains separate. Do not create a release, production signing key or production-signed APK as part of this redesign. The first physical-device and production Auth/API validation stays in the later Phase 6 handoff on the owner's Galaxy S24 Ultra.
 
 Update this file whenever the active implementation, validation state, scope decisions or exact next action changes so a memoryless chat can continue safely.
