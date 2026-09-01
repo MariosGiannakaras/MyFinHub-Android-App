@@ -62,32 +62,34 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            MyFinHubScreenHeader(
-                title = "MyFinHub",
-                subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
-                navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
-            )
-        },
-        floatingActionButton = {
-            MyFinHubPrimaryAction(
-                label = "Νέα κίνηση",
-                onClick = { onAction(HomeAction.OpenQuickEntry) },
-            )
-        },
-    ) { innerPadding ->
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-        ) {
-            if (maxWidth >= 840.dp) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val expanded = maxWidth >= 840.dp
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                MyFinHubScreenHeader(
+                    title = "MyFinHub",
+                    subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
+                    navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
+                )
+            },
+            floatingActionButton = {
+                if (!expanded) {
+                    MyFinHubPrimaryAction(
+                        label = "Νέα κίνηση",
+                        onClick = { onAction(HomeAction.OpenQuickEntry) },
+                    )
+                }
+            },
+        ) { innerPadding ->
+            if (expanded) {
                 HomeExpandedContent(
                     state = state,
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
                     onOpenSettings = onOpenSettings,
                     onOpenChangeHistory = onOpenChangeHistory,
+                    modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             } else {
                 HomeCompactContent(
@@ -96,6 +98,7 @@ fun HomeScreen(
                     onOpenAttention = onOpenAttention,
                     onOpenSettings = onOpenSettings,
                     onOpenChangeHistory = onOpenChangeHistory,
+                    modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             }
         }
@@ -109,9 +112,10 @@ private fun HomeCompactContent(
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenChangeHistory: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().testTag("home_list"),
+        modifier = modifier.testTag("home_list"),
         contentPadding = PaddingValues(
             start = MyFinHubSpacing.lg,
             top = MyFinHubSpacing.xs,
@@ -138,9 +142,10 @@ private fun HomeExpandedContent(
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenChangeHistory: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 10.dp),
+        modifier = modifier.padding(horizontal = 28.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.lg),
     ) {
         Column(
