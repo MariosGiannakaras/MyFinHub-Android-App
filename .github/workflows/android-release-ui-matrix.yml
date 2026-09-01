@@ -7,6 +7,7 @@ on:
     paths:
       - 'app/**'
       - 'scripts/install-android-sdk.sh'
+      - 'scripts/run-connected-android-tests.sh'
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-release-ui-matrix.yml'
@@ -62,19 +63,7 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: |
-            adb wait-for-device
-            ready=false
-            for attempt in {1..60}; do
-              if adb shell service check package 2>/dev/null | grep -q 'found' && adb shell service check activity 2>/dev/null | grep -q 'found'; then
-                ready=true
-                break
-              fi
-              sleep 2
-            done
-            test "$ready" = true
-            adb shell settings put system font_scale 1.5
-            ./gradlew connectedDebugAndroidTest --stacktrace
+          script: bash scripts/run-connected-android-tests.sh 1.5
 
       - name: Publish large-font instrumentation evidence
         if: always()
@@ -140,18 +129,7 @@ jobs:
             -no-snapshot-load -no-snapshot-save
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
-          script: |
-            adb wait-for-device
-            ready=false
-            for attempt in {1..60}; do
-              if adb shell service check package 2>/dev/null | grep -q 'found' && adb shell service check activity 2>/dev/null | grep -q 'found'; then
-                ready=true
-                break
-              fi
-              sleep 2
-            done
-            test "$ready" = true
-            ./gradlew connectedDebugAndroidTest --stacktrace
+          script: bash scripts/run-connected-android-tests.sh
 
       - name: Publish adaptive instrumentation evidence
         if: always()
