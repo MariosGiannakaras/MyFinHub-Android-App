@@ -21,32 +21,45 @@ class FrontendUtilitiesParityTest {
     fun homeReviewAndUtilityFlows_areNestedAndReachable() {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Γιατί εμφανίζεται").fetchSemanticsNodes().isNotEmpty()
-        }
+        waitForText("Γιατί εμφανίζεται")
         composeRule.onNodeWithText("Γιατί εμφανίζεται").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Σήμανση ως ελεγμένο").performScrollTo().performClick()
+        clickTextIntoView("Σήμανση ως ελεγμένο")
         scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
-        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
+        clickTextIntoView("Ρυθμίσεις")
+        waitForText("Προτιμήσεις εφαρμογής")
         composeRule.onNodeWithText("Προτιμήσεις εφαρμογής").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        clickTextIntoView("Πίσω")
 
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
-        composeRule.onNodeWithText("Εισαγωγή & αντίγραφα").performClick()
-        composeRule.onNodeWithText("Προεπισκόπηση εισαγωγής").performScrollTo().performClick()
-        composeRule.onNodeWithText("Αντικατάσταση δεδομένων").performScrollTo().performClick()
+        clickTextIntoView("Εισαγωγή & αντίγραφα")
+        waitForText("Προεπισκόπηση εισαγωγής")
+        clickTextIntoView("Προεπισκόπηση εισαγωγής")
+        clickTextIntoView("Αντικατάσταση δεδομένων")
+        waitForText("Αντικατάσταση όλων των δεδομένων;")
         composeRule.onNodeWithText("Αντικατάσταση όλων των δεδομένων;").assertIsDisplayed()
-        composeRule.onNodeWithText("Ακύρωση").performClick()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        clickTextIntoView("Ακύρωση")
+        clickTextIntoView("Πίσω")
 
         scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
-        composeRule.onNodeWithText("Ιστορικό αλλαγών").performClick()
+        clickTextIntoView("Ιστορικό αλλαγών")
+        waitForText("Αναίρεση & επανάληψη")
         composeRule.onNodeWithText("Αναίρεση & επανάληψη").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Αναίρεση").performScrollTo().performClick()
+        clickTextIntoView("Αναίρεση")
+        waitForText("2 από 3 αλλαγές εφαρμοσμένες")
         composeRule.onNodeWithText("2 από 3 αλλαγές εφαρμοσμένες").performScrollTo().assertIsDisplayed()
+    }
+
+    private fun waitForText(text: String) {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun clickTextIntoView(text: String) {
+        composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed().performClick()
     }
 
     private fun scrollHomeTagIntoView(tag: String) {
