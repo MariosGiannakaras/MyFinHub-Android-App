@@ -18,7 +18,7 @@ class FrontendUtilitiesParityTest {
     val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
-    fun homeReviewAndUtilityFlows_areNestedAndReachable() {
+    fun homeReviewAndRetainedUtilityFlows_areNestedAndReachable() {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         waitForText("Γιατί εμφανίζεται")
@@ -27,23 +27,13 @@ class FrontendUtilitiesParityTest {
         scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
         assertTextIntoView("Προτιμήσεις εφαρμογής")
         clickTextIntoView("Πίσω")
 
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
-        clickTextIntoView("Εισαγωγή & αντίγραφα")
-        waitForText("Προεπισκόπηση εισαγωγής")
-        clickTextIntoView("Προεπισκόπηση εισαγωγής")
-        clickTextIntoView("Αντικατάσταση δεδομένων")
-        waitForText("Αντικατάσταση όλων των δεδομένων;")
-        composeRule.onNodeWithText("Αντικατάσταση όλων των δεδομένων;").assertIsDisplayed()
-        clickTextIntoView("Ακύρωση")
-        clickTextIntoView("Πίσω")
-
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ιστορικό αλλαγών")
         waitForText("Αναίρεση & επανάληψη")
         assertTextIntoView("Αναίρεση & επανάληψη")
