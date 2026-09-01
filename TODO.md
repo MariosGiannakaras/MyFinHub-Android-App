@@ -23,9 +23,9 @@
 - [x] Large-font, TalkBack semantics and touch-target validation.
 - [x] Retain five top-level destinations and record ADR-0002.
 - [x] Phase 2B merged through PR #17; issue #12 complete.
-- [x] Plan recurring/scheduled detail/edit plus category budget/rule/forecast frontend parity — PR #31.
+- [x] Plan recurring/scheduled detail/edit plus category budget/rule/forecast frontend parity — PR #31. Forecast parity is historical implementation; user-facing Forecast is now explicitly excluded from the Android product scope and must be removed in the active redesign.
 - [x] Money savings, loan/installment and lending/receivable frontend parity — PR #32.
-- [x] Home Smart Review / Needs Attention, Settings, import/backup UI shell and privacy-safe Change History frontend parity — PR #35.
+- [x] Home Smart Review / Needs Attention, Settings, import/backup UI shell and privacy-safe Change History frontend parity — PR #35. Import/backup parity is historical implementation; user-facing Backup/Import is now explicitly excluded from Android product scope and must be removed in the active redesign.
 - [x] Real screenshot rendering/regression plus compact, foldable, tablet and large-font validation for the Phase 2C UI delta.
 
 ## Phase 3 — Production native-client backend gate
@@ -66,7 +66,7 @@ Tracker: issue #15.
 - [x] Real Home, Activity, Quick Entry, Money, Plan and Insights projections/writes over canonical state.
 - [x] Loading/retry, authorization rejection and explicit revision-conflict UX.
 - [x] Clear in-memory finance state on logout/session removal.
-- [x] Typed bearer-only backup/import client boundaries — PR #21.
+- [x] Typed bearer-only backup/import client boundaries — PR #21. These may remain compatibility-only implementation details if required; they are no longer a user-facing Android product feature.
 - [x] Typed owner+AAL2 `/api/card-secrets` PAN/expiry client boundary with no CVV server surface — PR #21.
 - [x] MockWebServer/fail-closed coverage for finance, backup/import and card-secret boundaries.
 
@@ -90,26 +90,47 @@ Tracker: issue #13 complete. Implementation PR #36 merged into `develop`.
 
 Tracker: issue #37. Active branch: `feature/full-app-2026-ui-redesign`.
 
-- [ ] Build shared 2026 theme/tokens: color, typography, shape, spacing and compact density.
-- [ ] Add centralized semantic finance colors and helpers.
-- [ ] Add curated/static `MyFinHubIcons` registry and migrate top-level navigation to it.
-- [ ] Add reusable compact screen/header/card/list-row/filter/amount/action components.
-- [ ] Redesign Home / Αρχική on the shared foundation.
-- [ ] Redesign Activity / Κινήσεις on the shared foundation.
-- [ ] Redesign Money / Χρήματα on the shared foundation while preserving issue #24 card-stack contract.
-- [ ] Redesign Plan / Πλάνο on the shared foundation.
-- [ ] Redesign Insights / Αναλύσεις on the shared foundation.
-- [ ] Redesign Home attention detail, Settings, Data Transfer and Change History.
-- [ ] Redesign Activity detail/edit and Quick Entry.
-- [ ] Redesign Savings, Loans, Lending and their editor/detail flows.
-- [ ] Redesign Plan item detail/editor, Budgets/rules and Forecast.
-- [ ] Apply the shared system to auth/login/TOTP/PIN/unlock and loading/failure/conflict states without weakening security UX.
-- [ ] Replace stale screenshot references with real rendered redesigned screenshots and personally inspect them.
-- [ ] Pass compact, adaptive/foldable/tablet and 150% font/accessibility validation after the full migration.
+- [x] Build shared 2026 theme/tokens: color, typography, shape, spacing and compact density.
+- [x] Add centralized semantic finance colors and helpers.
+- [ ] Replace provisional icon drawings with the final coherent curated/static `MyFinHubIcons` vocabulary aligned with the main product.
+- [ ] Add authentic MyFinHub launcher/adaptive icon resources and shared brand presentation; do not invent replacement artwork.
+- [x] Add reusable compact screen/header/card/list-row/filter/amount/action components.
+- [x] Redesign Home / Αρχική on the shared foundation.
+- [x] Redesign Activity / Κινήσεις on the shared foundation.
+- [x] Redesign Money / Χρήματα on the shared foundation while preserving issue #24 card-stack contract.
+- [x] Redesign Plan / Πλάνο on the shared foundation.
+- [x] Redesign Insights / Αναλύσεις on the shared foundation.
+- [x] Redesign Home attention detail, Settings and Change History.
+- [x] Redesign Activity detail/edit and Quick Entry.
+- [x] Redesign Savings, Loans, Lending and their editor/detail flows.
+- [x] Redesign Plan item detail/editor and Budgets/rules.
+- [x] Apply the shared system to auth/login/TOTP/PIN/unlock and loading/failure/conflict states without weakening security UX.
+- [ ] Remove Forecast UI/navigation/screens from the Android product while preserving canonical finance document compatibility.
+- [ ] Remove Backup/Import/Data Transfer UI/navigation/screens from the Android product while preserving any compatibility-only backend/domain code that remains necessary.
+- [ ] Confirm Android exposes no category/subcategory administration screen; retain category selection only inside finance-entry/edit flows where required.
+- [ ] Confirm Android exposes no category icon picker, Command Palette, desktop keyboard-shortcut workflows, desktop mass-administration/configuration workspace, Windows install/update/recovery UI or full desktop Reports module.
+- [ ] Keep lightweight `Insights / Αναλύσεις` only; do not expand it into desktop Reports unless explicitly approved later.
+- [ ] Regenerate real screenshots after scope removals + branding/icon correction, personally inspect them and replace stale references.
+- [ ] Pass compact, adaptive/foldable/tablet and 150% font/accessibility validation after the final corrected UI.
 - [ ] Keep `docs/UI_2026_REDESIGN_HANDOFF.md`, STATUS/TODO and issue #37 synchronized for memoryless-chat continuation.
 - [ ] Merge the full-app redesign into `develop` only after exact-head validation and zero unresolved review blockers.
 
-Do not automatically add every desktop/web feature during this redesign. Mobile feature parity decisions remain separate because the main application is still changing. Desktop/admin-heavy capabilities may intentionally stay desktop-only; Android can use curated static behavior such as a fixed category-icon mapping.
+### Confirmed Android exclusions — 2026-09-01
+
+The following are intentionally not part of the Android user-facing product unless the user later reverses the decision:
+- Forecast / cash-flow forecast.
+- Full desktop Reports module (lightweight Android Insights remains for now).
+- Category/subcategory administration.
+- Category icon picker / icon administration.
+- Backup/import/data-transfer UI.
+- Command Palette.
+- Desktop keyboard-shortcut UI/workflows.
+- Desktop-style mass administration/configuration.
+- Windows install/update/recovery functionality.
+
+Do not strip desktop-owned/canonical fields from shared finance state merely because Android does not expose their UI. Lossless canonical round-tripping remains mandatory.
+
+Features not listed above remain undecided unless already part of the retained Android product. Do not remove additional functionality by inference.
 
 ## Phase 6 — Final production/release handoff
 
