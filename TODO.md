@@ -72,7 +72,7 @@ Tracker: issue #15.
 
 ## Phase 5 — Security/performance/release hardening
 
-Tracker: issue #13. Active implementation PR: #36.
+Tracker: issue #13 complete. Implementation PR #36 merged into `develop`.
 
 - [x] Owner+AAL2 server PAN/expiry vault integration.
 - [x] Device-local CVV Android Keystore AES-GCM vault; never sync/log/backup.
@@ -82,15 +82,15 @@ Tracker: issue #13. Active implementation PR: #36.
 - [x] Enable and validate release R8/minification/resource shrinking with narrow keep rules.
 - [x] Unsigned release assembly/config validation; no signing secrets or production-signed APK.
 - [x] Generate and check in the device-generated Baseline Profile and startup profile.
-- [ ] Obtain passing exact-head Macrobenchmark evidence for cold startup, Home, Activity and Quick Entry.
-- [ ] Obtain passing exact-head compact/foldable/tablet and 150% large-font/accessibility matrix evidence.
-- [ ] Complete final Phase 5 evidence/documentation sync and merge the active hardening PR into `develop`.
+- [x] Obtain passing exact-head Macrobenchmark evidence for cold startup, Home, Activity and Quick Entry.
+- [x] Obtain passing exact-head compact/foldable/tablet and 150% large-font/accessibility matrix evidence.
+- [x] Complete final Phase 5 evidence/documentation sync and merge the active hardening PR into `develop`.
 
 ## Phase 6 — Final production/release handoff
 
-Tracker: issue #14. This phase remains separate and is not part of current autonomous implementation.
+Tracker: issue #14. This phase remains separate and is not part of the completed autonomous implementation.
 
-- [ ] All functional/security/quality work merged to `develop`.
+- [ ] All functional/security/quality work merged to `develop` and handoff state accepted for Phase 6.
 - [ ] Validate production configured build against real Auth/API.
 - [ ] Freeze release versionCode/versionName and promote release candidate through `develop -> main` only after gates pass.
 - [ ] Document Android Studio/JDK/SDK prerequisites and one-command Gradle validation.
