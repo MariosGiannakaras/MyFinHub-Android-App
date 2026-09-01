@@ -19,33 +19,55 @@ class FrontendUtilitiesParityTest {
 
     @Test
     fun homeReviewAndUtilityFlows_areNestedAndReachable() {
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasTestTag("attention-scheduled-review"))
+        scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("Γιατί εμφανίζεται").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("Γιατί εμφανίζεται").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Σήμανση ως ελεγμένο").performScrollTo().performClick()
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasText("Η οικονομική σου εικόνα"))
+        scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Ρυθμίσεις & δεδομένα"))
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
         composeRule.onNodeWithText("Ρυθμίσεις").performClick()
-        composeRule.onNodeWithText("Προτιμήσεις εφαρμογής").assertIsDisplayed()
+        composeRule.onNodeWithText("Προτιμήσεις εφαρμογής").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Πίσω").performClick()
 
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
         composeRule.onNodeWithText("Εισαγωγή & αντίγραφα").performClick()
-        composeRule.onNodeWithText("Προεπισκόπηση εισαγωγής").performClick()
-        composeRule.onNodeWithText("Αντικατάσταση δεδομένων").performClick()
+        composeRule.onNodeWithText("Προεπισκόπηση εισαγωγής").performScrollTo().performClick()
+        composeRule.onNodeWithText("Αντικατάσταση δεδομένων").performScrollTo().performClick()
         composeRule.onNodeWithText("Αντικατάσταση όλων των δεδομένων;").assertIsDisplayed()
         composeRule.onNodeWithText("Ακύρωση").performClick()
         composeRule.onNodeWithText("Πίσω").performClick()
 
+        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
         composeRule.onNodeWithText("Ιστορικό αλλαγών").performClick()
-        composeRule.onNodeWithText("Αναίρεση & επανάληψη").assertIsDisplayed()
-        composeRule.onNodeWithText("Αναίρεση").performClick()
-        composeRule.onNodeWithText("2 από 3 αλλαγές εφαρμοσμένες").assertIsDisplayed()
+        composeRule.onNodeWithText("Αναίρεση & επανάληψη").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Αναίρεση").performScrollTo().performClick()
+        composeRule.onNodeWithText("2 από 3 αλλαγές εφαρμοσμένες").performScrollTo().assertIsDisplayed()
+    }
+
+    private fun scrollHomeTagIntoView(tag: String) {
+        val targetAlreadyComposed = runCatching {
+            composeRule.onNodeWithTag(tag).fetchSemanticsNode()
+        }.isSuccess
+        if (targetAlreadyComposed) {
+            composeRule.onNodeWithTag(tag).performScrollTo()
+        } else {
+            composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag(tag))
+        }
+    }
+
+    private fun scrollHomeTextIntoView(text: String) {
+        val targetAlreadyComposed = runCatching {
+            composeRule.onNodeWithText(text).fetchSemanticsNode()
+        }.isSuccess
+        if (targetAlreadyComposed) {
+            composeRule.onNodeWithText(text).performScrollTo()
+        } else {
+            composeRule.onNodeWithTag("home_list").performScrollToNode(hasText(text))
+        }
     }
 }
