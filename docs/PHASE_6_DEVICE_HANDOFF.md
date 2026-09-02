@@ -23,6 +23,16 @@ Before connecting the phone:
 6. Confirm the normal CI release-manifest and unsigned-APK policy audit is green.
 7. Do not place service-role keys, vault keys, signing passwords, keystores, real finance exports or other server/private secrets in the repository or APK.
 
+## Public build-time configuration
+
+The Android app has no end-user configuration fields. Its production public-client defaults are compiled through `BuildConfig` and are already present in the public repository:
+
+- `MYFINHUB_API_BASE_URL=https://mgfinhub.vercel.app`
+- `SUPABASE_URL=https://ahsukppxwaiagampsuzb.supabase.co`
+- `SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ee7nzCpHN5AKwjXkPBvxdw_bTJXoJGC`
+
+These values identify public client endpoints/credentials and are **not** service-role or server secrets. A workstation can override any of them with the Gradle properties of the same names when a deliberate environment change is required. Do not add service-role keys, vault keys or signing material to these properties.
+
 ## Physical-device setup
 
 On the owner's Galaxy S24 Ultra:
