@@ -29,11 +29,9 @@ class AccessibilitySemanticsTest {
             assertClickableNodesHaveSpokenLabels(destination)
         }
 
-        composeRule.onNodeWithText("Αρχική").performClick()
-        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
-        composeRule.waitForIdle()
+        openQuickEntryFromHome()
         assertClickableNodesHaveSpokenLabels("Quick Entry")
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        leaveDirtyQuickEntry()
 
         composeRule.onNodeWithText("Ρυθμίσεις").performClick()
         composeRule.waitForIdle()
@@ -52,15 +50,29 @@ class AccessibilitySemanticsTest {
             checkCurrentSurface()
         }
 
-        composeRule.onNodeWithText("Αρχική").performClick()
-        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
-        composeRule.waitForIdle()
+        openQuickEntryFromHome()
         checkCurrentSurface()
-        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        leaveDirtyQuickEntry()
 
         composeRule.onNodeWithText("Ρυθμίσεις").performClick()
         composeRule.waitForIdle()
         checkCurrentSurface()
+    }
+
+    private fun openQuickEntryFromHome() {
+        composeRule.onNodeWithText("Αρχική").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithText("Έξοδο").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Πλήρης καταχώριση").assertExists()
+    }
+
+    private fun leaveDirtyQuickEntry() {
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών;").assertExists()
+        composeRule.onNodeWithText("Απόρριψη").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertExists()
     }
 
     private fun checkCurrentSurface() {
