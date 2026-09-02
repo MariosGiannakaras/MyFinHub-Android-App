@@ -14,12 +14,18 @@ class DesignSystemContractTest {
         assertEquals(20.dp, MyFinHubDesignMetrics.screenHorizontalPadding)
         assertEquals(16.dp, MyFinHubDesignMetrics.cardContentPadding)
         assertEquals(1.dp, MyFinHubDesignMetrics.cardBorderWidth)
+        assertEquals(36.dp, MyFinHubDesignMetrics.brandMarkDefaultSize)
         assertEquals(40.dp, MyFinHubDesignMetrics.iconBadgeSize)
         assertEquals(20.dp, MyFinHubDesignMetrics.iconBadgeIconSize)
         assertEquals(48.dp, MyFinHubDesignMetrics.primaryActionMinHeight)
         assertEquals(56.dp, MyFinHubDesignMetrics.textFieldMinHeight)
         assertEquals(1.dp, MyFinHubDesignMetrics.textFieldUnfocusedBorder)
         assertEquals(2.dp, MyFinHubDesignMetrics.textFieldFocusedBorder)
+        assertEquals(80.dp, MyFinHubDesignMetrics.navigationBarHeight)
+        assertEquals(24.dp, MyFinHubDesignMetrics.navigationIconSize)
+        assertEquals(64.dp, MyFinHubDesignMetrics.navigationActiveIndicatorWidth)
+        assertEquals(32.dp, MyFinHubDesignMetrics.navigationActiveIndicatorHeight)
+        assertEquals(4.dp, MyFinHubDesignMetrics.navigationIndicatorLabelGap)
     }
 
     @Test
