@@ -16,7 +16,7 @@ import com.android.tools.screenshot.PreviewTest
 fun MoneyOverviewCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Money2026Screen(
-            state = MoneyUiState(),
+            state = syntheticMoneyUiState(),
             onOpenCard = {},
         )
     }
@@ -34,7 +34,7 @@ fun MoneyOverviewCompactLightScreenshot() {
 fun MoneyOverviewCompactLargeFontScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Money2026Screen(
-            state = MoneyUiState(),
+            state = syntheticMoneyUiState(),
             onOpenCard = {},
         )
     }
@@ -51,7 +51,7 @@ fun MoneyOverviewCompactLargeFontScreenshot() {
 fun MoneySavingsCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Savings2026Screen(
-            state = MoneyUiState(),
+            state = syntheticMoneyUiState(),
             onAction = {},
             onBack = {},
         )
@@ -69,7 +69,7 @@ fun MoneySavingsCompactLightScreenshot() {
 fun MoneyLoansCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Loans2026Screen(
-            state = MoneyUiState(),
+            state = syntheticMoneyUiState(),
             onOpenLoan = {},
             onBack = {},
         )
@@ -106,7 +106,7 @@ fun MoneyLoanEditorCompactLargeFontScreenshot() {
 fun MoneyLendingCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Lending2026Screen(
-            state = MoneyUiState(),
+            state = syntheticMoneyUiState(),
             onOpenItem = {},
             onBack = {},
         )
