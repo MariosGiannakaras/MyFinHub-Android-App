@@ -8,9 +8,6 @@ import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.HomeAccount
 import app.myfinhub.android.feature.home.HomeAccountGroup
-import app.myfinhub.android.feature.home.HomeAttentionItem
-import app.myfinhub.android.feature.home.HomeAttentionTone
-import app.myfinhub.android.feature.home.HomeUpcomingItem
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.syntheticHomeUiState
 import com.android.tools.screenshot.PreviewTest
@@ -69,23 +66,8 @@ fun HomeEdgeValuesPhoneScreenshot() {
                     group = HomeAccountGroup.SAVINGS,
                 ),
             ),
-            attentionItems = listOf(
-                HomeAttentionItem(
-                    id = "edge-attention",
-                    title = "Πολύ μεγάλη προγραμματισμένη υποχρέωση που χρειάζεται έλεγχο πριν ολοκληρωθεί",
-                    reason = "Η περιγραφή παραμένει σκόπιμα μεγάλη ώστε να ελεγχθεί η συμπεριφορά κειμένου στο S24 phone viewport.",
-                    dueLabel = "Καθυστερημένη",
-                    tone = HomeAttentionTone.URGENT,
-                ),
-            ),
-            upcomingItems = listOf(
-                HomeUpcomingItem(
-                    id = "edge-upcoming",
-                    title = "Επερχόμενη πληρωμή με ασυνήθιστα μεγάλο τίτλο",
-                    dateLabel = "30 Σεπ",
-                    amount = -12_345_678.90,
-                ),
-            ),
+            attentionItems = emptyList(),
+            upcomingItems = emptyList(),
         ),
     )
 }
