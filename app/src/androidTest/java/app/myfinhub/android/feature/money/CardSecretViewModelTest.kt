@@ -16,6 +16,7 @@ import app.myfinhub.android.core.network.CardSecretWriteReceipt
 import app.myfinhub.android.core.network.CardSecrets
 import app.myfinhub.android.core.network.MyFinHubApi
 import app.myfinhub.android.core.security.CvvVault
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -97,7 +98,7 @@ class CardSecretViewModelTest {
         viewModel.openCard("card-1")
         viewModel.reveal()
         waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
-        val notice = async { viewModel.notices.first() }
+        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
         viewModel.deleteCvv()
         waitUntil {
             (viewModel.state.value as? CardSecretUiState.Revealed)?.cvvSaving == false &&
@@ -117,7 +118,7 @@ class CardSecretViewModelTest {
 
         viewModel.attachSession(session)
         viewModel.openCard("card-1")
-        val notice = async { viewModel.notices.first() }
+        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
         viewModel.reveal()
         waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
 
