@@ -29,6 +29,7 @@ import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.ActivityViewModel
 import app.myfinhub.android.feature.home.HomeAction
 import app.myfinhub.android.feature.home.HomeAttentionDetailScreen
+import app.myfinhub.android.feature.home.HomeQuickEntryType
 import app.myfinhub.android.feature.home.HomeScreen
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeViewModel
@@ -54,6 +55,7 @@ import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
+import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
@@ -178,7 +180,16 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Home> {
                     HomeScreen(
                         state = homeState,
-                        onAction = onHomeAction,
+                        onAction = { action ->
+                            onHomeAction(action)
+                            if (action is HomeAction.SelectQuickEntry) {
+                                onHomeAction(HomeAction.CloseQuickEntry)
+                                onQuickEntryAction(
+                                    QuickEntryAction.SelectKind(action.type.toQuickEntryKind()),
+                                )
+                                homeBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
                         onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
                         onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                         onOpenChangeHistory = { homeBackStack.pushIfNew(AppRoute.ChangeHistory) },
@@ -332,6 +343,13 @@ internal fun MyFinHubAppContent(
             },
         )
     }
+}
+
+private fun HomeQuickEntryType.toQuickEntryKind(): QuickEntryKind = when (this) {
+    HomeQuickEntryType.EXPENSE -> QuickEntryKind.EXPENSE
+    HomeQuickEntryType.INCOME -> QuickEntryKind.INCOME
+    HomeQuickEntryType.TRANSFER -> QuickEntryKind.TRANSFER
+    HomeQuickEntryType.CARD_PAYMENT -> QuickEntryKind.CARD_PAYMENT
 }
 
 private fun NavBackStack<NavKey>.pushIfNew(route: NavKey) {
