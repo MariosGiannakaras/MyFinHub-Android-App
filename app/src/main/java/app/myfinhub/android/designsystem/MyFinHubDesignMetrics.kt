@@ -18,6 +18,7 @@ object MyFinHubDesignMetrics {
 
     val cardContentPadding = 16.dp
     val cardBorderWidth = 1.dp
+    val cardElevation = 0.dp
     val rowHorizontalPadding = 16.dp
     val rowVerticalPadding = 12.dp
 
