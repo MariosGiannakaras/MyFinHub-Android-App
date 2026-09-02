@@ -15,7 +15,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -257,16 +256,8 @@ private fun FinanceProductSurface(
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
                     diagnostics = diagnostics,
+                    onLogout = onLogout,
                 )
-                Surface(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 8.dp),
-                    tonalElevation = 2.dp,
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                    TextButton(onClick = onLogout) {
-                        Text("Έξοδος")
-                    }
-                }
                 if (state.saving) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
