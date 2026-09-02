@@ -20,6 +20,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.VisualTransformation
 
 /**
  * Shared retained-product form geometry. These wrappers keep field height, shape, error semantics
@@ -35,6 +36,7 @@ fun MyFinHubOutlinedField(
     supportingText: String? = null,
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     singleLine: Boolean = true,
     prefix: (@Composable () -> Unit)? = null,
     suffix: (@Composable () -> Unit)? = null,
@@ -62,6 +64,7 @@ fun MyFinHubOutlinedField(
         },
         isError = errorMessage != null,
         keyboardOptions = keyboardOptions,
+        visualTransformation = visualTransformation,
         singleLine = singleLine,
         prefix = prefix,
         suffix = suffix,

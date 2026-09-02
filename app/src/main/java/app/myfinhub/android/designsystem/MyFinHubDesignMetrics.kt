@@ -23,6 +23,8 @@ object MyFinHubDesignMetrics {
     val rowVerticalPadding = 12.dp
 
     val brandMarkDefaultSize = 36.dp
+    val authBrandMarkSize = 40.dp
+    val authContentMaxWidth = 480.dp
     val iconBadgeSize = 40.dp
     val iconBadgeIconSize = 20.dp
     val standardIconSize = 20.dp
@@ -30,7 +32,7 @@ object MyFinHubDesignMetrics {
     val navigationIconSize = 24.dp
 
     // Material 3 baseline buttons are 40dp high; MyFinHub keeps primary finance actions visibly
-    // 48dp high so the visual affordance and the minimum touch target are the same size.
+    // 48dp high so the visible affordance and the minimum touch target are the same size.
     val primaryActionMinHeight = 48.dp
     val primaryActionHorizontalPadding = 20.dp
     val primaryActionVerticalPadding = 12.dp
@@ -47,4 +49,8 @@ object MyFinHubDesignMetrics {
     val navigationActiveIndicatorWidth = 64.dp
     val navigationActiveIndicatorHeight = 32.dp
     val navigationIndicatorLabelGap = 4.dp
+
+    // Scrollable phone content must be able to clear the bottom navigation and floating action.
+    val navigationContentBottomClearance = navigationBarHeight + 16.dp
+    val productSnackbarBottomClearance = navigationBarHeight + primaryActionMinHeight + 24.dp
 }
