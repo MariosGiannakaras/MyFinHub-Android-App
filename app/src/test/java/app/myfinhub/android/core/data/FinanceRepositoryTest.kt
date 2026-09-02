@@ -26,7 +26,7 @@ class FinanceRepositoryTest {
             load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
             save = { ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT) },
         )
-        val repository = FinanceRepository(api)
+        val repository = repository(api)
         repository.load(session)
 
         repository.save(session, document)
@@ -42,7 +42,7 @@ class FinanceRepositoryTest {
             load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
             save = { ApiResult.Success(CanonicalWriteReceipt("8", "saved-again")) },
         )
-        val repository = FinanceRepository(api)
+        val repository = repository(api)
         repository.load(session)
 
         repository.save(session, document)
@@ -55,30 +55,104 @@ class FinanceRepositoryTest {
 
     @Test
     fun unexpectedApiException_isContainedAsRetryableServerFailure() = runBlocking {
-        val repository = FinanceRepository(
-            FakeFinanceApi(
-                load = { error("synthetic transport bug") },
-                save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
-            ),
+        val api = FakeFinanceApi(
+            load = { error("synthetic transport bug") },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
         )
+        val repository = repository(api)
 
         repository.load(session)
 
         val state = repository.state.value as FinanceSyncState.Error
         assertEquals(ApiFailureKind.SERVER, state.failure.kind)
         assertTrue(state.failure.retryable)
+        assertEquals(2, api.loadCalls)
     }
+
+    @Test
+    fun transientReadFailure_retriesOnceAndRecovers() = runBlocking {
+        var first = true
+        val api = FakeFinanceApi(
+            load = {
+                if (first) {
+                    first = false
+                    ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true)
+                } else {
+                    ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved"))
+                }
+            },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+
+        repository.load(session)
+
+        assertTrue(repository.state.value is FinanceSyncState.Ready)
+        assertEquals(2, api.loadCalls)
+    }
+
+    @Test
+    fun writeTransportFailure_isNeverAutomaticallyRetried() = runBlocking {
+        val api = FakeFinanceApi(
+            load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
+            save = { ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true) },
+        )
+        val repository = repository(api)
+        repository.load(session)
+
+        repository.save(session, document)
+
+        val state = repository.state.value as FinanceSyncState.Error
+        assertEquals(ApiFailureKind.NETWORK, state.failure.kind)
+        assertEquals(1, api.saveCalls)
+    }
+
+    @Test
+    fun malformedCanonicalSuccess_isRejectedBeforeBecomingReady() = runBlocking {
+        val malformed = CanonicalFinanceDocument(
+            Json.parseToJsonElement(
+                """{"seed":{},"state":{"events":[{"id":"dup","date":"2026-09-01","amount":1},{"id":"dup","date":"2026-09-02","amount":2}]}}""",
+            ).jsonObject,
+        )
+        val api = FakeFinanceApi(
+            load = { ApiResult.Success(CanonicalFinanceEnvelope(malformed, "7", "saved")) },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+
+        repository.load(session)
+
+        val state = repository.state.value as FinanceSyncState.Error
+        assertEquals(ApiFailureKind.MALFORMED_RESPONSE, state.failure.kind)
+    }
+
+    private fun repository(api: FakeFinanceApi) = FinanceRepository(
+        api = api,
+        retryPolicy = FinanceRetryPolicy(maxReadAttempts = 2, readRetryDelayMillis = 0),
+        retryDelay = {},
+    )
 }
 
 private class FakeFinanceApi(
     private val load: suspend () -> ApiResult<CanonicalFinanceEnvelope>,
     private val save: suspend () -> ApiResult<CanonicalWriteReceipt>,
 ) : MyFinHubApi {
-    override suspend fun loadFinanceData(session: AuthSession) = load()
+    var loadCalls: Int = 0
+        private set
+    var saveCalls: Int = 0
+        private set
+
+    override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> {
+        loadCalls += 1
+        return load()
+    }
 
     override suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,
         expectedRevision: String,
-    ) = save()
+    ): ApiResult<CanonicalWriteReceipt> {
+        saveCalls += 1
+        return save()
+    }
 }
