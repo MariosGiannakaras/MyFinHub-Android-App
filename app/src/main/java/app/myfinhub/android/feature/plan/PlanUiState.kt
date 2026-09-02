@@ -12,8 +12,8 @@ data class PlannedItem(
     val dueLabel: String,
     val amount: Double,
     val kind: PlannedKind,
-    val category: String = "Γενικά",
-    val accountLabel: String = "Κύριος λογαριασμός",
+    val category: String = "",
+    val accountLabel: String = "",
     val note: String = "",
     val paused: Boolean = false,
 )
@@ -21,7 +21,7 @@ data class PlannedItem(
 enum class PlannedKind { RECURRING, SCHEDULED }
 
 data class BudgetDraft(
-    val monthlyLimitText: String = "900",
+    val monthlyLimitText: String = "",
     val alertThresholdText: String = "80",
 )
 
@@ -49,14 +49,15 @@ data class ForecastWindow(
     val balanceDeltaFromThirtyDays: Double,
 )
 
+/** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */
 data class PlanUiState(
-    val items: List<PlannedItem> = syntheticPlannedItems(),
+    val items: List<PlannedItem> = emptyList(),
     val budget: BudgetDraft = BudgetDraft(),
-    val categoryBudgets: List<CategoryBudget> = syntheticCategoryBudgets(),
-    val rules: List<PlanningRule> = syntheticPlanningRules(),
-    val forecastWindows: List<ForecastWindow> = syntheticForecastWindows(),
+    val categoryBudgets: List<CategoryBudget> = emptyList(),
+    val rules: List<PlanningRule> = emptyList(),
+    val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
-    val forecastEndBalance: Double = 1_620.0,
+    val forecastEndBalance: Double = 0.0,
     val message: String? = null,
     val itemMessage: String? = null,
     val categoryBudgetMessage: String? = null,
@@ -118,20 +119,20 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
                     dueLabel = action.dueLabel.trim(),
                     amount = action.amount,
                     kind = action.kind,
-                    category = action.category.trim().ifBlank { "Γενικά" },
-                    accountLabel = action.accountLabel.trim().ifBlank { "Κύριος λογαριασμός" },
+                    category = action.category.trim(),
+                    accountLabel = action.accountLabel.trim(),
                     note = action.note.trim(),
                 )
             }
         },
-        itemMessage = "Η υποχρέωση ενημερώθηκε.",
+        itemMessage = "Το τοπικό προσχέδιο της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
 
     is PlanAction.TogglePlannedItemPause -> state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) item.copy(paused = !item.paused) else item
         },
-        itemMessage = "Η κατάσταση της υποχρέωσης ενημερώθηκε.",
+        itemMessage = "Η τοπική κατάσταση της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
 
     is PlanAction.CategoryBudgetLimitChanged -> state.copy(
@@ -165,7 +166,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
         if (invalid != null) {
             state.copy(categoryBudgetMessage = "Έλεγξε το όριο και το ποσοστό ειδοποίησης για ${invalid.name}.")
         } else {
-            state.copy(categoryBudgetMessage = "Τα budgets ανά κατηγορία ενημερώθηκαν.")
+            state.copy(categoryBudgetMessage = "Τα τοπικά προσχέδια budgets ενημερώθηκαν. Δεν έχουν συγχρονιστεί.")
         }
     }
 
@@ -182,13 +183,24 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
 }
 
 class PlanViewModel : ViewModel() {
-    private val mutableState = MutableStateFlow(PlanUiState())
+    private val mutableState = MutableStateFlow(syntheticPlanUiState())
     val state: StateFlow<PlanUiState> = mutableState.asStateFlow()
 
     fun onAction(action: PlanAction) {
         mutableState.update { reducePlan(it, action) }
     }
 }
+
+/** Explicit preview/test fixture. Never use as a production-state default. */
+fun syntheticPlanUiState(): PlanUiState = PlanUiState(
+    items = syntheticPlannedItems(),
+    budget = BudgetDraft(monthlyLimitText = "900", alertThresholdText = "80"),
+    categoryBudgets = syntheticCategoryBudgets(),
+    rules = syntheticPlanningRules(),
+    forecastWindows = syntheticForecastWindows(),
+    forecastHorizonDays = 30,
+    forecastEndBalance = 1_620.0,
+)
 
 fun syntheticPlannedItems() = listOf(
     PlannedItem(
