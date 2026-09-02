@@ -6,6 +6,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.home.HomeAccount
+import app.myfinhub.android.feature.home.HomeAccountGroup
+import app.myfinhub.android.feature.home.HomeAttentionItem
+import app.myfinhub.android.feature.home.HomeAttentionTone
+import app.myfinhub.android.feature.home.HomeUpcomingItem
+import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.syntheticHomeUiState
 import com.android.tools.screenshot.PreviewTest
 
@@ -34,8 +40,60 @@ fun HomeCompactLargeFontScreenshot() {
     HomeAppScreenshotFixture()
 }
 
+@PreviewTest
+@Preview(
+    name = "home_edge_values_phone",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
 @Composable
-private fun HomeAppScreenshotFixture() {
+fun HomeEdgeValuesPhoneScreenshot() {
+    val base = syntheticHomeUiState()
+    HomeAppScreenshotFixture(
+        state = base.copy(
+            amountsVisible = true,
+            accounts = listOf(
+                HomeAccount(
+                    id = "edge-negative",
+                    name = "Κύριος λογαριασμός με πολύ μεγάλη περιγραφή για έλεγχο διάταξης",
+                    role = "Καθημερινές πληρωμές και πάγιες υποχρεώσεις",
+                    balance = -98_765_432.10,
+                    group = HomeAccountGroup.LIQUID,
+                ),
+                HomeAccount(
+                    id = "edge-large",
+                    name = "Μακροπρόθεσμη αποταμίευση έκτακτης ανάγκης",
+                    role = "Αποταμίευση",
+                    balance = 987_654_321.99,
+                    group = HomeAccountGroup.SAVINGS,
+                ),
+            ),
+            attentionItems = listOf(
+                HomeAttentionItem(
+                    id = "edge-attention",
+                    title = "Πολύ μεγάλη προγραμματισμένη υποχρέωση που χρειάζεται έλεγχο πριν ολοκληρωθεί",
+                    reason = "Η περιγραφή παραμένει σκόπιμα μεγάλη ώστε να ελεγχθεί η συμπεριφορά κειμένου στο S24 phone viewport.",
+                    dueLabel = "Καθυστερημένη",
+                    tone = HomeAttentionTone.URGENT,
+                ),
+            ),
+            upcomingItems = listOf(
+                HomeUpcomingItem(
+                    id = "edge-upcoming",
+                    title = "Επερχόμενη πληρωμή με ασυνήθιστα μεγάλο τίτλο",
+                    dateLabel = "30 Σεπ",
+                    amount = -12_345_678.90,
+                ),
+            ),
+        ),
+    )
+}
+
+@Composable
+private fun HomeAppScreenshotFixture(
+    state: HomeUiState = syntheticHomeUiState(),
+) {
     val navigationEventDispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
 
     CompositionLocalProvider(
@@ -43,7 +101,7 @@ private fun HomeAppScreenshotFixture() {
     ) {
         MyFinHubTheme(darkTheme = false) {
             MyFinHubAppContent(
-                homeState = syntheticHomeUiState(),
+                homeState = state,
                 onHomeAction = {},
             )
         }
