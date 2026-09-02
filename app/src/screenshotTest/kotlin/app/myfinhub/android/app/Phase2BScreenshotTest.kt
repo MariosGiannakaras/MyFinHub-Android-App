@@ -59,13 +59,19 @@ fun Phase2BActivityCompactLargeFontScreenshot() {
 )
 @Composable
 fun Phase2BQuickEntryCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        QuickEntryScreen(
-            state = QuickEntryUiState(dateText = "2026-09-02"),
-            onAction = {},
-            onBack = {},
-        )
-    }
+    QuickEntryScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
+    name = "phase2b_quick_entry_compact_dark",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun Phase2BQuickEntryCompactDarkScreenshot() {
+    QuickEntryScreenshotFixture(darkTheme = true)
 }
 
 @PreviewTest
@@ -100,6 +106,17 @@ fun Phase2BQuickEntrySplitCompactLightScreenshot() {
                     ),
                 ),
             ),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Composable
+private fun QuickEntryScreenshotFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        QuickEntryScreen(
+            state = QuickEntryUiState(dateText = "2026-09-02"),
             onAction = {},
             onBack = {},
         )

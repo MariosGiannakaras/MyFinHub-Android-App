@@ -14,7 +14,7 @@ data class PrivacySafeHistoryEntry(
 
 data class FrontendUtilitiesUiState(
     val settings: FrontendSettings = FrontendSettings(),
-    val history: List<PrivacySafeHistoryEntry> = syntheticPrivacySafeHistory(),
+    val history: List<PrivacySafeHistoryEntry> = emptyList(),
     val historyCursor: Int = history.size,
 )
 
@@ -47,6 +47,10 @@ fun reduceFrontendUtilities(
     )
 }
 
+/**
+ * Synthetic history is retained for previews/tests only. Production-facing state starts empty so
+ * generated examples can never be mistaken for the user's real audit/change history.
+ */
 fun syntheticPrivacySafeHistory(): List<PrivacySafeHistoryEntry> = listOf(
     PrivacySafeHistoryEntry("history-1", "Ενημέρωση κατηγορίας", "Πριν από λίγο"),
     PrivacySafeHistoryEntry("history-2", "Αλλαγή προγραμματισμένης υποχρέωσης", "Σήμερα"),

@@ -15,7 +15,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,10 +37,10 @@ import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
-import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import app.myfinhub.android.feature.money.CardSecretViewModel
-import kotlinx.coroutines.flow.collect
+import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import java.net.URI
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
 
 /**
@@ -257,16 +256,9 @@ private fun FinanceProductSurface(
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
                     diagnostics = diagnostics,
+                    onLogout = onLogout,
+                    canonicalProductMode = true,
                 )
-                Surface(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 8.dp),
-                    tonalElevation = 2.dp,
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                    TextButton(onClick = onLogout) {
-                        Text("Έξοδος")
-                    }
-                }
                 if (state.saving) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
@@ -274,6 +266,11 @@ private fun FinanceProductSurface(
                 }
             }
             state.issue?.let { issue ->
+                val retryLabel = when (issue.kind) {
+                    FinanceSyncIssueKind.REVISION_CONFLICT -> "Φόρτωση νεότερων και επανάληψη"
+                    FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Δοκιμή ξανά"
+                    FinanceSyncIssueKind.SAVE_FAILED -> "Επανάληψη αποθήκευσης"
+                }
                 AlertDialog(
                     onDismissRequest = {},
                     title = {
@@ -288,7 +285,7 @@ private fun FinanceProductSurface(
                     text = { Text(issue.message) },
                     confirmButton = {
                         Button(onClick = onRetryMutation) {
-                            Text("Επανάληψη στα νεότερα δεδομένα")
+                            Text(retryLabel)
                         }
                     },
                     dismissButton = {

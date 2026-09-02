@@ -26,6 +26,18 @@ fun HomeCompactLightScreenshot() {
 
 @PreviewTest
 @Preview(
+    name = "home_compact_dark",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun HomeCompactDarkScreenshot() {
+    HomeAppScreenshotFixture(darkTheme = true)
+}
+
+@PreviewTest
+@Preview(
     name = "home_compact_large_font",
     widthDp = 412,
     heightDp = 915,
@@ -76,13 +88,14 @@ fun HomeEdgeValuesPhoneScreenshot() {
 @Composable
 private fun HomeAppScreenshotFixture(
     state: HomeUiState = syntheticHomeUiState(),
+    darkTheme: Boolean = false,
 ) {
     val navigationEventDispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
 
     CompositionLocalProvider(
         LocalNavigationEventDispatcherOwner provides navigationEventDispatcherOwner,
     ) {
-        MyFinHubTheme(darkTheme = false) {
+        MyFinHubTheme(darkTheme = darkTheme) {
             MyFinHubAppContent(
                 homeState = state,
                 onHomeAction = {},

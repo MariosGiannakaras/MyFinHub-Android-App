@@ -22,7 +22,7 @@ class MoneyReducerTest {
     }
 
     @Test
-    fun validSavingsTarget_isAccepted() {
+    fun validSavingsTarget_isAcceptedAsLocalDraft() {
         val state = MoneyUiState(
             savingsPlan = SavingsPlan(
                 targetAmountText = "7500,50",
@@ -33,7 +33,10 @@ class MoneyReducerTest {
 
         val result = reduceMoney(state, MoneyAction.SaveSavingsDraft)
 
-        assertTrue(result.frontendMessage.orEmpty().contains("αποθηκεύτηκαν"))
+        assertEquals(
+            "Το τοπικό προσχέδιο ενημερώθηκε. Δεν έχει συγχρονιστεί με τον λογαριασμό.",
+            result.frontendMessage,
+        )
     }
 
     @Test
@@ -88,7 +91,7 @@ class MoneyReducerTest {
 
     @Test
     fun loanPauseToggle_isStableById() {
-        val state = MoneyUiState()
+        val state = MoneyUiState(loans = syntheticLoans())
         val targetId = state.loans.first().id
 
         val paused = reduceMoney(state, MoneyAction.ToggleLoanPause(targetId))

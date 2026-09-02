@@ -37,7 +37,8 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Τι θέλεις να καταχωρίσεις;").assertIsDisplayed()
         composeRule.onNodeWithText("Τύπος κίνησης").assertIsDisplayed()
-        composeRule.onNodeWithText("Ημερομηνία · YYYY-MM-DD").assertIsDisplayed()
+        composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
+        composeRule.onNodeWithText("YYYY-MM-DD").assertIsDisplayed()
 
         composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.onNodeWithText("Μεταφορά").performClick()

@@ -16,7 +16,7 @@ import com.android.tools.screenshot.PreviewTest
 fun PlanOverviewCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Plan2026Screen(
-            state = PlanUiState(),
+            state = syntheticPlanUiState(),
             onAction = {},
             onOpenItem = {},
             onOpenBudgets = {},
@@ -36,7 +36,7 @@ fun PlanOverviewCompactLightScreenshot() {
 fun PlanOverviewCompactLargeFontScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         Plan2026Screen(
-            state = PlanUiState(),
+            state = syntheticPlanUiState(),
             onAction = {},
             onOpenItem = {},
             onOpenBudgets = {},
@@ -73,7 +73,7 @@ fun PlanItemEditorCompactLightScreenshot() {
 fun PlanBudgetsCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         PlanBudgets2026Screen(
-            state = PlanUiState(),
+            state = syntheticPlanUiState(),
             onAction = {},
             onBack = {},
         )

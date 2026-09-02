@@ -17,7 +17,7 @@ class HomeScreenTest {
     val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
-    fun home_showsDecisionRelevantSections_andSupportsQuickEntry() {
+    fun home_showsDecisionRelevantSections_andQuickEntryCompletesNavigation() {
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
         composeRule.onNodeWithText("Εμφάνιση ποσών").performClick()
@@ -52,8 +52,14 @@ class HomeScreenTest {
             composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         }
         composeRule.onNodeWithText("Έξοδο").assertIsDisplayed().performClick()
-        // Existence proves the state transition without requiring the confirmation marker to be
-        // inside the current viewport on every supported screen/font configuration.
-        composeRule.onNodeWithText("Επιλέχθηκε: Έξοδο").fetchSemanticsNode()
+
+        // Selecting a type must enter the real canonical transaction form instead of stopping on
+        // a selected-state marker inside the Home sheet.
+        composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        composeRule.onNodeWithText("Πλήρης καταχώριση").assertIsDisplayed()
+        composeRule.onNodeWithText("Πλήρωσα για κάτι").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση κίνησης")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 }

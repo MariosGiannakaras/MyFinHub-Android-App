@@ -16,7 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -27,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -52,7 +55,7 @@ fun HomeScreen(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    onOpenChangeHistory: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onOpenChangeHistory: () -> Unit = {},
 ) {
     if (state.quickEntryOpen) {
         QuickEntrySheet(
@@ -64,6 +67,7 @@ fun HomeScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val expanded = maxWidth >= 840.dp
+        val largeFont = LocalDensity.current.fontScale >= 1.3f
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
@@ -71,14 +75,30 @@ fun HomeScreen(
                     title = "MyFinHub",
                     subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
                     navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
+                    trailing = {
+                        TextButton(onClick = onOpenSettings) {
+                            Text("Ρυθμίσεις")
+                        }
+                    },
                 )
             },
             floatingActionButton = {
                 if (!expanded) {
-                    MyFinHubPrimaryAction(
-                        label = "Νέα κίνηση",
-                        onClick = { onAction(HomeAction.OpenQuickEntry) },
-                    )
+                    if (largeFont) {
+                        FloatingActionButton(
+                            onClick = { onAction(HomeAction.OpenQuickEntry) },
+                        ) {
+                            Icon(
+                                imageVector = MyFinHubIcons.Add,
+                                contentDescription = "Νέα κίνηση",
+                            )
+                        }
+                    } else {
+                        MyFinHubPrimaryAction(
+                            label = "Νέα κίνηση",
+                            onClick = { onAction(HomeAction.OpenQuickEntry) },
+                        )
+                    }
                 }
             },
         ) { innerPadding ->
@@ -87,8 +107,6 @@ fun HomeScreen(
                     state = state,
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
-                    onOpenSettings = onOpenSettings,
-                    onOpenChangeHistory = onOpenChangeHistory,
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             } else {
@@ -96,8 +114,6 @@ fun HomeScreen(
                     state = state,
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
-                    onOpenSettings = onOpenSettings,
-                    onOpenChangeHistory = onOpenChangeHistory,
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             }
@@ -110,8 +126,6 @@ private fun HomeCompactContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -126,12 +140,9 @@ private fun HomeCompactContent(
     ) {
         item { HomeHeading() }
         item { PositionCard(state, { onAction(HomeAction.ToggleAmounts) }) }
-        item { AccountsCard(state) }
         item { AttentionCard(state.attentionItems, onOpenAttention) }
         item { UpcomingCard(state.upcomingItems, state.amountsVisible) }
-        item { QuickEntryCard { onAction(HomeAction.OpenQuickEntry) } }
         item { MonthFlowCard(state.monthFlow, state.amountsVisible) }
-        item { UtilitiesCard(onOpenSettings, onOpenChangeHistory) }
     }
 }
 
@@ -140,8 +151,6 @@ private fun HomeExpandedContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -165,7 +174,6 @@ private fun HomeExpandedContent(
             AttentionCard(state.attentionItems, onOpenAttention)
             UpcomingCard(state.upcomingItems, state.amountsVisible)
             QuickEntryCard { onAction(HomeAction.OpenQuickEntry) }
-            UtilitiesCard(onOpenSettings, onOpenChangeHistory)
             Spacer(Modifier.height(88.dp))
         }
     }
@@ -326,21 +334,6 @@ private fun QuickEntryCard(onOpen: () -> Unit) {
 }
 
 @Composable
-private fun UtilitiesCard(
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
-) {
-    SectionCard("Ρυθμίσεις", "Προτιμήσεις και ασφαλές ιστορικό") {
-        OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-            Text("Ρυθμίσεις")
-        }
-        OutlinedButton(onClick = onOpenChangeHistory, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-            Text("Ιστορικό αλλαγών")
-        }
-    }
-}
-
-@Composable
 private fun MonthFlowCard(flow: HomeMonthFlow, amountsVisible: Boolean) {
     SectionCard("Αυτόν τον μήνα", "Η ροή με μια ματιά") {
         FlowMetric("Έσοδα", displayAmount(flow.income, amountsVisible), FinanceTone.Income, MyFinHubIcons.Income)
@@ -406,7 +399,10 @@ private fun QuickEntrySheet(
     onSelect: (HomeQuickEntryType) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        dragHandle = null,
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
                 start = MyFinHubSpacing.lg,

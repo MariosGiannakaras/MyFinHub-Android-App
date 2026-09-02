@@ -21,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
@@ -36,6 +38,7 @@ fun SettingsScreen(
     onAction: (FrontendUtilitiesAction) -> Unit,
     onBack: () -> Unit,
     diagnostics: AppDiagnosticsSnapshot? = null,
+    onLogout: (() -> Unit)? = null,
 ) {
     UtilityScaffold(
         title = "Ρυθμίσεις",
@@ -82,6 +85,29 @@ fun SettingsScreen(
                 onAction = onAction,
             )
             diagnostics?.let { DiagnosticsCard(it) }
+            onLogout?.let { logout ->
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(
+                            "Λογαριασμός",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            "Η αποσύνδεση κλείνει την ενεργή συνεδρία. Τα αποθηκευμένα οικονομικά δεδομένα παραμένουν στον λογαριασμό σου.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        OutlinedButton(
+                            onClick = logout,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Text("Αποσύνδεση")
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -124,7 +150,13 @@ private fun SettingsCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(checked = row.checked, onCheckedChange = { onAction(row.action) })
+                    Switch(
+                        checked = row.checked,
+                        onCheckedChange = { onAction(row.action) },
+                        modifier = Modifier.semantics {
+                            contentDescription = row.title
+                        },
+                    )
                 }
                 if (index != rows.lastIndex) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -176,7 +208,7 @@ fun ChangeHistoryScreen(
 ) {
     UtilityScaffold(
         title = "Ιστορικό αλλαγών",
-        subtitle = "Αναίρεση & επανάληψη",
+        subtitle = "Ασφαλές ιστορικό",
         onBack = onBack,
     ) { modifier ->
         Column(
@@ -188,57 +220,84 @@ fun ChangeHistoryScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                OutlinedButton(
-                    onClick = { onAction(FrontendUtilitiesAction.Undo) },
-                    enabled = state.historyCursor > 0,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                    Text("Αναίρεση")
+            if (state.history.isEmpty()) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(
+                            "Δεν υπάρχει διαθέσιμο ιστορικό αλλαγών",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            "Η εφαρμογή δεν εμφανίζει δοκιμαστικές εγγραφές ως πραγματικό ιστορικό. Οι ενέργειες αναίρεσης και επανάληψης θα εμφανιστούν μόνο όταν υπάρχει πραγματική, υποστηριζόμενη ακολουθία αλλαγών.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-                OutlinedButton(
-                    onClick = { onAction(FrontendUtilitiesAction.Redo) },
-                    enabled = state.historyCursor < state.history.size,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium,
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                 ) {
-                    Text("Επανάληψη")
+                    OutlinedButton(
+                        onClick = { onAction(FrontendUtilitiesAction.Undo) },
+                        enabled = state.historyCursor > 0,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Text("Αναίρεση")
+                    }
+                    OutlinedButton(
+                        onClick = { onAction(FrontendUtilitiesAction.Redo) },
+                        enabled = state.historyCursor < state.history.size,
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Text("Επανάληψη")
+                    }
                 }
-            }
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    state.history.forEachIndexed { index, entry ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            MyFinHubIconBadge(
-                                icon = MyFinHubIcons.Activity,
-                                tone = if (index < state.historyCursor) FinanceTone.Savings else FinanceTone.Neutral,
-                                contentDescription = null,
-                            )
-                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(entry.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                                Text(
-                                    "${entry.timeLabel} · ${if (index < state.historyCursor) "Εφαρμοσμένη" else "Αναιρεμένη"}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        state.history.forEachIndexed { index, entry ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                MyFinHubIconBadge(
+                                    icon = MyFinHubIcons.Activity,
+                                    tone = if (index < state.historyCursor) FinanceTone.Savings else FinanceTone.Neutral,
+                                    contentDescription = null,
                                 )
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                ) {
+                                    Text(
+                                        entry.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Text(
+                                        "${entry.timeLabel} · ${if (index < state.historyCursor) "Εφαρμοσμένη" else "Αναιρεμένη"}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
-                        }
-                        if (index != state.history.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            if (index != state.history.lastIndex) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            }
                         }
                     }
                 }
+                Text(
+                    "${state.historyCursor} από ${state.history.size} αλλαγές εφαρμοσμένες",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
-            Text(
-                "${state.historyCursor} από ${state.history.size} αλλαγές εφαρμοσμένες",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
             Spacer(Modifier.height(MyFinHubSpacing.xs))
         }
     }

@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,19 +25,29 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @Composable
 fun QuickEntryScreen(
@@ -44,6 +58,51 @@ fun QuickEntryScreen(
     var discardDialogOpen by remember { mutableStateOf(false) }
     val requestBack = {
         if (state.dirty && !state.persisted) discardDialogOpen = true else onBack()
+    }
+    val validationMessage = state.validationMessage
+    val amountError = validationMessage == "Βάλε ποσό μεγαλύτερο από μηδέν."
+    val dateError = validationMessage == "Συμπλήρωσε έγκυρη ημερομηνία."
+    val accountError = validationMessage == "Διάλεξε διαθέσιμο λογαριασμό."
+    val fromAccountError = validationMessage == "Διάλεξε λογαριασμό προέλευσης."
+    val toAccountError = validationMessage == "Διάλεξε λογαριασμό προορισμού." ||
+        validationMessage == "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." ||
+        validationMessage == "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." ||
+        validationMessage == "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης."
+    val cardError = validationMessage == "Διάλεξε ενεργή πιστωτική κάρτα."
+    val categoryError = validationMessage == "Διάλεξε διαθέσιμη κατηγορία."
+    val subcategoryError = validationMessage == "Διάλεξε διαθέσιμη υποκατηγορία."
+    val personError = validationMessage == "Συμπλήρωσε το πρόσωπο για τα δανεικά."
+    val expectedDateError = validationMessage == "Η αναμενόμενη επιστροφή δεν είναι έγκυρη." ||
+        validationMessage == "Η αναμενόμενη επιστροφή δεν μπορεί να είναι πριν από την ημερομηνία κίνησης."
+    val actualBalanceError = validationMessage == "Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο."
+
+    val amountFocus = remember { FocusRequester() }
+    val dateFocus = remember { FocusRequester() }
+    val accountFocus = remember { FocusRequester() }
+    val fromAccountFocus = remember { FocusRequester() }
+    val toAccountFocus = remember { FocusRequester() }
+    val cardFocus = remember { FocusRequester() }
+    val categoryFocus = remember { FocusRequester() }
+    val subcategoryFocus = remember { FocusRequester() }
+    val personFocus = remember { FocusRequester() }
+    val expectedDateFocus = remember { FocusRequester() }
+    val actualBalanceFocus = remember { FocusRequester() }
+
+    LaunchedEffect(validationMessage) {
+        when {
+            amountError -> amountFocus
+            dateError -> dateFocus
+            accountError -> accountFocus
+            fromAccountError -> fromAccountFocus
+            toAccountError -> toAccountFocus
+            cardError -> cardFocus
+            categoryError -> categoryFocus
+            subcategoryError -> subcategoryFocus
+            personError -> personFocus
+            expectedDateError -> expectedDateFocus
+            actualBalanceError -> actualBalanceFocus
+            else -> null
+        }?.requestFocus()
     }
 
     Scaffold(
@@ -96,21 +155,30 @@ fun QuickEntryScreen(
                         OutlinedTextField(
                             value = state.amountText,
                             onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
                             label = { Text("Ποσό") },
                             suffix = { Text("€") },
+                            supportingText = if (amountError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = amountError,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
                     }
 
-                    OutlinedTextField(
+                    DateEntryField(
                         value = state.dateText,
                         onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Ημερομηνία · YYYY-MM-DD") },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.medium,
+                        label = "Ημερομηνία",
+                        errorMessage = validationMessage.takeIf { dateError },
+                        modifier = Modifier.focusRequester(dateFocus),
                     )
 
                     if (state.kind.needsPrimaryAccount) {
@@ -119,6 +187,8 @@ fun QuickEntryScreen(
                             selectedId = state.accountId,
                             choices = state.accounts.map { it.id to it.label },
                             onSelected = { onAction(QuickEntryAction.AccountChanged(it)) },
+                            errorMessage = validationMessage.takeIf { accountError },
+                            modifier = Modifier.focusRequester(accountFocus),
                         )
                     }
 
@@ -128,6 +198,8 @@ fun QuickEntryScreen(
                             selectedId = state.fromAccountId,
                             choices = state.accounts.map { it.id to it.label },
                             onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
+                            errorMessage = validationMessage.takeIf { fromAccountError },
+                            modifier = Modifier.focusRequester(fromAccountFocus),
                         )
                     }
 
@@ -138,6 +210,8 @@ fun QuickEntryScreen(
                             selectedId = state.toAccountId,
                             choices = destinations.map { it.id to it.label },
                             onSelected = { onAction(QuickEntryAction.ToAccountChanged(it)) },
+                            errorMessage = validationMessage.takeIf { toAccountError },
+                            modifier = Modifier.focusRequester(toAccountFocus),
                         )
                         TransactionSemanticsHint(state.kind)
                     }
@@ -148,6 +222,8 @@ fun QuickEntryScreen(
                             selectedId = state.cardId,
                             choices = state.creditCards.map { it.id to it.label },
                             onSelected = { onAction(QuickEntryAction.CardChanged(it)) },
+                            errorMessage = validationMessage.takeIf { cardError },
+                            modifier = Modifier.focusRequester(cardFocus),
                         )
                         if (state.creditCards.isEmpty()) {
                             Text(
@@ -164,6 +240,8 @@ fun QuickEntryScreen(
                             selectedId = state.category,
                             choices = state.activeCategoryOptions.map { it.name to it.name },
                             onSelected = { onAction(QuickEntryAction.CategoryChanged(it)) },
+                            errorMessage = validationMessage.takeIf { categoryError },
+                            modifier = Modifier.focusRequester(categoryFocus),
                         )
                         if (state.activeSubcategoryOptions.isNotEmpty()) {
                             SelectionField(
@@ -172,6 +250,8 @@ fun QuickEntryScreen(
                                 choices = listOf("" to "Χωρίς υποκατηγορία") +
                                     state.activeSubcategoryOptions.map { it to it },
                                 onSelected = { onAction(QuickEntryAction.SubcategoryChanged(it)) },
+                                errorMessage = validationMessage.takeIf { subcategoryError },
+                                modifier = Modifier.focusRequester(subcategoryFocus),
                             )
                         }
                     }
@@ -180,21 +260,30 @@ fun QuickEntryScreen(
                         OutlinedTextField(
                             value = state.person,
                             onValueChange = { onAction(QuickEntryAction.PersonChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().focusRequester(personFocus),
                             label = { Text("Πρόσωπο") },
+                            supportingText = if (personError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = personError,
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Words,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
                     }
                     if (state.kind == QuickEntryKind.LENDING) {
-                        OutlinedTextField(
+                        DateEntryField(
                             value = state.expectedReturnDateText,
                             onValueChange = { onAction(QuickEntryAction.ExpectedReturnDateChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Αναμενόμενη επιστροφή · προαιρετική") },
-                            supportingText = { Text("YYYY-MM-DD") },
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
+                            label = "Αναμενόμενη επιστροφή · προαιρετική",
+                            errorMessage = validationMessage.takeIf { expectedDateError },
+                            modifier = Modifier.focusRequester(expectedDateFocus),
+                            optional = true,
                         )
                     }
 
@@ -202,9 +291,19 @@ fun QuickEntryScreen(
                         OutlinedTextField(
                             value = state.actualBalanceText,
                             onValueChange = { onAction(QuickEntryAction.ActualBalanceChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().focusRequester(actualBalanceFocus),
                             label = { Text("Πραγματικό υπόλοιπο") },
                             suffix = { Text("€") },
+                            supportingText = if (actualBalanceError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = actualBalanceError,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
@@ -244,11 +343,12 @@ fun QuickEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Περιγραφή · προαιρετική") },
                     supportingText = { Text("Αν μείνει κενή, χρησιμοποιείται το όνομα του τύπου κίνησης.") },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     shape = MaterialTheme.shapes.medium,
                 )
             }
 
-            state.validationMessage?.let { message ->
+            validationMessage?.takeUnless(::isInlineFieldValidation)?.let { message ->
                 Text(message, color = MaterialTheme.colorScheme.error)
             }
             state.savedSummary?.let { summary ->
@@ -303,6 +403,70 @@ fun QuickEntryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DateEntryField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    errorMessage: String?,
+    modifier: Modifier = Modifier,
+    optional: Boolean = false,
+) {
+    var pickerOpen by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.fillMaxWidth(),
+        label = { Text(label) },
+        supportingText = {
+            Text(errorMessage ?: if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD")
+        },
+        trailingIcon = {
+            IconButton(onClick = { pickerOpen = true }) {
+                Icon(MyFinHubIcons.Plan, contentDescription = "Επιλογή ημερομηνίας")
+            }
+        },
+        isError = errorMessage != null,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Ascii,
+            imeAction = ImeAction.Next,
+        ),
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium,
+    )
+
+    if (pickerOpen) {
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = value.toDatePickerMillis(),
+        )
+        DatePickerDialog(
+            onDismissRequest = { pickerOpen = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { millis ->
+                            onValueChange(millis.toDateText())
+                        }
+                        pickerOpen = false
+                    },
+                    enabled = pickerState.selectedDateMillis != null,
+                ) {
+                    Text("Επιλογή")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickerOpen = false }) {
+                    Text("Ακύρωση")
+                }
+            },
+        ) {
+            DatePicker(state = pickerState)
+        }
+    }
+}
+
 @Composable
 private fun SplitEditor(
     state: QuickEntryUiState,
@@ -318,6 +482,8 @@ private fun SplitEditor(
             )
 
             state.splitParts.forEachIndexed { index, part ->
+                val splitAmountError = state.validationMessage ==
+                    "Το ποσό στο μέρος ${index + 1} πρέπει να είναι θετικό."
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -341,6 +507,16 @@ private fun SplitEditor(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Ποσό μέρους ${index + 1}") },
                         suffix = { Text("€") },
+                        supportingText = if (splitAmountError) {
+                            { Text(state.validationMessage.orEmpty()) }
+                        } else {
+                            null
+                        },
+                        isError = splitAmountError,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Next,
+                        ),
                         singleLine = true,
                     )
                     SelectionField(
@@ -367,6 +543,10 @@ private fun SplitEditor(
                         onValueChange = { onAction(QuickEntryAction.SplitPartLabelChanged(part.id, it)) },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Ετικέτα μέρους · προαιρετική") },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Next,
+                        ),
                         singleLine = true,
                     )
                 }
@@ -394,6 +574,8 @@ private fun SelectionField(
     selectedId: String,
     choices: List<Pair<String, String>>,
     onSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    errorMessage: String? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second.orEmpty()
@@ -402,7 +584,7 @@ private fun SelectionField(
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = { if (choices.isNotEmpty()) expanded = true },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth(),
                 enabled = choices.isNotEmpty(),
                 shape = MaterialTheme.shapes.medium,
             ) {
@@ -423,6 +605,13 @@ private fun SelectionField(
                 }
             }
         }
+        errorMessage?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
     }
 }
 
@@ -441,6 +630,26 @@ private fun TransactionSemanticsHint(kind: QuickEntryKind) {
     )
 }
 
+private fun isInlineFieldValidation(message: String): Boolean = when {
+    message == "Βάλε ποσό μεγαλύτερο από μηδέν." -> true
+    message == "Συμπλήρωσε έγκυρη ημερομηνία." -> true
+    message == "Διάλεξε διαθέσιμο λογαριασμό." -> true
+    message == "Διάλεξε λογαριασμό προέλευσης." -> true
+    message == "Διάλεξε λογαριασμό προορισμού." -> true
+    message == "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." -> true
+    message == "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." -> true
+    message == "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης." -> true
+    message == "Διάλεξε ενεργή πιστωτική κάρτα." -> true
+    message == "Διάλεξε διαθέσιμη κατηγορία." -> true
+    message == "Διάλεξε διαθέσιμη υποκατηγορία." -> true
+    message == "Συμπλήρωσε το πρόσωπο για τα δανεικά." -> true
+    message == "Η αναμενόμενη επιστροφή δεν είναι έγκυρη." -> true
+    message == "Η αναμενόμενη επιστροφή δεν μπορεί να είναι πριν από την ημερομηνία κίνησης." -> true
+    message == "Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο." -> true
+    message.startsWith("Το ποσό στο μέρος ") -> true
+    else -> false
+}
+
 private fun destinationOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> {
     val filtered = when (state.kind) {
         QuickEntryKind.WITHDRAWAL -> state.accounts.filter { it.kind == "cash" }
@@ -456,6 +665,15 @@ private fun primaryAccountLabel(kind: QuickEntryKind): String = when (kind) {
     QuickEntryKind.SPLIT -> "Λογαριασμός πληρωμής"
     else -> "Λογαριασμός"
 }
+
+private fun String.toDatePickerMillis(): Long? = runCatching {
+    LocalDate.parse(this).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+}.getOrNull()
+
+private fun Long.toDateText(): String = Instant.ofEpochMilli(this)
+    .atZone(ZoneOffset.UTC)
+    .toLocalDate()
+    .toString()
 
 private fun formatSplitTotal(value: Double): String = if (value % 1.0 == 0.0) {
     value.toLong().toString()
