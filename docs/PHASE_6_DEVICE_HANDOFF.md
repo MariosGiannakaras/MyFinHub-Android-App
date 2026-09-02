@@ -14,10 +14,12 @@ Before connecting the phone:
 2. Use JDK 17.
 3. Use the repository Gradle wrapper (Gradle 9.7.0) and Android Gradle Plugin 9.3.0.
 4. Provision Android SDK compileSdk 37; the app targets SDK 36 and minSdk 26.
-5. Confirm a clean clone passes the normal non-device verification path:
+5. Confirm a clean clone passes the normal non-device verification path. The one-command Gradle validation path is:
+   - `./gradlew :benchmark:assembleBenchmark test lint assembleDebug assembleDebugAndroidTest assembleRelease analyzeReleaseR8Config`
+   The equivalent split commands are:
    - `./gradlew test lint assembleDebug`
    - `./gradlew :benchmark:assembleBenchmark`
-   - `./gradlew assembleRelease analyzeReleaseR8Config`
+   - `./gradlew assembleDebugAndroidTest assembleRelease analyzeReleaseR8Config`
 6. Confirm the normal CI release-manifest and unsigned-APK policy audit is green.
 7. Do not place service-role keys, vault keys, signing passwords, keystores, real finance exports or other server/private secrets in the repository or APK.
 
