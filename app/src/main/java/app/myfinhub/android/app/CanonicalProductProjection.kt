@@ -141,17 +141,13 @@ fun projectCanonicalProduct(
         items = activityItems,
     )
 
-    val defaultExpenseAccount = document.settingsObject().string("defaultExpenseAccount")
-        ?.takeIf(accountNames::containsKey)
-        ?: accounts.firstOrNull { it.kind != "credit" }?.id.orEmpty()
-    val destination = accounts.firstOrNull { it.kind == "savings" && it.id != defaultExpenseAccount }
-        ?: accounts.firstOrNull { it.kind != "credit" && it.id != defaultExpenseAccount }
-    val quickEntry = previous?.quickEntryState ?: QuickEntryUiState(
-        fromAccount = accountNames[defaultExpenseAccount].orEmpty(),
-        destination = destination?.name.orEmpty(),
-    )
+    val quickEntry = projectQuickEntryState(
+    document = document,
+    today = today,
+    previous = previous?.quickEntryState,
+)
 
-    val activeCards = document.canonicalCards().filter { it.active }
+val activeCards = document.canonicalCards().filter { it.active }
     val bankIdsByCard = document.cards().associate { it.id to it.bankId }
     val activeCreditCards = activeCards.filter { it.kind == "credit" }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
