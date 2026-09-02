@@ -140,6 +140,27 @@ Draft PR #45 was closed without code changes only because the connected GitHub M
 - [x] Zero unresolved review threads and zero hosted implementation blockers at merge.
 - [x] Keep production Auth/API, Samsung-specific rendering/performance and signing/release exclusively in Phase 6.
 
+## Design System & Pixel-Spec hardening — completed and merged
+
+Tracker #47 is completed/closed. PR #48 was validated on the exact accepted implementation/reference head and squash-merged into `develop`.
+
+- [x] Audit and document spacing, typography, shape roles, borders, icon sizes and interactive touch targets.
+- [x] Add executable MyFinHub geometry, typography and shape contracts.
+- [x] Audit light/dark semantic finance contrast and enforce documented text/graphics thresholds with tests.
+- [x] Define explicit component contracts for actions, icon buttons, form fields/selectors, cards/rows, headers, navigation, FAB, sheets/dialogs/snackbars and switches, with intentional Material 3 inheritance recorded where applicable.
+- [x] Replace product-owned ad-hoc control dimensions and repeated navigation/action clearances with shared MyFinHub metrics/relationships.
+- [x] Migrate Quick Entry, Activity detail, canonical Plan budgets, Settings/History, Home quick-entry controls and Auth Login/TOTP/PIN/biometric fallback to shared controls where appropriate.
+- [x] Align the production secure Card Detail/CVV surface with shared pixel-spec controls while preserving owner+AAL2, secure-window and device-local vault boundaries.
+- [x] Complete compact screen-rhythm cleanup for Home/Activity/system states without changing finance behavior.
+- [x] Preserve truthful production content and remove obsolete synthetic-facing Insights wording.
+- [x] Render and personally inspect the final real Compose candidate set.
+- [x] Accept 41 canonical references, including sanitized Card Detail hidden light/dark and 150%-font revealed states with no reusable PAN/CVV secret.
+- [x] Final screenshot regression passes with candidate regeneration skipped.
+- [x] Final representative S24-target instrumentation passes the interaction/accessibility suite.
+- [x] Final normal Android CI passes benchmark/Baseline Profile tooling, unit/instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-policy audit.
+- [x] Zero unresolved review threads at merge.
+- [x] No production signing key, signed APK or release created; physical Samsung acceptance remains Phase 6.
+
 ## Phase 6 — physical-device / production / signing handoff
 
 Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative.
