@@ -87,9 +87,9 @@ Tracker #39 is complete. Draft PR #40 was closed only because the connector coul
 
 The additional privacy/security audit proposal (clipboard/recent-app/accessibility-secret audit package) is intentionally **not** implemented in this workstream, per product-owner instruction.
 
-## Full transaction entry parity — implementation complete
+## Full transaction entry parity — completed and merged
 
-Tracker: issue #42. Integration state: PR #43 until merged; do not infer PR state from this file.
+Tracker #42 is completed/closed. Draft PR #43 was closed without code changes only because the connector's Mark-ready GraphQL operation failed; ready PR #44 used the exact same validated branch/head and was squash-merged into `develop`.
 
 - [x] Replace the four-kind Quick Entry prototype with all 12 retained canonical transaction kinds.
 - [x] Use a native mobile type-first flow with dynamic fields instead of copying the desktop layout.
@@ -110,8 +110,11 @@ Tracker: issue #42. Integration state: PR #43 until merged; do not infer PR stat
 - [x] Add representative compact-device instrumentation for full navigation, dynamic fields, scrollable split editing and dirty-draft discard behavior.
 - [x] Render real Compose candidates for the changed transaction form and new split form, personally inspect them, and accept only the clean references.
 - [x] Confirm the later debt-validation source state renders pixel-identical accepted transaction-entry candidates before canonicalizing them.
+- [x] Exact final Android CI, canonical screenshot regression and representative S24-target instrumentation green.
+- [x] Zero unresolved review threads and zero supported-device implementation blockers at merge.
 - [x] Keep the S24 Ultra as the sole supported target and leave physical Samsung-specific acceptance to Phase 6.
 - [x] Keep release/signing and the explicitly excluded additional privacy/security audit out of this workstream.
+- [x] Synchronize tracker #42, permanent issue #27 and Phase 6 issue #14 after merge.
 
 ## Phase 6 — physical-device / production / signing handoff
 
