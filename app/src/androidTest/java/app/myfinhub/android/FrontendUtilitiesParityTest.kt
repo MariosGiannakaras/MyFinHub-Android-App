@@ -20,7 +20,7 @@ class FrontendUtilitiesParityTest {
     val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
-    fun homeReviewAndRetainedUtilityFlows_areNestedAndReachable() {
+    fun homeReviewAndSettingsFlow_areReachableWithoutUtilityCardsInFinancialFeed() {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         waitForText("Γιατί εμφανίζεται")
@@ -29,18 +29,13 @@ class FrontendUtilitiesParityTest {
         scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        scrollHomeTextIntoView("Ρυθμίσεις")
+        // Settings remains reachable from the Home header, but no longer occupies a financial
+        // content card alongside balances, attention and upcoming obligations.
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
         assertTextIntoView("Προτιμήσεις εφαρμογής")
         composeRule.onNodeWithContentDescription("Πίσω").assertIsDisplayed().performClick()
-
-        scrollHomeTextIntoView("Ρυθμίσεις")
-        clickTextIntoView("Ιστορικό αλλαγών")
-        waitForText("Ασφαλές ιστορικό")
-        assertTextIntoView("Ασφαλές ιστορικό")
-        waitForText("Δεν υπάρχει διαθέσιμο ιστορικό αλλαγών")
-        assertTextIntoView("Δεν υπάρχει διαθέσιμο ιστορικό αλλαγών")
+        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
     }
 
     private fun waitForText(text: String) {
