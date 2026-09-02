@@ -105,6 +105,9 @@ fun createCanonicalTransactionEntryMutation(
             normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
             normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό προορισμού.")
             require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
+            if (draft.kind == "withdrawal") {
+                require(eligibleAccounts[normalizedToId]?.kind == "cash") { "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." }
+            }
             legs += transactionLedgerLeg(normalizedFromId!!, -amount)
             legs += transactionLedgerLeg(normalizedToId!!, amount)
         }
@@ -114,6 +117,7 @@ fun createCanonicalTransactionEntryMutation(
             normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
             normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό αποταμίευσης.")
             require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }
+            require(eligibleAccounts[normalizedToId]?.kind == "savings") { "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης." }
             legs += transactionLedgerLeg(normalizedFromId!!, -amount)
             legs += transactionLedgerLeg(normalizedToId!!, amount)
             savingAmount = amount
