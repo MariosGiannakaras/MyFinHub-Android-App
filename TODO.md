@@ -116,6 +116,30 @@ Tracker #42 is completed/closed. Draft PR #43 was closed without code changes on
 - [x] Keep release/signing and the explicitly excluded additional privacy/security audit out of this workstream.
 - [x] Synchronize tracker #42, permanent issue #27 and Phase 6 issue #14 after merge.
 
+## Pre-Phase-6 UI/UX hardening — completed and merged
+
+Draft PR #45 was closed without code changes only because the connected GitHub Mark-ready GraphQL operation failed on its own schema field. Ready PR #46 used the exact same validated branch/head and was squash-merged into `develop`.
+
+- [x] Repair Home quick-entry routing and preload the selected canonical transaction type.
+- [x] Remove duplicate compact Home quick-entry promotion after the primary flow became functional.
+- [x] Move logout into Settings/account actions.
+- [x] Remove synthetic production-looking Change History records.
+- [x] Isolate Money/Plan demo fixtures from production canonical projection.
+- [x] Use production-facing canonical Money/Plan screens that display only synchronized data and only expose mutation-backed edits.
+- [x] Add mobile-friendly money keyboards and Material date selection to Quick Entry.
+- [x] Add field-level validation and first-invalid-field focus/scroll behavior.
+- [x] Improve compact split-entry editing and preserve existing canonical accounting rules.
+- [x] Add action-specific revision-conflict/offline/save-failure recovery wording without changing issue #27 write-retry semantics.
+- [x] Simplify compact Home information hierarchy and reduce low-priority utility/card prominence.
+- [x] Add Compose accessibility checks and fix discovered spoken-label/touch-target defects.
+- [x] Expand compact, dark and large-font screenshot coverage for changed product surfaces.
+- [x] Personally inspect new real Compose candidates and replace obsolete canonical references rather than accumulating alternatives.
+- [x] Final committed screenshot references pass regression without regeneration.
+- [x] Final representative S24-target instrumentation passes, including accessibility checks.
+- [x] Final normal Android CI passes benchmark/Baseline Profile tooling, tests, lint, debug assembly, optimized unsigned release/R8 and manifest/signing-policy audit.
+- [x] Zero unresolved review threads and zero hosted implementation blockers at merge.
+- [x] Keep production Auth/API, Samsung-specific rendering/performance and signing/release exclusively in Phase 6.
+
 ## Phase 6 — physical-device / production / signing handoff
 
 Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative.
