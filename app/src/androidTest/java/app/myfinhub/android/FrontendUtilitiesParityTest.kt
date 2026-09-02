@@ -1,6 +1,7 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -55,7 +56,7 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun clickTextIntoView(text: String) {
-        val node = composeRule.onNode(hasText(text))
+        val node = composeRule.onNode(hasText(text) and hasClickAction())
         runCatching { node.performScrollTo() }
         node.assertIsDisplayed().performClick()
     }
