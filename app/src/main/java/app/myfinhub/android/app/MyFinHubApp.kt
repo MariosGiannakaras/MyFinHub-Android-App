@@ -120,6 +120,7 @@ internal fun MyFinHubAppContent(
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
     diagnostics: AppDiagnosticsSnapshot? = null,
+    onLogout: (() -> Unit)? = null,
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
@@ -211,6 +212,7 @@ internal fun MyFinHubAppContent(
                         onAction = onFrontendUtilitiesAction,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
+                        onLogout = onLogout,
                     )
                 }
                 entry<AppRoute.ChangeHistory> {
