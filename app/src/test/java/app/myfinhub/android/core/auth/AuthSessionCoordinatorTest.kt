@@ -5,6 +5,7 @@ import app.myfinhub.android.core.security.SessionStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -38,6 +39,23 @@ class AuthSessionCoordinatorTest {
 
         assertTrue(state is AuthAppState.Ready)
         assertEquals(1, gateway.validateCalls)
+    }
+
+    @Test
+    fun expiredSession_transientRefreshFailureKeepsRecoverableStoredSession() = runBlocking {
+        val session = aal2Session(expiresAt = 1_010)
+        val store = InMemorySessionStore(session)
+        val gateway = FakeAuthGateway(
+            refreshResult = AuthResult.Failure(AuthFailureKind.NETWORK, retryable = true),
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store, nowEpochSeconds = { 1_000 })
+
+        val state = coordinator.afterLocalUnlock(session)
+
+        assertTrue(state is AuthAppState.Failure)
+        state as AuthAppState.Failure
+        assertSame(session, state.recoverableSession)
+        assertEquals(session, store.value)
     }
 
     @Test
@@ -108,6 +126,19 @@ class AuthSessionCoordinatorTest {
         assertEquals(1, gateway.signOutCalls)
     }
 
+    @Test
+    fun logout_unexpectedRemoteExceptionStillClearsLocalSession() = runBlocking {
+        val session = aal2Session()
+        val store = InMemorySessionStore(session)
+        val gateway = FakeAuthGateway(throwOnSignOut = true)
+        val coordinator = AuthSessionCoordinator(configured, gateway, store)
+
+        runCatching { coordinator.logout(session) }
+
+        assertNull(store.value)
+        assertEquals(1, gateway.signOutCalls)
+    }
+
     private fun aal1Session() = AuthSession(
         accessToken = "synthetic-aal1-token",
         refreshToken = "synthetic-refresh",
@@ -116,10 +147,10 @@ class AuthSessionCoordinatorTest {
         assuranceLevel = AssuranceLevel.AAL1,
     )
 
-    private fun aal2Session() = AuthSession(
+    private fun aal2Session(expiresAt: Long = 10_000) = AuthSession(
         accessToken = "synthetic-aal2-token",
         refreshToken = "synthetic-refresh",
-        expiresAtEpochSeconds = 10_000,
+        expiresAtEpochSeconds = expiresAt,
         userId = "owner",
         assuranceLevel = AssuranceLevel.AAL2,
     )
@@ -140,6 +171,7 @@ private class FakeAuthGateway(
     private val factorsResult: AuthResult<List<AuthFactor>> = AuthResult.Success(emptyList()),
     private val challengeResult: AuthResult<AuthChallenge> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
     private val verifyResult: AuthResult<AuthSession> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
+    private val throwOnSignOut: Boolean = false,
 ) : AuthGateway {
     var validateCalls: Int = 0
     var signOutCalls: Int = 0
@@ -160,6 +192,7 @@ private class FakeAuthGateway(
     ) = verifyResult
     override suspend fun signOut(accessToken: String): AuthResult<Unit> {
         signOutCalls += 1
+        if (throwOnSignOut) error("synthetic remote revoke failure")
         return AuthResult.Success(Unit)
     }
 }

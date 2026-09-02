@@ -29,14 +29,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.myfinhub.android.BuildConfig
+import app.myfinhub.android.core.config.AppConfiguration
+import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.ui.UserNotice
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
+import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import app.myfinhub.android.feature.money.CardSecretViewModel
 import kotlinx.coroutines.flow.collect
+import java.net.URI
 import kotlinx.coroutines.flow.merge
 
 /**
@@ -55,8 +60,11 @@ fun MyFinHubRoot(
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
+    val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
+    val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
+    var lastDiagnosticCode by remember { mutableStateOf<String?>(null) }
     val snackbarBottomPadding = if (
         authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
     ) 152.dp else 12.dp
@@ -91,6 +99,7 @@ fun MyFinHubRoot(
             financeViewModel.notices,
             cardSecretViewModel.notices,
         ).collect { notice ->
+            lastDiagnosticCode = notice.diagnosticCode
             val result = snackbarHostState.showSnackbar(
                 message = notice.message,
                 actionLabel = "Λεπτομέρειες",
@@ -102,6 +111,19 @@ fun MyFinHubRoot(
             }
         }
     }
+
+    val configuration = remember { AppConfiguration.fromBuildConfig() }
+    val diagnostics = AppDiagnosticsSnapshot(
+        versionName = BuildConfig.VERSION_NAME,
+        buildType = BuildConfig.BUILD_TYPE,
+        environment = environmentLabel(configuration.myFinHubApiBaseUrl),
+        apiHost = runCatching { URI(configuration.myFinHubApiBaseUrl).host }.getOrNull().orEmpty().ifBlank { "Μη ρυθμισμένο" },
+        networkStatus = networkStatusLabel(networkStatus),
+        apiStatus = financeDiagnosticStatus(financeState),
+        sessionStatus = authDiagnosticStatus(authState),
+        lastSuccessfulSync = lastSuccessfulSync,
+        lastDiagnosticCode = lastDiagnosticCode,
+    )
 
     MyFinHubTheme {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -132,6 +154,7 @@ fun MyFinHubRoot(
                         onSaveLocalCvv = cardSecretViewModel::saveCvv,
                         onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
                         onDeleteCard = financeViewModel::deleteCard,
+                        diagnostics = diagnostics,
                     )
                 },
             )
@@ -197,6 +220,7 @@ private fun FinanceProductSurface(
     onSaveLocalCvv: (CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
     onDeleteCard: (String) -> Unit,
+    diagnostics: AppDiagnosticsSnapshot,
 ) {
     when (state) {
         FinanceProductState.Idle,
@@ -232,6 +256,7 @@ private fun FinanceProductSurface(
                     planState = projection.planState,
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
+                    diagnostics = diagnostics,
                 )
                 Surface(
                     modifier = Modifier.align(Alignment.TopEnd).padding(top = 2.dp, end = 8.dp),
@@ -253,10 +278,10 @@ private fun FinanceProductSurface(
                     onDismissRequest = {},
                     title = {
                         Text(
-                            if (issue.kind == FinanceSyncIssueKind.REVISION_CONFLICT) {
-                                "Υπάρχει νεότερη έκδοση"
-                            } else {
-                                "Η αποθήκευση δεν ολοκληρώθηκε"
+                            when (issue.kind) {
+                                FinanceSyncIssueKind.REVISION_CONFLICT -> "Υπάρχει νεότερη έκδοση"
+                                FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Αναμονή σύνδεσης"
+                                FinanceSyncIssueKind.SAVE_FAILED -> "Η αποθήκευση δεν ολοκληρώθηκε"
                             },
                         )
                     },
@@ -275,6 +300,40 @@ private fun FinanceProductSurface(
             }
         }
     }
+}
+
+private fun environmentLabel(apiBaseUrl: String): String = when {
+    apiBaseUrl.isBlank() -> "Μη ρυθμισμένο"
+    apiBaseUrl.contains("localhost", ignoreCase = true) || apiBaseUrl.contains("127.0.0.1") -> "Τοπικό public client"
+    else -> "Production public client"
+}
+
+private fun networkStatusLabel(status: NetworkStatus): String = when (status) {
+    NetworkStatus.ONLINE -> "Συνδεδεμένο"
+    NetworkStatus.OFFLINE -> "Χωρίς σύνδεση"
+    NetworkStatus.UNKNOWN -> "Μη επιβεβαιωμένη σύνδεση"
+}
+
+private fun financeDiagnosticStatus(state: FinanceProductState): String = when (state) {
+    FinanceProductState.Idle -> "Δεν έχει ξεκινήσει"
+    FinanceProductState.Loading -> "Συγχρονισμός"
+    FinanceProductState.AuthRejected -> "Απαιτεί νέα σύνδεση"
+    is FinanceProductState.Failure -> "Μη διαθέσιμο"
+    is FinanceProductState.Ready -> when {
+        state.saving -> "Αποθήκευση"
+        state.issue != null -> "Απαιτεί ανάκτηση"
+        else -> "Συγχρονισμένο"
+    }
+}
+
+private fun authDiagnosticStatus(state: AuthShellUiState): String = when (state) {
+    AuthShellUiState.Loading -> "Έλεγχος"
+    is AuthShellUiState.Unconfigured -> "Μη ρυθμισμένο"
+    is AuthShellUiState.Login -> "Απαιτεί σύνδεση"
+    is AuthShellUiState.Mfa -> "Απαιτεί AAL2"
+    is AuthShellUiState.PinEnrollment -> "Ρύθμιση τοπικού PIN"
+    is AuthShellUiState.Locked -> "Τοπικά κλειδωμένη"
+    is AuthShellUiState.Ready -> "Ενεργή · ${state.session.assuranceLevel.name}"
 }
 
 @Composable
