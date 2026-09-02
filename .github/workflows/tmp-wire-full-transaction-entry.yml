@@ -27,27 +27,25 @@ jobs:
 
           projection_path = Path('app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt')
           projection = projection_path.read_text()
-          old = '''    val defaultExpenseAccount = document.settingsObject().string("defaultExpenseAccount")
-              ?.takeIf(accountNames::containsKey)
-              ?: accounts.firstOrNull { it.kind != "credit" }?.id.orEmpty()
-          val destination = accounts.firstOrNull { it.kind == "savings" && it.id != defaultExpenseAccount }
-              ?: accounts.firstOrNull { it.kind != "credit" && it.id != defaultExpenseAccount }
-          val quickEntry = previous?.quickEntryState ?: QuickEntryUiState(
-              fromAccount = accountNames[defaultExpenseAccount].orEmpty(),
-              destination = destination?.name.orEmpty(),
-          )'''
-          new = '''    val quickEntry = projectQuickEntryState(
+          pattern = re.compile(
+              r'    val defaultExpenseAccount = document\.settingsObject\(\)\.string\("defaultExpenseAccount"\).*?\n    \)\n\n    val activeCards',
+              re.S,
+          )
+          replacement = '''    val quickEntry = projectQuickEntryState(
               document = document,
               today = today,
               previous = previous?.quickEntryState,
-          )'''
-          if old not in projection:
-              raise SystemExit('Quick-entry projection block not found')
-          projection_path.write_text(projection.replace(old, new, 1))
+          )
+
+          val activeCards'''
+          projection, count = pattern.subn(replacement, projection, count=1)
+          if count != 1:
+              raise SystemExit(f'Quick-entry projection replacement count={count}')
+          projection_path.write_text(projection)
 
           vm_path = Path('app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt')
           vm = vm_path.read_text()
-          pattern = re.compile(r'''    fun onQuickEntryAction\(action: QuickEntryAction\) \{.*?\n    \}\n\n    fun onPlanAction''', re.S)
+          pattern = re.compile(r'    fun onQuickEntryAction\(action: QuickEntryAction\) \{.*?\n    \}\n\n    fun onPlanAction', re.S)
           replacement = '''    fun onQuickEntryAction(action: QuickEntryAction) {
               val ready = mutableState.value as? FinanceProductState.Ready ?: return
               if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -90,7 +88,7 @@ jobs:
           fun onPlanAction'''
           vm, count = pattern.subn(replacement, vm, count=1)
           if count != 1:
-              raise SystemExit(f'Quick-entry controller block replacement count={count}')
+              raise SystemExit(f'Quick-entry controller replacement count={count}')
           persisted_old = 'quickEntryState = projection.quickEntryState.copy(persisted = true),'
           persisted_new = 'quickEntryState = projection.quickEntryState.copy(persisted = true, dirty = false),'
           if persisted_old not in vm:
