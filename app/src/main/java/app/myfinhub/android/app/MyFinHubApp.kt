@@ -52,6 +52,8 @@ import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.money.Savings2026Screen
 import app.myfinhub.android.feature.money.reduceMoney
+import app.myfinhub.android.feature.plan.CanonicalBudgetScreen
+import app.myfinhub.android.feature.plan.CanonicalPlanScreen
 import app.myfinhub.android.feature.plan.Plan2026Screen
 import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanBudgets2026Screen
@@ -358,12 +360,19 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Plan> {
-                    Plan2026Screen(
-                        state = planState,
-                        onAction = onPlanAction,
-                        onOpenItem = { itemId -> planBackStack.pushIfNew(AppRoute.PlanItem(itemId)) },
-                        onOpenBudgets = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
-                    )
+                    if (canonicalProductMode) {
+                        CanonicalPlanScreen(
+                            state = planState,
+                            onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    } else {
+                        Plan2026Screen(
+                            state = planState,
+                            onAction = onPlanAction,
+                            onOpenItem = { itemId -> planBackStack.pushIfNew(AppRoute.PlanItem(itemId)) },
+                            onOpenBudgets = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    }
                 }
                 entry<AppRoute.PlanItem> { route ->
                     PlanItemEditor2026Screen(
@@ -373,11 +382,19 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.PlanBudgets> {
-                    PlanBudgets2026Screen(
-                        state = planState,
-                        onAction = onPlanAction,
-                        onBack = { planBackStack.removeLastOrNull() },
-                    )
+                    if (canonicalProductMode) {
+                        CanonicalBudgetScreen(
+                            state = planState,
+                            onAction = onPlanAction,
+                            onBack = { planBackStack.removeLastOrNull() },
+                        )
+                    } else {
+                        PlanBudgets2026Screen(
+                            state = planState,
+                            onAction = onPlanAction,
+                            onBack = { planBackStack.removeLastOrNull() },
+                        )
+                    }
                 }
                 entry<AppRoute.Insights> {
                     InsightsScreen(
