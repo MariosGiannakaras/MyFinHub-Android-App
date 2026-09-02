@@ -13,9 +13,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 /** Palette values are internal so unit tests can enforce contrast contracts without UI rendering. */
 internal object MyFinHubPalette {
@@ -56,6 +54,19 @@ internal object MyFinHubPalette {
     val darkOnSurfaceVariant = Color(0xFFCAC3CE)
     val darkOutline = Color(0xFF948E99)
     val darkOutlineVariant = Color(0xFF48434D)
+
+    val darkIncome = Color(0xFF72DBA5)
+    val darkIncomeContainer = Color(0xFF123B2A)
+    val darkExpense = Color(0xFFFFB2B7)
+    val darkExpenseContainer = Color(0xFF532126)
+    val darkSavings = Color(0xFFD0BCFF)
+    val darkSavingsContainer = Color(0xFF3D2F65)
+    val darkTransfer = Color(0xFFA7C8FF)
+    val darkTransferContainer = Color(0xFF203B64)
+    val darkAttention = Color(0xFFFFCA6A)
+    val darkAttentionContainer = Color(0xFF4D3710)
+    val darkNeutral = Color(0xFFC5CBD3)
+    val darkNeutralContainer = Color(0xFF30343A)
 }
 
 private val LightColors = lightColorScheme(
@@ -144,18 +155,18 @@ private val LightFinanceColors = MyFinHubFinanceColors(
 )
 
 private val DarkFinanceColors = MyFinHubFinanceColors(
-    income = Color(0xFF72DBA5),
-    incomeContainer = Color(0xFF123B2A),
-    expense = Color(0xFFFFB2B7),
-    expenseContainer = Color(0xFF532126),
-    savings = Color(0xFFD0BCFF),
-    savingsContainer = Color(0xFF3D2F65),
-    transfer = Color(0xFFA7C8FF),
-    transferContainer = Color(0xFF203B64),
-    attention = Color(0xFFFFCA6A),
-    attentionContainer = Color(0xFF4D3710),
-    neutral = Color(0xFFC5CBD3),
-    neutralContainer = Color(0xFF30343A),
+    income = MyFinHubPalette.darkIncome,
+    incomeContainer = MyFinHubPalette.darkIncomeContainer,
+    expense = MyFinHubPalette.darkExpense,
+    expenseContainer = MyFinHubPalette.darkExpenseContainer,
+    savings = MyFinHubPalette.darkSavings,
+    savingsContainer = MyFinHubPalette.darkSavingsContainer,
+    transfer = MyFinHubPalette.darkTransfer,
+    transferContainer = MyFinHubPalette.darkTransferContainer,
+    attention = MyFinHubPalette.darkAttention,
+    attentionContainer = MyFinHubPalette.darkAttentionContainer,
+    neutral = MyFinHubPalette.darkNeutral,
+    neutralContainer = MyFinHubPalette.darkNeutralContainer,
 )
 
 private val LocalFinanceColors = staticCompositionLocalOf { LightFinanceColors }
@@ -177,56 +188,56 @@ object MyFinHubThemeTokens {
 }
 
 private val MyFinHubShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(28.dp),
+    extraSmall = RoundedCornerShape(MyFinHubShapeSpec.extraSmallRadius),
+    small = RoundedCornerShape(MyFinHubShapeSpec.smallRadius),
+    medium = RoundedCornerShape(MyFinHubShapeSpec.mediumRadius),
+    large = RoundedCornerShape(MyFinHubShapeSpec.largeRadius),
+    extraLarge = RoundedCornerShape(MyFinHubShapeSpec.extraLargeRadius),
 )
 
 private val MyFinHubTypography = Typography(
     headlineLarge = TextStyle(
-        fontSize = 30.sp,
-        lineHeight = 36.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = (-0.4).sp,
+        fontSize = MyFinHubTypographySpec.headlineLargeSize,
+        lineHeight = MyFinHubTypographySpec.headlineLargeLineHeight,
+        fontWeight = MyFinHubTypographySpec.headlineLargeWeight,
+        letterSpacing = MyFinHubTypographySpec.headlineLargeLetterSpacing,
     ),
     headlineMedium = TextStyle(
-        fontSize = 25.sp,
-        lineHeight = 31.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = (-0.25).sp,
+        fontSize = MyFinHubTypographySpec.headlineMediumSize,
+        lineHeight = MyFinHubTypographySpec.headlineMediumLineHeight,
+        fontWeight = MyFinHubTypographySpec.headlineMediumWeight,
+        letterSpacing = MyFinHubTypographySpec.headlineMediumLetterSpacing,
     ),
     headlineSmall = TextStyle(
-        fontSize = 21.sp,
-        lineHeight = 27.sp,
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = (-0.15).sp,
+        fontSize = MyFinHubTypographySpec.headlineSmallSize,
+        lineHeight = MyFinHubTypographySpec.headlineSmallLineHeight,
+        fontWeight = MyFinHubTypographySpec.headlineSmallWeight,
+        letterSpacing = MyFinHubTypographySpec.headlineSmallLetterSpacing,
     ),
     titleLarge = TextStyle(
-        fontSize = 19.sp,
-        lineHeight = 25.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = MyFinHubTypographySpec.titleLargeSize,
+        lineHeight = MyFinHubTypographySpec.titleLargeLineHeight,
+        fontWeight = MyFinHubTypographySpec.titleLargeWeight,
     ),
     titleMedium = TextStyle(
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = MyFinHubTypographySpec.titleMediumSize,
+        lineHeight = MyFinHubTypographySpec.titleMediumLineHeight,
+        fontWeight = MyFinHubTypographySpec.titleMediumWeight,
     ),
     bodyLarge = TextStyle(
-        fontSize = 16.sp,
-        lineHeight = 23.sp,
-        fontWeight = FontWeight.Normal,
+        fontSize = MyFinHubTypographySpec.bodyLargeSize,
+        lineHeight = MyFinHubTypographySpec.bodyLargeLineHeight,
+        fontWeight = MyFinHubTypographySpec.bodyLargeWeight,
     ),
     bodyMedium = TextStyle(
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        fontWeight = FontWeight.Normal,
+        fontSize = MyFinHubTypographySpec.bodyMediumSize,
+        lineHeight = MyFinHubTypographySpec.bodyMediumLineHeight,
+        fontWeight = MyFinHubTypographySpec.bodyMediumWeight,
     ),
     labelLarge = TextStyle(
-        fontSize = 14.sp,
-        lineHeight = 18.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = MyFinHubTypographySpec.labelLargeSize,
+        lineHeight = MyFinHubTypographySpec.labelLargeLineHeight,
+        fontWeight = MyFinHubTypographySpec.labelLargeWeight,
     ),
 )
 
