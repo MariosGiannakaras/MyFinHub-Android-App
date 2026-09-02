@@ -1,10 +1,10 @@
 # MyFinHub Android status
 
-## 2026-09-02 — Post-redesign resilience, data-integrity and diagnostics hardening complete
+## 2026-09-02 — Post-redesign resilience, data-integrity and diagnostics hardening complete and merged
 
-The retained native Android product has completed the autonomous resilience/data-integrity/auth-recovery/edge-state/diagnostics work requested after the full-app 2026 redesign. The sole supported Android target remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` remains the permanent device-acceptance contract.
+The retained native Android product has completed and merged the autonomous resilience/data-integrity/auth-recovery/edge-state/diagnostics work requested after the full-app 2026 redesign. The sole supported Android target remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` remains the permanent device-acceptance contract.
 
-Workstream tracker: issue #39. Integration PR: #40 into `develop`. The actual PR/issue state is the source of truth for whether integration has completed; do not reopen this workstream for repeat discovery after it is merged.
+Tracker #39 is complete. The validated implementation was originally reviewed in draft PR #40; because the available connector could not transition that draft out of draft state, #40 was closed without code changes and replaced by ready PR #41 from the exact same validated branch/head. PR #41 was squash-merged into `develop`. Do not reopen this workstream for repeat discovery.
 
 ### Completed resilience and integrity work
 
@@ -27,16 +27,16 @@ Workstream tracker: issue #39. Integration PR: #40 into `develop`. The actual PR
 - Real Compose screenshot candidates for Diagnostics offline/recovery and Home edge values were personally inspected. The first Home edge fixture was rejected because test-only oversized attention text created an ambiguous FAB overlap; the fixture was corrected and only the clean replacement was accepted as the canonical reference.
 - Remaining unrouted Backup/Import/Data Transfer utility remnants were removed; those product surfaces remain intentionally excluded from Android.
 
-### Validation contract
+### Final validation
 
-PR #40 must not merge unless its final implementation state passes:
+The final implementation state passed twice on the same code state, including the replacement ready PR event:
 
 1. normal Android CI: benchmark/Baseline Profile tooling build, unit tests, instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and release-manifest/unsigned-APK policy audit;
 2. canonical screenshot regression including the two personally approved new phone references;
 3. representative S24 Ultra-target compact-phone instrumentation;
-4. zero unresolved supported-device blocker.
+4. zero unresolved review threads and zero supported-device implementation blocker.
 
-The exact gate result is recorded in the PR/tracker state rather than inferred from this file.
+The stale Phase 5 draft PR #23 was also closed as superseded by the already completed Phase 5 PR #36, so there is no leftover autonomous Android implementation PR from an older workstream.
 
 ### Explicit exclusion
 
