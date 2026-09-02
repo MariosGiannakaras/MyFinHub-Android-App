@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -25,9 +23,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubBackButton
-import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -98,14 +96,11 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        OutlinedButton(
+                        MyFinHubOutlinedAction(
+                            label = "Αποσύνδεση",
                             onClick = logout,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
-                        ) {
-                            Text("Αποσύνδεση")
-                        }
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
@@ -241,24 +236,18 @@ fun ChangeHistoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                 ) {
-                    OutlinedButton(
+                    MyFinHubOutlinedAction(
+                        label = "Αναίρεση",
                         onClick = { onAction(FrontendUtilitiesAction.Undo) },
                         enabled = state.historyCursor > 0,
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
-                    ) {
-                        Text("Αναίρεση")
-                    }
-                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                    )
+                    MyFinHubOutlinedAction(
+                        label = "Επανάληψη",
                         onClick = { onAction(FrontendUtilitiesAction.Redo) },
                         enabled = state.historyCursor < state.history.size,
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
-                    ) {
-                        Text("Επανάληψη")
-                    }
+                        modifier = Modifier.weight(1f),
+                    )
                 }
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {

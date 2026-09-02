@@ -21,6 +21,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -337,22 +338,55 @@ fun MyFinHubPrimaryAction(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector = MyFinHubIcons.Add,
+    enabled: Boolean = true,
+    icon: ImageVector? = MyFinHubIcons.Add,
 ) {
     Button(
         onClick = onClick,
         modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+        enabled = enabled,
         contentPadding = PaddingValues(
             horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
             vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
         ),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
-        )
-        Spacer(modifier = Modifier.width(MyFinHubDesignMetrics.buttonIconGap))
+        icon?.let {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
+            )
+            Spacer(modifier = Modifier.width(MyFinHubDesignMetrics.buttonIconGap))
+        }
+        Text(text = label, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+fun MyFinHubOutlinedAction(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    icon: ImageVector? = null,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+        enabled = enabled,
+        contentPadding = PaddingValues(
+            horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
+            vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
+        ),
+    ) {
+        icon?.let {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
+            )
+            Spacer(modifier = Modifier.width(MyFinHubDesignMetrics.buttonIconGap))
+        }
         Text(text = label, style = MaterialTheme.typography.labelLarge)
     }
 }

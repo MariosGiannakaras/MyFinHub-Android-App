@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
-import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubFilterChip
 import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
@@ -273,15 +270,13 @@ private fun ActivityDetailContent(
                 imeAction = ImeAction.Done,
             ),
         )
-        Button(
+        MyFinHubPrimaryAction(
+            label = "Αποθήκευση αλλαγών",
             onClick = { onSave(note, category) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+            modifier = Modifier.fillMaxWidth(),
             enabled = note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
-        ) {
-            Text("Αποθήκευση αλλαγών")
-        }
+            icon = null,
+        )
         if (item.kind == ActivityKind.TRANSFER) {
             Text(
                 "Η εσωτερική μεταφορά δεν μετρά ως έσοδο ή έξοδο.",
