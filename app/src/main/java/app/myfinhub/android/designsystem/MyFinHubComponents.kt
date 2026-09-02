@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,7 +34,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 
 enum class FinanceTone {
     Income,
@@ -76,10 +76,10 @@ fun MyFinHubScreenHeader(
     ) {
         Row(
             modifier = Modifier.padding(
-                start = MyFinHubSpacing.lg,
-                top = MyFinHubSpacing.md,
-                end = MyFinHubSpacing.lg,
-                bottom = MyFinHubSpacing.xs,
+                start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                top = MyFinHubDesignMetrics.screenTopPadding,
+                end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                bottom = MyFinHubDesignMetrics.screenBottomPadding,
             ),
             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
@@ -110,13 +110,16 @@ fun MyFinHubScreenHeader(
 @Composable
 fun MyFinHubSectionCard(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(MyFinHubSpacing.md),
+    contentPadding: PaddingValues = PaddingValues(MyFinHubDesignMetrics.cardContentPadding),
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    val elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    val border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    val elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubSpacing.micro * 0f)
+    val border = BorderStroke(
+        MyFinHubDesignMetrics.cardBorderWidth,
+        MaterialTheme.colorScheme.outlineVariant,
+    )
     val shape = MaterialTheme.shapes.medium
     if (onClick == null) {
         Card(
@@ -155,7 +158,7 @@ fun MyFinHubIconBadge(
 ) {
     val colors = financeToneColors(tone)
     Surface(
-        modifier = modifier.size(38.dp),
+        modifier = modifier.size(MyFinHubDesignMetrics.iconBadgeSize),
         shape = MaterialTheme.shapes.small,
         color = colors.container,
     ) {
@@ -164,7 +167,7 @@ fun MyFinHubIconBadge(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = colors.accent,
-                modifier = Modifier.size(19.dp),
+                modifier = Modifier.size(MyFinHubDesignMetrics.iconBadgeIconSize),
             )
         }
     }
@@ -194,11 +197,11 @@ fun MyFinHubFilterChip(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(17.dp),
+                modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
             )
         },
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         colors = FilterChipDefaults.filterChipColors(
             containerColor = MaterialTheme.colorScheme.surface,
             labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -220,12 +223,14 @@ fun MyFinHubSearchField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = MyFinHubDesignMetrics.textFieldMinHeight),
         leadingIcon = {
             Icon(
                 imageVector = MyFinHubIcons.Search,
                 contentDescription = null,
-                modifier = Modifier.size(19.dp),
+                modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
             )
         },
         placeholder = {
@@ -235,7 +240,7 @@ fun MyFinHubSearchField(
             )
         },
         singleLine = true,
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.extraSmall,
         textStyle = MaterialTheme.typography.bodyMedium,
     )
 }
@@ -273,12 +278,18 @@ fun MyFinHubFinanceRow(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubSpacing.micro * 0f),
+        border = BorderStroke(
+            MyFinHubDesignMetrics.cardBorderWidth,
+            MaterialTheme.colorScheme.outlineVariant,
+        ),
         shape = MaterialTheme.shapes.medium,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(
+                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+            ),
             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -289,7 +300,7 @@ fun MyFinHubFinanceRow(
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
             ) {
                 Text(
                     text = title,
@@ -305,7 +316,7 @@ fun MyFinHubFinanceRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (meta.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(1.dp))
+                    Spacer(modifier = Modifier.height(MyFinHubSpacing.micro))
                     Text(
                         text = meta,
                         style = MaterialTheme.typography.labelSmall,
@@ -330,16 +341,18 @@ fun MyFinHubPrimaryAction(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+        contentPadding = PaddingValues(
+            horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
+            vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
+        ),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(MyFinHubDesignMetrics.compactIconSize),
         )
-        Spacer(modifier = Modifier.width(MyFinHubSpacing.xs))
+        Spacer(modifier = Modifier.width(MyFinHubDesignMetrics.buttonIconGap))
         Text(text = label, style = MaterialTheme.typography.labelLarge)
     }
 }
