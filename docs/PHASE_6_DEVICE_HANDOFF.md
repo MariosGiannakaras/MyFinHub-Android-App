@@ -51,18 +51,25 @@ Use the real production public-client configuration already intended for the And
 2. Sign in with the owner account.
 3. Complete TOTP and verify the session reaches AAL2 before card-secret access.
 4. Confirm canonical finance data loads and the visible totals/lists are plausible.
-5. Background/kill/relaunch the app and complete biometric/PIN local unlock.
-6. Confirm local unlock validates or refreshes the stored server session before product access.
-7. Perform one reversible finance mutation and verify server sync completes once.
-8. Test the resilience flow deliberately:
+5. Open Money and Plan and verify production state ownership is truthful:
+   - account/card/savings/debt/scheduled totals match synchronized data;
+   - no fabricated loan name, lender, due date, lending person, savings target, category budget, rule or forecast window appears when the canonical payload does not provide it;
+   - unsupported detailed editing is read-only/unavailable rather than presented as a successful synchronized save.
+6. From Home, open Quick Entry through the primary add action, choose at least one transaction type and verify the real canonical form opens with that type preselected.
+7. Verify the transaction date selector, monetary keyboard/input, field-level validation and first-invalid-field focus/scroll behavior on the physical Samsung keyboard/display settings.
+8. Background/kill/relaunch the app and complete biometric/PIN local unlock.
+9. Confirm local unlock validates or refreshes the stored server session before product access.
+10. Perform one reversible finance mutation and verify server sync completes once.
+11. Test the resilience flow deliberately:
    - disconnect networking before a mutation;
    - verify the UI shows the change as waiting for network and no server request is assumed sent;
    - restore networking;
    - verify server state is reloaded before the stable mutation is replayed and no duplicate finance event is created.
-9. Test a transient load failure/reconnect and verify the app recovers without a loading loop.
-10. Open a card-detail secret flow and verify owner+AAL2 requirements, server PAN/expiry boundary and device-local CVV behavior remain intact.
-11. Log out while the app is otherwise healthy; verify local protected state is cleared.
-12. Relaunch and verify login is required, then re-authenticate successfully.
+12. Test a transient load failure/reconnect and verify the app recovers without a loading loop.
+13. Open a card-detail secret flow and verify owner+AAL2 requirements, server PAN/expiry boundary and device-local CVV behavior remain intact.
+14. Open Settings and verify account logout is present there rather than as a persistent overlay over finance screens.
+15. Log out while the app is otherwise healthy; verify local protected state is cleared.
+16. Relaunch and verify login is required, then re-authenticate successfully.
 
 ## Safe diagnostics check
 
@@ -82,15 +89,26 @@ There must be no password, PIN, TOTP, access/refresh token, user identifier, fin
 
 Inspect the real app on the owner's unchanged S24 Ultra settings:
 
-- Home, Activity, Money, Plan and Insights.
-- Quick Entry and edit/detail flows.
-- Settings/Diagnostics and Change History.
+- Home, including the simplified financial hierarchy and primary Quick Entry action.
+- Activity, Money, Plan and Insights.
+- Canonical Money nested savings/loan/lending states, especially empty/read-only detail handling.
+- Canonical Plan and overall-budget editing.
+- Quick Entry, Material date selection, validation/error states and split-entry scrolling.
+- Settings/Diagnostics and truthful empty Change History.
 - Login, TOTP, PIN enrollment, locked/local-unlock states.
 - Loading, empty/first-use, offline, retry, revision-conflict and pending-network states.
 - Card stack/detail and card-secret dialogs.
 - Global Snackbar and details dialog.
 
 Reject clipped text, inaccessible controls, overlapping bottom navigation/FAB/Snackbar, unreadable long labels, broken large/negative amounts, duplicate rapid navigation or stuck loading/recovery states.
+
+Specifically verify the hardening accessibility outcomes on the real device:
+
+- interactive controls remain comfortably tappable at the owner's display/zoom settings;
+- Settings switches and other stateful controls announce useful labels/state with TalkBack;
+- validation errors are understandable without relying only on color;
+- large-font settings do not hide the primary action or make navigation unusable;
+- dark mode keeps muted text, borders, progress/status content and disabled controls readable.
 
 Only real application screenshots from this device count as device-specific acceptance evidence.
 
@@ -102,7 +120,8 @@ Validate at minimum:
 
 - cold start feels responsive and reaches the expected auth/product state;
 - Home and Activity scrolling remain smooth with realistic data volume;
-- Quick Entry opens and submits without visible jank or duplicate action;
+- Quick Entry opens, date selection/validation responds normally and submit does not visibly jank or duplicate;
+- canonical Money/Plan navigation and nested read-only/detail states remain responsive;
 - navigation among the five top-level destinations remains responsive;
 - app relaunch/local unlock has no abnormal delay or loop;
 - offline → online recovery does not block the main thread or freeze navigation.
@@ -128,8 +147,9 @@ When Phase 6 is actually performed, record in issue #14:
 - device/One UI/Android version and display/font settings used;
 - exact accepted repository state/release version;
 - production Auth/API smoke result;
+- canonical Money/Plan truthfulness and Quick Entry physical-UX result;
 - offline/reconnect and duplicate-write result;
-- Samsung visual acceptance result with current real-device screenshots;
+- Samsung visual/accessibility acceptance result with current real-device screenshots;
 - device-specific performance result;
 - whether release-candidate promotion/signing was explicitly authorized.
 
