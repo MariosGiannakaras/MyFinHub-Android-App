@@ -21,6 +21,7 @@ class DesignSystemContractTest {
         assertEquals(56.dp, MyFinHubDesignMetrics.textFieldMinHeight)
         assertEquals(1.dp, MyFinHubDesignMetrics.textFieldUnfocusedBorder)
         assertEquals(2.dp, MyFinHubDesignMetrics.textFieldFocusedBorder)
+        assertEquals(4.dp, MyFinHubDesignMetrics.fieldLabelGap)
         assertEquals(80.dp, MyFinHubDesignMetrics.navigationBarHeight)
         assertEquals(24.dp, MyFinHubDesignMetrics.navigationIconSize)
         assertEquals(64.dp, MyFinHubDesignMetrics.navigationActiveIndicatorWidth)
