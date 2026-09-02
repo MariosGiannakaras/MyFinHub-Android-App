@@ -14,6 +14,7 @@ The 2026 redesign and UI/UX hardening established the right product hierarchy an
 - Jetpack Compose Material 3: semantic shape roles and theme-level shape overrides.
 - Material 3 Compose Button baseline: 40dp minimum visible height, 18dp baseline icon, 8dp icon/label gap. MyFinHub intentionally raises primary finance actions to a visible 48dp minimum so the visible control matches the minimum touch target.
 - Material 3 Compose text fields: 56dp minimum height; 1dp unfocused and 2dp focused border/indicator.
+- Material 3 NavigationBar baseline: 80dp container, 24dp icon, 64×32dp active indicator and 4dp indicator-to-label spacing. MyFinHub inherits this geometry unless a later device-validated reason requires an override.
 - Material components keep framework defaults where those defaults already satisfy product semantics and accessibility. MyFinHub owns only deliberate product-level deviations.
 
 ## Foundation contract
@@ -59,6 +60,7 @@ Usage intent: text fields/menus = extraSmall, chips = small, cards/rows = medium
 | Compact control icon | 18dp |
 | Primary finance action | >=48dp visible height, 20dp horizontal padding, 12dp vertical padding, 18dp icon, 8dp icon-label gap |
 | Outlined text field | >=56dp height, 1dp unfocused border, 2dp focused border |
+| Bottom navigation | inherit Material 3: 80dp container, 24dp icon, 64×32dp active indicator, 4dp indicator-label gap |
 
 ## Contrast contract
 
@@ -67,17 +69,31 @@ Usage intent: text fields/menus = extraSmall, chips = small, cards/rows = medium
 - Decorative separators may be lower contrast only when they are not required to perceive component boundaries/state.
 - Color must never be the only carrier of financial meaning.
 
-Initial audit found the old light-theme income, expense, attention and neutral semantic accents were below 4.5:1 in at least one small-text usage. The first implementation batch darkens those semantic accents while keeping their hue families and validates both surface and semantic-container pairings.
+Initial audit found the old light-theme income, expense, attention and neutral semantic accents were below 4.5:1 in at least one small-text usage. Batch 1 darkens those semantic accents while keeping their hue families and validates both surface and semantic-container pairings.
+
+### Batch-1 light contrast measurements
+
+| Semantic role | On surface | On semantic container |
+| --- | ---: | ---: |
+| Income | 5.84:1 | 5.29:1 |
+| Expense | 5.89:1 | 5.13:1 |
+| Savings | 5.96:1 | 5.08:1 |
+| Transfer | 5.10:1 | 4.51:1 |
+| Attention | 5.84:1 | 5.25:1 |
+| Neutral | 6.01:1 | 5.49:1 |
+
+The essential light `outline` is 3.62:1 against the primary surface. `outlineVariant` remains intentionally lower-contrast and may be used only for decorative separation where the boundary is not required to understand control state.
 
 ## Component matrix
 
 ### Batch 1 — Foundations + shared primitives
 
 - [x] Create explicit geometry contract (`MyFinHubDesignMetrics`).
-- [ ] Normalize spacing/shape roles in the theme.
-- [ ] Fix semantic light-theme contrast failures.
-- [ ] Remove shared-component ad-hoc sizes where a token now exists.
-- [ ] Add unit contracts for dimensions and contrast.
+- [x] Normalize spacing/shape roles in the theme.
+- [x] Fix semantic light-theme contrast failures.
+- [x] Remove shared-component ad-hoc sizes where a token now exists.
+- [x] Add unit contracts for dimensions and contrast.
+- [ ] Complete Batch-1 CI, representative emulator and rendered-candidate validation.
 
 ### Batch 2 — Controls
 
