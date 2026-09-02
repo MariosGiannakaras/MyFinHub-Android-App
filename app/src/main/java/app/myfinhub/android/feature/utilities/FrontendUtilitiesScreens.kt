@@ -39,6 +39,7 @@ fun SettingsScreen(
     state: FrontendUtilitiesUiState,
     onAction: (FrontendUtilitiesAction) -> Unit,
     onBack: () -> Unit,
+    diagnostics: AppDiagnosticsSnapshot? = null,
 ) {
     UtilityScaffold(
         title = "Ρυθμίσεις",
@@ -84,6 +85,7 @@ fun SettingsScreen(
                 ),
                 onAction = onAction,
             )
+            diagnostics?.let { DiagnosticsCard(it) }
         }
     }
 }
@@ -243,6 +245,38 @@ private fun DataTransferCard(
             content()
         }
     }
+}
+
+
+@Composable
+private fun DiagnosticsCard(diagnostics: AppDiagnosticsSnapshot) {
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            Text("Διαγνωστικά", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Ασφαλείς τεχνικές πληροφορίες για σύνδεση και συγχρονισμό. Δεν περιλαμβάνονται οικονομικά δεδομένα ή μυστικά.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            DiagnosticRow("Έκδοση", "${diagnostics.versionName} · ${diagnostics.buildType}")
+            DiagnosticRow("Περιβάλλον", diagnostics.environment)
+            DiagnosticRow("API", diagnostics.apiHost)
+            DiagnosticRow("Δίκτυο", diagnostics.networkStatus)
+            DiagnosticRow("Κατάσταση API", diagnostics.apiStatus)
+            DiagnosticRow("Συνεδρία", diagnostics.sessionStatus)
+            DiagnosticRow("Τελευταίος συγχρονισμός", diagnostics.lastSuccessfulSync ?: "Δεν υπάρχει ακόμη")
+            DiagnosticRow("Τελευταίος κωδικός", diagnostics.lastDiagnosticCode ?: "Κανένας")
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticRow(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyMedium)
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 @Composable
