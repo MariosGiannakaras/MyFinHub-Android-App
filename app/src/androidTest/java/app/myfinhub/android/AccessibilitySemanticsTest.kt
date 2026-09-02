@@ -2,7 +2,7 @@ package app.myfinhub.android
 
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -65,15 +65,15 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Πλήρης καταχώριση").assertExists()
+        composeRule.onNodeWithText("Πλήρης καταχώριση").assertIsDisplayed()
     }
 
     private fun leaveDirtyQuickEntry() {
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithText("Απόρριψη αλλαγών;").assertExists()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών;").assertIsDisplayed()
         composeRule.onNodeWithText("Απόρριψη").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertExists()
+        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
     }
 
     private fun checkCurrentSurface() {
