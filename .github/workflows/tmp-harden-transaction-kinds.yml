@@ -25,38 +25,17 @@ jobs:
           from pathlib import Path
           path = Path('app/src/main/java/app/myfinhub/android/core/data/CanonicalTransactionEntryMutation.kt')
           text = path.read_text()
-          old = '''        "transfer", "withdrawal" -> {
-              val (_, amount) = positiveAmount()
-              normalizedAmount = amount
-              normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
-              normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό προορισμού.")
-              require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
-              legs += transactionLedgerLeg(normalizedFromId!!, -amount)
-              legs += transactionLedgerLeg(normalizedToId!!, amount)
-          }'''
-          new = '''        "transfer", "withdrawal" -> {
-              val (_, amount) = positiveAmount()
-              normalizedAmount = amount
-              normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
-              normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό προορισμού.")
-              require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
-              if (draft.kind == "withdrawal") {
-                  require(eligibleAccounts[normalizedToId]?.kind == "cash") { "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." }
-              }
-              legs += transactionLedgerLeg(normalizedFromId!!, -amount)
-              legs += transactionLedgerLeg(normalizedToId!!, amount)
-          }'''
-          if old not in text:
-              raise SystemExit('transfer/withdrawal block not found')
-          text = text.replace(old, new, 1)
-          old = '''            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }
-              legs += transactionLedgerLeg(normalizedFromId!!, -amount)'''
-          new = '''            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }
-              require(eligibleAccounts[normalizedToId]?.kind == "savings") { "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης." }
-              legs += transactionLedgerLeg(normalizedFromId!!, -amount)'''
-          if old not in text:
-              raise SystemExit('saving block marker not found')
-          path.write_text(text.replace(old, new, 1))
+          transfer_marker = '            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }\n            legs += transactionLedgerLeg(normalizedFromId!!, -amount)'
+          transfer_replacement = '            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }\n            if (draft.kind == "withdrawal") {\n                require(eligibleAccounts[normalizedToId]?.kind == "cash") { "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." }\n            }\n            legs += transactionLedgerLeg(normalizedFromId!!, -amount)'
+          if text.count(transfer_marker) != 1:
+              raise SystemExit(f'transfer marker count={text.count(transfer_marker)}')
+          text = text.replace(transfer_marker, transfer_replacement, 1)
+
+          saving_marker = '            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }\n            legs += transactionLedgerLeg(normalizedFromId!!, -amount)'
+          saving_replacement = '            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }\n            require(eligibleAccounts[normalizedToId]?.kind == "savings") { "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης." }\n            legs += transactionLedgerLeg(normalizedFromId!!, -amount)'
+          if text.count(saving_marker) != 1:
+              raise SystemExit(f'saving marker count={text.count(saving_marker)}')
+          path.write_text(text.replace(saving_marker, saving_replacement, 1))
           PY
       - name: Commit patch and self-clean
         shell: bash
