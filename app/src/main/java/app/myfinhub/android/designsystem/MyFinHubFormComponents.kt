@@ -1,5 +1,6 @@
 package app.myfinhub.android.designsystem
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +36,9 @@ fun MyFinHubOutlinedField(
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
+    prefix: (@Composable () -> Unit)? = null,
     suffix: (@Composable () -> Unit)? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     focusRequester: FocusRequester? = null,
 ) {
@@ -60,7 +63,9 @@ fun MyFinHubOutlinedField(
         isError = errorMessage != null,
         keyboardOptions = keyboardOptions,
         singleLine = singleLine,
+        prefix = prefix,
         suffix = suffix,
+        leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         shape = MaterialTheme.shapes.extraSmall,
         textStyle = MaterialTheme.typography.bodyLarge,
@@ -79,7 +84,10 @@ fun MyFinHubSelectorButton(
     val semanticsModifier = if (errorMessage == null) modifier else {
         modifier.semantics { error(errorMessage) }
     }
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubDesignMetrics.fieldLabelGap),
+    ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
