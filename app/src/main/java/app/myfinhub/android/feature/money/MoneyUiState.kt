@@ -30,8 +30,8 @@ enum class VaultState { LOCKED, AVAILABLE }
 data class SavingsPlan(
     val name: String = "Ταμείο ασφαλείας",
     val targetAmountText: String,
-    val targetDateLabel: String = "Δεκ 2027",
-    val monthlyContributionText: String = "250",
+    val targetDateLabel: String = "",
+    val monthlyContributionText: String = "",
     val paused: Boolean = false,
 )
 
@@ -55,18 +55,23 @@ data class LendingItem(
     val settled: Boolean = false,
 )
 
+/**
+ * Product-facing money state.
+ *
+ * Defaults are deliberately empty. Production projection must supply only values that exist in the
+ * canonical document. Synthetic names, dates and counterparties belong exclusively to explicit
+ * preview/test fixtures and must never leak into a signed-in user's finance surface.
+ */
 data class MoneyUiState(
-    val accounts: List<MoneyAccount> = syntheticMoneyAccounts(),
-    val cards: List<MoneyCard> = syntheticMoneyCards(),
-    val savingsGoal: Double? = 6_000.0,
-    val savingsCurrent: Double = 2_850.0,
-    val loanOutstanding: Double = 4_240.0,
-    val lendingReceivable: Double = 310.0,
-    val savingsPlan: SavingsPlan = SavingsPlan(
-        targetAmountText = savingsGoal?.toMoneyInput().orEmpty(),
-    ),
-    val loans: List<LoanItem> = syntheticLoans(loanOutstanding),
-    val lendingItems: List<LendingItem> = syntheticLendingItems(lendingReceivable),
+    val accounts: List<MoneyAccount> = emptyList(),
+    val cards: List<MoneyCard> = emptyList(),
+    val savingsGoal: Double? = null,
+    val savingsCurrent: Double = 0.0,
+    val loanOutstanding: Double = 0.0,
+    val lendingReceivable: Double = 0.0,
+    val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
+    val loans: List<LoanItem> = emptyList(),
+    val lendingItems: List<LendingItem> = emptyList(),
     val frontendMessage: String? = null,
 )
 
@@ -114,7 +119,7 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
     )
     MoneyAction.ToggleSavingsPause -> state.copy(
         savingsPlan = state.savingsPlan.copy(paused = !state.savingsPlan.paused),
-        frontendMessage = "Η κατάσταση του στόχου ενημερώθηκε.",
+        frontendMessage = "Η κατάσταση του τοπικού προσχεδίου ενημερώθηκε.",
     )
     MoneyAction.SaveSavingsDraft -> {
         val target = state.savingsPlan.targetAmountText.replace(',', '.').toDoubleOrNull()
@@ -123,7 +128,7 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
             target == null || target <= 0.0 -> state.copy(frontendMessage = "Ο στόχος πρέπει να είναι μεγαλύτερος από μηδέν.")
             contribution == null || contribution < 0.0 -> state.copy(frontendMessage = "Η μηνιαία συνεισφορά δεν μπορεί να είναι αρνητική.")
             state.savingsPlan.targetDateLabel.isBlank() -> state.copy(frontendMessage = "Συμπλήρωσε χρονικό στόχο.")
-            else -> state.copy(frontendMessage = "Οι αλλαγές του στόχου αποθηκεύτηκαν προσωρινά.")
+            else -> state.copy(frontendMessage = "Το τοπικό προσχέδιο ενημερώθηκε. Δεν έχει συγχρονιστεί με τον λογαριασμό.")
         }
     }
     is MoneyAction.UpdateLoan -> state.copy(
@@ -136,11 +141,11 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
                 nextPaymentLabel = action.nextPaymentLabel.trim(),
             )
         },
-        frontendMessage = "Οι αλλαγές του δανείου αποθηκεύτηκαν προσωρινά.",
+        frontendMessage = "Το τοπικό προσχέδιο του δανείου ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
     is MoneyAction.ToggleLoanPause -> state.copy(
         loans = state.loans.map { loan -> if (loan.id == action.id) loan.copy(paused = !loan.paused) else loan },
-        frontendMessage = "Η κατάσταση του δανείου ενημερώθηκε.",
+        frontendMessage = "Η τοπική κατάσταση του δανείου ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
     is MoneyAction.UpdateLending -> state.copy(
         lendingItems = state.lendingItems.map { item ->
@@ -151,18 +156,18 @@ fun reduceMoney(state: MoneyUiState, action: MoneyAction): MoneyUiState = when (
                 note = action.note.trim(),
             )
         },
-        frontendMessage = "Οι αλλαγές της απαίτησης αποθηκεύτηκαν προσωρινά.",
+        frontendMessage = "Το τοπικό προσχέδιο της απαίτησης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
     is MoneyAction.ToggleLendingSettled -> state.copy(
         lendingItems = state.lendingItems.map { item ->
             if (item.id == action.id) item.copy(settled = !item.settled) else item
         },
-        frontendMessage = "Η κατάσταση της απαίτησης ενημερώθηκε.",
+        frontendMessage = "Η τοπική κατάσταση της απαίτησης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
 }
 
 class MoneyViewModel : ViewModel() {
-    private val mutableState = MutableStateFlow(MoneyUiState())
+    private val mutableState = MutableStateFlow(syntheticMoneyUiState())
     val state: StateFlow<MoneyUiState> = mutableState.asStateFlow()
 
     fun deleteCard(cardId: String) {
@@ -173,6 +178,23 @@ class MoneyViewModel : ViewModel() {
         mutableState.update { state -> reduceMoney(state, action) }
     }
 }
+
+/** Explicit preview/test fixture. Never use as a product-state default. */
+fun syntheticMoneyUiState(): MoneyUiState = MoneyUiState(
+    accounts = syntheticMoneyAccounts(),
+    cards = syntheticMoneyCards(),
+    savingsGoal = 6_000.0,
+    savingsCurrent = 2_850.0,
+    loanOutstanding = 4_240.0,
+    lendingReceivable = 310.0,
+    savingsPlan = SavingsPlan(
+        targetAmountText = "6000",
+        targetDateLabel = "Δεκ 2027",
+        monthlyContributionText = "250",
+    ),
+    loans = syntheticLoans(4_240.0),
+    lendingItems = syntheticLendingItems(310.0),
+)
 
 fun syntheticMoneyAccounts() = listOf(
     MoneyAccount("acc-main", "Κύριος λογαριασμός", 2_148.37, "Τράπεζα"),
