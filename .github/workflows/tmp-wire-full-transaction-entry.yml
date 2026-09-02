@@ -1,0 +1,109 @@
+name: Temporary wire full transaction entry
+
+on:
+  push:
+    branches:
+      - feature/full-transaction-entry-parity
+    paths:
+      - .github/workflows/tmp-wire-full-transaction-entry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-transaction-entry-parity
+          fetch-depth: 0
+      - name: Wire projection and production controller
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          projection_path = Path('app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt')
+          projection = projection_path.read_text()
+          old = '''    val defaultExpenseAccount = document.settingsObject().string("defaultExpenseAccount")
+              ?.takeIf(accountNames::containsKey)
+              ?: accounts.firstOrNull { it.kind != "credit" }?.id.orEmpty()
+          val destination = accounts.firstOrNull { it.kind == "savings" && it.id != defaultExpenseAccount }
+              ?: accounts.firstOrNull { it.kind != "credit" && it.id != defaultExpenseAccount }
+          val quickEntry = previous?.quickEntryState ?: QuickEntryUiState(
+              fromAccount = accountNames[defaultExpenseAccount].orEmpty(),
+              destination = destination?.name.orEmpty(),
+          )'''
+          new = '''    val quickEntry = projectQuickEntryState(
+              document = document,
+              today = today,
+              previous = previous?.quickEntryState,
+          )'''
+          if old not in projection:
+              raise SystemExit('Quick-entry projection block not found')
+          projection_path.write_text(projection.replace(old, new, 1))
+
+          vm_path = Path('app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt')
+          vm = vm_path.read_text()
+          pattern = re.compile(r'''    fun onQuickEntryAction\(action: QuickEntryAction\) \{.*?\n    \}\n\n    fun onPlanAction''', re.S)
+          replacement = '''    fun onQuickEntryAction(action: QuickEntryAction) {
+              val ready = mutableState.value as? FinanceProductState.Ready ?: return
+              if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+              if (action != QuickEntryAction.Save) {
+                  mutableState.value = ready.copy(
+                      projection = ready.projection.copy(
+                          quickEntryState = reduceQuickEntry(ready.projection.quickEntryState, action),
+                      ),
+                  )
+                  return
+              }
+
+              val preview = reduceQuickEntry(ready.projection.quickEntryState, QuickEntryAction.Save)
+              mutableState.value = ready.copy(projection = ready.projection.copy(quickEntryState = preview))
+              if (preview.validationMessage != null) return
+
+              val eventId = "evt-android-${UUID.randomUUID()}"
+              val now = Instant.now().toString()
+              val mutation = runCatching {
+                  createQuickEntryCanonicalMutation(
+                      document = ready.projection.document,
+                      state = preview,
+                      eventId = eventId,
+                      nowIso = now,
+                  )
+              }.getOrElse {
+                  setQuickEntryError("Η κίνηση δεν είναι έγκυρη.")
+                  mutableNotices.tryEmit(
+                      unexpectedUserNotice(
+                          operation = "Δημιουργία κίνησης",
+                          throwable = it,
+                          message = "Η κίνηση δεν μπόρεσε να προετοιμαστεί.",
+                      ),
+                  )
+                  return
+              }
+              applyMutation(mutation)
+          }
+
+          fun onPlanAction'''
+          vm, count = pattern.subn(replacement, vm, count=1)
+          if count != 1:
+              raise SystemExit(f'Quick-entry controller block replacement count={count}')
+          persisted_old = 'quickEntryState = projection.quickEntryState.copy(persisted = true),'
+          persisted_new = 'quickEntryState = projection.quickEntryState.copy(persisted = true, dirty = false),'
+          if persisted_old not in vm:
+              raise SystemExit('Persisted quick-entry marker not found')
+          vm = vm.replace(persisted_old, persisted_new, 1)
+          vm_path.write_text(vm)
+          PY
+      - name: Commit wired source and self-clean
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-wire-full-transaction-entry.yml
+          git add app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt
+          git commit -m "feat: wire full transaction entry to canonical product"
+          git push origin feature/full-transaction-entry-parity
