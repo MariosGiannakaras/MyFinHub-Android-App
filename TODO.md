@@ -19,9 +19,9 @@ Tracker #37 / PR #38 completed and merged into `develop`.
 - [x] Safe operational `UserNotice` + Snackbar/details behavior merged.
 - [x] Typed network/auth failures, recoverable finance/CVV failures and cancellation semantics merged.
 
-## Post-redesign resilience, data integrity & diagnostics — implementation complete
+## Post-redesign resilience, data integrity & diagnostics — completed and merged
 
-Tracker: issue #39. Integration PR: #40. Target: `develop`. PR/issue state is the source of truth for final integration/closure.
+Tracker #39 is complete. Draft PR #40 was closed only because the connector could not transition it out of draft; ready PR #41 used the exact same validated branch/head and was squash-merged into `develop`.
 
 ### Network / offline resilience
 
@@ -63,8 +63,8 @@ Tracker: issue #39. Integration PR: #40. Target: `develop`. PR/issue state is th
 - [x] Offline/pending finance save has a distinct recoverable UI issue.
 - [x] Long account labels and very large positive/negative values covered by a 412×915 Home visual fixture.
 - [x] Diagnostics offline/recovery covered by a 412×915 visual fixture.
-- [x] Personally inspect both new rendered candidates; reject/fix any clipping or overlap before accepting references.
-- [x] Keep device-specific network-toggle/Samsung behavior for the physical S24 Ultra Phase 6 smoke sequence rather than pretending a hosted Pixel-profile emulator is exact Samsung validation.
+- [x] Both new rendered candidates personally inspected; ambiguous overlap candidate rejected and corrected before canonical acceptance.
+- [x] Device-specific network-toggle/Samsung behavior left correctly for the physical S24 Ultra Phase 6 smoke sequence rather than pretending the hosted representative emulator is exact Samsung validation.
 
 ### Safe in-app diagnostics
 
@@ -79,8 +79,9 @@ Tracker: issue #39. Integration PR: #40. Target: `develop`. PR/issue state is th
 - [x] Remove remaining unrouted/dead Backup/Import/Data Transfer utilities state/screen/test remnants.
 - [x] Add `docs/PHASE_6_DEVICE_HANDOFF.md` with physical-S24 smoke flow and clean-clone/workstation prerequisites.
 - [x] Keep release/signing work out of this autonomous workstream.
-- [x] Synchronize STATUS/TODO for the completed implementation; permanent issue #27, tracker #39, PR #40 and Phase 6 issue #14 are synchronized at final acceptance.
-- [x] Merge is allowed only after final normal CI, screenshot regression, representative S24-target instrumentation and zero-blocker review are green.
+- [x] Final normal CI, screenshot regression and representative S24-target instrumentation green on the merged implementation state.
+- [x] Stale Phase 5 draft PR #23 closed as superseded by the already completed Phase 5 PR #36.
+- [x] Merge completed with zero supported-device blocker; permanent issue #27, tracker #39 and Phase 6 issue #14 synchronized afterward.
 
 ### Explicit exclusion
 
