@@ -145,7 +145,11 @@ fun createCanonicalTransactionEntryMutation(
             val (_, amount) = positiveAmount()
             normalizedAmount = amount
             normalizedAccountId = requireAccount(draft.accountId, "Διάλεξε υπαρκτό λογαριασμό πίστωσης.")
-            require(!draft.person.isNullOrBlank()) { "Συμπλήρωσε το πρόσωπο για τα δανεικά." }
+            val person = draft.person?.trim().orEmpty()
+            require(person.isNotBlank()) { "Συμπλήρωσε το πρόσωπο για τα δανεικά." }
+            val outstanding = document.lendingOutstandingForPerson(person)
+            require(outstanding > 0.005) { "Δεν υπάρχει καταγεγραμμένη οφειλή για αυτό το πρόσωπο." }
+            require(amount <= outstanding + 0.01) { "Η επιστροφή δεν μπορεί να ξεπερνά την οφειλή του προσώπου." }
             legs += transactionLedgerLeg(normalizedAccountId!!, amount)
             receivableDelta = -amount
         }
@@ -159,9 +163,20 @@ fun createCanonicalTransactionEntryMutation(
         "card_payment" -> {
             val (_, amount) = positiveAmount()
             normalizedAmount = amount
-            normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό πληρωμής.")
-            normalizedCardId = requireCard(draft.cardId)
-            legs += transactionLedgerLeg(normalizedFromId!!, -amount)
+            val sourceAccountId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό πληρωμής.")
+            normalizedFromId = sourceAccountId
+            val cardId = requireCard(draft.cardId)
+            normalizedCardId = cardId
+            val debt = document.creditDebtForCardAt(cardId, draft.date)
+            require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
+            require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
+            val cardBankId = document.cards().firstOrNull { it.id == cardId }?.bankId.orEmpty()
+            if (cardBankId.isNotBlank()) {
+                require(sourceAccountId.startsWith("$cardBankId-")) {
+                    "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
+                }
+            }
+            legs += transactionLedgerLeg(sourceAccountId, -amount)
             legs += transactionLedgerLeg(CREDIT_ACCOUNT_ID, amount)
             creditDelta = amount
         }
