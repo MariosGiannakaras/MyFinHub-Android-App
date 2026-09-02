@@ -17,20 +17,51 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val BrandPurple = Color(0xFF6547C7)
-private val BrandPurpleDark = Color(0xFFCAB8FF)
-private val BrandPurpleContainer = Color(0xFFEDE7FF)
-private val Ink = Color(0xFF1C1922)
-private val MutedInk = Color(0xFF65606B)
-private val Canvas = Color(0xFFFBF9FF)
-private val Surface = Color(0xFFFFFBFF)
-private val SoftSurface = Color(0xFFF5F1F8)
-private val Outline = Color(0xFFD2CAD8)
+/** Palette values are internal so unit tests can enforce contrast contracts without UI rendering. */
+internal object MyFinHubPalette {
+    val brandPurple = Color(0xFF6547C7)
+    val brandPurpleDark = Color(0xFFCAB8FF)
+    val brandPurpleContainer = Color(0xFFEDE7FF)
+
+    val ink = Color(0xFF1C1922)
+    val mutedInk = Color(0xFF65606B)
+    val canvas = Color(0xFFFBF9FF)
+    val surface = Color(0xFFFFFBFF)
+    val softSurface = Color(0xFFF5F1F8)
+
+    // Essential control boundaries must reach the Android 3:1 graphical contrast threshold.
+    val outline = Color(0xFF8A828E)
+    val outlineVariant = Color(0xFFE8E1EC)
+
+    // Light semantic accents are chosen to keep normal-sized finance text >= 4.5:1 both on the
+    // base surface and on their semantic containers.
+    val lightIncome = Color(0xFF087247)
+    val lightIncomeContainer = Color(0xFFE0F6EB)
+    val lightExpense = Color(0xFFB72F3A)
+    val lightExpenseContainer = Color(0xFFFFE7E8)
+    val lightSavings = Color(0xFF6C4BC4)
+    val lightSavingsContainer = Color(0xFFEDE7FF)
+    val lightTransfer = Color(0xFF2E6BC4)
+    val lightTransferContainer = Color(0xFFE5EFFF)
+    val lightAttention = Color(0xFF8A5900)
+    val lightAttentionContainer = Color(0xFFFFEFC8)
+    val lightNeutral = Color(0xFF5B626C)
+    val lightNeutralContainer = Color(0xFFF0F2F5)
+
+    val darkBackground = Color(0xFF111016)
+    val darkOnBackground = Color(0xFFE8E1EA)
+    val darkSurface = Color(0xFF151319)
+    val darkOnSurface = Color(0xFFE8E1EA)
+    val darkSurfaceVariant = Color(0xFF25222B)
+    val darkOnSurfaceVariant = Color(0xFFCAC3CE)
+    val darkOutline = Color(0xFF948E99)
+    val darkOutlineVariant = Color(0xFF48434D)
+}
 
 private val LightColors = lightColorScheme(
-    primary = BrandPurple,
+    primary = MyFinHubPalette.brandPurple,
     onPrimary = Color.White,
-    primaryContainer = BrandPurpleContainer,
+    primaryContainer = MyFinHubPalette.brandPurpleContainer,
     onPrimaryContainer = Color(0xFF25105F),
     secondary = Color(0xFF5E5B73),
     onSecondary = Color.White,
@@ -40,14 +71,14 @@ private val LightColors = lightColorScheme(
     onTertiary = Color.White,
     tertiaryContainer = Color(0xFFD7E7FF),
     onTertiaryContainer = Color(0xFF071D35),
-    background = Canvas,
-    onBackground = Ink,
-    surface = Surface,
-    onSurface = Ink,
-    surfaceVariant = SoftSurface,
-    onSurfaceVariant = MutedInk,
-    outline = Outline,
-    outlineVariant = Color(0xFFE8E1EC),
+    background = MyFinHubPalette.canvas,
+    onBackground = MyFinHubPalette.ink,
+    surface = MyFinHubPalette.surface,
+    onSurface = MyFinHubPalette.ink,
+    surfaceVariant = MyFinHubPalette.softSurface,
+    onSurfaceVariant = MyFinHubPalette.mutedInk,
+    outline = MyFinHubPalette.outline,
+    outlineVariant = MyFinHubPalette.outlineVariant,
     error = Color(0xFFBA1A2A),
     onError = Color.White,
     errorContainer = Color(0xFFFFDAD9),
@@ -55,7 +86,7 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = BrandPurpleDark,
+    primary = MyFinHubPalette.brandPurpleDark,
     onPrimary = Color(0xFF34206E),
     primaryContainer = Color(0xFF4C3594),
     onPrimaryContainer = Color(0xFFEAE1FF),
@@ -67,14 +98,14 @@ private val DarkColors = darkColorScheme(
     onTertiary = Color(0xFF163552),
     tertiaryContainer = Color(0xFF2D4D6B),
     onTertiaryContainer = Color(0xFFD3E6FF),
-    background = Color(0xFF111016),
-    onBackground = Color(0xFFE8E1EA),
-    surface = Color(0xFF151319),
-    onSurface = Color(0xFFE8E1EA),
-    surfaceVariant = Color(0xFF25222B),
-    onSurfaceVariant = Color(0xFFCAC3CE),
-    outline = Color(0xFF948E99),
-    outlineVariant = Color(0xFF48434D),
+    background = MyFinHubPalette.darkBackground,
+    onBackground = MyFinHubPalette.darkOnBackground,
+    surface = MyFinHubPalette.darkSurface,
+    onSurface = MyFinHubPalette.darkOnSurface,
+    surfaceVariant = MyFinHubPalette.darkSurfaceVariant,
+    onSurfaceVariant = MyFinHubPalette.darkOnSurfaceVariant,
+    outline = MyFinHubPalette.darkOutline,
+    outlineVariant = MyFinHubPalette.darkOutlineVariant,
     error = Color(0xFFFFB3B5),
     onError = Color(0xFF680014),
     errorContainer = Color(0xFF93001F),
@@ -98,18 +129,18 @@ data class MyFinHubFinanceColors(
 )
 
 private val LightFinanceColors = MyFinHubFinanceColors(
-    income = Color(0xFF0B8754),
-    incomeContainer = Color(0xFFE0F6EB),
-    expense = Color(0xFFD23E47),
-    expenseContainer = Color(0xFFFFE7E8),
-    savings = Color(0xFF6C4BC4),
-    savingsContainer = Color(0xFFEDE7FF),
-    transfer = Color(0xFF2E6BC4),
-    transferContainer = Color(0xFFE5EFFF),
-    attention = Color(0xFFA96D00),
-    attentionContainer = Color(0xFFFFEFC8),
-    neutral = Color(0xFF68717D),
-    neutralContainer = Color(0xFFF0F2F5),
+    income = MyFinHubPalette.lightIncome,
+    incomeContainer = MyFinHubPalette.lightIncomeContainer,
+    expense = MyFinHubPalette.lightExpense,
+    expenseContainer = MyFinHubPalette.lightExpenseContainer,
+    savings = MyFinHubPalette.lightSavings,
+    savingsContainer = MyFinHubPalette.lightSavingsContainer,
+    transfer = MyFinHubPalette.lightTransfer,
+    transferContainer = MyFinHubPalette.lightTransferContainer,
+    attention = MyFinHubPalette.lightAttention,
+    attentionContainer = MyFinHubPalette.lightAttentionContainer,
+    neutral = MyFinHubPalette.lightNeutral,
+    neutralContainer = MyFinHubPalette.lightNeutralContainer,
 )
 
 private val DarkFinanceColors = MyFinHubFinanceColors(
@@ -130,6 +161,7 @@ private val DarkFinanceColors = MyFinHubFinanceColors(
 private val LocalFinanceColors = staticCompositionLocalOf { LightFinanceColors }
 
 object MyFinHubSpacing {
+    val micro = 2.dp
     val xxs = 4.dp
     val xs = 8.dp
     val sm = 12.dp
@@ -145,9 +177,11 @@ object MyFinHubThemeTokens {
 }
 
 private val MyFinHubShapes = Shapes(
-    small = RoundedCornerShape(10.dp),
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(22.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(28.dp),
 )
 
 private val MyFinHubTypography = Typography(
