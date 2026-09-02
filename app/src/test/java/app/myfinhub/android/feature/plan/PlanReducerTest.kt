@@ -26,7 +26,7 @@ class PlanReducerTest {
 
     @Test
     fun plannedItemDraft_updatesOnlySelectedStableId() {
-        val state = PlanUiState()
+        val state = syntheticPlanUiState()
         val untouched = state.items[1]
 
         val result = reducePlan(
@@ -46,7 +46,10 @@ class PlanReducerTest {
         assertEquals("Νέο ενοίκιο", result.items.first().title)
         assertEquals(700.0, result.items.first().amount, 0.0)
         assertEquals(untouched, result.items[1])
-        assertEquals("Η υποχρέωση ενημερώθηκε.", result.itemMessage)
+        assertEquals(
+            "Το τοπικό προσχέδιο της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
+            result.itemMessage,
+        )
     }
 
     @Test
@@ -85,12 +88,15 @@ class PlanReducerTest {
 
         val result = reducePlan(state, PlanAction.SaveCategoryBudgets)
 
-        assertEquals("Τα budgets ανά κατηγορία ενημερώθηκαν.", result.categoryBudgetMessage)
+        assertEquals(
+            "Τα τοπικά προσχέδια budgets ενημερώθηκαν. Δεν έχουν συγχρονιστεί.",
+            result.categoryBudgetMessage,
+        )
     }
 
     @Test
     fun forecastHorizon_acceptsOnlyDefinedWindow() {
-        val state = PlanUiState(forecastHorizonDays = 30)
+        val state = syntheticPlanUiState().copy(forecastHorizonDays = 30)
 
         val selected = reducePlan(state, PlanAction.ForecastHorizonChanged(60))
         val rejected = reducePlan(selected, PlanAction.ForecastHorizonChanged(45))
@@ -101,7 +107,7 @@ class PlanReducerTest {
 
     @Test
     fun pauseToggle_isStableById() {
-        val state = PlanUiState()
+        val state = syntheticPlanUiState()
         val id = state.items.first().id
 
         val paused = reducePlan(state, PlanAction.TogglePlannedItemPause(id))
