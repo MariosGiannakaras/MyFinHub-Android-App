@@ -2,7 +2,6 @@ package app.myfinhub.android.feature.utilities
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +18,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -139,118 +135,11 @@ private fun SettingsCard(
 }
 
 @Composable
-fun DataTransferScreen(
-    state: FrontendUtilitiesUiState,
-    onAction: (FrontendUtilitiesAction) -> Unit,
-    onBack: () -> Unit,
+internal fun DiagnosticsCard(
+    diagnostics: AppDiagnosticsSnapshot,
+    modifier: Modifier = Modifier,
 ) {
-    if (state.importConfirmationOpen) {
-        AlertDialog(
-            onDismissRequest = { onAction(FrontendUtilitiesAction.CancelReplaceImport) },
-            title = { Text("Αντικατάσταση όλων των δεδομένων;") },
-            text = { Text("Η εισαγωγή μπορεί να αντικαταστήσει τα τρέχοντα δεδομένα. Έλεγξε το αντίγραφο πριν συνεχίσεις.") },
-            confirmButton = {
-                Button(onClick = { onAction(FrontendUtilitiesAction.ConfirmReplaceImport) }) {
-                    Text("Επιβεβαίωση αντικατάστασης")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onAction(FrontendUtilitiesAction.CancelReplaceImport) }) {
-                    Text("Ακύρωση")
-                }
-            },
-        )
-    }
-    UtilityScaffold(
-        title = "Εισαγωγή & αντίγραφα",
-        subtitle = "Ασφαλής μεταφορά δεδομένων",
-        onBack = onBack,
-    ) { modifier ->
-        Column(
-            modifier = modifier.verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        ) {
-            DataTransferCard(
-                title = "Εξαγωγή",
-                body = "Προετοίμασε μια ασφαλή προεπισκόπηση πριν αποθηκευτεί οποιοδήποτε αρχείο.",
-                tone = FinanceTone.Transfer,
-            ) {
-                OutlinedButton(
-                    onClick = { onAction(FrontendUtilitiesAction.PrepareBackupPreview) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                    Text("Προετοιμασία αντιγράφου")
-                }
-                state.backupMessage?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            DataTransferCard(
-                title = "Εισαγωγή",
-                body = "Δες πρώτα μια περίληψη και επιβεβαίωσε ρητά πριν από αντικατάσταση δεδομένων.",
-                tone = FinanceTone.Attention,
-            ) {
-                OutlinedButton(
-                    onClick = { onAction(FrontendUtilitiesAction.PrepareImportPreview) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                ) {
-                    Text("Προεπισκόπηση εισαγωγής")
-                }
-                if (state.importPreviewReady) {
-                    Text(
-                        "Δείγμα αντιγράφου · 24 κινήσεις · 3 λογαριασμοί",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Button(
-                        onClick = { onAction(FrontendUtilitiesAction.RequestReplaceImport) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Text("Αντικατάσταση δεδομένων")
-                    }
-                }
-                state.importMessage?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DataTransferCard(
-    title: String,
-    body: String,
-    tone: FinanceTone,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MyFinHubIconBadge(
-                    icon = MyFinHubIcons.Transfer,
-                    tone = tone,
-                    contentDescription = null,
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            content()
-        }
-    }
-}
-
-
-@Composable
-private fun DiagnosticsCard(diagnostics: AppDiagnosticsSnapshot) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+    MyFinHubSectionCard(modifier = modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Διαγνωστικά", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(
