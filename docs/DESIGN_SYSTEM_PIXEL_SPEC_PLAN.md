@@ -1,40 +1,51 @@
-# MyFinHub Android — Design System & Pixel-Spec hardening plan
+# MyFinHub Android — Design System & Pixel-Spec hardening completion record
 
-Status: active before Phase 6
+Status: implementation and visual acceptance complete; final merge gates run on the accepted reference-sync head
 Tracker: issue #47
 Scope: Android only. Physical Galaxy S24 Ultra acceptance, production Auth/API validation and production signing/release remain Phase 6.
 
-## Why this pass exists
+## Outcome
 
-The 2026 redesign and UI/UX hardening established the right product hierarchy and interaction behavior, but not every retained component was converted into a documented numeric design contract. This pass removes unexplained visual magic numbers, makes Material 3 inheritance explicit, and turns the visual system into something testable before real-device acceptance.
+The retained Android product now has an explicit, testable visual contract rather than screen-local approximations. Product-owned geometry is represented by shared tokens/components, Material 3 inheritance is documented where appropriate, light/dark contrast is regression-tested, and the visually changed Compose surfaces have been rendered and personally inspected before canonical reference acceptance.
 
-## Authoritative guidance used
+No finance business semantics, canonical data ownership, auth assurance boundary, server-vault PAN/expiry boundary or device-local CVV persistence boundary was changed by this workstream.
 
-- Android Core App Quality: interactive touch targets at least 48dp; text/foreground contrast 4.5:1 for normal text and 3:1 for large text/graphics.
-- Jetpack Compose Material 3: semantic shape roles and theme-level shape overrides.
-- Material 3 Compose Button baseline: 40dp minimum visible height, 18dp baseline icon, 8dp icon/label gap. MyFinHub intentionally raises primary finance actions to a visible 48dp minimum so the visible control matches the minimum touch target.
-- Material 3 Compose text fields: 56dp minimum height; 1dp unfocused and 2dp focused border/indicator.
-- Material 3 NavigationBar baseline: 80dp container, 24dp icon, 64×32dp active indicator and 4dp indicator-to-label spacing. MyFinHub inherits this geometry unless a later device-validated reason requires an override.
-- Material components keep framework defaults where those defaults already satisfy product semantics and accessibility. MyFinHub owns only deliberate product-level deviations.
+## Completed workstreams
 
-## Foundation contract
+- [x] Foundation token audit: spacing, typography, shapes, borders, elevation, icon sizes and touch targets.
+- [x] Color/contrast audit with >=4.5:1 normal-text and >=3:1 large-text/essential-graphics thresholds.
+- [x] Component specification for buttons, outlined actions, destructive actions, icon buttons, fields, selectors, date controls, chips, cards, rows, headers, navigation, FAB, sheets, dialogs, snackbars and switches.
+- [x] Product-owned ad-hoc dimensions moved to shared MyFinHub metrics/components where ownership is meaningful.
+- [x] Screen-rhythm audit across Home, Activity, Quick Entry, canonical Money, canonical Plan, Insights and Settings/Utilities.
+- [x] Authentication controls aligned to the same 56dp field / 48dp action system with explicit auth layout metrics.
+- [x] Production canonical Card Detail aligned to secure shared controls without changing secret lifecycle/security boundaries.
+- [x] Light/dark/large-font states rendered and inspected for the changed canonical surfaces.
+- [x] Truthful empty/history and system recovery states retained; obsolete production-facing “synthetic” Insights copy removed.
+- [x] Real Compose screenshot candidates generated after visual batches and personally inspected.
+- [x] Canonical screenshot acceptance expanded from 38 to 41 references with three sanitized Card Detail states.
+- [x] Zero unresolved PR review threads at merge-readiness audit.
+
+## Executable foundation contract
 
 ### Spacing
 
-| Token | Value | Intended use |
-| --- | ---: | --- |
-| micro | 2dp | tightly related text/meta stacks only |
-| xxs | 4dp | compact internal separation |
-| xs | 8dp | icon/label gap, compact grouping |
-| sm | 12dp | row/control internal grouping |
-| md | 16dp | card content padding |
-| lg | 20dp | compact-phone screen edge and section gap |
-| xl | 24dp | large section separation |
-| xxl | 32dp | major page-state separation |
+| Token | Value |
+| --- | ---: |
+| micro | 2dp |
+| xxs | 4dp |
+| xs | 8dp |
+| sm | 12dp |
+| md | 16dp |
+| lg | 20dp |
+| xl | 24dp |
+| xxl | 32dp |
+
+Derived relationships are also named in code:
+
+- compact navigation-content clearance: 96dp = 80dp navigation + 16dp spacing;
+- signed-in Snackbar clearance: 152dp = 80dp navigation + 48dp primary action + 24dp spacing.
 
 ### Shapes
-
-Target semantic scale:
 
 | Role | Radius |
 | --- | ---: |
@@ -44,11 +55,9 @@ Target semantic scale:
 | large | 24dp |
 | extraLarge | 28dp |
 
-Usage intent: text fields/menus = extraSmall, chips = small, cards/rows = medium, sheets/FAB-like larger surfaces = large, dialogs/large transient surfaces = extraLarge unless the Material component owns a stronger default shape.
-
 ### Core geometry
 
-| Component/role | Specification |
+| Component/role | Accepted specification |
 | --- | --- |
 | Minimum interactive touch target | 48dp × 48dp |
 | Compact screen horizontal edge | 20dp |
@@ -57,95 +66,84 @@ Usage intent: text fields/menus = extraSmall, chips = small, cards/rows = medium
 | Finance row padding | 16dp horizontal / 12dp vertical |
 | Icon badge | 40dp container / 20dp icon |
 | Standard icon | 20dp |
-| Compact control icon | 18dp |
-| Primary finance action | >=48dp visible height, 20dp horizontal padding, 12dp vertical padding, 18dp icon, 8dp icon-label gap |
-| Outlined text field | >=56dp height, 1dp unfocused border, 2dp focused border |
-| Bottom navigation | inherit Material 3: 80dp container, 24dp icon, 64×32dp active indicator, 4dp indicator-label gap |
+| Compact action icon | 18dp |
+| Primary/outlined finance action | >=48dp visible height, 20dp horizontal padding, 12dp vertical padding |
+| Outlined text field / selector | >=56dp height |
+| Text-field borders | 1dp unfocused / 2dp focused-error Material baseline |
+| Bottom navigation | Material 3: 80dp container, 24dp icon, 64×32dp active indicator |
+| Auth content | 24dp horizontal / 32dp vertical, 480dp max width, 40dp brand mark |
+| Card-secret value label column | 56dp |
 
-## Contrast contract
+### Typography
 
-- Normal/small text: >=4.5:1 against its actual rendered background.
-- Large text and essential graphical/control boundaries: >=3:1.
-- Decorative separators may be lower contrast only when they are not required to perceive component boundaries/state.
-- Color must never be the only carrier of financial meaning.
+The theme consumes explicit `MyFinHubTypographySpec` values for headlineLarge 30/36sp, headlineMedium 25/31sp, headlineSmall 21/27sp, titleLarge 19/25sp, titleMedium 16/22sp, bodyLarge 16/23sp, bodyMedium 14/20sp and labelLarge 14/18sp with the documented weights/letter spacing.
 
-Initial audit found the old light-theme income, expense, attention and neutral semantic accents were below 4.5:1 in at least one small-text usage. Batch 1 darkens those semantic accents while keeping their hue families and validates both surface and semantic-container pairings.
+## Contrast acceptance
 
-### Batch-1 light contrast measurements
+Light semantic finance accents were corrected where the prior palette fell below normal-text contrast. Unit contracts now protect both light and dark semantic pairs on their actual surface/container backgrounds and protect essential outlines at the graphical threshold.
 
-| Semantic role | On surface | On semantic container |
-| --- | ---: | ---: |
-| Income | 5.84:1 | 5.29:1 |
-| Expense | 5.89:1 | 5.13:1 |
-| Savings | 5.96:1 | 5.08:1 |
-| Transfer | 5.10:1 | 4.51:1 |
-| Attention | 5.84:1 | 5.25:1 |
-| Neutral | 6.01:1 | 5.49:1 |
+The accepted dark semantic pairs have substantial headroom: semantic accent/container combinations remain above roughly 6.6:1 and the essential dark outline is roughly 5.8:1 against the dark surface.
 
-The essential light `outline` is 3.62:1 against the primary surface. `outlineVariant` remains intentionally lower-contrast and may be used only for decorative separation where the boundary is not required to understand control state.
+## Production component migration
 
-## Component matrix
+### Quick Entry
 
-### Batch 1 — Foundations + shared primitives
+- Shared 56dp amount/person/reconciliation/note/split fields.
+- Shared 56dp selectors with explicit error semantics.
+- 48dp date-picker icon target.
+- Shared primary/outlined actions.
+- Existing first-invalid focus, type-specific accounting rules, DatePicker fallback and split scroll behavior preserved.
 
-- [x] Create explicit geometry contract (`MyFinHubDesignMetrics`).
-- [x] Normalize spacing/shape roles in the theme.
-- [x] Fix semantic light-theme contrast failures.
-- [x] Remove shared-component ad-hoc sizes where a token now exists.
-- [x] Add unit contracts for dimensions and contrast.
-- [ ] Complete Batch-1 CI, representative emulator and rendered-candidate validation.
+### Activity / Plan / Home / Utilities
 
-### Batch 2 — Controls
+- Activity edit controls and save action use shared contracts.
+- Canonical Plan budget fields use shared fields.
+- Settings logout and Change History actions use shared action geometry.
+- Home quick-entry sheet uses shared actions; compact Home/Activity use common edge/clearance metrics.
 
-- [ ] Buttons / text buttons / icon buttons / FAB.
-- [ ] Text fields / selectors / date controls.
-- [ ] Chips / switches / segmented choices.
-- [ ] Explicit disabled/focused/error/pressed-state review.
+### Authentication
 
-### Batch 3 — Containers and repeated data
+- Login, TOTP, PIN enrollment, PIN unlock and biometric/PIN fallback use the shared secure-field/action system.
+- Appropriate IME actions are explicit without changing credential handling.
+- Auth surface layout has named 24/32dp padding, 480dp max width, 40dp brand and 16dp main rhythm.
 
-- [ ] Cards / action cards / finance rows / list rows / dividers.
-- [ ] Headers / section headings / amount alignment.
-- [ ] Dialogs / sheets / snackbars / system states.
-- [ ] Navigation bar/item geometry and selected-state treatment.
+### Production Card Detail
 
-### Batch 4 — Screen rhythm
+- Canonical signed-in navigation uses a dedicated secure pixel-spec Card Detail surface.
+- Reveal/retry/save-CVV use shared 48dp actions.
+- CVV input uses the shared 56dp secure field.
+- Local CVV deletion uses explicit destructive visual language and a 48dp target.
+- `SecureWindowProtection` and the owner+AAL2/server-vault versus device-local-CVV boundary remain intact.
+- Screenshot fixtures contain no real/reusable PAN/CVV secrets.
 
-- [ ] Home.
-- [ ] Activity.
-- [ ] Quick Entry and split editor.
-- [ ] Money.
-- [ ] Plan.
-- [ ] Insights.
-- [ ] Settings / Diagnostics / Change History.
+## Screenshot acceptance
 
-For each screen record outer margins, vertical rhythm, section gaps, row density, title/subtitle spacing, primary-action placement and any intentional exception from the foundation contract.
+The accepted renderer set contains 41 canonical references. The previous 38 accepted surfaces were re-rendered after the Auth migration; the final implementation render was byte-identical to that inspected 38-image set. The final workstream added three Card Detail references:
 
-### Batch 5 — Accessibility and visual states
+- hidden light;
+- hidden dark;
+- revealed sanitized at 150% font scale.
 
-- [ ] Light/dark contrast matrix.
-- [ ] Normal and large font scale.
-- [ ] Empty/loading/error/offline/conflict/pending states.
-- [ ] TalkBack labels/state announcements and focus order.
-- [ ] 48dp interactive-target audit for custom controls.
+All three were personally inspected at the 412×915 compact-phone target. No clipping, overlap or unreadable state was accepted. The large-font secure state keeps PAN/expiry/CVV rows, the secure CVV field, disabled save state and destructive action visible and distinguishable.
 
-### Batch 6 — Screenshot acceptance
+## Final gate policy
 
-- [ ] Render real Compose candidates for every visually changed canonical surface.
-- [ ] Personally inspect compact normal-font candidates.
-- [ ] Personally inspect dark candidates.
-- [ ] Personally inspect large-font candidates.
-- [ ] Replace canonical references only after acceptance; do not accumulate alternatives.
-- [ ] Final screenshot regression must pass without regeneration.
+After the accepted reference tree is committed, the exact merge head must satisfy all of the following before merge:
 
-### Batch 7 — Merge readiness
+- normal Android CI, including benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 analysis and release-policy audit;
+- screenshot regression success **without candidate regeneration**;
+- representative S24-target instrumentation success;
+- zero unresolved review threads.
 
-- [ ] Unit/reducer/UI tests green.
-- [ ] Normal Android CI green.
-- [ ] Representative S24-target instrumentation green.
-- [ ] Zero unresolved review threads.
-- [ ] Merge to `develop` before Phase 6 physical-device acceptance.
+A hosted-emulator provisioning/download failure is infrastructure noise, not a product pass; the S24-target gate is only accepted when the interaction suite itself completes successfully on a clean retry.
 
 ## Phase 6 boundary
 
-This pass may prepare the UI for the real device, but it does not claim Samsung-specific acceptance. `docs/PHASE_6_DEVICE_HANDOFF.md` and issue #14 remain authoritative for production Auth/API, actual One UI/display/font rendering, physical-device performance, release-candidate promotion and signing.
+This pass does not claim Samsung-specific physical acceptance. `docs/PHASE_6_DEVICE_HANDOFF.md` and issue #14 remain authoritative for:
+
+- production-configured Auth/API on the owner’s physical Galaxy S24 Ultra;
+- real One UI/display/font/dark-mode/TalkBack rendering;
+- real-device Quick Entry, canonical Money/Plan and secure Card Detail/CVV behavior;
+- offline/reconnect and reversible mutation smoke;
+- physical performance acceptance;
+- release-candidate decision, production signing key and production-signed APK only after owner authorization.
