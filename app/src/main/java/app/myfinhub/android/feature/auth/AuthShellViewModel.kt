@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import app.myfinhub.android.core.auth.AuthAppState
 import app.myfinhub.android.core.auth.AuthFailureKind
 import app.myfinhub.android.core.auth.AuthFactor
+import app.myfinhub.android.core.auth.AuthResult
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.auth.AuthSessionCoordinator
 import app.myfinhub.android.core.auth.SupabaseAuthGateway
@@ -17,8 +18,16 @@ import app.myfinhub.android.core.security.DataStorePinAttemptLimiter
 import app.myfinhub.android.core.security.LocalPinVerifier
 import app.myfinhub.android.core.security.PinAttemptLimiter
 import app.myfinhub.android.core.security.PinAttemptStatus
+import app.myfinhub.android.core.ui.UserNotice
+import app.myfinhub.android.core.ui.authFailureMessage
+import app.myfinhub.android.core.ui.toUserNotice
+import app.myfinhub.android.core.ui.unexpectedUserNotice
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -66,6 +75,9 @@ class AuthShellViewModel(
     private val mutableState = MutableStateFlow<AuthShellUiState>(AuthShellUiState.Loading)
     val state: StateFlow<AuthShellUiState> = mutableState.asStateFlow()
 
+    private val mutableNotices = MutableSharedFlow<UserNotice>(extraBufferCapacity = 8)
+    val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
+
     init {
         initialize()
     }
@@ -73,29 +85,41 @@ class AuthShellViewModel(
     fun initialize() {
         viewModelScope.launch {
             mutableState.value = AuthShellUiState.Loading
-            when (val result = coordinator.initialize()) {
-                is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
-                    "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
-                )
-                AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
-                is AuthAppState.Locked -> {
-                    if (pinVerifier.isEnrolled()) {
-                        mutableState.value = lockedState(result.session)
-                    } else {
-                        // A stored AAL2 session can exist if the process died after server auth but
-                        // before local PIN enrollment completed. Do not bypass local unlock or leave
-                        // a device without enrolled biometrics permanently locked: discard that
-                        // incomplete local session and require a fresh normal login.
-                        coordinator.logout(result.session)
-                        pinLimiter.recordSuccess()
-                        mutableState.value = AuthShellUiState.Login(
-                            "Η τοπική ρύθμιση ξεκλειδώματος δεν ολοκληρώθηκε. Συνδέσου ξανά.",
-                        )
+            try {
+                when (val result = coordinator.initialize()) {
+                    is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
+                        "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
+                    )
+                    AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
+                    is AuthAppState.Locked -> {
+                        if (pinVerifier.isEnrolled()) {
+                            mutableState.value = lockedState(result.session)
+                        } else {
+                            coordinator.logout(result.session)
+                            pinLimiter.recordSuccess()
+                            mutableState.value = AuthShellUiState.Login(
+                                "Η τοπική ρύθμιση ξεκλειδώματος δεν ολοκληρώθηκε. Συνδέσου ξανά.",
+                            )
+                        }
+                    }
+                    is AuthAppState.Ready -> routeReady(result.session)
+                    is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
+                    is AuthAppState.Failure -> {
+                        reportAuthFailure(result.failure, "Αρχικοποίηση συνεδρίας")
+                        mutableState.value = AuthShellUiState.Login(authFailureMessage(result.failure.kind))
                     }
                 }
-                is AuthAppState.Ready -> routeReady(result.session)
-                is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
-                is AuthAppState.Failure -> mutableState.value = AuthShellUiState.Login(failureMessage(result.failure.kind))
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = AuthShellUiState.Login("Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.")
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Αρχικοποίηση ασφαλούς συνεδρίας",
+                        throwable = error,
+                        message = "Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.",
+                    ),
+                )
             }
         }
     }
@@ -113,9 +137,17 @@ class AuthShellViewModel(
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
                         "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                     )
-                    is AuthAppState.Failure -> mutableState.value = AuthShellUiState.Login(failureMessage(result.failure.kind))
+                    is AuthAppState.Failure -> {
+                        reportAuthFailure(result.failure, "Σύνδεση")
+                        mutableState.value = AuthShellUiState.Login(authFailureMessage(result.failure.kind))
+                    }
                     is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = AuthShellUiState.Login("Η σύνδεση δεν ολοκληρώθηκε.")
+                mutableNotices.emit(unexpectedUserNotice("Σύνδεση", error, "Η σύνδεση δεν ολοκληρώθηκε."))
             } finally {
                 passwordCopy.fill('\u0000')
             }
@@ -140,9 +172,10 @@ class AuthShellViewModel(
                     )
                 ) {
                     is AuthAppState.Ready -> routeReady(result.session)
-                    is AuthAppState.Failure -> mutableState.value = current.copy(
-                        message = failureMessage(result.failure.kind),
-                    )
+                    is AuthAppState.Failure -> {
+                        reportAuthFailure(result.failure, "Επαλήθευση δύο παραγόντων")
+                        mutableState.value = current.copy(message = authFailureMessage(result.failure.kind))
+                    }
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
@@ -150,6 +183,17 @@ class AuthShellViewModel(
                     )
                     is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = current.copy(message = "Η επαλήθευση δεν ολοκληρώθηκε.")
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Επαλήθευση δύο παραγόντων",
+                        throwable = error,
+                        message = "Η επαλήθευση δεν ολοκληρώθηκε.",
+                    ),
+                )
             } finally {
                 codeCopy.fill('\u0000')
             }
@@ -201,6 +245,17 @@ class AuthShellViewModel(
                         },
                     )
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = current.copy(showPin = true, message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.")
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Έλεγχος τοπικού PIN",
+                        throwable = error,
+                        message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.",
+                    ),
+                )
             } finally {
                 pinCopy.fill('\u0000')
             }
@@ -217,7 +272,6 @@ class AuthShellViewModel(
         val confirmationCopy = confirmation.copyOf()
         pin.fill('\u0000')
         confirmation.fill('\u0000')
-
         viewModelScope.launch {
             try {
                 if (!pinCopy.contentEquals(confirmationCopy)) {
@@ -231,6 +285,17 @@ class AuthShellViewModel(
                 pinVerifier.enroll(pinCopy)
                 pinLimiter.recordSuccess()
                 mutableState.value = AuthShellUiState.Ready(current.session)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = current.copy(message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.")
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Ρύθμιση τοπικού PIN",
+                        throwable = error,
+                        message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.",
+                    ),
+                )
             } finally {
                 pinCopy.fill('\u0000')
                 confirmationCopy.fill('\u0000')
@@ -248,29 +313,58 @@ class AuthShellViewModel(
         }
         viewModelScope.launch {
             mutableState.value = AuthShellUiState.Loading
-            coordinator.logout(session)
-            mutableState.value = AuthShellUiState.Login()
+            try {
+                coordinator.logout(session)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Αποσύνδεση",
+                        throwable = error,
+                        message = "Η αποσύνδεση ολοκληρώθηκε τοπικά, αλλά ο καθαρισμός της συνεδρίας χρειάζεται έλεγχο.",
+                    ),
+                )
+            } finally {
+                mutableState.value = AuthShellUiState.Login()
+            }
         }
     }
 
     private fun validateUnlockedSession(session: AuthSession, fallbackToPin: Boolean) {
         viewModelScope.launch {
             mutableState.value = AuthShellUiState.Loading
-            when (val result = coordinator.afterLocalUnlock(session)) {
-                is AuthAppState.Ready -> routeReady(result.session)
-                AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login(
-                    "Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.",
+            try {
+                when (val result = coordinator.afterLocalUnlock(session)) {
+                    is AuthAppState.Ready -> routeReady(result.session)
+                    AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login(
+                        "Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.",
+                    )
+                    is AuthAppState.Failure -> {
+                        reportAuthFailure(result.failure, "Έλεγχος συνεδρίας μετά το ξεκλείδωμα")
+                        mutableState.value = lockedState(
+                            session = result.recoverableSession ?: session,
+                            showPin = fallbackToPin,
+                            message = authFailureMessage(result.failure.kind),
+                        )
+                    }
+                    is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
+                    is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
+                        "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
+                    )
+                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = AuthShellUiState.Login("Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε. Συνδέσου ξανά.")
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",
+                        throwable = error,
+                        message = "Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε.",
+                    ),
                 )
-                is AuthAppState.Failure -> mutableState.value = lockedState(
-                    session = result.recoverableSession ?: session,
-                    showPin = fallbackToPin,
-                    message = failureMessage(result.failure.kind),
-                )
-                is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
-                is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
-                    "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
-                )
-                is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
             }
         }
     }
@@ -294,17 +388,17 @@ class AuthShellViewModel(
         message = message,
     )
 
-    private fun failureMessage(kind: AuthFailureKind): String = when (kind) {
-        AuthFailureKind.BUILD_NOT_CONFIGURED -> "Η έκδοση της εφαρμογής δεν είναι σωστά ρυθμισμένη."
-        AuthFailureKind.INVALID_CREDENTIALS -> "Το email ή ο κωδικός δεν είναι σωστά."
-        AuthFailureKind.MFA_REQUIRED -> "Απαιτείται επαλήθευση δύο παραγόντων."
-        AuthFailureKind.INVALID_MFA_CODE -> "Ο κωδικός TOTP δεν είναι σωστός ή έχει λήξει."
-        AuthFailureKind.SESSION_EXPIRED,
-        AuthFailureKind.UNAUTHORIZED -> "Η συνεδρία δεν είναι πλέον έγκυρη."
-        AuthFailureKind.RATE_LIMITED -> "Πολλές προσπάθειες. Δοκίμασε ξανά αργότερα."
-        AuthFailureKind.NETWORK -> "Δεν υπάρχει σύνδεση με την υπηρεσία."
-        AuthFailureKind.SERVER -> "Η υπηρεσία σύνδεσης δεν είναι προσωρινά διαθέσιμη."
-        AuthFailureKind.MALFORMED_RESPONSE -> "Η υπηρεσία επέστρεψε μη αναμενόμενη απάντηση."
+    private suspend fun reportAuthFailure(failure: AuthResult.Failure, operation: String) {
+        if (failure.kind.shouldNotify()) {
+            mutableNotices.emit(failure.toUserNotice(operation))
+        }
+    }
+
+    private fun AuthFailureKind.shouldNotify(): Boolean = when (this) {
+        AuthFailureKind.INVALID_CREDENTIALS,
+        AuthFailureKind.INVALID_MFA_CODE,
+        AuthFailureKind.MFA_REQUIRED -> false
+        else -> true
     }
 
     private fun lockMessage(status: PinAttemptStatus): String {

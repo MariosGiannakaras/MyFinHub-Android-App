@@ -3,6 +3,7 @@ package app.myfinhub.android
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -24,7 +25,7 @@ class MoneyParityTest {
         composeRule.onNodeWithText("Διαχείριση στόχου").performClick()
         composeRule.onNodeWithText("Χρονικός στόχος").assertIsDisplayed()
         composeRule.onNodeWithText("Μηνιαία συνεισφορά").assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNodeWithTag("money_list")
             .performScrollToNode(hasText("Δάνεια"))
@@ -33,8 +34,8 @@ class MoneyParityTest {
         composeRule.onNodeWithText("Προσωπικό δάνειο").performClick()
         composeRule.onNodeWithText("Πιστωτής").assertIsDisplayed()
         composeRule.onNodeWithText("Μηνιαία δόση").assertIsDisplayed()
-        composeRule.onNodeWithText("Πίσω").performClick()
-        composeRule.onNodeWithText("Πίσω").performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNodeWithTag("money_list")
             .performScrollToNode(hasText("Απαιτήσεις"))

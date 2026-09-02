@@ -1,49 +1,51 @@
 # MyFinHub Android status
 
-## 2026-09-01 — Phase 5 autonomous hardening complete
+## 2026-09-02 — Full-app 2026 redesign and post-review reliability hardening complete
 
-The Android implementation is complete through Phase 5. Phases 0–5 are the completed autonomous implementation scope. Phase 6 remains the separate physical-device, production-validation and signing handoff and is intentionally not part of the completed autonomous scope.
+The retained native Android product has completed the shared 2026 redesign and the subsequent cleanup/reliability pass. The sole supported Android device remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` is the permanent device-acceptance source of truth.
 
-### Current product state
+### Completed product work
 
-- Native Kotlin + Jetpack Compose + Material 3/Adaptive application with Navigation 3 and ViewModel/StateFlow/UDF.
-- Five top-level destinations remain Home, Activity, Money, Plan and Insights; detailed workflows stay nested.
-- Native frontend parity is complete for Home Smart Review / Needs Attention, Settings, import/backup confirmation and Change History, Money savings/loan/lending flows, and Plan recurring/budget/forecast flows.
-- The Phase 2C Home/Utilities replacement PR #35 is merged with real rendered screenshot references and passing compact, foldable, tablet and large-font validation.
-- The production launcher remains auth-gated; debug product/auth test hosts are debug-only and non-exported.
+- Shared light/dark Material 3 visual system, typography, shapes, compact spacing and semantic finance palette.
+- Authentic MyFinHub branding, launcher/adaptive resources and centralized curated `MyFinHubIcons` vocabulary.
+- Redesign of Home, Activity, Money, Plan, Insights, Quick Entry, auth and all retained secondary/detail/system flows.
+- Issue #24 native credit-card stack contract preserved.
+- Forecast and Backup/Import/Data Transfer Android UI removed; obsolete Android-only Bootstrap/Backup/Import network scaffolding removed where no longer required.
+- Confirmed Android exclusions remain excluded: category administration/icon picker, Command Palette, desktop shortcut/mass-admin surfaces, Windows install/update/recovery and full desktop Reports.
+- Canonical/desktop-owned finance fields continue to round-trip losslessly even when Android has no corresponding UI.
+- Unsupported tablet/foldable/desktop-like screenshot and CI acceptance paths removed; one representative compact-phone instrumentation path remains for the S24 Ultra phone target.
 
-### Canonical data and security state
+### Post-review reliability and clean-code hardening
 
-- Production auth/session, AAL2 validation, biometric-first local unlock and PIN fallback are implemented.
-- Canonical `/api/data` bearer/revision sync remains server-authoritative and revision-aware in memory; Android does not introduce a canonical Room/SQLite database.
-- Backup/import bearer client boundaries and PAN/expiry `/api/card-secrets` boundaries are complete through PR #21.
-- Card-detail PAN/expiry reveal is owner+AAL2 gated.
-- CVV is device-local Android Keystore AES-GCM data only and has no server, sync, log, backup or device-transfer path.
-- Secret reveal is protected by scoped secure-window/recent-thumbnail handling and clears on navigation/session/auth transitions.
-- No service-role/server-vault secret, signing password, production signing key or production-signed APK belongs in the completed autonomous workflow.
+- Operational failures use one safe `UserNotice` contract across auth/session, canonical finance sync and secure card-secret flows.
+- Operation/system failures surface through a global Material 3 Snackbar with `Λεπτομέρειες`; field validation remains inline.
+- User-visible diagnostics contain only safe operation/category/HTTP/retry/diagnostic-code metadata. Raw server bodies, exception messages, credentials, tokens, PAN and CVV are never surfaced.
+- Malformed network/auth success responses and unexpected API/repository exceptions are contained inside typed recoverable failures while coroutine cancellation is preserved.
+- Failed local finance mutations/projections retain the last valid product state; sync conflicts and save failures remain explicitly retryable/discardable.
+- Secure local CVV vault read/save/delete failures are reported instead of silently ignored, without leaking card secrets.
+- Dead Phase-1 Bootstrap and obsolete Android Backup/Import API code/tests were removed while synthetic state still used by the standalone test/demo UI was retained and documented.
+- Error-feedback screenshot fixtures cover the global Snackbar and safe details dialog. Personal inspection caught and corrected preview timing plus collisions with both bottom navigation and the Home floating primary action before the references were accepted.
+- The card-error instrumentation tests subscribe to the non-replay notice stream before triggering failures, eliminating the event-ordering race discovered by the final S24-target run.
 
-### Phase 5 completed work and final evidence
+### Final validation evidence
 
-- Sensitive log/source/preview audit.
-- Representative recomposition and large-state review.
-- Release R8/minification/resource shrinking with narrow keep rules.
-- Unsigned release/configuration validation; public CI creates no production-signed APK and requires no signing secret.
-- Device-generated Baseline Profile and startup profile are checked in and non-empty; final verification is read-only.
-- Benchmark/non-minified profiling hosts and a dedicated Macrobenchmark/Baseline Profile producer module are in place.
-- Exact-head Android CI passed benchmark/profile tooling build, unit and instrumentation compilation, lint, debug assembly, optimized unsigned release/R8 analysis, and packaged-manifest/unsigned-APK policy checks.
-- Exact-head screenshot regression and compact instrumentation passed.
-- Exact-head full-product Pixel Fold, Pixel Tablet and 150% font-scale/accessibility suites passed.
-- Exact-head Macrobenchmarks passed for cold startup, Home, Activity and Quick Entry. The published benchmark evidence contains startup timing plus Perfetto traces for cold startup, and non-zero frame timing/frame-count, heap/RSS memory metrics and Perfetto traces for Home, Activity and Quick Entry. Quick Entry recorded real state changes through the production reducer rather than a no-op benchmark shell.
-- Exact-head read-only Baseline Profile generation/verification passed on the targeted retry. The immediately preceding attempt failed because the constrained emulator reported the target package was not running during the startup-profile launch; the same code head already passed cold-start Macrobenchmark, the failed attempt still produced a non-empty critical-journey profile, and the targeted no-code-change retry passed fully, confirming emulator launch instability rather than a product regression.
-- PR #36 is merged into `develop`.
+All autonomous merge gates pass on the completed implementation:
 
-### Validation defects resolved during Phase 5
+1. Canonical screenshot regression passes with the visually approved error-feedback references.
+2. The representative S24 Ultra-target compact-phone instrumentation suite passes all 31 tests.
+3. Normal Android CI passes benchmark/Baseline Profile tooling compilation, unit tests, instrumentation compilation, lint, debug assembly, optimized unsigned release/R8 analysis and release-manifest/unsigned-APK policy audit.
+4. No unresolved Samsung Galaxy S24 Ultra blocker remains in the redesign/hardening workstream.
 
-1. Adaptive Utilities instrumentation attempted nested navigation actions before ensuring those actions were on-screen. The test now scrolls each action into view and waits for the destination state.
-2. Macrobenchmark validation originally used unnecessary warmup work on the constrained emulator and did not consistently wait for UI idle at journey transitions. The suite now uses the generated Baseline Profile without extra warmup and waits for settled UI state.
-3. UIAutomator exposed the Quick Entry `Μεταφορά` label as a non-clickable text node. The benchmark now resolves and clicks the nearest clickable ancestor.
-4. The decisive Quick Entry benchmark-host defect was that both profiling `BenchmarkProductActivity` implementations rendered `QuickEntryUiState` with the default no-op `onQuickEntryAction`. Both profiling hosts now keep deterministic local Quick Entry state and route actions through the production `reduceQuickEntry` reducer, which is why the final benchmark records real recomposition/frame/memory work.
+Tablet, foldable and desktop-like Android form factors are intentionally unsupported and are not acceptance gates.
 
-### Phase 6 boundary
+## Phases 0–5
 
-Phase 6 remains intentionally deferred and separate. It includes the first physical-device run, production Auth/API smoke validation, final release-candidate promotion and any signing-key/signed-APK work. No release, production signing key or production-signed APK was created during Phase 5.
+The autonomous Android implementation through Phase 5 is complete. It includes the native Compose product, auth/local unlock, canonical finance integration, owner+AAL2 card-secret boundaries, device-local CVV vault, secure-window handling, R8/minification/resource shrinking, Baseline Profile/startup-profile tooling, Macrobenchmarks and validation evidence.
+
+No service-role/server-vault secret, production signing key or production-signed APK belongs in the completed autonomous workflow.
+
+## Phase 6 boundary
+
+Phase 6 remains intentionally separate. The owner's physical Samsung Galaxy S24 Ultra is authoritative for the first real-device run, actual Samsung One UI/display/font configuration, production Auth/API smoke validation, device-specific performance acceptance, release-candidate promotion and eventual signing work.
+
+Do not create a release, production signing key or production-signed APK outside the explicit Phase 6 handoff.

@@ -15,7 +15,7 @@ import com.android.tools.screenshot.PreviewTest
 @Composable
 fun MoneyOverviewCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        MoneyScreen(
+        Money2026Screen(
             state = MoneyUiState(),
             onOpenCard = {},
         )
@@ -33,7 +33,7 @@ fun MoneyOverviewCompactLightScreenshot() {
 @Composable
 fun MoneyOverviewCompactLargeFontScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        MoneyScreen(
+        Money2026Screen(
             state = MoneyUiState(),
             onOpenCard = {},
         )
@@ -50,7 +50,7 @@ fun MoneyOverviewCompactLargeFontScreenshot() {
 @Composable
 fun MoneySavingsCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        SavingsScreen(
+        Savings2026Screen(
             state = MoneyUiState(),
             onAction = {},
             onBack = {},
@@ -68,7 +68,7 @@ fun MoneySavingsCompactLightScreenshot() {
 @Composable
 fun MoneyLoansCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        LoansScreen(
+        Loans2026Screen(
             state = MoneyUiState(),
             onOpenLoan = {},
             onBack = {},
@@ -87,7 +87,7 @@ fun MoneyLoansCompactLightScreenshot() {
 @Composable
 fun MoneyLoanEditorCompactLargeFontScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        LoanEditorScreen(
+        LoanEditor2026Screen(
             loan = syntheticLoans().first(),
             onAction = {},
             onBack = {},
@@ -105,7 +105,7 @@ fun MoneyLoanEditorCompactLargeFontScreenshot() {
 @Composable
 fun MoneyLendingCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        LendingScreen(
+        Lending2026Screen(
             state = MoneyUiState(),
             onOpenItem = {},
             onBack = {},
@@ -123,7 +123,7 @@ fun MoneyLendingCompactLightScreenshot() {
 @Composable
 fun MoneyLendingEditorCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        LendingEditorScreen(
+        LendingEditor2026Screen(
             item = syntheticLendingItems().first(),
             onAction = {},
             onBack = {},

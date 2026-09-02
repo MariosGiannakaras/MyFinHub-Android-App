@@ -38,10 +38,12 @@ data class AuthChallenge(
 
 sealed interface AuthResult<out T> {
     data class Success<T>(val value: T) : AuthResult<T>
+
     data class Failure(
         val kind: AuthFailureKind,
         val message: String? = null,
         val retryable: Boolean = false,
+        val statusCode: Int? = null,
     ) : AuthResult<Nothing>
 }
 

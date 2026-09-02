@@ -2,6 +2,7 @@ package app.myfinhub.android.core.auth
 
 import app.myfinhub.android.core.config.AppConfiguration
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -23,6 +24,7 @@ class SupabaseAuthGateway(
 
     override suspend fun signInWithPassword(email: String, password: CharArray): AuthResult<AuthSession> {
         if (!configuration.isConfigured) return notConfigured()
+        if (email.isBlank() || password.isEmpty()) return AuthResult.Failure(AuthFailureKind.INVALID_CREDENTIALS)
         val body = json.encodeToString(
             PasswordGrantRequest(email = email.trim(), password = password.concatToString()),
         )
@@ -31,33 +33,44 @@ class SupabaseAuthGateway(
 
     override suspend fun refreshSession(refreshToken: String): AuthResult<AuthSession> {
         if (!configuration.isConfigured) return notConfigured()
+        if (refreshToken.isBlank()) return AuthResult.Failure(AuthFailureKind.SESSION_EXPIRED)
         val body = json.encodeToString(RefreshGrantRequest(refreshToken))
         return tokenRequest("refresh_token", body, AuthFailureKind.SESSION_EXPIRED)
     }
 
-    override suspend fun validateSession(accessToken: String): AuthResult<Unit> = request(
-        request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/user", accessToken).get().build(),
-        parse = { AuthResult.Success(Unit) },
-    )
+    override suspend fun validateSession(accessToken: String): AuthResult<Unit> {
+        if (accessToken.isBlank()) return AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
+        return request(
+            request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/user", accessToken).get().build(),
+            parse = { AuthResult.Success(Unit) },
+        )
+    }
 
-    override suspend fun listFactors(accessToken: String): AuthResult<List<AuthFactor>> = request(
-        request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/factors", accessToken).get().build(),
-        parse = { body ->
-            val response = json.decodeFromString<FactorListResponse>(body)
-            AuthResult.Success(response.all.map { it.toDomain() })
-        },
-    )
+    override suspend fun listFactors(accessToken: String): AuthResult<List<AuthFactor>> {
+        if (accessToken.isBlank()) return AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
+        return request(
+            request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/factors", accessToken).get().build(),
+            parse = { body ->
+                val response = json.decodeFromString<FactorListResponse>(body)
+                AuthResult.Success(response.all.map { it.toDomain() })
+            },
+        )
+    }
 
     override suspend fun challengeTotp(
         accessToken: String,
         factorId: String,
-    ): AuthResult<AuthChallenge> = request(
-        request = authorizedRequest(
-            "${configuration.supabaseUrl}/auth/v1/factors/$factorId/challenge",
-            accessToken,
-        ).post(EMPTY_JSON.toRequestBody(JSON_MEDIA_TYPE)).build(),
-        parse = { body -> AuthResult.Success(AuthChallenge(json.decodeFromString<ChallengeResponse>(body).id)) },
-    )
+    ): AuthResult<AuthChallenge> {
+        if (accessToken.isBlank()) return AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
+        if (factorId.isBlank()) return AuthResult.Failure(AuthFailureKind.MFA_REQUIRED)
+        return request(
+            request = authorizedRequest(
+                "${configuration.supabaseUrl}/auth/v1/factors/$factorId/challenge",
+                accessToken,
+            ).post(EMPTY_JSON.toRequestBody(JSON_MEDIA_TYPE)).build(),
+            parse = { body -> AuthResult.Success(AuthChallenge(json.decodeFromString<ChallengeResponse>(body).id)) },
+        )
+    }
 
     override suspend fun verifyTotp(
         accessToken: String,
@@ -65,6 +78,10 @@ class SupabaseAuthGateway(
         challengeId: String,
         code: CharArray,
     ): AuthResult<AuthSession> {
+        if (accessToken.isBlank()) return AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
+        if (factorId.isBlank() || challengeId.isBlank() || code.isEmpty()) {
+            return AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE)
+        }
         val requestBody = json.encodeToString(
             VerifyChallengeRequest(challengeId = challengeId, code = code.concatToString()),
         )
@@ -78,12 +95,15 @@ class SupabaseAuthGateway(
         )
     }
 
-    override suspend fun signOut(accessToken: String): AuthResult<Unit> = request(
-        request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/logout", accessToken)
-            .post(EMPTY_JSON.toRequestBody(JSON_MEDIA_TYPE))
-            .build(),
-        parse = { AuthResult.Success(Unit) },
-    )
+    override suspend fun signOut(accessToken: String): AuthResult<Unit> {
+        if (accessToken.isBlank()) return AuthResult.Success(Unit)
+        return request(
+            request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/logout", accessToken)
+                .post(EMPTY_JSON.toRequestBody(JSON_MEDIA_TYPE))
+                .build(),
+            parse = { AuthResult.Success(Unit) },
+        )
+    }
 
     private suspend fun tokenRequest(
         grantType: String,
@@ -102,6 +122,9 @@ class SupabaseAuthGateway(
         val expiresAt = response.expiresAt
             ?: response.expiresIn?.let { nowEpochSeconds() + it }
             ?: error("Missing session expiry")
+        if (response.accessToken.isBlank() || response.refreshToken.isBlank() || response.user.id.isBlank()) {
+            error("Incomplete auth session")
+        }
         AuthResult.Success(
             AuthSession(
                 accessToken = response.accessToken,
@@ -124,20 +147,38 @@ class SupabaseAuthGateway(
         return withContext(Dispatchers.IO) {
             try {
                 client.newCall(request).execute().use { response ->
+                    val status = response.code
                     val body = response.body.string()
                     when {
-                        response.isSuccessful -> parse(body)
-                        response.code == 400 || response.code == 422 -> AuthResult.Failure(invalidInputKind)
-                        response.code == 401 || response.code == 403 -> AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
-                        response.code == 429 -> AuthResult.Failure(AuthFailureKind.RATE_LIMITED, retryable = true)
-                        response.code in 500..599 -> AuthResult.Failure(AuthFailureKind.SERVER, retryable = true)
-                        else -> AuthResult.Failure(AuthFailureKind.SERVER)
+                        response.isSuccessful -> safeParse(status, body, parse)
+                        status == 400 || status == 422 -> AuthResult.Failure(invalidInputKind, statusCode = status)
+                        status == 401 || status == 403 -> AuthResult.Failure(AuthFailureKind.UNAUTHORIZED, statusCode = status)
+                        status == 429 -> AuthResult.Failure(AuthFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
+                        status in 500..599 -> AuthResult.Failure(AuthFailureKind.SERVER, retryable = true, statusCode = status)
+                        else -> AuthResult.Failure(AuthFailureKind.SERVER, statusCode = status)
                     }
                 }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (_: IOException) {
                 AuthResult.Failure(AuthFailureKind.NETWORK, retryable = true)
+            } catch (_: Exception) {
+                AuthResult.Failure(AuthFailureKind.SERVER, retryable = true)
             }
         }
+    }
+
+    private fun <T> safeParse(
+        status: Int,
+        body: String,
+        parse: (String) -> AuthResult<T>,
+    ): AuthResult<T> = try {
+        when (val parsed = parse(body)) {
+            is AuthResult.Success -> parsed
+            is AuthResult.Failure -> if (parsed.statusCode == null) parsed.copy(statusCode = status) else parsed
+        }
+    } catch (_: Exception) {
+        AuthResult.Failure(AuthFailureKind.MALFORMED_RESPONSE, statusCode = status)
     }
 
     private fun baseRequest(url: String): Request.Builder = Request.Builder()

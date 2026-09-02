@@ -8,7 +8,6 @@ sealed interface AppRoute : NavKey {
     @Serializable data object Home : AppRoute
     @Serializable data class HomeAttention(val attentionId: String) : AppRoute
     @Serializable data object Settings : AppRoute
-    @Serializable data object DataTransfer : AppRoute
     @Serializable data object ChangeHistory : AppRoute
     @Serializable data object Activity : AppRoute
     @Serializable data class ActivityDetail(val eventId: String) : AppRoute
@@ -23,6 +22,5 @@ sealed interface AppRoute : NavKey {
     @Serializable data object Plan : AppRoute
     @Serializable data class PlanItem(val itemId: String) : AppRoute
     @Serializable data object PlanBudgets : AppRoute
-    @Serializable data object PlanForecast : AppRoute
     @Serializable data object Insights : AppRoute
 }

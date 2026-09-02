@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.activity
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,34 +13,39 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubAmountText
+import app.myfinhub.android.designsystem.MyFinHubFilterChip
+import app.myfinhub.android.designsystem.MyFinHubFinanceRow
+import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSearchField
+import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import java.text.NumberFormat
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
     state: ActivityUiState,
@@ -50,17 +54,20 @@ fun ActivityScreen(
     onOpenQuickEntry: () -> Unit,
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(title = { Text("Κινήσεις", modifier = Modifier.semantics { heading() }) })
+            MyFinHubScreenHeader(
+                title = "Κινήσεις",
+                subtitle = "Η οικονομική σου δραστηριότητα",
+            )
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            MyFinHubPrimaryAction(
+                label = "Νέα κίνηση",
                 onClick = onOpenQuickEntry,
                 modifier = Modifier.semantics {
                     contentDescription = "Δημιουργία νέας κίνησης"
                 },
-                text = { Text("Νέα κίνηση") },
-                icon = { Text("+") },
             )
         },
     ) { innerPadding ->
@@ -69,8 +76,8 @@ fun ActivityScreen(
         ) {
             if (maxWidth >= 840.dp) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     ActivityList(
                         state = state,
@@ -110,80 +117,64 @@ private fun ActivityList(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 104.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(
+            start = MyFinHubSpacing.lg,
+            top = MyFinHubSpacing.xs,
+            end = MyFinHubSpacing.lg,
+            bottom = 96.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
     ) {
         item {
-            OutlinedTextField(
+            MyFinHubSearchField(
                 value = state.query,
                 onValueChange = { onAction(ActivityAction.QueryChanged(it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Αναζήτηση κινήσεων") },
-                singleLine = true,
+                placeholder = "Αναζήτηση κινήσεων",
             )
         }
         item {
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
                 ActivityFilter.entries.forEach { filter ->
-                    FilterChip(
+                    MyFinHubFilterChip(
                         selected = state.filter == filter,
                         onClick = { onAction(ActivityAction.FilterChanged(filter)) },
-                        label = { Text(filter.label) },
+                        label = filter.label,
+                        icon = filter.icon(),
+                        tone = filter.tone(),
                     )
                 }
             }
         }
         if (state.visibleItems.isEmpty()) {
             item {
-                Text(
-                    text = "Δεν βρέθηκαν κινήσεις με αυτά τα φίλτρα.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(vertical = 32.dp),
-                )
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Δεν βρέθηκαν κινήσεις με αυτά τα φίλτρα.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         } else {
             items(state.visibleItems, key = ActivityItem::id) { item ->
-                ActivityRow(item = item, onClick = { onSelect(item.id) })
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(
-                    text = "${item.dateLabel} · ${item.accountLabel}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                MyFinHubFinanceRow(
+                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                    iconDescription = item.category ?: item.kind.label,
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    meta = "${item.dateLabel} · ${item.accountLabel}",
+                    amountText = formatSignedEuro(item.amount),
+                    tone = item.kind.tone(),
+                    onClick = { onSelect(item.id) },
                 )
             }
-            Text(
-                text = formatSignedEuro(item.amount),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = if (item.amount < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailScreen(
     item: ActivityItem?,
@@ -191,20 +182,32 @@ fun ActivityDetailScreen(
     onSave: (String, String) -> Unit,
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text("Λεπτομέρειες κίνησης") },
-                navigationIcon = { TextButton(onClick = onBack) { Text("Πίσω") } },
+            MyFinHubScreenHeader(
+                title = "Λεπτομέρειες κίνησης",
+                navigation = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = MyFinHubIcons.Back,
+                            contentDescription = "Πίσω",
+                        )
+                    }
+                },
             )
         },
     ) { padding ->
         if (item == null) {
-            Text("Η κίνηση δεν είναι πλέον διαθέσιμη.", modifier = Modifier.padding(padding).padding(20.dp))
+            MyFinHubSectionCard(
+                modifier = Modifier.padding(padding).padding(MyFinHubSpacing.lg).fillMaxWidth(),
+            ) {
+                Text("Η κίνηση δεν είναι πλέον διαθέσιμη.")
+            }
         } else {
             ActivityDetailContent(
                 item = item,
                 onSave = onSave,
-                modifier = Modifier.padding(padding).padding(20.dp),
+                modifier = Modifier.padding(padding).padding(MyFinHubSpacing.lg),
             )
         }
     }
@@ -219,16 +222,48 @@ private fun ActivityDetailContent(
     var note by rememberSaveable(item.id, item.subtitle) { mutableStateOf(item.subtitle) }
     var category by rememberSaveable(item.id, item.category) { mutableStateOf(item.category.orEmpty()) }
 
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(item.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-        Text(formatSignedEuro(item.amount), style = MaterialTheme.typography.headlineMedium)
-        Text("${item.kind.label} · ${item.dateLabel}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        HorizontalDivider()
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+    ) {
+        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                MyFinHubIconBadge(
+                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                    tone = item.kind.tone(),
+                    contentDescription = item.category ?: item.kind.label,
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    MyFinHubAmountText(
+                        text = formatSignedEuro(item.amount),
+                        tone = item.kind.tone(),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        text = "${item.kind.label} · ${item.dateLabel}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         OutlinedTextField(
             value = note,
             onValueChange = { note = it },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Σημείωση") },
+            shape = MaterialTheme.shapes.medium,
         )
         OutlinedTextField(
             value = category,
@@ -236,11 +271,13 @@ private fun ActivityDetailContent(
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Κατηγορία") },
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
         )
         Button(
             onClick = { onSave(note, category) },
             modifier = Modifier.fillMaxWidth(),
             enabled = note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
+            shape = MaterialTheme.shapes.medium,
         ) {
             Text("Αποθήκευση αλλαγών")
         }
@@ -252,6 +289,34 @@ private fun ActivityDetailContent(
             )
         }
     }
+}
+
+private fun ActivityFilter.icon(): ImageVector = when (this) {
+    ActivityFilter.ALL -> MyFinHubIcons.All
+    ActivityFilter.EXPENSE -> MyFinHubIcons.Expense
+    ActivityFilter.INCOME -> MyFinHubIcons.Income
+    ActivityFilter.TRANSFER -> MyFinHubIcons.Transfer
+}
+
+private fun ActivityFilter.tone(): FinanceTone = when (this) {
+    ActivityFilter.ALL -> FinanceTone.Neutral
+    ActivityFilter.EXPENSE -> FinanceTone.Expense
+    ActivityFilter.INCOME -> FinanceTone.Income
+    ActivityFilter.TRANSFER -> FinanceTone.Transfer
+}
+
+private fun ActivityKind.icon(): ImageVector = when (this) {
+    ActivityKind.EXPENSE -> MyFinHubIcons.Expense
+    ActivityKind.INCOME -> MyFinHubIcons.Income
+    ActivityKind.TRANSFER -> MyFinHubIcons.Transfer
+    ActivityKind.CARD_PAYMENT -> MyFinHubIcons.Card
+}
+
+private fun ActivityKind.tone(): FinanceTone = when (this) {
+    ActivityKind.EXPENSE -> FinanceTone.Expense
+    ActivityKind.INCOME -> FinanceTone.Income
+    ActivityKind.TRANSFER -> FinanceTone.Transfer
+    ActivityKind.CARD_PAYMENT -> FinanceTone.Transfer
 }
 
 private fun formatSignedEuro(amount: Double): String =

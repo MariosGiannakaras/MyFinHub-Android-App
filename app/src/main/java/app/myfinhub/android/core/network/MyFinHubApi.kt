@@ -6,21 +6,13 @@ import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
 import app.myfinhub.android.core.data.CanonicalWriteReceipt
 
 interface MyFinHubApi {
-    suspend fun loadBootstrapSummary(): ApiResult<BootstrapSummary>
     suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope>
+
     suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,
         expectedRevision: String,
     ): ApiResult<CanonicalWriteReceipt>
-
-    suspend fun createBackup(session: AuthSession): ApiResult<BackupReceipt> =
-        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
-
-    suspend fun importFinanceData(
-        session: AuthSession,
-        document: CanonicalFinanceDocument,
-    ): ApiResult<CanonicalFinanceEnvelope> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
     suspend fun loadCardSecrets(
         session: AuthSession,
@@ -38,15 +30,6 @@ interface MyFinHubApi {
         cardId: String,
     ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 }
-
-data class BootstrapSummary(
-    val source: DataSource,
-    val revision: Long?,
-)
-
-data class BackupReceipt(
-    val path: String,
-)
 
 /** Sensitive PAN/expiry response. Intentionally redacts values from toString(). */
 class CardSecrets(
@@ -73,17 +56,13 @@ data class CardSecretDeleteReceipt(
     val deleted: Boolean,
 )
 
-enum class DataSource {
-    SYNTHETIC,
-    CANONICAL_API,
-}
-
 sealed interface ApiResult<out T> {
     data class Success<T>(val value: T) : ApiResult<T>
 
     data class Failure(
         val kind: ApiFailureKind,
         val retryable: Boolean = false,
+        val statusCode: Int? = null,
     ) : ApiResult<Nothing>
 }
 
@@ -102,10 +81,6 @@ enum class ApiFailureKind {
 }
 
 class SyntheticMyFinHubApi : MyFinHubApi {
-    override suspend fun loadBootstrapSummary(): ApiResult<BootstrapSummary> = ApiResult.Success(
-        BootstrapSummary(source = DataSource.SYNTHETIC, revision = null),
-    )
-
     override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 

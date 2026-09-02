@@ -15,9 +15,11 @@ import com.android.tools.screenshot.PreviewTest
 @Composable
 fun PlanOverviewCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        PlanScreen(
+        Plan2026Screen(
             state = PlanUiState(),
             onAction = {},
+            onOpenItem = {},
+            onOpenBudgets = {},
         )
     }
 }
@@ -33,9 +35,11 @@ fun PlanOverviewCompactLightScreenshot() {
 @Composable
 fun PlanOverviewCompactLargeFontScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        PlanScreen(
+        Plan2026Screen(
             state = PlanUiState(),
             onAction = {},
+            onOpenItem = {},
+            onOpenBudgets = {},
         )
     }
 }
@@ -50,7 +54,7 @@ fun PlanOverviewCompactLargeFontScreenshot() {
 @Composable
 fun PlanItemEditorCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        PlanItemEditorScreen(
+        PlanItemEditor2026Screen(
             item = syntheticPlannedItems().first(),
             onAction = {},
             onBack = {},
@@ -68,25 +72,7 @@ fun PlanItemEditorCompactLightScreenshot() {
 @Composable
 fun PlanBudgetsCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        PlanBudgetsScreen(
-            state = PlanUiState(),
-            onAction = {},
-            onBack = {},
-        )
-    }
-}
-
-@PreviewTest
-@Preview(
-    name = "plan_forecast_compact_light",
-    widthDp = 412,
-    heightDp = 915,
-    showBackground = true,
-)
-@Composable
-fun PlanForecastCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        PlanForecastScreen(
+        PlanBudgets2026Screen(
             state = PlanUiState(),
             onAction = {},
             onBack = {},

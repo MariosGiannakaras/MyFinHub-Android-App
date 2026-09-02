@@ -10,15 +10,16 @@ import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
 import app.myfinhub.android.core.data.CanonicalWriteReceipt
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
-import app.myfinhub.android.core.network.BootstrapSummary
 import app.myfinhub.android.core.network.CardSecretDeleteReceipt
 import app.myfinhub.android.core.network.CardSecretUpdate
 import app.myfinhub.android.core.network.CardSecretWriteReceipt
 import app.myfinhub.android.core.network.CardSecrets
-import app.myfinhub.android.core.network.DataSource
 import app.myfinhub.android.core.network.MyFinHubApi
 import app.myfinhub.android.core.security.CvvVault
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
@@ -97,6 +98,7 @@ class CardSecretViewModelTest {
         viewModel.openCard("card-1")
         viewModel.reveal()
         waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
         viewModel.deleteCvv()
         waitUntil {
             (viewModel.state.value as? CardSecretUiState.Revealed)?.cvvSaving == false &&
@@ -106,6 +108,27 @@ class CardSecretViewModelTest {
         val state = viewModel.state.value as CardSecretUiState.Revealed
         assertEquals("321", state.cvv)
         assertTrue(state.message.orEmpty().contains("δεν ολοκληρώθηκε"))
+        assertTrue(withTimeout(3_000) { notice.await() }.diagnosticCode.startsWith("MFH-APP-"))
+    }
+
+    @Test
+    fun failedLocalLoad_keepsServerSecretsAvailableAndReportsSafeNotice() = runBlocking {
+        val api = FakeCardApi(ApiResult.Success(CardSecrets("4242424242424242", "12/30")))
+        val viewModel = CardSecretViewModel(application, api, FakeCvvVault(failLoad = true))
+
+        viewModel.attachSession(session)
+        viewModel.openCard("card-1")
+        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
+        viewModel.reveal()
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+
+        val state = viewModel.state.value as CardSecretUiState.Revealed
+        assertEquals("4242", state.pan?.takeLast(4))
+        assertNull(state.cvv)
+        assertTrue(state.message.orEmpty().contains("τοπικό CVV"))
+        val reported = withTimeout(3_000) { notice.await() }
+        assertTrue(reported.diagnosticCode.startsWith("MFH-APP-"))
+        assertFalse(reported.details.contains("4242424242424242"))
     }
 
     @Test
@@ -133,6 +156,7 @@ class CardSecretViewModelTest {
 private class FakeCvvVault(
     initial: CharArray? = null,
     private val failDelete: Boolean = false,
+    private val failLoad: Boolean = false,
 ) : CvvVault {
     private var stored: CharArray? = initial?.copyOf()
     var saved: CharArray? = null
@@ -140,7 +164,10 @@ private class FakeCvvVault(
     var deletedCardId: String? = null
         private set
 
-    override suspend fun load(cardId: String): CharArray? = stored?.copyOf()
+    override suspend fun load(cardId: String): CharArray? {
+        if (failLoad) error("synthetic load failure")
+        return stored?.copyOf()
+    }
 
     override suspend fun save(cardId: String, cvv: CharArray) {
         saved = cvv.copyOf()
@@ -161,9 +188,6 @@ private class FakeCardApi(
 ) : MyFinHubApi {
     var serverSecretWriteCalls: Int = 0
         private set
-
-    override suspend fun loadBootstrapSummary(): ApiResult<BootstrapSummary> =
-        ApiResult.Success(BootstrapSummary(DataSource.SYNTHETIC, null))
 
     override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)

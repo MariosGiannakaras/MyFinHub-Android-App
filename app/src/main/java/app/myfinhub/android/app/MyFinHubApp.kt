@@ -35,23 +35,22 @@ import app.myfinhub.android.feature.home.HomeViewModel
 import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
-import app.myfinhub.android.feature.money.CardDetailScreen
+import app.myfinhub.android.feature.money.CardDetail2026Screen
 import app.myfinhub.android.feature.money.CardSecretUiState
-import app.myfinhub.android.feature.money.LendingEditorScreen
-import app.myfinhub.android.feature.money.LendingScreen
-import app.myfinhub.android.feature.money.LoanEditorScreen
-import app.myfinhub.android.feature.money.LoansScreen
+import app.myfinhub.android.feature.money.Lending2026Screen
+import app.myfinhub.android.feature.money.LendingEditor2026Screen
+import app.myfinhub.android.feature.money.LoanEditor2026Screen
+import app.myfinhub.android.feature.money.Loans2026Screen
+import app.myfinhub.android.feature.money.Money2026Screen
 import app.myfinhub.android.feature.money.MoneyAction
-import app.myfinhub.android.feature.money.MoneyScreen
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
-import app.myfinhub.android.feature.money.SavingsScreen
+import app.myfinhub.android.feature.money.Savings2026Screen
 import app.myfinhub.android.feature.money.reduceMoney
+import app.myfinhub.android.feature.plan.Plan2026Screen
 import app.myfinhub.android.feature.plan.PlanAction
-import app.myfinhub.android.feature.plan.PlanBudgetsScreen
-import app.myfinhub.android.feature.plan.PlanForecastScreen
-import app.myfinhub.android.feature.plan.PlanItemEditorScreen
-import app.myfinhub.android.feature.plan.PlanScreen
+import app.myfinhub.android.feature.plan.PlanBudgets2026Screen
+import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
@@ -59,7 +58,6 @@ import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
-import app.myfinhub.android.feature.utilities.DataTransferScreen
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
 import app.myfinhub.android.feature.utilities.SettingsScreen
@@ -122,6 +120,7 @@ internal fun MyFinHubAppContent(
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
     var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
+
     val onFrontendUtilitiesAction: (FrontendUtilitiesAction) -> Unit = { action ->
         frontendUtilitiesState = reduceFrontendUtilities(frontendUtilitiesState, action)
     }
@@ -180,7 +179,6 @@ internal fun MyFinHubAppContent(
                         onAction = onHomeAction,
                         onOpenAttention = { id -> homeBackStack.add(AppRoute.HomeAttention(id)) },
                         onOpenSettings = { homeBackStack.add(AppRoute.Settings) },
-                        onOpenDataTransfer = { homeBackStack.add(AppRoute.DataTransfer) },
                         onOpenChangeHistory = { homeBackStack.add(AppRoute.ChangeHistory) },
                     )
                 }
@@ -196,13 +194,6 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Settings> {
                     SettingsScreen(
-                        state = frontendUtilitiesState,
-                        onAction = onFrontendUtilitiesAction,
-                        onBack = { homeBackStack.removeLastOrNull() },
-                    )
-                }
-                entry<AppRoute.DataTransfer> {
-                    DataTransferScreen(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
                         onBack = { homeBackStack.removeLastOrNull() },
@@ -224,9 +215,8 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.ActivityDetail> { route ->
-                    val item = activityState.items.firstOrNull { it.id == route.eventId }
                     ActivityDetailScreen(
-                        item = item,
+                        item = activityState.items.firstOrNull { it.id == route.eventId },
                         onBack = { activityBackStack.removeLastOrNull() },
                         onSave = { note, category ->
                             onActivityAction(ActivityAction.SaveEdit(route.eventId, note, category))
@@ -241,7 +231,7 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Money> {
-                    MoneyScreen(
+                    Money2026Screen(
                         state = frontendMoneyState,
                         secretState = cardSecretState,
                         onCardActivated = onCardDetailOpened,
@@ -260,7 +250,7 @@ internal fun MyFinHubAppContent(
                         onCardDetailOpened(route.cardId)
                         onDispose { onCardDetailClosed(route.cardId) }
                     }
-                    CardDetailScreen(
+                    CardDetail2026Screen(
                         card = frontendMoneyState.cards.firstOrNull { it.id == route.cardId },
                         secretState = cardSecretState,
                         onReveal = onRevealCardSecrets,
@@ -271,65 +261,57 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Savings> {
-                    SavingsScreen(
+                    Savings2026Screen(
                         state = frontendMoneyState,
                         onAction = onFrontendMoneyAction,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.Loans> {
-                    LoansScreen(
+                    Loans2026Screen(
                         state = frontendMoneyState,
                         onOpenLoan = { loanId -> moneyBackStack.add(AppRoute.LoanDetail(loanId)) },
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.LoanDetail> { route ->
-                    LoanEditorScreen(
+                    LoanEditor2026Screen(
                         loan = frontendMoneyState.loans.firstOrNull { it.id == route.loanId },
                         onAction = onFrontendMoneyAction,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.Lending> {
-                    LendingScreen(
+                    Lending2026Screen(
                         state = frontendMoneyState,
                         onOpenItem = { itemId -> moneyBackStack.add(AppRoute.LendingDetail(itemId)) },
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.LendingDetail> { route ->
-                    LendingEditorScreen(
+                    LendingEditor2026Screen(
                         item = frontendMoneyState.lendingItems.firstOrNull { it.id == route.lendingId },
                         onAction = onFrontendMoneyAction,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.Plan> {
-                    PlanScreen(
+                    Plan2026Screen(
                         state = planState,
                         onAction = onPlanAction,
                         onOpenItem = { itemId -> planBackStack.add(AppRoute.PlanItem(itemId)) },
                         onOpenBudgets = { planBackStack.add(AppRoute.PlanBudgets) },
-                        onOpenForecast = { planBackStack.add(AppRoute.PlanForecast) },
                     )
                 }
                 entry<AppRoute.PlanItem> { route ->
-                    PlanItemEditorScreen(
+                    PlanItemEditor2026Screen(
                         item = planState.items.firstOrNull { it.id == route.itemId },
                         onAction = onPlanAction,
                         onBack = { planBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.PlanBudgets> {
-                    PlanBudgetsScreen(
-                        state = planState,
-                        onAction = onPlanAction,
-                        onBack = { planBackStack.removeLastOrNull() },
-                    )
-                }
-                entry<AppRoute.PlanForecast> {
-                    PlanForecastScreen(
+                    PlanBudgets2026Screen(
                         state = planState,
                         onAction = onPlanAction,
                         onBack = { planBackStack.removeLastOrNull() },

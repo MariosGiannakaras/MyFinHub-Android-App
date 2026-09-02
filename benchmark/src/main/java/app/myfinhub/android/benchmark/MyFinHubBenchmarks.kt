@@ -23,6 +23,7 @@ import org.junit.runner.RunWith
 
 private const val TARGET_PACKAGE = "app.myfinhub.android"
 private const val PRODUCT_ACTIVITY = "app.myfinhub.android.BenchmarkProductActivity"
+private const val HOME_HEADING = "Η οικονομική σου εικόνα"
 private const val QUICK_ENTRY_ACTION_DESCRIPTION = "Δημιουργία νέας κίνησης"
 private const val UI_TIMEOUT_MS = 10_000L
 private const val UI_POLL_MS = 100L
@@ -49,6 +50,13 @@ private fun MacrobenchmarkScope.requireObject(
         Thread.sleep(UI_POLL_MS)
     }
     error(message)
+}
+
+private fun MacrobenchmarkScope.awaitProductHome(context: String) {
+    check(device.wait(Until.hasObject(By.text(HOME_HEADING)), UI_TIMEOUT_MS)) {
+        "$context did not reach the deterministic product host."
+    }
+    device.waitForIdle()
 }
 
 private fun MacrobenchmarkScope.openActivityFromHome(context: String) {
@@ -87,10 +95,7 @@ class BaselineProfileGenerator {
     ) {
         pressHome()
         startActivityAndWait(benchmarkProductIntent())
-        check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
-            "Baseline Profile startup did not reach the deterministic product host."
-        }
-        device.waitForIdle()
+        awaitProductHome("Baseline Profile startup")
     }
 
     @Test
@@ -155,10 +160,7 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
-                "Home benchmark did not reach the deterministic product host."
-            }
-            device.waitForIdle()
+            awaitProductHome("Home benchmark")
         },
     ) {
         val scrollable = checkNotNull(device.findObject(By.scrollable(true))) {
@@ -179,10 +181,7 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
-                "Activity benchmark did not reach the deterministic product host."
-            }
-            device.waitForIdle()
+            awaitProductHome("Activity benchmark")
         },
     ) {
         openActivityFromHome("Activity benchmark")
@@ -204,9 +203,7 @@ class CriticalJourneyBenchmark {
         setupBlock = {
             pressHome()
             startActivityAndWait(benchmarkProductIntent())
-            check(device.wait(Until.hasObject(By.text("MyFinHub")), UI_TIMEOUT_MS)) {
-                "Quick Entry benchmark did not reach the deterministic product host."
-            }
+            awaitProductHome("Quick Entry benchmark")
             openActivityFromHome("Quick Entry benchmark setup")
         },
     ) {

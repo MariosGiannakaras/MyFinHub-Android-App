@@ -4,7 +4,6 @@ import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
-import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -29,12 +28,7 @@ class OkHttpMyFinHubApiMockWebServerTest {
     fun getData_usesBearerAndNeverCookie_overRealHttpStack() = runBlocking {
         MockWebServer().use { server ->
             server.start()
-            server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body(financeEnvelope("41"))
-                    .build(),
-            )
+            server.enqueue(MockResponse.Builder().code(200).body(financeEnvelope("41")).build())
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
 
             val result = api.loadFinanceData(session)
@@ -49,14 +43,11 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
-    fun putData_sendsIfMatchAndMaps409_overRealHttpStack() = runBlocking {
+    fun putData_sendsIfMatchAndMaps409WithStatus_overRealHttpStack() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
-                MockResponse.Builder()
-                    .code(409)
-                    .body("""{"code":"REVISION_CONFLICT"}""")
-                    .build(),
+                MockResponse.Builder().code(409).body("""{"code":"REVISION_CONFLICT"}""").build(),
             )
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
             val document = documentWithUnknownFields()
@@ -66,7 +57,9 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val sent = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
 
             assertTrue(result is ApiResult.Failure)
-            assertEquals(ApiFailureKind.REVISION_CONFLICT, (result as ApiResult.Failure).kind)
+            val failure = result as ApiResult.Failure
+            assertEquals(ApiFailureKind.REVISION_CONFLICT, failure.kind)
+            assertEquals(409, failure.statusCode)
             assertEquals("PUT", request.method)
             assertEquals("/api/data", request.url.encodedPath)
             assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
@@ -79,82 +72,16 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
-    fun backup_usesBearerNoCookieAndParsesPath() = runBlocking {
-        MockWebServer().use { server ->
-            server.start()
-            server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body("""{"path":"supabase://rheomiq_backups/77"}""")
-                    .build(),
-            )
-            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
-
-            val result = api.createBackup(session)
-            val request = server.takeRequest()
-
-            assertTrue(result is ApiResult.Success)
-            assertEquals("supabase://rheomiq_backups/77", (result as ApiResult.Success<BackupReceipt>).value.path)
-            assertEquals("POST", request.method)
-            assertEquals("/api/backup", request.url.encodedPath)
-            assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
-            assertFalse(request.headers.names().contains("Cookie"))
-        }
-    }
-
-    @Test
-    fun import_sendsFullLosslessDocumentAndExplicitReplaceConfirmation() = runBlocking {
-        MockWebServer().use { server ->
-            server.start()
-            server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body(financeEnvelope("52"))
-                    .build(),
-            )
-            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
-            val document = documentWithUnknownFields()
-
-            val result = api.importFinanceData(session, document)
-            val request = server.takeRequest()
-            val sent = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
-
-            assertTrue(result is ApiResult.Success)
-            assertEquals("52", (result as ApiResult.Success<CanonicalFinanceEnvelope>).value.revision)
-            assertEquals("POST", request.method)
-            assertEquals("/api/import", request.url.encodedPath)
-            assertEquals("replace", request.headers["X-RheomIQ-Confirm-Import"])
-            assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
-            assertFalse(request.headers.names().contains("Cookie"))
-            assertTrue(sent.containsKey("seed"))
-            assertTrue(sent.containsKey("state"))
-            assertTrue(sent.containsKey("futureRoot"))
-            assertTrue(sent["state"]!!.jsonObject.containsKey("futureState"))
-        }
-    }
-
-    @Test
     fun cardSecretBoundaries_useOwnerBearerContractAndNeverEmitCvvField() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body("""{"pan":"4242424242424242","expiry":"12/30"}""")
-                    .build(),
+                MockResponse.Builder().code(200).body("""{"pan":"4242424242424242","expiry":"12/30"}""").build(),
             )
             server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body("""{"saved":true,"last4":"4242"}""")
-                    .build(),
+                MockResponse.Builder().code(200).body("""{"saved":true,"last4":"4242"}""").build(),
             )
-            server.enqueue(
-                MockResponse.Builder()
-                    .code(200)
-                    .body("""{"deleted":true}""")
-                    .build(),
-            )
+            server.enqueue(MockResponse.Builder().code(200).body("""{"deleted":true}""").build())
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
 
             val revealed = api.loadCardSecrets(session, "card-1") as ApiResult.Success<CardSecrets>
@@ -192,40 +119,56 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
-    fun cardSecret404_failsClosedWithoutExpandingGlobalFailureContract() = runBlocking {
+    fun cardSecret404_failsClosedAndPreservesStatus() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(
-                MockResponse.Builder()
-                    .code(404)
-                    .body("""{"code":"CARD_SECRET_NOT_FOUND"}""")
-                    .build(),
+                MockResponse.Builder().code(404).body("""{"code":"CARD_SECRET_NOT_FOUND"}""").build(),
             )
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
 
             val result = api.loadCardSecrets(session, "card-1")
 
             assertTrue(result is ApiResult.Failure)
-            assertEquals(ApiFailureKind.INVALID_DATA, (result as ApiResult.Failure).kind)
+            val failure = result as ApiResult.Failure
+            assertEquals(ApiFailureKind.INVALID_DATA, failure.kind)
+            assertEquals(404, failure.statusCode)
         }
     }
 
     @Test
-    fun malformedNewBoundaryResponses_failClosed() = runBlocking {
+    fun malformedSuccessfulResponses_failClosedWithHttpStatus() = runBlocking {
         MockWebServer().use { server ->
             server.start()
             server.enqueue(MockResponse.Builder().code(200).body("{}").build())
             server.enqueue(MockResponse.Builder().code(200).body("{}").build())
-            server.enqueue(MockResponse.Builder().code(200).body("{}").build())
             val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
 
-            val backup = api.createBackup(session)
-            val imported = api.importFinanceData(session, documentWithUnknownFields())
+            val finance = api.loadFinanceData(session)
             val card = api.loadCardSecrets(session, "card-1")
 
-            assertEquals(ApiFailureKind.MALFORMED_RESPONSE, (backup as ApiResult.Failure).kind)
-            assertEquals(ApiFailureKind.MALFORMED_RESPONSE, (imported as ApiResult.Failure).kind)
-            assertEquals(ApiFailureKind.MALFORMED_RESPONSE, (card as ApiResult.Failure).kind)
+            listOf(finance, card).forEach { result ->
+                assertTrue(result is ApiResult.Failure)
+                val failure = result as ApiResult.Failure
+                assertEquals(ApiFailureKind.MALFORMED_RESPONSE, failure.kind)
+                assertEquals(200, failure.statusCode)
+            }
+        }
+    }
+
+    @Test
+    fun serverFailure_isRetryableAndCarriesStatusWithoutResponseBody() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(503).body("secret diagnostic body").build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+
+            val failure = api.loadFinanceData(session) as ApiResult.Failure
+
+            assertEquals(ApiFailureKind.SERVER, failure.kind)
+            assertTrue(failure.retryable)
+            assertEquals(503, failure.statusCode)
+            assertFalse(failure.toString().contains("secret diagnostic body"))
         }
     }
 

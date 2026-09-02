@@ -1,10 +1,12 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,7 +20,7 @@ class FrontendUtilitiesParityTest {
     val composeRule = createAndroidComposeRule<ProductTestActivity>()
 
     @Test
-    fun homeReviewAndUtilityFlows_areNestedAndReachable() {
+    fun homeReviewAndRetainedUtilityFlows_areNestedAndReachable() {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
         waitForText("Γιατί εμφανίζεται")
@@ -27,23 +29,13 @@ class FrontendUtilitiesParityTest {
         scrollHomeTextIntoView("Η οικονομική σου εικόνα")
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
         assertTextIntoView("Προτιμήσεις εφαρμογής")
-        clickTextIntoView("Πίσω")
+        composeRule.onNodeWithContentDescription("Πίσω").assertIsDisplayed().performClick()
 
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
-        clickTextIntoView("Εισαγωγή & αντίγραφα")
-        waitForText("Προεπισκόπηση εισαγωγής")
-        clickTextIntoView("Προεπισκόπηση εισαγωγής")
-        clickTextIntoView("Αντικατάσταση δεδομένων")
-        waitForText("Αντικατάσταση όλων των δεδομένων;")
-        composeRule.onNodeWithText("Αντικατάσταση όλων των δεδομένων;").assertIsDisplayed()
-        clickTextIntoView("Ακύρωση")
-        clickTextIntoView("Πίσω")
-
-        scrollHomeTextIntoView("Ρυθμίσεις & δεδομένα")
+        scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ιστορικό αλλαγών")
         waitForText("Αναίρεση & επανάληψη")
         assertTextIntoView("Αναίρεση & επανάληψη")
@@ -65,8 +57,9 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun clickTextIntoView(text: String) {
-        assertTextIntoView(text)
-        composeRule.onNodeWithText(text).performClick()
+        val node = composeRule.onNode(hasText(text) and hasClickAction())
+        runCatching { node.performScrollTo() }
+        node.assertIsDisplayed().performClick()
     }
 
     private fun scrollHomeTagIntoView(tag: String) {
@@ -81,11 +74,9 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun scrollHomeTextIntoView(text: String) {
-        val targetAlreadyComposed = runCatching {
-            composeRule.onNodeWithText(text).fetchSemanticsNode()
-        }.isSuccess
-        if (targetAlreadyComposed) {
-            composeRule.onNodeWithText(text).performScrollTo()
+        val composedNodes = composeRule.onAllNodesWithText(text).fetchSemanticsNodes()
+        if (composedNodes.isNotEmpty()) {
+            runCatching { composeRule.onAllNodesWithText(text)[0].performScrollTo() }
         } else {
             composeRule.onNodeWithTag("home_list").performScrollToNode(hasText(text))
         }
