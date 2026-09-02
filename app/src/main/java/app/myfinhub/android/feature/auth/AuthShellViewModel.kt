@@ -11,6 +11,9 @@ import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.auth.AuthSessionCoordinator
 import app.myfinhub.android.core.auth.SupabaseAuthGateway
 import app.myfinhub.android.core.config.AppConfiguration
+import app.myfinhub.android.core.network.AndroidConnectivityObserver
+import app.myfinhub.android.core.network.NetworkClientFactory
+import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.AndroidKeystorePinVerifier
 import app.myfinhub.android.core.security.DataStoreEncryptedSessionStore
@@ -20,6 +23,7 @@ import app.myfinhub.android.core.security.PinAttemptLimiter
 import app.myfinhub.android.core.security.PinAttemptStatus
 import app.myfinhub.android.core.ui.UserNotice
 import app.myfinhub.android.core.ui.authFailureMessage
+import app.myfinhub.android.core.ui.offlineUserNotice
 import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import kotlinx.coroutines.CancellationException
@@ -30,7 +34,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 
 sealed interface AuthShellUiState {
     data object Loading : AuthShellUiState
@@ -58,7 +61,8 @@ class AuthShellViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
     private val configuration = AppConfiguration.fromBuildConfig()
-    private val httpClient = OkHttpClient.Builder().build()
+    private val connectivityObserver = AndroidConnectivityObserver(application)
+    private val httpClient = NetworkClientFactory.create()
     private val authGateway = SupabaseAuthGateway(configuration, httpClient)
     private val sessionStore = DataStoreEncryptedSessionStore(
         context = application,
@@ -125,10 +129,20 @@ class AuthShellViewModel(
     }
 
     fun signIn(email: String, password: CharArray) {
+        val current = mutableState.value as? AuthShellUiState.Login ?: run {
+            password.fill('\u0000')
+            return
+        }
         val passwordCopy = password.copyOf()
         password.fill('\u0000')
+        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+            passwordCopy.fill('\u0000')
+            mutableState.value = current.copy(message = "Δεν υπάρχει σύνδεση για νέα σύνδεση λογαριασμού.")
+            mutableNotices.tryEmit(offlineUserNotice("Σύνδεση"))
+            return
+        }
+        mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
-            mutableState.value = AuthShellUiState.Loading
             try {
                 when (val result = coordinator.signIn(email.trim(), passwordCopy)) {
                     is AuthAppState.Ready -> routeReady(result.session)
@@ -161,8 +175,14 @@ class AuthShellViewModel(
         }
         val codeCopy = code.copyOf()
         code.fill('\u0000')
+        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+            codeCopy.fill('\u0000')
+            mutableState.value = current.copy(message = "Δεν υπάρχει σύνδεση για επαλήθευση δύο παραγόντων.")
+            mutableNotices.tryEmit(offlineUserNotice("Επαλήθευση δύο παραγόντων"))
+            return
+        }
+        mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
-            mutableState.value = AuthShellUiState.Loading
             try {
                 when (
                     val result = coordinator.completeTotp(
@@ -333,6 +353,15 @@ class AuthShellViewModel(
 
     private fun validateUnlockedSession(session: AuthSession, fallbackToPin: Boolean) {
         viewModelScope.launch {
+            if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+                mutableState.value = lockedState(
+                    session = session,
+                    showPin = fallbackToPin,
+                    message = "Δεν υπάρχει σύνδεση. Η αποθηκευμένη συνεδρία παραμένει κλειδωμένη και μπορείς να δοκιμάσεις ξανά.",
+                )
+                mutableNotices.emit(offlineUserNotice("Έλεγχος συνεδρίας μετά το ξεκλείδωμα"))
+                return@launch
+            }
             mutableState.value = AuthShellUiState.Loading
             try {
                 when (val result = coordinator.afterLocalUnlock(session)) {
@@ -357,7 +386,11 @@ class AuthShellViewModel(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = AuthShellUiState.Login("Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε. Συνδέσου ξανά.")
+                mutableState.value = lockedState(
+                    session = session,
+                    showPin = fallbackToPin,
+                    message = "Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε. Μπορείς να δοκιμάσεις ξανά.",
+                )
                 mutableNotices.emit(
                     unexpectedUserNotice(
                         operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",

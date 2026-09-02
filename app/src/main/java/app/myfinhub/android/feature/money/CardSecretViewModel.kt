@@ -8,6 +8,7 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.MyFinHubApi
+import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
 import app.myfinhub.android.core.security.AndroidKeystoreCipher
 import app.myfinhub.android.core.security.CvvVault
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 
 sealed interface CardSecretUiState {
     data class Hidden(val cardId: String? = null) : CardSecretUiState
@@ -65,7 +65,7 @@ class CardSecretViewModel internal constructor(
         application = application,
         api = OkHttpMyFinHubApi(
             configuration = AppConfiguration.fromBuildConfig(),
-            client = OkHttpClient.Builder().build(),
+            client = NetworkClientFactory.create(),
         ),
         cvvVault = DataStoreEncryptedCvvVault(
             context = application,
@@ -151,6 +151,7 @@ class CardSecretViewModel internal constructor(
     }
 
     fun reveal() {
+        if (mutableState.value is CardSecretUiState.Loading) return
         val session = currentSession ?: run {
             mutableNotices.tryEmit(
                 UserNotice(
@@ -211,6 +212,10 @@ class CardSecretViewModel internal constructor(
         val session = currentSession
         val cardId = currentCardId
         val current = mutableState.value as? CardSecretUiState.Revealed
+        if (current?.cvvSaving == true) {
+            cvv.fill('\u0000')
+            return
+        }
         if (session == null || cardId == null || current?.cardId != cardId) {
             cvv.fill('\u0000')
             mutableNotices.tryEmit(
@@ -278,6 +283,7 @@ class CardSecretViewModel internal constructor(
         val session = currentSession ?: return
         val cardId = currentCardId ?: return
         val current = mutableState.value as? CardSecretUiState.Revealed ?: return
+        if (current.cvvSaving) return
         mutableState.value = current.copy(cvvSaving = true, message = null)
 
         viewModelScope.launch {

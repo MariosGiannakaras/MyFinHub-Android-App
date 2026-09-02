@@ -37,6 +37,26 @@ fun AuthResult.Failure.toUserNotice(operation: String): UserNotice = UserNotice(
     diagnosticCode = diagnosticCode("AUTH", kind.name, statusCode),
 )
 
+fun offlineUserNotice(
+    operation: String,
+    pendingMutation: Boolean = false,
+): UserNotice = UserNotice(
+    message = if (pendingMutation) {
+        "Δεν υπάρχει σύνδεση. Η αλλαγή διατηρείται μέχρι να επανέλθει το δίκτυο."
+    } else {
+        "Δεν υπάρχει διαθέσιμη σύνδεση δικτύου."
+    },
+    details = buildString {
+        append("Ενέργεια: ")
+        append(operation)
+        append("\nΚατηγορία: OFFLINE")
+        append("\nΑίτημα προς server: ")
+        append(if (pendingMutation) "δεν στάλθηκε" else "δεν ξεκίνησε")
+        append("\nΔεν αποθηκεύονται credentials, payloads ή άλλα ευαίσθητα δεδομένα στα διαγνωστικά.")
+    },
+    diagnosticCode = if (pendingMutation) "MFH-NET-OFFLINE-PENDING" else "MFH-NET-OFFLINE",
+)
+
 fun unexpectedUserNotice(
     operation: String,
     throwable: Throwable,

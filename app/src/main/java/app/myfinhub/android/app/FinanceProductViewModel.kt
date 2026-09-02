@@ -20,11 +20,15 @@ import app.myfinhub.android.core.data.createCanonicalEventMutation
 import app.myfinhub.android.core.data.equalExpenseSplit
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
+import app.myfinhub.android.core.network.NetworkClientFactory
+import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
 import app.myfinhub.android.core.ui.UserNotice
 import app.myfinhub.android.core.ui.apiFailureMessage
+import app.myfinhub.android.core.ui.offlineUserNotice
 import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import app.myfinhub.android.feature.activity.ActivityAction
@@ -40,14 +44,18 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 
 sealed interface FinanceProductState {
     data object Idle : FinanceProductState
@@ -64,7 +72,7 @@ sealed interface FinanceProductState {
     data object AuthRejected : FinanceProductState
 }
 
-enum class FinanceSyncIssueKind { REVISION_CONFLICT, SAVE_FAILED }
+enum class FinanceSyncIssueKind { REVISION_CONFLICT, SAVE_FAILED, WAITING_FOR_NETWORK }
 
 data class FinanceSyncIssue(
     val kind: FinanceSyncIssueKind,
@@ -79,12 +87,22 @@ data class FinanceSyncIssue(
  * local mutated projection and the replayable mutation intent until the user retries or discards it.
  */
 class FinanceProductViewModel(application: Application) : AndroidViewModel(application) {
+    private val connectivityObserver = AndroidConnectivityObserver(application)
+    val networkStatus: StateFlow<NetworkStatus> = connectivityObserver.status.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = connectivityObserver.current(),
+    )
+
     private val repository = FinanceRepository(
         OkHttpMyFinHubApi(
             configuration = AppConfiguration.fromBuildConfig(),
-            client = OkHttpClient.Builder().build(),
+            client = NetworkClientFactory.create(),
         ),
     )
+
+    private val mutableLastSuccessfulSync = MutableStateFlow<String?>(null)
+    val lastSuccessfulSync: StateFlow<String?> = mutableLastSuccessfulSync.asStateFlow()
 
     private val mutableState = MutableStateFlow<FinanceProductState>(FinanceProductState.Idle)
     val state: StateFlow<FinanceProductState> = mutableState.asStateFlow()
@@ -98,48 +116,93 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private var currentSession: AuthSession? = null
     private var pendingMutation: CanonicalFinanceMutation? = null
+    private var pendingMutationNeverSent = false
+    private var reloadWhenOnline = false
+    private var mutationLaunchInFlight = false
+    private var loadJob: Job? = null
+    private var mutationJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            networkStatus.drop(1).collect { status ->
+                if (status != NetworkStatus.ONLINE) return@collect
+                when {
+                    pendingMutationNeverSent && pendingMutation != null && currentSession != null -> retryPendingMutation()
+                    reloadWhenOnline && currentSession != null && mutableState.value is FinanceProductState.Failure -> {
+                        reloadWhenOnline = false
+                        retryLoad()
+                    }
+                }
+            }
+        }
+    }
 
     fun attachSession(session: AuthSession) {
         val previous = currentSession
+        if (previous != null && previous.userId != session.userId) {
+            cancelOperations()
+            pendingMutation = null
+            pendingMutationNeverSent = false
+            repository.clear()
+        }
         currentSession = session
         if (previous?.userId == session.userId && mutableState.value is FinanceProductState.Ready) return
         loadFresh(preserveUi = false)
     }
 
     fun clear() {
+        cancelOperations()
         currentSession = null
         pendingMutation = null
+        pendingMutationNeverSent = false
+        reloadWhenOnline = false
+        mutableLastSuccessfulSync.value = null
         repository.clear()
         mutableState.value = FinanceProductState.Idle
     }
 
     fun retryLoad() {
-        if (currentSession == null) return
+        if (currentSession == null || loadJob?.isActive == true) return
         loadFresh(preserveUi = false)
     }
 
     fun retryPendingMutation() {
         val session = currentSession ?: return
         val mutation = pendingMutation ?: return
+        if (mutationLaunchInFlight || mutationJob?.isActive == true) return
+        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+            mutableNotices.tryEmit(offlineUserNotice("Επαναφόρτωση οικονομικών δεδομένων"))
+            return
+        }
         val previousProjection = (mutableState.value as? FinanceProductState.Ready)?.projection
-        viewModelScope.launch {
-            mutableState.value = FinanceProductState.Loading
-            repository.load(session)
-            when (val loaded = repository.state.value) {
-                is FinanceSyncState.Ready -> saveMutation(
-                    session = session,
-                    mutation = mutation,
-                    baseDocument = loaded.envelope.document,
-                    previousProjection = previousProjection,
-                )
-                is FinanceSyncState.Error -> handleLoadFailure(loaded.failure, "Επαναφόρτωση οικονομικών δεδομένων")
-                else -> failLoad("Δεν ήταν δυνατή η επαναφόρτωση των δεδομένων.")
+        mutationLaunchInFlight = true
+        mutationJob = viewModelScope.launch {
+            try {
+                mutableState.value = FinanceProductState.Loading
+                repository.load(session)
+                when (val loaded = repository.state.value) {
+                    is FinanceSyncState.Ready -> {
+                        recordSuccessfulSync(loaded.envelope.lastSavedAt)
+                        saveMutation(
+                            session = session,
+                            mutation = mutation,
+                            baseDocument = loaded.envelope.document,
+                            previousProjection = previousProjection,
+                        )
+                    }
+                    is FinanceSyncState.Error -> handleLoadFailure(loaded.failure, "Επαναφόρτωση οικονομικών δεδομένων")
+                    else -> failLoad("Δεν ήταν δυνατή η επαναφόρτωση των δεδομένων.")
+                }
+            } finally {
+                mutationLaunchInFlight = false
             }
         }
     }
 
     fun discardPendingAndReload() {
         pendingMutation = null
+        pendingMutationNeverSent = false
+        reloadWhenOnline = false
         loadFresh(preserveUi = false)
     }
 
@@ -152,7 +215,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun onActivityAction(action: ActivityAction) {
         if (action is ActivityAction.SaveEdit) {
             val ready = mutableState.value as? FinanceProductState.Ready ?: return
-            if (ready.saving || ready.issue != null) return
+            if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
             applyMutation(
                 EditCanonicalActivity(
                     transactionId = action.id,
@@ -170,7 +233,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun deleteCard(cardId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null) return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         val normalizedCardId = cardId.trim()
         if (normalizedCardId.isBlank() || ready.projection.document.canonicalCards().none { it.id == normalizedCardId && it.active }) {
             mutableNotices.tryEmit(
@@ -192,7 +255,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun onQuickEntryAction(action: QuickEntryAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null) return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (action != QuickEntryAction.Save) {
             mutableState.value = ready.copy(
                 projection = ready.projection.copy(
@@ -296,7 +359,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null) return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (action != PlanAction.SaveBudget) {
             mutableState.value = ready.copy(
                 projection = ready.projection.copy(planState = reducePlan(ready.projection.planState, action)),
@@ -323,13 +386,26 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private fun loadFresh(preserveUi: Boolean) {
         val session = currentSession ?: return
+        loadJob?.cancel()
         val previous = (mutableState.value as? FinanceProductState.Ready)?.projection.takeIf { preserveUi }
-        viewModelScope.launch {
+        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+            reloadWhenOnline = true
+            mutableState.value = FinanceProductState.Failure(
+                message = "Δεν υπάρχει σύνδεση. Θα γίνει νέα προσπάθεια όταν επανέλθει το δίκτυο.",
+                retryable = true,
+            )
+            mutableNotices.tryEmit(offlineUserNotice("Φόρτωση οικονομικών δεδομένων"))
+            return
+        }
+        reloadWhenOnline = false
+        loadJob = viewModelScope.launch {
             mutableState.value = FinanceProductState.Loading
             repository.load(session)
             when (val loaded = repository.state.value) {
                 is FinanceSyncState.Ready -> {
                     pendingMutation = null
+                    pendingMutationNeverSent = false
+                    recordSuccessfulSync(loaded.envelope.lastSavedAt)
                     val projected = runCatching {
                         projectCanonicalProduct(loaded.envelope.document, LocalDate.now(), previous)
                     }.getOrElse {
@@ -357,14 +433,19 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private fun applyMutation(mutation: CanonicalFinanceMutation) {
         val session = currentSession ?: return
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null) return
-        viewModelScope.launch {
-            saveMutation(
-                session = session,
-                mutation = mutation,
-                baseDocument = ready.projection.document,
-                previousProjection = ready.projection,
-            )
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        mutationLaunchInFlight = true
+        mutationJob = viewModelScope.launch {
+            try {
+                saveMutation(
+                    session = session,
+                    mutation = mutation,
+                    baseDocument = ready.projection.document,
+                    previousProjection = ready.projection,
+                )
+            } finally {
+                mutationLaunchInFlight = false
+            }
         }
     }
 
@@ -402,6 +483,19 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             )
             return
         }
+        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+            pendingMutationNeverSent = true
+            mutableState.value = FinanceProductState.Ready(
+                projection = localProjection,
+                issue = FinanceSyncIssue(
+                    FinanceSyncIssueKind.WAITING_FOR_NETWORK,
+                    "Η αλλαγή δεν στάλθηκε. Θα επαναληφθεί με ασφάλεια όταν επανέλθει το δίκτυο.",
+                ),
+            )
+            mutableNotices.emit(offlineUserNotice("Αποθήκευση οικονομικών δεδομένων", pendingMutation = true))
+            return
+        }
+        pendingMutationNeverSent = false
         mutableState.value = FinanceProductState.Ready(localProjection, saving = true)
 
         repository.save(session, localDocument)
@@ -431,12 +525,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     else -> projection
                 }
                 pendingMutation = null
+                pendingMutationNeverSent = false
+                recordSuccessfulSync(saved.envelope.lastSavedAt)
                 mutableState.value = FinanceProductState.Ready(projection)
                 if (mutation is DeactivateCanonicalCard) {
                     mutableCommittedCardDeletions.emit(mutation.cardId)
                 }
             }
             is FinanceSyncState.Conflict -> {
+                pendingMutationNeverSent = false
                 localProjection = runCatching {
                     projectCanonicalProduct(saved.localDocument, LocalDate.now(), localProjection)
                 }.getOrElse { localProjection }
@@ -454,6 +551,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 )
             }
             is FinanceSyncState.Error -> {
+                pendingMutationNeverSent = false
                 if (saved.failure.kind.isAuthRejection()) {
                     mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση οικονομικών δεδομένων"))
                     repository.clear()
@@ -485,6 +583,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private suspend fun handleLoadFailure(failure: ApiResult.Failure, operation: String) {
+        if (failure.kind == ApiFailureKind.NETWORK) reloadWhenOnline = true
         mutableNotices.emit(failure.toUserNotice(operation))
         if (failure.kind.isAuthRejection()) {
             repository.clear()
@@ -517,6 +616,19 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 ),
             )
         }
+    }
+
+    private fun cancelOperations() {
+        loadJob?.cancel()
+        mutationJob?.cancel()
+        loadJob = null
+        mutationJob = null
+        mutationLaunchInFlight = false
+    }
+
+    private fun recordSuccessfulSync(serverTimestamp: String) {
+        mutableLastSuccessfulSync.value = serverTimestamp.takeIf(String::isNotBlank) ?: Instant.now().toString()
+        reloadWhenOnline = false
     }
 
     private fun updateReady(transform: (FinanceProductState.Ready) -> FinanceProductState.Ready) {
