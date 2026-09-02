@@ -37,6 +37,7 @@ fun HomeCompactLargeFontScreenshot() {
     HomeAppScreenshotFixture()
 }
 
+/** S24-phone edge fixture personally reviewed for long labels and large signed values. */
 @PreviewTest
 @Preview(
     name = "home_edge_values_phone",

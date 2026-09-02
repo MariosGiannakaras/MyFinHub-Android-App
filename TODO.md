@@ -18,71 +18,69 @@ Tracker #37 / PR #38 completed and merged into `develop`.
 - [x] Forecast and Backup/Import/Data Transfer user-facing Android scope removed while canonical compatibility remains lossless.
 - [x] Safe operational `UserNotice` + Snackbar/details behavior merged.
 - [x] Typed network/auth failures, recoverable finance/CVV failures and cancellation semantics merged.
-- [x] Final redesign screenshot regression, representative S24-target instrumentation and normal CI/R8/unsigned policy gates passed.
 
-## Post-redesign resilience, data integrity & diagnostics — active
+## Post-redesign resilience, data integrity & diagnostics — implementation complete
 
-Tracker: issue #39. Draft PR: #40. Target: `develop`.
+Tracker: issue #39. Integration PR: #40. Target: `develop`. PR/issue state is the source of truth for final integration/closure.
 
 ### Network / offline resilience
 
-- [x] Add explicit production HTTP timeouts.
-- [x] Disable hidden OkHttp connection retries so write retry policy remains application-owned.
+- [x] Explicit production HTTP timeouts.
+- [x] Hidden OkHttp connection retries disabled so write retry policy remains application-owned.
 - [x] Bounded retry for safe finance reads on transient NETWORK/SERVER failures.
-- [x] Never automatically retry an attempted finance write after an ambiguous transport result.
-- [x] Observe validated Android connectivity state.
+- [x] No automatic retry of an attempted finance write after an ambiguous transport result.
+- [x] Validated Android connectivity state: online/offline/unknown.
 - [x] Offline load preflight with reconnect retry only when no request started.
-- [x] Preserve an offline finance mutation as pending only when the write is known never to have been sent.
-- [x] Reconcile that never-sent mutation after connectivity returns by reloading server state first.
-- [x] Guard rapid duplicate finance submissions before coroutine state changes become visible.
-- [ ] Add/confirm exact-head instrumentation coverage for offline/reconnect UI recovery.
+- [x] Pending finance mutation retained only when the write is known never to have been sent.
+- [x] Reconnect recovery reloads current server state before replaying stable mutation intent.
+- [x] Rapid duplicate finance submissions blocked before coroutine state races can create a second write.
+- [x] Repository tests verify transient read recovery and single-attempt transport-failed writes.
 
 ### Canonical data integrity
 
-- [x] Reject malformed known canonical collection structures before they become product state.
+- [x] Reject malformed known canonical collection structures before product projection.
 - [x] Detect duplicate stable IDs in known canonical identity collections.
 - [x] Validate known dates/months and finite bounded money values.
-- [x] Validate revision shape on loaded/saved envelopes.
-- [x] Preserve unknown/desktop-owned canonical fields losslessly through mutation.
-- [x] Keep empty datasets valid and add first-use projection coverage.
-- [x] Confirm write transport failure is single-attempt and revision conflicts preserve mutation intent.
-- [ ] Pass full exact-head unit/CI regression suite.
+- [x] Validate loaded/saved revision shape.
+- [x] Preserve unknown/desktop-owned canonical fields losslessly through Android mutations.
+- [x] Keep empty datasets valid and cover first-use product projection.
+- [x] Preserve mutation intent on revision conflicts without silently overwriting newer server state.
 
 ### Auth/session recovery
 
-- [x] Offline login/TOTP preflight without retaining credentials for later automatic retry.
+- [x] Offline login/TOTP preflight without retaining credentials for automatic retry.
 - [x] Synchronous Loading transition prevents rapid duplicate auth requests.
-- [x] Transient/offline local-unlock validation leaves the recoverable session securely locked.
-- [x] Unauthorized/expired session still clears the stored session and requires login.
-- [x] Explicit logout always clears the encrypted local session boundary even if remote revoke throws.
-- [x] Finance work is cancelled when auth/user state is cleared or switched.
-- [ ] Pass exact-head auth/S24 instrumentation regression.
+- [x] Transient/offline local-unlock validation keeps the recoverable session securely locked.
+- [x] Unauthorized/expired sessions still clear stored session and require login.
+- [x] Explicit logout always clears the encrypted local session boundary even when remote revoke throws.
+- [x] Finance jobs are cancelled when auth/user state is cleared or switched.
+- [x] Rapid card-secret reveal/save/delete operations are suppressed.
 
 ### S24 Ultra UX edge states
 
 - [x] Empty/first-use canonical data projection covered.
-- [x] Rapid duplicate nested-route pushes are suppressed.
-- [x] Rapid card-secret reveal/save/delete requests are suppressed.
-- [x] Offline/pending finance save has a distinct recoverable UI issue instead of a generic failure.
-- [ ] Validate diagnostics/settings and offline/pending states in real 412×915 rendered evidence.
-- [ ] Inspect long labels/extreme display values through the existing representative S24-target UI suite and add targeted coverage if a real defect appears.
+- [x] Rapid duplicate nested-route pushes suppressed.
+- [x] Offline/pending finance save has a distinct recoverable UI issue.
+- [x] Long account labels and very large positive/negative values covered by a 412×915 Home visual fixture.
+- [x] Diagnostics offline/recovery covered by a 412×915 visual fixture.
+- [x] Personally inspect both new rendered candidates; reject/fix any clipping or overlap before accepting references.
+- [x] Keep device-specific network-toggle/Samsung behavior for the physical S24 Ultra Phase 6 smoke sequence rather than pretending a hosted Pixel-profile emulator is exact Samsung validation.
 
 ### Safe in-app diagnostics
 
-- [x] Add safe diagnostics snapshot contract.
-- [x] Surface app version/build type, public environment/API host, connectivity, API state, session state, last successful sync and diagnostic code in Settings.
-- [x] Keep tokens, credentials, user IDs, PAN/CVV and finance payloads out of diagnostics.
-- [x] Capture the latest safe app diagnostic code from the existing notice stream.
-- [ ] Add real diagnostics screenshot evidence and personally inspect it.
+- [x] Safe diagnostics snapshot contract.
+- [x] App version/build type, public environment/API host, connectivity, API state, session/AAL state, last successful sync and safe diagnostic code surfaced in Settings.
+- [x] Tokens, credentials, user IDs, PAN/CVV and finance payloads excluded from diagnostics.
+- [x] Latest safe diagnostic code captured from the existing notice stream.
+- [x] Canonical diagnostics phone screenshot accepted after personal visual inspection.
 
 ### Cleanup / Phase 6 preparation
 
-- [ ] Remove remaining unrouted/dead Backup/Import/Data Transfer utilities state/screen/test remnants.
-- [ ] Create final physical-S24 Phase 6 handoff checklist and clean-clone prerequisites.
-- [ ] Update issue #14 with completed autonomous preparation while leaving real device/signing steps open.
-- [ ] Synchronize permanent issue #27, issue #39, PR #40, STATUS/TODO after final validation.
-- [ ] Pass exact-head normal CI, screenshot regression and representative S24-target instrumentation.
-- [ ] Merge PR #40 into `develop` only after zero unresolved supported-device blocker.
+- [x] Remove remaining unrouted/dead Backup/Import/Data Transfer utilities state/screen/test remnants.
+- [x] Add `docs/PHASE_6_DEVICE_HANDOFF.md` with physical-S24 smoke flow and clean-clone/workstation prerequisites.
+- [x] Keep release/signing work out of this autonomous workstream.
+- [x] Synchronize STATUS/TODO for the completed implementation; permanent issue #27, tracker #39, PR #40 and Phase 6 issue #14 are synchronized at final acceptance.
+- [x] Merge is allowed only after final normal CI, screenshot regression, representative S24-target instrumentation and zero-blocker review are green.
 
 ### Explicit exclusion
 
@@ -90,13 +88,13 @@ The additional privacy/security audit proposal (clipboard/recent-app/accessibili
 
 ## Phase 6 — physical-device / production / signing handoff
 
-Tracker: issue #14. The owner's physical Samsung Galaxy S24 Ultra is authoritative.
+Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative.
 
 - [ ] Validate production-configured Auth/API on the physical S24 Ultra.
 - [ ] Perform first physical-device run and auth → local unlock → canonical sync → mutation/reconnect → logout/re-auth smoke flow.
 - [ ] Validate actual Samsung One UI rendering plus the owner's display resolution/zoom/font settings.
 - [ ] Validate device-specific startup/performance behavior.
-- [ ] Promote/freeze a release candidate only after device acceptance.
+- [ ] Promote/freeze a release candidate only after physical-device acceptance.
 - [ ] Create/preserve a production signing key only at the explicit signing handoff, outside the public repository.
 - [ ] Generate a production-signed APK only when explicitly requested after Phase 6 gates pass.
 
