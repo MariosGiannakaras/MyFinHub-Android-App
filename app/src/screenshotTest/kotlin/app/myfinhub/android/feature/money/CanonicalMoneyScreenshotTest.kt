@@ -25,15 +25,19 @@ private fun canonicalMoneyScreenshotState() = MoneyUiState(
 )
 @Composable
 fun CanonicalMoneyCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        CanonicalMoneyScreen(
-            state = canonicalMoneyScreenshotState(),
-            onOpenCard = {},
-            onOpenSavings = {},
-            onOpenLoans = {},
-            onOpenLending = {},
-        )
-    }
+    CanonicalMoneyScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_money_compact_dark",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun CanonicalMoneyCompactDarkScreenshot() {
+    CanonicalMoneyScreenshotFixture(darkTheme = true)
 }
 
 @PreviewTest
@@ -67,6 +71,19 @@ fun CanonicalSavingsLargeFontScreenshot() {
         CanonicalSavingsScreen(
             state = canonicalMoneyScreenshotState(),
             onBack = {},
+        )
+    }
+}
+
+@Composable
+private fun CanonicalMoneyScreenshotFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        CanonicalMoneyScreen(
+            state = canonicalMoneyScreenshotState(),
+            onOpenCard = {},
+            onOpenSavings = {},
+            onOpenLoans = {},
+            onOpenLending = {},
         )
     }
 }
