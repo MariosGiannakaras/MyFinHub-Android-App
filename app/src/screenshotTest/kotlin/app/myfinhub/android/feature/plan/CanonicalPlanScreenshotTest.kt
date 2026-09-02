@@ -35,12 +35,19 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
 )
 @Composable
 fun CanonicalPlanCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        CanonicalPlanScreen(
-            state = canonicalPlanScreenshotState(),
-            onOpenBudget = {},
-        )
-    }
+    CanonicalPlanScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_plan_compact_dark",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun CanonicalPlanCompactDarkScreenshot() {
+    CanonicalPlanScreenshotFixture(darkTheme = true)
 }
 
 @PreviewTest
@@ -58,6 +65,16 @@ fun CanonicalBudgetCompactLargeFontScreenshot() {
             state = canonicalPlanScreenshotState(),
             onAction = {},
             onBack = {},
+        )
+    }
+}
+
+@Composable
+private fun CanonicalPlanScreenshotFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        CanonicalPlanScreen(
+            state = canonicalPlanScreenshotState(),
+            onOpenBudget = {},
         )
     }
 }
