@@ -399,7 +399,10 @@ private fun QuickEntrySheet(
     onSelect: (HomeQuickEntryType) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        dragHandle = null,
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
                 start = MyFinHubSpacing.lg,
