@@ -16,7 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -27,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -64,6 +67,7 @@ fun HomeScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val expanded = maxWidth >= 840.dp
+        val largeFont = LocalDensity.current.fontScale >= 1.3f
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
@@ -80,10 +84,21 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 if (!expanded) {
-                    MyFinHubPrimaryAction(
-                        label = "Νέα κίνηση",
-                        onClick = { onAction(HomeAction.OpenQuickEntry) },
-                    )
+                    if (largeFont) {
+                        FloatingActionButton(
+                            onClick = { onAction(HomeAction.OpenQuickEntry) },
+                        ) {
+                            Icon(
+                                imageVector = MyFinHubIcons.Add,
+                                contentDescription = "Νέα κίνηση",
+                            )
+                        }
+                    } else {
+                        MyFinHubPrimaryAction(
+                            label = "Νέα κίνηση",
+                            onClick = { onAction(HomeAction.OpenQuickEntry) },
+                        )
+                    }
                 }
             },
         ) { innerPadding ->
