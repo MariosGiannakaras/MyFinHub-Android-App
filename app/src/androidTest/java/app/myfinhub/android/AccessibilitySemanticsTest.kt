@@ -3,9 +3,13 @@ package app.myfinhub.android
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.tryPerformAccessibilityChecks
+import androidx.test.filters.SdkSuppress
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -22,6 +26,19 @@ class AccessibilitySemanticsTest {
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
+        }
+    }
+
+    @Test
+    @SdkSuppress(minSdkVersion = 34)
+    fun criticalSurfaces_passAccessibilityFrameworkChecks() {
+        composeRule.enableAccessibilityChecks()
+        composeRule.onRoot().tryPerformAccessibilityChecks()
+
+        listOf("Κινήσεις", "Χρήματα", "Πλάνο", "Αναλύσεις").forEach { destination ->
+            composeRule.onNodeWithText(destination).performClick()
+            composeRule.waitForIdle()
+            composeRule.onRoot().tryPerformAccessibilityChecks()
         }
     }
 
