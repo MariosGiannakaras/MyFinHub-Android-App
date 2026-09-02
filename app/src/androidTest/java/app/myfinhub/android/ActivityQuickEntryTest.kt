@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Rule
 import org.junit.Test
 
@@ -57,7 +58,9 @@ class ActivityQuickEntryTest {
 
         composeRule.onNodeWithText("Μέρη σύνθετης αγοράς").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό μέρους 1").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Προσθήκη μέρους σύνθετης αγοράς").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Προσθήκη μέρους σύνθετης αγοράς")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     @Test
