@@ -1,0 +1,69 @@
+name: Temporary harden transaction kinds
+
+on:
+  push:
+    branches:
+      - feature/full-transaction-entry-parity
+    paths:
+      - .github/workflows/tmp-harden-transaction-kinds.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-transaction-entry-parity
+          fetch-depth: 0
+      - name: Harden withdrawal and saving destinations
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('app/src/main/java/app/myfinhub/android/core/data/CanonicalTransactionEntryMutation.kt')
+          text = path.read_text()
+          old = '''        "transfer", "withdrawal" -> {
+              val (_, amount) = positiveAmount()
+              normalizedAmount = amount
+              normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
+              normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό προορισμού.")
+              require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
+              legs += transactionLedgerLeg(normalizedFromId!!, -amount)
+              legs += transactionLedgerLeg(normalizedToId!!, amount)
+          }'''
+          new = '''        "transfer", "withdrawal" -> {
+              val (_, amount) = positiveAmount()
+              normalizedAmount = amount
+              normalizedFromId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό προέλευσης.")
+              normalizedToId = requireAccount(draft.toAccountId, "Διάλεξε υπαρκτό λογαριασμό προορισμού.")
+              require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
+              if (draft.kind == "withdrawal") {
+                  require(eligibleAccounts[normalizedToId]?.kind == "cash") { "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." }
+              }
+              legs += transactionLedgerLeg(normalizedFromId!!, -amount)
+              legs += transactionLedgerLeg(normalizedToId!!, amount)
+          }'''
+          if old not in text:
+              raise SystemExit('transfer/withdrawal block not found')
+          text = text.replace(old, new, 1)
+          old = '''            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }
+              legs += transactionLedgerLeg(normalizedFromId!!, -amount)'''
+          new = '''            require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί αποταμίευσης πρέπει να είναι διαφορετικοί." }
+              require(eligibleAccounts[normalizedToId]?.kind == "savings") { "Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης." }
+              legs += transactionLedgerLeg(normalizedFromId!!, -amount)'''
+          if old not in text:
+              raise SystemExit('saving block marker not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit patch and self-clean
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-harden-transaction-kinds.yml
+          git add app/src/main/java/app/myfinhub/android/core/data/CanonicalTransactionEntryMutation.kt
+          git commit -m "fix: enforce withdrawal and saving account semantics"
+          git push origin feature/full-transaction-entry-parity
