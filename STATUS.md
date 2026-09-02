@@ -1,51 +1,48 @@
 # MyFinHub Android status
 
-## 2026-09-02 — Full-app 2026 redesign and post-review reliability hardening complete
+## 2026-09-02 — Post-redesign resilience/data-integrity hardening active
 
-The retained native Android product has completed the shared 2026 redesign and the subsequent cleanup/reliability pass. The sole supported Android device remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` is the permanent device-acceptance source of truth.
+The retained native Android product has completed the shared 2026 redesign and first post-review cleanup/reliability pass. The sole supported Android device remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` is the permanent device-acceptance source of truth.
 
-### Completed product work
+Active follow-up tracker: issue #39. Draft integration PR: #40 into `develop`.
 
-- Shared light/dark Material 3 visual system, typography, shapes, compact spacing and semantic finance palette.
-- Authentic MyFinHub branding, launcher/adaptive resources and centralized curated `MyFinHubIcons` vocabulary.
-- Redesign of Home, Activity, Money, Plan, Insights, Quick Entry, auth and all retained secondary/detail/system flows.
-- Issue #24 native credit-card stack contract preserved.
-- Forecast and Backup/Import/Data Transfer Android UI removed; obsolete Android-only Bootstrap/Backup/Import network scaffolding removed where no longer required.
-- Confirmed Android exclusions remain excluded: category administration/icon picker, Command Palette, desktop shortcut/mass-admin surfaces, Windows install/update/recovery and full desktop Reports.
-- Canonical/desktop-owned finance fields continue to round-trip losslessly even when Android has no corresponding UI.
-- Unsupported tablet/foldable/desktop-like screenshot and CI acceptance paths removed; one representative compact-phone instrumentation path remains for the S24 Ultra phone target.
+### Completed redesign / baseline hardening
 
-### Post-review reliability and clean-code hardening
+- Shared light/dark Material 3 visual system, authentic branding, compact spacing and centralized curated icon vocabulary.
+- Home, Activity, Money, Plan, Insights, Quick Entry, auth and retained secondary/detail/system flows redesigned.
+- Issue #24 native credit-card stack and owner+AAL2 secret boundaries preserved.
+- Forecast and Backup/Import/Data Transfer user-facing Android scope removed; canonical/desktop-owned finance fields continue to round-trip losslessly.
+- Safe `UserNotice` operational-error contract, global Snackbar + safe details, cancellation preservation and recoverable finance/CVV failure handling are merged.
+- Final redesign acceptance passed canonical screenshots, representative S24-target instrumentation and normal Android CI/R8/unsigned-release policy gates.
 
-- Operational failures use one safe `UserNotice` contract across auth/session, canonical finance sync and secure card-secret flows.
-- Operation/system failures surface through a global Material 3 Snackbar with `Λεπτομέρειες`; field validation remains inline.
-- User-visible diagnostics contain only safe operation/category/HTTP/retry/diagnostic-code metadata. Raw server bodies, exception messages, credentials, tokens, PAN and CVV are never surfaced.
-- Malformed network/auth success responses and unexpected API/repository exceptions are contained inside typed recoverable failures while coroutine cancellation is preserved.
-- Failed local finance mutations/projections retain the last valid product state; sync conflicts and save failures remain explicitly retryable/discardable.
-- Secure local CVV vault read/save/delete failures are reported instead of silently ignored, without leaking card secrets.
-- Dead Phase-1 Bootstrap and obsolete Android Backup/Import API code/tests were removed while synthetic state still used by the standalone test/demo UI was retained and documented.
-- Error-feedback screenshot fixtures cover the global Snackbar and safe details dialog. Personal inspection caught and corrected preview timing plus collisions with both bottom navigation and the Home floating primary action before the references were accepted.
-- The card-error instrumentation tests subscribe to the non-replay notice stream before triggering failures, eliminating the event-ordering race discovered by the final S24-target run.
+### Active resilience/data-integrity work
 
-### Final validation evidence
+Implemented on the active branch so far:
 
-All autonomous merge gates pass on the completed implementation:
+- Shared production HTTP policy with explicit connect/read/write/call timeouts and hidden OkHttp connection retries disabled.
+- Bounded explicit retry for safe finance reads only; writes execute once and are never blindly replayed after an ambiguous transport result.
+- Android connectivity observation with definite offline/online/unknown states.
+- Offline finance load preflight and automatic retry only when the original request is known not to have started.
+- Offline finance mutation intent remains visible as pending and is automatically reconciled only when it is known the write was never sent.
+- Rapid finance submit guards prevent a second mutation launch before the first coroutine can update UI saving state.
+- User/session switches and clear/logout cancel stale finance jobs.
+- Canonical integrity validation gates known Android-read collections, stable IDs, dates, money values and revisions before server data becomes product state; unknown desktop-owned fields remain ignored by validation and preserved losslessly.
+- Auth login/TOTP offline preflight, synchronous Loading transition and secret-array zeroing prevent credential auto-retry and rapid duplicate auth requests.
+- Local unlock stays securely locked through transient/offline validation failures instead of discarding the recoverable stored session.
+- Explicit logout always clears the encrypted local session boundary even if remote revoke unexpectedly throws.
+- Card-secret reveal/save/delete paths suppress rapid duplicate operations and use the shared timeout/no-hidden-retry HTTP policy.
+- Settings now accepts a safe diagnostics snapshot containing only version/build/environment/API host/connectivity/API state/session state/last successful sync/diagnostic code; no credentials, tokens, finance payloads, user IDs, PAN or CVV.
+- Nested navigation ignores rapid duplicate pushes of the same route.
+- Empty canonical finance data now has explicit projection coverage for first-use states.
 
-1. Canonical screenshot regression passes with the visually approved error-feedback references.
-2. The representative S24 Ultra-target compact-phone instrumentation suite passes all 31 tests.
-3. Normal Android CI passes benchmark/Baseline Profile tooling compilation, unit tests, instrumentation compilation, lint, debug assembly, optimized unsigned release/R8 analysis and release-manifest/unsigned-APK policy audit.
-4. No unresolved Samsung Galaxy S24 Ultra blocker remains in the redesign/hardening workstream.
+### Validation state
 
-Tablet, foldable and desktop-like Android form factors are intentionally unsupported and are not acceptance gates.
+The active branch is intentionally still a draft while exact-head compile/tests, diagnostics screenshot evidence and S24-target instrumentation are completed. A prior temporary patch workflow failure was assertion-only and committed no partial diagnostics code; the corrected patch succeeded and self-cleaned.
 
-## Phases 0–5
-
-The autonomous Android implementation through Phase 5 is complete. It includes the native Compose product, auth/local unlock, canonical finance integration, owner+AAL2 card-secret boundaries, device-local CVV vault, secure-window handling, R8/minification/resource shrinking, Baseline Profile/startup-profile tooling, Macrobenchmarks and validation evidence.
-
-No service-role/server-vault secret, production signing key or production-signed APK belongs in the completed autonomous workflow.
+No tablet/foldable/desktop-like Android work is in scope. The separate additional privacy/security audit proposal is explicitly excluded by product-owner instruction.
 
 ## Phase 6 boundary
 
-Phase 6 remains intentionally separate. The owner's physical Samsung Galaxy S24 Ultra is authoritative for the first real-device run, actual Samsung One UI/display/font configuration, production Auth/API smoke validation, device-specific performance acceptance, release-candidate promotion and eventual signing work.
+Issue #14 remains the physical-device/release handoff. This workstream will automate and document everything possible before that checkpoint, but the owner's physical Galaxy S24 Ultra remains authoritative for real production Auth/API validation, Samsung One UI/display/font rendering, device-specific performance and eventual release/signing decisions.
 
-Do not create a release, production signing key or production-signed APK outside the explicit Phase 6 handoff.
+Do not create a release, production signing key or production-signed APK before the explicit Phase 6 signing handoff.

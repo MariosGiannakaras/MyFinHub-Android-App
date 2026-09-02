@@ -1,8 +1,11 @@
 package app.myfinhub.android.app
 
+import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.canonicalFixture
 import app.myfinhub.android.feature.activity.ActivityKind
 import java.time.LocalDate
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -57,5 +60,24 @@ class CanonicalProductProjectionTest {
         assertTrue(refreshed.homeState.amountsVisible)
         assertEquals("καφ", refreshed.activityState.query)
         assertEquals("evt-exp", refreshed.activityState.selectedId)
+    }
+
+    @Test
+    fun emptyCanonicalData_projectsToUsableFirstUseStates() {
+        val empty = CanonicalFinanceDocument(
+            Json.parseToJsonElement("""{"seed":{},"state":{}}""").jsonObject,
+        )
+
+        val projection = projectCanonicalProduct(
+            document = empty,
+            today = LocalDate.of(2026, 9, 2),
+        )
+
+        assertTrue(projection.homeState.accounts.isEmpty())
+        assertTrue(projection.activityState.items.isEmpty())
+        assertTrue(projection.moneyState.accounts.isEmpty())
+        assertTrue(projection.insightsState.categories.isEmpty())
+        assertEquals(0.0, projection.homeState.monthFlow.income, 0.001)
+        assertEquals(0.0, projection.homeState.monthFlow.expense, 0.001)
     }
 }
