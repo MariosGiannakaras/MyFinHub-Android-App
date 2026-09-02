@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -69,45 +70,54 @@ fun CanonicalPlanScreen(
                     tone = FinanceTone.Attention,
                 )
             }
-            if (state.items.isEmpty()) {
-                item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+            item {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    if (state.items.isEmpty()) {
                         Text(
                             "Δεν υπάρχουν προγραμματισμένες ή επαναλαμβανόμενες υποχρεώσεις.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
-                }
-            } else {
-                items(state.items, key = PlannedItem::id) { item ->
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            MyFinHubIconBadge(
-                                icon = if (item.kind == PlannedKind.RECURRING) MyFinHubIcons.Plan else MyFinHubIcons.Attention,
-                                tone = FinanceTone.Attention,
-                                contentDescription = null,
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    item.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                Text(
-                                    item.dueLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            state.items.forEachIndexed { index, item ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .semantics(mergeDescendants = true) {},
+                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    MyFinHubIconBadge(
+                                        icon = if (item.kind == PlannedKind.RECURRING) {
+                                            MyFinHubIcons.Plan
+                                        } else {
+                                            MyFinHubIcons.Attention
+                                        },
+                                        tone = FinanceTone.Attention,
+                                        contentDescription = null,
+                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            item.title,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Text(
+                                            item.dueLabel,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    MyFinHubAmountText(
+                                        text = formatCanonicalPlanEuro(item.amount),
+                                        tone = FinanceTone.Expense,
+                                    )
+                                }
+                                if (index != state.items.lastIndex) {
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                }
                             }
-                            MyFinHubAmountText(
-                                text = formatCanonicalPlanEuro(item.amount),
-                                tone = FinanceTone.Expense,
-                            )
                         }
                     }
                 }
