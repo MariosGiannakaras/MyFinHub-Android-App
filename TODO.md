@@ -87,6 +87,32 @@ Tracker #39 is complete. Draft PR #40 was closed only because the connector coul
 
 The additional privacy/security audit proposal (clipboard/recent-app/accessibility-secret audit package) is intentionally **not** implemented in this workstream, per product-owner instruction.
 
+## Full transaction entry parity — implementation complete
+
+Tracker: issue #42. Integration state: PR #43 until merged; do not infer PR state from this file.
+
+- [x] Replace the four-kind Quick Entry prototype with all 12 retained canonical transaction kinds.
+- [x] Use a native mobile type-first flow with dynamic fields instead of copying the desktop layout.
+- [x] Add explicit transaction date and account/card/person fields only where the selected kind requires them.
+- [x] Project account/card choices from the real canonical document rather than hidden synthetic defaults.
+- [x] Replace free-text category entry with canonical expense/income category and subcategory choices.
+- [x] Keep transfer source/destination explicit and prevent same-account transfers.
+- [x] Enforce withdrawal-to-cash and saving-to-savings destinations in the canonical mutation boundary.
+- [x] Implement lending and repayment with canonical per-person receivable deltas and expected-return-date validation.
+- [x] Reject repayment with no outstanding person debt or an amount above that person's outstanding debt.
+- [x] Implement explicit credit-card purchase/payment accounting against the shared credit liability.
+- [x] Reject credit-card payment with no selected-card debt or an amount above that card's canonical debt; enforce same-bank source account when canonical bank identity is available.
+- [x] Implement reconciliation as actual balance minus calculated canonical balance without creating artificial income/expense flow.
+- [x] Replace people-count split with real accounting split parts; derive the parent amount exactly from part amounts and preserve per-part category/subcategory/label.
+- [x] Preserve issue #27 revision-conflict, offline and attempted-write retry rules without introducing hidden write retries.
+- [x] Require explicit confirmation before discarding a dirty transaction draft.
+- [x] Add reducer/domain/mutation/projection coverage for the full transaction-entry contract and debt-limit rules.
+- [x] Add representative compact-device instrumentation for full navigation, dynamic fields, scrollable split editing and dirty-draft discard behavior.
+- [x] Render real Compose candidates for the changed transaction form and new split form, personally inspect them, and accept only the clean references.
+- [x] Confirm the later debt-validation source state renders pixel-identical accepted transaction-entry candidates before canonicalizing them.
+- [x] Keep the S24 Ultra as the sole supported target and leave physical Samsung-specific acceptance to Phase 6.
+- [x] Keep release/signing and the explicitly excluded additional privacy/security audit out of this workstream.
+
 ## Phase 6 — physical-device / production / signing handoff
 
 Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative.

@@ -254,110 +254,45 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun onQuickEntryAction(action: QuickEntryAction) {
-        val ready = mutableState.value as? FinanceProductState.Ready ?: return
-        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        if (action != QuickEntryAction.Save) {
-            mutableState.value = ready.copy(
-                projection = ready.projection.copy(
-                    quickEntryState = reduceQuickEntry(ready.projection.quickEntryState, action),
-                ),
-            )
-            return
-        }
-
-        val preview = reduceQuickEntry(ready.projection.quickEntryState, QuickEntryAction.Save)
-        mutableState.value = ready.copy(projection = ready.projection.copy(quickEntryState = preview))
-        if (preview.validationMessage != null || preview.amount == null) return
-
-        val document = ready.projection.document
-        val accounts = document.canonicalAccounts().filter { it.kind != "credit" }
-        val defaultId = document.settingsObject().string("defaultExpenseAccount")
-        val fromId = accounts.firstOrNull { it.id == defaultId }?.id
-            ?: accounts.firstOrNull { it.name.equals(preview.fromAccount, ignoreCase = true) }?.id
-            ?: accounts.firstOrNull()?.id
-        if (fromId == null) {
-            setQuickEntryError("Δεν υπάρχει διαθέσιμος λογαριασμός για την κίνηση.")
-            return
-        }
-        val eventId = "evt-android-${UUID.randomUUID()}"
-        val now = Instant.now().toString()
-        val amount = preview.amount ?: return
-
-        val draft = when (preview.kind) {
-            QuickEntryKind.EXPENSE -> CanonicalEventDraft(
-                kind = "expense",
-                date = LocalDate.now().toString(),
-                amount = amount,
-                note = preview.note,
-                category = preview.category,
-                accountId = fromId,
-            )
-            QuickEntryKind.TRANSFER -> {
-                val destination = accounts.firstOrNull {
-                    it.id.equals(preview.destination.trim(), ignoreCase = true) ||
-                        it.name.equals(preview.destination.trim(), ignoreCase = true)
-                }
-                if (destination == null) {
-                    setQuickEntryError("Ο λογαριασμός προορισμού δεν βρέθηκε.")
-                    return
-                }
-                CanonicalEventDraft(
-                    kind = "transfer",
-                    date = LocalDate.now().toString(),
-                    amount = amount,
-                    note = preview.note,
-                    fromAccountId = fromId,
-                    toAccountId = destination.id,
-                )
-            }
-            QuickEntryKind.CARD_PAYMENT -> {
-                val card = document.canonicalCards().firstOrNull { it.active && it.kind == "credit" }
-                if (card == null) {
-                    setQuickEntryError("Δεν υπάρχει ενεργή πιστωτική κάρτα για πληρωμή.")
-                    return
-                }
-                CanonicalEventDraft(
-                    kind = "card_payment",
-                    date = LocalDate.now().toString(),
-                    amount = amount,
-                    note = preview.note,
-                    category = preview.category,
-                    fromAccountId = fromId,
-                    cardId = card.id,
-                )
-            }
-            QuickEntryKind.SPLIT -> CanonicalEventDraft(
-                kind = "split",
-                date = LocalDate.now().toString(),
-                amount = amount,
-                note = preview.note,
-                accountId = fromId,
-                parts = equalExpenseSplit(
-                    total = amount,
-                    parts = preview.splitPeople,
-                    category = preview.category,
-                    idPrefix = "$eventId-part",
-                ),
-            )
-        }
-
-        val mutation = runCatching {
-            createCanonicalEventMutation(document, draft, eventId, now)
-        }.getOrElse {
-            setQuickEntryError("Η κίνηση δεν είναι έγκυρη.")
-            mutableNotices.tryEmit(
-                unexpectedUserNotice(
-                    operation = "Δημιουργία κίνησης",
-                    throwable = it,
-                    message = "Η κίνηση δεν μπόρεσε να προετοιμαστεί.",
-                ),
-            )
-            return
-        }
-        applyMutation(mutation)
+    val ready = mutableState.value as? FinanceProductState.Ready ?: return
+    if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+    if (action != QuickEntryAction.Save) {
+        mutableState.value = ready.copy(
+            projection = ready.projection.copy(
+                quickEntryState = reduceQuickEntry(ready.projection.quickEntryState, action),
+            ),
+        )
+        return
     }
 
-    fun onPlanAction(action: PlanAction) {
+    val preview = reduceQuickEntry(ready.projection.quickEntryState, QuickEntryAction.Save)
+    mutableState.value = ready.copy(projection = ready.projection.copy(quickEntryState = preview))
+    if (preview.validationMessage != null) return
+
+    val eventId = "evt-android-${UUID.randomUUID()}"
+    val now = Instant.now().toString()
+    val mutation = runCatching {
+        createQuickEntryCanonicalMutation(
+            document = ready.projection.document,
+            state = preview,
+            eventId = eventId,
+            nowIso = now,
+        )
+    }.getOrElse {
+        setQuickEntryError("Η κίνηση δεν είναι έγκυρη.")
+        mutableNotices.tryEmit(
+            unexpectedUserNotice(
+                operation = "Δημιουργία κίνησης",
+                throwable = it,
+                message = "Η κίνηση δεν μπόρεσε να προετοιμαστεί.",
+            ),
+        )
+        return
+    }
+    applyMutation(mutation)
+}
+
+fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (action != PlanAction.SaveBudget) {
@@ -517,7 +452,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 }
                 projection = when (mutation) {
                     is AppendCanonicalEvent -> projection.copy(
-                        quickEntryState = projection.quickEntryState.copy(persisted = true),
+                        quickEntryState = projection.quickEntryState.copy(persisted = true, dirty = false),
                     )
                     is UpsertOverallBudget -> projection.copy(
                         planState = projection.planState.copy(message = "Το budget αποθηκεύτηκε στο canonical state."),
