@@ -58,6 +58,8 @@ class HomeScreenTest {
         composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
         composeRule.onNodeWithText("Πλήρης καταχώριση").assertIsDisplayed()
         composeRule.onNodeWithText("Πλήρωσα για κάτι").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση κίνησης")
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 }
