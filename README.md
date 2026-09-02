@@ -6,14 +6,14 @@ Native Android client for MyFinHub. The Android product is implemented independe
 
 This app is intentionally developed for **one physical device only: the owner's Samsung Galaxy S24 Ultra**.
 
-- `docs/SUPPORTED_DEVICE.md` is the device acceptance source of truth.
+- `docs/SUPPORTED_DEVICE.md` is the device-acceptance source of truth.
 - Tablet, foldable and desktop-like Android form factors are not supported targets.
 - A hosted compact-phone emulator is used only as representative automated test infrastructure; it is not treated as an exact Samsung One UI / S24 Ultra simulation.
 - The physical Galaxy S24 Ultra is the final authority for device-specific rendering, display/font settings and performance during Phase 6.
 
 ## Current state
 
-Phases 0–5 are complete. The full-app 2026 Android redesign is in final S24 Ultra-target validation before merge to `develop`. Final physical-device production validation and production signing remain intentionally deferred to Phase 6.
+Phases 0–5, the full-app 2026 Android redesign and the post-review reliability/cleanup hardening are complete and validated. Final physical-device production validation and production signing remain intentionally deferred to Phase 6.
 
 - Kotlin + Jetpack Compose
 - Material 3 + Material 3 Adaptive
@@ -24,6 +24,8 @@ Phases 0–5 are complete. The full-app 2026 Android redesign is in final S24 Ul
 - no WebView/site wrapper
 - server-authoritative MyFinHub API/Supabase source of truth
 - public source repository with no server secrets, signing material or private APKs
+
+Operational auth/session, finance-sync and secure card-secret failures use a shared safe error-notice contract. System/operation failures are surfaced through a global Snackbar with an optional safe-details dialog; field validation remains inline. User-visible diagnostics must never expose raw server bodies, credentials, tokens, PAN or CVV.
 
 See `STATUS.md`, `TODO.md`, `docs/SUPPORTED_DEVICE.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCHITECTURE.md` and the active phase issues for the exact implementation checkpoint.
 
@@ -52,6 +54,8 @@ Normal CI also validates benchmark/profile tooling and the optimized unsigned re
 ```
 
 `.github/workflows/android-ci.yml` runs those checks and audits the processed release manifest plus unsigned-APK policy. `.github/workflows/android-ui-quality.yml` runs real screenshot regression and one representative compact-phone instrumentation suite for the S24 Ultra phone target.
+
+The completed redesign/hardening acceptance includes canonical screenshot regression, all 31 representative S24 Ultra-target phone instrumentation tests, benchmark/Baseline Profile tooling compilation, unit/instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and the unsigned-release policy audit.
 
 Hosted-emulator Baseline Profile/Macrobenchmark runs remain available through the manual `.github/workflows/android-performance.yml` workflow as diagnostic evidence, but they are not treated as device-specific S24 Ultra performance acceptance.
 
