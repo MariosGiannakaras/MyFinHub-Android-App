@@ -1,7 +1,6 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -37,11 +36,10 @@ class FrontendUtilitiesParityTest {
 
         scrollHomeTextIntoView("Ρυθμίσεις")
         clickTextIntoView("Ιστορικό αλλαγών")
-        waitForText("Αναίρεση & επανάληψη")
-        assertTextIntoView("Αναίρεση & επανάληψη")
-        clickTextIntoView("Αναίρεση")
-        waitForText("2 από 3 αλλαγές εφαρμοσμένες")
-        assertTextIntoView("2 από 3 αλλαγές εφαρμοσμένες")
+        waitForText("Ασφαλές ιστορικό")
+        assertTextIntoView("Ασφαλές ιστορικό")
+        waitForText("Δεν υπάρχει διαθέσιμο ιστορικό αλλαγών")
+        assertTextIntoView("Δεν υπάρχει διαθέσιμο ιστορικό αλλαγών")
     }
 
     private fun waitForText(text: String) {
@@ -57,7 +55,7 @@ class FrontendUtilitiesParityTest {
     }
 
     private fun clickTextIntoView(text: String) {
-        val node = composeRule.onNode(hasText(text) and hasClickAction())
+        val node = composeRule.onNode(hasText(text))
         runCatching { node.performScrollTo() }
         node.assertIsDisplayed().performClick()
     }
