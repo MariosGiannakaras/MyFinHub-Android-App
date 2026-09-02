@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -30,6 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -45,6 +49,13 @@ fun QuickEntryScreen(
     val requestBack = {
         if (state.dirty && !state.persisted) discardDialogOpen = true else onBack()
     }
+    val validationMessage = state.validationMessage
+    val amountError = validationMessage == "Βάλε ποσό μεγαλύτερο από μηδέν."
+    val dateError = validationMessage == "Συμπλήρωσε έγκυρη ημερομηνία."
+    val personError = validationMessage == "Συμπλήρωσε το πρόσωπο για τα δανεικά."
+    val expectedDateError = validationMessage == "Η αναμενόμενη επιστροφή δεν είναι έγκυρη." ||
+        validationMessage == "Η αναμενόμενη επιστροφή δεν μπορεί να είναι πριν από την ημερομηνία κίνησης."
+    val actualBalanceError = validationMessage == "Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο."
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -99,6 +110,16 @@ fun QuickEntryScreen(
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Ποσό") },
                             suffix = { Text("€") },
+                            supportingText = if (amountError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = amountError,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
@@ -108,7 +129,12 @@ fun QuickEntryScreen(
                         value = state.dateText,
                         onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Ημερομηνία · YYYY-MM-DD") },
+                        label = { Text("Ημερομηνία") },
+                        supportingText = {
+                            Text(if (dateError) validationMessage.orEmpty() else "YYYY-MM-DD")
+                        },
+                        isError = dateError,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         singleLine = true,
                         shape = MaterialTheme.shapes.medium,
                     )
@@ -182,6 +208,16 @@ fun QuickEntryScreen(
                             onValueChange = { onAction(QuickEntryAction.PersonChanged(it)) },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Πρόσωπο") },
+                            supportingText = if (personError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = personError,
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Words,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
@@ -192,7 +228,11 @@ fun QuickEntryScreen(
                             onValueChange = { onAction(QuickEntryAction.ExpectedReturnDateChanged(it)) },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Αναμενόμενη επιστροφή · προαιρετική") },
-                            supportingText = { Text("YYYY-MM-DD") },
+                            supportingText = {
+                                Text(if (expectedDateError) validationMessage.orEmpty() else "YYYY-MM-DD")
+                            },
+                            isError = expectedDateError,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
@@ -205,6 +245,16 @@ fun QuickEntryScreen(
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Πραγματικό υπόλοιπο") },
                             suffix = { Text("€") },
+                            supportingText = if (actualBalanceError) {
+                                { Text(validationMessage.orEmpty()) }
+                            } else {
+                                null
+                            },
+                            isError = actualBalanceError,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next,
+                            ),
                             singleLine = true,
                             shape = MaterialTheme.shapes.medium,
                         )
@@ -244,11 +294,12 @@ fun QuickEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Περιγραφή · προαιρετική") },
                     supportingText = { Text("Αν μείνει κενή, χρησιμοποιείται το όνομα του τύπου κίνησης.") },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     shape = MaterialTheme.shapes.medium,
                 )
             }
 
-            state.validationMessage?.let { message ->
+            validationMessage?.takeUnless(::isInlineFieldValidation)?.let { message ->
                 Text(message, color = MaterialTheme.colorScheme.error)
             }
             state.savedSummary?.let { summary ->
@@ -318,6 +369,8 @@ private fun SplitEditor(
             )
 
             state.splitParts.forEachIndexed { index, part ->
+                val splitAmountError = state.validationMessage ==
+                    "Το ποσό στο μέρος ${index + 1} πρέπει να είναι θετικό."
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -341,6 +394,16 @@ private fun SplitEditor(
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Ποσό μέρους ${index + 1}") },
                         suffix = { Text("€") },
+                        supportingText = if (splitAmountError) {
+                            { Text(state.validationMessage.orEmpty()) }
+                        } else {
+                            null
+                        },
+                        isError = splitAmountError,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Next,
+                        ),
                         singleLine = true,
                     )
                     SelectionField(
@@ -367,6 +430,10 @@ private fun SplitEditor(
                         onValueChange = { onAction(QuickEntryAction.SplitPartLabelChanged(part.id, it)) },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Ετικέτα μέρους · προαιρετική") },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Next,
+                        ),
                         singleLine = true,
                     )
                 }
@@ -439,6 +506,17 @@ private fun TransactionSemanticsHint(kind: QuickEntryKind) {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+private fun isInlineFieldValidation(message: String): Boolean = when {
+    message == "Βάλε ποσό μεγαλύτερο από μηδέν." -> true
+    message == "Συμπλήρωσε έγκυρη ημερομηνία." -> true
+    message == "Συμπλήρωσε το πρόσωπο για τα δανεικά." -> true
+    message == "Η αναμενόμενη επιστροφή δεν είναι έγκυρη." -> true
+    message == "Η αναμενόμενη επιστροφή δεν μπορεί να είναι πριν από την ημερομηνία κίνησης." -> true
+    message == "Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο." -> true
+    message.startsWith("Το ποσό στο μέρος ") -> true
+    else -> false
 }
 
 private fun destinationOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> {
