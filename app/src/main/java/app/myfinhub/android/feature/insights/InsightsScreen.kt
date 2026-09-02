@@ -21,9 +21,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -52,8 +52,8 @@ fun InsightsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).testTag("insights_list"),
             contentPadding = PaddingValues(
-                start = MyFinHubSpacing.lg,
-                end = MyFinHubSpacing.lg,
+                start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                end = MyFinHubDesignMetrics.screenHorizontalPadding,
                 top = MyFinHubSpacing.xs,
                 bottom = MyFinHubSpacing.xl,
             ),
@@ -110,7 +110,7 @@ fun InsightsScreen(
             }
             item {
                 Text(
-                    "Κείμενο γραφήματος: τον Αύγουστο οι synthetic δαπάνες είναι χαμηλότερες από τον Ιούλιο και ο ρυθμός αποταμίευσης είναι θετικός.",
+                    "Οι μηνιαίες τάσεις υπολογίζονται από τις ίδιες συγχρονισμένες κινήσεις που εμφανίζονται στις Κινήσεις, χωρίς ξεχωριστό ή δοκιμαστικό analytics store.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -191,7 +191,7 @@ private fun CategoryCard(category: InsightCategory, largeFont: Boolean) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             if (largeFont) {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
                     Text(category.name, style = MaterialTheme.typography.titleMedium)
                     MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
                 }

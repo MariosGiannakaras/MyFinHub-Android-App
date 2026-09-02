@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -214,43 +214,30 @@ fun CanonicalBudgetScreen(
                             icon = MyFinHubIcons.Savings,
                             tone = FinanceTone.Savings,
                         )
-                        OutlinedTextField(
+                        MyFinHubOutlinedField(
                             value = state.budget.monthlyLimitText,
                             onValueChange = { onAction(PlanAction.MonthlyLimitChanged(it)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Μηνιαίο όριο") },
+                            label = "Μηνιαίο όριο",
                             suffix = { Text("€") },
-                            isError = limitError,
-                            supportingText = if (limitError) {
-                                { Text(state.message.orEmpty()) }
-                            } else {
-                                null
-                            },
+                            errorMessage = state.message.takeIf { limitError },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next,
                             ),
-                            singleLine = true,
                         )
-                        OutlinedTextField(
+                        MyFinHubOutlinedField(
                             value = state.budget.alertThresholdText,
                             onValueChange = {
                                 onAction(PlanAction.AlertThresholdChanged(it.filter(Char::isDigit).take(3)))
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Ειδοποίηση στο") },
+                            label = "Ειδοποίηση στο",
                             suffix = { Text("%") },
-                            isError = thresholdError,
-                            supportingText = if (thresholdError) {
-                                { Text(state.message.orEmpty()) }
-                            } else {
-                                { Text("Από 1 έως 100%") }
-                            },
+                            errorMessage = state.message.takeIf { thresholdError },
+                            supportingText = if (thresholdError) null else "Από 1 έως 100%",
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
                                 imeAction = ImeAction.Done,
                             ),
-                            singleLine = true,
                         )
                         if (limit != null && limit > 0.0 && threshold != null && threshold in 1..100) {
                             Text(

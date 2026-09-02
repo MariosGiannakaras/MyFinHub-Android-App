@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -24,10 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -98,13 +96,11 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        OutlinedButton(
+                        MyFinHubOutlinedAction(
+                            label = "Αποσύνδεση",
                             onClick = logout,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Text("Αποσύνδεση")
-                        }
+                        )
                     }
                 }
             }
@@ -141,7 +137,7 @@ private fun SettingsCard(
                     )
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
                     ) {
                         Text(row.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(
@@ -193,7 +189,7 @@ internal fun DiagnosticsCard(
 
 @Composable
 private fun DiagnosticRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyMedium)
     }
@@ -240,22 +236,18 @@ fun ChangeHistoryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                 ) {
-                    OutlinedButton(
+                    MyFinHubOutlinedAction(
+                        label = "Αναίρεση",
                         onClick = { onAction(FrontendUtilitiesAction.Undo) },
                         enabled = state.historyCursor > 0,
                         modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Text("Αναίρεση")
-                    }
-                    OutlinedButton(
+                    )
+                    MyFinHubOutlinedAction(
+                        label = "Επανάληψη",
                         onClick = { onAction(FrontendUtilitiesAction.Redo) },
                         enabled = state.historyCursor < state.history.size,
                         modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Text("Επανάληψη")
-                    }
+                    )
                 }
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -272,7 +264,7 @@ fun ChangeHistoryScreen(
                                 )
                                 Column(
                                     modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
                                 ) {
                                     Text(
                                         entry.title,
@@ -316,11 +308,7 @@ private fun UtilityScaffold(
             MyFinHubScreenHeader(
                 title = title,
                 subtitle = subtitle,
-                navigation = {
-                    IconButton(onClick = onBack) {
-                        Icon(MyFinHubIcons.Back, contentDescription = "Πίσω")
-                    }
-                },
+                navigation = { MyFinHubBackButton(onBack) },
             )
         },
     ) { padding ->

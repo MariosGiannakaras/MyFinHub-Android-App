@@ -36,6 +36,7 @@ import app.myfinhub.android.feature.home.HomeViewModel
 import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
+import app.myfinhub.android.feature.money.CanonicalCardDetailScreen
 import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
 import app.myfinhub.android.feature.money.CanonicalMoneyScreen
@@ -289,19 +290,32 @@ internal fun MyFinHubAppContent(
                         onCardDetailOpened(route.cardId)
                         onDispose { onCardDetailClosed(route.cardId) }
                     }
-                    CardDetail2026Screen(
-                        card = if (canonicalProductMode) {
-                            moneyState.cards.firstOrNull { it.id == route.cardId }
-                        } else {
-                            frontendMoneyState.cards.firstOrNull { it.id == route.cardId }
-                        },
-                        secretState = cardSecretState,
-                        onReveal = onRevealCardSecrets,
-                        onHideSecrets = onHideCardSecrets,
-                        onSaveCvv = onSaveLocalCvv,
-                        onDeleteCvv = onDeleteLocalCvv,
-                        onBack = { moneyBackStack.removeLastOrNull() },
-                    )
+                    val card = if (canonicalProductMode) {
+                        moneyState.cards.firstOrNull { it.id == route.cardId }
+                    } else {
+                        frontendMoneyState.cards.firstOrNull { it.id == route.cardId }
+                    }
+                    if (canonicalProductMode) {
+                        CanonicalCardDetailScreen(
+                            card = card,
+                            secretState = cardSecretState,
+                            onReveal = onRevealCardSecrets,
+                            onHideSecrets = onHideCardSecrets,
+                            onSaveCvv = onSaveLocalCvv,
+                            onDeleteCvv = onDeleteLocalCvv,
+                            onBack = { moneyBackStack.removeLastOrNull() },
+                        )
+                    } else {
+                        CardDetail2026Screen(
+                            card = card,
+                            secretState = cardSecretState,
+                            onReveal = onRevealCardSecrets,
+                            onHideSecrets = onHideCardSecrets,
+                            onSaveCvv = onSaveLocalCvv,
+                            onDeleteCvv = onDeleteLocalCvv,
+                            onBack = { moneyBackStack.removeLastOrNull() },
+                        )
+                    }
                 }
                 entry<AppRoute.Savings> {
                     if (canonicalProductMode) {

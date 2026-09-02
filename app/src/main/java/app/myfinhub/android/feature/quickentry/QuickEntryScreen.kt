@@ -17,11 +17,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,9 +37,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubFieldIconButton
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
+import app.myfinhub.android.designsystem.MyFinHubOutlinedField
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.time.Instant
 import java.time.LocalDate
@@ -111,11 +114,7 @@ fun QuickEntryScreen(
             MyFinHubScreenHeader(
                 title = "Νέα κίνηση",
                 subtitle = "Πλήρης καταχώριση",
-                navigation = {
-                    IconButton(onClick = requestBack) {
-                        Icon(MyFinHubIcons.Back, contentDescription = "Πίσω")
-                    }
-                },
+                navigation = { MyFinHubBackButton(requestBack) },
             )
         },
     ) { padding ->
@@ -124,7 +123,10 @@ fun QuickEntryScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = MyFinHubSpacing.lg, vertical = MyFinHubSpacing.sm),
+                .padding(
+                    horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
+                    vertical = MyFinHubSpacing.sm,
+                ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             Text(
@@ -152,24 +154,17 @@ fun QuickEntryScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     if (state.kind != QuickEntryKind.RECONCILIATION && state.kind != QuickEntryKind.SPLIT) {
-                        OutlinedTextField(
+                        MyFinHubOutlinedField(
                             value = state.amountText,
                             onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                            modifier = Modifier.fillMaxWidth().focusRequester(amountFocus),
-                            label = { Text("Ποσό") },
+                            label = "Ποσό",
                             suffix = { Text("€") },
-                            supportingText = if (amountError) {
-                                { Text(validationMessage.orEmpty()) }
-                            } else {
-                                null
-                            },
-                            isError = amountError,
+                            errorMessage = validationMessage.takeIf { amountError },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next,
                             ),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
+                            focusRequester = amountFocus,
                         )
                     }
 
@@ -257,23 +252,16 @@ fun QuickEntryScreen(
                     }
 
                     if (state.kind == QuickEntryKind.LENDING || state.kind == QuickEntryKind.REPAYMENT) {
-                        OutlinedTextField(
+                        MyFinHubOutlinedField(
                             value = state.person,
                             onValueChange = { onAction(QuickEntryAction.PersonChanged(it)) },
-                            modifier = Modifier.fillMaxWidth().focusRequester(personFocus),
-                            label = { Text("Πρόσωπο") },
-                            supportingText = if (personError) {
-                                { Text(validationMessage.orEmpty()) }
-                            } else {
-                                null
-                            },
-                            isError = personError,
+                            label = "Πρόσωπο",
+                            errorMessage = validationMessage.takeIf { personError },
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Words,
                                 imeAction = ImeAction.Next,
                             ),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
+                            focusRequester = personFocus,
                         )
                     }
                     if (state.kind == QuickEntryKind.LENDING) {
@@ -288,24 +276,17 @@ fun QuickEntryScreen(
                     }
 
                     if (state.kind == QuickEntryKind.RECONCILIATION) {
-                        OutlinedTextField(
+                        MyFinHubOutlinedField(
                             value = state.actualBalanceText,
                             onValueChange = { onAction(QuickEntryAction.ActualBalanceChanged(it)) },
-                            modifier = Modifier.fillMaxWidth().focusRequester(actualBalanceFocus),
-                            label = { Text("Πραγματικό υπόλοιπο") },
+                            label = "Πραγματικό υπόλοιπο",
                             suffix = { Text("€") },
-                            supportingText = if (actualBalanceError) {
-                                { Text(validationMessage.orEmpty()) }
-                            } else {
-                                null
-                            },
-                            isError = actualBalanceError,
+                            errorMessage = validationMessage.takeIf { actualBalanceError },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next,
                             ),
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.medium,
+                            focusRequester = actualBalanceFocus,
                         )
                         Text(
                             "Θα καταχωριστεί μόνο η διαφορά από το υπολογισμένο υπόλοιπο. Δεν μετρά ως έσοδο ή έξοδο.",
@@ -337,14 +318,13 @@ fun QuickEntryScreen(
             }
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+                MyFinHubOutlinedField(
                     value = state.note,
                     onValueChange = { onAction(QuickEntryAction.NoteChanged(it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Περιγραφή · προαιρετική") },
-                    supportingText = { Text("Αν μείνει κενή, χρησιμοποιείται το όνομα του τύπου κίνησης.") },
+                    label = "Περιγραφή · προαιρετική",
+                    supportingText = "Αν μείνει κενή, χρησιμοποιείται το όνομα του τύπου κίνησης.",
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    shape = MaterialTheme.shapes.medium,
+                    singleLine = false,
                 )
             }
 
@@ -368,13 +348,12 @@ fun QuickEntryScreen(
                 }
             }
 
-            Button(
+            MyFinHubPrimaryAction(
+                label = "Αποθήκευση κίνησης",
                 onClick = { onAction(QuickEntryAction.Save) },
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text("Αποθήκευση κίνησης")
-            }
+                icon = null,
+            )
         }
     }
 
@@ -415,26 +394,24 @@ private fun DateEntryField(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
+    MyFinHubOutlinedField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        label = { Text(label) },
-        supportingText = {
-            Text(errorMessage ?: if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD")
-        },
+        label = label,
+        modifier = modifier,
+        supportingText = if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD",
+        errorMessage = errorMessage,
         trailingIcon = {
-            IconButton(onClick = { pickerOpen = true }) {
-                Icon(MyFinHubIcons.Plan, contentDescription = "Επιλογή ημερομηνίας")
-            }
+            MyFinHubFieldIconButton(
+                icon = MyFinHubIcons.Plan,
+                contentDescription = "Επιλογή ημερομηνίας",
+                onClick = { pickerOpen = true },
+            )
         },
-        isError = errorMessage != null,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Ascii,
             imeAction = ImeAction.Next,
         ),
-        singleLine = true,
-        shape = MaterialTheme.shapes.medium,
     )
 
     if (pickerOpen) {
@@ -501,23 +478,16 @@ private fun SplitEditor(
                             }
                         }
                     }
-                    OutlinedTextField(
+                    MyFinHubOutlinedField(
                         value = part.amountText,
                         onValueChange = { onAction(QuickEntryAction.SplitPartAmountChanged(part.id, it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Ποσό μέρους ${index + 1}") },
+                        label = "Ποσό μέρους ${index + 1}",
                         suffix = { Text("€") },
-                        supportingText = if (splitAmountError) {
-                            { Text(state.validationMessage.orEmpty()) }
-                        } else {
-                            null
-                        },
-                        isError = splitAmountError,
+                        errorMessage = state.validationMessage.takeIf { splitAmountError },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal,
                             imeAction = ImeAction.Next,
                         ),
-                        singleLine = true,
                     )
                     SelectionField(
                         label = "Κατηγορία μέρους ${index + 1}",
@@ -538,28 +508,25 @@ private fun SplitEditor(
                             },
                         )
                     }
-                    OutlinedTextField(
+                    MyFinHubOutlinedField(
                         value = part.label,
                         onValueChange = { onAction(QuickEntryAction.SplitPartLabelChanged(part.id, it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Ετικέτα μέρους · προαιρετική") },
+                        label = "Ετικέτα μέρους · προαιρετική",
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Words,
                             imeAction = ImeAction.Next,
                         ),
-                        singleLine = true,
                     )
                 }
             }
 
-            OutlinedButton(
+            MyFinHubOutlinedAction(
+                label = "+ Προσθήκη μέρους",
                 onClick = { onAction(QuickEntryAction.AddSplitPart) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = "Προσθήκη μέρους σύνθετης αγοράς" },
-            ) {
-                Text("+ Προσθήκη μέρους")
-            }
+            )
             Text(
                 "Σύνολο: ${formatSplitTotal(state.splitTotal)} €",
                 style = MaterialTheme.typography.titleMedium,
@@ -579,38 +546,29 @@ private fun SelectionField(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second.orEmpty()
-    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-        Text(label, style = MaterialTheme.typography.labelLarge)
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedButton(
-                onClick = { if (choices.isNotEmpty()) expanded = true },
-                modifier = modifier.fillMaxWidth(),
-                enabled = choices.isNotEmpty(),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text(selectedLabel.ifBlank { if (choices.isEmpty()) "Δεν υπάρχει διαθέσιμη επιλογή" else "Επιλογή" })
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                choices.forEach { (id, text) ->
-                    DropdownMenuItem(
-                        text = { Text(text) },
-                        onClick = {
-                            expanded = false
-                            onSelected(id)
-                        },
-                    )
-                }
-            }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        MyFinHubSelectorButton(
+            label = label,
+            onClick = { if (choices.isNotEmpty()) expanded = true },
+            modifier = modifier,
+            enabled = choices.isNotEmpty(),
+            errorMessage = errorMessage,
+        ) {
+            Text(selectedLabel.ifBlank { if (choices.isEmpty()) "Δεν υπάρχει διαθέσιμη επιλογή" else "Επιλογή" })
         }
-        errorMessage?.let {
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            choices.forEach { (id, text) ->
+                DropdownMenuItem(
+                    text = { Text(text) },
+                    onClick = {
+                        expanded = false
+                        onSelected(id)
+                    },
+                )
+            }
         }
     }
 }

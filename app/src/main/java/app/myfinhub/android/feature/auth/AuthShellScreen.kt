@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,9 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import app.myfinhub.android.core.security.AndroidBiometricGateway
 import app.myfinhub.android.core.security.BiometricCapability
@@ -39,6 +36,11 @@ import app.myfinhub.android.core.security.BiometricGateway
 import app.myfinhub.android.core.security.BiometricResult
 import app.myfinhub.android.designsystem.MyFinHubBrandMark
 import app.myfinhub.android.designsystem.MyFinHubBrandMode
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
+import app.myfinhub.android.designsystem.MyFinHubOutlinedField
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubSpacing
 
 @Composable
 fun AuthShellScreen(
@@ -101,25 +103,28 @@ private fun LoginScreen(
             "Συνδέσου με το email και τον κωδικό του λογαριασμού σου.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedTextField(
+        MyFinHubOutlinedField(
             value = email,
             onValueChange = { email = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
+            label = "Email",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next,
+            ),
         )
-        OutlinedTextField(
+        MyFinHubOutlinedField(
             value = password,
             onValueChange = { password = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Κωδικός") },
+            label = "Κωδικός",
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+            ),
         )
         message?.let { ErrorMessage(it) }
-        Button(
+        MyFinHubPrimaryAction(
+            label = "Σύνδεση",
             onClick = {
                 val chars = password.toCharArray()
                 password = ""
@@ -127,9 +132,8 @@ private fun LoginScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = email.isNotBlank() && password.isNotEmpty(),
-        ) {
-            Text("Σύνδεση")
-        }
+            icon = null,
+        )
     }
 }
 
@@ -143,17 +147,19 @@ private fun MfaScreen(
     AuthSurface {
         Text("Επαλήθευση δύο παραγόντων", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         Text("Άνοιξε την εφαρμογή authenticator και πληκτρολόγησε τον τρέχοντα κωδικό TOTP.")
-        OutlinedTextField(
+        MyFinHubOutlinedField(
             value = code,
             onValueChange = { value -> code = value.filter(Char::isDigit).take(6) },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Κωδικός TOTP") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            label = "Κωδικός TOTP",
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Done,
+            ),
             visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
         )
         message?.let { ErrorMessage(it) }
-        Button(
+        MyFinHubPrimaryAction(
+            label = "Επαλήθευση",
             onClick = {
                 val chars = code.toCharArray()
                 code = ""
@@ -161,9 +167,8 @@ private fun MfaScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = code.length == 6,
-        ) {
-            Text("Επαλήθευση")
-        }
+            icon = null,
+        )
     }
 }
 
@@ -181,10 +186,11 @@ private fun PinEnrollmentScreen(
             "Διάλεξε 4–12 ψηφία για fallback όταν δεν είναι διαθέσιμα τα βιομετρικά. Το PIN ξεκλειδώνει μόνο την εφαρμογή και δεν αντικαθιστά το TOTP.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PinField("PIN", pin) { pin = it }
-        PinField("Επιβεβαίωση PIN", confirmation) { confirmation = it }
+        PinField("PIN", pin, ImeAction.Next) { pin = it }
+        PinField("Επιβεβαίωση PIN", confirmation, ImeAction.Done) { confirmation = it }
         message?.let { ErrorMessage(it) }
-        Button(
+        MyFinHubPrimaryAction(
+            label = "Αποθήκευση PIN",
             onClick = {
                 val first = pin.toCharArray()
                 val second = confirmation.toCharArray()
@@ -194,9 +200,8 @@ private fun PinEnrollmentScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = pin.length >= 4 && confirmation.length >= 4,
-        ) {
-            Text("Αποθήκευση PIN")
-        }
+            icon = null,
+        )
     }
 }
 
@@ -243,12 +248,15 @@ private fun LockedScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (capability == BiometricCapability.AVAILABLE) {
-            Button(onClick = ::showBiometricPrompt, modifier = Modifier.fillMaxWidth()) {
-                Text("Ξεκλείδωμα με βιομετρικά")
-            }
+            MyFinHubPrimaryAction(
+                label = "Ξεκλείδωμα με βιομετρικά",
+                onClick = ::showBiometricPrompt,
+                modifier = Modifier.fillMaxWidth(),
+                icon = null,
+            )
         }
         if (capability != BiometricCapability.AVAILABLE || state.showPin) {
-            PinField("PIN εφαρμογής", pin) { pin = it }
+            PinField("PIN εφαρμογής", pin, ImeAction.Done) { pin = it }
             state.message?.let { ErrorMessage(it) }
             if (!state.pinStatus.allowed) {
                 Text(
@@ -256,7 +264,8 @@ private fun LockedScreen(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
-            Button(
+            MyFinHubPrimaryAction(
+                label = "Ξεκλείδωμα με PIN",
                 onClick = {
                     val chars = pin.toCharArray()
                     pin = ""
@@ -264,27 +273,34 @@ private fun LockedScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = pin.length >= 4 && state.pinStatus.allowed,
-            ) {
-                Text("Ξεκλείδωμα με PIN")
-            }
+                icon = null,
+            )
         } else {
-            OutlinedButton(onClick = onPinFallbackRequested, modifier = Modifier.fillMaxWidth()) {
-                Text("Χρήση PIN")
-            }
+            MyFinHubOutlinedAction(
+                label = "Χρήση PIN",
+                onClick = onPinFallbackRequested,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
 @Composable
-private fun PinField(label: String, value: String, onValueChange: (String) -> Unit) {
-    OutlinedTextField(
+private fun PinField(
+    label: String,
+    value: String,
+    imeAction: ImeAction,
+    onValueChange: (String) -> Unit,
+) {
+    MyFinHubOutlinedField(
         value = value,
         onValueChange = { next -> onValueChange(next.filter(Char::isDigit).take(12)) },
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        label = label,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword,
+            imeAction = imeAction,
+        ),
         visualTransformation = PasswordVisualTransformation(),
-        singleLine = true,
     )
 }
 
@@ -297,19 +313,22 @@ private fun ErrorMessage(message: String) {
 private fun AuthSurface(content: @Composable ColumnScope.() -> Unit) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Box(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
+            modifier = Modifier.fillMaxSize().padding(
+                horizontal = MyFinHubSpacing.xl,
+                vertical = MyFinHubSpacing.xxl,
+            ),
             contentAlignment = Alignment.Center,
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 480.dp)
+                    .widthIn(max = MyFinHubDesignMetrics.authContentMaxWidth)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
             ) {
                 MyFinHubBrandMark(
                     mode = MyFinHubBrandMode.Lockup,
-                    iconSize = 40.dp,
+                    iconSize = MyFinHubDesignMetrics.authBrandMarkSize,
                     subtitle = "Smart. Clear. In Control.",
                 )
                 content()

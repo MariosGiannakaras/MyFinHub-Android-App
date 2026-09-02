@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -22,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,10 +35,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
-import app.myfinhub.android.designsystem.MyFinHubBrandMark
 import app.myfinhub.android.designsystem.MyFinHubAmountText
+import app.myfinhub.android.designsystem.MyFinHubBrandMark
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -74,7 +74,7 @@ fun HomeScreen(
                 MyFinHubScreenHeader(
                     title = "MyFinHub",
                     subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
-                    navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
+                    navigation = { MyFinHubBrandMark() },
                     trailing = {
                         TextButton(onClick = onOpenSettings) {
                             Text("Ρυθμίσεις")
@@ -131,10 +131,10 @@ private fun HomeCompactContent(
     LazyColumn(
         modifier = modifier.testTag("home_list"),
         contentPadding = PaddingValues(
-            start = MyFinHubSpacing.lg,
+            start = MyFinHubDesignMetrics.screenHorizontalPadding,
             top = MyFinHubSpacing.xs,
-            end = MyFinHubSpacing.lg,
-            bottom = 96.dp,
+            end = MyFinHubDesignMetrics.screenHorizontalPadding,
+            bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
         ),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
     ) {
@@ -277,7 +277,7 @@ private fun AttentionCard(items: List<HomeAttentionItem>, onOpen: (String) -> Un
                         if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Expense else FinanceTone.Attention,
                         "Χρειάζεται προσοχή",
                     )
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(item.reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
@@ -378,7 +378,7 @@ private fun SectionCard(title: String, subtitle: String, content: @Composable Co
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(1.dp))
+            Spacer(Modifier.height(MyFinHubSpacing.micro))
             content()
         }
     }
@@ -405,8 +405,8 @@ private fun QuickEntrySheet(
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
-                start = MyFinHubSpacing.lg,
-                end = MyFinHubSpacing.lg,
+                start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                end = MyFinHubDesignMetrics.screenHorizontalPadding,
                 bottom = 28.dp,
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
@@ -415,9 +415,18 @@ private fun QuickEntrySheet(
             Text("Επίλεξε πρώτα τον τύπο της κίνησης.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             HomeQuickEntryType.entries.forEach { type ->
                 if (selectedType == type) {
-                    Button(onClick = { onSelect(type) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) { Text(type.label) }
+                    MyFinHubPrimaryAction(
+                        label = type.label,
+                        onClick = { onSelect(type) },
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = null,
+                    )
                 } else {
-                    OutlinedButton(onClick = { onSelect(type) }, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) { Text(type.label) }
+                    MyFinHubOutlinedAction(
+                        label = type.label,
+                        onClick = { onSelect(type) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
             selectedType?.let { type ->
