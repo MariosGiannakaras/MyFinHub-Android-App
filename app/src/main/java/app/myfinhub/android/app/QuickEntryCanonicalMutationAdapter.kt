@@ -16,6 +16,11 @@ internal fun createQuickEntryCanonicalMutation(
 ): CanonicalFinanceMutation {
     require(state.validationMessage == null) { "Η φόρμα κίνησης δεν είναι έγκυρη." }
 
+    val actualBalance = if (state.kind == QuickEntryKind.RECONCILIATION) {
+        state.actualBalanceText.replace(',', '.').toDoubleOrNull()
+    } else {
+        null
+    }
     val draft = CanonicalTransactionEntryDraft(
         kind = state.kind.canonicalKind,
         date = state.dateText,
@@ -38,8 +43,7 @@ internal fun createQuickEntryCanonicalMutation(
             state.kind == QuickEntryKind.LENDING && it.isNotBlank()
         },
         cardId = state.cardId.takeIf { state.kind.needsCard },
-        actualBalance = state.actualBalanceText.replace(',', '.').toDoubleOrNull()
-            .takeIf { state.kind == QuickEntryKind.RECONCILIATION },
+        actualBalance = actualBalance,
         parts = if (state.kind == QuickEntryKind.SPLIT) {
             state.splitParts.map { part ->
                 CanonicalTransactionSplitDraft(
