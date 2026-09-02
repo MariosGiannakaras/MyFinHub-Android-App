@@ -30,6 +30,7 @@ object MyFinHubDesignMetrics {
     val standardIconSize = 20.dp
     val compactIconSize = 18.dp
     val navigationIconSize = 24.dp
+    val secretValueLabelWidth = 56.dp
 
     // Material 3 baseline buttons are 40dp high; MyFinHub keeps primary finance actions visibly
     // 48dp high so the visible affordance and the minimum touch target are the same size.
