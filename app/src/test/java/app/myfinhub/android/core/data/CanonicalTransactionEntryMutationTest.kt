@@ -1,10 +1,8 @@
 package app.myfinhub.android.core.data
 
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CanonicalTransactionEntryMutationTest {
@@ -85,7 +83,8 @@ class CanonicalTransactionEntryMutationTest {
 
     @Test
     fun lendingAndRepayment_adjustReceivableInOppositeDirections() {
-        val lending = event(
+        val afterLending = createCanonicalTransactionEntryMutation(
+            document,
             CanonicalTransactionEntryDraft(
                 kind = "lending",
                 date = "2026-09-02",
@@ -95,8 +94,10 @@ class CanonicalTransactionEntryMutationTest {
                 expectedReturnDate = "2026-10-01",
             ),
             "evt-lend",
-        )
-        val repayment = event(
+            now,
+        ).apply(document)
+        val result = createCanonicalTransactionEntryMutation(
+            afterLending,
             CanonicalTransactionEntryDraft(
                 kind = "repayment",
                 date = "2026-09-02",
@@ -105,17 +106,22 @@ class CanonicalTransactionEntryMutationTest {
                 person = "Άννα",
             ),
             "evt-repay",
-        )
+            now,
+        ).apply(afterLending)
+        val lending = result.canonicalEvents().first { it.id == "evt-lend" }
+        val repayment = result.canonicalEvents().first { it.id == "evt-repay" }
 
         assertEquals(-80.0, lending.legs.single().amount, 0.001)
         assertEquals(80.0, lending.receivableDelta, 0.001)
         assertEquals(30.0, repayment.legs.single().amount, 0.001)
         assertEquals(-30.0, repayment.receivableDelta, 0.001)
+        assertEquals(50.0, result.lendingOutstandingForPerson("Άννα"), 0.001)
     }
 
     @Test
     fun cardPurchaseAndPayment_useExplicitCardAndCreditLiability() {
-        val purchase = event(
+        val afterPurchase = createCanonicalTransactionEntryMutation(
+            document,
             CanonicalTransactionEntryDraft(
                 kind = "card_purchase",
                 date = "2026-09-02",
@@ -124,8 +130,10 @@ class CanonicalTransactionEntryMutationTest {
                 cardId = "card-credit",
             ),
             "evt-card-purchase",
-        )
-        val payment = event(
+            now,
+        ).apply(document)
+        val result = createCanonicalTransactionEntryMutation(
+            afterPurchase,
             CanonicalTransactionEntryDraft(
                 kind = "card_payment",
                 date = "2026-09-02",
@@ -134,7 +142,10 @@ class CanonicalTransactionEntryMutationTest {
                 cardId = "card-credit",
             ),
             "evt-card-payment",
-        )
+            now,
+        ).apply(afterPurchase)
+        val purchase = result.canonicalEvents().first { it.id == "evt-card-purchase" }
+        val payment = result.canonicalEvents().first { it.id == "evt-card-payment" }
 
         assertEquals("card-credit", purchase.cardId)
         assertEquals(CREDIT_ACCOUNT_ID, purchase.legs.single().accountId)
@@ -143,6 +154,7 @@ class CanonicalTransactionEntryMutationTest {
         assertEquals(listOf("acc-main", CREDIT_ACCOUNT_ID), payment.legs.map { it.accountId })
         assertEquals(listOf(-20.0, 20.0), payment.legs.map { it.amount })
         assertEquals(20.0, payment.creditDelta, 0.001)
+        assertEquals(22.5, result.creditDebtForCardAt("card-credit", "2026-09-02"), 0.001)
     }
 
     @Test
@@ -207,6 +219,95 @@ class CanonicalTransactionEntryMutationTest {
                 expectedReturnDate = "2026-09-01",
             ),
             "evt-invalid-date",
+            now,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun repayment_rejectsPersonWithoutOutstandingDebt() {
+        createCanonicalTransactionEntryMutation(
+            document,
+            CanonicalTransactionEntryDraft(
+                kind = "repayment",
+                date = "2026-09-02",
+                amount = 10.0,
+                accountId = "acc-main",
+                person = "Άννα",
+            ),
+            "evt-no-person-debt",
+            now,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun repayment_rejectsAmountAbovePersonOutstanding() {
+        val afterLending = createCanonicalTransactionEntryMutation(
+            document,
+            CanonicalTransactionEntryDraft(
+                kind = "lending",
+                date = "2026-09-02",
+                amount = 20.0,
+                accountId = "acc-main",
+                person = "Άννα",
+            ),
+            "evt-lend-limit",
+            now,
+        ).apply(document)
+
+        createCanonicalTransactionEntryMutation(
+            afterLending,
+            CanonicalTransactionEntryDraft(
+                kind = "repayment",
+                date = "2026-09-02",
+                amount = 20.02,
+                accountId = "acc-main",
+                person = "Άννα",
+            ),
+            "evt-over-repay",
+            now,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPayment_rejectsCardWithoutOutstandingDebt() {
+        createCanonicalTransactionEntryMutation(
+            document,
+            CanonicalTransactionEntryDraft(
+                kind = "card_payment",
+                date = "2026-09-02",
+                amount = 10.0,
+                fromAccountId = "acc-main",
+                cardId = "card-credit",
+            ),
+            "evt-no-card-debt",
+            now,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPayment_rejectsAmountAboveCardDebt() {
+        val afterPurchase = createCanonicalTransactionEntryMutation(
+            document,
+            CanonicalTransactionEntryDraft(
+                kind = "card_purchase",
+                date = "2026-09-02",
+                amount = 10.0,
+                cardId = "card-credit",
+            ),
+            "evt-card-limit",
+            now,
+        ).apply(document)
+
+        createCanonicalTransactionEntryMutation(
+            afterPurchase,
+            CanonicalTransactionEntryDraft(
+                kind = "card_payment",
+                date = "2026-09-02",
+                amount = 10.02,
+                fromAccountId = "acc-main",
+                cardId = "card-credit",
+            ),
+            "evt-over-card-payment",
             now,
         )
     }
