@@ -1,5 +1,36 @@
 # MyFinHub Android status
 
+## 2026-09-02 — UI/UX hardening complete and merged
+
+The pre-Phase-6 Android UI/UX hardening pass is complete and merged into `develop`. Draft PR #45 was closed without code changes only because the connected GitHub Mark-ready GraphQL operation failed on its own unsupported schema field. Ready PR #46 used the exact same validated branch/head and was squash-merged into `develop`. Do not reopen this workstream for repeat discovery.
+
+### Completed product hardening
+
+- Home quick-entry now enters the real canonical Quick Entry flow with the chosen transaction type preselected; the duplicate compact promotion was removed after the primary flow became trustworthy.
+- Logout moved from the persistent finance-screen overlay into Settings/account actions.
+- Production-looking synthetic Change History data was removed.
+- Money and Plan demo fixtures are isolated from production canonical projection; production routes show only synchronized data and only expose edits backed by canonical mutations.
+- Quick Entry received mobile-focused input hardening: monetary keyboards, Material date selection, field-level validation, first-invalid-field focus/scroll behavior and safer compact split editing.
+- State-specific recovery copy distinguishes revision conflict, offline waiting and failed save conditions while preserving permanent issue #27 no-blind-write-retry semantics.
+- Compact Home hierarchy was simplified and low-frequency utility controls were removed from the primary financial content stream.
+- Compose accessibility checks were added; spoken labels and undersized touch targets found during runtime validation were corrected.
+- Compact, dark and large-font screenshot coverage was updated for the changed product surfaces. Obsolete curated Money/Plan editor screenshots that no longer represent production routes were removed/replaced.
+
+### Final validation and visual evidence
+
+- Real Compose screenshot candidates for the changed Home, Quick Entry, Change History, canonical Money and canonical Plan surfaces were personally inspected before acceptance.
+- The committed canonical screenshot references then passed regression without regeneration.
+- Representative S24-target instrumentation passed on the exact validated implementation head, including the accessibility checks.
+- Normal Android CI passed on the same head: benchmark/Baseline Profile tooling build, unit tests, instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and release-manifest/unsigned-APK policy audit.
+- Zero unresolved review threads and zero hosted implementation blockers remained at merge.
+
+### Preserved Phase 6 boundary
+
+- Samsung Galaxy S24 Ultra remains the sole supported Android target; hosted emulator instrumentation is representative only.
+- Real production Auth/API, Samsung One UI/display/font rendering and device-specific startup/performance acceptance remain Phase 6.
+- No release, production signing key or production-signed APK was created in this workstream.
+- `docs/PHASE_6_DEVICE_HANDOFF.md` and issue #14 remain authoritative for the final physical-device/signing handoff.
+
 ## 2026-09-02 — Full transaction entry parity complete and merged
 
 Tracker #42 is completed/closed. The initial draft PR #43 was closed without code changes only because the available connector's Mark-ready GraphQL operation failed on its own schema field. Ready PR #44 used the exact same validated branch/head and was squash-merged into `develop`. Do not reopen this workstream for repeat discovery.
