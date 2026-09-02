@@ -25,13 +25,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.ui.UserNotice
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
@@ -66,7 +68,7 @@ fun MyFinHubRoot(
     var lastDiagnosticCode by remember { mutableStateOf<String?>(null) }
     val snackbarBottomPadding = if (
         authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
-    ) 152.dp else 12.dp
+    ) MyFinHubDesignMetrics.productSnackbarBottomClearance else MyFinHubSpacing.sm
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -161,7 +163,7 @@ fun MyFinHubRoot(
                 hostState = snackbarHostState,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = MyFinHubSpacing.md)
                     .padding(bottom = snackbarBottomPadding),
             )
         }
@@ -184,7 +186,7 @@ internal fun UserNoticeDetailsDialog(
         onDismissRequest = onDismiss,
         title = { Text("Λεπτομέρειες σφάλματος") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                 Text(notice.details)
                 Text(
                     "Κωδικός: ${notice.diagnosticCode}",
@@ -338,7 +340,7 @@ private fun FinanceLoadingScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             CircularProgressIndicator()
             Text("Φόρτωση των οικονομικών δεδομένων…")
@@ -355,16 +357,19 @@ private fun FinanceFailureScreen(
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(MyFinHubSpacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
             Text("Δεν ήταν δυνατή η φόρτωση", style = MaterialTheme.typography.headlineSmall)
             Text(message)
             if (retryable) {
-                Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-                    Text("Δοκιμή ξανά")
-                }
+                MyFinHubPrimaryAction(
+                    label = "Δοκιμή ξανά",
+                    onClick = onRetry,
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = null,
+                )
             }
             TextButton(onClick = onLogout) {
                 Text("Αποσύνδεση")

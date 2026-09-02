@@ -134,7 +134,7 @@ private fun HomeCompactContent(
             start = MyFinHubDesignMetrics.screenHorizontalPadding,
             top = MyFinHubSpacing.xs,
             end = MyFinHubDesignMetrics.screenHorizontalPadding,
-            bottom = 96.dp,
+            bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
         ),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
     ) {

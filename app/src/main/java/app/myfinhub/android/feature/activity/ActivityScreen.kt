@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubFilterChip
 import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
@@ -119,10 +120,10 @@ private fun ActivityList(
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(
-            start = MyFinHubSpacing.lg,
+            start = MyFinHubDesignMetrics.screenHorizontalPadding,
             top = MyFinHubSpacing.xs,
-            end = MyFinHubSpacing.lg,
-            bottom = 96.dp,
+            end = MyFinHubDesignMetrics.screenHorizontalPadding,
+            bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
         ),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
     ) {
