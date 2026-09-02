@@ -1,5 +1,36 @@
 # MyFinHub Android status
 
+## 2026-09-03 — Design System & Pixel-Spec hardening complete and merged
+
+Tracker #47 is completed/closed. PR #48 was validated on the exact accepted implementation/reference head and squash-merged into `develop`.
+
+### Completed visual-system hardening
+
+- Added explicit executable MyFinHub geometry, typography and shape contracts for screen edges, cards, rows, icons, touch targets, form fields, primary actions, auth layout, navigation clearances and secure Card Detail alignment.
+- Shared finance actions and custom interactive targets now use a 48dp minimum; shared outlined fields/selectors use a 56dp minimum with documented 1dp/2dp border behavior.
+- Light and dark semantic finance palettes are regression-tested against the documented >=4.5:1 normal-text target; essential outlines are tested against the >=3:1 graphical threshold.
+- Quick Entry, Activity detail, canonical Plan budgets, Settings/History, Home quick-entry choices and Auth Login/TOTP/PIN/biometric fallback use the shared visual primitives where product semantics require MyFinHub ownership.
+- Material 3 geometry/state behavior remains intentionally inherited where framework defaults already satisfy the product instead of duplicating framework internals.
+- Production-only canonical secure Card Detail now follows the shared component system while preserving the owner+AAL2 PAN/expiry boundary, `SecureWindowProtection` and the device-local Keystore CVV boundary.
+- Repeated 96dp content and 152dp Snackbar clearances are expressed as named relationships derived from persistent navigation/action geometry rather than unexplained screen literals.
+
+### Final visual and hosted validation
+
+- Canonical screenshot references total 41 real Compose images.
+- The final accepted implementation was rendered before canonicalization; previously approved surfaces remained accepted and three sanitized Card Detail states were personally inspected: hidden light, hidden dark and revealed at 150% font scale.
+- Screenshot fixtures/references contain no reusable PAN/CVV secret.
+- Final screenshot regression passed with candidate regeneration skipped.
+- Representative S24-target instrumentation completed successfully, including the interaction/accessibility step.
+- Normal Android CI completed successfully: benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-manifest/unsigned-APK policy audit.
+- Zero unresolved review threads remained at merge.
+
+### Preserved Phase 6 boundary
+
+- Hosted emulator validation is representative only; the owner's physical Samsung Galaxy S24 Ultra remains authoritative.
+- Production-configured Auth/API, Samsung One UI/display/font rendering, real reconnect/mutation/card-secret behavior and physical-device performance remain Phase 6.
+- No production signing key, production-signed APK or release was created.
+- `docs/PHASE_6_DEVICE_HANDOFF.md` and issue #14 remain authoritative for the physical-device/signing handoff.
+
 ## 2026-09-02 — UI/UX hardening complete and merged
 
 The pre-Phase-6 Android UI/UX hardening pass is complete and merged into `develop`. Draft PR #45 was closed without code changes only because the connected GitHub Mark-ready GraphQL operation failed on its own unsupported schema field. Ready PR #46 used the exact same validated branch/head and was squash-merged into `develop`. Do not reopen this workstream for repeat discovery.
