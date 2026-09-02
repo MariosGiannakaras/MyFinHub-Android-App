@@ -16,7 +16,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.R
 
 enum class MyFinHubBrandMode {
@@ -40,7 +39,7 @@ enum class MyFinHubBrandMode {
 fun MyFinHubBrandMark(
     modifier: Modifier = Modifier,
     mode: MyFinHubBrandMode = MyFinHubBrandMode.Icon,
-    iconSize: Dp = 36.dp,
+    iconSize: Dp = MyFinHubDesignMetrics.brandMarkDefaultSize,
     subtitle: String? = null,
 ) {
     val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
