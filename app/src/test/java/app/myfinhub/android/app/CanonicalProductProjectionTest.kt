@@ -41,6 +41,14 @@ class CanonicalProductProjectionTest {
 
         assertEquals("800", projection.planState.budget.monthlyLimitText)
         assertEquals(1_695.0, projection.planState.forecastEndBalance, 0.001)
+        assertTrue(projection.planState.categoryBudgets.isEmpty())
+        assertTrue(projection.planState.rules.isEmpty())
+        assertTrue(projection.planState.forecastWindows.isEmpty())
+        projection.planState.items.forEach { item ->
+            assertEquals("", item.category)
+            assertEquals("", item.accountLabel)
+            assertEquals("", item.note)
+        }
 
         val august = projection.insightsState.monthlyTrend.last()
         assertEquals(200.0, august.income, 0.001)
@@ -83,6 +91,9 @@ class CanonicalProductProjectionTest {
         assertTrue(projection.moneyState.accounts.isEmpty())
         assertTrue(projection.moneyState.loans.isEmpty())
         assertTrue(projection.moneyState.lendingItems.isEmpty())
+        assertTrue(projection.planState.categoryBudgets.isEmpty())
+        assertTrue(projection.planState.rules.isEmpty())
+        assertTrue(projection.planState.forecastWindows.isEmpty())
         assertTrue(projection.insightsState.categories.isEmpty())
         assertEquals(0.0, projection.homeState.monthFlow.income, 0.001)
         assertEquals(0.0, projection.homeState.monthFlow.expense, 0.001)
