@@ -40,6 +40,7 @@ object MyFinHubDesignMetrics {
     val textFieldMinHeight = 56.dp
     val textFieldUnfocusedBorder = 1.dp
     val textFieldFocusedBorder = 2.dp
+    val fieldLabelGap = 4.dp
 
     // Material 3 navigation baseline. NavigationSuiteScaffold owns the adaptive container itself.
     val navigationBarHeight = 80.dp
