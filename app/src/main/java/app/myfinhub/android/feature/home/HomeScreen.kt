@@ -52,6 +52,7 @@ fun HomeScreen(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onOpenChangeHistory: () -> Unit = {},
 ) {
     if (state.quickEntryOpen) {
         QuickEntrySheet(
