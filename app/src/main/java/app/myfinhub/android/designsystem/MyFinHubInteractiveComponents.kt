@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -21,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun MyFinHubActionCard(
@@ -33,12 +33,17 @@ fun MyFinHubActionCard(
         onClick = onClick,
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubDesignMetrics.cardElevation),
+        border = BorderStroke(
+            MyFinHubDesignMetrics.cardBorderWidth,
+            MaterialTheme.colorScheme.outlineVariant,
+        ),
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(MyFinHubSpacing.md),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MyFinHubDesignMetrics.cardContentPadding),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             content = content,
         )
@@ -47,11 +52,14 @@ fun MyFinHubActionCard(
 
 @Composable
 fun MyFinHubBackButton(onBack: () -> Unit) {
-    IconButton(onClick = onBack) {
+    IconButton(
+        onClick = onBack,
+        modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
+    ) {
         Icon(
             imageVector = MyFinHubIcons.Back,
             contentDescription = "Πίσω",
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
         )
     }
 }
@@ -80,7 +88,7 @@ fun MyFinHubSectionHeading(
         }
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
         ) {
             Text(
                 text = title,
@@ -129,7 +137,12 @@ fun MyFinHubSystemState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (primaryLabel != null && onPrimary != null) {
-                Button(onClick = onPrimary, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onPrimary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+                ) {
                     Text(primaryLabel)
                 }
             }
