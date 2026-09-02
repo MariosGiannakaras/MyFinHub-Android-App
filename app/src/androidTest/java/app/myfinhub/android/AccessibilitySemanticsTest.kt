@@ -5,6 +5,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -27,19 +28,43 @@ class AccessibilitySemanticsTest {
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
         }
+
+        composeRule.onNodeWithText("Αρχική").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.waitForIdle()
+        assertClickableNodesHaveSpokenLabels("Quick Entry")
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
+        composeRule.waitForIdle()
+        assertClickableNodesHaveSpokenLabels("Settings")
     }
 
     @Test
     @SdkSuppress(minSdkVersion = 34)
     fun criticalSurfaces_passAccessibilityFrameworkChecks() {
         composeRule.enableAccessibilityChecks()
-        composeRule.onRoot().tryPerformAccessibilityChecks()
+        checkCurrentSurface()
 
         listOf("Κινήσεις", "Χρήματα", "Πλάνο", "Αναλύσεις").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
-            composeRule.onRoot().tryPerformAccessibilityChecks()
+            checkCurrentSurface()
         }
+
+        composeRule.onNodeWithText("Αρχική").performClick()
+        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.waitForIdle()
+        checkCurrentSurface()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+
+        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
+        composeRule.waitForIdle()
+        checkCurrentSurface()
+    }
+
+    private fun checkCurrentSurface() {
+        composeRule.onRoot().tryPerformAccessibilityChecks()
     }
 
     private fun assertClickableNodesHaveSpokenLabels(surface: String) {
