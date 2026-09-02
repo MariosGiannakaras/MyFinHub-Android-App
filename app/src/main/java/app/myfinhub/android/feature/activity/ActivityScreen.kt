@@ -8,16 +8,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,13 +29,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
+import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubFilterChip
 import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSearchField
@@ -186,14 +190,7 @@ fun ActivityDetailScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Λεπτομέρειες κίνησης",
-                navigation = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = MyFinHubIcons.Back,
-                            contentDescription = "Πίσω",
-                        )
-                    }
-                },
+                navigation = { MyFinHubBackButton(onBack) },
             )
         },
     ) { padding ->
@@ -258,26 +255,30 @@ private fun ActivityDetailContent(
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        OutlinedTextField(
+        MyFinHubOutlinedField(
             value = note,
             onValueChange = { note = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Σημείωση") },
-            shape = MaterialTheme.shapes.medium,
+            label = "Σημείωση",
+            singleLine = false,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
         )
-        OutlinedTextField(
+        MyFinHubOutlinedField(
             value = category,
             onValueChange = { category = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Κατηγορία") },
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium,
+            label = "Κατηγορία",
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Words,
+                imeAction = ImeAction.Done,
+            ),
         )
         Button(
             onClick = { onSave(note, category) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
             enabled = note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
-            shape = MaterialTheme.shapes.medium,
         ) {
             Text("Αποθήκευση αλλαγών")
         }

@@ -7,12 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -24,8 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -100,8 +100,9 @@ fun SettingsScreen(
                         )
                         OutlinedButton(
                             onClick = logout,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = MaterialTheme.shapes.medium,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
                         ) {
                             Text("Αποσύνδεση")
                         }
@@ -141,7 +142,7 @@ private fun SettingsCard(
                     )
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
                     ) {
                         Text(row.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(
@@ -193,7 +194,7 @@ internal fun DiagnosticsCard(
 
 @Composable
 private fun DiagnosticRow(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyMedium)
     }
@@ -243,16 +244,18 @@ fun ChangeHistoryScreen(
                     OutlinedButton(
                         onClick = { onAction(FrontendUtilitiesAction.Undo) },
                         enabled = state.historyCursor > 0,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
                     ) {
                         Text("Αναίρεση")
                     }
                     OutlinedButton(
                         onClick = { onAction(FrontendUtilitiesAction.Redo) },
                         enabled = state.historyCursor < state.history.size,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
                     ) {
                         Text("Επανάληψη")
                     }
@@ -272,7 +275,7 @@ fun ChangeHistoryScreen(
                                 )
                                 Column(
                                     modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
                                 ) {
                                     Text(
                                         entry.title,
@@ -316,11 +319,7 @@ private fun UtilityScaffold(
             MyFinHubScreenHeader(
                 title = title,
                 subtitle = subtitle,
-                navigation = {
-                    IconButton(onClick = onBack) {
-                        Icon(MyFinHubIcons.Back, contentDescription = "Πίσω")
-                    }
-                },
+                navigation = { MyFinHubBackButton(onBack) },
             )
         },
     ) { padding ->
