@@ -1,5 +1,37 @@
 # MyFinHub Android status
 
+## 2026-09-02 — Full transaction entry parity implementation complete
+
+Tracker #42 / draft PR #43 implement the retained Android **Νέα κίνηση** flow against the shared canonical MyFinHub accounting contract while preserving a native Samsung Galaxy S24 Ultra mobile UX. The implementation is complete; the PR/tracker remain the authoritative integration state until the final exact-head gates pass and the branch is merged into `develop`.
+
+### Canonical transaction-entry parity
+
+- Android now supports the full retained transaction model: Expense, Income, Transfer, Withdrawal, Saving cash offset, Refund, Lending, Repayment, Card purchase, Card payment, Reconciliation and canonical Split.
+- Transaction type selection reveals only fields relevant to that accounting intent. Date, account, card, person, category and subcategory choices are explicit where required instead of silently choosing hidden values.
+- Account/card options and expense/income category trees are projected from the real canonical document. Unknown desktop-owned fields remain losslessly preserved by the existing canonical mutation layer.
+- Withdrawal is constrained to a cash destination and saving cash offset to a savings destination at the canonical mutation boundary, not only in UI filtering.
+- Lending and repayment carry per-person receivable semantics. Repayment is rejected when the named person has no outstanding balance or when the amount exceeds that person's canonical outstanding debt.
+- Card purchase/payment use an explicit active credit-card identity. Card payment is rejected when the selected card has no debt or when the amount exceeds its current canonical debt; when canonical bank identity is available the payment account must belong to the same bank, matching desktop behavior.
+- Reconciliation records only the difference between the entered real balance and the calculated canonical account balance.
+- Split is a true accounting split: each part has its own amount/category/subcategory/label and the parent amount is derived exactly from the parts. The previous people-count split behavior is no longer canonical transaction-entry behavior.
+- Dirty transaction drafts require explicit discard confirmation on back navigation.
+
+### Validation and visual evidence
+
+- Domain/mutation tests cover ledger effects, destination constraints, category/subcategory projection, reconciliation deltas, split cent totals, per-person lending debt and per-card debt/overpayment boundaries.
+- Representative compact-device instrumentation covers full transaction-entry navigation, dynamic type fields, the scrollable split editor and dirty-draft discard protection. The latest pre-reference implementation run completed all representative UI tests successfully.
+- Real Compose candidates for the updated compact transaction form and the new split form were personally inspected. Both were accepted: no clipping/overlap defect was found, and the split editor's continuation below the viewport is intentional scroll behavior.
+- A renderer run from the later debt-validation source state produced pixel-identical candidates, and exactly those accepted PNGs are now the canonical screenshot references.
+- The source state before screenshot canonicalization passed normal Android CI: benchmark/Baseline Profile tooling build, unit tests, instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and release-manifest/unsigned-APK policy audit.
+- A final human-authored `app/**` freeze commit will be used for the exact-head CI/UI acceptance before merge so bot-authored screenshot commits are not treated as the final verification state.
+
+### Preserved boundaries
+
+- Existing issue #27 revision-conflict, offline and write-retry rules remain unchanged: attempted writes are not blindly retried after ambiguous transport failure, and reconnect replay is limited to mutations known never to have been sent after a fresh server reload.
+- Samsung Galaxy S24 Ultra remains the sole supported Android target; hosted emulator instrumentation is representative only and does not replace Phase 6 physical Samsung acceptance.
+- The separately excluded additional privacy/security audit package remains out of scope.
+- No release, production signing key or production-signed APK is part of this workstream.
+
 ## 2026-09-02 — Post-redesign resilience, data-integrity and diagnostics hardening complete and merged
 
 The retained native Android product has completed and merged the autonomous resilience/data-integrity/auth-recovery/edge-state/diagnostics work requested after the full-app 2026 redesign. The sole supported Android target remains the owner's **Samsung Galaxy S24 Ultra**; `docs/SUPPORTED_DEVICE.md` remains the permanent device-acceptance contract.
