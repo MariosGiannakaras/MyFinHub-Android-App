@@ -1,0 +1,48 @@
+name: Temporary accept full transaction entry screenshots
+
+on:
+  push:
+    branches:
+      - feature/full-transaction-entry-parity
+    paths:
+      - .github/workflows/tmp-accept-full-transaction-entry-screenshots.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/full-transaction-entry-parity
+          fetch-depth: 0
+
+      - name: Download personally accepted rendered screenshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh api repos/MariosGiannakaras/MyFinHub-Android-App/actions/artifacts/9843333747/zip > /tmp/accepted-ui.zip
+          rm -rf /tmp/accepted-ui
+          mkdir -p /tmp/accepted-ui
+          unzip -q /tmp/accepted-ui.zip -d /tmp/accepted-ui
+          SRC=/tmp/accepted-ui/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt
+          DEST=app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt
+          test -f "$SRC/Phase2BQuickEntryCompactLightScreenshot_phase2b_quick_entry_compact_light_0e13f224_0.png"
+          test -f "$SRC/Phase2BQuickEntrySplitCompactLightScreenshot_phase2b_quick_entry_split_compact_light_fcccbe67_0.png"
+          cp "$SRC/Phase2BQuickEntryCompactLightScreenshot_phase2b_quick_entry_compact_light_0e13f224_0.png" "$DEST/"
+          cp "$SRC/Phase2BQuickEntrySplitCompactLightScreenshot_phase2b_quick_entry_split_compact_light_fcccbe67_0.png" "$DEST/"
+
+      - name: Commit accepted references and self-clean
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-accept-full-transaction-entry-screenshots.yml
+          git add app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt
+          git diff --cached --check
+          git commit -m "test: accept full transaction entry screenshots"
+          git push origin feature/full-transaction-entry-parity
