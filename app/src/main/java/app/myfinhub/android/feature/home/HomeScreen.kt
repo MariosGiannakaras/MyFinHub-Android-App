@@ -52,7 +52,6 @@ fun HomeScreen(
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit = {},
     onOpenSettings: () -> Unit = {},
-    onOpenChangeHistory: () -> Unit = {},
 ) {
     if (state.quickEntryOpen) {
         QuickEntrySheet(
@@ -71,6 +70,11 @@ fun HomeScreen(
                     title = "MyFinHub",
                     subtitle = "Έξυπνα οικονομικά, κάθε μέρα.",
                     navigation = { MyFinHubBrandMark(iconSize = 36.dp) },
+                    trailing = {
+                        TextButton(onClick = onOpenSettings) {
+                            Text("Ρυθμίσεις")
+                        }
+                    },
                 )
             },
             floatingActionButton = {
@@ -87,8 +91,6 @@ fun HomeScreen(
                     state = state,
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
-                    onOpenSettings = onOpenSettings,
-                    onOpenChangeHistory = onOpenChangeHistory,
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             } else {
@@ -96,8 +98,6 @@ fun HomeScreen(
                     state = state,
                     onAction = onAction,
                     onOpenAttention = onOpenAttention,
-                    onOpenSettings = onOpenSettings,
-                    onOpenChangeHistory = onOpenChangeHistory,
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                 )
             }
@@ -110,8 +110,6 @@ private fun HomeCompactContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -126,12 +124,9 @@ private fun HomeCompactContent(
     ) {
         item { HomeHeading() }
         item { PositionCard(state, { onAction(HomeAction.ToggleAmounts) }) }
-        item { AccountsCard(state) }
         item { AttentionCard(state.attentionItems, onOpenAttention) }
         item { UpcomingCard(state.upcomingItems, state.amountsVisible) }
-        item { QuickEntryCard { onAction(HomeAction.OpenQuickEntry) } }
         item { MonthFlowCard(state.monthFlow, state.amountsVisible) }
-        item { UtilitiesCard(onOpenSettings, onOpenChangeHistory) }
     }
 }
 
@@ -140,8 +135,6 @@ private fun HomeExpandedContent(
     state: HomeUiState,
     onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -165,7 +158,6 @@ private fun HomeExpandedContent(
             AttentionCard(state.attentionItems, onOpenAttention)
             UpcomingCard(state.upcomingItems, state.amountsVisible)
             QuickEntryCard { onAction(HomeAction.OpenQuickEntry) }
-            UtilitiesCard(onOpenSettings, onOpenChangeHistory)
             Spacer(Modifier.height(88.dp))
         }
     }
@@ -322,21 +314,6 @@ private fun QuickEntryCard(onOpen: () -> Unit) {
             onClick = onOpen,
             modifier = Modifier.fillMaxWidth(),
         )
-    }
-}
-
-@Composable
-private fun UtilitiesCard(
-    onOpenSettings: () -> Unit,
-    onOpenChangeHistory: () -> Unit,
-) {
-    SectionCard("Ρυθμίσεις", "Προτιμήσεις και ασφαλές ιστορικό") {
-        OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-            Text("Ρυθμίσεις")
-        }
-        OutlinedButton(onClick = onOpenChangeHistory, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
-            Text("Ιστορικό αλλαγών")
-        }
     }
 }
 
