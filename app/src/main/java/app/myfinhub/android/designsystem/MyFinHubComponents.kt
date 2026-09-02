@@ -115,7 +115,7 @@ fun MyFinHubSectionCard(
     content: @Composable () -> Unit,
 ) {
     val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    val elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubSpacing.micro * 0f)
+    val elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubDesignMetrics.cardElevation)
     val border = BorderStroke(
         MyFinHubDesignMetrics.cardBorderWidth,
         MaterialTheme.colorScheme.outlineVariant,
@@ -278,7 +278,7 @@ fun MyFinHubFinanceRow(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubSpacing.micro * 0f),
+        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubDesignMetrics.cardElevation),
         border = BorderStroke(
             MyFinHubDesignMetrics.cardBorderWidth,
             MaterialTheme.colorScheme.outlineVariant,
