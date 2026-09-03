@@ -12,7 +12,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,20 +25,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubBackButton
-import app.myfinhub.android.designsystem.MyFinHubIconBadge
-import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 
-/** Production settings put everyday preferences first and keep engineering diagnostics secondary. */
+/**
+ * Production settings expose only controls that change real application behavior.
+ * Preview/local-only switches stay out of the signed-in product until their behavior is wired.
+ */
 @Composable
 fun ProductionSettingsScreen(
-    state: FrontendUtilitiesUiState,
-    onAction: (FrontendUtilitiesAction) -> Unit,
+    @Suppress("UNUSED_PARAMETER") state: FrontendUtilitiesUiState,
+    @Suppress("UNUSED_PARAMETER") onAction: (FrontendUtilitiesAction) -> Unit,
     onBack: () -> Unit,
     diagnostics: AppDiagnosticsSnapshot? = null,
     onLogout: (() -> Unit)? = null,
@@ -53,7 +52,7 @@ fun ProductionSettingsScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ρυθμίσεις",
-                subtitle = "Εμφάνιση, ιδιωτικότητα και λογαριασμός",
+                subtitle = "Εμφάνιση και λογαριασμός",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -70,7 +69,7 @@ fun ProductionSettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Διάλεξε θέμα για αυτή τη συσκευή.",
+                        "Η επιλογή αποθηκεύεται σε αυτή τη συσκευή και εφαρμόζεται αμέσως.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -111,33 +110,15 @@ fun ProductionSettingsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text("Ιδιωτικότητα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    PreferenceSwitchRow(
-                        title = "Απόκρυψη ποσών στην εκκίνηση",
-                        subtitle = "Ξεκινά την Αρχική με κρυμμένα ποσά.",
-                        checked = state.settings.hideAmountsOnStart,
-                        iconTone = FinanceTone.Neutral,
-                        onChanged = { onAction(FrontendUtilitiesAction.ToggleHideAmountsOnStart) },
+                    Text(
+                        "Τα ασφαλή στοιχεία κάρτας εμφανίζονται μόνο μετά από την απαιτούμενη επαλήθευση. Το CVV παραμένει κρυπτογραφημένο μόνο στη συσκευή και τα screenshots μπλοκάρονται όσο προβάλλονται μυστικά κάρτας.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    PreferenceSwitchRow(
-                        title = "Επιβεβαίωση ευαίσθητων ενεργειών",
-                        subtitle = "Πρόσθετη επιβεβαίωση πριν από ενέργειες με ευαίσθητα στοιχεία.",
-                        checked = state.settings.extraSensitiveScreenCheck,
-                        iconTone = FinanceTone.Neutral,
-                        onChanged = { onAction(FrontendUtilitiesAction.ToggleExtraSensitiveScreenCheck) },
-                    )
-                }
-            }
-
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    Text("Υπενθυμίσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    PreferenceSwitchRow(
-                        title = "Επερχόμενες υποχρεώσεις",
-                        subtitle = "Εμφάνιση υπενθυμίσεων για πραγματικές προγραμματισμένες υποχρεώσεις.",
-                        checked = state.settings.remindersEnabled,
-                        iconTone = FinanceTone.Attention,
-                        onChanged = { onAction(FrontendUtilitiesAction.ToggleReminders) },
+                    Text(
+                        "Δεν εμφανίζονται διακόπτες χωρίς ενεργή production συμπεριφορά.",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -147,7 +128,7 @@ fun ProductionSettingsScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Λογαριασμός", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Η αποσύνδεση κλείνει την ενεργή συνεδρία σε αυτή τη συσκευή.",
+                            "Η αποσύνδεση κλείνει την ενεργή συνεδρία σε αυτή τη συσκευή. Τα συγχρονισμένα οικονομικά δεδομένα παραμένουν στον λογαριασμό σου.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -169,35 +150,5 @@ fun ProductionSettingsScreen(
                 if (diagnosticsExpanded) DiagnosticsCard(snapshot)
             }
         }
-    }
-}
-
-@Composable
-private fun PreferenceSwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    iconTone: FinanceTone,
-    onChanged: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-    ) {
-        MyFinHubIconBadge(
-            icon = if (iconTone == FinanceTone.Attention) MyFinHubIcons.Attention else MyFinHubIcons.Goal,
-            tone = iconTone,
-            contentDescription = null,
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = { onChanged() },
-            modifier = Modifier.semantics { contentDescription = title },
-        )
     }
 }
