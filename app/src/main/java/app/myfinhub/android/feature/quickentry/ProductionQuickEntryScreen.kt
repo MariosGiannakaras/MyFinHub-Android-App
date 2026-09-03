@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -19,12 +20,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -61,6 +64,16 @@ fun ProductionQuickEntryScreen(
 
     var moreFields by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
+    var discardDialogOpen by remember { mutableStateOf(false) }
+    val amountFocus = remember { FocusRequester() }
+    val hasEnteredDraft = state.amountText.isNotBlank() || state.note.isNotBlank()
+    val requestBack = {
+        if (!state.persisted && hasEnteredDraft) discardDialogOpen = true else onBack()
+    }
+
+    LaunchedEffect(Unit) {
+        amountFocus.requestFocus()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -68,7 +81,7 @@ fun ProductionQuickEntryScreen(
             MyFinHubScreenHeader(
                 title = "Νέα κίνηση",
                 subtitle = "Γρήγορη καταχώριση",
-                navigation = { MyFinHubBackButton(onBack) },
+                navigation = { MyFinHubBackButton(requestBack) },
             )
         },
     ) { padding ->
@@ -98,6 +111,7 @@ fun ProductionQuickEntryScreen(
                     keyboardType = KeyboardType.Decimal,
                     imeAction = ImeAction.Next,
                 ),
+                focusRequester = amountFocus,
             )
 
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
@@ -224,6 +238,26 @@ fun ProductionQuickEntryScreen(
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
+    }
+
+    if (discardDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { discardDialogOpen = false },
+            title = { Text("Απόρριψη καταχώρισης;") },
+            text = { Text("Το ποσό ή η περιγραφή που έβαλες δεν έχουν αποθηκευτεί.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        discardDialogOpen = false
+                        onAction(QuickEntryAction.Reset)
+                        onBack()
+                    },
+                ) { Text("Απόρριψη") }
+            },
+            dismissButton = {
+                TextButton(onClick = { discardDialogOpen = false }) { Text("Συνέχεια") }
+            },
+        )
     }
 }
 
