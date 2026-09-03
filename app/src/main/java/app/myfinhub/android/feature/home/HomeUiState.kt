@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.home
 data class HomeUiState(
     val amountsVisible: Boolean = false,
     val accounts: List<HomeAccount>,
+    val recentItems: List<HomeRecentItem> = emptyList(),
     val attentionItems: List<HomeAttentionItem>,
     val upcomingItems: List<HomeUpcomingItem>,
     val monthFlow: HomeMonthFlow,
@@ -26,6 +27,21 @@ data class HomeAccount(
 enum class HomeAccountGroup {
     LIQUID,
     SAVINGS,
+}
+
+data class HomeRecentItem(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val dateLabel: String,
+    val amount: Double,
+    val tone: HomeRecentTone,
+)
+
+enum class HomeRecentTone {
+    INCOME,
+    EXPENSE,
+    TRANSFER,
 }
 
 data class HomeAttentionItem(
@@ -106,6 +122,10 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 6_240.00,
             group = HomeAccountGroup.SAVINGS,
         ),
+    ),
+    recentItems = listOf(
+        HomeRecentItem("recent-1", "Σούπερ μάρκετ", "Κύριος λογαριασμός", "Σήμερα", -42.60, HomeRecentTone.EXPENSE),
+        HomeRecentItem("recent-2", "Μισθός", "Κύριος λογαριασμός", "Χθες", 1_650.00, HomeRecentTone.INCOME),
     ),
     attentionItems = listOf(
         HomeAttentionItem(
