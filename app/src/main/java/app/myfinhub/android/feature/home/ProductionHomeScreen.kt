@@ -84,7 +84,7 @@ fun ProductionHomeScreen(
                         modifier = Modifier.semantics { heading() },
                     )
                     Text(
-                        "Οι τρεις βασικοί λογαριασμοί πρώτα. Μετά, οι τελευταίες κινήσεις.",
+                        "Υπόλοιπα και πρόσφατη δραστηριότητα",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
