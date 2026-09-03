@@ -43,9 +43,12 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
-    fun putData_sendsIfMatchAndMaps409WithStatus_overRealHttpStack() = runBlocking {
+    fun putData_sendsBothConcurrencyPreconditionsAndMaps409WithStatus_overRealHttpStack() = runBlocking {
         MockWebServer().use { server ->
             server.start()
+            server.enqueue(
+                MockResponse.Builder().code(200).body(historyEnvelope("12", "40")).build(),
+            )
             server.enqueue(
                 MockResponse.Builder().code(409).body("""{"code":"REVISION_CONFLICT"}""").build(),
             )
@@ -53,8 +56,14 @@ class OkHttpMyFinHubApiMockWebServerTest {
             val document = documentWithUnknownFields()
 
             val result = api.saveMutableState(session, document, "40")
+            val historyRequest = server.takeRequest()
             val request = server.takeRequest()
             val sent = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
+
+            assertEquals("GET", historyRequest.method)
+            assertEquals("/api/history", historyRequest.url.encodedPath)
+            assertEquals("Bearer synthetic-bearer", historyRequest.headers["Authorization"])
+            assertFalse(historyRequest.headers.names().contains("Cookie"))
 
             assertTrue(result is ApiResult.Failure)
             val failure = result as ApiResult.Failure
@@ -64,10 +73,31 @@ class OkHttpMyFinHubApiMockWebServerTest {
             assertEquals("/api/data", request.url.encodedPath)
             assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
             assertEquals("40", request.headers["If-Match"])
+            assertEquals("12", request.headers["x-rheomiq-history-generation"])
             assertFalse(request.headers.names().contains("Cookie"))
             assertTrue(sent.containsKey("state"))
             assertTrue(sent["state"]!!.jsonObject.containsKey("futureState"))
             assertFalse(sent.containsKey("seed"))
+        }
+    }
+
+    @Test
+    fun writeFailsClosedBeforePutWhenHistoryRevisionDoesNotMatchDataRevision() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(
+                MockResponse.Builder().code(200).body(historyEnvelope("12", "41")).build(),
+            )
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+
+            val result = api.saveMutableState(session, documentWithUnknownFields(), "40")
+            val historyRequest = server.takeRequest()
+
+            assertTrue(result is ApiResult.Failure)
+            assertEquals(ApiFailureKind.REVISION_CONFLICT, (result as ApiResult.Failure).kind)
+            assertEquals("GET", historyRequest.method)
+            assertEquals("/api/history", historyRequest.url.encodedPath)
+            assertEquals(1, server.requestCount)
         }
     }
 
@@ -195,6 +225,18 @@ class OkHttpMyFinHubApiMockWebServerTest {
       },
       "revision":"$revision",
       "lastSavedAt":"2026-08-23T00:00:01Z"
+    }""".trimIndent()
+
+    private fun historyEnvelope(generation: String, financeRevision: String) = """{
+      "available":true,
+      "generation":"$generation",
+      "financeRevision":"$financeRevision",
+      "currentPointId":null,
+      "canUndo":false,
+      "canRedo":false,
+      "undoDepth":0,
+      "redoDepth":0,
+      "points":[]
     }""".trimIndent()
 
     private fun configuration(server: MockWebServer) = AppConfiguration(
