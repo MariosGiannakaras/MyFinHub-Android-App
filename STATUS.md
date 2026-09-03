@@ -1,5 +1,36 @@
 # MyFinHub Android status
 
+## 2026-09-03 — Private self-updater hosted implementation complete and merged
+
+Tracker #52 is completed/closed and the validated private self-updater implementation is merged into `develop`.
+
+### Completed updater work
+
+- MyFinHub now checks the owner-only authenticated AAL2 update endpoint automatically after a ready session and manually from Settings without coupling update-service failures to auth logout or finance state.
+- Update metadata and APK bytes use the private MyFinHub/Supabase path. The Android client accepts only the configured HTTPS Storage host and `/storage/v1/object/authenticated/android-releases/`, sends the owner bearer plus publishable key, and never embeds runtime service-role/storage-admin/signing secrets.
+- Downloads are bounded and streamed with progress, exact size and SHA-256 validation, temporary-file cleanup and explicit recoverable failure states.
+- APK verification rejects wrong package, downgrade/wrong version and wrong signing identity before PackageInstaller. The verifier remains fail-closed down to minSdk 26.
+- PackageInstaller handles the Android install-source permission boundary and system-confirmation fallback; the app does not bypass platform security prompts.
+- Package replacement is designed to preserve encrypted app data. After restart the expected flow is local PIN/biometric unlock plus server-session validation/refresh, not a new email/password/TOTP login unless the server session is actually invalid/expired/revoked.
+- Production Settings includes the real Updates section with current version, update state, release notes, progress and install/recovery actions.
+- The central MyFinHub `develop` backend contains the matching owner+AAL2 `/api/android-update` endpoint, private `android-releases` Storage/metadata RLS and backend coverage; the API response matches the Android parser/download contract.
+
+### Visual and hosted validation
+
+- Real Compose Settings/update candidates were rendered for compact light, dark and 150% font.
+- The changed candidates were personally inspected before canonicalization; a focused 150% updater reference confirms version, release notes, primary download action and session-continuity copy without clipping/overlap.
+- The accepted PNGs were reproduced exactly by the official renderer before commit.
+- Final canonical screenshot regression passed without candidate fallback.
+- Final representative S24-target instrumentation passed.
+- Final normal Android verification passed: benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-manifest/unsigned-APK policy audit.
+- No unresolved updater PR review blocker remained at merge.
+
+### Preserved Phase 6 / signing boundary
+
+The physical Galaxy S24 Ultra remains authoritative. Before production signing, Phase 6 must run an in-place update smoke with two controlled non-production builds signed by the same temporary/test identity and verify install-source/system-confirmation behavior plus encrypted session/PIN/CVV continuity. After physical acceptance and explicit signing authorization, repeat the same upgrade with strictly increasing production-signed builds using the single long-lived production signing identity.
+
+No production signing key, production-signed APK, version freeze, `develop -> main` promotion or public/private production release was created by this hosted workstream. Issue #14 and `docs/PHASE_6_DEVICE_HANDOFF.md` remain authoritative.
+
 ## 2026-09-03 — Phase 6 physical-device correction pass complete and merged
 
 The first physical Samsung Galaxy S24 Ultra run exposed a focused set of correctness and product-UX issues. Tracker #50 is completed/closed and its validated correction PR was squash-merged into `develop`.
