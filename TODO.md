@@ -183,9 +183,26 @@ Tracker #50 is completed/closed. The correction PR was validated and squash-merg
 - [x] Zero unresolved correction-PR review blockers at merge.
 - [x] Synchronize tracker #50, permanent issue #27, Phase 6 issue #14, `STATUS.md` and `TODO.md` after merge.
 
+## Private self-updater — completed and merged
+
+Tracker #52 is completed/closed and the validated updater implementation is merged into `develop`.
+
+- [x] Add automatic and manual authenticated owner+AAL2 update checks without blocking normal product use when the update service is unavailable.
+- [x] Add a production Settings Updates section with current version, release state/notes, progress and install/recovery actions.
+- [x] Download APKs only from the configured private bearer-authenticated `android-releases` Storage path with bounded streaming, exact-size and SHA-256 validation.
+- [x] Reject malformed metadata, insecure/wrong-host URLs, downgrade/wrong version, wrong package, wrong signer and integrity mismatch.
+- [x] Add PackageInstaller integration with install-source permission handoff and system-confirmation fallback; do not bypass Android security prompts.
+- [x] Preserve updater failures outside auth-logout/finance failure policy and preserve encrypted session/PIN/CVV application data across normal package replacement.
+- [x] Align with the central MyFinHub owner+AAL2 `/api/android-update` endpoint and private Storage/metadata RLS already merged on central `develop`.
+- [x] Add unit/instrumentation/security coverage and Phase 6 update/session-continuity handoff documentation.
+- [x] Render and personally inspect real light/dark/150%-font Settings/update candidates; canonicalize only the accepted replacements.
+- [x] Final canonical screenshot regression, representative S24 instrumentation and full normal Android verification green on the final implementation state.
+- [x] Merge to Android `develop` with zero unresolved hosted review blockers.
+- [x] Keep production signing/release/version freeze and `develop -> main` deferred to the physical Phase 6/signing handoff.
+
 ## Phase 6 — physical-device / production / signing handoff
 
-Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative. Use the current `develop` state after the merged correction pass.
+Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative. Use the current `develop` state after the merged correction and private self-updater passes.
 
 - [ ] Record Samsung One UI / Android version plus the owner's current display resolution, screen zoom and font settings for the accepted run.
 - [ ] Re-run production-configured Auth/API on the physical S24 Ultra: login → TOTP/AAL2 → canonical sync.
@@ -195,12 +212,17 @@ Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's phy
 - [ ] Validate real card deletion end-to-end against production state and the secret-vault boundaries.
 - [ ] Validate owner+AAL2 PAN/expiry access and device-local CVV behavior.
 - [ ] Validate Appearance System/Light/Dark persistence on the physical Samsung device.
+- [ ] Validate the real Settings Updates section against the production-configured owner+AAL2 update endpoint, including the no-release/up-to-date state.
+- [ ] Before production signing, run an in-place updater smoke with two controlled non-production builds signed by the same temporary/test identity.
+- [ ] Validate Samsung install-source permission handoff and PackageInstaller system-confirmation fallback without bypassing Android prompts.
+- [ ] After that package replacement, verify the encrypted session/PIN/CVV stores survive, local PIN/biometric unlock works and email/password/TOTP is not requested unless the server session is genuinely invalid/expired/revoked.
 - [ ] Validate corrected Home, Quick Entry, Settings, Money, Plan and Insights rendering/hierarchy on the owner's unchanged Samsung display/font settings.
 - [ ] Capture only current real application screenshots for device-specific acceptance and replace superseded physical evidence.
 - [ ] Validate logout → relaunch → re-auth flow.
-- [ ] Validate device-specific cold start, scrolling, Quick Entry and reconnect performance.
-- [ ] Promote/freeze a release candidate only after all physical-device acceptance checks pass.
-- [ ] Create/preserve a production signing key only at the explicit signing handoff, outside the public repository.
-- [ ] Generate a production-signed APK only when explicitly requested after Phase 6 gates pass.
+- [ ] Validate device-specific cold start, scrolling, Quick Entry, reconnect and update-flow performance.
+- [ ] After physical acceptance and explicit signing authorization, create/preserve one long-lived production signing identity outside the public repository.
+- [ ] Repeat the in-place update smoke with strictly increasing builds signed by that same production identity before release promotion.
+- [ ] Promote/freeze a release candidate only after all physical-device and signed update-continuity checks pass.
+- [ ] Generate/publish production-signed APKs only after the explicit signing handoff and through the private release path; never as public GitHub artifacts/releases.
 
-Do not create a release, production signing key or production-signed APK before the explicit Phase 6 signing handoff.
+Do not create a production signing key, production-signed APK, release or `develop -> main` promotion before the explicit Phase 6 signing handoff and required physical acceptance.
