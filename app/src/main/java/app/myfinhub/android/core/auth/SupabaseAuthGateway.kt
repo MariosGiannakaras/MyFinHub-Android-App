@@ -49,10 +49,12 @@ class SupabaseAuthGateway(
     override suspend fun listFactors(accessToken: String): AuthResult<List<AuthFactor>> {
         if (accessToken.isBlank()) return AuthResult.Failure(AuthFailureKind.UNAUTHORIZED)
         return request(
-            request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/factors", accessToken).get().build(),
+            // Supabase's current client implementation derives MFA factors from the authenticated
+            // user response. GET /auth/v1/factors is not a list endpoint and returns HTTP 405.
+            request = authorizedRequest("${configuration.supabaseUrl}/auth/v1/user", accessToken).get().build(),
             parse = { body ->
-                val response = json.decodeFromString<FactorListResponse>(body)
-                AuthResult.Success(response.all.map { it.toDomain() })
+                val response = json.decodeFromString<UserFactorsResponse>(body)
+                AuthResult.Success(response.factors.map { it.toDomain() })
             },
         )
     }
@@ -225,7 +227,7 @@ private data class TokenResponse(
 private data class TokenUser(val id: String)
 
 @Serializable
-private data class FactorListResponse(val all: List<FactorResponse> = emptyList())
+private data class UserFactorsResponse(val factors: List<FactorResponse> = emptyList())
 
 @Serializable
 private data class FactorResponse(
