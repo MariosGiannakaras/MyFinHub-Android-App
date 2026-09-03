@@ -51,12 +51,22 @@ class OkHttpMyFinHubApi(
             return ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED)
         }
 
+        // The production write contract protects both the finance revision and the durable
+        // undo/redo cursor. Resolve the matching history generation immediately before the PUT.
+        // If another session changes either value between this GET and the PUT, the server's two
+        // preconditions still fail closed with 409 instead of accepting a stale write.
+        val historyGeneration = when (val history = loadHistoryGeneration(session, expectedRevision)) {
+            is ApiResult.Success -> history.value
+            is ApiResult.Failure -> return history
+        }
+
         val body = buildJsonObject {
             put("state", document.state)
             put("updatedAt", JsonPrimitive(document.updatedAt))
         }.toString()
         val request = authenticatedRequest(session, "/api/data")
             .header("If-Match", expectedRevision)
+            .header(HISTORY_GENERATION_HEADER, historyGeneration)
             .put(body.toRequestBody(JSON_MEDIA_TYPE))
             .build()
 
@@ -156,6 +166,33 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    private suspend fun loadHistoryGeneration(
+        session: AuthSession,
+        expectedRevision: String,
+    ): ApiResult<String> {
+        val request = authenticatedRequest(session, "/api/history")
+            .get()
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val available = payload["available"]?.jsonPrimitive?.booleanOrNull
+                    ?: error("Missing history availability")
+                val generation = payload["generation"]?.jsonPrimitive?.contentOrNull
+                    ?: error("Missing history generation")
+                val financeRevision = payload["financeRevision"]?.jsonPrimitive?.contentOrNull
+                    ?: error("Missing history finance revision")
+                when {
+                    !available -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED)
+                    !generation.matches(REVISION_REGEX) || !financeRevision.matches(REVISION_REGEX) ->
+                        ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+                    financeRevision != expectedRevision -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT)
+                    else -> ApiResult.Success(generation)
+                }
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
     private fun requestGate(session: AuthSession): ApiResult.Failure? = when {
         session.accessToken.isBlank() -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
         session.assuranceLevel != AssuranceLevel.AAL2 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED)
@@ -233,5 +270,6 @@ class OkHttpMyFinHubApi(
         val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         val REVISION_REGEX = Regex("^(0|[1-9]\\d*)$")
         val CARD_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
+        const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
     }
 }
