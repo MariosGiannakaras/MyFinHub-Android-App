@@ -35,6 +35,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearSession() {
         session = null
+        autoCheckedUserId = null
         activeJob?.cancel()
         activeJob = null
         _state.value = UpdateUiState.Idle
@@ -135,6 +136,7 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     override fun onCleared() {
         activeJob?.cancel()
         session = null
+        autoCheckedUserId = null
         super.onCleared()
     }
 }
