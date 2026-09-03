@@ -45,7 +45,7 @@ fun InsightsScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Αναλύσεις",
-                subtitle = "Τάσεις και οικονομική πρόοδος",
+                subtitle = "Πού πηγαίνουν τα χρήματά σου",
             )
         },
     ) { padding ->
@@ -59,7 +59,7 @@ fun InsightsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            item { SectionTitle("Σύνοψη") }
+            item { SectionTitle("Με μια ματιά") }
             item {
                 if (largeFont) {
                     Column(
@@ -67,7 +67,7 @@ fun InsightsScreen(
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
                         SummaryCard(
-                            label = "Μέση δαπάνη",
+                            label = "Μέση μηνιαία δαπάνη",
                             value = formatEuro(state.averageMonthlySpend),
                             icon = MyFinHubIcons.Expense,
                             tone = FinanceTone.Expense,
@@ -87,7 +87,7 @@ fun InsightsScreen(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
                         SummaryCard(
-                            label = "Μέση δαπάνη",
+                            label = "Μέση μηνιαία δαπάνη",
                             value = formatEuro(state.averageMonthlySpend),
                             icon = MyFinHubIcons.Expense,
                             tone = FinanceTone.Expense,
@@ -105,27 +105,49 @@ fun InsightsScreen(
             }
 
             item { SectionTitle("Μηνιαία ροή") }
-            items(state.monthlyTrend, key = TrendPoint::label) { point ->
-                MonthlyTrendCard(point)
-            }
-            item {
-                Text(
-                    "Οι μηνιαίες τάσεις υπολογίζονται από τις ίδιες συγχρονισμένες κινήσεις που εμφανίζονται στις Κινήσεις, χωρίς ξεχωριστό ή δοκιμαστικό analytics store.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if (state.monthlyTrend.isEmpty()) {
+                item {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "Δεν υπάρχουν ακόμη αρκετές κινήσεις για μηνιαία σύγκριση.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            } else {
+                items(state.monthlyTrend, key = TrendPoint::label) { point ->
+                    MonthlyTrendCard(point)
+                }
             }
 
             item { SectionTitle("Κορυφαίες κατηγορίες") }
-            items(state.categories, key = InsightCategory::name) { category ->
-                CategoryCard(category = category, largeFont = largeFont)
+            if (state.categories.isEmpty()) {
+                item {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "Δεν υπάρχουν ακόμη κατηγοριοποιημένα έξοδα για αυτόν τον μήνα.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            } else {
+                items(state.categories, key = InsightCategory::name) { category ->
+                    CategoryCard(category = category, largeFont = largeFont)
+                }
             }
 
             item {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(
-                            "Οι αναλύσεις διαβάζουν τα ίδια FinanceEvent δεδομένα με τις Κινήσεις — χωρίς δεύτερο analytics store.",
+                            "Θες να δεις τις κινήσεις πίσω από τα ποσά;",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            "Άνοιξε τα σχετικά έξοδα για να ελέγξεις κατηγορίες και λεπτομέρειες.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -162,7 +184,11 @@ private fun SummaryCard(
 
 @Composable
 private fun MonthlyTrendCard(point: TrendPoint) {
-    val ratio = (point.expense / point.income).toFloat().coerceIn(0f, 1f)
+    val ratio = if (point.income <= 0.0) {
+        if (point.expense > 0.0) 1f else 0f
+    } else {
+        (point.expense / point.income).toFloat().coerceIn(0f, 1f)
+    }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text(point.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -202,7 +228,7 @@ private fun CategoryCard(category: InsightCategory, largeFont: Boolean) {
                 }
             }
             LinearProgressIndicator(
-                progress = { category.share },
+                progress = { category.share.coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth(),
                 color = financeToneColors(FinanceTone.Expense).accent,
                 trackColor = financeToneColors(FinanceTone.Expense).container,
