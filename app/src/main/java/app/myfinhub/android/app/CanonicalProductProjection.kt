@@ -31,6 +31,8 @@ import app.myfinhub.android.feature.home.HomeAccountGroup
 import app.myfinhub.android.feature.home.HomeAttentionItem
 import app.myfinhub.android.feature.home.HomeAttentionTone
 import app.myfinhub.android.feature.home.HomeMonthFlow
+import app.myfinhub.android.feature.home.HomeRecentItem
+import app.myfinhub.android.feature.home.HomeRecentTone
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeUpcomingItem
 import app.myfinhub.android.feature.insights.InsightCategory
@@ -42,6 +44,7 @@ import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
 import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
@@ -78,6 +81,7 @@ fun projectCanonicalProduct(
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
     val legacy = document.effectiveLegacyTransactions()
+    val activityItems = buildActivityItems(legacy, events, accountNames)
 
     val oldHome = previous?.homeState
     val homeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
@@ -93,33 +97,48 @@ fun projectCanonicalProduct(
             },
         )
     }
+    val homeRecentItems = activityItems.take(6).map { item ->
+        HomeRecentItem(
+            id = item.id,
+            title = item.title,
+            subtitle = item.accountLabel,
+            dateLabel = item.dateLabel,
+            amount = item.amount,
+            tone = when (item.kind) {
+                ActivityKind.INCOME -> HomeRecentTone.INCOME
+                ActivityKind.TRANSFER -> HomeRecentTone.TRANSFER
+                else -> HomeRecentTone.EXPENSE
+            },
+        )
+    }
     val pendingScheduled = scheduled.filter { it.status == "pending" }
     val home = HomeUiState(
         amountsVisible = oldHome?.amountsVisible ?: false,
         accounts = homeAccounts,
+        recentItems = homeRecentItems,
         attentionItems = pendingScheduled
-            .filter { it.dueDate.isNotBlank() && it.dueDate <= asOf }
+            .filter { it.kind == "expense" && it.dueDate.isNotBlank() && it.dueDate <= asOf }
             .sortedBy { it.dueDate }
-            .take(4)
+            .take(3)
             .map { item ->
                 HomeAttentionItem(
                     id = item.id,
                     title = item.note.ifBlank { scheduledKindLabel(item.kind) },
-                    reason = "Προγραμματισμένη κίνηση σε εκκρεμότητα.",
+                    reason = "Προγραμματισμένη υποχρέωση σε εκκρεμότητα.",
                     dueLabel = if (item.dueDate == asOf) "Σήμερα" else "Καθυστερημένη",
                     tone = HomeAttentionTone.URGENT,
                 )
             },
         upcomingItems = pendingScheduled
-            .filter { it.dueDate > asOf }
+            .filter { it.kind == "expense" && it.dueDate > asOf }
             .sortedBy { it.dueDate }
-            .take(5)
+            .take(4)
             .map { item ->
                 HomeUpcomingItem(
                     id = item.id,
                     title = item.note.ifBlank { scheduledKindLabel(item.kind) },
                     dateLabel = formatDate(item.dueDate),
-                    amount = if (item.kind == "expense") -item.amount else item.amount,
+                    amount = -item.amount,
                 )
             },
         monthFlow = HomeMonthFlow(
@@ -132,7 +151,6 @@ fun projectCanonicalProduct(
         selectedQuickEntryType = oldHome?.selectedQuickEntryType,
     )
 
-    val activityItems = buildActivityItems(legacy, events, accountNames)
     val oldActivity = previous?.activityState
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
@@ -142,12 +160,12 @@ fun projectCanonicalProduct(
     )
 
     val quickEntry = projectQuickEntryState(
-    document = document,
-    today = today,
-    previous = previous?.quickEntryState,
-)
+        document = document,
+        today = today,
+        previous = previous?.quickEntryState,
+    )
 
-val activeCards = document.canonicalCards().filter { it.active }
+    val activeCards = document.canonicalCards().filter { it.active }
     val bankIdsByCard = document.cards().associate { it.id to it.bankId }
     val activeCreditCards = activeCards.filter { it.kind == "credit" }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
@@ -300,8 +318,14 @@ private fun buildPlannedItems(document: CanonicalFinanceDocument): List<PlannedI
             dueLabel = formatDate(item.dueDate),
             amount = item.amount,
             kind = PlannedKind.SCHEDULED,
+            flow = when (item.kind) {
+                "income" -> PlannedFlow.INCOME
+                "transfer" -> PlannedFlow.TRANSFER
+                else -> PlannedFlow.OBLIGATION
+            },
         )
     }
+    // Canonical RecurringItem represents recurring costs/subscriptions in the shared schema.
     val recurring = document.seed.array("recurring").mapNotNull { element ->
         val item = element as? JsonObject ?: return@mapNotNull null
         if (item.bool("active") == false || item.string("status") in setOf("paused", "stopped")) return@mapNotNull null
@@ -315,6 +339,7 @@ private fun buildPlannedItems(document: CanonicalFinanceDocument): List<PlannedI
             dueLabel = due,
             amount = item.number("amount") ?: 0.0,
             kind = PlannedKind.RECURRING,
+            flow = PlannedFlow.OBLIGATION,
         )
     }
     return (scheduled + recurring).sortedBy { it.dueLabel }.take(20)

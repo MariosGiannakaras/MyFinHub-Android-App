@@ -35,17 +35,21 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.text.NumberFormat
 import java.util.Locale
 
-/** Production plan surface: canonical obligations, canonical overall budget, and derived forecast. */
+/** Production plan surface: canonical upcoming cash flow, canonical overall budget, and derived forecast. */
 @Composable
 fun CanonicalPlanScreen(
     state: PlanUiState,
     onOpenBudget: () -> Unit,
 ) {
+    val obligations = state.items.filter { it.flow == PlannedFlow.OBLIGATION }
+    val expectedIncome = state.items.filter { it.flow == PlannedFlow.INCOME }
+    val transfers = state.items.filter { it.flow == PlannedFlow.TRANSFER }
+
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Πλάνο",
-                subtitle = "Συγχρονισμένες υποχρεώσεις και budget",
+                subtitle = "Επόμενες κινήσεις και budget",
             )
         },
     ) { padding ->
@@ -63,63 +67,36 @@ fun CanonicalPlanScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
-                MyFinHubSectionHeading(
+                PlannedFlowSection(
                     title = "Επόμενες υποχρεώσεις",
-                    subtitle = "Μόνο στοιχεία που υπάρχουν στα συγχρονισμένα δεδομένα",
-                    icon = MyFinHubIcons.Plan,
-                    tone = FinanceTone.Attention,
+                    subtitle = "Προγραμματισμένα έξοδα και επαναλαμβανόμενες χρεώσεις",
+                    items = obligations,
+                    emptyMessage = "Δεν υπάρχουν επόμενες καταγεγραμμένες υποχρεώσεις.",
+                    tone = FinanceTone.Expense,
                 )
             }
-            item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    if (state.items.isEmpty()) {
-                        Text(
-                            "Δεν υπάρχουν προγραμματισμένες ή επαναλαμβανόμενες υποχρεώσεις.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            state.items.forEachIndexed { index, item ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .semantics(mergeDescendants = true) {},
-                                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    MyFinHubIconBadge(
-                                        icon = if (item.kind == PlannedKind.RECURRING) {
-                                            MyFinHubIcons.Plan
-                                        } else {
-                                            MyFinHubIcons.Attention
-                                        },
-                                        tone = FinanceTone.Attention,
-                                        contentDescription = null,
-                                    )
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            item.title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                        Text(
-                                            item.dueLabel,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                    MyFinHubAmountText(
-                                        text = formatCanonicalPlanEuro(item.amount),
-                                        tone = FinanceTone.Expense,
-                                    )
-                                }
-                                if (index != state.items.lastIndex) {
-                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                                }
-                            }
-                        }
-                    }
+
+            if (expectedIncome.isNotEmpty()) {
+                item {
+                    PlannedFlowSection(
+                        title = "Αναμενόμενα έσοδα",
+                        subtitle = "Προγραμματισμένες εισροές που υπάρχουν στα συγχρονισμένα δεδομένα",
+                        items = expectedIncome,
+                        emptyMessage = "",
+                        tone = FinanceTone.Income,
+                    )
+                }
+            }
+
+            if (transfers.isNotEmpty()) {
+                item {
+                    PlannedFlowSection(
+                        title = "Προγραμματισμένες μεταφορές",
+                        subtitle = "Μετακινήσεις χρημάτων μεταξύ λογαριασμών, όχι δαπάνες",
+                        items = transfers,
+                        emptyMessage = "",
+                        tone = FinanceTone.Transfer,
+                    )
                 }
             }
 
@@ -172,6 +149,82 @@ fun CanonicalPlanScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlannedFlowSection(
+    title: String,
+    subtitle: String,
+    items: List<PlannedItem>,
+    emptyMessage: String,
+    tone: FinanceTone,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+        MyFinHubSectionHeading(
+            title = title,
+            subtitle = subtitle,
+            icon = when (tone) {
+                FinanceTone.Income -> MyFinHubIcons.Income
+                FinanceTone.Transfer -> MyFinHubIcons.Transfer
+                else -> MyFinHubIcons.Plan
+            },
+            tone = tone,
+        )
+        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+            if (items.isEmpty()) {
+                Text(
+                    emptyMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    items.forEachIndexed { index, item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics(mergeDescendants = true) {},
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            MyFinHubIconBadge(
+                                icon = when (item.flow) {
+                                    PlannedFlow.INCOME -> MyFinHubIcons.Income
+                                    PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
+                                    PlannedFlow.OBLIGATION -> if (item.kind == PlannedKind.RECURRING) {
+                                        MyFinHubIcons.Plan
+                                    } else {
+                                        MyFinHubIcons.Attention
+                                    }
+                                },
+                                tone = tone,
+                                contentDescription = null,
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    item.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    item.dueLabel,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            MyFinHubAmountText(
+                                text = formatCanonicalPlanEuro(item.amount),
+                                tone = tone,
+                            )
+                        }
+                        if (index != items.lastIndex) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
                     }
                 }
             }

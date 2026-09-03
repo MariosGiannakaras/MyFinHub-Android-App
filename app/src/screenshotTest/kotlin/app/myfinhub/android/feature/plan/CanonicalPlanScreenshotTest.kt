@@ -13,6 +13,7 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
             dueLabel = "5 Σεπ",
             amount = 680.0,
             kind = PlannedKind.SCHEDULED,
+            flow = PlannedFlow.OBLIGATION,
         ),
         PlannedItem(
             id = "recurring-1",
@@ -20,6 +21,23 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
             dueLabel = "Κάθε μήνα, ημέρα 8",
             amount = 34.90,
             kind = PlannedKind.RECURRING,
+            flow = PlannedFlow.OBLIGATION,
+        ),
+        PlannedItem(
+            id = "scheduled-income",
+            title = "Μισθός",
+            dueLabel = "10 Σεπ",
+            amount = 1_650.0,
+            kind = PlannedKind.SCHEDULED,
+            flow = PlannedFlow.INCOME,
+        ),
+        PlannedItem(
+            id = "scheduled-transfer",
+            title = "Μεταφορά στην αποταμίευση",
+            dueLabel = "12 Σεπ",
+            amount = 200.0,
+            kind = PlannedKind.SCHEDULED,
+            flow = PlannedFlow.TRANSFER,
         ),
     ),
     budget = BudgetDraft(monthlyLimitText = "800", alertThresholdText = "80"),
@@ -48,6 +66,19 @@ fun CanonicalPlanCompactLightScreenshot() {
 @Composable
 fun CanonicalPlanCompactDarkScreenshot() {
     CanonicalPlanScreenshotFixture(darkTheme = true)
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_plan_compact_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun CanonicalPlanCompactLargeFontScreenshot() {
+    CanonicalPlanScreenshotFixture(darkTheme = false)
 }
 
 @PreviewTest

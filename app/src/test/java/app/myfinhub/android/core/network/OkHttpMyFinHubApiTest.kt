@@ -63,10 +63,18 @@ class OkHttpMyFinHubApiTest {
     }
 
     @Test
-    fun saveMutableState_sendsIfMatchAndOnlyMutableStateEnvelope() = runBlocking {
-        val interceptor = RecordingInterceptor(
-            code = 200,
-            body = """{"revision":"18","lastSavedAt":"2026-08-22T00:01:00.000Z"}""",
+    fun saveMutableState_sendsDualPreconditionsAndOnlyMutableStateEnvelope() = runBlocking {
+        val interceptor = SequencedRecordingInterceptor(
+            listOf(
+                SyntheticResponse(
+                    200,
+                    """{"available":true,"generation":"41","financeRevision":"17"}""",
+                ),
+                SyntheticResponse(
+                    200,
+                    """{"revision":"18","lastSavedAt":"2026-08-22T00:01:00.000Z"}""",
+                ),
+            ),
         )
         val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
         val raw = Json.parseToJsonElement(
@@ -82,8 +90,17 @@ class OkHttpMyFinHubApiTest {
         val result = api.saveMutableState(session, CanonicalFinanceDocument(raw), "17") as ApiResult.Success
 
         assertEquals("18", result.value.revision)
-        assertEquals("17", interceptor.request?.header("If-Match"))
-        val sent = interceptor.requestBodyJson()
+        assertEquals(2, interceptor.requests.size)
+        val historyRequest = interceptor.requests[0]
+        val saveRequest = interceptor.requests[1]
+        assertEquals("/api/history", historyRequest.url.encodedPath)
+        assertEquals("GET", historyRequest.method)
+        assertEquals("/api/data", saveRequest.url.encodedPath)
+        assertEquals("PUT", saveRequest.method)
+        assertEquals("17", saveRequest.header("If-Match"))
+        assertEquals("41", saveRequest.header("x-rheomiq-history-generation"))
+        assertEquals("Bearer synthetic-bearer", saveRequest.header("Authorization"))
+        val sent = saveRequest.requestBodyJson()
         assertTrue(sent.containsKey("state"))
         assertTrue(sent.containsKey("updatedAt"))
         assertFalse(sent.containsKey("seed"))
@@ -127,7 +144,15 @@ class OkHttpMyFinHubApiTest {
 
     @Test
     fun malformedSuccessfulWriteReceipt_failsClosed() = runBlocking {
-        val interceptor = RecordingInterceptor(200, """{"lastSavedAt":"x"}""")
+        val interceptor = SequencedRecordingInterceptor(
+            listOf(
+                SyntheticResponse(
+                    200,
+                    """{"available":true,"generation":"12","financeRevision":"7"}""",
+                ),
+                SyntheticResponse(200, """{"lastSavedAt":"x"}"""),
+            ),
+        )
         val api = OkHttpMyFinHubApi(config, OkHttpClient.Builder().addInterceptor(interceptor).build())
         val document = CanonicalFinanceDocument(
             Json.parseToJsonElement("""{"updatedAt":"2026-08-22T00:00:00Z","state":{},"seed":{}}""").jsonObject,
@@ -136,6 +161,7 @@ class OkHttpMyFinHubApiTest {
         val result = api.saveMutableState(session, document, "7") as ApiResult.Failure
 
         assertEquals(ApiFailureKind.MALFORMED_RESPONSE, result.kind)
+        assertEquals(2, interceptor.requests.size)
     }
 
     @Test
@@ -159,16 +185,38 @@ private class RecordingInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         request = chain.request()
-        return Response.Builder()
-            .request(chain.request())
-            .protocol(Protocol.HTTP_1_1)
-            .code(code)
-            .message("synthetic")
-            .body(body.toResponseBody("application/json".toMediaType()))
-            .build()
+        return syntheticHttpResponse(chain.request(), code, body)
     }
-
-    fun requestBodyJson() = Json.parseToJsonElement(
-        Buffer().also { buffer -> request?.body?.writeTo(buffer) }.readUtf8(),
-    ).jsonObject
 }
+
+private data class SyntheticResponse(
+    val code: Int,
+    val body: String,
+)
+
+private class SequencedRecordingInterceptor(
+    private val responses: List<SyntheticResponse>,
+) : Interceptor {
+    val requests = mutableListOf<Request>()
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val response = responses.getOrNull(requests.size)
+            ?: error("Missing synthetic response for request ${requests.size + 1}")
+        requests += request
+        return syntheticHttpResponse(request, response.code, response.body)
+    }
+}
+
+private fun syntheticHttpResponse(request: Request, code: Int, body: String): Response =
+    Response.Builder()
+        .request(request)
+        .protocol(Protocol.HTTP_1_1)
+        .code(code)
+        .message("synthetic")
+        .body(body.toResponseBody("application/json".toMediaType()))
+        .build()
+
+private fun Request.requestBodyJson() = Json.parseToJsonElement(
+    Buffer().also { buffer -> body?.writeTo(buffer) }.readUtf8(),
+).jsonObject

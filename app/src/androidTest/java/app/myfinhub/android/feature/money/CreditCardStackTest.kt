@@ -172,20 +172,26 @@ class CreditCardStackTest {
     }
 
     @Test
-    fun deleteAboveThreshold_removesStableId_andAllowsEmptyStack() {
+    fun deleteAboveThreshold_requestsStableId_andParentCommitAllowsEmptyStack() {
         val deleted = mutableListOf<String>()
-        val cards = testCards(1)
+        val cards = mutableStateOf(testCards(1))
 
         composeRule.setContent {
             MyFinHubTheme {
                 CreditCardStack(
-                    cards = cards,
+                    cards = cards.value,
                     secretState = CardSecretUiState.Hidden("card-a"),
                     onActiveCardChanged = {},
                     onRevealSecrets = {},
                     onHideSecrets = {},
                     onOpenCard = {},
-                    onDeleteCard = deleted::add,
+                    onDeleteCard = { id ->
+                        deleted += id
+                        // Production does not optimistically remove a card. The canonical parent
+                        // state acknowledges a successful server mutation and then supplies the
+                        // reduced list back to the stack. Simulate that contract here.
+                        cards.value = cards.value.filterNot { it.id == id }
+                    },
                 )
             }
         }
@@ -193,25 +199,31 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         setDeleteProgressAndPressEnter(.91f)
 
-        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
+        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) {
+            deleted == listOf("card-a") && cards.value.isEmpty()
+        }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_dot_card-a").assertDoesNotExist()
     }
 
     @Test
-    fun reducedMotion_deleteFinalCard_completesWithoutDecorativeDelay() {
+    fun reducedMotion_deleteFinalCard_requestsCommitWithoutDecorativeDelay() {
         val deleted = mutableListOf<String>()
+        val cards = mutableStateOf(testCards(1))
 
         composeRule.setContent {
             MyFinHubTheme {
                 CreditCardStack(
-                    cards = testCards(1),
+                    cards = cards.value,
                     secretState = CardSecretUiState.Hidden("card-a"),
                     onActiveCardChanged = {},
                     onRevealSecrets = {},
                     onHideSecrets = {},
                     onOpenCard = {},
-                    onDeleteCard = deleted::add,
+                    onDeleteCard = { id ->
+                        deleted += id
+                        cards.value = cards.value.filterNot { it.id == id }
+                    },
                 )
             }
         }
@@ -219,9 +231,11 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         setDeleteProgressAndPressEnter(1f)
 
-        // The deterministic reduced-motion setup verifies that production skips the 620 ms
-        // decorative delay. The 5 s harness timeout only tolerates emulator scheduling latency.
-        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { deleted == listOf("card-a") }
+        // The deterministic reduced-motion setup verifies that production skips the decorative
+        // delay. The parent-state change models server-confirmed canonical deletion.
+        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) {
+            deleted == listOf("card-a") && cards.value.isEmpty()
+        }
         composeRule.onNodeWithTag("credit_card_stack_empty").assertIsDisplayed()
     }
 

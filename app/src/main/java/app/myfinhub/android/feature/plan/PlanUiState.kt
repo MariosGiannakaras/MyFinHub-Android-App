@@ -12,6 +12,7 @@ data class PlannedItem(
     val dueLabel: String,
     val amount: Double,
     val kind: PlannedKind,
+    val flow: PlannedFlow = PlannedFlow.OBLIGATION,
     val category: String = "",
     val accountLabel: String = "",
     val note: String = "",
@@ -19,6 +20,8 @@ data class PlannedItem(
 )
 
 enum class PlannedKind { RECURRING, SCHEDULED }
+
+enum class PlannedFlow { OBLIGATION, INCOME, TRANSFER }
 
 data class BudgetDraft(
     val monthlyLimitText: String = "",
@@ -125,14 +128,14 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
                 )
             }
         },
-        itemMessage = "Το τοπικό προσχέδιο της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
+        itemMessage = "Το τοπικό προσχέδιο της προγραμματισμένης κίνησης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
 
     is PlanAction.TogglePlannedItemPause -> state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) item.copy(paused = !item.paused) else item
         },
-        itemMessage = "Η τοπική κατάσταση της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
+        itemMessage = "Η τοπική κατάσταση της προγραμματισμένης κίνησης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
     )
 
     is PlanAction.CategoryBudgetLimitChanged -> state.copy(

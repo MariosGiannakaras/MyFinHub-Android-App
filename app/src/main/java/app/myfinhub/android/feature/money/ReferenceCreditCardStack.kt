@@ -196,7 +196,6 @@ fun CreditCardStack(
 ) {
     val ids = cards.map(MoneyCard::id)
     var order by remember { mutableStateOf(ids) }
-    var locallyRemovedIds by remember { mutableStateOf(emptySet<String>()) }
     var deleteArmedId by remember { mutableStateOf<String?>(null) }
     var deleteProgress by remember { mutableFloatStateOf(0f) }
     var deletingId by remember { mutableStateOf<String?>(null) }
@@ -222,13 +221,11 @@ fun CreditCardStack(
     val restackDistance = with(density) { 92.dp.toPx() }
 
     LaunchedEffect(ids) {
-        locallyRemovedIds = locallyRemovedIds.filterTo(mutableSetOf()) { it in ids }
-        val available = ids.filterNot(locallyRemovedIds::contains)
-        order = order.filter { it in available } + available.filterNot(order::contains)
+        order = order.filter { it in ids } + ids.filterNot(order::contains)
     }
 
     val cardById = remember(cards) { cards.associateBy(MoneyCard::id) }
-    val orderedCards = order.mapNotNull(cardById::get).filterNot { it.id in locallyRemovedIds }
+    val orderedCards = order.mapNotNull(cardById::get)
     val activeCard = orderedCards.firstOrNull()
     val activeId = activeCard?.id
 
@@ -289,14 +286,12 @@ fun CreditCardStack(
         deleteArmedId = null
         deleteProgress = 0f
         onHideSecrets()
+        statusMessage = "Η διαγραφή της κάρτας ξεκίνησε"
+        onDeleteCard(cardId)
         deletingId = cardId
         scope.launch {
             if (!reducedMotion) delay(620)
-            locallyRemovedIds = locallyRemovedIds + cardId
-            order = order.filterNot { it == cardId }
             deletingId = null
-            onDeleteCard(cardId)
-            statusMessage = "Η κάρτα διαγράφηκε"
         }
     }
 

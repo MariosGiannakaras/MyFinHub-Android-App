@@ -47,7 +47,7 @@ class PlanReducerTest {
         assertEquals(700.0, result.items.first().amount, 0.0)
         assertEquals(untouched, result.items[1])
         assertEquals(
-            "Το τοπικό προσχέδιο της υποχρέωσης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
+            "Το τοπικό προσχέδιο της προγραμματισμένης κίνησης ενημερώθηκε. Δεν έχει συγχρονιστεί.",
             result.itemMessage,
         )
     }
