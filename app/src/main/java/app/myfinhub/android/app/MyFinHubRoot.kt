@@ -17,6 +17,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,9 +63,9 @@ import kotlinx.coroutines.flow.merge
 /**
  * Production application root.
  *
- * Local biometric/PIN success is handled by [AuthShellViewModel]. Only an Auth Ready session is
- * handed to production finance, card-secret and private-update controllers. Sensitive card values
- * are never part of the canonical product state. Updater failures remain isolated from finance/auth
+ * Local biometric/PIN success is handled by [AuthShellViewModel]. A locally unlocked offline Ready
+ * session may render only the encrypted device cache; finance network writes remain disabled until
+ * AuthShell revalidates the server session. Updater failures remain isolated from finance/auth
  * rejection so a failed update check or install can never log the user out.
  */
 @Composable
@@ -123,11 +124,15 @@ fun MyFinHubRoot(
     LaunchedEffect(authState) {
         when (val state = authState) {
             is AuthShellUiState.Ready -> {
-                financeViewModel.attachSession(state.session)
+                financeViewModel.attachSession(
+                    session = state.session,
+                    allowAutomaticSync = !state.offline,
+                )
                 cardSecretViewModel.attachSession(state.session)
                 updateViewModel.attachSession(state.session)
             }
             else -> {
+                // Finance clear is intentionally volatile-only; encrypted offline cache survives lock.
                 financeViewModel.clear()
                 cardSecretViewModel.clear()
                 updateViewModel.clearSession()
@@ -154,9 +159,9 @@ fun MyFinHubRoot(
         ).collect { notice ->
             lastDiagnosticCode = notice.diagnosticCode
             val issue = (latestFinanceState as? FinanceProductState.Ready)?.issue
-            val duplicateOfBlockingSaveIssue = issue != null &&
+            val duplicateOfSaveIssue = issue != null &&
                 notice.details.contains("Ενέργεια: Αποθήκευση οικονομικών δεδομένων")
-            if (duplicateOfBlockingSaveIssue) return@collect
+            if (duplicateOfSaveIssue) return@collect
 
             val result = snackbarHostState.showSnackbar(
                 message = notice.message,
@@ -334,36 +339,64 @@ private fun FinanceProductSurface(
                         modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
                     )
                 }
-            }
-            state.issue?.let { issue ->
-                val retryLabel = when (issue.kind) {
-                    FinanceSyncIssueKind.REVISION_CONFLICT -> "Φόρτωση νεότερων και επανάληψη"
-                    FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Δοκιμή ξανά"
-                    FinanceSyncIssueKind.SAVE_FAILED -> "Επανάληψη αποθήκευσης"
+                state.issue?.let { issue ->
+                    FinanceSyncIssueBanner(
+                        issue = issue,
+                        onRetryMutation = onRetryMutation,
+                        onDiscardMutation = onDiscardMutation,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(
+                                start = MyFinHubSpacing.md,
+                                top = MyFinHubSpacing.md,
+                                end = MyFinHubSpacing.md,
+                            ),
+                    )
                 }
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = {
-                        Text(
-                            when (issue.kind) {
-                                FinanceSyncIssueKind.REVISION_CONFLICT -> "Υπάρχει νεότερη έκδοση"
-                                FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Αναμονή σύνδεσης"
-                                FinanceSyncIssueKind.SAVE_FAILED -> "Η αποθήκευση δεν ολοκληρώθηκε"
-                            },
-                        )
-                    },
-                    text = { Text(issue.message) },
-                    confirmButton = {
-                        Button(onClick = onRetryMutation) {
-                            Text(retryLabel)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = onDiscardMutation) {
-                            Text("Απόρριψη τοπικής αλλαγής")
-                        }
-                    },
-                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FinanceSyncIssueBanner(
+    issue: FinanceSyncIssue,
+    onRetryMutation: () -> Unit,
+    onDiscardMutation: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val title = when (issue.kind) {
+        FinanceSyncIssueKind.REVISION_CONFLICT -> "Χρειάζεται νέος συγχρονισμός"
+        FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Αναμονή σύνδεσης"
+        FinanceSyncIssueKind.SAVE_FAILED -> "Εκκρεμεί ασφαλής συγχρονισμός"
+    }
+    val retryLabel = when (issue.kind) {
+        FinanceSyncIssueKind.REVISION_CONFLICT -> "Φόρτωση και επανάληψη"
+        FinanceSyncIssueKind.WAITING_FOR_NETWORK -> "Δοκιμή ξανά"
+        FinanceSyncIssueKind.SAVE_FAILED -> "Επανάληψη με έλεγχο"
+    }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = MyFinHubDesignMetrics.cardElevation,
+        shadowElevation = MyFinHubDesignMetrics.cardElevation,
+    ) {
+        Column(
+            modifier = Modifier.padding(MyFinHubSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(
+                issue.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(onClick = onRetryMutation) {
+                Text(retryLabel)
+            }
+            TextButton(onClick = onDiscardMutation) {
+                Text("Απόρριψη μη συγχρονισμένης αλλαγής")
             }
         }
     }
@@ -389,6 +422,8 @@ private fun financeDiagnosticStatus(state: FinanceProductState): String = when (
     is FinanceProductState.Ready -> when {
         state.saving -> "Αποθήκευση"
         state.issue != null -> "Απαιτεί ανάκτηση"
+        state.offline -> "Offline cache · ${state.pendingTransactionCount} εκκρεμείς"
+        state.pendingTransactionCount > 0 -> "Συγχρονισμός · ${state.pendingTransactionCount} εκκρεμείς"
         else -> "Συγχρονισμένο"
     }
 }
@@ -400,7 +435,11 @@ private fun authDiagnosticStatus(state: AuthShellUiState): String = when (state)
     is AuthShellUiState.Mfa -> "Απαιτεί AAL2"
     is AuthShellUiState.PinEnrollment -> "Ρύθμιση τοπικού PIN"
     is AuthShellUiState.Locked -> "Τοπικά κλειδωμένη"
-    is AuthShellUiState.Ready -> "Ενεργή · ${state.session.assuranceLevel.name}"
+    is AuthShellUiState.Ready -> if (state.offline) {
+        "Τοπικά ξεκλειδωμένη · αναμονή server ελέγχου"
+    } else {
+        "Ενεργή · ${state.session.assuranceLevel.name}"
+    }
 }
 
 @Composable
