@@ -1,5 +1,7 @@
 package app.myfinhub.android.app
 
+import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +20,16 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
@@ -40,6 +45,8 @@ import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
+import app.myfinhub.android.feature.utilities.AppAppearance
+import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import java.net.URI
 import kotlinx.coroutines.flow.collect
@@ -58,11 +65,33 @@ fun MyFinHubRoot(
     financeViewModel: FinanceProductViewModel = viewModel(),
     cardSecretViewModel: CardSecretViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
+    val appearancePreferences = remember(context) {
+        context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
+    }
+    var appearance by remember(context) { mutableStateOf(AppAppearancePreference.read(context)) }
+    DisposableEffect(appearancePreferences) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
+            if (key == AppAppearancePreference.KEY) {
+                appearance = AppAppearance.fromStorage(preferences.getString(key, null))
+            }
+        }
+        appearancePreferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { appearancePreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = when (appearance) {
+        AppAppearance.SYSTEM -> systemDark
+        AppAppearance.LIGHT -> false
+        AppAppearance.DARK -> true
+    }
+
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
+    val latestFinanceState by rememberUpdatedState(financeState)
     val snackbarHostState = remember { SnackbarHostState() }
     var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
     var lastDiagnosticCode by remember { mutableStateOf<String?>(null) }
@@ -101,6 +130,11 @@ fun MyFinHubRoot(
             cardSecretViewModel.notices,
         ).collect { notice ->
             lastDiagnosticCode = notice.diagnosticCode
+            val issue = (latestFinanceState as? FinanceProductState.Ready)?.issue
+            val duplicateOfBlockingSaveIssue = issue != null &&
+                notice.details.contains("Ενέργεια: Αποθήκευση οικονομικών δεδομένων")
+            if (duplicateOfBlockingSaveIssue) return@collect
+
             val result = snackbarHostState.showSnackbar(
                 message = notice.message,
                 actionLabel = "Λεπτομέρειες",
@@ -126,7 +160,7 @@ fun MyFinHubRoot(
         lastDiagnosticCode = lastDiagnosticCode,
     )
 
-    MyFinHubTheme {
+    MyFinHubTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
             AuthShellScreen(
                 state = authState,
