@@ -13,16 +13,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +37,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubFilterChip
 import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
@@ -94,6 +98,7 @@ fun ActivityScreen(
                             onSave = { note, category ->
                                 onAction(ActivityAction.SaveEdit(selected.id, note, category))
                             },
+                            onDelete = { onAction(ActivityAction.Delete(selected.id)) },
                             modifier = Modifier.weight(0.85f),
                         )
                     }
@@ -166,11 +171,16 @@ private fun ActivityList(
                     icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
                     iconDescription = item.category ?: item.kind.label,
                     title = item.title,
-                    subtitle = item.subtitle,
+                    subtitle = if (item.pendingSync) {
+                        "${item.subtitle} · Αναμονή συγχρονισμού"
+                    } else {
+                        item.subtitle
+                    },
                     meta = "${item.dateLabel} · ${item.accountLabel}",
                     amountText = formatSignedEuro(item.amount),
-                    tone = item.kind.tone(),
+                    tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
                     onClick = { onSelect(item.id) },
+                    modifier = if (item.pendingSync) Modifier.alpha(0.62f) else Modifier,
                 )
             }
         }
@@ -182,6 +192,7 @@ fun ActivityDetailScreen(
     item: ActivityItem?,
     onBack: () -> Unit,
     onSave: (String, String) -> Unit,
+    onDelete: () -> Unit,
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -202,6 +213,7 @@ fun ActivityDetailScreen(
             ActivityDetailContent(
                 item = item,
                 onSave = onSave,
+                onDelete = onDelete,
                 modifier = Modifier.padding(padding).padding(MyFinHubSpacing.lg),
             )
         }
@@ -212,10 +224,12 @@ fun ActivityDetailScreen(
 private fun ActivityDetailContent(
     item: ActivityItem,
     onSave: (String, String) -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
 ) {
     var note by rememberSaveable(item.id, item.subtitle) { mutableStateOf(item.subtitle) }
     var category by rememberSaveable(item.id, item.category) { mutableStateOf(item.category.orEmpty()) }
+    var confirmDelete by rememberSaveable(item.id) { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -227,7 +241,7 @@ private fun ActivityDetailContent(
             ) {
                 MyFinHubIconBadge(
                     icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
-                    tone = item.kind.tone(),
+                    tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
                     contentDescription = item.category ?: item.kind.label,
                 )
                 Column(
@@ -241,7 +255,7 @@ private fun ActivityDetailContent(
                     )
                     MyFinHubAmountText(
                         text = formatSignedEuro(item.amount),
-                        tone = item.kind.tone(),
+                        tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
@@ -249,6 +263,13 @@ private fun ActivityDetailContent(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (item.pendingSync) {
+                        Text(
+                            text = "Αναμονή συγχρονισμού",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
@@ -261,6 +282,7 @@ private fun ActivityDetailContent(
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
             ),
+            enabled = !item.pendingSync,
         )
         MyFinHubOutlinedField(
             value = category,
@@ -270,13 +292,19 @@ private fun ActivityDetailContent(
                 capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Done,
             ),
+            enabled = !item.pendingSync,
         )
         MyFinHubPrimaryAction(
             label = "Αποθήκευση αλλαγών",
             onClick = { onSave(note, category) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
+            enabled = !item.pendingSync && note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
             icon = null,
+        )
+        MyFinHubDestructiveTextAction(
+            label = if (item.pendingSync) "Ακύρωση τοπικής κίνησης" else "Διαγραφή κίνησης",
+            onClick = { confirmDelete = true },
+            modifier = Modifier.fillMaxWidth(),
         )
         if (item.kind == ActivityKind.TRANSFER) {
             Text(
@@ -285,6 +313,39 @@ private fun ActivityDetailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = {
+                Text(if (item.pendingSync) "Ακύρωση τοπικής κίνησης;" else "Διαγραφή κίνησης;")
+            },
+            text = {
+                Text(
+                    if (item.pendingSync) {
+                        "Η κίνηση δεν έχει συγχρονιστεί ακόμη και θα αφαιρεθεί μόνο από αυτή τη συσκευή."
+                    } else {
+                        "Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα."
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDelete = false
+                        onDelete()
+                    },
+                ) {
+                    Text(if (item.pendingSync) "Ακύρωση κίνησης" else "Διαγραφή")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text("Πίσω")
+                }
+            },
+        )
     }
 }
 
