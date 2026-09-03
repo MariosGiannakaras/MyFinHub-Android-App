@@ -44,6 +44,7 @@ import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
 import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
@@ -317,8 +318,14 @@ private fun buildPlannedItems(document: CanonicalFinanceDocument): List<PlannedI
             dueLabel = formatDate(item.dueDate),
             amount = item.amount,
             kind = PlannedKind.SCHEDULED,
+            flow = when (item.kind) {
+                "income" -> PlannedFlow.INCOME
+                "transfer" -> PlannedFlow.TRANSFER
+                else -> PlannedFlow.OBLIGATION
+            },
         )
     }
+    // Canonical RecurringItem represents recurring costs/subscriptions in the shared schema.
     val recurring = document.seed.array("recurring").mapNotNull { element ->
         val item = element as? JsonObject ?: return@mapNotNull null
         if (item.bool("active") == false || item.string("status") in setOf("paused", "stopped")) return@mapNotNull null
@@ -332,6 +339,7 @@ private fun buildPlannedItems(document: CanonicalFinanceDocument): List<PlannedI
             dueLabel = due,
             amount = item.number("amount") ?: 0.0,
             kind = PlannedKind.RECURRING,
+            flow = PlannedFlow.OBLIGATION,
         )
     }
     return (scheduled + recurring).sortedBy { it.dueLabel }.take(20)
