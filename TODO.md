@@ -161,15 +161,45 @@ Tracker #47 is completed/closed. PR #48 was validated on the exact accepted impl
 - [x] Zero unresolved review threads at merge.
 - [x] No production signing key, signed APK or release created; physical Samsung acceptance remains Phase 6.
 
+## Phase 6 physical-device correction pass — completed and merged
+
+Tracker #50 is completed/closed. The correction PR was validated and squash-merged into `develop` after the first physical Galaxy S24 Ultra findings.
+
+- [x] Align production finance writes with durable history generation plus revision concurrency preconditions.
+- [x] Require a consistent finance + durable-history read snapshot before mutation.
+- [x] Fix card deletion across canonical state, server PAN/expiry storage and device-local CVV cleanup with regression coverage.
+- [x] Ensure failed/refused card deletion cannot leave a ghost local deletion.
+- [x] Remove duplicate modal/snackbar presentation for the same operational save failure.
+- [x] Persist Appearance as System / Light / Dark; do not force dark mode.
+- [x] Rebuild Home around deterministic primary everyday accounts and recent canonical activity.
+- [x] Streamline Quick Entry around amount-first common entry with compact controls and progressive disclosure.
+- [x] Simplify Settings so real preferences/account actions precede collapsed safe diagnostics.
+- [x] Distinguish Plan obligations, expected income and transfers; clean up Insights hierarchy/copy.
+- [x] Render real Compose Home / Quick Entry / Settings / Plan light, dark and 150%-font candidates.
+- [x] Personally inspect the changed candidates, fix the discovered Home large-font wrapping defect and canonicalize only the clean replacements.
+- [x] Final canonical screenshot regression green.
+- [x] Final representative S24-target instrumentation green.
+- [x] Final normal Android verification green: benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-manifest/unsigned-APK policy audit.
+- [x] Zero unresolved correction-PR review blockers at merge.
+- [x] Synchronize tracker #50, permanent issue #27, Phase 6 issue #14, `STATUS.md` and `TODO.md` after merge.
+
 ## Phase 6 — physical-device / production / signing handoff
 
-Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative.
+Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative. Use the current `develop` state after the merged correction pass.
 
-- [ ] Validate production-configured Auth/API on the physical S24 Ultra.
-- [ ] Perform first physical-device run and auth → local unlock → canonical sync → mutation/reconnect → logout/re-auth smoke flow.
-- [ ] Validate actual Samsung One UI rendering plus the owner's display resolution/zoom/font settings.
-- [ ] Validate device-specific startup/performance behavior.
-- [ ] Promote/freeze a release candidate only after physical-device acceptance.
+- [ ] Record Samsung One UI / Android version plus the owner's current display resolution, screen zoom and font settings for the accepted run.
+- [ ] Re-run production-configured Auth/API on the physical S24 Ultra: login → TOTP/AAL2 → canonical sync.
+- [ ] Validate biometric/PIN local unlock after background/kill/relaunch.
+- [ ] Perform one reversible finance mutation, reload and verify the persisted result without 428/409 corruption or duplication.
+- [ ] Validate offline → online pending/reconcile behavior with fresh server reload before replay and no duplicate write.
+- [ ] Validate real card deletion end-to-end against production state and the secret-vault boundaries.
+- [ ] Validate owner+AAL2 PAN/expiry access and device-local CVV behavior.
+- [ ] Validate Appearance System/Light/Dark persistence on the physical Samsung device.
+- [ ] Validate corrected Home, Quick Entry, Settings, Money, Plan and Insights rendering/hierarchy on the owner's unchanged Samsung display/font settings.
+- [ ] Capture only current real application screenshots for device-specific acceptance and replace superseded physical evidence.
+- [ ] Validate logout → relaunch → re-auth flow.
+- [ ] Validate device-specific cold start, scrolling, Quick Entry and reconnect performance.
+- [ ] Promote/freeze a release candidate only after all physical-device acceptance checks pass.
 - [ ] Create/preserve a production signing key only at the explicit signing handoff, outside the public repository.
 - [ ] Generate a production-signed APK only when explicitly requested after Phase 6 gates pass.
 
