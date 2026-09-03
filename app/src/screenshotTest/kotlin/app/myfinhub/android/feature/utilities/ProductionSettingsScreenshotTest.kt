@@ -16,6 +16,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+// These production previews are the canonical Settings/update acceptance surfaces for the S24 workstream.
 @PreviewTest
 @Preview(name = "production_settings_compact_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
