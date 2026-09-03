@@ -85,6 +85,30 @@ Open Settings → Diagnostics and verify only safe support metadata is visible:
 
 There must be no password, PIN, TOTP, access/refresh token, user identifier, finance payload, account/transaction content, PAN, expiry or CVV in the diagnostics surface.
 
+## Private self-update physical upgrade smoke
+
+The private updater contract is documented in `docs/PRIVATE_SELF_UPDATE.md`. Hosted tests can verify metadata, download integrity, package identity, signer checks and PackageInstaller handoff, but **only an update over an already installed build on the owner's S24 Ultra can validate application-data/session continuity**.
+
+Before production signing is authorized, this smoke may use two non-production builds signed by the same temporary/test identity. Keep the production private release channel unpublished and do not create a production signing key merely to run this test.
+
+1. Install the accepted lower-version build on the physical S24 Ultra.
+2. Sign in with the owner account, complete AAL2/TOTP and enroll/verify the normal local PIN/biometric flow.
+3. Confirm finance synchronization works and, if appropriate for the smoke, confirm the device-local CVV vault behavior before the update.
+4. Publish only the controlled test update metadata/APK to the private test path used for the physical smoke; never expose the APK publicly.
+5. Open Settings → Updates and verify the newer version is detected without interrupting normal finance use.
+6. Start the in-app download and verify progress is visible and the verified-install state is reached.
+7. If Samsung/Android requires "Install unknown apps" permission for MyFinHub, grant it through the OS-scoped permission screen and return to the app. Verify installation resumes correctly.
+8. If Android displays the system package-install confirmation, complete it. Do not treat the presence of this platform confirmation as a failure.
+9. Let Android replace the installed app, then relaunch MyFinHub.
+10. Verify the app reports the newer version and no downgrade/parallel-package installation occurred.
+11. Verify the encrypted stored server session was not cleared by the updater. Normal local PIN/biometric unlock should be offered where applicable.
+12. After local unlock, verify the existing server session is validated/refreshed normally and finance data loads without an unnecessary email/password/TOTP flow.
+13. Email/password/TOTP may be required only if the server session actually expired, was revoked, became invalid or otherwise legitimately requires re-authentication.
+14. Verify updater work did not clear the existing local PIN enrollment or the device-local encrypted CVV vault. Re-check card-secret access through the normal owner+AAL2 boundary.
+15. Confirm finance mutations/reconnect still behave exactly once after the update and no updater failure can trigger account logout.
+
+At the explicit production signing handoff, repeat the update-over-installed-build smoke with production-signed same-identity builds before private distribution of the first real update. Never change the production signing identity between versions: Android must reject a package signed by a different identity, and MyFinHub independently checks the signer before opening PackageInstaller.
+
 ## Samsung rendering / UX acceptance
 
 Inspect the real app on the owner's unchanged S24 Ultra settings:
@@ -94,7 +118,7 @@ Inspect the real app on the owner's unchanged S24 Ultra settings:
 - Canonical Money nested savings/loan/lending states, especially empty/read-only detail handling.
 - Canonical Plan and overall-budget editing.
 - Quick Entry, Material date selection, validation/error states and split-entry scrolling.
-- Settings/Diagnostics and truthful empty Change History.
+- Settings/Diagnostics, Settings/Updates and truthful empty Change History.
 - Login, TOTP, PIN enrollment, locked/local-unlock states.
 - Loading, empty/first-use, offline, retry, revision-conflict and pending-network states.
 - Card stack/detail and card-secret dialogs.
@@ -124,7 +148,8 @@ Validate at minimum:
 - canonical Money/Plan navigation and nested read-only/detail states remain responsive;
 - navigation among the five top-level destinations remains responsive;
 - app relaunch/local unlock has no abnormal delay or loop;
-- offline → online recovery does not block the main thread or freeze navigation.
+- offline → online recovery does not block the main thread or freeze navigation;
+- Settings update check remains nonblocking and downloading an update does not make normal navigation unusable before installation begins.
 
 If a reproducible S24 Ultra performance defect is found, fix it before release-candidate promotion and repeat the relevant exact-head repository gates.
 
@@ -149,6 +174,7 @@ When Phase 6 is actually performed, record in issue #14:
 - production Auth/API smoke result;
 - canonical Money/Plan truthfulness and Quick Entry physical-UX result;
 - offline/reconnect and duplicate-write result;
+- private update-over-installed-build result, including session/local-unlock continuity;
 - Samsung visual/accessibility acceptance result with current real-device screenshots;
 - device-specific performance result;
 - whether release-candidate promotion/signing was explicitly authorized.
