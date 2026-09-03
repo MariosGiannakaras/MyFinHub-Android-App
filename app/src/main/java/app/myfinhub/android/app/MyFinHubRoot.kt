@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,12 +31,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.ui.UserNotice
+import app.myfinhub.android.core.update.LocalUpdateController
+import app.myfinhub.android.core.update.UpdateController
+import app.myfinhub.android.core.update.UpdateViewModel
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -56,16 +63,19 @@ import kotlinx.coroutines.flow.merge
  * Production application root.
  *
  * Local biometric/PIN success is handled by [AuthShellViewModel]. Only an Auth Ready session is
- * handed to production finance and card-secret controllers. Sensitive card values are never part of
- * the canonical product state and are cleared whenever auth leaves Ready.
+ * handed to production finance, card-secret and private-update controllers. Sensitive card values
+ * are never part of the canonical product state. Updater failures remain isolated from finance/auth
+ * rejection so a failed update check or install can never log the user out.
  */
 @Composable
 fun MyFinHubRoot(
     authViewModel: AuthShellViewModel = viewModel(),
     financeViewModel: FinanceProductViewModel = viewModel(),
     cardSecretViewModel: CardSecretViewModel = viewModel(),
+    updateViewModel: UpdateViewModel = viewModel(),
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val appearancePreferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
@@ -79,6 +89,16 @@ fun MyFinHubRoot(
         appearancePreferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { appearancePreferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
+    DisposableEffect(lifecycleOwner, updateViewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) updateViewModel.onAppResumed()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            updateViewModel.onAppResumed()
+        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val systemDark = isSystemInDarkTheme()
     val darkTheme = when (appearance) {
         AppAppearance.SYSTEM -> systemDark
@@ -89,6 +109,7 @@ fun MyFinHubRoot(
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
+    val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
     val latestFinanceState by rememberUpdatedState(financeState)
@@ -104,10 +125,12 @@ fun MyFinHubRoot(
             is AuthShellUiState.Ready -> {
                 financeViewModel.attachSession(state.session)
                 cardSecretViewModel.attachSession(state.session)
+                updateViewModel.attachSession(state.session)
             }
             else -> {
                 financeViewModel.clear()
                 cardSecretViewModel.clear()
+                updateViewModel.clearSession()
             }
         }
     }
@@ -159,54 +182,65 @@ fun MyFinHubRoot(
         lastSuccessfulSync = lastSuccessfulSync,
         lastDiagnosticCode = lastDiagnosticCode,
     )
+    val updateController = UpdateController(
+        state = updateState,
+        check = { updateViewModel.checkForUpdates() },
+        download = updateViewModel::downloadAvailableUpdate,
+        install = updateViewModel::installReadyUpdate,
+        openInstallPermission = {
+            updateViewModel.installPermissionIntent()?.let { intent -> context.startActivity(intent) }
+        },
+    )
 
     MyFinHubTheme(darkTheme = darkTheme) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AuthShellScreen(
-                state = authState,
-                onSignIn = authViewModel::signIn,
-                onSubmitTotp = authViewModel::submitTotp,
-                onEnrollPin = authViewModel::enrollPin,
-                onVerifyPin = authViewModel::verifyPin,
-                onBiometricSuccess = authViewModel::biometricSucceeded,
-                onPinFallbackRequested = authViewModel::requestPinFallback,
-                readyContent = {
-                    FinanceProductSurface(
-                        state = financeState,
-                        cardSecretState = cardSecretState,
-                        onRetryLoad = financeViewModel::retryLoad,
-                        onRetryMutation = financeViewModel::retryPendingMutation,
-                        onDiscardMutation = financeViewModel::discardPendingAndReload,
-                        onLogout = authViewModel::logout,
-                        onHomeAction = financeViewModel::onHomeAction,
-                        onActivityAction = financeViewModel::onActivityAction,
-                        onQuickEntryAction = financeViewModel::onQuickEntryAction,
-                        onPlanAction = financeViewModel::onPlanAction,
-                        onCardDetailOpened = cardSecretViewModel::openCard,
-                        onCardDetailClosed = cardSecretViewModel::closeCard,
-                        onRevealCardSecrets = cardSecretViewModel::reveal,
-                        onHideCardSecrets = cardSecretViewModel::hideSecrets,
-                        onSaveLocalCvv = cardSecretViewModel::saveCvv,
-                        onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
-                        onDeleteCard = financeViewModel::deleteCard,
-                        diagnostics = diagnostics,
-                    )
-                },
-            )
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = MyFinHubSpacing.md)
-                    .padding(bottom = snackbarBottomPadding),
-            )
-        }
+        CompositionLocalProvider(LocalUpdateController provides updateController) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                AuthShellScreen(
+                    state = authState,
+                    onSignIn = authViewModel::signIn,
+                    onSubmitTotp = authViewModel::submitTotp,
+                    onEnrollPin = authViewModel::enrollPin,
+                    onVerifyPin = authViewModel::verifyPin,
+                    onBiometricSuccess = authViewModel::biometricSucceeded,
+                    onPinFallbackRequested = authViewModel::requestPinFallback,
+                    readyContent = {
+                        FinanceProductSurface(
+                            state = financeState,
+                            cardSecretState = cardSecretState,
+                            onRetryLoad = financeViewModel::retryLoad,
+                            onRetryMutation = financeViewModel::retryPendingMutation,
+                            onDiscardMutation = financeViewModel::discardPendingAndReload,
+                            onLogout = authViewModel::logout,
+                            onHomeAction = financeViewModel::onHomeAction,
+                            onActivityAction = financeViewModel::onActivityAction,
+                            onQuickEntryAction = financeViewModel::onQuickEntryAction,
+                            onPlanAction = financeViewModel::onPlanAction,
+                            onCardDetailOpened = cardSecretViewModel::openCard,
+                            onCardDetailClosed = cardSecretViewModel::closeCard,
+                            onRevealCardSecrets = cardSecretViewModel::reveal,
+                            onHideCardSecrets = cardSecretViewModel::hideSecrets,
+                            onSaveLocalCvv = cardSecretViewModel::saveCvv,
+                            onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
+                            onDeleteCard = financeViewModel::deleteCard,
+                            diagnostics = diagnostics,
+                        )
+                    },
+                )
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = MyFinHubSpacing.md)
+                        .padding(bottom = snackbarBottomPadding),
+                )
+            }
 
-        detailNotice?.let { notice ->
-            UserNoticeDetailsDialog(
-                notice = notice,
-                onDismiss = { detailNotice = null },
-            )
+            detailNotice?.let { notice ->
+                UserNoticeDetailsDialog(
+                    notice = notice,
+                    onDismiss = { detailNotice = null },
+                )
+            }
         }
     }
 }
