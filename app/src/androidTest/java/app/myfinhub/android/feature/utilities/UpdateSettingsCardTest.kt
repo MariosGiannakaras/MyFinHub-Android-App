@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.core.update.UpdateController
 import app.myfinhub.android.core.update.UpdateRelease
@@ -39,8 +40,8 @@ class UpdateSettingsCardTest {
             }
         }
 
-        composeRule.onNodeWithText("Νέα έκδοση 0.2.0 διαθέσιμη").assertIsDisplayed()
-        composeRule.onNodeWithText("Λήψη ενημέρωσης").performClick()
+        composeRule.onNodeWithText("Νέα έκδοση 0.2.0 διαθέσιμη").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Λήψη ενημέρωσης").performScrollTo().assertIsDisplayed().performClick()
         assertEquals(1, downloads)
     }
 
