@@ -201,6 +201,49 @@ data class EditCanonicalActivity(
     }
 }
 
+/** Removes a transaction from the canonical effective ledger while preserving shared schema semantics. */
+data class DeleteCanonicalActivity(
+    val transactionId: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Διαγραφή κίνησης"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        val id = transactionId.trim()
+        require(id.isNotBlank()) { "Η κίνηση δεν είναι πλέον διαθέσιμη." }
+
+        val events = document.state.array("events")
+        val eventIndex = events.indexOfFirst { (it as? JsonObject)?.string("id") == id }
+        if (eventIndex >= 0) {
+            val updatedEvents = events.toMutableList().apply { removeAt(eventIndex) }
+            return document.withMutableState(document.state.updated("events", JsonArray(updatedEvents)), nowIso)
+        }
+
+        val custom = document.state.array("customTransactions")
+        val customIndex = custom.indexOfFirst { (it as? JsonObject)?.string("id") == id }
+        if (customIndex >= 0) {
+            val updatedCustom = custom.toMutableList().apply { removeAt(customIndex) }
+            return document.withMutableState(document.state.updated("customTransactions", JsonArray(updatedCustom)), nowIso)
+        }
+
+        val seedExists = document.seed.array("transactions")
+            .mapNotNull { it as? JsonObject }
+            .any { it.string("id") == id }
+        require(seedExists) { "Η κίνηση δεν είναι πλέον διαθέσιμη." }
+
+        val deleted = when (val current = document.state["deleted"]) {
+            is JsonArray -> current.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.toMutableSet()
+            is JsonObject -> current.filterValues { (it as? JsonPrimitive)?.booleanOrNull == true }.keys.toMutableSet()
+            else -> mutableSetOf()
+        }.apply { add(id) }
+        val overrides = document.state.obj("overrides").updated(id, null)
+        val updatedState = document.state
+            .updated("deleted", JsonArray(deleted.sorted().map(::JsonPrimitive)))
+            .updated("overrides", overrides)
+        return document.withMutableState(updatedState, nowIso)
+    }
+}
+
 data class UpsertOverallBudget(
     val month: String,
     val amount: Double,
