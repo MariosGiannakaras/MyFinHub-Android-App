@@ -31,9 +31,9 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Build installable debug APK
+      - name: Test and build installable debug APK
         shell: bash
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew test assembleDebug --stacktrace
 
       - name: Publish installable APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
