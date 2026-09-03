@@ -15,6 +15,7 @@ data class ActivityItem(
     val amount: Double,
     val accountLabel: String,
     val category: String?,
+    val pendingSync: Boolean = false,
 )
 
 enum class ActivityKind(val label: String) {
@@ -65,6 +66,7 @@ sealed interface ActivityAction {
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class Select(val id: String?) : ActivityAction
     data class SaveEdit(val id: String, val note: String, val category: String) : ActivityAction
+    data class Delete(val id: String) : ActivityAction
 }
 
 fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiState = when (action) {
@@ -79,6 +81,10 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
                 item
             }
         },
+    )
+    is ActivityAction.Delete -> state.copy(
+        selectedId = state.selectedId.takeUnless { it == action.id },
+        items = state.items.filterNot { it.id == action.id },
     )
 }
 
