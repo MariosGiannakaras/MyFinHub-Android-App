@@ -59,11 +59,6 @@ fun ProductionHomeScreen(
                 },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onOpenQuickEntry) {
-                Icon(MyFinHubIcons.Add, contentDescription = "Νέα κίνηση")
-            }
-        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().testTag("home_list"),
@@ -76,18 +71,30 @@ fun ProductionHomeScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                    Text(
-                        "Οι λογαριασμοί σου",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.semantics { heading() },
-                    )
-                    Text(
-                        "Υπόλοιπα και πρόσφατη δραστηριότητα",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                    ) {
+                        Text(
+                            "Οι λογαριασμοί σου",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                        Text(
+                            "Υπόλοιπα και πρόσφατη δραστηριότητα",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    FloatingActionButton(onClick = onOpenQuickEntry) {
+                        Icon(MyFinHubIcons.Add, contentDescription = "Νέα κίνηση")
+                    }
                 }
             }
 
@@ -126,9 +133,18 @@ private fun PrimaryAccountsCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("Βασικοί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Βασικοί λογαριασμοί",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
                 TextButton(onClick = onToggleAmounts) {
-                    Text(if (amountsVisible) "Απόκρυψη" else "Εμφάνιση")
+                    Text(
+                        if (amountsVisible) "Απόκρυψη" else "Εμφάνιση",
+                        maxLines = 1,
+                        softWrap = false,
+                    )
                 }
             }
             if (accounts.isEmpty()) {
