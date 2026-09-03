@@ -3,7 +3,6 @@ package app.myfinhub.android.core.update
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.content.pm.Signature
 import android.os.Build
 import java.io.File
 import java.security.MessageDigest
@@ -77,7 +76,7 @@ class ApkVerifier(private val context: Context) {
         }
 
     private fun currentSignerDigests(info: PackageInfo): Set<String> {
-        val signatures: Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             info.signingInfo?.apkContentsSigners.orEmpty()
         } else {
             @Suppress("DEPRECATION")
