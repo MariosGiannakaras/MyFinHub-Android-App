@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import app.myfinhub.android.BuildConfig
+import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -44,6 +46,7 @@ fun ProductionSettingsScreen(
     onLogout: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val updateController = LocalUpdateController.current
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var diagnosticsExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -122,6 +125,15 @@ fun ProductionSettingsScreen(
                     )
                 }
             }
+
+            UpdateSettingsCard(
+                currentVersionName = BuildConfig.VERSION_NAME,
+                state = updateController.state,
+                onCheck = updateController.check,
+                onDownload = updateController.download,
+                onInstall = updateController.install,
+                onOpenInstallPermission = updateController.openInstallPermission,
+            )
 
             onLogout?.let { logout ->
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
