@@ -33,6 +33,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 sealed interface AuthShellUiState {
@@ -54,7 +56,16 @@ sealed interface AuthShellUiState {
         val pinStatus: PinAttemptStatus,
         val message: String? = null,
     ) : AuthShellUiState
-    data class Ready(val session: AuthSession) : AuthShellUiState
+
+    /**
+     * [offline] means the owner passed local PIN/biometric unlock but the stored server session has
+     * not yet been revalidated because there is no network. Product reads may use encrypted cached
+     * data, while network writes remain disabled until this returns to false.
+     */
+    data class Ready(
+        val session: AuthSession,
+        val offline: Boolean = false,
+    ) : AuthShellUiState
 }
 
 class AuthShellViewModel(
@@ -82,8 +93,17 @@ class AuthShellViewModel(
     private val mutableNotices = MutableSharedFlow<UserNotice>(extraBufferCapacity = 8)
     val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
 
+    private var offlineValidationInFlight = false
+
     init {
         initialize()
+        viewModelScope.launch {
+            connectivityObserver.status.drop(1).collect { status ->
+                if (status != NetworkStatus.ONLINE) return@collect
+                val current = mutableState.value as? AuthShellUiState.Ready ?: return@collect
+                if (current.offline) validateOfflineReadySession(current.session)
+            }
+        }
     }
 
     fun initialize() {
@@ -135,7 +155,7 @@ class AuthShellViewModel(
         }
         val passwordCopy = password.copyOf()
         password.fill('\u0000')
-        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
             passwordCopy.fill('\u0000')
             mutableState.value = current.copy(message = "Δεν υπάρχει σύνδεση για νέα σύνδεση λογαριασμού.")
             mutableNotices.tryEmit(offlineUserNotice("Σύνδεση"))
@@ -175,7 +195,7 @@ class AuthShellViewModel(
         }
         val codeCopy = code.copyOf()
         code.fill('\u0000')
-        if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
+        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
             codeCopy.fill('\u0000')
             mutableState.value = current.copy(message = "Δεν υπάρχει σύνδεση για επαλήθευση δύο παραγόντων.")
             mutableNotices.tryEmit(offlineUserNotice("Επαλήθευση δύο παραγόντων"))
@@ -353,13 +373,15 @@ class AuthShellViewModel(
 
     private fun validateUnlockedSession(session: AuthSession, fallbackToPin: Boolean) {
         viewModelScope.launch {
-            if (connectivityObserver.current() == NetworkStatus.OFFLINE) {
-                mutableState.value = lockedState(
-                    session = session,
-                    showPin = fallbackToPin,
-                    message = "Δεν υπάρχει σύνδεση. Η αποθηκευμένη συνεδρία παραμένει κλειδωμένη και μπορείς να δοκιμάσεις ξανά.",
+            if (connectivityObserver.current() != NetworkStatus.ONLINE) {
+                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                mutableNotices.emit(
+                    UserNotice(
+                        message = "Άνοιξε σε λειτουργία χωρίς σύνδεση.",
+                        details = "Ενέργεια: Τοπικό ξεκλείδωμα\nΚατηγορία: OFFLINE_LOCAL_UNLOCK\nΧρησιμοποιούνται μόνο κρυπτογραφημένα δεδομένα αυτής της συσκευής. Η server συνεδρία θα επαληθευτεί πριν από συγχρονισμό.",
+                        diagnosticCode = "MFH-AUTH-OFFLINE-LOCAL-UNLOCK",
+                    ),
                 )
-                mutableNotices.emit(offlineUserNotice("Έλεγχος συνεδρίας μετά το ξεκλείδωμα"))
                 return@launch
             }
             mutableState.value = AuthShellUiState.Loading
@@ -402,9 +424,49 @@ class AuthShellViewModel(
         }
     }
 
+    private fun validateOfflineReadySession(session: AuthSession) {
+        if (offlineValidationInFlight) return
+        offlineValidationInFlight = true
+        viewModelScope.launch {
+            try {
+                when (val result = coordinator.afterLocalUnlock(session)) {
+                    is AuthAppState.Ready -> routeReady(result.session)
+                    AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login(
+                        "Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.",
+                    )
+                    is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
+                    is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
+                        "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
+                    )
+                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                    is AuthAppState.Failure -> {
+                        reportAuthFailure(result.failure, "Επαλήθευση συνεδρίας μετά την επανασύνδεση")
+                        mutableState.value = AuthShellUiState.Ready(
+                            session = result.recoverableSession ?: session,
+                            offline = true,
+                        )
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                mutableNotices.emit(
+                    unexpectedUserNotice(
+                        operation = "Επαλήθευση συνεδρίας μετά την επανασύνδεση",
+                        throwable = error,
+                        message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
+                    ),
+                )
+            } finally {
+                offlineValidationInFlight = false
+            }
+        }
+    }
+
     private suspend fun routeReady(session: AuthSession) {
         mutableState.value = if (pinVerifier.isEnrolled()) {
-            AuthShellUiState.Ready(session)
+            AuthShellUiState.Ready(session = session, offline = false)
         } else {
             AuthShellUiState.PinEnrollment(session)
         }
