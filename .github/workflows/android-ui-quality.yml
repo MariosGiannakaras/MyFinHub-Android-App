@@ -13,11 +13,8 @@ on:
       - '.github/workflows/android-ui-quality.yml'
   workflow_dispatch:
 
-# TEMPORARY: restricted to the active Phase 6 correction PR so the already personally inspected
-# real Compose renders can replace the curated references without moving binary PNGs through a text API.
-# This permission and recording step are removed immediately after the one reference commit lands.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -30,8 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -74,41 +69,6 @@ jobs:
             app/build/reports/screenshotTest/**/*.png
           if-no-files-found: warn
           retention-days: 14
-
-      - name: Record personally approved Phase 6 correction references
-        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/phase6-physical-corrections'
-        shell: bash
-        run: |
-          home='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt'
-          quick='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt'
-          settings='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt'
-          plan='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTestKt'
-
-          cp "$home"/ProductionHomeCompactLightScreenshot_*.png screenshots/home/home-compact.png
-          cp "$home"/ProductionHomeCompactDarkScreenshot_*.png screenshots/home/home-dark.png
-          cp "$home"/ProductionHomeCompactLargeFontScreenshot_*.png screenshots/home/home-large-font.png
-
-          cp "$quick"/ProductionQuickEntryCompactLightScreenshot_*.png screenshots/quick-entry/quick-entry-compact.png
-          cp "$quick"/ProductionQuickEntryCompactDarkScreenshot_*.png screenshots/quick-entry/quick-entry-dark.png
-          cp "$quick"/ProductionQuickEntryCompactLargeFontScreenshot_*.png screenshots/quick-entry/quick-entry-large-font.png
-
-          cp "$settings"/ProductionSettingsCompactLightScreenshot_*.png screenshots/utilities/settings-compact.png
-          cp "$settings"/ProductionSettingsCompactDarkScreenshot_*.png screenshots/utilities/settings-dark.png
-          cp "$settings"/ProductionSettingsCompactLargeFontScreenshot_*.png screenshots/utilities/settings-large-font.png
-
-          cp "$plan"/CanonicalPlanCompactLightScreenshot_*.png screenshots/plan/plan-overview.png
-          cp "$plan"/CanonicalPlanCompactDarkScreenshot_*.png screenshots/plan/plan-overview-dark.png
-          cp "$plan"/CanonicalPlanCompactLargeFontScreenshot_*.png screenshots/plan/plan-overview-large-font.png
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/src/screenshotTestDebug/reference screenshots/home screenshots/quick-entry screenshots/utilities screenshots/plan
-          if git diff --cached --quiet; then
-            echo 'Renderer did not change the approved reference set.'
-            exit 0
-          fi
-          git commit -m 'Accept validated Phase 6 correction screenshots'
-          git push origin HEAD:${GITHUB_HEAD_REF}
 
   s24-ultra-target-instrumented:
     # A stock compact-phone emulator is only a representative automated host.
