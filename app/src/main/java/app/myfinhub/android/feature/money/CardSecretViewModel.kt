@@ -119,31 +119,63 @@ class CardSecretViewModel internal constructor(
     }
 
     /**
-     * Removes device-local secret material when a canonical card is deleted/deactivated.
-     * The canonical mutation is owned by FinanceProductViewModel; this method only clears the
-     * Android-only CVV boundary and any currently revealed in-memory state for the same stable ID.
+     * Runs only after the canonical card deactivation has committed. At that point the card is no
+     * longer active in finance state, so cleanup removes both server PAN/expiry and the device-local
+     * encrypted CVV. A partial cleanup never restores the canonical card and is reported once.
      */
     fun purgeCard(cardId: String) {
         val normalized = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalized)) {
-            emitInvalidCardNotice("Καθαρισμός τοπικού CVV")
+            emitInvalidCardNotice("Καθαρισμός ασφαλών στοιχείων κάρτας")
             return
         }
+        val session = currentSession
         if (currentCardId == normalized) {
             currentCardId = null
             mutableState.value = CardSecretUiState.Hidden()
         }
         viewModelScope.launch {
+            var serverFailure: ApiResult.Failure? = null
+            if (session == null) {
+                serverFailure = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
+            } else {
+                when (val result = safeApiCall { api.deleteCardSecrets(session, normalized) }) {
+                    is ApiResult.Success -> Unit
+                    is ApiResult.Failure -> serverFailure = result
+                }
+            }
+
+            var localFailure: Exception? = null
             try {
                 cvvVault.delete(normalized)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
+                localFailure = error
+            }
+
+            if (serverFailure != null || localFailure != null) {
+                val failedParts = buildList {
+                    if (serverFailure != null) add("server PAN/λήξη")
+                    if (localFailure != null) add("τοπικό CVV")
+                }.joinToString(" και ")
                 mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Καθαρισμός τοπικού CVV",
-                        throwable = error,
-                        message = "Η κάρτα διαγράφηκε, αλλά δεν ολοκληρώθηκε ο καθαρισμός του τοπικού CVV.",
+                    UserNotice(
+                        message = "Η κάρτα αφαιρέθηκε, αλλά ο καθαρισμός ασφαλών στοιχείων δεν ολοκληρώθηκε.",
+                        details = buildString {
+                            append("Ενέργεια: Καθαρισμός ασφαλών στοιχείων κάρτας\n")
+                            append("Δεν καθαρίστηκε: $failedParts")
+                            serverFailure?.let { failure ->
+                                append("\nΚατηγορία server: ${failure.kind}")
+                                failure.statusCode?.let { append("\nHTTP: $it") }
+                            }
+                            if (localFailure != null) append("\nΚατηγορία συσκευής: LOCAL_CVV_CLEANUP_FAILED")
+                            append("\nΔεν εμφανίζονται ευαίσθητα δεδομένα.")
+                        },
+                        diagnosticCode = when {
+                            serverFailure != null -> "MFH-CARD-SECRET-CLEANUP-${serverFailure.kind}"
+                            else -> "MFH-CARD-LOCAL-CVV-CLEANUP"
+                        },
                     ),
                 )
             }
