@@ -140,7 +140,7 @@ fun MyFinHubRoot(
         }
     }
     LaunchedEffect(financeState, cardSecretState) {
-        if (financeState is FinanceProductState.AuthRejected || cardSecretState is CardSecretUiState.AuthRejected) {
+        if (shouldLogoutForProductAuthRejection(financeState, cardSecretState)) {
             financeViewModel.clear()
             cardSecretViewModel.clear()
             authViewModel.logout()
