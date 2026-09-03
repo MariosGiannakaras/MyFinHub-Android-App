@@ -33,6 +33,7 @@ import app.myfinhub.android.feature.home.HomeQuickEntryType
 import app.myfinhub.android.feature.home.HomeScreen
 import app.myfinhub.android.feature.home.HomeUiState
 import app.myfinhub.android.feature.home.HomeViewModel
+import app.myfinhub.android.feature.home.ProductionHomeScreen
 import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
@@ -61,6 +62,7 @@ import app.myfinhub.android.feature.plan.PlanBudgets2026Screen
 import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
+import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.QuickEntryScreen
@@ -70,6 +72,7 @@ import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
+import app.myfinhub.android.feature.utilities.ProductionSettingsScreen
 import app.myfinhub.android.feature.utilities.SettingsScreen
 import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
 
@@ -156,6 +159,12 @@ internal fun MyFinHubAppContent(
         TopLevelDestination.INSIGHTS -> insightsBackStack
     }
 
+    fun openFastExpense(backStack: NavBackStack<NavKey>) {
+        onQuickEntryAction(QuickEntryAction.Reset)
+        onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+        backStack.pushIfNew(AppRoute.QuickEntry)
+    }
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             TopLevelDestination.entries.forEach { destination ->
@@ -187,22 +196,30 @@ internal fun MyFinHubAppContent(
             },
             entryProvider = entryProvider {
                 entry<AppRoute.Home> {
-                    HomeScreen(
-                        state = homeState,
-                        onAction = { action ->
-                            onHomeAction(action)
-                            if (action is HomeAction.SelectQuickEntry) {
-                                onHomeAction(HomeAction.CloseQuickEntry)
-                                onQuickEntryAction(
-                                    QuickEntryAction.SelectKind(action.type.toQuickEntryKind()),
-                                )
-                                homeBackStack.pushIfNew(AppRoute.QuickEntry)
-                            }
-                        },
-                        onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
-                        onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
-                        onOpenChangeHistory = { homeBackStack.pushIfNew(AppRoute.ChangeHistory) },
-                    )
+                    if (canonicalProductMode) {
+                        ProductionHomeScreen(
+                            state = homeState,
+                            onAction = onHomeAction,
+                            onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
+                            onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
+                            onOpenQuickEntry = { openFastExpense(homeBackStack) },
+                        )
+                    } else {
+                        HomeScreen(
+                            state = homeState,
+                            onAction = { action ->
+                                onHomeAction(action)
+                                if (action is HomeAction.SelectQuickEntry) {
+                                    onHomeAction(HomeAction.CloseQuickEntry)
+                                    onQuickEntryAction(QuickEntryAction.SelectKind(action.type.toQuickEntryKind()))
+                                    homeBackStack.pushIfNew(AppRoute.QuickEntry)
+                                }
+                            },
+                            onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
+                            onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
+                            onOpenChangeHistory = { homeBackStack.pushIfNew(AppRoute.ChangeHistory) },
+                        )
+                    }
                 }
                 entry<AppRoute.HomeAttention> { route ->
                     HomeAttentionDetailScreen(
@@ -215,13 +232,23 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Settings> {
-                    SettingsScreen(
-                        state = frontendUtilitiesState,
-                        onAction = onFrontendUtilitiesAction,
-                        onBack = { homeBackStack.removeLastOrNull() },
-                        diagnostics = diagnostics,
-                        onLogout = onLogout,
-                    )
+                    if (canonicalProductMode) {
+                        ProductionSettingsScreen(
+                            state = frontendUtilitiesState,
+                            onAction = onFrontendUtilitiesAction,
+                            onBack = { homeBackStack.removeLastOrNull() },
+                            diagnostics = diagnostics,
+                            onLogout = onLogout,
+                        )
+                    } else {
+                        SettingsScreen(
+                            state = frontendUtilitiesState,
+                            onAction = onFrontendUtilitiesAction,
+                            onBack = { homeBackStack.removeLastOrNull() },
+                            diagnostics = diagnostics,
+                            onLogout = onLogout,
+                        )
+                    }
                 }
                 entry<AppRoute.ChangeHistory> {
                     ChangeHistoryScreen(
@@ -235,7 +262,7 @@ internal fun MyFinHubAppContent(
                         state = activityState,
                         onAction = onActivityAction,
                         onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
-                        onOpenQuickEntry = { activityBackStack.pushIfNew(AppRoute.QuickEntry) },
+                        onOpenQuickEntry = { openFastExpense(activityBackStack) },
                     )
                 }
                 entry<AppRoute.ActivityDetail> { route ->
@@ -248,11 +275,19 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.QuickEntry> {
-                    QuickEntryScreen(
-                        state = quickEntryState,
-                        onAction = onQuickEntryAction,
-                        onBack = { activeBackStack.removeLastOrNull() },
-                    )
+                    if (canonicalProductMode) {
+                        ProductionQuickEntryScreen(
+                            state = quickEntryState,
+                            onAction = onQuickEntryAction,
+                            onBack = { activeBackStack.removeLastOrNull() },
+                        )
+                    } else {
+                        QuickEntryScreen(
+                            state = quickEntryState,
+                            onAction = onQuickEntryAction,
+                            onBack = { activeBackStack.removeLastOrNull() },
+                        )
+                    }
                 }
                 entry<AppRoute.Money> {
                     if (canonicalProductMode) {
