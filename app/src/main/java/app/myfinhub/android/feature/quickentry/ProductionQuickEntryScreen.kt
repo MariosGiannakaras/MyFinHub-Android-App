@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.quickentry
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,12 +43,11 @@ private val FastKinds = listOf(
     QuickEntryKind.EXPENSE,
     QuickEntryKind.INCOME,
     QuickEntryKind.TRANSFER,
-    QuickEntryKind.CARD_PAYMENT,
 )
 
 /**
- * Production fast path for the four everyday transaction types. Advanced transaction semantics are
- * still fully available by selecting another type, which falls back to the complete editor.
+ * Production fast path for the three everyday cash-flow types. Less-frequent semantics, including
+ * card payments, remain fully available through the advanced type menu and use the complete editor.
  */
 @Composable
 fun ProductionQuickEntryScreen(
@@ -116,7 +114,7 @@ fun ProductionQuickEntryScreen(
 
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
                 FastKinds.forEach { kind ->
@@ -137,7 +135,7 @@ fun ProductionQuickEntryScreen(
                         onSelected = { onAction(QuickEntryAction.AccountChanged(it)) },
                     )
                 }
-                state.kind == QuickEntryKind.TRANSFER || state.kind == QuickEntryKind.CARD_PAYMENT -> {
+                state.kind == QuickEntryKind.TRANSFER -> {
                     CompactChoice(
                         label = "Από λογαριασμό",
                         selectedId = state.fromAccountId,
@@ -153,15 +151,6 @@ fun ProductionQuickEntryScreen(
                     selectedId = state.toAccountId,
                     choices = state.accounts.filter { it.id != state.fromAccountId }.map { it.id to it.label },
                     onSelected = { onAction(QuickEntryAction.ToAccountChanged(it)) },
-                )
-            }
-
-            if (state.kind == QuickEntryKind.CARD_PAYMENT) {
-                CompactChoice(
-                    label = "Κάρτα",
-                    selectedId = state.cardId,
-                    choices = state.creditCards.map { it.id to it.label },
-                    onSelected = { onAction(QuickEntryAction.CardChanged(it)) },
                 )
             }
 
