@@ -1,5 +1,38 @@
 # MyFinHub Android status
 
+## 2026-09-03 — Phase 6 physical-device correction pass complete and merged
+
+The first physical Samsung Galaxy S24 Ultra run exposed a focused set of correctness and product-UX issues. Tracker #50 is completed/closed and its validated correction PR was squash-merged into `develop`.
+
+### Completed correction work
+
+- Production finance writes now honor the durable-history generation precondition together with revision concurrency metadata, and mutation eligibility requires a consistent finance/history snapshot.
+- Card deletion was corrected across canonical finance state, server PAN/expiry storage and device-local encrypted CVV handling; a failed/refused mutation no longer leaves a misleading local deletion.
+- Duplicate operational save-failure presentation was removed.
+- Appearance now persists System / Light / Dark instead of forcing dark mode.
+- Home prioritizes the three deterministic primary everyday accounts and recent canonical activity before secondary information.
+- Quick Entry is optimized around amount-first common entry with compact controls, sensible defaults and progressively disclosed secondary fields.
+- Settings prioritizes real user preferences/account actions while keeping safe diagnostics secondary.
+- Plan distinguishes obligations, expected income and transfers; Insights removes engineering-oriented hierarchy/copy and prioritizes financial summary content.
+
+### Screenshot and hosted validation
+
+- Changed Home, Quick Entry, Settings and Plan light/dark/150%-font renders were generated as real Compose screenshots and personally inspected before acceptance.
+- A Home large-font wrapping defect was found during inspection and corrected before canonicalization.
+- Only the latest validated screenshot references/review images are retained for the changed surfaces.
+- Final canonical screenshot regression passed on the accepted references.
+- Final representative S24-target instrumentation passed.
+- Final normal Android verification passed: benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-manifest/unsigned-APK policy audit.
+- Zero unresolved correction-PR review blockers remained at merge.
+
+### Current Phase 6 boundary
+
+All autonomous repository corrections from the first physical run are complete. The current `develop` state is the authoritative build for the next physical Galaxy S24 Ultra acceptance pass.
+
+The physical device must still revalidate production Auth/API, one reversible mutation and reload, offline/reconnect behavior, real card deletion, owner+AAL2 card-secret behavior, appearance persistence, Samsung One UI/display/font rendering and device-specific performance. `docs/PHASE_6_DEVICE_HANDOFF.md` and issue #14 remain authoritative.
+
+No `develop -> main` promotion, release/version freeze, production signing key, production-signed APK or release has been performed or authorized.
+
 ## 2026-09-03 — Design System & Pixel-Spec hardening complete and merged
 
 Tracker #47 is completed/closed. PR #48 was validated on the exact accepted implementation/reference head and squash-merged into `develop`.
