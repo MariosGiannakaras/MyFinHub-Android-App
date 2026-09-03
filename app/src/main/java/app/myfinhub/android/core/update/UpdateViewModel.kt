@@ -108,7 +108,14 @@ class UpdateViewModel(application: Application) : AndroidViewModel(application) 
     fun installPermissionIntent(): Intent? =
         if (_state.value is UpdateUiState.PermissionRequired) installer.permissionIntent() else null
 
-    fun refreshInstallStatus() {
+    fun onAppResumed() {
+        refreshInstallStatus()
+        if (_state.value is UpdateUiState.PermissionRequired && installer.canRequestInstalls()) {
+            installReadyUpdate()
+        }
+    }
+
+    private fun refreshInstallStatus() {
         val (status, versionCode) = UpdateInstallStatusStore.read(getApplication())
         if (status == InstallStatus.NONE) return
         val currentRelease = when (val current = _state.value) {
