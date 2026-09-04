@@ -38,7 +38,9 @@ import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
 import app.myfinhub.android.feature.money.CanonicalAccountDetailScreen
+import app.myfinhub.android.feature.money.CanonicalCardCreateScreen
 import app.myfinhub.android.feature.money.CanonicalCardDetailScreen
+import app.myfinhub.android.feature.money.CardCreateRequest
 import app.myfinhub.android.feature.money.accountActivityItems
 import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
@@ -128,6 +130,7 @@ internal fun MyFinHubAppContent(
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteLocalCvv: () -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
+    onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
@@ -318,6 +321,7 @@ internal fun MyFinHubAppContent(
                             onHideCardSecrets = onHideCardSecrets,
                             onDeleteCard = onDeleteCard,
                             onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
+                            onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
                             onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                             onOpenSavings = { moneyBackStack.pushIfNew(AppRoute.Savings) },
                             onOpenLoans = { moneyBackStack.pushIfNew(AppRoute.Loans) },
@@ -346,6 +350,13 @@ internal fun MyFinHubAppContent(
                         activityItems = accountActivityItems(route.accountId, activityState.items),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                    )
+                }
+                entry<AppRoute.CardCreate> {
+                    CanonicalCardCreateScreen(
+                        cards = moneyState.cards,
+                        onCreate = onCreateCard,
+                        onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.CardDetail> { route ->

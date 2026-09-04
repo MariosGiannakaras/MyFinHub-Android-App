@@ -18,6 +18,7 @@ class OfflinePendingMutationSemanticsTest {
             EditCanonicalActivity("evt-existing", "Νέα σημείωση", "Νέα κατηγορία", NOW),
             DeleteCanonicalActivity("evt-existing", NOW),
             UpsertOverallBudget("2026-09", 420.50, 73, "budget-new", NOW),
+            CreateCanonicalCard("card-new", "issuer", "New", "debit", "visa", "physical", "1234", null, NOW),
             DeactivateCanonicalCard("card-1", NOW),
         )
 
@@ -238,6 +239,37 @@ class OfflinePendingMutationSemanticsTest {
             PendingMutationSyncState.NEEDS_REVIEW,
         )
         assertEquals(listOf(ambiguous), undoLatestNeverSentPendingMutation(listOf(ambiguous)))
+    }
+
+
+    @Test
+    fun neverSentCardCreateThenDeactivate_compactsToNothing() {
+        val create = PendingCanonicalMutationIntent.fromMutation(
+            CreateCanonicalCard("card-local", "issuer", "Local", "debit", "visa", "physical", null, null, NOW),
+            "create-card",
+        )
+        val deactivate = PendingCanonicalMutationIntent.fromMutation(
+            DeactivateCanonicalCard("card-local", NOW),
+            "delete-card",
+        )
+        val afterCreate = compactPendingMutationIntents(emptyList(), create)
+        val afterDelete = compactPendingMutationIntents(afterCreate, deactivate)
+        assertTrue(afterDelete.isEmpty())
+    }
+
+    @Test
+    fun ambiguousCardCreate_isNeverCompactedByLaterDeactivate() {
+        val create = PendingCanonicalMutationIntent.fromMutation(
+            CreateCanonicalCard("card-ambiguous", "issuer", "Ambiguous", "debit", "visa", "physical", null, null, NOW),
+            "create-card",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val deactivate = PendingCanonicalMutationIntent.fromMutation(
+            DeactivateCanonicalCard("card-ambiguous", NOW),
+            "delete-card",
+        )
+        val queue = compactPendingMutationIntents(listOf(create), deactivate)
+        assertEquals(listOf("create-card", "delete-card"), queue.map { it.intentId })
     }
 
     @Test

@@ -20,6 +20,7 @@ enum class PendingMutationKind {
     EDIT_ACTIVITY,
     DELETE_ACTIVITY,
     UPSERT_OVERALL_BUDGET,
+    CREATE_CARD,
     DEACTIVATE_CARD,
 }
 
@@ -64,6 +65,17 @@ data class PendingCanonicalMutationIntent(
             transactionId = payload.string("transactionId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(
+    cardId = payload.string("cardId").orEmpty(),
+    bankId = payload.string("bankId").orEmpty(),
+    nickname = payload.string("nickname").orEmpty(),
+    kind = payload.string("cardKind").orEmpty(),
+    network = payload.string("network").orEmpty(),
+    formFactor = payload.string("formFactor").orEmpty(),
+    last4 = payload.string("last4"),
+    creditLimit = payload.number("creditLimit"),
+    nowIso = payload.string("nowIso").orEmpty(),
+)
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> UpsertOverallBudget(
             month = payload.string("month").orEmpty(),
             amount = payload.number("amount") ?: Double.NaN,
@@ -123,6 +135,18 @@ data class PendingCanonicalMutationIntent(
                         moneyToCents(actualAmount) == moneyToCents(expectedAmount) &&
                         actualThreshold == expectedThreshold
                 } == true
+        }
+        PendingMutationKind.CREATE_CARD -> {
+            val cardId = payload.string("cardId").orEmpty()
+            val card = document.state.array("cards")
+                .mapNotNull { it as? JsonObject }
+                .firstOrNull { it.string("id") == cardId }
+            cardId.isNotBlank() && card != null &&
+                card.string("bankId") == payload.string("bankId") &&
+                card.string("nickname") == payload.string("nickname") &&
+                card.string("kind") == payload.string("cardKind") &&
+                card.string("network") == payload.string("network") &&
+                card.bool("active") != false
         }
         PendingMutationKind.DEACTIVATE_CARD -> {
             val cardId = payload.string("cardId").orEmpty()
@@ -186,6 +210,22 @@ data class PendingCanonicalMutationIntent(
                         "nowIso" to JsonPrimitive(mutation.nowIso),
                     ),
                 ),
+                syncState = syncState,
+            )
+            is CreateCanonicalCard -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.CREATE_CARD,
+                payload = JsonObject(buildMap {
+                    put("cardId", JsonPrimitive(mutation.cardId))
+                    put("bankId", JsonPrimitive(mutation.bankId))
+                    put("nickname", JsonPrimitive(mutation.nickname))
+                    put("cardKind", JsonPrimitive(mutation.kind))
+                    put("network", JsonPrimitive(mutation.network))
+                    put("formFactor", JsonPrimitive(mutation.formFactor))
+                    mutation.last4?.let { put("last4", JsonPrimitive(it)) }
+                    mutation.creditLimit?.let { put("creditLimit", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
                 syncState = syncState,
             )
             is DeactivateCanonicalCard -> PendingCanonicalMutationIntent(
@@ -253,6 +293,14 @@ fun compactPendingMutationIntents(
 
     if (next.kind == PendingMutationKind.DEACTIVATE_CARD) {
         val cardId = next.affectedCardId
+        val neverSentCreate = current.lastOrNull {
+            it.kind == PendingMutationKind.CREATE_CARD &&
+                it.payload.string("cardId") == cardId &&
+                it.syncState == PendingMutationSyncState.NEVER_SENT
+        }
+        if (neverSentCreate != null) {
+            return current.filterNot { it.intentId == neverSentCreate.intentId }
+        }
         if (current.any {
                 it.kind == PendingMutationKind.DEACTIVATE_CARD &&
                     it.affectedCardId == cardId &&

@@ -8,6 +8,7 @@ import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
+import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.EditCanonicalActivity
@@ -37,6 +38,7 @@ import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.reduceActivity
 import app.myfinhub.android.feature.home.HomeAction
 import app.myfinhub.android.feature.home.reduceHomeState
+import app.myfinhub.android.feature.money.CardCreateRequest
 import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.reducePlan
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
@@ -284,6 +286,34 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val id = transactionId.trim()
         if (id.isBlank()) return
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
+    }
+
+    fun createCard(request: CardCreateRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (ready.projection.document.canonicalCards().any { it.id == request.cardId }) {
+            mutableNotices.tryEmit(
+                UserNotice(
+                    message = "Η κάρτα δεν μπόρεσε να προστεθεί με ασφάλεια.",
+                    details = "Ενέργεια: Προσθήκη κάρτας\nΚατηγορία: DUPLICATE_CARD_ID",
+                    diagnosticCode = "MFH-APP-DUPLICATE-CARD-ID",
+                ),
+            )
+            return
+        }
+        applyMutation(
+            CreateCanonicalCard(
+                cardId = request.cardId,
+                bankId = request.bankId,
+                nickname = request.nickname,
+                kind = request.kind,
+                network = request.network,
+                formFactor = request.formFactor,
+                last4 = request.last4,
+                creditLimit = request.creditLimit,
+                nowIso = Instant.now().toString(),
+            ),
+        )
     }
 
     fun deleteCard(cardId: String) {
@@ -777,6 +807,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.EDIT_ACTIVITY -> "Επεξεργασία κίνησης"
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
+                PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
                 PendingMutationKind.DEACTIVATE_CARD -> "Διαγραφή κάρτας"
             },
             statusLabel = if (pending.syncState == PendingMutationSyncState.NEVER_SENT) {

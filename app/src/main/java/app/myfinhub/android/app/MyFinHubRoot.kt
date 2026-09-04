@@ -51,6 +51,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
+import app.myfinhub.android.feature.money.CardCreateRequest
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
 import app.myfinhub.android.feature.utilities.AppAppearance
@@ -232,6 +233,7 @@ fun MyFinHubRoot(
                             onSaveLocalCvv = cardSecretViewModel::saveCvv,
                             onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
                             onDeleteCard = financeViewModel::deleteCard,
+                            onCreateCard = financeViewModel::createCard,
                             diagnostics = diagnostics,
                         )
                     },
@@ -299,6 +301,7 @@ private fun FinanceProductSurface(
     onSaveLocalCvv: (CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
     onDeleteCard: (String) -> Unit,
+    onCreateCard: (CardCreateRequest) -> Unit,
     diagnostics: AppDiagnosticsSnapshot,
 ) {
     when (state) {
@@ -332,6 +335,7 @@ private fun FinanceProductSurface(
                     onSaveLocalCvv = onSaveLocalCvv,
                     onDeleteLocalCvv = onDeleteLocalCvv,
                     onDeleteCard = onDeleteCard,
+                    onCreateCard = onCreateCard,
                     planState = projection.planState,
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,

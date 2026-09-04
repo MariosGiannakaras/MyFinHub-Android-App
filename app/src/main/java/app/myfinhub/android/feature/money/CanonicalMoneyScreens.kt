@@ -56,6 +56,7 @@ fun CanonicalMoneyScreen(
     onHideCardSecrets: () -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
     onOpenCard: (String) -> Unit,
+    onAddCard: () -> Unit = {},
     onOpenAccount: (String) -> Unit = {},
     onOpenSavings: () -> Unit,
     onOpenLoans: () -> Unit,
@@ -181,6 +182,7 @@ fun CanonicalMoneyScreen(
                     icon = MyFinHubIcons.Card,
                     tone = FinanceTone.Transfer,
                 )
+                TextButton(onClick = onAddCard) { Text("Προσθήκη κάρτας") }
             }
             state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
             item {

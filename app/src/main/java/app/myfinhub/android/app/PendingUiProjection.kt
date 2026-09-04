@@ -43,7 +43,9 @@ internal fun projectPendingUi(
     val visibleIds = markedActivity.map(ActivityItem::id).toSet()
     val activityItems = tombstones.asReversed().filterNot { it.id in visibleIds } + markedActivity
 
-    val cardMessage = serverDocument?.let { pendingCardDeletionMessage(it, pending, today) }
+    val cardMessage = serverDocument?.let {
+        pendingCardChangeMessage(it, projection.moneyState.cards, pending, today)
+    }
     val budgetMessage = pending.lastOrNull { it.kind == PendingMutationKind.UPSERT_OVERALL_BUDGET }
         ?.let { intent -> "Αλλαγή budget · ${intent.syncState.pendingStatusLabel()}" }
 
@@ -96,11 +98,18 @@ private fun pendingDeletionTombstones(
     return tombstones
 }
 
-private fun pendingCardDeletionMessage(
+private fun pendingCardChangeMessage(
     serverDocument: CanonicalFinanceDocument,
+    optimisticCards: List<app.myfinhub.android.feature.money.MoneyCard>,
     pending: List<PendingCanonicalMutationIntent>,
     today: LocalDate,
 ): String? {
+    val createLines = pending.filter { it.kind == PendingMutationKind.CREATE_CARD }.mapNotNull { intent ->
+        val id = intent.payload.string("cardId") ?: return@mapNotNull null
+        val card = optimisticCards.firstOrNull { it.id == id } ?: return@mapNotNull null
+        "${card.nickname} · Εκκρεμεί προσθήκη · ${intent.syncState.pendingStatusLabel()}"
+    }
+
     val cardIntents = pending
         .filter { it.kind == PendingMutationKind.DEACTIVATE_CARD }
         .distinctBy(PendingCanonicalMutationIntent::affectedCardId)
@@ -115,9 +124,10 @@ private fun pendingCardDeletionMessage(
         val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
         "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
     }
-    if (lines.isEmpty()) return null
+    val allLines = createLines + lines
+    if (allLines.isEmpty()) return null
 
-    return "Εκκρεμείς διαγραφές καρτών:\n${lines.joinToString("\n")}"
+    return "Εκκρεμείς αλλαγές καρτών:\n${allLines.joinToString("\n")}"
 }
 
 private fun PendingMutationSyncState.pendingStatusLabel(): String = when (this) {
