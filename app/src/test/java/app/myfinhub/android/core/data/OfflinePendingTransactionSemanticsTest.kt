@@ -34,7 +34,7 @@ class OfflinePendingTransactionSemanticsTest {
             syncState = PendingTransactionSyncState.NEEDS_REVIEW,
         )
         val server = pending.asMutation().apply(emptyDocument())
-        val serverIds = server.canonicalEvents().map(CanonicalEventRecord::id).toSet()
+        val serverIds = server.canonicalEvents().map(CanonicalEvent::id).toSet()
 
         val remaining = listOf(pending).filterNot { it.eventId in serverIds }
 
