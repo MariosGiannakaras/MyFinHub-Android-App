@@ -1,13 +1,11 @@
 package app.myfinhub.android.core.data
 
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -92,8 +90,6 @@ class OfflinePendingMutationSemanticsTest {
         )
         val queue = listOf(append, delete)
 
-        // The fresh server does not contain the event. The delete looks satisfied in isolation,
-        // but it depends on the unresolved create and must remain queued behind it.
         val remaining = reconcileSatisfiedPendingMutations(document(), queue)
 
         assertEquals(listOf("append-ambiguous", "delete-unsent"), remaining.map { it.intentId })
@@ -116,6 +112,35 @@ class OfflinePendingMutationSemanticsTest {
         val remaining = reconcileSatisfiedPendingMutations(serverWithCreate, listOf(append, delete))
 
         assertEquals(listOf("delete"), remaining.map { it.intentId })
+    }
+
+    @Test
+    fun remoteDeletion_resolvesStaleEditInsteadOfReplayingAgainstMissingTransaction() {
+        val edit = PendingCanonicalMutationIntent.fromMutation(
+            EditCanonicalActivity("evt-existing", "Offline edit", "Food", NOW),
+            "edit",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val serverWithoutTarget = DeleteCanonicalActivity("evt-existing", NOW).apply(document())
+
+        assertTrue(edit.isSatisfiedBy(serverWithoutTarget))
+        assertTrue(reconcileSatisfiedPendingMutations(serverWithoutTarget, listOf(edit)).isEmpty())
+    }
+
+    @Test
+    fun missingServerCard_resolvesDeactivationAndAvoidsInvalidReplay() {
+        val deactivate = PendingCanonicalMutationIntent.fromMutation(
+            DeactivateCanonicalCard("card-1", NOW),
+            "card",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val stateWithoutCards = document().state.updated("cards", kotlinx.serialization.json.JsonArray(emptyList()))
+        val serverWithoutCard = CanonicalFinanceDocument(
+            document().raw.updated("state", stateWithoutCards),
+        )
+
+        assertTrue(deactivate.isSatisfiedBy(serverWithoutCard))
+        assertTrue(reconcileSatisfiedPendingMutations(serverWithoutCard, listOf(deactivate)).isEmpty())
     }
 
     @Test
