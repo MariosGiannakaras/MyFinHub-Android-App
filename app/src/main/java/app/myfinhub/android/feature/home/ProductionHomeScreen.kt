@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.home
 
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -51,6 +52,8 @@ fun ProductionHomeScreen(
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenQuickEntry: () -> Unit,
+    onOpenAccount: (String) -> Unit = {},
+    onOpenRecent: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -114,8 +117,8 @@ fun ProductionHomeScreen(
                 }
             }
 
-            item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible) }
-            item { RecentActivityCard(state.recentItems, amountsVisible) }
+            item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible, onOpenAccount) }
+            item { RecentActivityCard(state.recentItems, amountsVisible, onOpenRecent) }
             if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
             if (state.upcomingItems.isNotEmpty()) item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
         }
@@ -123,7 +126,7 @@ fun ProductionHomeScreen(
 }
 
 @Composable
-private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boolean) {
+private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boolean, onOpenAccount: (String) -> Unit) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Βασικοί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -134,6 +137,7 @@ private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boo
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable { onOpenAccount(account.id) }
                             .semantics(mergeDescendants = true) {
                                 contentDescription = if (amountsVisible) {
                                     "${account.name}, ${formatHomeEuro(account.balance)}"
@@ -168,7 +172,7 @@ private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boo
 }
 
 @Composable
-private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Boolean) {
+private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Boolean, onOpenRecent: (String) -> Unit) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Τελευταίες κινήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -182,7 +186,7 @@ private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Bool
                         HomeRecentTone.TRANSFER -> FinanceTone.Transfer
                     }
                     Row(
-                        modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+                        modifier = Modifier.fillMaxWidth().clickable { onOpenRecent(item.id) }.semantics(mergeDescendants = true) {},
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

@@ -13,6 +13,7 @@ sealed interface AppRoute : NavKey {
     @Serializable data class ActivityDetail(val eventId: String) : AppRoute
     @Serializable data object QuickEntry : AppRoute
     @Serializable data object Money : AppRoute
+    @Serializable data class AccountDetail(val accountId: String) : AppRoute
     @Serializable data class CardDetail(val cardId: String) : AppRoute
     @Serializable data object Savings : AppRoute
     @Serializable data object Loans : AppRoute
