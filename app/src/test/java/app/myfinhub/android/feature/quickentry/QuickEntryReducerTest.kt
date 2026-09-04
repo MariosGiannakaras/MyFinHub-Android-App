@@ -25,6 +25,36 @@ class QuickEntryReducerTest {
     }
 
     @Test
+    fun locallyCommittedPreview_isRecognizedAsAwaitingSyncAndEditingStartsANewDraft() {
+        val preview = reduceQuickEntry(
+            QuickEntryUiState(amountText = "5", note = "Καφές", dirty = true),
+            QuickEntryAction.Save,
+        )
+        val locallyCommitted = preview.copy(persisted = false, dirty = false)
+
+        assertTrue(locallyCommitted.awaitingSync)
+        assertFalse(locallyCommitted.persisted)
+
+        val edited = reduceQuickEntry(locallyCommitted, QuickEntryAction.AmountChanged("6"))
+        assertFalse(edited.awaitingSync)
+        assertTrue(edited.dirty)
+        assertNull(edited.savedSummary)
+    }
+
+    @Test
+    fun serverPersistedEntry_isNotReportedAsAwaitingSync() {
+        val state = QuickEntryUiState(
+            amountText = "5",
+            savedSummary = "Έξοδο · 5 € · Καφές",
+            persisted = true,
+            pendingSync = false,
+            dirty = false,
+        )
+
+        assertFalse(state.awaitingSync)
+    }
+
+    @Test
     fun withdrawal_requiresCashDestination() {
         val result = reduceQuickEntry(
             QuickEntryUiState(
@@ -152,6 +182,7 @@ class QuickEntryReducerTest {
 
         val reset = reduceQuickEntry(changed, QuickEntryAction.Reset)
         assertFalse(reset.dirty)
+        assertFalse(reset.pendingSync)
         assertEquals("", reset.amountText)
         assertNull(reset.validationMessage)
         assertNull(reset.savedSummary)

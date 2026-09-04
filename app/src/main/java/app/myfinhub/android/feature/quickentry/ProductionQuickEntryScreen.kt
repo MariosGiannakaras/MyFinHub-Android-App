@@ -65,8 +65,9 @@ fun ProductionQuickEntryScreen(
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val hasEnteredDraft = state.amountText.isNotBlank() || state.note.isNotBlank()
+    val savedLocally = state.awaitingSync
     val requestBack = {
-        if (!state.persisted && hasEnteredDraft) discardDialogOpen = true else onBack()
+        if (!state.persisted && !savedLocally && hasEnteredDraft) discardDialogOpen = true else onBack()
     }
 
     LaunchedEffect(Unit) {
@@ -217,14 +218,28 @@ fun ProductionQuickEntryScreen(
             }
 
             MyFinHubPrimaryAction(
-                label = if (state.persisted) "Αποθηκεύτηκε" else "Αποθήκευση κίνησης",
-                enabled = !state.persisted,
+                label = when {
+                    state.persisted -> "Αποθηκεύτηκε"
+                    savedLocally -> "Αποθηκεύτηκε στη συσκευή"
+                    else -> "Αποθήκευση κίνησης"
+                },
+                enabled = !state.persisted && !savedLocally,
                 onClick = { onAction(QuickEntryAction.Save) },
                 modifier = Modifier.fillMaxWidth(),
             )
 
             state.savedSummary?.let { summary ->
                 Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            }
+            if (savedLocally) {
+                Text(
+                    "Αναμονή συγχρονισμού · μπορείς να κλείσεις αυτή την οθόνη με ασφάλεια.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = { onAction(QuickEntryAction.Reset) }) {
+                    Text("Νέα καταχώριση")
+                }
             }
         }
     }

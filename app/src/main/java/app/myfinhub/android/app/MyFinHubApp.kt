@@ -272,6 +272,10 @@ internal fun MyFinHubAppContent(
                         onSave = { note, category ->
                             onActivityAction(ActivityAction.SaveEdit(route.eventId, note, category))
                         },
+                        onDelete = {
+                            onActivityAction(ActivityAction.Delete(route.eventId))
+                            activityBackStack.removeLastOrNull()
+                        },
                     )
                 }
                 entry<AppRoute.QuickEntry> {

@@ -59,8 +59,9 @@ fun QuickEntryScreen(
     onBack: () -> Unit,
 ) {
     var discardDialogOpen by remember { mutableStateOf(false) }
+    val savedLocally = state.awaitingSync
     val requestBack = {
-        if (state.dirty && !state.persisted) discardDialogOpen = true else onBack()
+        if (state.dirty && !state.persisted && !savedLocally) discardDialogOpen = true else onBack()
     }
     val validationMessage = state.validationMessage
     val amountError = validationMessage == "Βάλε ποσό μεγαλύτερο από μηδέν."
@@ -335,11 +336,22 @@ fun QuickEntryScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(
-                            text = if (state.persisted) "Αποθηκεύτηκε: $summary" else "Έτοιμο: $summary",
+                            text = when {
+                                state.persisted -> "Αποθηκεύτηκε: $summary"
+                                savedLocally -> "Αποθηκεύτηκε στη συσκευή: $summary"
+                                else -> "Έτοιμο: $summary"
+                            },
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.titleMedium,
                         )
-                        if (state.persisted) {
+                        if (savedLocally) {
+                            Text(
+                                "Αναμονή συγχρονισμού · η κίνηση παραμένει ασφαλής στη συσκευή.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (state.persisted || savedLocally) {
                             TextButton(onClick = { onAction(QuickEntryAction.Reset) }) {
                                 Text("Νέα καταχώριση")
                             }
@@ -349,7 +361,12 @@ fun QuickEntryScreen(
             }
 
             MyFinHubPrimaryAction(
-                label = "Αποθήκευση κίνησης",
+                label = when {
+                    state.persisted -> "Αποθηκεύτηκε"
+                    savedLocally -> "Αποθηκεύτηκε στη συσκευή"
+                    else -> "Αποθήκευση κίνησης"
+                },
+                enabled = !state.persisted && !savedLocally,
                 onClick = { onAction(QuickEntryAction.Save) },
                 modifier = Modifier.fillMaxWidth(),
                 icon = null,
