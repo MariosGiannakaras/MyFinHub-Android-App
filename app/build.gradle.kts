@@ -65,6 +65,8 @@ val supabaseUrl = providers.gradleProperty("SUPABASE_URL")
     .orElse("https://ahsukppxwaiagampsuzb.supabase.co")
 val supabasePublishableKey = providers.gradleProperty("SUPABASE_PUBLISHABLE_KEY")
     .orElse("sb_publishable_Ee7nzCpHN5AKwjXkPBvxdw_bTJXoJGC")
+val androidUpdateChannel = providers.gradleProperty("ANDROID_UPDATE_CHANNEL")
+    .orElse("production")
 
 android {
     namespace = "app.myfinhub.android"
@@ -83,6 +85,7 @@ android {
         buildConfigField("String", "MYFINHUB_API_BASE_URL", myFinHubApiBaseUrl.get().asBuildConfigString())
         buildConfigField("String", "SUPABASE_URL", supabaseUrl.get().asBuildConfigString())
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", supabasePublishableKey.get().asBuildConfigString())
+        buildConfigField("String", "ANDROID_UPDATE_CHANNEL", androidUpdateChannel.get().asBuildConfigString())
     }
 
     buildTypes {

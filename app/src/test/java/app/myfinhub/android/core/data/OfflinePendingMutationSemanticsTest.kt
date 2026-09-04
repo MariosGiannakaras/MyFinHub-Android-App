@@ -213,6 +213,34 @@ class OfflinePendingMutationSemanticsTest {
     }
 
     @Test
+    fun undo_removesOnlyLatestNeverSentIntent_andPreservesPreviousUserAction() {
+        val first = PendingCanonicalMutationIntent.fromMutation(
+            EditCanonicalActivity("evt-existing", "First", "A", NOW),
+            "first",
+        )
+        val second = PendingCanonicalMutationIntent.fromMutation(
+            EditCanonicalActivity("evt-existing", "Second", "B", NOW),
+            "second",
+        )
+
+        val remaining = undoLatestNeverSentPendingMutation(listOf(first, second))
+        assertEquals(listOf("first"), remaining.map(PendingCanonicalMutationIntent::intentId))
+        val optimistic = remaining.fold(document()) { current, item -> item.asMutation().apply(current) }
+        val event = optimistic.state.array("events").mapNotNull { it as? JsonObject }.first { it.string("id") == "evt-existing" }
+        assertEquals("First", event.string("note"))
+    }
+
+    @Test
+    fun undo_doesNotRemoveLatestNeedsReviewIntent() {
+        val ambiguous = PendingCanonicalMutationIntent.fromMutation(
+            DeleteCanonicalActivity("evt-existing", NOW),
+            "ambiguous",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        assertEquals(listOf(ambiguous), undoLatestNeverSentPendingMutation(listOf(ambiguous)))
+    }
+
+    @Test
     fun deleteIsSatisfiedWhenTransactionIsAlreadyAbsent() {
         val intent = PendingCanonicalMutationIntent.fromMutation(
             DeleteCanonicalActivity("does-not-exist", NOW),

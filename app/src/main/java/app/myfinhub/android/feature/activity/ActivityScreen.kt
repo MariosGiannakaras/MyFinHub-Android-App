@@ -173,7 +173,7 @@ private fun ActivityList(
                     title = item.title,
                     subtitle = item.subtitle,
                     meta = if (item.pendingSync) {
-                        "Προς συγχρονισμό"
+                        "Εκκρεμεί επιβεβαίωση"
                     } else {
                         "${item.dateLabel} · ${item.accountLabel}"
                     },
@@ -265,7 +265,7 @@ private fun ActivityDetailContent(
                     )
                     if (item.pendingSync) {
                         Text(
-                            text = "Αναμονή συγχρονισμού",
+                            text = "Εκκρεμεί επιβεβαίωση από τον server",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -301,11 +301,19 @@ private fun ActivityDetailContent(
             enabled = !item.pendingSync && note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
             icon = null,
         )
-        MyFinHubDestructiveTextAction(
-            label = if (item.pendingSync) "Ακύρωση τοπικής κίνησης" else "Διαγραφή κίνησης",
-            onClick = { confirmDelete = true },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (item.pendingSync) {
+            Text(
+                "Δεν επιτρέπεται νέα επεξεργασία ή διαγραφή μέχρι να επιβεβαιωθεί η εκκρεμής αλλαγή. Αν η τελευταία αλλαγή δεν έχει σταλεί ακόμη, η ασφαλής αναίρεση εμφανίζεται στην κεντρική ένδειξη εκκρεμών αλλαγών.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            MyFinHubDestructiveTextAction(
+                label = "Διαγραφή κίνησης",
+                onClick = { confirmDelete = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         if (item.kind == ActivityKind.TRANSFER) {
             Text(
                 "Η εσωτερική μεταφορά δεν μετρά ως έσοδο ή έξοδο.",
@@ -315,19 +323,15 @@ private fun ActivityDetailContent(
         }
     }
 
-    if (confirmDelete) {
+    if (confirmDelete && !item.pendingSync) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = {
-                Text(if (item.pendingSync) "Ακύρωση τοπικής κίνησης;" else "Διαγραφή κίνησης;")
+                Text("Διαγραφή κίνησης;")
             },
             text = {
                 Text(
-                    if (item.pendingSync) {
-                        "Η κίνηση δεν έχει συγχρονιστεί ακόμη και θα αφαιρεθεί μόνο από αυτή τη συσκευή."
-                    } else {
-                        "Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα."
-                    },
+                    "Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα.",
                 )
             },
             confirmButton = {
@@ -337,7 +341,7 @@ private fun ActivityDetailContent(
                         onDelete()
                     },
                 ) {
-                    Text(if (item.pendingSync) "Ακύρωση κίνησης" else "Διαγραφή")
+                    Text("Διαγραφή")
                 }
             },
             dismissButton = {

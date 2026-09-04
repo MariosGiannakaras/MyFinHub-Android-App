@@ -219,6 +219,7 @@ fun MyFinHubRoot(
                             cardSecretState = cardSecretState,
                             onRetryLoad = financeViewModel::retryLoad,
                             onRetryMutation = financeViewModel::retryPendingMutation,
+                            onUndoPendingChange = financeViewModel::undoLatestPendingMutation,
                             onLogout = authViewModel::logout,
                             onHomeAction = financeViewModel::onHomeAction,
                             onActivityAction = financeViewModel::onActivityAction,
@@ -285,6 +286,7 @@ private fun FinanceProductSurface(
     cardSecretState: CardSecretUiState,
     onRetryLoad: () -> Unit,
     onRetryMutation: () -> Unit,
+    onUndoPendingChange: () -> Unit,
     onLogout: () -> Unit,
     onHomeAction: (app.myfinhub.android.feature.home.HomeAction) -> Unit,
     onActivityAction: (app.myfinhub.android.feature.activity.ActivityAction) -> Unit,
@@ -342,10 +344,8 @@ private fun FinanceProductSurface(
                         modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
                     )
                 }
-                state.issue?.let { issue ->
-                    FinanceSyncIssueBanner(
-                        issue = issue,
-                        onRetryMutation = onRetryMutation,
+                if (state.latestPendingChange != null || state.issue != null) {
+                    Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .padding(
@@ -353,8 +353,65 @@ private fun FinanceProductSurface(
                                 top = MyFinHubSpacing.md,
                                 end = MyFinHubSpacing.md,
                             ),
-                    )
+                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                    ) {
+                        state.latestPendingChange?.let { latest ->
+                            PendingChangesBanner(
+                                changeCount = state.pendingChangeCount,
+                                latest = latest,
+                                onUndoLatest = onUndoPendingChange,
+                            )
+                        }
+                        state.issue?.let { issue ->
+                            FinanceSyncIssueBanner(
+                                issue = issue,
+                                onRetryMutation = onRetryMutation,
+                            )
+                        }
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun PendingChangesBanner(
+    changeCount: Int,
+    latest: PendingChangeUi,
+    onUndoLatest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = MyFinHubDesignMetrics.cardElevation,
+        shadowElevation = MyFinHubDesignMetrics.cardElevation,
+    ) {
+        Column(
+            modifier = Modifier.padding(MyFinHubSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            Text(
+                if (changeCount == 1) "1 αλλαγή σε αναμονή" else "$changeCount αλλαγές σε αναμονή",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                "${latest.label} · ${latest.statusLabel}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (latest.canUndo) {
+                TextButton(onClick = onUndoLatest) {
+                    Text("Αναίρεση τελευταίας")
+                }
+            } else {
+                Text(
+                    "Η αλλαγή μπορεί ήδη να έχει φτάσει στον server και θα επιβεβαιωθεί πριν από οποιαδήποτε νέα ενέργεια.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -397,7 +454,7 @@ private fun FinanceSyncIssueBanner(
                 Text(retryLabel)
             }
             Text(
-                "Οι τοπικές κινήσεις παραμένουν στις Κινήσεις μέχρι να επιβεβαιωθεί ο συγχρονισμός ή να τις ακυρώσεις από τις λεπτομέρειές τους.",
+                "Οι τοπικές αλλαγές παραμένουν ορατές ως εκκρεμείς μέχρι να επιβεβαιωθεί ο συγχρονισμός.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

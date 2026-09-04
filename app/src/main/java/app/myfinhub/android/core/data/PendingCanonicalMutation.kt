@@ -263,6 +263,11 @@ fun compactPendingMutationIntents(
  * the server yet (for example ambiguous create -> offline delete). Removing such a later intent
  * independently would break the user's causal sequence and could resurrect local data.
  */
+fun undoLatestNeverSentPendingMutation(
+    pending: List<PendingCanonicalMutationIntent>,
+): List<PendingCanonicalMutationIntent> =
+    if (pending.lastOrNull()?.syncState == PendingMutationSyncState.NEVER_SENT) pending.dropLast(1) else pending
+
 fun reconcileSatisfiedPendingMutations(
     serverDocument: CanonicalFinanceDocument,
     pending: List<PendingCanonicalMutationIntent>,

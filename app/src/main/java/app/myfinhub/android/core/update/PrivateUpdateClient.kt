@@ -27,6 +27,7 @@ class PrivateUpdateClient(
             .url("${configuration.myFinHubApiBaseUrl}/api/android-update")
             .header("Authorization", "Bearer ${session.accessToken}")
             .header("Accept", "application/json")
+            .header(UPDATE_CHANNEL_HEADER, configuration.androidUpdateChannel)
             .get()
             .build()
         try {
@@ -176,6 +177,7 @@ class PrivateUpdateClient(
 
     private companion object {
         const val MAX_APK_BYTES = 300L * 1024L * 1024L
+        const val UPDATE_CHANNEL_HEADER = "X-MyFinHub-Android-Update-Channel"
         val SHA256_REGEX = Regex("^[A-Fa-f0-9]{64}$")
     }
 }
