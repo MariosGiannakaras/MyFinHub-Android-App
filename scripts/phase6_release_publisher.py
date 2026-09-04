@@ -75,6 +75,15 @@ def validate_project_url(project_url: str) -> str:
     return f"https://{EXPECTED_PROJECT_HOST}"
 
 
+def api_key_headers(secret_key: str) -> dict[str, str]:
+    if secret_key.startswith("sb_publishable_"):
+        raise PublisherError("A publishable Supabase key cannot be used by the release publisher.")
+    headers = {"apikey": secret_key}
+    if not secret_key.startswith("sb_secret_"):
+        headers["Authorization"] = f"Bearer {secret_key}"
+    return headers
+
+
 def expected_version_name(version_code: int) -> str:
     if version_code <= PHASE6_VERSION_BASE:
         raise PublisherError("phase6-test versionCode must be above the Phase 6 base.")
@@ -158,13 +167,11 @@ class SupabaseReleaseClient:
             raise PublisherError("Protected Supabase publish credential is unavailable.")
         self.secret_key = secret_key
         self.timeout_seconds = timeout_seconds
+        api_key_headers(secret_key)
 
     def _request(self, method: str, path: str, *, data: bytes | None = None, headers: dict[str, str] | None = None,
                  allow_not_found: bool = False, write: bool = False) -> bytes:
-        request_headers = {
-            "Authorization": f"Bearer {self.secret_key}",
-            "apikey": self.secret_key,
-        }
+        request_headers = api_key_headers(self.secret_key)
         if headers:
             request_headers.update(headers)
         req = urllib.request.Request(f"{self.project_url}{path}", data=data, headers=request_headers, method=method)
