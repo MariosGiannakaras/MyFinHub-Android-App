@@ -4,111 +4,90 @@ Tracker: #63.
 
 ## Purpose
 
-This workflow removes the manual Supabase Dashboard APK-upload step for future `phase6-test` Android builds while preserving the private updater and offline/admin publishing boundary.
+This workflow removes the manual Supabase Dashboard APK-upload step for future `phase6-test` Android builds while preserving the private updater and privileged publishing boundary.
 
-It does **not** authorize or implement production signing, a production Android publisher, a public APK, or `develop -> main` promotion.
+It does **not** authorize production signing, a production publisher, a public APK, or Android `develop -> main` promotion.
 
-## Security model
+## Trigger model
 
-The permanent workflow is `.github/workflows/phase6-protected-release.yml` and must be invoked from the trusted Android `develop` branch.
+The repository default branch is `main`, while test-release automation intentionally remains on Android `develop` until physical acceptance. GitHub only exposes `workflow_dispatch` when the workflow file exists on the default branch, so the normal pre-production trigger is a guarded release-request file on `develop` rather than a GitHub Actions button.
 
-The only normal release input is the number of an open Android PR. The source gate resolves that PR's immutable head commit itself and accepts it only when all of these are true:
+A release request is a commit that changes exactly:
 
-- the PR is open and ready for review, not draft;
-- the PR targets Android `develop`;
-- the PR comes from this same Android repository, not a fork;
-- the source branch is Android-owned (`android/...`);
-- the latest exact-head checks are successful for `verify`, `screenshot-regression`, and `s24-ultra-target-instrumented`.
+`.github/release-requests/phase6-test.json`
 
-The workflow never asks the operator to copy a commit SHA or choose a versionCode. A protected planning job reads the current private `phase6-test` release feed and derives the next strictly increasing versionCode, canonical version name and immutable Storage path. Fixed workflow concurrency prevents two release runs from planning/publishing concurrently.
+The request contains only:
 
-The product build job has **no Supabase write credential**. It checks out only the source commit resolved by the trusted source gate, reruns unit tests with `ANDROID_UPDATE_CHANNEL=phase6-test`, applies the derived test-only version inside the CI workspace, and produces an unsigned release APK. Only that unsigned intermediate is transferred between jobs, with one-day retention.
+- `source_pr`: the validated open Android PR to publish;
+- `request_id`: a non-sensitive unique request marker.
 
-Protected planning and publishing run under GitHub Environment `phase6-test-release`. The Supabase credential is scoped only to the individual Python steps that need the private release feed; checkout, SDK setup, product build and APK signing do not receive it.
+The request gate requires the push to target `develop`, be initiated by repository owner `MariosGiannakaras`, and contain no other changed file. Any product-code or unrelated change in the same push fails closed.
 
-The publish job checks out the trusted publisher automation from `develop`, downloads the unsigned intermediate, obtains the pinned public AOSP development testkey, signs and verifies package/version/certificate locally, then invokes `scripts/phase6_release_publisher.py`.
+The existing `workflow_dispatch` trigger remains for a future repository state where the workflow is present on the default branch; it is not required for the current Phase 6 test flow.
 
-The stable signed APK is never uploaded as a GitHub Actions artifact or GitHub Release.
+## Source and release gates
+
+The source PR is accepted only when:
+
+- it is open and not draft;
+- it targets Android `develop`;
+- it comes from this same Android repository, not a fork;
+- its branch is Android-owned (`android/...`);
+- its latest exact-head `verify`, `screenshot-regression`, and `s24-ultra-target-instrumented` checks are successful.
+
+The workflow derives the next `phase6-test` versionCode/versionName/path from the private feed. It never asks the operator to copy a source SHA or choose a version number.
+
+The build job has no Supabase write credential. It checks out only the validated PR head, tests it with `ANDROID_UPDATE_CHANNEL=phase6-test`, applies the derived test version only in the CI workspace, builds an unsigned release APK, and transfers only that unsigned intermediate with one-day retention.
+
+Protected planning and publishing use GitHub Environment `android-apk-release`. That Environment must allow only branch `develop` and contain Environment secret `SUPABASE_RELEASE_PUBLISH_KEY` holding the dedicated Supabase server-side secret key.
+
+The privileged job signs with the pinned stable AOSP development test identity used for Phase 6 test builds, verifies package/version/signer locally, uploads only to the private `android-releases` bucket, re-reads exact bytes, verifies SHA-256 and size, then inserts release metadata last.
 
 The publisher is hard-locked to:
 
 - Supabase host `ahsukppxwaiagampsuzb.supabase.co`;
-- private bucket `android-releases`;
+- bucket `android-releases`;
 - channel `phase6-test`;
 - path `phase6-test/<versionCode>/MyFinHub-Phase6-<versionCode>.apk`;
-- Phase 6 version name `0.1.0-phase6.<versionCode - 6000>`.
+- version name `0.1.0-phase6.<versionCode - 6000>`.
 
-There is no input or code path for `production`.
+There is no production channel or production signing input.
 
-## One-time GitHub setup
+## One-time setup
 
-This setup is intentionally manual because the repository must never contain the administrative Supabase credential and the connected GitHub tooling does not expose secret-management APIs.
+The repository owner creates a dedicated Supabase secret key for the Android test publisher and stores it directly in GitHub Environment `android-apk-release` as `SUPABASE_RELEASE_PUBLISH_KEY`. The Environment is restricted to `develop`.
 
-Prefer a **dedicated Supabase secret API key** (`sb_secret_...`) created only for this Android release-publisher component. Supabase recommends separate server-side secret keys per backend component because they can be rotated independently. A legacy `service_role` JWT remains compatible only where the project still uses that older key model; do not introduce it when a dedicated secret key can be used instead.
+The credential must never be placed in chat, Issues, PRs, repository files, Android resources, Gradle properties, workflow inputs, logs, or the APK.
 
-In Supabase Dashboard:
+## Normal future operation
 
-1. Open **Settings → API Keys**.
-2. Create a dedicated secret key for the Android `phase6-test` publisher (for example, named `android-phase6-release-publisher`).
-3. Copy it directly into the GitHub Environment secret in the next steps. Do not send or paste it through chat, Issues, PRs, source files, workflow inputs, or logs.
+After the one-time secret setup, no APK, SHA, version number, or Supabase metadata is handled manually.
 
-In GitHub repository settings:
+When an accepted Android PR is ready for a private test release, update only `.github/release-requests/phase6-test.json` on `develop`. The protected workflow then:
 
-1. Create Environment `phase6-test-release`.
-2. Restrict deployment branches/tags to the trusted `develop` branch. Do not allow arbitrary branches.
-3. Add Environment secret `SUPABASE_RELEASE_PUBLISH_KEY` with the dedicated Supabase secret key.
-4. Never paste that credential into Issues, PRs, chat, workflow inputs, repository files, Android resources, Gradle properties, logs, or the APK.
+1. validates the guarded release request;
+2. resolves and validates the exact PR head;
+3. verifies latest exact-head Android CI/UI checks;
+4. derives the next private test version;
+5. reruns unit tests under `phase6-test`;
+6. builds and validates an unsigned candidate;
+7. signs with the pinned NON-PROD identity;
+8. verifies package/version/signer;
+9. reconciles private Storage before writing;
+10. uploads only if the expected object is absent;
+11. re-downloads and verifies exact SHA-256/size;
+12. inserts metadata last and performs final reconciliation.
 
-Do not add a required-reviewer rule unless a manual approval on every protected planning/publish job is explicitly desired; branch restriction plus the workflow source/CI gates are the normal test-channel boundary.
+The owner then updates from inside MyFinHub on the supported S24 Ultra. No manual APK upload or APK installation is part of the flow.
 
-## Normal future release operation
+## Ambiguous writes and reruns
 
-After the one-time environment setup, no APK file, SHA or version number is handled manually.
-
-From GitHub Actions:
-
-1. Open **Protected Phase 6 Test Release**.
-2. Select trusted branch `develop`.
-3. Choose **Run workflow**.
-4. Enter only the validated Android PR number to publish.
-
-The workflow then performs end to end:
-
-1. resolves the exact PR head and validates PR ownership/state/base;
-2. verifies the latest exact-head Android CI/UI checks;
-3. reads the private feed and derives the next versionCode/versionName/path;
-4. reruns unit tests under `phase6-test`;
-5. builds and validates an unsigned release candidate;
-6. signs with the pinned NON-PROD Phase 6 test identity;
-7. verifies package/version/signer locally;
-8. reconciles private Storage before writing;
-9. uploads only when the expected object is absent;
-10. authenticated re-downloads and verifies exact SHA-256/size;
-11. inserts release metadata **last**;
-12. performs final metadata reconciliation and writes a non-sensitive workflow summary.
-
-The owner then uses the existing in-app updater on the S24 Ultra. No manual APK upload or installation is part of the flow.
-
-## Ambiguous-write and rerun behavior
-
-The publisher never blindly retries a Storage upload or metadata insert after an ambiguous network/write outcome.
-
-- If upload outcome is ambiguous, it reads the expected private object exactly once. Exact SHA-256 + size allows continuation; missing/mismatched bytes fail the run.
-- If metadata insert outcome is ambiguous, it reads the exact `(phase6-test, versionCode)` row exactly once. An exact row allows success; absent/mismatched metadata fails the run.
-- A later manually initiated rerun is idempotent when the already-present object/metadata exactly match the candidate. Any mismatch fails closed.
-
-This mirrors the Android canonical mutation rule: reconcile before retrying any write whose outcome is not known.
+No ambiguous write is retried blindly. Storage and metadata writes are reconciled first. A GitHub run ID is stored only as a non-sensitive release correlation marker so a rerun reuses the same planned version instead of creating another release. Any mismatched bytes or metadata fail closed.
 
 ## Validation
 
-`scripts/test_phase6_release_publisher.py` covers fresh publish ordering, exact-object resume, ambiguous Storage reconciliation, ambiguous metadata reconciliation, mismatched-object failure, mismatched-metadata failure, idempotent already-published behavior, and locked Phase 6 path/version derivation.
-
-`scripts/test_phase6_release_key_headers.py` covers the authentication-header split between modern `sb_secret_...` keys and legacy service-role JWTs.
-
-`scripts/test_phase6_release_source_gate.py` covers accepted same-repository Android PRs and rejects fork, draft, wrong-base, non-Android branch, missing/failed/in-progress latest exact-head checks.
-
-`.github/workflows/release-publisher-tests.yml` runs all publisher/source-gate tests on every relevant PR/push without access to the protected credential.
+The permanent publisher test suite covers fresh publish ordering, exact-object resume, ambiguous Storage and metadata reconciliation, mismatches, idempotent reruns, locked path/version derivation, modern Supabase secret-key headers, PR source gating, and guarded release-request parsing.
 
 ## Production boundary
 
-A future production publisher requires a separate protected environment, separate long-lived production signing identity, explicit production-signing authorization, physical same-signer update continuity, and the normal Android release-promotion decision. Nothing in this Phase 6 publisher creates or authorizes that path.
+A future production publisher requires a separate protected environment, separate long-lived production signing identity, explicit production-signing authorization, physical same-signer update continuity, and the normal Android release-promotion decision. Nothing here creates or authorizes that path.
