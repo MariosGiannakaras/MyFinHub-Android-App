@@ -28,3 +28,19 @@ object AppAppearancePreference {
             .apply()
     }
 }
+
+/** Device-local privacy preference. It never enters the canonical finance document. */
+object AmountVisibilityPreference {
+    const val KEY = "amounts_visible"
+
+    fun read(context: Context): Boolean = context
+        .getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
+        .getBoolean(KEY, false)
+
+    fun write(context: Context, visible: Boolean) {
+        context.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY, visible)
+            .apply()
+    }
+}
