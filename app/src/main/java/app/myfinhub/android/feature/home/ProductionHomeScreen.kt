@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.home
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,8 +16,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -31,22 +38,33 @@ import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
+import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
 import java.util.Locale
 
-/**
- * Physical-device production Home. The first useful information is deliberately the three primary
- * canonical accounts, followed immediately by recent canonical activity. Secondary planning and
- * attention information comes afterwards.
- */
+/** Physical-device production Home backed by canonical finance data. */
 @Composable
 fun ProductionHomeScreen(
     state: HomeUiState,
-    onAction: (HomeAction) -> Unit,
+    @Suppress("UNUSED_PARAMETER") onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenQuickEntry: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
+    }
+    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    DisposableEffect(preferences) {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -54,9 +72,7 @@ fun ProductionHomeScreen(
                 title = "MyFinHub",
                 subtitle = "Η καθημερινή οικονομική σου εικόνα",
                 navigation = { MyFinHubBrandMark() },
-                trailing = {
-                    TextButton(onClick = onOpenSettings) { Text("Ρυθμίσεις") }
-                },
+                trailing = { TextButton(onClick = onOpenSettings) { Text("Ρυθμίσεις") } },
             )
         },
     ) { padding ->
@@ -98,55 +114,19 @@ fun ProductionHomeScreen(
                 }
             }
 
-            item {
-                PrimaryAccountsCard(
-                    accounts = state.accounts.take(3),
-                    amountsVisible = state.amountsVisible,
-                    onToggleAmounts = { onAction(HomeAction.ToggleAmounts) },
-                )
-            }
-
-            item {
-                RecentActivityCard(state.recentItems, state.amountsVisible)
-            }
-
-            if (state.attentionItems.isNotEmpty()) {
-                item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
-            }
-            if (state.upcomingItems.isNotEmpty()) {
-                item { ProductionUpcomingCard(state.upcomingItems, state.amountsVisible) }
-            }
+            item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible) }
+            item { RecentActivityCard(state.recentItems, amountsVisible) }
+            if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
+            if (state.upcomingItems.isNotEmpty()) item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
         }
     }
 }
 
 @Composable
-private fun PrimaryAccountsCard(
-    accounts: List<HomeAccount>,
-    amountsVisible: Boolean,
-    onToggleAmounts: () -> Unit,
-) {
+private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boolean) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "Βασικοί λογαριασμοί",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = onToggleAmounts) {
-                    Text(
-                        if (amountsVisible) "Απόκρυψη" else "Εμφάνιση",
-                        maxLines = 1,
-                        softWrap = false,
-                    )
-                }
-            }
+            Text("Βασικοί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             if (accounts.isEmpty()) {
                 Text("Δεν υπάρχουν διαθέσιμοι λογαριασμοί.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
