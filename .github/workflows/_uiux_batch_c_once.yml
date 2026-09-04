@@ -17,6 +17,7 @@ jobs:
           ref: android/ui-ux-canonical-correction-pass
           fetch-depth: 0
 
+      # Structural guard v2 avoids whitespace-sensitive matching in ActivityScreen.
       - name: Repair brittle helper guard
         run: python scripts/_patch_uiux_batch_c_helper.py
 
