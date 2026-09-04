@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   apply-and-verify:
-    if: ${{ hashFiles('scripts/apply-generic-offline-queue.py') != '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
