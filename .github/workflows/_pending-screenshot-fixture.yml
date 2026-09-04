@@ -1,0 +1,107 @@
+name: One-shot pending banner screenshot fixture
+
+on:
+  push:
+    branches:
+      - android/pending-undo-updater-delivery
+    paths:
+      - .github/workflows/_pending-screenshot-fixture.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/pending-undo-updater-delivery
+
+      - name: Add final pending banner screenshot evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          root = Path('app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt')
+          text = root.read_text()
+          old = '@Composable\nprivate fun PendingChangesBanner('
+          new = '@Composable\ninternal fun PendingChangesBanner('
+          if text.count(old) != 1:
+              raise SystemExit('Unexpected PendingChangesBanner declaration')
+          root.write_text(text.replace(old, new, 1))
+          PY
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/app/PendingChangesScreenshotTest.kt <<'EOF'
+          package app.myfinhub.android.app
+
+          import androidx.compose.foundation.layout.Box
+          import androidx.compose.foundation.layout.fillMaxSize
+          import androidx.compose.foundation.layout.padding
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.tooling.preview.Preview
+          import androidx.compose.ui.unit.dp
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private val pendingDelete = PendingChangeUi(
+              label = "Διαγραφή κίνησης",
+              statusLabel = "Προς συγχρονισμό",
+              canUndo = true,
+          )
+
+          @PreviewTest
+          @Preview(name = "pending_changes_light", widthDp = 412, heightDp = 300, showBackground = true)
+          @Composable
+          fun PendingChangesLightScreenshot() {
+              PendingChangesEvidence(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(name = "pending_changes_dark", widthDp = 412, heightDp = 300, showBackground = true)
+          @Composable
+          fun PendingChangesDarkScreenshot() {
+              PendingChangesEvidence(darkTheme = true)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "pending_changes_font_150",
+              widthDp = 412,
+              heightDp = 360,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun PendingChangesLargeFontScreenshot() {
+              PendingChangesEvidence(darkTheme = false)
+          }
+
+          @Composable
+          private fun PendingChangesEvidence(darkTheme: Boolean) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  Box(modifier = Modifier.fillMaxSize()) {
+                      PendingChangesBanner(
+                          changeCount = 3,
+                          latest = pendingDelete,
+                          onUndoLatest = {},
+                          modifier = Modifier
+                              .align(Alignment.TopCenter)
+                              .padding(16.dp),
+                      )
+                  }
+              }
+          }
+          EOF
+
+          git rm .github/workflows/_pending-screenshot-fixture.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt \
+                  app/src/screenshotTest/kotlin/app/myfinhub/android/app/PendingChangesScreenshotTest.kt
+          git commit -m "Add final pending change visual evidence"
+          git push origin HEAD:android/pending-undo-updater-delivery
