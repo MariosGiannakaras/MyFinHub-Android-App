@@ -219,7 +219,6 @@ fun MyFinHubRoot(
                             cardSecretState = cardSecretState,
                             onRetryLoad = financeViewModel::retryLoad,
                             onRetryMutation = financeViewModel::retryPendingMutation,
-                            onDiscardMutation = financeViewModel::discardPendingAndReload,
                             onLogout = authViewModel::logout,
                             onHomeAction = financeViewModel::onHomeAction,
                             onActivityAction = financeViewModel::onActivityAction,
@@ -286,7 +285,6 @@ private fun FinanceProductSurface(
     cardSecretState: CardSecretUiState,
     onRetryLoad: () -> Unit,
     onRetryMutation: () -> Unit,
-    onDiscardMutation: () -> Unit,
     onLogout: () -> Unit,
     onHomeAction: (app.myfinhub.android.feature.home.HomeAction) -> Unit,
     onActivityAction: (app.myfinhub.android.feature.activity.ActivityAction) -> Unit,
@@ -348,7 +346,6 @@ private fun FinanceProductSurface(
                     FinanceSyncIssueBanner(
                         issue = issue,
                         onRetryMutation = onRetryMutation,
-                        onDiscardMutation = onDiscardMutation,
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .padding(
@@ -367,7 +364,6 @@ private fun FinanceProductSurface(
 private fun FinanceSyncIssueBanner(
     issue: FinanceSyncIssue,
     onRetryMutation: () -> Unit,
-    onDiscardMutation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val title = when (issue.kind) {
@@ -400,9 +396,11 @@ private fun FinanceSyncIssueBanner(
             TextButton(onClick = onRetryMutation) {
                 Text(retryLabel)
             }
-            TextButton(onClick = onDiscardMutation) {
-                Text("Απόρριψη μη συγχρονισμένης αλλαγής")
-            }
+            Text(
+                "Οι τοπικές κινήσεις παραμένουν στις Κινήσεις μέχρι να επιβεβαιωθεί ο συγχρονισμός ή να τις ακυρώσεις από τις λεπτομέρειές τους.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
