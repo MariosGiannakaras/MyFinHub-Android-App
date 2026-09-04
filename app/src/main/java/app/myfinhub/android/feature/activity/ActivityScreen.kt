@@ -50,6 +50,8 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
@@ -166,25 +168,65 @@ private fun ActivityList(
                 }
             }
         } else {
-            items(state.visibleItems, key = ActivityItem::id) { item ->
-                MyFinHubFinanceRow(
-                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
-                    iconDescription = item.category ?: item.kind.label,
-                    title = item.title,
-                    subtitle = item.subtitle,
-                    meta = if (item.pendingSync) {
-                        "Εκκρεμεί επιβεβαίωση"
-                    } else {
-                        "${item.dateLabel} · ${item.accountLabel}"
-                    },
-                    amountText = formatSignedEuro(item.amount),
-                    tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
-                    onClick = { onSelect(item.id) },
-                    modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
-                )
-            }
+            state.visibleSections.forEachIndexed { sectionIndex, section ->
+        val monthKey = section.date.take(7)
+        val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
+        if (sectionIndex == 0 || monthKey != previousMonth) {
+            item(key = "month-$monthKey") { ActivityMonthHeader(section.date) }
+        }
+        item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
+        items(section.items, key = ActivityItem::id) { item ->
+            MyFinHubFinanceRow(
+                icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                iconDescription = item.category ?: item.kind.label,
+                title = item.title,
+                subtitle = item.subtitle,
+                meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
+                amountText = formatSignedEuro(item.amount),
+                tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                onClick = { onSelect(item.id) },
+                modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
+            )
         }
     }
+        }
+    }
+}
+
+
+@Composable
+private fun ActivityMonthHeader(rawDate: String) {
+    val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+    val locale = Locale.forLanguageTag("el-GR")
+    val label = date?.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
+        ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+        ?: rawDate
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.sm, bottom = MyFinHubSpacing.xxs),
+    )
+}
+
+@Composable
+private fun ActivityDayHeader(rawDate: String) {
+    val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+    val today = LocalDate.now()
+    val locale = Locale.forLanguageTag("el-GR")
+    val label = when (date) {
+        today -> "Σήμερα"
+        today.minusDays(1) -> "Χθες"
+        null -> rawDate
+        else -> date.format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale))
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.xs),
+    )
 }
 
 @Composable
