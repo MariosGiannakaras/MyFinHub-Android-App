@@ -16,36 +16,23 @@ import kotlinx.serialization.json.JsonObject
 
 private val Context.financeOfflineDataStore by preferencesDataStore(name = "finance_offline_v1")
 
-enum class PendingTransactionSyncState {
-    NEVER_SENT,
-    NEEDS_REVIEW,
-}
-
-data class PendingTransactionIntent(
-    val event: JsonObject,
-    val nowIso: String,
-    val syncState: PendingTransactionSyncState = PendingTransactionSyncState.NEVER_SENT,
-) {
-    val eventId: String
-        get() = event.string("id").orEmpty()
-
-    fun asMutation(): AppendCanonicalEvent = AppendCanonicalEvent(event = event, nowIso = nowIso)
-}
-
 data class FinanceLocalSnapshot(
     val userId: String,
     val serverDocument: CanonicalFinanceDocument,
-    val pendingTransactions: List<PendingTransactionIntent>,
+    val pendingMutations: List<PendingCanonicalMutationIntent>,
     val lastSuccessfulSync: String?,
 )
 
 /**
  * Device-local encrypted cache used only after the owner has authenticated on this installation.
  *
- * The server document remains canonical. The cached document is the last server-accepted snapshot;
- * offline-created transactions are stored separately with stable ids and replayed only after a
- * fresh server load. A transaction switches to NEEDS_REVIEW before any network write attempt so an
- * ambiguous transport failure can never be blindly retried on reconnect.
+ * The last server-accepted document remains separate from pending local mutation intents. This
+ * allows reconnect to load the newest server revision before replaying work. Every intent switches
+ * to NEEDS_REVIEW before a network write boundary so an ambiguous transport failure is never
+ * automatically retried after reconnect or process death.
+ *
+ * The DataStore/cipher identity intentionally remains `finance_offline_v1` so currently installed
+ * Phase 6 builds migrate their legacy append-only pending queue without losing cached data.
  */
 class EncryptedFinanceLocalStore(
     private val context: Context,
@@ -70,34 +57,53 @@ class EncryptedFinanceLocalStore(
                 check(CanonicalDataIntegrity.validateDocument(serverDocument) == null) {
                     "Encrypted finance cache contains an invalid server snapshot."
                 }
-                val pending = stored.pendingTransactions.map { item ->
-                    check(item.event.string("id").orEmpty().isNotBlank()) {
-                        "Encrypted finance cache contains a pending transaction without an id."
-                    }
-                    PendingTransactionIntent(
-                        event = item.event,
-                        nowIso = item.nowIso,
+
+                val generic = stored.pendingMutations.map { item ->
+                    PendingCanonicalMutationIntent(
+                        intentId = item.intentId,
+                        kind = item.kind,
+                        payload = item.payload,
                         syncState = item.syncState,
                     )
                 }
-                check(pending.map(PendingTransactionIntent::eventId).distinct().size == pending.size) {
-                    "Encrypted finance cache contains duplicate pending transaction ids."
+                val migratedLegacy = stored.pendingTransactions.map { item ->
+                    val eventId = item.event.string("id").orEmpty()
+                    check(eventId.isNotBlank()) {
+                        "Encrypted finance cache contains a legacy pending transaction without an id."
+                    }
+                    PendingCanonicalMutationIntent.fromMutation(
+                        mutation = AppendCanonicalEvent(event = item.event, nowIso = item.nowIso),
+                        intentId = "legacy-append-$eventId",
+                        syncState = when (item.syncState) {
+                            LegacyPendingTransactionSyncState.NEVER_SENT -> PendingMutationSyncState.NEVER_SENT
+                            LegacyPendingTransactionSyncState.NEEDS_REVIEW -> PendingMutationSyncState.NEEDS_REVIEW
+                        },
+                    )
+                }
+                val pending = (generic + migratedLegacy)
+                    .distinctBy(PendingCanonicalMutationIntent::intentId)
+
+                check(pending.map(PendingCanonicalMutationIntent::intentId).all(String::isNotBlank)) {
+                    "Encrypted finance cache contains a pending mutation without an id."
+                }
+                check(pending.map(PendingCanonicalMutationIntent::intentId).distinct().size == pending.size) {
+                    "Encrypted finance cache contains duplicate pending mutation ids."
                 }
 
-                // Validate the full local projection as well. This catches a malformed pending event
-                // before it can reach Compose/projectors after an offline process restart.
+                // Validate the complete optimistic local document before exposing it to projectors.
+                // This also validates reconstruction of every serialized mutation kind.
                 var projectedDocument = serverDocument
                 pending.forEach { item ->
                     projectedDocument = item.asMutation().apply(projectedDocument)
                     check(CanonicalDataIntegrity.validateDocument(projectedDocument) == null) {
-                        "Encrypted finance cache contains an invalid pending transaction."
+                        "Encrypted finance cache contains an invalid pending mutation."
                     }
                 }
 
                 FinanceLocalSnapshot(
                     userId = stored.userId,
                     serverDocument = serverDocument,
-                    pendingTransactions = pending,
+                    pendingMutations = pending,
                     lastSuccessfulSync = stored.lastSuccessfulSync,
                 )
             } finally {
@@ -114,23 +120,35 @@ class EncryptedFinanceLocalStore(
         require(CanonicalDataIntegrity.validateDocument(snapshot.serverDocument) == null) {
             "Finance cache cannot persist an invalid canonical document."
         }
-        require(snapshot.pendingTransactions.map(PendingTransactionIntent::eventId).all(String::isNotBlank)) {
-            "Finance cache cannot persist a pending transaction without an id."
+        require(snapshot.pendingMutations.map(PendingCanonicalMutationIntent::intentId).all(String::isNotBlank)) {
+            "Finance cache cannot persist a pending mutation without an id."
         }
-        require(snapshot.pendingTransactions.map(PendingTransactionIntent::eventId).distinct().size == snapshot.pendingTransactions.size) {
-            "Finance cache cannot persist duplicate pending transaction ids."
+        require(snapshot.pendingMutations.map(PendingCanonicalMutationIntent::intentId).distinct().size == snapshot.pendingMutations.size) {
+            "Finance cache cannot persist duplicate pending mutation ids."
+        }
+
+        var projectedDocument = snapshot.serverDocument
+        snapshot.pendingMutations.forEach { item ->
+            projectedDocument = item.asMutation().apply(projectedDocument)
+            require(CanonicalDataIntegrity.validateDocument(projectedDocument) == null) {
+                "Finance cache cannot persist an invalid pending mutation."
+            }
         }
 
         val stored = StoredFinanceLocalSnapshot(
             userId = snapshot.userId,
             serverDocument = snapshot.serverDocument.raw,
-            pendingTransactions = snapshot.pendingTransactions.map { pending ->
-                StoredPendingTransaction(
-                    event = pending.event,
-                    nowIso = pending.nowIso,
+            pendingMutations = snapshot.pendingMutations.map { pending ->
+                StoredPendingMutation(
+                    intentId = pending.intentId,
+                    kind = pending.kind,
+                    payload = pending.payload,
                     syncState = pending.syncState,
                 )
             },
+            // Legacy field is intentionally written empty. It remains in the schema only so an
+            // installed append-only v1 cache can be decoded and migrated in place.
+            pendingTransactions = emptyList(),
             lastSuccessfulSync = snapshot.lastSuccessfulSync,
         )
         val plaintext = json.encodeToString(stored).encodeToByteArray()
@@ -156,16 +174,32 @@ class EncryptedFinanceLocalStore(
     private data class StoredFinanceLocalSnapshot(
         val userId: String,
         val serverDocument: JsonObject,
+        val pendingMutations: List<StoredPendingMutation> = emptyList(),
         val pendingTransactions: List<StoredPendingTransaction> = emptyList(),
         val lastSuccessfulSync: String? = null,
     )
 
     @Serializable
+    private data class StoredPendingMutation(
+        val intentId: String,
+        val kind: PendingMutationKind,
+        val payload: JsonObject,
+        val syncState: PendingMutationSyncState,
+    )
+
+    /** Legacy append-only DTO retained solely for migration from the installed Phase 6 cache. */
+    @Serializable
     private data class StoredPendingTransaction(
         val event: JsonObject,
         val nowIso: String,
-        val syncState: PendingTransactionSyncState,
+        val syncState: LegacyPendingTransactionSyncState,
     )
+
+    @Serializable
+    private enum class LegacyPendingTransactionSyncState {
+        NEVER_SENT,
+        NEEDS_REVIEW,
+    }
 
     private companion object {
         val IV_KEY = stringPreferencesKey("finance_iv")
