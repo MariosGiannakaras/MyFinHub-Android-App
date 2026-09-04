@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -41,6 +42,8 @@ fun ProductionSettingsScreen(
     @Suppress("UNUSED_PARAMETER") onAction: (FrontendUtilitiesAction) -> Unit,
     onBack: () -> Unit,
     diagnostics: AppDiagnosticsSnapshot? = null,
+    noticeHistoryCount: Int = 0,
+    onOpenNoticeHistory: () -> Unit = {},
     onLogout: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -141,6 +144,23 @@ fun ProductionSettingsScreen(
                         "Δεν εμφανίζονται διακόπτες για μυστικά κάρτας χωρίς ενεργή production συμπεριφορά.",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    Text("Ειδοποιήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Το τοπικό ιστορικό κρατά μόνο ασφαλή κατηγορία, διαγνωστικό κωδικό και χρόνο. Επαναλαμβανόμενες ίδιες ειδοποιήσεις συμπτύσσονται.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    MyFinHubOutlinedAction(
+                        label = if (noticeHistoryCount == 0) "Ιστορικό ειδοποιήσεων" else "Ιστορικό ειδοποιήσεων ($noticeHistoryCount)",
+                        onClick = onOpenNoticeHistory,
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = MyFinHubIcons.Activity,
                     )
                 }
             }

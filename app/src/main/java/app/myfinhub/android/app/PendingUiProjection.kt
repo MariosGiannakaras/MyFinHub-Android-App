@@ -100,34 +100,44 @@ private fun pendingDeletionTombstones(
 
 private fun pendingCardChangeMessage(
     serverDocument: CanonicalFinanceDocument,
-    optimisticCards: List<app.myfinhub.android.feature.money.MoneyCard>,
+    @Suppress("UNUSED_PARAMETER") optimisticCards: List<app.myfinhub.android.feature.money.MoneyCard>,
     pending: List<PendingCanonicalMutationIntent>,
     today: LocalDate,
 ): String? {
-    val createLines = pending.filter { it.kind == PendingMutationKind.CREATE_CARD }.mapNotNull { intent ->
-        val id = intent.payload.string("cardId") ?: return@mapNotNull null
-        val card = optimisticCards.firstOrNull { it.id == id } ?: return@mapNotNull null
-        "${card.nickname} · Εκκρεμεί προσθήκη · ${intent.syncState.pendingStatusLabel()}"
+    var replayDocument = serverDocument
+    val linesByCardId = linkedMapOf<String, String>()
+
+    for (intent in pending) {
+        val before = replayDocument
+        val next = runCatching { intent.asMutation().apply(before) }.getOrNull() ?: break
+        when (intent.kind) {
+            PendingMutationKind.CREATE_CARD -> {
+                val cardId = intent.payload.string("cardId").orEmpty()
+                val card = runCatching {
+                    projectCanonicalProduct(next, today).moneyState.cards.firstOrNull { it.id == cardId }
+                }.getOrNull()
+                if (card != null) {
+                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί προσθήκη · ${intent.syncState.pendingStatusLabel()}"
+                }
+            }
+            PendingMutationKind.DEACTIVATE_CARD -> {
+                val cardId = intent.affectedCardId.orEmpty()
+                val card = runCatching {
+                    projectCanonicalProduct(before, today).moneyState.cards.firstOrNull { it.id == cardId }
+                }.getOrNull()
+                if (card != null) {
+                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
+                }
+            }
+            else -> Unit
+        }
+        replayDocument = next
     }
 
-    val cardIntents = pending
-        .filter { it.kind == PendingMutationKind.DEACTIVATE_CARD }
-        .distinctBy(PendingCanonicalMutationIntent::affectedCardId)
-    if (cardIntents.isEmpty()) return null
-
-    val serverCards = runCatching {
-        projectCanonicalProduct(serverDocument, today).moneyState.cards.associateBy { it.id }
-    }.getOrNull() ?: return null
-    val lines = cardIntents.mapNotNull { intent ->
-        val cardId = intent.affectedCardId ?: return@mapNotNull null
-        val card = serverCards[cardId] ?: return@mapNotNull null
-        val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
-        "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
-    }
-    val allLines = createLines + lines
-    if (allLines.isEmpty()) return null
-
-    return "Εκκρεμείς αλλαγές καρτών:\n${allLines.joinToString("\n")}"
+    if (linesByCardId.isEmpty()) return null
+    return "Εκκρεμείς αλλαγές καρτών:\n${linesByCardId.values.joinToString("\n")}"
 }
 
 private fun PendingMutationSyncState.pendingStatusLabel(): String = when (this) {

@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +43,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
+import app.myfinhub.android.core.ui.PrivacySafeNoticeHistoryStore
+import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.core.ui.UserNotice
+import app.myfinhub.android.core.ui.shouldPresentNotice
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.core.update.UpdateController
 import app.myfinhub.android.core.update.UpdateViewModel
@@ -116,8 +122,14 @@ fun MyFinHubRoot(
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
     val latestFinanceState by rememberUpdatedState(financeState)
     val snackbarHostState = remember { SnackbarHostState() }
+    val noticeHistoryStore = remember(context) { PrivacySafeNoticeHistoryStore(context) }
+    val recentNoticePresentation = remember { mutableMapOf<String, Long>() }
+    var noticeHistory by remember { mutableStateOf<List<PrivacySafeNoticeRecord>>(emptyList()) }
     var detailNotice by remember { mutableStateOf<UserNotice?>(null) }
     var lastDiagnosticCode by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(noticeHistoryStore) {
+        noticeHistory = noticeHistoryStore.load()
+    }
     val snackbarBottomPadding = if (
         authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
     ) MyFinHubDesignMetrics.productSnackbarBottomClearance else MyFinHubSpacing.sm
@@ -168,7 +180,9 @@ fun MyFinHubRoot(
             val duplicateOfSaveIssue = issue != null &&
                 notice.details.contains("Ενέργεια: Αποθήκευση οικονομικών δεδομένων")
             if (duplicateOfSaveIssue) return@collect
+            if (!shouldPresentNotice(notice, recentNoticePresentation, SystemClock.elapsedRealtime())) return@collect
 
+            noticeHistory = noticeHistoryStore.append(notice, System.currentTimeMillis())
             val result = snackbarHostState.showSnackbar(
                 message = notice.message,
                 actionLabel = "Λεπτομέρειες",
@@ -235,6 +249,7 @@ fun MyFinHubRoot(
                             onDeleteCard = financeViewModel::deleteCard,
                             onCreateCard = financeViewModel::createCard,
                             diagnostics = diagnostics,
+                            noticeHistory = noticeHistory,
                         )
                     },
                 )
@@ -303,6 +318,7 @@ private fun FinanceProductSurface(
     onDeleteCard: (String) -> Unit,
     onCreateCard: (CardCreateRequest) -> Unit,
     diagnostics: AppDiagnosticsSnapshot,
+    noticeHistory: List<PrivacySafeNoticeRecord>,
 ) {
     when (state) {
         FinanceProductState.Idle,
@@ -340,23 +356,21 @@ private fun FinanceProductSurface(
                     onPlanAction = onPlanAction,
                     insightsState = projection.insightsState,
                     diagnostics = diagnostics,
+                    noticeHistory = noticeHistory,
                     onLogout = onLogout,
                     canonicalProductMode = true,
                 )
                 if (state.saving) {
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                        modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).statusBarsPadding(),
                     )
                 }
                 if (state.latestPendingChange != null || state.issue != null) {
                     Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(
-                                start = MyFinHubSpacing.md,
-                                top = MyFinHubSpacing.md,
-                                end = MyFinHubSpacing.md,
-                            ),
+                            .statusBarsPadding()
+                            .padding(horizontal = MyFinHubSpacing.md, vertical = MyFinHubSpacing.xs),
                         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     ) {
                         state.latestPendingChange?.let { latest ->
@@ -393,29 +407,24 @@ internal fun PendingChangesBanner(
         tonalElevation = MyFinHubDesignMetrics.cardElevation,
         shadowElevation = MyFinHubDesignMetrics.cardElevation,
     ) {
-        Column(
-            modifier = Modifier.padding(MyFinHubSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        Row(
+            modifier = Modifier.padding(horizontal = MyFinHubSpacing.md, vertical = MyFinHubSpacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                if (changeCount == 1) "1 αλλαγή σε αναμονή" else "$changeCount αλλαγές σε αναμονή",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Text(
-                "${latest.label} · ${latest.statusLabel}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (latest.canUndo) {
-                TextButton(onClick = onUndoLatest) {
-                    Text("Αναίρεση τελευταίας")
-                }
-            } else {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
                 Text(
-                    "Η αλλαγή μπορεί ήδη να έχει φτάσει στον server και θα επιβεβαιωθεί πριν από οποιαδήποτε νέα ενέργεια.",
+                    if (changeCount == 1) "1 αλλαγή σε αναμονή" else "$changeCount αλλαγές σε αναμονή",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    "${latest.label} · ${latest.statusLabel}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (latest.canUndo) {
+                TextButton(onClick = onUndoLatest) { Text("Αναίρεση") }
             }
         }
     }

@@ -76,6 +76,8 @@ import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
+import app.myfinhub.android.feature.utilities.NoticeHistoryScreen
+import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.feature.utilities.ProductionSettingsScreen
 import app.myfinhub.android.feature.utilities.SettingsScreen
 import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
@@ -135,6 +137,7 @@ internal fun MyFinHubAppContent(
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
     diagnostics: AppDiagnosticsSnapshot? = null,
+    noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
     onLogout: (() -> Unit)? = null,
     canonicalProductMode: Boolean = false,
 ) {
@@ -245,6 +248,8 @@ internal fun MyFinHubAppContent(
                             onAction = onFrontendUtilitiesAction,
                             onBack = { homeBackStack.removeLastOrNull() },
                             diagnostics = diagnostics,
+                            noticeHistoryCount = noticeHistory.size,
+                            onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },
                             onLogout = onLogout,
                         )
                     } else {
@@ -256,6 +261,12 @@ internal fun MyFinHubAppContent(
                             onLogout = onLogout,
                         )
                     }
+                }
+                entry<AppRoute.NoticeHistory> {
+                    NoticeHistoryScreen(
+                        entries = noticeHistory,
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.ChangeHistory> {
                     ChangeHistoryScreen(
