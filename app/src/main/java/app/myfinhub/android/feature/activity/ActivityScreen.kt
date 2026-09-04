@@ -171,16 +171,16 @@ private fun ActivityList(
                     icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
                     iconDescription = item.category ?: item.kind.label,
                     title = item.title,
-                    subtitle = if (item.pendingSync) {
-                        "${item.subtitle} · Αναμονή συγχρονισμού"
+                    subtitle = item.subtitle,
+                    meta = if (item.pendingSync) {
+                        "Αναμονή συγχρονισμού · ${item.dateLabel} · ${item.accountLabel}"
                     } else {
-                        item.subtitle
+                        "${item.dateLabel} · ${item.accountLabel}"
                     },
-                    meta = "${item.dateLabel} · ${item.accountLabel}",
                     amountText = formatSignedEuro(item.amount),
                     tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
                     onClick = { onSelect(item.id) },
-                    modifier = if (item.pendingSync) Modifier.alpha(0.62f) else Modifier,
+                    modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
                 )
             }
         }
