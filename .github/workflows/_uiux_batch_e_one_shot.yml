@@ -26,6 +26,35 @@ jobs:
       - name: Apply guarded canonical add-card batch
         run: python scripts/_uiux_batch_e.py
 
+      - name: Repair durable create-card replay branch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/app/myfinhub/android/core/data/PendingCanonicalMutation.kt')
+          t = p.read_text()
+          branch = '''        PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(
+              cardId = payload.string("cardId").orEmpty(),
+              bankId = payload.string("bankId").orEmpty(),
+              nickname = payload.string("nickname").orEmpty(),
+              kind = payload.string("cardKind").orEmpty(),
+              network = payload.string("network").orEmpty(),
+              formFactor = payload.string("formFactor").orEmpty(),
+              last4 = payload.string("last4"),
+              creditLimit = payload.number("creditLimit"),
+              nowIso = payload.string("nowIso").orEmpty(),
+          )
+          '''
+          if 'PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(' not in t:
+              needle = '        PendingMutationKind.UPSERT_OVERALL_BUDGET -> UpsertOverallBudget('
+              if t.count(needle) != 1:
+                  raise SystemExit('create-card replay repair guard failed')
+              t = t.replace(needle, branch + needle, 1)
+          if t.count('PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(') != 1:
+              raise SystemExit('create-card replay branch count invalid')
+          p.write_text(t)
+          PY
+
       - name: Verify focused card mutation and pending semantics
         run: |
           ./gradlew :app:testDebugUnitTest --tests 'app.myfinhub.android.core.data.CanonicalCardMutationsTest' --tests 'app.myfinhub.android.core.data.OfflinePendingMutationSemanticsTest' --stacktrace
