@@ -1,0 +1,10 @@
+from pathlib import Path
+
+p = Path('scripts/_uiux_batch_f.py')
+t = p.read_text()
+old = '''replace_once(\n    'app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt',\n    ''' + "'''" + '''                            diagnostics = diagnostics,\\n                            onLogout = onLogout,'''+ "'''" + ''',\n    ''' + "'''" + '''                            diagnostics = diagnostics,\\n                            noticeHistoryCount = noticeHistory.size,\\n                            onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },\\n                            onLogout = onLogout,'''+ "'''" + ''',\n    'production settings history wiring',\n)'''
+new = '''replace_once(\n    'app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt',\n    ''' + "'''" + '''                        ProductionSettingsScreen(\\n                            state = frontendUtilitiesState,\\n                            onAction = onFrontendUtilitiesAction,\\n                            onBack = { homeBackStack.removeLastOrNull() },\\n                            diagnostics = diagnostics,\\n                            onLogout = onLogout,\\n                        )'''+ "'''" + ''',\n    ''' + "'''" + '''                        ProductionSettingsScreen(\\n                            state = frontendUtilitiesState,\\n                            onAction = onFrontendUtilitiesAction,\\n                            onBack = { homeBackStack.removeLastOrNull() },\\n                            diagnostics = diagnostics,\\n                            noticeHistoryCount = noticeHistory.size,\\n                            onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },\\n                            onLogout = onLogout,\\n                        )'''+ "'''" + ''',\n    'production settings history wiring',\n)'''
+if t.count(old) != 1:
+    raise AssertionError(f'expected one batch F guard to repair, got {t.count(old)}')
+p.write_text(t.replace(old, new, 1))
+print('batch F production settings guard repaired')
