@@ -13,6 +13,7 @@ import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -91,6 +92,41 @@ class PendingUiProjectionTest {
             "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
             result.planState.message,
         )
+    }
+
+    @Test
+    fun confirmedBudget_clearsStalePendingInlineState() {
+        val server = canonicalFixture()
+        val base = projectCanonicalProduct(server, today)
+        val stale = base.copy(
+            planState = base.planState.copy(message = "Αλλαγή budget · Προς συγχρονισμό"),
+        )
+
+        val refreshed = projectCanonicalProduct(server, today, previous = stale)
+        val result = projectPendingUi(
+            projection = refreshed,
+            serverDocument = server,
+            pending = emptyList(),
+            today = today,
+        )
+
+        assertNull(result.planState.message)
+    }
+
+    @Test
+    fun emptyQueue_preservesNonPendingPlanMessage() {
+        val server = canonicalFixture()
+        val base = projectCanonicalProduct(server, today)
+        val projection = base.copy(planState = base.planState.copy(message = "Έλεγξε το μηνιαίο όριο."))
+
+        val result = projectPendingUi(
+            projection = projection,
+            serverDocument = server,
+            pending = emptyList(),
+            today = today,
+        )
+
+        assertEquals("Έλεγξε το μηνιαίο όριο.", result.planState.message)
     }
 
     private fun projectWithPending(

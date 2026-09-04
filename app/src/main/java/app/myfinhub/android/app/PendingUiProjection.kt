@@ -20,7 +20,15 @@ internal fun projectPendingUi(
     pending: List<PendingCanonicalMutationIntent>,
     today: LocalDate,
 ): CanonicalProductProjection {
-    if (pending.isEmpty()) return projection
+    val retainedPlanMessage = projection.planState.message
+        ?.takeUnless { it.startsWith("Αλλαγή budget ·") }
+    if (pending.isEmpty()) {
+        return if (retainedPlanMessage == projection.planState.message) {
+            projection
+        } else {
+            projection.copy(planState = projection.planState.copy(message = retainedPlanMessage))
+        }
+    }
 
     val pendingTransactionIds = pending
         .mapNotNull(PendingCanonicalMutationIntent::affectedTransactionId)
@@ -45,7 +53,7 @@ internal fun projectPendingUi(
             frontendMessage = cardMessage ?: projection.moneyState.frontendMessage,
         ),
         planState = projection.planState.copy(
-            message = budgetMessage ?: projection.planState.message,
+            message = budgetMessage ?: retainedPlanMessage,
         ),
     )
 }
