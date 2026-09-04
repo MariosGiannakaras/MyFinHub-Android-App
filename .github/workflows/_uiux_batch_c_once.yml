@@ -17,6 +17,9 @@ jobs:
           ref: android/ui-ux-canonical-correction-pass
           fetch-depth: 0
 
+      - name: Repair brittle helper guard
+        run: python scripts/_patch_uiux_batch_c_helper.py
+
       - name: Apply guarded transaction corrections
         run: python scripts/_uiux_batch_c.py
 
@@ -28,9 +31,10 @@ jobs:
 
       - name: Commit retained transaction correction
         run: |
-          rm -f .github/workflows/_uiux_batch_c_once.yml scripts/_uiux_batch_c.py
+          rm -f .github/workflows/_uiux_batch_c_once.yml scripts/_uiux_batch_c.py scripts/_patch_uiux_batch_c_helper.py
           test ! -e .github/workflows/_uiux_batch_c_once.yml
           test ! -e scripts/_uiux_batch_c.py
+          test ! -e scripts/_patch_uiux_batch_c_helper.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
