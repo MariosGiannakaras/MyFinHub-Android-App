@@ -42,7 +42,23 @@ class PrivateUpdateClientTest {
             assertEquals(UpdateCheckResult.UpToDate, result)
             assertEquals("/api/android-update", request.url.encodedPath)
             assertEquals("Bearer owner-aal2-token", request.headers["Authorization"])
+            assertEquals("production", request.headers["X-MyFinHub-Android-Update-Channel"])
             assertFalse(request.headers.names().contains("Cookie"))
+        }
+    }
+
+    @Test
+    fun phase6TestBuild_requestsOnlyPhase6TestChannel() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(200).body("""{"available":false}""").build())
+            val client = PrivateUpdateClient(
+                configuration(apiBaseUrl = serverBase(server), updateChannel = "phase6-test"),
+                OkHttpClient(),
+            )
+
+            assertEquals(UpdateCheckResult.UpToDate, client.check(session))
+            assertEquals("phase6-test", server.takeRequest().headers["X-MyFinHub-Android-Update-Channel"])
         }
     }
 
@@ -177,10 +193,12 @@ class PrivateUpdateClientTest {
 
     private fun configuration(
         apiBaseUrl: String = "https://api.example.test",
+        updateChannel: String = "production",
     ) = AppConfiguration(
         myFinHubApiBaseUrl = apiBaseUrl,
         supabaseUrl = "https://storage.example.test",
         supabasePublishableKey = "public-test-key",
+        androidUpdateChannel = updateChannel,
     )
 
     private fun release(
