@@ -2,7 +2,7 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -102,21 +102,48 @@ fun CanonicalCardCreateScreen(
                 enabled = submittedId == null,
             )
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
                 listOf("debit" to "Χρεωστική", "prepaid" to "Προπληρωμένη", "credit" to "Πιστωτική").forEach { (value, label) ->
-                    FilterChip(selected = kind == value, onClick = { kind = value; validation = null }, label = { Text(label) }, enabled = submittedId == null)
+                    FilterChip(
+                        selected = kind == value,
+                        onClick = { kind = value; validation = null },
+                        label = { Text(label) },
+                        enabled = submittedId == null,
+                    )
                 }
             }
             Text("Δίκτυο", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
                 listOf("visa" to "Visa", "mastercard" to "Mastercard", "other" to "Άλλο").forEach { (value, label) ->
-                    FilterChip(selected = network == value, onClick = { network = value }, label = { Text(label) }, enabled = submittedId == null)
+                    FilterChip(
+                        selected = network == value,
+                        onClick = { network = value },
+                        label = { Text(label) },
+                        enabled = submittedId == null,
+                    )
                 }
             }
             Text("Μορφή", style = MaterialTheme.typography.labelLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
                 listOf("physical" to "Φυσική", "virtual" to "Virtual").forEach { (value, label) ->
-                    FilterChip(selected = formFactor == value, onClick = { formFactor = value }, label = { Text(label) }, enabled = submittedId == null)
+                    FilterChip(
+                        selected = formFactor == value,
+                        onClick = { formFactor = value },
+                        label = { Text(label) },
+                        enabled = submittedId == null,
+                    )
                 }
             }
             OutlinedTextField(
