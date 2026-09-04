@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Prepare stable non-production Phase 6 signer and version
+      - name: Prepare stable non-production Phase 6 signer
         shell: bash
         env:
           AOSP_BUILD_COMMIT: 045a3d6a3e359633a14853a5a5e1e4f2a11cbdae
@@ -67,7 +67,15 @@ jobs:
                   raise SystemExit(f"Pinned AOSP test-key blob mismatch for {path.name}: {actual}")
           PY
 
-          python3 - "$version_code" "$version_name" <<'PY'
+      - name: Verify unit tests on unchanged app version
+        shell: bash
+        run: ./gradlew test --stacktrace
+
+      - name: Apply test-only monotonically increasing version
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$PHASE6_VERSION_CODE" "$PHASE6_VERSION_NAME" <<'PY'
           import sys
           from pathlib import Path
 
@@ -82,9 +90,9 @@ jobs:
           path.write_text(text)
           PY
 
-      - name: Test and build debug APK
+      - name: Build debug APK with test-only version
         shell: bash
-        run: ./gradlew test assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Re-sign with stable public Phase 6 test identity and verify
         shell: bash
