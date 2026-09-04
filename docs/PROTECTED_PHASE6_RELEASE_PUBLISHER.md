@@ -38,11 +38,19 @@ There is no input or code path for `production`.
 
 This setup is intentionally manual because the repository must never contain the administrative Supabase credential and the connected GitHub tooling does not expose secret-management APIs.
 
+Prefer a **dedicated Supabase secret API key** (`sb_secret_...`) created only for this Android release-publisher component. Supabase recommends separate server-side secret keys per backend component because they can be rotated independently. A legacy `service_role` JWT remains compatible only where the project still uses that older key model; do not introduce it when a dedicated secret key can be used instead.
+
+In Supabase Dashboard:
+
+1. Open **Settings → API Keys**.
+2. Create a dedicated secret key for the Android `phase6-test` publisher (for example, named `android-phase6-release-publisher`).
+3. Copy it directly into the GitHub Environment secret in the next steps. Do not send or paste it through chat, Issues, PRs, source files, workflow inputs, or logs.
+
 In GitHub repository settings:
 
 1. Create Environment `phase6-test-release`.
 2. Restrict deployment branches/tags to the trusted `develop` branch. Do not allow arbitrary branches.
-3. Add Environment secret `SUPABASE_RELEASE_PUBLISH_KEY` using a Supabase administrative secret/service-role credential that can write the private Storage object and release metadata.
+3. Add Environment secret `SUPABASE_RELEASE_PUBLISH_KEY` with the dedicated Supabase secret key.
 4. Never paste that credential into Issues, PRs, chat, workflow inputs, repository files, Android resources, Gradle properties, logs, or the APK.
 
 A required-reviewer gate may be added to the environment if an explicit human approval is preferred for each publish. It is not required for correctness of the publisher itself.
@@ -86,6 +94,8 @@ This mirrors the Android canonical mutation rule: reconcile before retrying any 
 ## Validation
 
 `scripts/test_phase6_release_publisher.py` covers fresh publish ordering, exact-object resume, ambiguous Storage reconciliation, ambiguous metadata reconciliation, mismatched-object failure, mismatched-metadata failure, idempotent already-published behavior, and locked Phase 6 path/version derivation.
+
+`scripts/test_phase6_release_key_headers.py` covers the authentication-header split between modern `sb_secret_...` keys and legacy service-role JWTs.
 
 `.github/workflows/release-publisher-tests.yml` runs those tests on every relevant PR/push without access to the protected credential.
 
