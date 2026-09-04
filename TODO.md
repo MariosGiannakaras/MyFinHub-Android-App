@@ -1,5 +1,24 @@
 # MyFinHub Android TODO
 
+## Phase 6 offline-first physical correction — completed and merged
+
+Tracker #54 / correction PR are complete and merged into `develop`.
+
+- [x] Persist the last server-accepted canonical finance snapshot locally with owner-scoped Android Keystore encryption.
+- [x] Restore cached finance data after process death/relaunch for authenticated local unlock.
+- [x] Persist multiple offline-created transactions durably instead of blocking after one pending mutation.
+- [x] Keep offline navigation usable and represent pending Activity items non-blockingly.
+- [x] Reload fresh server state before replay and reconcile stable event IDs to prevent duplicates.
+- [x] Automatically replay only transactions known never to have been sent; ambiguous attempts require explicit review/retry.
+- [x] Keep successful PIN/biometric local unlock cache-capable during transient network/server session-validation failures; revoked/expired sessions still require login.
+- [x] Add canonical synchronized transaction deletion plus safe local cancellation for never-synced pending transactions.
+- [x] Cover cache restore, multi-pending persistence, replay idempotency, server-first reconciliation, ambiguous retry exclusion and deletion semantics with tests.
+- [x] Accept final real Compose Activity pending light/dark/150%/detail references after personal inspection.
+- [x] Final canonical screenshot regression, representative S24 instrumentation and complete normal Android verification green.
+- [x] Merge with no unresolved hosted review blocker.
+
+Physical S24 validation remains open in issue #14: offline cold/local unlock, multi-pending restart, reconnect/no-duplicate, ambiguous-write recovery, local pending cancellation and synchronized deletion/reload must be confirmed on the owner's Samsung Galaxy S24 Ultra.
+
 ## Phases 0–5 — completed
 
 - [x] Research/design foundation and repository workflow.
@@ -50,7 +69,7 @@ Tracker #39 is complete. Draft PR #40 was closed only because the connector coul
 
 - [x] Offline login/TOTP preflight without retaining credentials for automatic retry.
 - [x] Synchronous Loading transition prevents rapid duplicate auth requests.
-- [x] Transient/offline local-unlock validation keeps the recoverable session securely locked.
+- [x] Transient/offline local-unlock validation retains the recoverable session without forcing login; cache-capable product entry is completed by the later Phase 6 offline-first correction above.
 - [x] Unauthorized/expired sessions still clear stored session and require login.
 - [x] Explicit logout always clears the encrypted local session boundary even when remote revoke throws.
 - [x] Finance jobs are cancelled when auth/user state is cleared or switched.
@@ -202,13 +221,18 @@ Tracker #52 is completed/closed and the validated updater implementation is merg
 
 ## Phase 6 — physical-device / production / signing handoff
 
-Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative. Use the current `develop` state after the merged correction and private self-updater passes.
+Tracker: issue #14. Checklist: `docs/PHASE_6_DEVICE_HANDOFF.md`. The owner's physical Samsung Galaxy S24 Ultra is authoritative. Use the current `develop` state after the merged corrections and private self-updater passes.
 
 - [ ] Record Samsung One UI / Android version plus the owner's current display resolution, screen zoom and font settings for the accepted run.
 - [ ] Re-run production-configured Auth/API on the physical S24 Ultra: login → TOTP/AAL2 → canonical sync.
 - [ ] Validate biometric/PIN local unlock after background/kill/relaunch.
-- [ ] Perform one reversible finance mutation, reload and verify the persisted result without 428/409 corruption or duplication.
-- [ ] Validate offline → online pending/reconcile behavior with fresh server reload before replay and no duplicate write.
+- [ ] With networking unavailable, validate local PIN/biometric unlock enters cached finance mode without requiring email/password/TOTP solely because validation is unavailable.
+- [ ] While offline, create at least two transactions, navigate normally, kill/relaunch the app and confirm both pending transactions survive and remain visible in Activity.
+- [ ] Cancel one never-sent pending transaction locally and confirm it disappears without a server write.
+- [ ] Restore networking and verify fresh server reload occurs before replay, the remaining stable event ID is committed once, and no duplicate transaction is created.
+- [ ] Exercise the explicit review/retry path for an ambiguous write without any blind automatic resend.
+- [ ] Delete one synchronized transaction from Activity detail with confirmation, reload and verify canonical balances/history remain consistent.
+- [ ] Perform one additional reversible finance mutation, reload and verify the persisted result without 428/409 corruption or duplication.
 - [ ] Validate real card deletion end-to-end against production state and the secret-vault boundaries.
 - [ ] Validate owner+AAL2 PAN/expiry access and device-local CVV behavior.
 - [ ] Validate Appearance System/Light/Dark persistence on the physical Samsung device.
