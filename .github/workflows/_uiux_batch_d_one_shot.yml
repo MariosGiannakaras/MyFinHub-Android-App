@@ -67,6 +67,11 @@ jobs:
           t = t.replace(old, new)
           t = t.replace('''    onOpenAccount: (String) -> Unit,\n    onOpenRecent: (String) -> Unit,\n) {''', '''    onOpenAccount: (String) -> Unit = {},\n    onOpenRecent: (String) -> Unit = {},\n) {''', 1)
           t = t.replace('''    onOpenCard: (String) -> Unit,\n    onOpenAccount: (String) -> Unit,\n    onOpenSavings: () -> Unit,''', '''    onOpenCard: (String) -> Unit,\n    onOpenAccount: (String) -> Unit = {},\n    onOpenSavings: () -> Unit,''', 1)
+          target = "assert t.count(old) == 1, 'app money wiring guard failed'\nt = t.replace(old, new)"
+          repair = "assert t.count(old) == 2, 'app money wiring guard failed'\nt = t.replace(old, new, 1)"
+          if t.count(target) != 1:
+              raise SystemExit('app money guard repair target failed')
+          t = t.replace(target, repair)
           p.write_text(t)
           PY
 
