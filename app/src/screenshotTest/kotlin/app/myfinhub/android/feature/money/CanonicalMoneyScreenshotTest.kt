@@ -14,6 +14,7 @@ private fun canonicalMoneyScreenshotState() = MoneyUiState(
     savingsCurrent = 540.0,
     loanOutstanding = 4_240.0,
     lendingReceivable = 310.0,
+    frontendMessage = "Εκκρεμείς διαγραφές καρτών:\nΠιστωτική ••••1881 · Εκκρεμεί διαγραφή · Προς συγχρονισμό",
 )
 
 @PreviewTest

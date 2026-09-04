@@ -17,18 +17,24 @@ private val pendingDelete = PendingChangeUi(
     canUndo = true,
 )
 
+private val pendingNeedsReview = PendingChangeUi(
+    label = "Διαγραφή κίνησης",
+    statusLabel = "Αναμονή επιβεβαίωσης από τον server",
+    canUndo = false,
+)
+
 @PreviewTest
 @Preview(name = "pending_changes_light", widthDp = 412, heightDp = 300, showBackground = true)
 @Composable
 fun PendingChangesLightScreenshot() {
-    PendingChangesEvidence(darkTheme = false)
+    PendingChangesEvidence(darkTheme = false, latest = pendingDelete)
 }
 
 @PreviewTest
 @Preview(name = "pending_changes_dark", widthDp = 412, heightDp = 300, showBackground = true)
 @Composable
 fun PendingChangesDarkScreenshot() {
-    PendingChangesEvidence(darkTheme = true)
+    PendingChangesEvidence(darkTheme = true, latest = pendingDelete)
 }
 
 @PreviewTest
@@ -41,16 +47,28 @@ fun PendingChangesDarkScreenshot() {
 )
 @Composable
 fun PendingChangesLargeFontScreenshot() {
-    PendingChangesEvidence(darkTheme = false)
+    PendingChangesEvidence(darkTheme = false, latest = pendingDelete)
+}
+
+@PreviewTest
+@Preview(
+    name = "pending_changes_needs_review",
+    widthDp = 412,
+    heightDp = 400,
+    showBackground = true,
+)
+@Composable
+fun PendingChangesNeedsReviewScreenshot() {
+    PendingChangesEvidence(darkTheme = false, latest = pendingNeedsReview)
 }
 
 @Composable
-private fun PendingChangesEvidence(darkTheme: Boolean) {
+private fun PendingChangesEvidence(darkTheme: Boolean, latest: PendingChangeUi) {
     MyFinHubTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
             PendingChangesBanner(
                 changeCount = 3,
-                latest = pendingDelete,
+                latest = latest,
                 onUndoLatest = {},
                 modifier = Modifier
                     .align(Alignment.TopCenter)

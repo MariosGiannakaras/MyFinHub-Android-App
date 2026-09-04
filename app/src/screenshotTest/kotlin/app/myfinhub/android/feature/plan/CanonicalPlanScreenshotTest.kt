@@ -42,6 +42,7 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
     ),
     budget = BudgetDraft(monthlyLimitText = "800", alertThresholdText = "80"),
     forecastEndBalance = 1_695.0,
+    message = "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
 )
 
 @PreviewTest
