@@ -39,8 +39,12 @@ fun ProductionActivityPendingDetailScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         ActivityDetailScreen(
             item = pendingActivityItems().first(),
+            categoryOptions = listOf(
+                ActivityCategoryOption("Έξοδος", listOf("Καφές", "Τρόφιμα")),
+                ActivityCategoryOption("Μεταφορές"),
+            ),
             onBack = {},
-            onSave = { _, _ -> },
+            onSave = { _, _, _, _ -> },
             onDelete = {},
         )
     }
