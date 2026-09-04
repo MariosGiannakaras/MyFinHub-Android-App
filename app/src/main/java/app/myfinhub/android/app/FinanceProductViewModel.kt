@@ -15,11 +15,13 @@ import app.myfinhub.android.core.data.EncryptedFinanceLocalStore
 import app.myfinhub.android.core.data.FinanceLocalSnapshot
 import app.myfinhub.android.core.data.FinanceRepository
 import app.myfinhub.android.core.data.FinanceSyncState
-import app.myfinhub.android.core.data.PendingTransactionIntent
-import app.myfinhub.android.core.data.PendingTransactionSyncState
+import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
+import app.myfinhub.android.core.data.PendingMutationKind
+import app.myfinhub.android.core.data.PendingMutationSyncState
+import app.myfinhub.android.core.data.compactPendingMutationIntents
+import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.canonicalCards
-import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
@@ -84,12 +86,12 @@ data class FinanceSyncIssue(
 /**
  * Production finance controller with a server-canonical, offline-first read/write boundary.
  *
- * The encrypted device cache contains only the last server-accepted canonical document plus a
- * separate queue of stable-id transaction intents. Offline-created transactions are never folded
- * into the cached server snapshot. Reconnect always loads the newest server revision first. Only
- * intents known to have never been sent are replayed automatically; a write that has crossed the
- * network boundary is marked NEEDS_REVIEW before the attempt so an ambiguous failure can never be
- * retried blindly after reconnect or process death.
+ * The encrypted device cache contains the last server-accepted canonical document plus a separate
+ * ordered queue of stable canonical mutation intents. Every supported finance mutation can be
+ * applied optimistically offline and survives process death. Reconnect always loads the newest
+ * server revision first. Only intents known never to have been sent replay automatically; an intent
+ * is persisted as NEEDS_REVIEW before crossing the write boundary so ambiguous failures are never
+ * blindly retried.
  */
 class FinanceProductViewModel(application: Application) : AndroidViewModel(application) {
     private val connectivityObserver = AndroidConnectivityObserver(application)
@@ -123,10 +125,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var currentSession: AuthSession? = null
     private var automaticSyncAllowed = true
     private var lastServerDocument: CanonicalFinanceDocument? = null
-    private var pendingTransactions: List<PendingTransactionIntent> = emptyList()
-
-    /** Non-transaction online mutation retained for explicit conflict/failure recovery. */
-    private var pendingMutation: CanonicalFinanceMutation? = null
+    private var pendingMutations: List<PendingCanonicalMutationIntent> = emptyList()
     private var reloadWhenOnline = false
     private var mutationLaunchInFlight = false
     private var loadJob: Job? = null
@@ -137,7 +136,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             networkStatus.drop(1).collect { status ->
                 if (status != NetworkStatus.ONLINE || !automaticSyncAllowed || currentSession == null) return@collect
                 val ready = mutableState.value as? FinanceProductState.Ready
-                if (reloadWhenOnline || ready?.offline == true || pendingTransactions.any { it.syncState == PendingTransactionSyncState.NEVER_SENT }) {
+                if (reloadWhenOnline || ready?.offline == true || pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
                     loadFresh(preserveUi = true)
                 }
             }
@@ -148,9 +147,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val previous = currentSession
         if (previous != null && previous.userId != session.userId) {
             cancelOperations()
-            pendingMutation = null
             lastServerDocument = null
-            pendingTransactions = emptyList()
+            pendingMutations = emptyList()
             repository.clear()
         }
         currentSession = session
@@ -158,7 +156,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
         val ready = mutableState.value as? FinanceProductState.Ready
         if (previous?.userId == session.userId && ready != null) {
-            if (canUseServer() && (ready.offline || reloadWhenOnline || pendingTransactions.isNotEmpty())) {
+            if (canUseServer() && (ready.offline || reloadWhenOnline || pendingMutations.isNotEmpty())) {
                 loadFresh(preserveUi = true)
             }
             return
@@ -171,9 +169,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         cancelOperations()
         currentSession = null
         automaticSyncAllowed = true
-        pendingMutation = null
         lastServerDocument = null
-        pendingTransactions = emptyList()
+        pendingMutations = emptyList()
         reloadWhenOnline = false
         mutableLastSuccessfulSync.value = null
         repository.clear()
@@ -185,49 +182,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         loadFresh(preserveUi = false)
     }
 
-    /** Explicit recovery for either an ambiguous queued transaction or a non-transaction mutation. */
+    /** Explicit recovery for ambiguous queued work. A fresh server load always happens first. */
     fun retryPendingMutation() {
         if (!canUseServer()) {
-            mutableNotices.tryEmit(offlineUserNotice("Συγχρονισμός εκκρεμών κινήσεων"))
+            mutableNotices.tryEmit(offlineUserNotice("Συγχρονισμός εκκρεμών αλλαγών"))
             return
         }
-        if (pendingTransactions.isNotEmpty()) {
-            loadFresh(preserveUi = true, includeNeedsReview = true)
+        if (pendingMutations.isEmpty()) {
+            loadFresh(preserveUi = true)
             return
         }
-
-        val session = currentSession ?: return
-        val mutation = pendingMutation ?: return
-        if (mutationLaunchInFlight || mutationJob?.isActive == true) return
-        val previousProjection = (mutableState.value as? FinanceProductState.Ready)?.projection
-        mutationLaunchInFlight = true
-        mutationJob = viewModelScope.launch {
-            try {
-                mutableState.value = FinanceProductState.Loading
-                repository.load(session)
-                when (val loaded = repository.state.value) {
-                    is FinanceSyncState.Ready -> {
-                        lastServerDocument = loaded.envelope.document
-                        recordSuccessfulSync(loaded.envelope.lastSavedAt)
-                        persistLocalSnapshot()
-                        saveMutation(
-                            session = session,
-                            mutation = mutation,
-                            baseDocument = loaded.envelope.document,
-                            previousProjection = previousProjection,
-                        )
-                    }
-                    is FinanceSyncState.Error -> handleLoadFailure(loaded.failure, "Επαναφόρτωση οικονομικών δεδομένων")
-                    else -> failLoad("Δεν ήταν δυνατή η επαναφόρτωση των δεδομένων.")
-                }
-            } finally {
-                mutationLaunchInFlight = false
-            }
-        }
+        loadFresh(preserveUi = true, includeNeedsReview = true)
     }
 
     fun discardPendingAndReload() {
-        pendingMutation = null
+        // Do not silently discard durable offline work. This route now means "reload/reconcile".
         reloadWhenOnline = false
         loadFresh(preserveUi = false)
     }
@@ -243,16 +212,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             is ActivityAction.SaveEdit -> {
                 val ready = mutableState.value as? FinanceProductState.Ready ?: return
                 if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-                if (action.id in pendingTransactionIds()) {
-                    mutableNotices.tryEmit(
-                        offlineMutationNotice("Η τοπική κίνηση μπορεί να διορθωθεί αφού συγχρονιστεί ή να ακυρωθεί τώρα."),
-                    )
-                    return
-                }
-                if (!canUseServer()) {
-                    mutableNotices.tryEmit(offlineMutationNotice("Η επεξεργασία συγχρονισμένης κίνησης χρειάζεται επαληθευμένη σύνδεση."))
-                    return
-                }
                 applyMutation(
                     EditCanonicalActivity(
                         transactionId = action.id,
@@ -274,37 +233,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         val id = transactionId.trim()
         if (id.isBlank()) return
-
-        if (id in pendingTransactionIds()) {
-            viewModelScope.launch {
-                pendingTransactions = pendingTransactions.filterNot { it.eventId == id }
-                persistLocalSnapshot()
-                renderLocalState(previous = ready.projection, offline = !canUseServer())
-                mutableNotices.emit(
-                    UserNotice(
-                        message = "Η τοπική κίνηση ακυρώθηκε.",
-                        details = "Ενέργεια: Ακύρωση εκκρεμούς κίνησης\nΚατηγορία: LOCAL_PENDING_REMOVED",
-                        diagnosticCode = "MFH-OFFLINE-PENDING-REMOVED",
-                    ),
-                )
-            }
-            return
-        }
-
-        if (!canUseServer()) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή συγχρονισμένης κίνησης χρειάζεται επαληθευμένη σύνδεση."))
-            return
-        }
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
     }
 
     fun deleteCard(cardId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        if (!canUseServer()) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή κάρτας χρειάζεται επαληθευμένη σύνδεση."))
-            return
-        }
         val normalizedCardId = cardId.trim()
         if (normalizedCardId.isBlank() || ready.projection.document.canonicalCards().none { it.id == normalizedCardId && it.active }) {
             mutableNotices.tryEmit(
@@ -370,11 +304,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             mutableState.value = ready.copy(projection = ready.projection.copy(planState = reducePlan(ready.projection.planState, action)))
             return
         }
-        if (!canUseServer()) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η αλλαγή budget χρειάζεται επαληθευμένη σύνδεση."))
-            return
-        }
-
         val validated = reducePlan(ready.projection.planState, PlanAction.SaveBudget)
         mutableState.value = ready.copy(projection = ready.projection.copy(planState = validated))
         val amount = validated.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
@@ -404,7 +333,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             val cached = localStore.load(session.userId)
             if (cached != null) {
                 lastServerDocument = cached.serverDocument
-                pendingTransactions = cached.pendingTransactions
+                pendingMutations = cached.pendingMutations
                 mutableLastSuccessfulSync.value = cached.lastSuccessfulSync
             }
 
@@ -421,62 +350,84 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 return@launch
             }
 
-            mutableState.value = if (previous == null) FinanceProductState.Loading else {
-                (mutableState.value as? FinanceProductState.Ready)?.copy(saving = true, issue = null)
-                    ?: FinanceProductState.Loading
-            }
-            repository.load(session)
-            when (val loaded = repository.state.value) {
-                is FinanceSyncState.Ready -> {
-                    lastServerDocument = loaded.envelope.document
-                    recordSuccessfulSync(loaded.envelope.lastSavedAt)
-                    reconcileCommittedPending(loaded.envelope.document)
-                    persistLocalSnapshot()
-
-                    val eligible = pendingTransactions.filter {
-                        it.syncState == PendingTransactionSyncState.NEVER_SENT ||
-                            (includeNeedsReview && it.syncState == PendingTransactionSyncState.NEEDS_REVIEW)
-                    }
-                    if (eligible.isNotEmpty()) {
-                        replayPendingTransactions(
-                            session = session,
-                            serverDocument = loaded.envelope.document,
-                            previousProjection = previous,
-                            eligible = eligible,
-                        )
-                    } else {
-                        renderLocalState(previous = previous, offline = false)
-                    }
-                }
-                is FinanceSyncState.Error -> {
-                    if (loaded.failure.kind == ApiFailureKind.NETWORK && lastServerDocument != null) {
-                        reloadWhenOnline = true
-                        renderLocalState(previous = previous, offline = true)
-                        mutableNotices.emit(offlineUserNotice("Ανανέωση οικονομικών δεδομένων"))
-                    } else {
-                        handleLoadFailure(loaded.failure, "Φόρτωση οικονομικών δεδομένων")
-                    }
-                }
-                else -> failLoad("Δεν ήταν δυνατή η φόρτωση των οικονομικών δεδομένων.")
-            }
+            synchronizePendingFromServer(
+                session = session,
+                previousProjection = previous,
+                includeNeedsReview = includeNeedsReview,
+            )
         }
     }
 
-    private suspend fun replayPendingTransactions(
+    private suspend fun synchronizePendingFromServer(
+        session: AuthSession,
+        previousProjection: CanonicalProductProjection?,
+        includeNeedsReview: Boolean,
+    ) {
+        mutableState.value = if (previousProjection == null && lastServerDocument == null) {
+            FinanceProductState.Loading
+        } else {
+            lastServerDocument?.let { document ->
+                readyForDocument(
+                    document = applyAllPending(document),
+                    previous = previousProjection,
+                    saving = true,
+                    offline = false,
+                )
+            } ?: FinanceProductState.Loading
+        }
+
+        repository.load(session)
+        when (val loaded = repository.state.value) {
+            is FinanceSyncState.Ready -> {
+                lastServerDocument = loaded.envelope.document
+                recordSuccessfulSync(loaded.envelope.lastSavedAt)
+                reconcileCommittedPending(loaded.envelope.document)
+                persistLocalSnapshot()
+
+                val eligible = if (includeNeedsReview) {
+                    pendingMutations
+                } else {
+                    pendingMutations.takeWhile { it.syncState == PendingMutationSyncState.NEVER_SENT }
+                }
+                if (eligible.isNotEmpty()) {
+                    replayPendingMutations(
+                        session = session,
+                        serverDocument = loaded.envelope.document,
+                        previousProjection = previousProjection,
+                        eligible = eligible,
+                    )
+                } else {
+                    renderLocalState(previous = previousProjection, offline = false)
+                }
+            }
+            is FinanceSyncState.Error -> {
+                if (loaded.failure.kind == ApiFailureKind.NETWORK && lastServerDocument != null) {
+                    reloadWhenOnline = true
+                    renderLocalState(previous = previousProjection, offline = true)
+                    mutableNotices.emit(offlineUserNotice("Ανανέωση οικονομικών δεδομένων"))
+                } else {
+                    handleLoadFailure(loaded.failure, "Φόρτωση οικονομικών δεδομένων")
+                }
+            }
+            else -> failLoad("Δεν ήταν δυνατή η φόρτωση των οικονομικών δεδομένων.")
+        }
+    }
+
+    private suspend fun replayPendingMutations(
         session: AuthSession,
         serverDocument: CanonicalFinanceDocument,
         previousProjection: CanonicalProductProjection?,
-        eligible: List<PendingTransactionIntent>,
+        eligible: List<PendingCanonicalMutationIntent>,
     ) {
         if (!canUseServer()) {
             renderLocalState(previousProjection, offline = true)
             return
         }
-        val eligibleIds = eligible.map(PendingTransactionIntent::eventId).toSet()
-        // Persist NEEDS_REVIEW before crossing the write boundary. From here on, any transport
-        // failure is ambiguous and automatic reconnect must not send these intents again.
-        pendingTransactions = pendingTransactions.map { pending ->
-            if (pending.eventId in eligibleIds) pending.copy(syncState = PendingTransactionSyncState.NEEDS_REVIEW) else pending
+        val eligibleIds = eligible.map(PendingCanonicalMutationIntent::intentId).toSet()
+        // Persist NEEDS_REVIEW before crossing the network write boundary. Any transport failure
+        // after this point is ambiguous and automatic reconnect must not replay these intents.
+        pendingMutations = pendingMutations.map { pending ->
+            if (pending.intentId in eligibleIds) pending.copy(syncState = PendingMutationSyncState.NEEDS_REVIEW) else pending
         }
         persistLocalSnapshot()
 
@@ -486,9 +437,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             renderLocalState(previousProjection, offline = false)
             mutableNotices.emit(
                 unexpectedUserNotice(
-                    operation = "Προετοιμασία εκκρεμών κινήσεων",
+                    operation = "Προετοιμασία εκκρεμών αλλαγών",
                     throwable = error,
-                    message = "Οι εκκρεμείς κινήσεις διατηρήθηκαν αλλά δεν μπόρεσαν να προετοιμαστούν για συγχρονισμό.",
+                    message = "Οι εκκρεμείς αλλαγές διατηρήθηκαν αλλά δεν μπόρεσαν να προετοιμαστούν για συγχρονισμό.",
                 ),
             )
             return
@@ -503,9 +454,13 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         repository.save(session, candidateDocument)
         when (val saved = repository.state.value) {
             is FinanceSyncState.Ready -> {
-                pendingTransactions = pendingTransactions.filterNot { it.eventId in eligibleIds }
+                val committed = pendingMutations.filter { it.intentId in eligibleIds }
+                pendingMutations = pendingMutations.filterNot { it.intentId in eligibleIds }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
+                committed.mapNotNull(PendingCanonicalMutationIntent::affectedCardId).distinct().forEach { cardId ->
+                    mutableCommittedCardDeletions.emit(cardId)
+                }
                 reconcileCommittedPending(saved.envelope.document)
                 persistLocalSnapshot()
                 renderLocalState(previousProjection, offline = false)
@@ -517,14 +472,14 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     offline = false,
                     issue = FinanceSyncIssue(
                         FinanceSyncIssueKind.REVISION_CONFLICT,
-                        "Οι εκκρεμείς κινήσεις διατηρήθηκαν. Φόρτωσε τα νεότερα δεδομένα πριν επιλέξεις νέα επανάληψη.",
+                        "Οι εκκρεμείς αλλαγές διατηρήθηκαν. Φόρτωσε τα νεότερα δεδομένα πριν επιλέξεις νέα επανάληψη.",
                     ),
                 )
             }
             is FinanceSyncState.Error -> {
                 persistLocalSnapshot()
                 if (saved.failure.kind.isAuthRejection()) {
-                    mutableNotices.emit(saved.failure.toUserNotice("Συγχρονισμός εκκρεμών κινήσεων"))
+                    mutableNotices.emit(saved.failure.toUserNotice("Συγχρονισμός εκκρεμών αλλαγών"))
                     repository.clear()
                     mutableState.value = FinanceProductState.AuthRejected
                 } else {
@@ -533,10 +488,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                         offline = saved.failure.kind == ApiFailureKind.NETWORK,
                         issue = FinanceSyncIssue(
                             FinanceSyncIssueKind.SAVE_FAILED,
-                            "Οι εκκρεμείς κινήσεις διατηρήθηκαν στη συσκευή. Απαιτείται ρητή επανάληψη μετά από νέα φόρτωση του server.",
+                            "Οι εκκρεμείς αλλαγές διατηρήθηκαν στη συσκευή. Απαιτείται νέα φόρτωση του server πριν από ρητή επανάληψη.",
                         ),
                     )
-                    mutableNotices.emit(saved.failure.toUserNotice("Συγχρονισμός εκκρεμών κινήσεων"))
+                    mutableNotices.emit(saved.failure.toUserNotice("Συγχρονισμός εκκρεμών αλλαγών"))
                 }
             }
             else -> {
@@ -546,7 +501,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     offline = false,
                     issue = FinanceSyncIssue(
                         FinanceSyncIssueKind.SAVE_FAILED,
-                        "Οι εκκρεμείς κινήσεις διατηρήθηκαν στη συσκευή και χρειάζονται ρητή επανάληψη.",
+                        "Οι εκκρεμείς αλλαγές διατηρήθηκαν στη συσκευή και χρειάζονται ρητή επανάληψη.",
                     ),
                 )
             }
@@ -558,262 +513,136 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
 
-        if (!canUseServer()) {
-            if (mutation is AppendCanonicalEvent) {
-                mutationLaunchInFlight = true
-                mutationJob = viewModelScope.launch {
-                    try {
-                        queueOfflineTransaction(session, mutation, ready.projection)
-                    } finally {
-                        mutationLaunchInFlight = false
-                    }
-                }
-            } else {
-                mutableNotices.tryEmit(offlineMutationNotice("Αυτή η αλλαγή χρειάζεται επαληθευμένη σύνδεση."))
-            }
-            return
-        }
-
         mutationLaunchInFlight = true
         mutationJob = viewModelScope.launch {
             try {
-                saveMutation(
+                val queued = queueLocalMutation(
                     session = session,
                     mutation = mutation,
-                    baseDocument = ready.projection.document,
                     previousProjection = ready.projection,
                 )
+                if (queued && canUseServer()) {
+                    synchronizePendingFromServer(
+                        session = session,
+                        previousProjection = ready.projection,
+                        includeNeedsReview = false,
+                    )
+                }
             } finally {
                 mutationLaunchInFlight = false
             }
         }
     }
 
-    private suspend fun queueOfflineTransaction(
+    private suspend fun queueLocalMutation(
         session: AuthSession,
-        mutation: AppendCanonicalEvent,
+        mutation: CanonicalFinanceMutation,
         previousProjection: CanonicalProductProjection,
-    ) {
+    ): Boolean {
         val serverDocument = lastServerDocument ?: localStore.load(session.userId)?.serverDocument
         if (serverDocument == null) {
             mutableNotices.emit(
                 UserNotice(
-                    message = "Δεν υπάρχει ασφαλές τοπικό αντίγραφο για νέα κίνηση χωρίς σύνδεση.",
-                    details = "Ενέργεια: Αποθήκευση offline κίνησης\nΚατηγορία: OFFLINE_CACHE_MISSING",
+                    message = "Δεν υπάρχει ασφαλές τοπικό αντίγραφο για αυτή την αλλαγή χωρίς σύνδεση.",
+                    details = "Ενέργεια: Αποθήκευση offline αλλαγής\nΚατηγορία: OFFLINE_CACHE_MISSING",
                     diagnosticCode = "MFH-OFFLINE-CACHE-MISSING",
                 ),
             )
-            return
+            return false
         }
         lastServerDocument = serverDocument
-        val id = mutation.event.string("id").orEmpty()
-        if (id.isBlank()) return
-        if (pendingTransactions.none { it.eventId == id }) {
-            pendingTransactions = pendingTransactions + PendingTransactionIntent(
-                event = mutation.event,
-                nowIso = mutation.nowIso,
-                syncState = PendingTransactionSyncState.NEVER_SENT,
-            )
-        }
-        persistLocalSnapshot()
-        val projection = readyForDocument(
-            document = applyAllPending(serverDocument),
-            previous = previousProjection,
-            saving = false,
-            offline = true,
-        ).projection.copy(
-            quickEntryState = previousProjection.quickEntryState.copy(
-                persisted = false,
-                dirty = false,
-                validationMessage = null,
-            ),
-        )
-        mutableState.value = FinanceProductState.Ready(
-            projection = projection,
-            offline = true,
-            pendingTransactionCount = pendingTransactions.size,
-            pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
-        )
-        reloadWhenOnline = true
-        mutableNotices.emit(
-            UserNotice(
-                message = "Η κίνηση αποθηκεύτηκε στη συσκευή και περιμένει συγχρονισμό.",
-                details = "Ενέργεια: Αποθήκευση offline κίνησης\nΚατηγορία: PENDING_SYNC\nΗ κίνηση θα σταλεί μόνο αφού φορτωθεί πρώτα η νεότερη κατάσταση από τον server.",
-                diagnosticCode = "MFH-OFFLINE-PENDING-SYNC",
-            ),
-        )
-    }
 
-    private suspend fun saveMutation(
-        session: AuthSession,
-        mutation: CanonicalFinanceMutation,
-        baseDocument: CanonicalFinanceDocument,
-        previousProjection: CanonicalProductProjection?,
-    ) {
-        val localDocument = runCatching { mutation.apply(baseDocument) }.getOrElse {
-            previousProjection?.let { projection -> mutableState.value = readyForProjection(projection) }
+        val currentOptimisticDocument = runCatching { applyAllPending(serverDocument) }.getOrElse { error ->
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Ανάκτηση τοπικών αλλαγών",
+                    throwable = error,
+                    message = "Οι υπάρχουσες τοπικές αλλαγές δεν μπόρεσαν να εφαρμοστούν με ασφάλεια.",
+                ),
+            )
+            return false
+        }
+        runCatching { mutation.apply(currentOptimisticDocument) }.getOrElse { error ->
             mutableNotices.emit(
                 unexpectedUserNotice(
                     operation = "Προετοιμασία αλλαγής",
-                    throwable = it,
+                    throwable = error,
                     message = "Η αλλαγή δεν μπόρεσε να εφαρμοστεί με ασφάλεια.",
                 ),
             )
-            return
+            return false
         }
-        pendingMutation = mutation
-        var localProjection = runCatching {
-            projectCanonicalProduct(localDocument, LocalDate.now(), previousProjection)
-        }.getOrElse {
-            pendingMutation = null
-            previousProjection?.let { projection -> mutableState.value = readyForProjection(projection) }
+
+        val intent = PendingCanonicalMutationIntent.fromMutation(
+            mutation = mutation,
+            intentId = "mutation-android-${UUID.randomUUID()}",
+        )
+        val previousQueue = pendingMutations
+        pendingMutations = compactPendingMutationIntents(pendingMutations, intent)
+        val optimisticDocument = runCatching { applyAllPending(serverDocument) }.getOrElse { error ->
+            pendingMutations = previousQueue
             mutableNotices.emit(
                 unexpectedUserNotice(
-                    operation = "Προεπισκόπηση αλλαγής",
-                    throwable = it,
+                    operation = "Προεπισκόπηση τοπικής αλλαγής",
+                    throwable = error,
                     message = "Η αλλαγή ακυρώθηκε επειδή δεν μπόρεσε να εμφανιστεί με ασφάλεια.",
                 ),
             )
-            return
-        }
-
-        if (!canUseServer()) {
-            if (mutation is AppendCanonicalEvent && previousProjection != null) {
-                pendingMutation = null
-                queueOfflineTransaction(session, mutation, previousProjection)
-            } else {
-                pendingMutation = null
-                previousProjection?.let { mutableState.value = readyForProjection(it, offline = true) }
-                mutableNotices.emit(offlineMutationNotice("Η αλλαγή δεν στάλθηκε και χρειάζεται επαληθευμένη σύνδεση."))
-            }
-            return
-        }
-
-        mutableState.value = readyForProjection(localProjection, saving = true)
-        repository.save(session, localDocument)
-        when (val saved = repository.state.value) {
-            is FinanceSyncState.Ready -> {
-                var projection = runCatching {
-                    projectCanonicalProduct(saved.envelope.document, LocalDate.now(), localProjection)
-                }.getOrElse {
-                    mutableState.value = readyForProjection(localProjection)
-                    mutableNotices.emit(
-                        unexpectedUserNotice(
-                            operation = "Ανανέωση μετά την αποθήκευση",
-                            throwable = it,
-                            message = "Η αλλαγή αποθηκεύτηκε, αλλά η οθόνη δεν ανανεώθηκε πλήρως.",
-                        ),
-                    )
-                    pendingMutation = null
-                    return
-                }
-                projection = when (mutation) {
-                    is AppendCanonicalEvent -> projection.copy(
-                        quickEntryState = projection.quickEntryState.copy(persisted = true, dirty = false),
-                    )
-                    is UpsertOverallBudget -> projection.copy(
-                        planState = projection.planState.copy(message = "Το budget αποθηκεύτηκε στο canonical state."),
-                    )
-                    else -> projection
-                }
-                pendingMutation = null
-                lastServerDocument = saved.envelope.document
-                recordSuccessfulSync(saved.envelope.lastSavedAt)
-                reconcileCommittedPending(saved.envelope.document)
-                persistLocalSnapshot()
-                mutableState.value = readyForProjection(projection)
-                if (mutation is DeactivateCanonicalCard) {
-                    mutableCommittedCardDeletions.emit(mutation.cardId)
-                }
-            }
-            is FinanceSyncState.Conflict -> {
-                if (mutation is AppendCanonicalEvent) {
-                    pendingMutation = null
-                    queueAttemptedTransaction(mutation)
-                    localProjection = markPendingTransactions(localProjection)
-                }
-                val message = "Τα δεδομένα άλλαξαν σε άλλη συνεδρία. Η αλλαγή διατηρείται μέχρι να φορτωθούν τα νεότερα δεδομένα και να επιλέξεις επανάληψη."
-                mutableState.value = FinanceProductState.Ready(
-                    projection = localProjection,
-                    issue = FinanceSyncIssue(FinanceSyncIssueKind.REVISION_CONFLICT, message),
-                    pendingTransactionCount = pendingTransactions.size,
-                    pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
-                )
-                mutableNotices.emit(
-                    UserNotice(
-                        message = "Υπάρχει νεότερη έκδοση των δεδομένων.",
-                        details = "Ενέργεια: Αποθήκευση οικονομικών δεδομένων\nΚατηγορία: REVISION_CONFLICT\nΗ αλλαγή διατηρείται μέχρι ρητή επανάληψη μετά από νέα φόρτωση.",
-                        diagnosticCode = "MFH-API-REVISION_CONFLICT-409",
-                    ),
-                )
-            }
-            is FinanceSyncState.Error -> {
-                if (mutation is AppendCanonicalEvent) {
-                    pendingMutation = null
-                    queueAttemptedTransaction(mutation)
-                    localProjection = markPendingTransactions(localProjection)
-                }
-                if (saved.failure.kind.isAuthRejection()) {
-                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση οικονομικών δεδομένων"))
-                    repository.clear()
-                    mutableState.value = FinanceProductState.AuthRejected
-                } else {
-                    val message = apiFailureMessage(saved.failure.kind)
-                    mutableState.value = FinanceProductState.Ready(
-                        projection = localProjection,
-                        issue = FinanceSyncIssue(FinanceSyncIssueKind.SAVE_FAILED, message),
-                        offline = saved.failure.kind == ApiFailureKind.NETWORK,
-                        pendingTransactionCount = pendingTransactions.size,
-                        pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
-                    )
-                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση οικονομικών δεδομένων"))
-                }
-            }
-            else -> {
-                if (mutation is AppendCanonicalEvent) {
-                    pendingMutation = null
-                    queueAttemptedTransaction(mutation)
-                    localProjection = markPendingTransactions(localProjection)
-                }
-                val message = "Η αποθήκευση δεν ολοκληρώθηκε."
-                mutableState.value = FinanceProductState.Ready(
-                    localProjection,
-                    issue = FinanceSyncIssue(FinanceSyncIssueKind.SAVE_FAILED, message),
-                    pendingTransactionCount = pendingTransactions.size,
-                    pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
-                )
-                mutableNotices.emit(
-                    UserNotice(
-                        message = message,
-                        details = "Ενέργεια: Αποθήκευση οικονομικών δεδομένων\nΚατηγορία: UNEXPECTED_SYNC_STATE",
-                        diagnosticCode = "MFH-APP-UNEXPECTED_SYNC_STATE",
-                    ),
-                )
-            }
-        }
-    }
-
-    private suspend fun queueAttemptedTransaction(mutation: AppendCanonicalEvent) {
-        val id = mutation.event.string("id").orEmpty()
-        if (id.isBlank()) return
-        val existing = pendingTransactions.indexOfFirst { it.eventId == id }
-        val pending = PendingTransactionIntent(
-            event = mutation.event,
-            nowIso = mutation.nowIso,
-            syncState = PendingTransactionSyncState.NEEDS_REVIEW,
-        )
-        pendingTransactions = if (existing >= 0) {
-            pendingTransactions.toMutableList().apply { this[existing] = pending }
-        } else {
-            pendingTransactions + pending
+            return false
         }
         persistLocalSnapshot()
+
+        var projection = runCatching {
+            projectCanonicalProduct(optimisticDocument, LocalDate.now(), previousProjection)
+        }.getOrElse { error ->
+            pendingMutations = previousQueue
+            persistLocalSnapshot()
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Προεπισκόπηση τοπικής αλλαγής",
+                    throwable = error,
+                    message = "Η αλλαγή ακυρώθηκε επειδή δεν μπόρεσε να εμφανιστεί με ασφάλεια.",
+                ),
+            )
+            return false
+        }
+        if (mutation is AppendCanonicalEvent) {
+            projection = projection.copy(
+                quickEntryState = projection.quickEntryState.copy(
+                    persisted = false,
+                    dirty = false,
+                    validationMessage = null,
+                ),
+            )
+        }
+        mutableState.value = readyForProjection(
+            projection = projection,
+            saving = false,
+            offline = !canUseServer(),
+        )
+
+        if (!canUseServer()) {
+            reloadWhenOnline = true
+            mutableNotices.emit(
+                UserNotice(
+                    message = "Η αλλαγή αποθηκεύτηκε στη συσκευή και περιμένει συγχρονισμό.",
+                    details = "Ενέργεια: Αποθήκευση offline αλλαγής\nΚατηγορία: PENDING_SYNC\nΘα φορτωθεί πρώτα η νεότερη κατάσταση από τον server πριν σταλεί η αλλαγή.",
+                    diagnosticCode = "MFH-OFFLINE-PENDING-SYNC",
+                ),
+            )
+        }
+        return true
     }
 
     private suspend fun reconcileCommittedPending(serverDocument: CanonicalFinanceDocument) {
-        val serverIds = serverDocument.canonicalEvents().map { it.id }.toSet()
-        if (serverIds.isEmpty() || pendingTransactions.isEmpty()) return
-        pendingTransactions = pendingTransactions.filterNot { it.eventId in serverIds }
+        if (pendingMutations.isEmpty()) return
+        val remaining = reconcileSatisfiedPendingMutations(serverDocument, pendingMutations)
+        val remainingIds = remaining.map(PendingCanonicalMutationIntent::intentId).toSet()
+        val committed = pendingMutations.filterNot { it.intentId in remainingIds }
+        pendingMutations = remaining
+        committed.mapNotNull(PendingCanonicalMutationIntent::affectedCardId).distinct().forEach { cardId ->
+            mutableCommittedCardDeletions.emit(cardId)
+        }
     }
 
     private suspend fun renderLocalState(
@@ -844,8 +673,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             saving = saving,
             issue = issue,
             offline = offline,
-            pendingTransactionCount = pendingTransactions.size,
-            pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
+            pendingTransactionCount = pendingTransactionIds().size,
+            pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
         )
     }
 
@@ -859,12 +688,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         saving = saving,
         issue = issue,
         offline = offline,
-        pendingTransactionCount = pendingTransactions.size,
-        pendingReviewCount = pendingTransactions.count { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW },
+        pendingTransactionCount = pendingTransactionIds().size,
+        pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
     )
 
     private fun applyAllPending(serverDocument: CanonicalFinanceDocument): CanonicalFinanceDocument =
-        pendingTransactions.fold(serverDocument) { document, pending -> pending.asMutation().apply(document) }
+        pendingMutations.fold(serverDocument) { document, pending -> pending.asMutation().apply(document) }
 
     private fun markPendingTransactions(projection: CanonicalProductProjection): CanonicalProductProjection {
         val ids = pendingTransactionIds()
@@ -879,13 +708,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private fun pendingTransactionIds(): Set<String> =
-        pendingTransactions.map(PendingTransactionIntent::eventId).filter(String::isNotBlank).toSet()
+        pendingMutations.mapNotNull(PendingCanonicalMutationIntent::affectedTransactionId)
+            .filter(String::isNotBlank)
+            .toSet()
 
     private fun reviewIssueOrNull(): FinanceSyncIssue? =
-        if (pendingTransactions.any { it.syncState == PendingTransactionSyncState.NEEDS_REVIEW }) {
+        if (pendingMutations.any { it.syncState == PendingMutationSyncState.NEEDS_REVIEW }) {
             FinanceSyncIssue(
                 FinanceSyncIssueKind.SAVE_FAILED,
-                "Υπάρχουν κινήσεις που μπορεί να έχουν φτάσει στον server. Απαιτείται νέα φόρτωση πριν από ρητή επανάληψη.",
+                "Υπάρχουν αλλαγές που μπορεί να έχουν φτάσει στον server. Απαιτείται νέα φόρτωση πριν από ρητή επανάληψη.",
             )
         } else {
             null
@@ -898,7 +729,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             FinanceLocalSnapshot(
                 userId = session.userId,
                 serverDocument = serverDocument,
-                pendingTransactions = pendingTransactions,
+                pendingMutations = pendingMutations,
                 lastSuccessfulSync = mutableLastSuccessfulSync.value,
             ),
         )
@@ -969,7 +800,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     private fun offlineMutationNotice(message: String): UserNotice = UserNotice(
         message = message,
-        details = "Ενέργεια: Offline αλλαγή\nΚατηγορία: CONNECTION_REQUIRED\nΟι ήδη φορτωμένες οικονομικές πληροφορίες παραμένουν διαθέσιμες.",
+        details = "Ενέργεια: Offline συγχρονισμός\nΚατηγορία: CONNECTION_REQUIRED\nΟι τοπικές αλλαγές παραμένουν κρυπτογραφημένες στη συσκευή.",
         diagnosticCode = "MFH-OFFLINE-CONNECTION-REQUIRED",
     )
 
