@@ -7,6 +7,11 @@ on:
         description: 'Open Android PR to develop with green exact-head CI/UI checks'
         required: true
         type: string
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/release-requests/phase6-test.json
 
 permissions:
   contents: read
@@ -18,6 +23,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  request-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_pr: ${{ steps.request.outputs.source_pr }}
+    env:
+      SOURCE_PR: ${{ inputs.source_pr }}
+      GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+    steps:
+      - name: Require trusted develop ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted release request
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 2
+      - name: Validate guarded release request
+        id: request
+        run: python3 scripts/phase6_release_request_gate.py
+
   publisher-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -31,12 +56,14 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_phase6_release*.py'
 
   source-gate:
+    needs:
+      - request-gate
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       source_sha: ${{ steps.source.outputs.source_sha }}
     env:
-      SOURCE_PR: ${{ inputs.source_pr }}
+      SOURCE_PR: ${{ needs.request-gate.outputs.source_pr }}
     steps:
       - name: Require trusted workflow ref
         shell: bash
@@ -55,7 +82,7 @@ jobs:
       - source-gate
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    environment: phase6-test-release
+    environment: android-apk-release
     outputs:
       version_code: ${{ steps.plan.outputs.version_code }}
       version_name: ${{ steps.plan.outputs.version_name }}
@@ -80,7 +107,6 @@ jobs:
           result="$(python3 automation/scripts/phase6_release_publisher.py plan)"
           python3 - "$result" "$GITHUB_OUTPUT" <<'PY'
           import json
-          import re
           import sys
 
           data = json.loads(sys.argv[1])
@@ -217,7 +243,7 @@ jobs:
       - build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: phase6-test-release
+    environment: android-apk-release
     env:
       SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
       VERSION_CODE: ${{ needs.plan.outputs.version_code }}
