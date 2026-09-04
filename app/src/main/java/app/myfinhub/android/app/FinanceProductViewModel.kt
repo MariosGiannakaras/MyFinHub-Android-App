@@ -19,6 +19,7 @@ import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
 import app.myfinhub.android.core.data.PendingMutationKind
 import app.myfinhub.android.core.data.PendingMutationSyncState
 import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
+import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
