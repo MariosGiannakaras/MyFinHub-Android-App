@@ -1,0 +1,133 @@
+name: UIUX Baseline Acceptance One Shot
+
+on:
+  push:
+    branches:
+      - android/ui-ux-canonical-correction-pass
+    paths:
+      - '.github/workflows/_uiux_baseline_acceptance.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  accept-inspected-baselines:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/ui-ux-canonical-correction-pass
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Regenerate only inspected candidate pixels
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew updateDebugScreenshotTest --stacktrace
+
+          cat > /tmp/expected-paths <<'EOF'
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesDarkScreenshot_pending_changes_dark_4d52aa44_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLargeFontScreenshot_pending_changes_font_150_a35088d9_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLightScreenshot_pending_changes_light_7d4e50be_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesNeedsReviewScreenshot_pending_changes_needs_review_99368ae6_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLargeFontScreenshot_phase2b_activity_compact_large_font_028afa13_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLightScreenshot_phase2b_activity_compact_light_5f73a0b5_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLightScreenshot_canonical_card_create_light_44a64eba_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLargeFontScreenshot_canonical_card_create_large_font_40b70f4e_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateDarkScreenshot_canonical_card_create_dark_c24b0f7f_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactLightScreenshot_canonical_money_compact_light_2b156103_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactDarkScreenshot_canonical_money_compact_dark_8ace8741_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLargeFontScreenshot_notice_history_large_font_059c3c44_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryDarkScreenshot_notice_history_dark_f698f23a_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLightScreenshot_notice_history_light_5302e63e_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLargeFontScreenshot_production_settings_compact_large_font_aa5bc333_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLightScreenshot_production_settings_compact_light_e836902a_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactDarkScreenshot_production_settings_compact_dark_0d316ba0_0.png
+          EOF
+
+          git status --porcelain=v1 | awk '{print $2}' | grep '^app/src/screenshotTestDebug/reference/' | sort > /tmp/actual-paths
+          sort /tmp/expected-paths -o /tmp/expected-paths
+          diff -u /tmp/expected-paths /tmp/actual-paths
+
+          outside="$(git status --porcelain=v1 | awk '{print $2}' | grep -v '^app/src/screenshotTestDebug/reference/' || true)"
+          if [[ -n "$outside" ]]; then
+            echo "Unexpected renderer changes outside screenshot references:" >&2
+            printf '%s\n' "$outside" >&2
+            exit 1
+          fi
+
+          cat > /tmp/expected-sha256 <<'EOF'
+          688aa35c3e937bb344ad0d9f1b575d09aa2f4f2ab5bdcb864585ca84be32b9d1  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesDarkScreenshot_pending_changes_dark_4d52aa44_0.png
+          da22811a1c70577bd1ce8f2a7e35c35093e469056b07e49ee85cd6a69a1692ba  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLargeFontScreenshot_pending_changes_font_150_a35088d9_0.png
+          d74ef2a2b99a7909a86f6e145500584de9aa808b825b94c4f95437855bb2f814  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLightScreenshot_pending_changes_light_7d4e50be_0.png
+          4e7afa4e1181029da60bcdf610cae980cd10893823ebad818417f92797c154d7  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesNeedsReviewScreenshot_pending_changes_needs_review_99368ae6_0.png
+          9ba7de474e74d8ee54c1a5e82a2f5ab4c6a3eb44d5882198fb1a13c6cf7e3356  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLargeFontScreenshot_phase2b_activity_compact_large_font_028afa13_0.png
+          c4b3d649cdaf10f82ae34be6384e75cdea7f86cab59fe59daee2b10315ca9dc0  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLightScreenshot_phase2b_activity_compact_light_5f73a0b5_0.png
+          e5f71ab91b1960b6a64d830df1e5d670a62786d0705146ab55c2eb013af4bd8c  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png
+          55a70308eb65b41da9daca8774b2e7b4e6de7c5903f833d5262b33d7c93678db  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png
+          71675b0600a5a1045492554538378bfe2de951046b8578d53141d0c76a5c7267  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png
+          6e12ab5febc515e31ebd03a2b9fafa867a1d85816a54b50e38cff0f967338e2d  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png
+          792caf925d68266812e337f25f48ad2d2739c94454cf2ba2012d4d9f786220e6  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png
+          26125196b510c54ec394ec41fda659270ed74948cb14ceb2f83b6a7fc815df80  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png
+          af22c510b493bf6b7ad2a1124c5a24dc59c0bc521ef7773c57082240ffbd207b  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png
+          4b4675860483435621f6b7aa289a98fd6a069e518d0629801ea2fcafdc773a72  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLightScreenshot_canonical_card_create_light_44a64eba_0.png
+          43d4ceee839feff6dbdda663e7b4c5755bcdf50cfe53ce4a949b023742e0bb8c  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLargeFontScreenshot_canonical_card_create_large_font_40b70f4e_0.png
+          0b3d7fead832b647881e0c81269ed921cfe54976dac37c78273fcf545440bfa2  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png
+          63fa8c582a3aaaac7f4bf616a9c13e57edce4b2820849436dcfb012b8dfb3a77  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png
+          72894c34651999b753ec03e1ca56770a1c028544a7a610da9479d0899675664c  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png
+          4fec9d8b78106a6f5738d8e7855ebae99422e428edad40f0be10fc930d9fb34c  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateDarkScreenshot_canonical_card_create_dark_c24b0f7f_0.png
+          8e2720b39a2ee7eeb8b4c4746f21397f37c641d8206bbc231410d783747bfd90  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactLightScreenshot_canonical_money_compact_light_2b156103_0.png
+          d64e9de0ba8fd41890fd6a1d6b7f112e9f4d01d4ddf0134849af5ea268fa9ef0  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactDarkScreenshot_canonical_money_compact_dark_8ace8741_0.png
+          bea6d18ddc2602f6439ca7c6adfaf03e0a3104a1bbd5ffa13c93a8fd60c59fbc  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
+          42a8f7bf38de2ae2262db8369985b058178f852b5f7d39066830d32aad49b5c5  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
+          a8b2b8eac53b6ea0a0ac0b860e1f9e4f70fdc480e7c93aafa74bc547b6b24b68  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
+          7408d6ec98bed7ec2f7bd22bb9b992438f53000c33346b851f93738acf3c7507  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLargeFontScreenshot_notice_history_large_font_059c3c44_0.png
+          23edeb02cd500d8350ddda5a865634bfc5b42cbf06976821101861662a8ffe5e  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryDarkScreenshot_notice_history_dark_f698f23a_0.png
+          9742c8213468a88ab4f8ba936b832a45fe9b3953c73f3f686b6c92004ea2fdc1  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLightScreenshot_notice_history_light_5302e63e_0.png
+          3613fddaf02911467a2a958405b72666aa7dd84809c0ceada39aae9ef3bfae6a  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLargeFontScreenshot_production_settings_compact_large_font_aa5bc333_0.png
+          efcdbf7aeef212ea600be9d7d0c82522d9f7e963314e6fec4083174262b84e48  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLightScreenshot_production_settings_compact_light_e836902a_0.png
+          6871948c77ace8827ea8fd30c3a8bfc51d641d371963d9ad006ae3249ae1ee19  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactDarkScreenshot_production_settings_compact_dark_0d316ba0_0.png
+          EOF
+          sha256sum -c /tmp/expected-sha256
+
+      - name: Commit inspected references and self-remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/_uiux_baseline_acceptance.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A app/src/screenshotTestDebug/reference .github/workflows/_uiux_baseline_acceptance.yml
+          git diff --cached --quiet && { echo 'Nothing to commit.' >&2; exit 1; }
+          git commit -m 'test: accept inspected canonical UI baselines'
+          git push origin HEAD:android/ui-ux-canonical-correction-pass
