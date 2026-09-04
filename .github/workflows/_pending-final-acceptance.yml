@@ -1,0 +1,572 @@
+name: One-shot final pending UI acceptance
+
+on:
+  push:
+    branches:
+      - android/pending-undo-updater-delivery
+    paths:
+      - .github/workflows/_pending-final-acceptance.yml
+
+permissions:
+  contents: write
+
+jobs:
+  final-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact correction branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/pending-undo-updater-delivery
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Generate wrapper when required
+        shell: bash
+        run: |
+          if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+            gradle wrapper --gradle-version 9.7.0 --distribution-type bin
+          fi
+
+      - name: Install final retained pending screenshot fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(git hash-object app/src/screenshotTest/kotlin/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTest.kt)" == "e30af8239fe1873ea53b3369ef9a2ccc544a4748" ]]
+          [[ "$(git hash-object app/src/screenshotTest/kotlin/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTest.kt)" == "081b6e9127fe8204506a67d12e51508991501c3c" ]]
+          [[ "$(git hash-object app/src/screenshotTest/kotlin/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTest.kt)" == "2456cdce61943729d1b2f0e775be2093f02a95fc" ]]
+          [[ "$(git hash-object app/src/screenshotTest/kotlin/app/myfinhub/android/app/PendingChangesScreenshotTest.kt)" == "758fdc7e73c5324001da098c133756e6d5239fb3" ]]
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTest.kt <<'EOF'
+          package app.myfinhub.android.feature.activity
+
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          @PreviewTest
+          @Preview(name = "production_activity_pending_light", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable
+          fun ProductionActivityPendingLightScreenshot() {
+              ProductionActivityPendingFixture(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(name = "production_activity_pending_dark", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable
+          fun ProductionActivityPendingDarkScreenshot() {
+              ProductionActivityPendingFixture(darkTheme = true)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "production_activity_pending_large_font",
+              widthDp = 412,
+              heightDp = 915,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun ProductionActivityPendingLargeFontScreenshot() {
+              ProductionActivityPendingFixture(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(name = "production_activity_pending_detail", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable
+          fun ProductionActivityPendingDetailScreenshot() {
+              MyFinHubTheme(darkTheme = false) {
+                  ActivityDetailScreen(
+                      item = pendingActivityItems().first(),
+                      onBack = {},
+                      onSave = { _, _ -> },
+                      onDelete = {},
+                  )
+              }
+          }
+
+          @Composable
+          private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  ActivityScreen(
+                      state = ActivityUiState(items = pendingActivityItems()),
+                      onAction = {},
+                      onOpenDetail = {},
+                      onOpenQuickEntry = {},
+                  )
+              }
+          }
+
+          private fun pendingActivityItems(): List<ActivityItem> = listOf(
+              ActivityItem(
+                  id = "evt-offline-coffee",
+                  dateLabel = "Σήμερα, 08:45",
+                  kind = ActivityKind.EXPENSE,
+                  title = "Καφές",
+                  subtitle = "Εκκρεμεί διαγραφή · Πρωινός καφές",
+                  amount = -5.00,
+                  accountLabel = "Πειραιώς Μισθοδοσίας",
+                  category = "Έξοδος",
+                  pendingSync = true,
+              ),
+              ActivityItem(
+                  id = "evt-offline-market",
+                  dateLabel = "Σήμερα, 08:32",
+                  kind = ActivityKind.EXPENSE,
+                  title = "Σούπερ μάρκετ",
+                  subtitle = "Μικρές αγορές",
+                  amount = -18.40,
+                  accountLabel = "Πειραιώς Μισθοδοσίας",
+                  category = "Τρόφιμα",
+                  pendingSync = true,
+              ),
+              ActivityItem(
+                  id = "evt-synced-expense",
+                  dateLabel = "Χθες, 19:10",
+                  kind = ActivityKind.EXPENSE,
+                  title = "Μετακίνηση",
+                  subtitle = "Εισιτήριο",
+                  amount = -3.60,
+                  accountLabel = "Πειραιώς Μισθοδοσίας",
+                  category = "Μεταφορές",
+              ),
+              ActivityItem(
+                  id = "evt-synced-income",
+                  dateLabel = "2 Σεπ, 10:00",
+                  kind = ActivityKind.INCOME,
+                  title = "Μισθός",
+                  subtitle = "Μηνιαία πίστωση",
+                  amount = 1840.00,
+                  accountLabel = "Πειραιώς Μισθοδοσίας",
+                  category = "Μισθός",
+              ),
+          )
+          EOF
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTest.kt <<'EOF'
+          package app.myfinhub.android.feature.money
+
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private fun canonicalMoneyScreenshotState() = MoneyUiState(
+              accounts = listOf(
+                  MoneyAccount("acc-main", "Κύριος λογαριασμός", 1_155.0, "Τράπεζα"),
+                  MoneyAccount("acc-save", "Αποταμίευση", 540.0, "Αποταμίευση"),
+              ),
+              cards = emptyList(),
+              savingsCurrent = 540.0,
+              loanOutstanding = 4_240.0,
+              lendingReceivable = 310.0,
+              frontendMessage = "Εκκρεμείς διαγραφές καρτών:\nΠιστωτική ••••1881 · Εκκρεμεί διαγραφή · Προς συγχρονισμό",
+          )
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_money_compact_light",
+              widthDp = 412,
+              heightDp = 915,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalMoneyCompactLightScreenshot() {
+              CanonicalMoneyScreenshotFixture(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_money_compact_dark",
+              widthDp = 412,
+              heightDp = 915,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalMoneyCompactDarkScreenshot() {
+              CanonicalMoneyScreenshotFixture(darkTheme = true)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_loans_compact_light",
+              widthDp = 412,
+              heightDp = 915,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalLoansCompactLightScreenshot() {
+              MyFinHubTheme(darkTheme = false) {
+                  CanonicalLoansScreen(
+                      state = canonicalMoneyScreenshotState(),
+                      onBack = {},
+                  )
+              }
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_savings_large_font",
+              widthDp = 412,
+              heightDp = 915,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalSavingsLargeFontScreenshot() {
+              MyFinHubTheme(darkTheme = false) {
+                  CanonicalSavingsScreen(
+                      state = canonicalMoneyScreenshotState(),
+                      onBack = {},
+                  )
+              }
+          }
+
+          @Composable
+          private fun CanonicalMoneyScreenshotFixture(darkTheme: Boolean) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  CanonicalMoneyScreen(
+                      state = canonicalMoneyScreenshotState(),
+                      onOpenCard = {},
+                      onOpenSavings = {},
+                      onOpenLoans = {},
+                      onOpenLending = {},
+                  )
+              }
+          }
+          EOF
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTest.kt <<'EOF'
+          package app.myfinhub.android.feature.plan
+
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private fun canonicalPlanScreenshotState() = PlanUiState(
+              items = listOf(
+                  PlannedItem(
+                      id = "scheduled-1",
+                      title = "Ενοίκιο",
+                      dueLabel = "5 Σεπ",
+                      amount = 680.0,
+                      kind = PlannedKind.SCHEDULED,
+                      flow = PlannedFlow.OBLIGATION,
+                  ),
+                  PlannedItem(
+                      id = "recurring-1",
+                      title = "Internet",
+                      dueLabel = "Κάθε μήνα, ημέρα 8",
+                      amount = 34.90,
+                      kind = PlannedKind.RECURRING,
+                      flow = PlannedFlow.OBLIGATION,
+                  ),
+                  PlannedItem(
+                      id = "scheduled-income",
+                      title = "Μισθός",
+                      dueLabel = "10 Σεπ",
+                      amount = 1_650.0,
+                      kind = PlannedKind.SCHEDULED,
+                      flow = PlannedFlow.INCOME,
+                  ),
+                  PlannedItem(
+                      id = "scheduled-transfer",
+                      title = "Μεταφορά στην αποταμίευση",
+                      dueLabel = "12 Σεπ",
+                      amount = 200.0,
+                      kind = PlannedKind.SCHEDULED,
+                      flow = PlannedFlow.TRANSFER,
+                  ),
+              ),
+              budget = BudgetDraft(monthlyLimitText = "800", alertThresholdText = "80"),
+              forecastEndBalance = 1_695.0,
+              message = "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
+          )
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_plan_compact_light",
+              widthDp = 412,
+              heightDp = 915,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalPlanCompactLightScreenshot() {
+              CanonicalPlanScreenshotFixture(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_plan_compact_dark",
+              widthDp = 412,
+              heightDp = 915,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalPlanCompactDarkScreenshot() {
+              CanonicalPlanScreenshotFixture(darkTheme = true)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_plan_compact_large_font",
+              widthDp = 412,
+              heightDp = 915,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalPlanCompactLargeFontScreenshot() {
+              CanonicalPlanScreenshotFixture(darkTheme = false)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "canonical_budget_compact_large_font",
+              widthDp = 412,
+              heightDp = 915,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun CanonicalBudgetCompactLargeFontScreenshot() {
+              MyFinHubTheme(darkTheme = false) {
+                  CanonicalBudgetScreen(
+                      state = canonicalPlanScreenshotState(),
+                      onAction = {},
+                      onBack = {},
+                  )
+              }
+          }
+
+          @Composable
+          private fun CanonicalPlanScreenshotFixture(darkTheme: Boolean) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  CanonicalPlanScreen(
+                      state = canonicalPlanScreenshotState(),
+                      onOpenBudget = {},
+                  )
+              }
+          }
+          EOF
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/app/PendingChangesScreenshotTest.kt <<'EOF'
+          package app.myfinhub.android.app
+
+          import androidx.compose.foundation.layout.Box
+          import androidx.compose.foundation.layout.fillMaxSize
+          import androidx.compose.foundation.layout.padding
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.tooling.preview.Preview
+          import androidx.compose.ui.unit.dp
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private val pendingDelete = PendingChangeUi(
+              label = "Διαγραφή κίνησης",
+              statusLabel = "Προς συγχρονισμό",
+              canUndo = true,
+          )
+
+          private val pendingNeedsReview = PendingChangeUi(
+              label = "Διαγραφή κίνησης",
+              statusLabel = "Αναμονή επιβεβαίωσης από τον server",
+              canUndo = false,
+          )
+
+          @PreviewTest
+          @Preview(name = "pending_changes_light", widthDp = 412, heightDp = 300, showBackground = true)
+          @Composable
+          fun PendingChangesLightScreenshot() {
+              PendingChangesEvidence(darkTheme = false, latest = pendingDelete)
+          }
+
+          @PreviewTest
+          @Preview(name = "pending_changes_dark", widthDp = 412, heightDp = 300, showBackground = true)
+          @Composable
+          fun PendingChangesDarkScreenshot() {
+              PendingChangesEvidence(darkTheme = true, latest = pendingDelete)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "pending_changes_font_150",
+              widthDp = 412,
+              heightDp = 360,
+              fontScale = 1.5f,
+              showBackground = true,
+          )
+          @Composable
+          fun PendingChangesLargeFontScreenshot() {
+              PendingChangesEvidence(darkTheme = false, latest = pendingDelete)
+          }
+
+          @PreviewTest
+          @Preview(
+              name = "pending_changes_needs_review",
+              widthDp = 412,
+              heightDp = 400,
+              showBackground = true,
+          )
+          @Composable
+          fun PendingChangesNeedsReviewScreenshot() {
+              PendingChangesEvidence(darkTheme = false, latest = pendingNeedsReview)
+          }
+
+          @Composable
+          private fun PendingChangesEvidence(darkTheme: Boolean, latest: PendingChangeUi) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  Box(modifier = Modifier.fillMaxSize()) {
+                      PendingChangesBanner(
+                          changeCount = 3,
+                          latest = latest,
+                          onUndoLatest = {},
+                          modifier = Modifier
+                              .align(Alignment.TopCenter)
+                              .padding(16.dp),
+                      )
+                  }
+              }
+          }
+          EOF
+
+      - name: Full functional and release-policy verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew \
+            :benchmark:assembleBenchmark \
+            :app:assembleBenchmarkRelease \
+            :app:assembleNonMinifiedRelease \
+            test \
+            :app:compileDebugAndroidTestKotlin \
+            lint \
+            assembleDebug \
+            assembleDebugAndroidTest \
+            assembleRelease \
+            analyzeReleaseR8Config \
+            --stacktrace
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          for variant in benchmarkRelease nonMinifiedRelease; do
+            apk=$(find "app/build/outputs/apk/$variant" -type f -name '*.apk' -print -quit)
+            [[ -n "$apk" ]]
+            "$aapt" dump xmltree "$apk" AndroidManifest.xml | grep -F 'BenchmarkProductActivity'
+          done
+          [[ ! -s app/build/outputs/mapping/nonMinifiedRelease/mapping.txt ]]
+
+          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/release/*' -print)
+          [[ ${#manifests[@]} -gt 0 ]]
+          forbidden='BenchmarkProductActivity|ProductTestActivity|AuthTestActivity|<profileable|android:debuggable="true"|android:usesCleartextTraffic="true"'
+          for manifest in "${manifests[@]}"; do
+            if grep -E "$forbidden" "$manifest"; then
+              exit 1
+            fi
+          done
+          release_apk=$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)
+          [[ -n "$release_apk" ]]
+          "$aapt" dump badging "$release_apk" | grep -F "package: name='app.myfinhub.android' versionCode='1'"
+          if "$apksigner" verify "$release_apk" >/dev/null 2>&1; then
+            echo 'Public CI release APK must remain unsigned.' >&2
+            exit 1
+          fi
+
+      - name: Render and validate final screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew updateDebugScreenshotTest --stacktrace
+          ./gradlew validateDebugScreenshotTest --stacktrace
+
+          mapfile -t changed_refs < <(git diff --name-only -- app/src/screenshotTestDebug/reference)
+          [[ ${#changed_refs[@]} -gt 0 ]]
+          for path in "${changed_refs[@]}"; do
+            case "$path" in
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/*|\
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/*|\
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTestKt/*|\
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/*)
+                ;;
+              *)
+                echo "Unexpected screenshot reference change: $path" >&2
+                exit 1
+                ;;
+            esac
+          done
+
+      - name: Representative S24-target interaction and accessibility tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: bash scripts/run-connected-android-tests.sh
+
+      - name: Publish final rendered pending UI evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pending-final-ui-evidence
+          path: |
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/*.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/*.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTestKt/*.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/*.png
+            app/build/reports/screenshotTest/**/*.html
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit accepted candidates and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/_pending-final-acceptance.yml
+          git add \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTest.kt \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTest.kt \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTest.kt \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/app/PendingChangesScreenshotTest.kt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/CanonicalPlanScreenshotTestKt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add final pending state visual evidence"
+          git push origin HEAD:android/pending-undo-updater-delivery
