@@ -254,10 +254,16 @@ fun compactPendingMutationIntents(
     return current + next
 }
 
+/**
+ * Reconciliation is intentionally ordered. Only a contiguous satisfied prefix can be removed.
+ * A later intent may look satisfied only because an earlier unresolved intent has not happened on
+ * the server yet (for example ambiguous create -> offline delete). Removing such a later intent
+ * independently would break the user's causal sequence and could resurrect local data.
+ */
 fun reconcileSatisfiedPendingMutations(
     serverDocument: CanonicalFinanceDocument,
     pending: List<PendingCanonicalMutationIntent>,
-): List<PendingCanonicalMutationIntent> = pending.filterNot { it.isSatisfiedBy(serverDocument) }
+): List<PendingCanonicalMutationIntent> = pending.dropWhile { it.isSatisfiedBy(serverDocument) }
 
 private fun effectiveTransaction(document: CanonicalFinanceDocument, transactionId: String): JsonObject? {
     if (transactionId.isBlank()) return null
