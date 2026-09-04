@@ -1,0 +1,168 @@
+name: One-shot pending undo transform
+
+on:
+  push:
+    branches:
+      - android/pending-undo-updater-delivery
+    paths:
+      - .github/workflows/_pending-undo-transform.yml
+
+permissions:
+  contents: write
+
+jobs:
+  transform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/pending-undo-updater-delivery
+
+      - name: Apply pending/undo product transform
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
+              return text.replace(old, new, 1)
+
+          vm_path = Path("app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt")
+          vm = vm_path.read_text()
+          vm = replace_once(vm, "import app.myfinhub.android.core.data.compactPendingMutationIntents\n", "", "remove compaction import")
+          vm = replace_once(vm, "import kotlinx.coroutines.Job\n", "import kotlinx.coroutines.Job\nimport kotlinx.coroutines.delay\n", "delay import")
+          vm = replace_once(
+              vm,
+              """        val offline: Boolean = false,\n        val pendingTransactionCount: Int = 0,\n        val pendingReviewCount: Int = 0,\n""",
+              """        val offline: Boolean = false,\n        val pendingTransactionCount: Int = 0,\n        val pendingChangeCount: Int = 0,\n        val latestPendingChange: PendingChangeUi? = null,\n        val pendingReviewCount: Int = 0,\n""",
+              "ready pending fields",
+          )
+          vm = replace_once(
+              vm,
+              """data class FinanceSyncIssue(\n    val kind: FinanceSyncIssueKind,\n    val message: String,\n)\n\n""",
+              """data class FinanceSyncIssue(\n    val kind: FinanceSyncIssueKind,\n    val message: String,\n)\n\ndata class PendingChangeUi(\n    val label: String,\n    val statusLabel: String,\n    val canUndo: Boolean,\n)\n\n""",
+              "pending change ui model",
+          )
+          vm = replace_once(
+              vm,
+              """    private var loadJob: Job? = null\n    private var mutationJob: Job? = null\n""",
+              """    private var loadJob: Job? = null\n    private var mutationJob: Job? = null\n    private var autoSyncJob: Job? = null\n""",
+              "auto sync job",
+          )
+          vm = replace_once(
+              vm,
+              """    fun discardPendingAndReload() {\n        // Do not silently discard durable offline work. This route now means \"reload/reconcile\".\n        reloadWhenOnline = false\n        loadFresh(preserveUi = false)\n    }\n\n""",
+              """    fun discardPendingAndReload() {\n        // Do not silently discard durable offline work. This route now means \"reload/reconcile\".\n        reloadWhenOnline = false\n        loadFresh(preserveUi = false)\n    }\n\n    fun undoLatestPendingMutation() {\n        val latest = pendingMutations.lastOrNull() ?: return\n        if (latest.syncState != PendingMutationSyncState.NEVER_SENT) {\n            mutableNotices.tryEmit(\n                UserNotice(\n                    message = \"Η τελευταία αλλαγή έχει ήδη περάσει στο στάδιο επιβεβαίωσης.\",\n                    details = \"Ενέργεια: Αναίρεση αλλαγής\\nΚατηγορία: RECONCILIATION_REQUIRED\\nΘα φορτωθεί πρώτα η τρέχουσα κατάσταση του server.\",\n                    diagnosticCode = \"MFH-OFFLINE-UNDO-RECONCILE\",\n                ),\n            )\n            return\n        }\n        if (loadJob?.isActive == true || mutationJob?.isActive == true) return\n\n        autoSyncJob?.cancel()\n        autoSyncJob = null\n        viewModelScope.launch {\n            val previous = (mutableState.value as? FinanceProductState.Ready)?.projection\n            pendingMutations = undoLatestNeverSentPendingMutation(pendingMutations)\n            persistLocalSnapshot()\n            renderLocalState(\n                previous = previous,\n                offline = !canUseServer(),\n                issue = reviewIssueOrNull(),\n            )\n            mutableNotices.emit(\n                UserNotice(\n                    message = \"Η τελευταία εκκρεμής αλλαγή αναιρέθηκε.\",\n                    details = \"Ενέργεια: Αναίρεση αλλαγής\\nΚατηγορία: LOCAL_PENDING_UNDONE\",\n                    diagnosticCode = \"MFH-OFFLINE-PENDING-UNDONE\",\n                ),\n            )\n            if (canUseServer() && pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {\n                scheduleAutoSync()\n            }\n        }\n    }\n\n""",
+              "undo function",
+          )
+          vm = replace_once(
+              vm,
+              """                if (queued && canUseServer()) {\n                    synchronizePendingFromServer(\n                        session = session,\n                        previousProjection = ready.projection,\n                        includeNeedsReview = false,\n                    )\n                }\n""",
+              """                if (queued && canUseServer()) {\n                    scheduleAutoSync()\n                }\n""",
+              "online sync grace",
+          )
+          vm = replace_once(
+              vm,
+              """    private suspend fun queueLocalMutation(\n""",
+              """    private fun scheduleAutoSync() {\n        autoSyncJob?.cancel()\n        autoSyncJob = viewModelScope.launch {\n            delay(UNDO_GRACE_PERIOD_MILLIS)\n            if (canUseServer() && currentSession != null && pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {\n                loadFresh(preserveUi = true)\n            }\n        }\n    }\n\n    private suspend fun queueLocalMutation(\n""",
+              "schedule auto sync",
+          )
+          vm = replace_once(
+              vm,
+              """        val previousQueue = pendingMutations\n        pendingMutations = compactPendingMutationIntents(pendingMutations, intent)\n""",
+              """        val previousQueue = pendingMutations\n        // Preserve each user action until server confirmation so Undo can reverse the latest\n        // action causally instead of losing intermediate edits/budget changes to compaction.\n        pendingMutations = pendingMutations + intent\n""",
+              "preserve undo history",
+          )
+          vm = replace_once(
+              vm,
+              """            pendingTransactionCount = pendingTransactionIds().size,\n            pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },\n""",
+              """            pendingTransactionCount = pendingTransactionIds().size,\n            pendingChangeCount = pendingMutations.size,\n            latestPendingChange = latestPendingChangeUi(),\n            pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },\n""",
+              "ready document pending ui",
+          )
+          vm = replace_once(
+              vm,
+              """        pendingTransactionCount = pendingTransactionIds().size,\n        pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },\n""",
+              """        pendingTransactionCount = pendingTransactionIds().size,\n        pendingChangeCount = pendingMutations.size,\n        latestPendingChange = latestPendingChangeUi(),\n        pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },\n""",
+              "ready projection pending ui",
+          )
+          vm = replace_once(
+              vm,
+              """    private fun reviewIssueOrNull(): FinanceSyncIssue? =\n""",
+              """    private fun latestPendingChangeUi(): PendingChangeUi? = pendingMutations.lastOrNull()?.let { pending ->\n        PendingChangeUi(\n            label = when (pending.kind) {\n                PendingMutationKind.APPEND_EVENT -> \"Νέα κίνηση\"\n                PendingMutationKind.EDIT_ACTIVITY -> \"Επεξεργασία κίνησης\"\n                PendingMutationKind.DELETE_ACTIVITY -> \"Διαγραφή κίνησης\"\n                PendingMutationKind.UPSERT_OVERALL_BUDGET -> \"Αλλαγή budget\"\n                PendingMutationKind.DEACTIVATE_CARD -> \"Διαγραφή κάρτας\"\n            },\n            statusLabel = if (pending.syncState == PendingMutationSyncState.NEVER_SENT) {\n                \"Προς συγχρονισμό\"\n            } else {\n                \"Αναμονή επιβεβαίωσης από τον server\"\n            },\n            canUndo = pending.syncState == PendingMutationSyncState.NEVER_SENT,\n        )\n    }\n\n    private fun reviewIssueOrNull(): FinanceSyncIssue? =\n""",
+              "pending ui helper",
+          )
+          vm = replace_once(
+              vm,
+              """        mutationJob?.cancel()\n        loadJob = null\n        mutationJob = null\n        mutationLaunchInFlight = false\n""",
+              """        mutationJob?.cancel()\n        autoSyncJob?.cancel()\n        loadJob = null\n        mutationJob = null\n        autoSyncJob = null\n        mutationLaunchInFlight = false\n""",
+              "cancel autosync",
+          )
+          vm = replace_once(
+              vm,
+              """    private fun ApiFailureKind.isAuthRejection(): Boolean =\n        this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED\n}\n""",
+              """    private fun ApiFailureKind.isAuthRejection(): Boolean =\n        this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED\n\n    private companion object {\n        const val UNDO_GRACE_PERIOD_MILLIS = 5_000L\n    }\n}\n""",
+              "undo grace constant",
+          )
+          vm_path.write_text(vm)
+
+          pending_path = Path("app/src/main/java/app/myfinhub/android/core/data/PendingCanonicalMutation.kt")
+          pending = pending_path.read_text()
+          pending = replace_once(
+              pending,
+              """fun reconcileSatisfiedPendingMutations(\n""",
+              """fun undoLatestNeverSentPendingMutation(\n    pending: List<PendingCanonicalMutationIntent>,\n): List<PendingCanonicalMutationIntent> =\n    if (pending.lastOrNull()?.syncState == PendingMutationSyncState.NEVER_SENT) pending.dropLast(1) else pending\n\nfun reconcileSatisfiedPendingMutations(\n""",
+              "undo helper",
+          )
+          pending_path.write_text(pending)
+
+          root_path = Path("app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt")
+          root = root_path.read_text()
+          root = replace_once(
+              root,
+              """                            onRetryMutation = financeViewModel::retryPendingMutation,\n                            onLogout = authViewModel::logout,\n""",
+              """                            onRetryMutation = financeViewModel::retryPendingMutation,\n                            onUndoPendingChange = financeViewModel::undoLatestPendingMutation,\n                            onLogout = authViewModel::logout,\n""",
+              "root callback",
+          )
+          root = replace_once(
+              root,
+              """    onRetryMutation: () -> Unit,\n    onLogout: () -> Unit,\n""",
+              """    onRetryMutation: () -> Unit,\n    onUndoPendingChange: () -> Unit,\n    onLogout: () -> Unit,\n""",
+              "surface signature",
+          )
+          old_issue = """                state.issue?.let { issue ->\n                    FinanceSyncIssueBanner(\n                        issue = issue,\n                        onRetryMutation = onRetryMutation,\n                        modifier = Modifier\n                            .align(Alignment.TopCenter)\n                            .padding(\n                                start = MyFinHubSpacing.md,\n                                top = MyFinHubSpacing.md,\n                                end = MyFinHubSpacing.md,\n                            ),\n                    )\n                }\n"""
+          new_issue = """                if (state.latestPendingChange != null || state.issue != null) {\n                    Column(\n                        modifier = Modifier\n                            .align(Alignment.TopCenter)\n                            .padding(\n                                start = MyFinHubSpacing.md,\n                                top = MyFinHubSpacing.md,\n                                end = MyFinHubSpacing.md,\n                            ),\n                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),\n                    ) {\n                        state.latestPendingChange?.let { latest ->\n                            PendingChangesBanner(\n                                changeCount = state.pendingChangeCount,\n                                latest = latest,\n                                onUndoLatest = onUndoPendingChange,\n                            )\n                        }\n                        state.issue?.let { issue ->\n                            FinanceSyncIssueBanner(\n                                issue = issue,\n                                onRetryMutation = onRetryMutation,\n                            )\n                        }\n                    }\n                }\n"""
+          root = replace_once(root, old_issue, new_issue, "pending overlay")
+          root = replace_once(
+              root,
+              """@Composable\nprivate fun FinanceSyncIssueBanner(\n""",
+              """@Composable\nprivate fun PendingChangesBanner(\n    changeCount: Int,\n    latest: PendingChangeUi,\n    onUndoLatest: () -> Unit,\n    modifier: Modifier = Modifier,\n) {\n    Surface(\n        modifier = modifier.fillMaxWidth(),\n        shape = MaterialTheme.shapes.medium,\n        color = MaterialTheme.colorScheme.surfaceContainerHigh,\n        tonalElevation = MyFinHubDesignMetrics.cardElevation,\n        shadowElevation = MyFinHubDesignMetrics.cardElevation,\n    ) {\n        Column(\n            modifier = Modifier.padding(MyFinHubSpacing.md),\n            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),\n        ) {\n            Text(\n                if (changeCount == 1) \"1 αλλαγή σε αναμονή\" else \"$changeCount αλλαγές σε αναμονή\",\n                style = MaterialTheme.typography.titleMedium,\n            )\n            Text(\n                \"${latest.label} · ${latest.statusLabel}\",\n                style = MaterialTheme.typography.bodyMedium,\n                color = MaterialTheme.colorScheme.onSurfaceVariant,\n            )\n            if (latest.canUndo) {\n                TextButton(onClick = onUndoLatest) {\n                    Text(\"Αναίρεση τελευταίας\")\n                }\n            } else {\n                Text(\n                    \"Η αλλαγή μπορεί ήδη να έχει φτάσει στον server και θα επιβεβαιωθεί πριν από οποιαδήποτε νέα ενέργεια.\",\n                    style = MaterialTheme.typography.bodySmall,\n                    color = MaterialTheme.colorScheme.onSurfaceVariant,\n                )\n            }\n        }\n    }\n}\n\n@Composable\nprivate fun FinanceSyncIssueBanner(\n""",
+              "pending banner component",
+          )
+          root = root.replace(
+              "Οι τοπικές κινήσεις παραμένουν στις Κινήσεις μέχρι να επιβεβαιωθεί ο συγχρονισμός ή να τις ακυρώσεις από τις λεπτομέρειές τους.",
+              "Οι τοπικές αλλαγές παραμένουν ορατές ως εκκρεμείς μέχρι να επιβεβαιωθεί ο συγχρονισμός.",
+          )
+          root_path.write_text(root)
+
+          test_path = Path("app/src/test/java/app/myfinhub/android/core/data/OfflinePendingMutationSemanticsTest.kt")
+          test = test_path.read_text()
+          marker = """    @Test\n    fun deleteIsSatisfiedWhenTransactionIsAlreadyAbsent() {\n"""
+          addition = """    @Test\n    fun undo_removesOnlyLatestNeverSentIntent_andPreservesPreviousUserAction() {\n        val first = PendingCanonicalMutationIntent.fromMutation(\n            EditCanonicalActivity(\"evt-existing\", \"First\", \"A\", NOW),\n            \"first\",\n        )\n        val second = PendingCanonicalMutationIntent.fromMutation(\n            EditCanonicalActivity(\"evt-existing\", \"Second\", \"B\", NOW),\n            \"second\",\n        )\n\n        val remaining = undoLatestNeverSentPendingMutation(listOf(first, second))\n        assertEquals(listOf(\"first\"), remaining.map(PendingCanonicalMutationIntent::intentId))\n        val optimistic = remaining.fold(document()) { current, item -> item.asMutation().apply(current) }\n        val event = optimistic.state.array(\"events\").mapNotNull { it as? JsonObject }.first { it.string(\"id\") == \"evt-existing\" }\n        assertEquals(\"First\", event.string(\"note\"))\n    }\n\n    @Test\n    fun undo_doesNotRemoveLatestNeedsReviewIntent() {\n        val ambiguous = PendingCanonicalMutationIntent.fromMutation(\n            DeleteCanonicalActivity(\"evt-existing\", NOW),\n            \"ambiguous\",\n            PendingMutationSyncState.NEEDS_REVIEW,\n        )\n        assertEquals(listOf(ambiguous), undoLatestNeverSentPendingMutation(listOf(ambiguous)))\n    }\n\n"""
+          test = replace_once(test, marker, addition + marker, "undo tests")
+          test_path.write_text(test)
+          PY
+
+          git rm .github/workflows/_pending-undo-transform.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt \
+                  app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt \
+                  app/src/main/java/app/myfinhub/android/core/data/PendingCanonicalMutation.kt \
+                  app/src/test/java/app/myfinhub/android/core/data/OfflinePendingMutationSemanticsTest.kt
+          git commit -m "Phase 6: show pending changes and add safe undo"
+          git push origin HEAD:android/pending-undo-updater-delivery
