@@ -1,0 +1,501 @@
+name: One-shot pending UI correction
+
+on:
+  push:
+    branches:
+      - android/pending-undo-updater-delivery
+    paths:
+      - .github/workflows/_pending-ui-correction.yml
+
+permissions:
+  contents: write
+
+jobs:
+  correction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout correction branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/pending-undo-updater-delivery
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Generate wrapper when required
+        shell: bash
+        run: |
+          if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+            gradle wrapper --gradle-version 9.7.0 --distribution-type bin
+          fi
+
+      - name: Apply deterministic pending UI correction
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cat > app/src/main/java/app/myfinhub/android/app/PendingUiProjection.kt <<'EOF'
+          package app.myfinhub.android.app
+
+          import app.myfinhub.android.core.data.CanonicalFinanceDocument
+          import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
+          import app.myfinhub.android.core.data.PendingMutationKind
+          import app.myfinhub.android.core.data.PendingMutationSyncState
+          import app.myfinhub.android.feature.activity.ActivityItem
+          import java.time.LocalDate
+
+          /**
+           * Adds durable pending semantics to the optimistic canonical product projection.
+           *
+           * The canonical document remains the accounting source of truth. This layer only restores
+           * destructive tombstones that the optimistic mutation necessarily removes and annotates
+           * canonical write targets until a fresh server document confirms them.
+           */
+          internal fun projectPendingUi(
+              projection: CanonicalProductProjection,
+              serverDocument: CanonicalFinanceDocument?,
+              pending: List<PendingCanonicalMutationIntent>,
+              today: LocalDate,
+          ): CanonicalProductProjection {
+              if (pending.isEmpty()) return projection
+
+              val pendingTransactionIds = pending
+                  .mapNotNull(PendingCanonicalMutationIntent::affectedTransactionId)
+                  .filter(String::isNotBlank)
+                  .toSet()
+              val markedActivity = projection.activityState.items.map { item ->
+                  if (item.id in pendingTransactionIds) item.copy(pendingSync = true) else item
+              }
+              val tombstones = serverDocument
+                  ?.let { pendingDeletionTombstones(it, pending, today) }
+                  .orEmpty()
+              val visibleIds = markedActivity.map(ActivityItem::id).toSet()
+              val activityItems = tombstones.asReversed().filterNot { it.id in visibleIds } + markedActivity
+
+              val cardMessage = serverDocument?.let { pendingCardDeletionMessage(it, pending, today) }
+              val budgetMessage = pending.lastOrNull { it.kind == PendingMutationKind.UPSERT_OVERALL_BUDGET }
+                  ?.let { intent -> "Αλλαγή budget · ${intent.syncState.pendingStatusLabel()}" }
+
+              return projection.copy(
+                  activityState = projection.activityState.copy(items = activityItems),
+                  moneyState = projection.moneyState.copy(
+                      frontendMessage = cardMessage ?: projection.moneyState.frontendMessage,
+                  ),
+                  planState = projection.planState.copy(
+                      message = budgetMessage ?: projection.planState.message,
+                  ),
+              )
+          }
+
+          private fun pendingDeletionTombstones(
+              serverDocument: CanonicalFinanceDocument,
+              pending: List<PendingCanonicalMutationIntent>,
+              today: LocalDate,
+          ): List<ActivityItem> {
+              var replayDocument = serverDocument
+              val tombstones = mutableListOf<ActivityItem>()
+
+              for (intent in pending) {
+                  if (intent.kind == PendingMutationKind.DELETE_ACTIVITY) {
+                      val transactionId = intent.affectedTransactionId.orEmpty()
+                      val source = runCatching {
+                          projectCanonicalProduct(replayDocument, today)
+                              .activityState.items
+                              .firstOrNull { it.id == transactionId }
+                      }.getOrNull()
+                      if (source != null) {
+                          val deletionStatus = when (intent.syncState) {
+                              PendingMutationSyncState.NEVER_SENT -> "Εκκρεμεί διαγραφή"
+                              PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης διαγραφής από τον server"
+                          }
+                          tombstones.removeAll { it.id == transactionId }
+                          tombstones += source.copy(
+                              subtitle = listOf(deletionStatus, source.subtitle)
+                                  .filter(String::isNotBlank)
+                                  .joinToString(" · "),
+                              pendingSync = true,
+                          )
+                      }
+                  }
+
+                  val next = runCatching { intent.asMutation().apply(replayDocument) }.getOrNull() ?: break
+                  replayDocument = next
+              }
+
+              return tombstones
+          }
+
+          private fun pendingCardDeletionMessage(
+              serverDocument: CanonicalFinanceDocument,
+              pending: List<PendingCanonicalMutationIntent>,
+              today: LocalDate,
+          ): String? {
+              val cardIntents = pending
+                  .filter { it.kind == PendingMutationKind.DEACTIVATE_CARD }
+                  .distinctBy(PendingCanonicalMutationIntent::affectedCardId)
+              if (cardIntents.isEmpty()) return null
+
+              val serverCards = runCatching {
+                  projectCanonicalProduct(serverDocument, today).moneyState.cards.associateBy { it.id }
+              }.getOrNull() ?: return null
+              val lines = cardIntents.mapNotNull { intent ->
+                  val cardId = intent.affectedCardId ?: return@mapNotNull null
+                  val card = serverCards[cardId] ?: return@mapNotNull null
+                  val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                  "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
+              }
+              if (lines.isEmpty()) return null
+
+              return "Εκκρεμείς διαγραφές καρτών:\n${lines.joinToString("\n")}"
+          }
+
+          private fun PendingMutationSyncState.pendingStatusLabel(): String = when (this) {
+              PendingMutationSyncState.NEVER_SENT -> "Προς συγχρονισμό"
+              PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης από τον server"
+          }
+          EOF
+
+          cat > app/src/test/java/app/myfinhub/android/app/PendingUiProjectionTest.kt <<'EOF'
+          package app.myfinhub.android.app
+
+          import app.myfinhub.android.core.data.CanonicalFinanceDocument
+          import app.myfinhub.android.core.data.DeactivateCanonicalCard
+          import app.myfinhub.android.core.data.DeleteCanonicalActivity
+          import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
+          import app.myfinhub.android.core.data.PendingMutationSyncState
+          import app.myfinhub.android.core.data.UpsertOverallBudget
+          import app.myfinhub.android.core.data.canonicalFixture
+          import java.time.LocalDate
+          import kotlinx.serialization.json.Json
+          import kotlinx.serialization.json.jsonObject
+          import org.junit.Assert.assertEquals
+          import org.junit.Assert.assertFalse
+          import org.junit.Assert.assertNotNull
+          import org.junit.Assert.assertTrue
+          import org.junit.Test
+
+          class PendingUiProjectionTest {
+              private val today = LocalDate.of(2026, 8, 23)
+              private val now = "2026-08-23T12:00:00Z"
+
+              @Test
+              fun pendingDelete_restoresVisibleTombstoneAfterOptimisticRemoval() {
+                  val server = canonicalFixture()
+                  val intent = PendingCanonicalMutationIntent.fromMutation(
+                      DeleteCanonicalActivity("tx-exp", now),
+                      intentId = "intent-delete",
+                  )
+
+                  val result = projectWithPending(server, listOf(intent))
+                  val tombstone = result.activityState.items.first { it.id == "tx-exp" }
+
+                  assertTrue(tombstone.pendingSync)
+                  assertTrue(tombstone.subtitle.contains("Εκκρεμεί διαγραφή"))
+              }
+
+              @Test
+              fun ambiguousDelete_usesConfirmationLanguageInsteadOfSafeLocalUndoLanguage() {
+                  val server = canonicalFixture()
+                  val intent = PendingCanonicalMutationIntent.fromMutation(
+                      DeleteCanonicalActivity("tx-exp", now),
+                      intentId = "intent-delete-review",
+                      syncState = PendingMutationSyncState.NEEDS_REVIEW,
+                  )
+
+                  val result = projectWithPending(server, listOf(intent))
+                  val tombstone = result.activityState.items.first { it.id == "tx-exp" }
+
+                  assertTrue(tombstone.pendingSync)
+                  assertTrue(tombstone.subtitle.contains("Αναμονή επιβεβαίωσης διαγραφής από τον server"))
+                  assertFalse(tombstone.subtitle.contains("Ακύρωση"))
+              }
+
+              @Test
+              fun pendingCardDeactivation_isRemovedFromInteractiveStackButRemainsVisibleAsTombstoneMessage() {
+                  val server = cardFixture()
+                  val intent = PendingCanonicalMutationIntent.fromMutation(
+                      DeactivateCanonicalCard("card-credit", now),
+                      intentId = "intent-card-delete",
+                  )
+
+                  val result = projectWithPending(server, listOf(intent))
+                  val message = result.moneyState.frontendMessage
+
+                  assertFalse(result.moneyState.cards.any { it.id == "card-credit" })
+                  assertNotNull(message)
+                  assertTrue(message.orEmpty().contains("Πιστωτική"))
+                  assertTrue(message.orEmpty().contains("Εκκρεμεί διαγραφή"))
+                  assertTrue(message.orEmpty().contains("Προς συγχρονισμό"))
+              }
+
+              @Test
+              fun pendingBudget_exposesNeedsReviewInlineState() {
+                  val server = canonicalFixture()
+                  val intent = PendingCanonicalMutationIntent.fromMutation(
+                      UpsertOverallBudget(
+                          month = "2026-08",
+                          amount = 900.0,
+                          alertThreshold = 75,
+                          budgetId = "budget-pending",
+                          nowIso = now,
+                      ),
+                      intentId = "intent-budget",
+                      syncState = PendingMutationSyncState.NEEDS_REVIEW,
+                  )
+
+                  val result = projectWithPending(server, listOf(intent))
+
+                  assertEquals(
+                      "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
+                      result.planState.message,
+                  )
+              }
+
+              private fun projectWithPending(
+                  server: CanonicalFinanceDocument,
+                  pending: List<PendingCanonicalMutationIntent>,
+              ): CanonicalProductProjection {
+                  val optimistic = pending.fold(server) { document, intent -> intent.asMutation().apply(document) }
+                  return projectPendingUi(
+                      projection = projectCanonicalProduct(optimistic, today),
+                      serverDocument = server,
+                      pending = pending,
+                      today = today,
+                  )
+              }
+          }
+
+          private fun cardFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
+              Json.parseToJsonElement(
+                  """
+                  {
+                    "app":"MyFinHub",
+                    "schemaVersion":3,
+                    "updatedAt":"2026-08-23T00:00:00Z",
+                    "seed":{
+                      "accounts":[],
+                      "snapshots":[],
+                      "transactions":[],
+                      "recurring":[],
+                      "loans":[],
+                      "lending":[]
+                    },
+                    "state":{
+                      "deleted":[],
+                      "overrides":{},
+                      "customTransactions":[],
+                      "settings":{},
+                      "events":[],
+                      "scheduled":[],
+                      "cards":[
+                        {
+                          "id":"card-credit",
+                          "nickname":"Πιστωτική",
+                          "kind":"credit",
+                          "network":"visa",
+                          "last4":"1881",
+                          "active":true,
+                          "creditLimit":2000.0
+                        }
+                      ],
+                      "budgets":[]
+                    }
+                  }
+                  """.trimIndent(),
+              ).jsonObject,
+          )
+          EOF
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one replacement, found {count}")
+              target.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt",
+              '''    private fun markPendingTransactions(projection: CanonicalProductProjection): CanonicalProductProjection {
+                  val ids = pendingTransactionIds()
+                  if (ids.isEmpty()) return projection
+                  return projection.copy(
+                      activityState = projection.activityState.copy(
+                          items = projection.activityState.items.map { item ->
+                              if (item.id in ids) item.copy(pendingSync = true) else item
+                          },
+                      ),
+                  )
+              }
+          ''',
+              '''    private fun markPendingTransactions(projection: CanonicalProductProjection): CanonicalProductProjection =
+                  projectPendingUi(
+                      projection = projection,
+                      serverDocument = lastServerDocument,
+                      pending = pendingMutations,
+                      today = LocalDate.now(),
+                  )
+          ''',
+          )
+
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '''                    meta = if (item.pendingSync) {
+                                  "Προς συγχρονισμό"
+                              } else {
+          ''',
+              '''                    meta = if (item.pendingSync) {
+                                  "Εκκρεμεί επιβεβαίωση"
+                              } else {
+          ''',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '                            text = "Αναμονή συγχρονισμού",\n',
+              '                            text = "Εκκρεμεί επιβεβαίωση από τον server",\n',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '''        MyFinHubDestructiveTextAction(
+                      label = if (item.pendingSync) "Ακύρωση τοπικής κίνησης" else "Διαγραφή κίνησης",
+                      onClick = { confirmDelete = true },
+                      modifier = Modifier.fillMaxWidth(),
+                  )
+          ''',
+              '''        if (item.pendingSync) {
+                      Text(
+                          "Δεν επιτρέπεται νέα επεξεργασία ή διαγραφή μέχρι να επιβεβαιωθεί η εκκρεμής αλλαγή. Αν η τελευταία αλλαγή δεν έχει σταλεί ακόμη, η ασφαλής αναίρεση εμφανίζεται στην κεντρική ένδειξη εκκρεμών αλλαγών.",
+                          style = MaterialTheme.typography.bodySmall,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      )
+                  } else {
+                      MyFinHubDestructiveTextAction(
+                          label = "Διαγραφή κίνησης",
+                          onClick = { confirmDelete = true },
+                          modifier = Modifier.fillMaxWidth(),
+                      )
+                  }
+          ''',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '    if (confirmDelete) {\n',
+              '    if (confirmDelete && !item.pendingSync) {\n',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '                Text(if (item.pendingSync) "Ακύρωση τοπικής κίνησης;" else "Διαγραφή κίνησης;")\n',
+              '                Text("Διαγραφή κίνησης;")\n',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '''                Text(
+                              if (item.pendingSync) {
+                                  "Η κίνηση δεν έχει συγχρονιστεί ακόμη και θα αφαιρεθεί μόνο από αυτή τη συσκευή."
+                              } else {
+                                  "Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα."
+                              },
+                          )
+          ''',
+              '''                Text(
+                              "Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα.",
+                          )
+          ''',
+          )
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt",
+              '                    Text(if (item.pendingSync) "Ακύρωση κίνησης" else "Διαγραφή")\n',
+              '                    Text("Διαγραφή")\n',
+          )
+
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt",
+              '''            if (state.cards.isEmpty()) {
+          ''',
+              '''            state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
+                      item {
+                          MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                              Text(
+                                  message,
+                                  style = MaterialTheme.typography.bodyMedium,
+                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                              )
+                          }
+                      }
+                  }
+              if (state.cards.isEmpty()) {
+          ''',
+          )
+
+          replace_once(
+              "app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt",
+              '''                    } else {
+                                  Text(
+                                      "Δεν έχει οριστεί συνολικό budget.",
+                                      style = MaterialTheme.typography.bodyMedium,
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                              }
+          ''',
+              '''                    } else {
+                                  Text(
+                                      "Δεν έχει οριστεί συνολικό budget.",
+                                      style = MaterialTheme.typography.bodyMedium,
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                              }
+                              state.message?.takeIf { it.startsWith("Αλλαγή budget ·") }?.let { message ->
+                                  Text(
+                                      message,
+                                      style = MaterialTheme.typography.bodySmall,
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                              }
+          ''',
+          )
+          PY
+
+      - name: Compile and run focused pending semantics tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew \
+            :app:compileDebugKotlin \
+            :app:testDebugUnitTest \
+            --tests 'app.myfinhub.android.app.PendingUiProjectionTest' \
+            --tests 'app.myfinhub.android.core.data.OfflinePendingMutationSemanticsTest' \
+            --stacktrace
+
+      - name: Commit validated correction and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/_pending-ui-correction.yml
+          git add \
+            app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt \
+            app/src/main/java/app/myfinhub/android/app/PendingUiProjection.kt \
+            app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt \
+            app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt \
+            app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt \
+            app/src/test/java/app/myfinhub/android/app/PendingUiProjectionTest.kt
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Fix destructive pending UI semantics"
+          git push origin HEAD:android/pending-undo-updater-delivery
