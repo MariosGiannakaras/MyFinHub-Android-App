@@ -3,18 +3,15 @@ name: Protected Phase 6 Test Release
 on:
   workflow_dispatch:
     inputs:
-      source_sha:
-        description: 'Exact 40-character Android source commit already validated by PR CI'
-        required: true
-        type: string
-      version_code:
-        description: 'Strictly increasing phase6-test versionCode (for example 6012)'
+      source_pr:
+        description: 'Open Android PR to develop with green exact-head CI/UI checks'
         required: true
         type: string
 
 permissions:
   contents: read
   checks: read
+  pull-requests: read
 
 concurrency:
   group: protected-phase6-test-release
@@ -25,85 +22,115 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      - name: Require trusted workflow ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
       - name: Checkout trusted publisher automation
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-      - name: Publisher reconciliation tests
-        run: python3 -m unittest scripts.test_phase6_release_publisher
+      - name: Publisher and source-gate tests
+        run: python3 -m unittest discover -s scripts -p 'test_phase6_release*.py'
 
   source-gate:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
     env:
-      SOURCE_SHA: ${{ inputs.source_sha }}
-      GH_TOKEN: ${{ github.token }}
+      SOURCE_PR: ${{ inputs.source_pr }}
     steps:
-      - name: Validate immutable source and exact-head CI
+      - name: Require trusted workflow ref
         shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted source-gate automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Resolve validated Android PR source
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/phase6_release_source_gate.py
+
+  plan:
+    needs:
+      - publisher-tests
+      - source-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: phase6-test-release
+    outputs:
+      version_code: ${{ steps.plan.outputs.version_code }}
+      version_name: ${{ steps.plan.outputs.version_name }}
+      storage_path: ${{ steps.plan.outputs.storage_path }}
+    env:
+      SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
+    steps:
+      - name: Require trusted workflow ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted publisher automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: automation
+      - name: Plan next private phase6-test version
+        id: plan
+        shell: bash
+        env:
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
         run: |
           set -euo pipefail
-          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo 'source_sha must be an exact lowercase 40-character commit SHA.' >&2
-            exit 1
-          fi
-          python3 - <<'PY'
+          result="$(python3 automation/scripts/phase6_release_publisher.py plan)"
+          python3 - "$result" "$GITHUB_OUTPUT" <<'PY'
           import json
-          import os
+          import re
           import sys
-          import urllib.request
 
-          repo = os.environ["GITHUB_REPOSITORY"]
-          sha = os.environ["SOURCE_SHA"]
-          token = os.environ["GH_TOKEN"]
-          url = f"https://api.github.com/repos/{repo}/commits/{sha}/check-runs?per_page=100"
-          req = urllib.request.Request(
-              url,
-              headers={
-                  "Authorization": f"Bearer {token}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-              },
-          )
-          with urllib.request.urlopen(req, timeout=20) as response:
-              payload = json.load(response)
-
-          required = {"verify", "screenshot-regression", "s24-ultra-target-instrumented"}
-          successes = {
-              item.get("name")
-              for item in payload.get("check_runs", [])
-              if item.get("conclusion") == "success"
-          }
-          missing = sorted(required - successes)
-          if missing:
-              print(f"Exact source commit lacks successful required checks: {', '.join(missing)}", file=sys.stderr)
-              raise SystemExit(1)
-          print("Exact source commit has all required Android CI/UI checks.")
+          data = json.loads(sys.argv[1])
+          code = data.get("version_code")
+          name = data.get("version_name")
+          path = data.get("storage_path")
+          if not isinstance(code, int) or code <= 6000:
+              raise SystemExit("Publisher returned an invalid next versionCode.")
+          expected_name = f"0.1.0-phase6.{code - 6000}"
+          expected_path = f"phase6-test/{code}/MyFinHub-Phase6-{code}.apk"
+          if name != expected_name or path != expected_path:
+              raise SystemExit("Publisher returned a noncanonical test release plan.")
+          with open(sys.argv[2], "a", encoding="utf-8") as out:
+              out.write(f"version_code={code}\n")
+              out.write(f"version_name={name}\n")
+              out.write(f"storage_path={path}\n")
           PY
 
   build:
     needs:
       - publisher-tests
       - source-gate
+      - plan
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
-      SOURCE_SHA: ${{ inputs.source_sha }}
-      VERSION_CODE: ${{ inputs.version_code }}
+      SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
+      VERSION_CODE: ${{ needs.plan.outputs.version_code }}
+      VERSION_NAME: ${{ needs.plan.outputs.version_name }}
       UPDATE_CHANNEL: phase6-test
     steps:
-      - name: Validate release version input
+      - name: Validate derived release plan
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$VERSION_CODE" =~ ^[0-9]+$ ]] || (( VERSION_CODE <= 6000 )); then
-            echo 'version_code must be numeric and above 6000.' >&2
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Source gate did not produce an immutable commit SHA.' >&2
             exit 1
           fi
-          echo "VERSION_NAME=0.1.0-phase6.$((VERSION_CODE - 6000))" >> "$GITHUB_ENV"
+          if [[ ! "$VERSION_CODE" =~ ^[0-9]+$ ]] || (( VERSION_CODE <= 6000 )); then
+            echo 'Version planner did not produce a valid phase6-test versionCode.' >&2
+            exit 1
+          fi
+          expected_name="0.1.0-phase6.$((VERSION_CODE - 6000))"
+          test "$VERSION_NAME" = "$expected_name"
 
       - name: Checkout exact validated Android source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ inputs.source_sha }}
+          ref: ${{ needs.source-gate.outputs.source_sha }}
           path: product
 
       - name: Prove checkout identity
@@ -185,22 +212,26 @@ jobs:
 
   publish:
     needs:
+      - source-gate
+      - plan
       - build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: phase6-test-release
     env:
-      VERSION_CODE: ${{ inputs.version_code }}
+      SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
+      VERSION_CODE: ${{ needs.plan.outputs.version_code }}
+      VERSION_NAME: ${{ needs.plan.outputs.version_name }}
+      STORAGE_PATH: ${{ needs.plan.outputs.storage_path }}
       SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
     steps:
-      - name: Derive locked phase6-test version
+      - name: Require trusted workflow ref and canonical plan
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$VERSION_CODE" =~ ^[0-9]+$ ]] || (( VERSION_CODE <= 6000 )); then
-            exit 1
-          fi
-          echo "VERSION_NAME=0.1.0-phase6.$((VERSION_CODE - 6000))" >> "$GITHUB_ENV"
+          test "$GITHUB_REF" = 'refs/heads/develop'
+          test "$VERSION_NAME" = "0.1.0-phase6.$((VERSION_CODE - 6000))"
+          test "$STORAGE_PATH" = "phase6-test/${VERSION_CODE}/MyFinHub-Phase6-${VERSION_CODE}.apk"
 
       - name: Checkout trusted publisher automation only
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -298,11 +329,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - '${{ steps.publish.outputs.result }}' >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - '${{ steps.publish.outputs.result }}' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY" <<'PY'
           import json
           import sys
           data = json.loads(sys.argv[1])
           print("## Private phase6-test release")
+          print(f"- source: validated Android PR head `{sys.argv[2][:12]}`")
           print(f"- result: `{data['result']}`")
           print(f"- version: `{data['version_name']}` (`{data['version_code']}`)")
           print(f"- path: `{data['storage_path']}`")
