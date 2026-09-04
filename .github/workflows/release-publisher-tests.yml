@@ -1,0 +1,34 @@
+name: Release Publisher Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - scripts/phase6_release_publisher.py
+      - scripts/test_phase6_release_publisher.py
+      - .github/workflows/phase6-protected-release.yml
+      - .github/workflows/release-publisher-tests.yml
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - scripts/phase6_release_publisher.py
+      - scripts/test_phase6_release_publisher.py
+      - .github/workflows/phase6-protected-release.yml
+      - .github/workflows/release-publisher-tests.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Run fail-closed publisher tests
+        run: python3 -m unittest scripts.test_phase6_release_publisher
