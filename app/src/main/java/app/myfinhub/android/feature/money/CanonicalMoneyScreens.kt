@@ -180,7 +180,18 @@ fun CanonicalMoneyScreen(
                     tone = FinanceTone.Transfer,
                 )
             }
-            if (state.cards.isEmpty()) {
+            state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
+            item {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    if (state.cards.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         EmptyFinanceText("Δεν υπάρχουν ενεργές κάρτες.")

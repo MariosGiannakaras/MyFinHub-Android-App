@@ -755,17 +755,13 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private fun applyAllPending(serverDocument: CanonicalFinanceDocument): CanonicalFinanceDocument =
         pendingMutations.fold(serverDocument) { document, pending -> pending.asMutation().apply(document) }
 
-    private fun markPendingTransactions(projection: CanonicalProductProjection): CanonicalProductProjection {
-        val ids = pendingTransactionIds()
-        if (ids.isEmpty()) return projection
-        return projection.copy(
-            activityState = projection.activityState.copy(
-                items = projection.activityState.items.map { item ->
-                    if (item.id in ids) item.copy(pendingSync = true) else item
-                },
-            ),
+    private fun markPendingTransactions(projection: CanonicalProductProjection): CanonicalProductProjection =
+        projectPendingUi(
+            projection = projection,
+            serverDocument = lastServerDocument,
+            pending = pendingMutations,
+            today = LocalDate.now(),
         )
-    }
 
     private fun pendingTransactionIds(): Set<String> =
         pendingMutations.mapNotNull(PendingCanonicalMutationIntent::affectedTransactionId)
