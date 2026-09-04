@@ -1,0 +1,56 @@
+name: One-shot offline mutation queue transform
+
+on:
+  push:
+    branches:
+      - android/offline-all-mutations
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    if: ${{ hashFiles('scripts/apply-generic-offline-queue.py') != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Apply deterministic controller transform
+        shell: bash
+        run: python3 scripts/apply-generic-offline-queue.py
+
+      - name: Verify unit tests and debug build
+        shell: bash
+        run: ./gradlew test assembleDebug --stacktrace
+
+      - name: Commit transformed source and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm scripts/apply-generic-offline-queue.py
+          rm .github/workflows/_apply-offline-all-mutations.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "offline: generalize durable mutation queue"
+          git push origin HEAD:android/offline-all-mutations
