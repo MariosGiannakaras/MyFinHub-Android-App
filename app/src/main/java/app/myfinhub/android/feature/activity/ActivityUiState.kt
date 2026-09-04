@@ -16,6 +16,12 @@ data class ActivityItem(
     val accountLabel: String,
     val category: String?,
     val pendingSync: Boolean = false,
+    /** Canonical YYYY-MM-DD date used for deterministic grouping; never infer it back from dateLabel. */
+    val rawDate: String = "",
+    val subcategory: String? = null,
+    val accountId: String? = null,
+    val fromAccountId: String? = null,
+    val toAccountId: String? = null,
 )
 
 enum class ActivityKind(val label: String) {
@@ -32,15 +38,16 @@ enum class ActivityFilter(val label: String) {
     TRANSFER("Μεταφορές"),
 }
 
+data class ActivitySection(val date: String, val items: List<ActivityItem>)
+
 data class ActivityUiState(
     val query: String = "",
     val filter: ActivityFilter = ActivityFilter.ALL,
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
 ) {
-    // Activity can contain hundreds of canonical events. Compute projections once per immutable
-    // state instance instead of re-filtering/allocating every time Compose reads visibleItems in
-    // the same recomposition. Query/filter/edit reducers already create a fresh state instance.
+    // Activity can contain hundreds of canonical events. Compute immutable projections once per
+    // state instance instead of re-filtering every time Compose reads them.
     val visibleItems: List<ActivityItem> = run {
         val needle = query.trim()
         items.filter { item ->
@@ -53,8 +60,23 @@ data class ActivityUiState(
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
                 item.subtitle.contains(needle, ignoreCase = true) ||
-                item.category?.contains(needle, ignoreCase = true) == true
+                item.category?.contains(needle, ignoreCase = true) == true ||
+                item.subcategory?.contains(needle, ignoreCase = true) == true ||
+                item.accountLabel.contains(needle, ignoreCase = true)
             matchesFilter && matchesQuery
+        }
+    }
+
+    /** Input order is already canonical newest-first; grouping must never reorder rows. */
+    val visibleSections: List<ActivitySection> = buildList {
+        visibleItems.forEach { item ->
+            val key = item.rawDate.take(10).ifBlank { item.dateLabel }
+            val last = lastOrNull()
+            if (last?.date == key) {
+                this[lastIndex] = last.copy(items = last.items + item)
+            } else {
+                add(ActivitySection(key, listOf(item)))
+            }
         }
     }
 
@@ -98,9 +120,9 @@ class ActivityViewModel : ViewModel() {
 }
 
 fun syntheticActivityItems(): List<ActivityItem> = listOf(
-    ActivityItem("evt-1", "Σήμερα, 09:42", ActivityKind.EXPENSE, "Σούπερ μάρκετ", "Εβδομαδιαία ψώνια", -63.48, "Κύριος λογαριασμός", "Τρόφιμα"),
-    ActivityItem("evt-2", "Χθες, 18:10", ActivityKind.TRANSFER, "Μεταφορά στην αποταμίευση", "Κύριος → Αποταμίευση", 250.00, "Εσωτερική μεταφορά", "Αποταμίευση"),
-    ActivityItem("evt-3", "21 Αυγ, 10:00", ActivityKind.INCOME, "Μισθός", "Μηνιαία πίστωση", 1840.00, "Κύριος λογαριασμός", "Μισθός"),
-    ActivityItem("evt-4", "20 Αυγ, 14:25", ActivityKind.CARD_PAYMENT, "Πληρωμή πιστωτικής", "Πιστωτική • 4242", -312.20, "Κύριος λογαριασμός", "Κάρτες"),
-    ActivityItem("evt-5", "19 Αυγ, 20:15", ActivityKind.EXPENSE, "Δείπνο", "Μοίρασμα λογαριασμού", -38.50, "Μετρητά", "Έξοδος"),
+    ActivityItem("evt-1", "Σήμερα, 09:42", ActivityKind.EXPENSE, "Σούπερ μάρκετ", "Εβδομαδιαία ψώνια", -63.48, "Κύριος λογαριασμός", "Τρόφιμα", rawDate = "2026-08-22"),
+    ActivityItem("evt-2", "Χθες, 18:10", ActivityKind.TRANSFER, "Μεταφορά στην αποταμίευση", "Κύριος → Αποταμίευση", 250.00, "Εσωτερική μεταφορά", "Αποταμίευση", rawDate = "2026-08-21"),
+    ActivityItem("evt-3", "21 Αυγ, 10:00", ActivityKind.INCOME, "Μισθός", "Μηνιαία πίστωση", 1840.00, "Κύριος λογαριασμός", "Μισθός", rawDate = "2026-08-21"),
+    ActivityItem("evt-4", "20 Αυγ, 14:25", ActivityKind.CARD_PAYMENT, "Πληρωμή πιστωτικής", "Πιστωτική • 4242", -312.20, "Κύριος λογαριασμός", "Κάρτες", rawDate = "2026-08-20"),
+    ActivityItem("evt-5", "19 Αυγ, 20:15", ActivityKind.EXPENSE, "Δείπνο", "Μοίρασμα λογαριασμού", -38.50, "Μετρητά", "Έξοδος", rawDate = "2026-08-19"),
 )
