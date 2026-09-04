@@ -25,7 +25,7 @@ jobs:
         run: python scripts/_uiux_batch_c.py
 
       - name: Verify focused activity edit tests and compile
-        run: ./gradlew test --tests app.myfinhub.android.core.data.ActivityEditMutationTest compileDebugKotlin --stacktrace
+        run: ./gradlew :app:testDebugUnitTest --tests app.myfinhub.android.core.data.ActivityEditMutationTest :app:compileDebugKotlin --stacktrace
 
       - name: Verify complete unit suite
         run: ./gradlew test --stacktrace
