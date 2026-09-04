@@ -121,7 +121,7 @@ jobs:
           "$apksigner" verify --verbose --print-certs "$output" | tee "$RUNNER_TEMP/apksigner.txt"
 
           cert_sha256="$(openssl x509 -in "$cert" -outform DER | sha256sum | awk '{print $1}')"
-          grep -F "Signer #1 certificate SHA-256 digest: $cert_sha256" "$RUNNER_TEMP/apksigner.txt"
+          grep -F "certificate SHA-256 digest: $cert_sha256" "$RUNNER_TEMP/apksigner.txt"
 
           badging="$($aapt dump badging "$output" | head -n 1)"
           printf '%s\n' "$badging"
