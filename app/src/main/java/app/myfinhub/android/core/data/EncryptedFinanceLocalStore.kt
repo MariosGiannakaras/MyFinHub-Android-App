@@ -65,17 +65,39 @@ class EncryptedFinanceLocalStore(
             try {
                 val stored = json.decodeFromString<StoredFinanceLocalSnapshot>(plaintext.decodeToString())
                 if (stored.userId != userId) return null
+
+                val serverDocument = CanonicalFinanceDocument(stored.serverDocument)
+                check(CanonicalDataIntegrity.validateDocument(serverDocument) == null) {
+                    "Encrypted finance cache contains an invalid server snapshot."
+                }
+                val pending = stored.pendingTransactions.map { item ->
+                    check(item.event.string("id").orEmpty().isNotBlank()) {
+                        "Encrypted finance cache contains a pending transaction without an id."
+                    }
+                    PendingTransactionIntent(
+                        event = item.event,
+                        nowIso = item.nowIso,
+                        syncState = item.syncState,
+                    )
+                }
+                check(pending.map(PendingTransactionIntent::eventId).distinct().size == pending.size) {
+                    "Encrypted finance cache contains duplicate pending transaction ids."
+                }
+
+                // Validate the full local projection as well. This catches a malformed pending event
+                // before it can reach Compose/projectors after an offline process restart.
+                var projectedDocument = serverDocument
+                pending.forEach { item ->
+                    projectedDocument = item.asMutation().apply(projectedDocument)
+                    check(CanonicalDataIntegrity.validateDocument(projectedDocument) == null) {
+                        "Encrypted finance cache contains an invalid pending transaction."
+                    }
+                }
+
                 FinanceLocalSnapshot(
                     userId = stored.userId,
-                    serverDocument = CanonicalFinanceDocument(stored.serverDocument),
-                    pendingTransactions = stored.pendingTransactions.mapNotNull { pending ->
-                        val id = pending.event.string("id")
-                        if (id.isNullOrBlank()) null else PendingTransactionIntent(
-                            event = pending.event,
-                            nowIso = pending.nowIso,
-                            syncState = pending.syncState,
-                        )
-                    },
+                    serverDocument = serverDocument,
+                    pendingTransactions = pending,
                     lastSuccessfulSync = stored.lastSuccessfulSync,
                 )
             } finally {
@@ -88,6 +110,17 @@ class EncryptedFinanceLocalStore(
     }
 
     suspend fun save(snapshot: FinanceLocalSnapshot) {
+        require(snapshot.userId.isNotBlank()) { "Finance cache requires an owner id." }
+        require(CanonicalDataIntegrity.validateDocument(snapshot.serverDocument) == null) {
+            "Finance cache cannot persist an invalid canonical document."
+        }
+        require(snapshot.pendingTransactions.map(PendingTransactionIntent::eventId).all(String::isNotBlank)) {
+            "Finance cache cannot persist a pending transaction without an id."
+        }
+        require(snapshot.pendingTransactions.map(PendingTransactionIntent::eventId).distinct().size == snapshot.pendingTransactions.size) {
+            "Finance cache cannot persist duplicate pending transaction ids."
+        }
+
         val stored = StoredFinanceLocalSnapshot(
             userId = snapshot.userId,
             serverDocument = snapshot.serverDocument.raw,
