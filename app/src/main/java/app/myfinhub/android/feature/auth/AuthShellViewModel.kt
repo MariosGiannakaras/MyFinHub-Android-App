@@ -59,7 +59,7 @@ sealed interface AuthShellUiState {
 
     /**
      * [offline] means the owner passed local PIN/biometric unlock but the stored server session has
-     * not yet been revalidated because there is no network. Product reads may use encrypted cached
+     * not yet been revalidated because network/server validation is unavailable. Product reads may use encrypted cached
      * data, while network writes remain disabled until this returns to false.
      */
     data class Ready(
@@ -247,7 +247,7 @@ class AuthShellViewModel(
 
     fun biometricSucceeded() {
         val current = mutableState.value as? AuthShellUiState.Locked ?: return
-        validateUnlockedSession(current.session, fallbackToPin = false)
+        validateUnlockedSession(current.session)
     }
 
     fun verifyPin(pin: CharArray) {
@@ -272,7 +272,7 @@ class AuthShellViewModel(
 
                 if (pinVerifier.verify(pinCopy)) {
                     pinLimiter.recordSuccess()
-                    validateUnlockedSession(current.session, fallbackToPin = true)
+                    validateUnlockedSession(current.session)
                 } else {
                     val next = pinLimiter.recordFailure(now)
                     mutableState.value = current.copy(
@@ -371,7 +371,7 @@ class AuthShellViewModel(
         }
     }
 
-    private fun validateUnlockedSession(session: AuthSession, fallbackToPin: Boolean) {
+    private fun validateUnlockedSession(session: AuthSession) {
         viewModelScope.launch {
             if (connectivityObserver.current() != NetworkStatus.ONLINE) {
                 mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
@@ -393,10 +393,12 @@ class AuthShellViewModel(
                     )
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Έλεγχος συνεδρίας μετά το ξεκλείδωμα")
-                        mutableState.value = lockedState(
+                        // Local authentication already succeeded. A transient server/network failure
+                        // must not re-lock the owner or force a full login; product access stays
+                        // cache-only until the stored server session can be revalidated.
+                        mutableState.value = AuthShellUiState.Ready(
                             session = result.recoverableSession ?: session,
-                            showPin = fallbackToPin,
-                            message = authFailureMessage(result.failure.kind),
+                            offline = true,
                         )
                     }
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
@@ -408,16 +410,12 @@ class AuthShellViewModel(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = lockedState(
-                    session = session,
-                    showPin = fallbackToPin,
-                    message = "Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε. Μπορείς να δοκιμάσεις ξανά.",
-                )
+                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
                 mutableNotices.emit(
                     unexpectedUserNotice(
                         operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",
                         throwable = error,
-                        message = "Το ασφαλές ξεκλείδωμα δεν ολοκληρώθηκε.",
+                        message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
                     ),
                 )
             }
