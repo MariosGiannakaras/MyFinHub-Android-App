@@ -173,7 +173,7 @@ private fun ActivityList(
                     title = item.title,
                     subtitle = item.subtitle,
                     meta = if (item.pendingSync) {
-                        "Αναμονή συγχρονισμού · ${item.dateLabel} · ${item.accountLabel}"
+                        "Αναμονή συγχρονισμού"
                     } else {
                         "${item.dateLabel} · ${item.accountLabel}"
                     },
