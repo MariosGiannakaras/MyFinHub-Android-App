@@ -79,6 +79,46 @@ class OfflinePendingMutationSemanticsTest {
     }
 
     @Test
+    fun reconciliation_doesNotDropLaterDeleteBehindUnresolvedAmbiguousCreate() {
+        val append = PendingCanonicalMutationIntent.fromMutation(
+            AppendCanonicalEvent(event("evt-ambiguous-local", "Temporary"), NOW),
+            "append-ambiguous",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val delete = PendingCanonicalMutationIntent.fromMutation(
+            DeleteCanonicalActivity("evt-ambiguous-local", NOW),
+            "delete-unsent",
+            PendingMutationSyncState.NEVER_SENT,
+        )
+        val queue = listOf(append, delete)
+
+        // The fresh server does not contain the event. The delete looks satisfied in isolation,
+        // but it depends on the unresolved create and must remain queued behind it.
+        val remaining = reconcileSatisfiedPendingMutations(document(), queue)
+
+        assertEquals(listOf("append-ambiguous", "delete-unsent"), remaining.map { it.intentId })
+    }
+
+    @Test
+    fun reconciliation_removesOnlySatisfiedPrefixAndPreservesFollowingIntent() {
+        val append = PendingCanonicalMutationIntent.fromMutation(
+            AppendCanonicalEvent(event("evt-prefix", "Created"), NOW),
+            "append",
+            PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val delete = PendingCanonicalMutationIntent.fromMutation(
+            DeleteCanonicalActivity("evt-prefix", NOW),
+            "delete",
+            PendingMutationSyncState.NEVER_SENT,
+        )
+        val serverWithCreate = append.asMutation().apply(document())
+
+        val remaining = reconcileSatisfiedPendingMutations(serverWithCreate, listOf(append, delete))
+
+        assertEquals(listOf("delete"), remaining.map { it.intentId })
+    }
+
+    @Test
     fun ambiguousAttempt_isNeverEligibleForAutomaticReplay() {
         val neverSent = PendingCanonicalMutationIntent.fromMutation(
             DeleteCanonicalActivity("evt-existing", NOW),
