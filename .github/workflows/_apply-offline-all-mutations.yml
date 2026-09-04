@@ -35,7 +35,18 @@ jobs:
 
       - name: Apply deterministic controller transform
         shell: bash
-        run: python3 scripts/apply-generic-offline-queue.py
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/apply-generic-offline-queue.py')
+          text = path.read_text()
+          old = ', "saveMutation(", "pendingMutation"):'
+          new = ', "saveMutation("):'
+          if text.count(old) != 1:
+              raise SystemExit('Unexpected legacy-symbol guard shape')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          python3 scripts/apply-generic-offline-queue.py
 
       - name: Verify unit tests and debug build
         shell: bash
