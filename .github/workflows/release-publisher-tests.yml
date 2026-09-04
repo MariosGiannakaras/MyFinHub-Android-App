@@ -9,6 +9,8 @@ on:
       - scripts/phase6_release_publisher.py
       - scripts/test_phase6_release_publisher.py
       - scripts/test_phase6_release_key_headers.py
+      - scripts/phase6_release_source_gate.py
+      - scripts/test_phase6_release_source_gate.py
       - .github/workflows/phase6-protected-release.yml
       - .github/workflows/release-publisher-tests.yml
   push:
@@ -19,6 +21,8 @@ on:
       - scripts/phase6_release_publisher.py
       - scripts/test_phase6_release_publisher.py
       - scripts/test_phase6_release_key_headers.py
+      - scripts/phase6_release_source_gate.py
+      - scripts/test_phase6_release_source_gate.py
       - .github/workflows/phase6-protected-release.yml
       - .github/workflows/release-publisher-tests.yml
 
