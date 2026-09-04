@@ -109,6 +109,12 @@ fun QuickEntryScreen(
         }?.requestFocus()
     }
 
+
+    // The encrypted local enqueue is the successful form-submit boundary. Sync and safe
+    // Undo are surfaced centrally, so the editor should not become a pending dead end.
+    LaunchedEffect(savedLocally) {
+        if (savedLocally) onBack()
+    }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -401,7 +407,7 @@ fun QuickEntryScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateEntryField(
+internal fun DateEntryField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
