@@ -76,8 +76,9 @@ data class PendingCanonicalMutationIntent(
     }
 
     /**
-     * Returns true when a fresh canonical server document already reflects this intent. This is
-     * used to resolve ambiguous NEEDS_REVIEW items without sending them again.
+     * Returns true when a fresh canonical server document already reflects this intent. A stale
+     * edit/deactivation whose target was removed elsewhere is also resolved here: there is no safe
+     * target left to mutate, so it must not poison persistence or be replayed against a missing id.
      */
     fun isSatisfiedBy(document: CanonicalFinanceDocument): Boolean = when (kind) {
         PendingMutationKind.APPEND_EVENT -> {
@@ -90,10 +91,12 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             val expectedNote = payload.string("note").orEmpty().trim()
             val expectedCategory = payload.string("category").orEmpty().trim()
-            effectiveTransaction(document, id)?.let { transaction ->
-                transaction.string("note").orEmpty().trim() == expectedNote &&
-                    transaction.string("category").orEmpty().trim() == expectedCategory
-            } == true
+            val transaction = effectiveTransaction(document, id)
+            id.isNotBlank() && (
+                transaction == null ||
+                    (transaction.string("note").orEmpty().trim() == expectedNote &&
+                        transaction.string("category").orEmpty().trim() == expectedCategory)
+            )
         }
         PendingMutationKind.DELETE_ACTIVITY -> {
             val id = payload.string("transactionId").orEmpty()
@@ -116,10 +119,10 @@ data class PendingCanonicalMutationIntent(
         }
         PendingMutationKind.DEACTIVATE_CARD -> {
             val cardId = payload.string("cardId").orEmpty()
-            cardId.isNotBlank() && document.state.array("cards")
+            val card = document.state.array("cards")
                 .mapNotNull { it as? JsonObject }
                 .firstOrNull { it.string("id") == cardId }
-                ?.bool("active") == false
+            cardId.isNotBlank() && (card == null || card.bool("active") == false)
         }
     }
 
