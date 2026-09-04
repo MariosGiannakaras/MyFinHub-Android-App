@@ -1,0 +1,46 @@
+name: UIUX Batch F One Shot
+
+on:
+  push:
+    branches:
+      - android/ui-ux-canonical-correction-pass
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android/ui-ux-canonical-correction-pass
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Apply guarded notice and pending UX batch
+        run: python scripts/_uiux_batch_f.py
+
+      - name: Verify focused notice and pending semantics
+        run: |
+          ./gradlew :app:testDebugUnitTest --tests 'app.myfinhub.android.core.ui.PrivacySafeNoticeHistoryTest' --tests 'app.myfinhub.android.app.PendingUiProjectionTest' --stacktrace
+          ./gradlew :app:compileDebugKotlin --stacktrace
+
+      - name: Verify complete unit suite
+        run: ./gradlew test --stacktrace
+
+      - name: Commit retained notice and pending UX correction
+        shell: bash
+        run: |
+          rm -f scripts/_uiux_batch_f.py .github/workflows/_uiux_batch_f_one_shot.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: harden notice history and pending UX'
+          git push origin HEAD:android/ui-ux-canonical-correction-pass
