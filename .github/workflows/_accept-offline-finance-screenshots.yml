@@ -1,0 +1,76 @@
+name: Accept inspected offline finance screenshots
+
+on:
+  push:
+    branches:
+      - android/offline-first-finance
+    paths:
+      - '.github/workflows/_accept-offline-finance-screenshots.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  accept:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/offline-first-finance
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Re-render and require inspected hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew updateDebugScreenshotTest --stacktrace
+
+          base='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt'
+          dark="$base/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png"
+          detail="$base/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png"
+          large="$base/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png"
+          light="$base/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png"
+
+          echo 'c86290458d0412fd2e38acc5035603987bf0840f340dae31e1700cf89653a293  '"$dark" | sha256sum -c -
+          echo 'd42d69ac9e03ed59e3aaad55944b26e0b1625cea8936f2024a730467a8e193be  '"$detail" | sha256sum -c -
+          echo 'f95ef574b825ae7a57ada741717fc67dde8b07503db25e349619e0ef5af25a01  '"$large" | sha256sum -c -
+          echo 'd1e5bd89fd496b860fafbc91eae4554f07410fe4d13a7e366d2a1c61595121fc  '"$light" | sha256sum -c -
+
+          allowed=$(printf '%s\n' "$dark" "$detail" "$large" "$light" | sort)
+          changed=$(git status --porcelain --untracked-files=all | sed -E 's/^.. //' | grep -v '^\.github/workflows/_accept-offline-finance-screenshots.yml$' | sort || true)
+          if [[ "$changed" != "$allowed" ]]; then
+            echo 'Renderer changed files outside the four inspected references.' >&2
+            echo 'Expected:' >&2
+            printf '%s\n' "$allowed" >&2
+            echo 'Actual:' >&2
+            printf '%s\n' "$changed" >&2
+            exit 1
+          fi
+
+          git add "$dark" "$detail" "$large" "$light"
+
+      - name: Commit accepted references and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/_accept-offline-finance-screenshots.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(ui): accept offline activity references'
+          git push origin HEAD:android/offline-first-finance
