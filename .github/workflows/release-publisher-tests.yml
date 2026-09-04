@@ -8,6 +8,7 @@ on:
     paths:
       - scripts/phase6_release_publisher.py
       - scripts/test_phase6_release_publisher.py
+      - scripts/test_phase6_release_key_headers.py
       - .github/workflows/phase6-protected-release.yml
       - .github/workflows/release-publisher-tests.yml
   push:
@@ -17,6 +18,7 @@ on:
     paths:
       - scripts/phase6_release_publisher.py
       - scripts/test_phase6_release_publisher.py
+      - scripts/test_phase6_release_key_headers.py
       - .github/workflows/phase6-protected-release.yml
       - .github/workflows/release-publisher-tests.yml
 
@@ -31,4 +33,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Run fail-closed publisher tests
-        run: python3 -m unittest scripts.test_phase6_release_publisher
+        run: python3 -m unittest discover -s scripts -p 'test_phase6_release*.py'
