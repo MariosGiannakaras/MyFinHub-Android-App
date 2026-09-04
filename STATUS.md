@@ -1,5 +1,30 @@
 # MyFinHub Android status
 
+## 2026-09-04 — Offline-first Phase 6 correction complete and merged
+
+Tracker #54 is completed/closed and the validated offline-first correction is merged into `develop`.
+
+### Completed correction
+
+- The latest server-accepted canonical finance snapshot is retained locally in owner-scoped Android-Keystore-backed encrypted storage for offline startup.
+- Offline Quick Entry transactions are stored as a durable multi-item queue and survive process death/relaunch.
+- Activity shows pending local transactions non-blockingly; pending detail supports safe local cancellation, while synchronized transaction detail supports canonical deletion with confirmation.
+- Reconnect always loads the newest server state first, reconciles stable event IDs and automatically replays only mutations known never to have crossed the write boundary.
+- Any attempted/ambiguous write is persisted as review-required before the network write and is never blindly resent automatically.
+- Successful local PIN/biometric unlock can enter encrypted cache-only mode when network/server session validation is transiently unavailable. Only a genuinely invalid/expired/revoked server session requires full login.
+- Regression coverage verifies encrypted cache restore, owner scoping, multi-pending persistence, stable-ID idempotency, server-first reconciliation, ambiguous retry exclusion and canonical transaction deletion.
+
+### Final hosted validation
+
+- Final canonical Activity pending screenshots for light, dark, 150% font and detail were personally inspected and accepted; screenshot regression passes without regeneration.
+- Representative S24-target instrumentation is green.
+- Normal Android verification is green: benchmark/Baseline Profile tooling, unit tests, instrumentation compile, lint/debug assembly, optimized unsigned release/R8 and release-manifest/unsigned-APK policy audit.
+- No unresolved correction PR review blocker remained at merge.
+
+### Current boundary
+
+The latest `develop` state is the authoritative build for the next physical Samsung Galaxy S24 Ultra pass under issue #14 and `docs/PHASE_6_DEVICE_HANDOFF.md`. Physical offline/reconnect/deletion validation is still required. No production signing key, production-signed APK, version freeze, release or `develop -> main` promotion has been authorized.
+
 ## 2026-09-03 — Private self-updater hosted implementation complete and merged
 
 Tracker #52 is completed/closed and the validated private self-updater implementation is merged into `develop`.
@@ -155,7 +180,7 @@ Tracker #42 is completed/closed. The initial draft PR #43 was closed without cod
 ### Preserved boundaries
 
 - Existing issue #27 revision-conflict, offline and write-retry rules remain unchanged: attempted writes are not blindly retried after ambiguous transport failure, and reconnect replay is limited to mutations known never to have been sent after a fresh server reload.
-- Samsung Galaxy S24 Ultra remains the sole supported Android target; hosted emulator instrumentation is representative only and does not replace Phase 6 physical Samsung acceptance.
+- Samsung Galaxy S24 Ultra remains the sole supported target; hosted emulator instrumentation is representative only and does not replace Phase 6 physical Samsung acceptance.
 - The separately excluded additional privacy/security audit package remains out of scope.
 - No release, production signing key or production-signed APK was created in this workstream.
 
