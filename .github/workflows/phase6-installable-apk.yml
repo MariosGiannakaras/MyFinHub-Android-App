@@ -31,14 +31,112 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Test and build installable debug APK
+      - name: Prepare stable non-production Phase 6 signer and version
+        shell: bash
+        env:
+          AOSP_BUILD_COMMIT: 045a3d6a3e359633a14853a5a5e1e4f2a11cbdae
+          AOSP_TESTKEY_PK8_BLOB: 586c1bd5cf96f9358f36b37ea98fef93f4d0a8e3
+          AOSP_TESTKEY_CERT_BLOB: e242d83e2bf72169ab0abd5280d4d455caef71eb
+        run: |
+          set -euo pipefail
+
+          version_code=$((6000 + GITHUB_RUN_NUMBER))
+          version_name="0.1.0-phase6.${GITHUB_RUN_NUMBER}"
+          echo "PHASE6_VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+          echo "PHASE6_VERSION_NAME=$version_name" >> "$GITHUB_ENV"
+
+          key="$RUNNER_TEMP/aosp-testkey.pk8"
+          cert="$RUNNER_TEMP/aosp-testkey.x509.pem"
+          base="https://raw.githubusercontent.com/aosp-mirror/platform_build/${AOSP_BUILD_COMMIT}/target/product/security"
+          curl --fail --silent --show-error --location "$base/testkey.pk8" --output "$key"
+          curl --fail --silent --show-error --location "$base/testkey.x509.pem" --output "$cert"
+
+          python3 - "$key" "$AOSP_TESTKEY_PK8_BLOB" "$cert" "$AOSP_TESTKEY_CERT_BLOB" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          def git_blob_sha(path: Path) -> str:
+              data = path.read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+
+          for path_raw, expected in ((sys.argv[1], sys.argv[2]), (sys.argv[3], sys.argv[4])):
+              path = Path(path_raw)
+              actual = git_blob_sha(path)
+              if actual != expected:
+                  raise SystemExit(f"Pinned AOSP test-key blob mismatch for {path.name}: {actual}")
+          PY
+
+          python3 - "$version_code" "$version_name" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path("app/build.gradle.kts")
+          text = path.read_text()
+          old_code = "        versionCode = 1"
+          old_name = '        versionName = "0.1.0"'
+          if text.count(old_code) != 1 or text.count(old_name) != 1:
+              raise SystemExit("Unexpected Android version declaration; refusing test-only patch")
+          text = text.replace(old_code, f"        versionCode = {sys.argv[1]}", 1)
+          text = text.replace(old_name, f'        versionName = "{sys.argv[2]}"', 1)
+          path.write_text(text)
+          PY
+
+      - name: Test and build debug APK
         shell: bash
         run: ./gradlew test assembleDebug --stacktrace
 
-      - name: Publish installable APK
+      - name: Re-sign with stable public Phase 6 test identity and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          build_tools="$(find "$sdk_root/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          apksigner="$build_tools/apksigner"
+          zipalign="$build_tools/zipalign"
+          aapt="$build_tools/aapt"
+          test -x "$apksigner" && test -x "$zipalign" && test -x "$aapt"
+
+          input="app/build/outputs/apk/debug/app-debug.apk"
+          aligned="$RUNNER_TEMP/MyFinHub-Phase6-aligned.apk"
+          output="MyFinHub-Phase6-StableTest.apk"
+          key="$RUNNER_TEMP/aosp-testkey.pk8"
+          cert="$RUNNER_TEMP/aosp-testkey.x509.pem"
+
+          "$zipalign" -f -p 4 "$input" "$aligned"
+          "$apksigner" sign \
+            --key "$key" \
+            --cert "$cert" \
+            --out "$output" \
+            "$aligned"
+          "$apksigner" verify --verbose --print-certs "$output" | tee "$RUNNER_TEMP/apksigner.txt"
+
+          cert_sha256="$(openssl x509 -in "$cert" -outform DER | sha256sum | awk '{print $1}')"
+          grep -F "Signer #1 certificate SHA-256 digest: $cert_sha256" "$RUNNER_TEMP/apksigner.txt"
+
+          badging="$($aapt dump badging "$output" | head -n 1)"
+          printf '%s\n' "$badging"
+          grep -F "package: name='app.myfinhub.android'" <<<"$badging"
+          grep -F "versionCode='$PHASE6_VERSION_CODE'" <<<"$badging"
+          grep -F "versionName='$PHASE6_VERSION_NAME'" <<<"$badging"
+
+          apk_sha256="$(sha256sum "$output" | awk '{print $1}')"
+          {
+            echo "package=app.myfinhub.android"
+            echo "versionCode=$PHASE6_VERSION_CODE"
+            echo "versionName=$PHASE6_VERSION_NAME"
+            echo "signerCertificateSha256=$cert_sha256"
+            echo "apkSha256=$apk_sha256"
+            echo "signingIdentity=AOSP public development testkey; NON-PRODUCTION ONLY"
+          } > MyFinHub-Phase6-StableTest.txt
+
+      - name: Publish stable Phase 6 test APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: MyFinHub-Phase6-installable-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: MyFinHub-Phase6-StableTest-apk
+          path: |
+            MyFinHub-Phase6-StableTest.apk
+            MyFinHub-Phase6-StableTest.txt
           if-no-files-found: error
           retention-days: 14
