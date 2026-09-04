@@ -36,55 +36,11 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Regenerate only inspected candidate pixels
+      - name: Regenerate and verify inspected candidate pixels
         shell: bash
         run: |
           set -euo pipefail
           ./gradlew updateDebugScreenshotTest --stacktrace
-
-          cat > /tmp/expected-paths <<'EOF'
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesDarkScreenshot_pending_changes_dark_4d52aa44_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLargeFontScreenshot_pending_changes_font_150_a35088d9_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesLightScreenshot_pending_changes_light_7d4e50be_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesNeedsReviewScreenshot_pending_changes_needs_review_99368ae6_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLargeFontScreenshot_phase2b_activity_compact_large_font_028afa13_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLightScreenshot_phase2b_activity_compact_light_5f73a0b5_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLightScreenshot_canonical_card_create_light_44a64eba_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLargeFontScreenshot_canonical_card_create_large_font_40b70f4e_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateDarkScreenshot_canonical_card_create_dark_c24b0f7f_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactLightScreenshot_canonical_money_compact_light_2b156103_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactDarkScreenshot_canonical_money_compact_dark_8ace8741_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLargeFontScreenshot_notice_history_large_font_059c3c44_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryDarkScreenshot_notice_history_dark_f698f23a_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt/NoticeHistoryLightScreenshot_notice_history_light_5302e63e_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLargeFontScreenshot_production_settings_compact_large_font_aa5bc333_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLightScreenshot_production_settings_compact_light_e836902a_0.png
-          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactDarkScreenshot_production_settings_compact_dark_0d316ba0_0.png
-          EOF
-
-          git status --porcelain=v1 | awk '{print $2}' | grep '^app/src/screenshotTestDebug/reference/' | sort > /tmp/actual-paths
-          sort /tmp/expected-paths -o /tmp/expected-paths
-          diff -u /tmp/expected-paths /tmp/actual-paths
-
-          outside="$(git status --porcelain=v1 | awk '{print $2}' | grep -v '^app/src/screenshotTestDebug/reference/' || true)"
-          if [[ -n "$outside" ]]; then
-            echo "Unexpected renderer changes outside screenshot references:" >&2
-            printf '%s\n' "$outside" >&2
-            exit 1
-          fi
 
           cat > /tmp/expected-sha256 <<'EOF'
           688aa35c3e937bb344ad0d9f1b575d09aa2f4f2ab5bdcb864585ca84be32b9d1  app/src/screenshotTestDebug/reference/app/myfinhub/android/app/PendingChangesScreenshotTestKt/PendingChangesDarkScreenshot_pending_changes_dark_4d52aa44_0.png
@@ -118,6 +74,18 @@ jobs:
           efcdbf7aeef212ea600be9d7d0c82522d9f7e963314e6fec4083174262b84e48  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactLightScreenshot_production_settings_compact_light_e836902a_0.png
           6871948c77ace8827ea8fd30c3a8bfc51d641d371963d9ad006ae3249ae1ee19  app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt/ProductionSettingsCompactDarkScreenshot_production_settings_compact_dark_0d316ba0_0.png
           EOF
+
+          awk '{print $2}' /tmp/expected-sha256 | sort > /tmp/expected-paths
+          git status --porcelain=v1 --untracked-files=all | cut -c4- | grep '^app/src/screenshotTestDebug/reference/' | sort > /tmp/actual-paths
+          diff -u /tmp/expected-paths /tmp/actual-paths
+
+          outside="$(git status --porcelain=v1 --untracked-files=all | cut -c4- | grep -v '^app/src/screenshotTestDebug/reference/' || true)"
+          if [[ -n "$outside" ]]; then
+            echo "Unexpected renderer changes outside screenshot references:" >&2
+            printf '%s\n' "$outside" >&2
+            exit 1
+          fi
+
           sha256sum -c /tmp/expected-sha256
 
       - name: Commit inspected references and self-remove helper
