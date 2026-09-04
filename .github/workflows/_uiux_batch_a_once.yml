@@ -1,0 +1,201 @@
+name: UI UX batch A one-shot
+
+on:
+  push:
+    branches: [android/ui-ux-canonical-correction-pass]
+    paths: [.github/workflows/_uiux_batch_a_once.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android/ui-ux-canonical-correction-pass
+          fetch-depth: 0
+      - name: Apply guarded chronology and grouping corrections
+        shell: python
+        run: |
+          from pathlib import Path
+
+          projection = Path('app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt')
+          text = projection.read_text()
+          old_call = '    val activityItems = buildActivityItems(legacy, events, accountNames)'
+          new_call = '''    val eventChronology = document.state.array("events").mapNotNull { raw ->
+              val event = raw as? JsonObject ?: return@mapNotNull null
+              val id = event.string("id") ?: return@mapNotNull null
+              id to (event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty())
+          }.toMap()
+          val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology)'''
+          assert text.count(old_call) == 1
+          text = text.replace(old_call, new_call)
+
+          start = text.index('private fun buildActivityItems(')
+          end = text.index('\nprivate fun eventActivityKind', start)
+          replacement = '''private data class ActivitySortRow(
+              val date: String,
+              val chronology: String,
+              val sourceOrder: Int,
+              val item: ActivityItem,
+          )
+
+          private fun buildActivityItems(
+              legacy: List<CanonicalLegacyTransaction>,
+              events: List<CanonicalEvent>,
+              accountNames: Map<String, String>,
+              eventChronology: Map<String, String>,
+          ): List<ActivityItem> {
+              val rows = buildList {
+                  legacy.forEachIndexed { index, tx ->
+                      val kind = when (tx.type) {
+                          "income" -> ActivityKind.INCOME
+                          "transfer" -> ActivityKind.TRANSFER
+                          else -> ActivityKind.EXPENSE
+                      }
+                      add(ActivitySortRow(
+                          date = tx.date,
+                          chronology = tx.date,
+                          sourceOrder = index,
+                          item = ActivityItem(
+                              id = tx.id,
+                              dateLabel = formatDate(tx.date),
+                              kind = kind,
+                              title = tx.category ?: tx.note.ifBlank { legacyTypeLabel(tx.type) },
+                              subtitle = tx.note.ifBlank { legacyTypeLabel(tx.type) },
+                              amount = if (tx.type == "expense") -tx.amount else tx.amount,
+                              accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
+                              category = tx.category,
+                              rawDate = tx.date,
+                              accountId = tx.accountId,
+                              fromAccountId = tx.fromAccountId,
+                              toAccountId = tx.toAccountId,
+                          ),
+                      ))
+                  }
+                  events.forEachIndexed { index, event ->
+                      add(ActivitySortRow(
+                          date = event.date,
+                          chronology = eventChronology[event.id].orEmpty().ifBlank { event.date },
+                          sourceOrder = index,
+                          item = ActivityItem(
+                              id = event.id,
+                              dateLabel = formatDate(event.date),
+                              kind = eventActivityKind(event.kind),
+                              title = event.category ?: event.note.ifBlank { eventKindLabel(event.kind) },
+                              subtitle = event.note.ifBlank { eventKindLabel(event.kind) },
+                              amount = eventDisplayAmount(event),
+                              accountLabel = accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames),
+                              category = event.category,
+                              rawDate = event.date,
+                              accountId = event.accountId,
+                              fromAccountId = event.fromAccountId,
+                              toAccountId = event.toAccountId,
+                          ),
+                      ))
+                  }
+              }
+              return rows.sortedWith(
+                  compareByDescending<ActivitySortRow> { it.date }
+                      .thenByDescending { it.chronology }
+                      .thenByDescending { it.sourceOrder }
+                      .thenByDescending { it.item.id },
+              ).map(ActivitySortRow::item)
+          }
+          '''.strip()
+          text = text[:start] + replacement + text[end:]
+          projection.write_text(text)
+
+          screen = Path('app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt')
+          text = screen.read_text()
+          old_import = 'import java.text.NumberFormat\nimport java.util.Locale'
+          new_import = 'import java.text.NumberFormat\nimport java.time.LocalDate\nimport java.time.format.DateTimeFormatter\nimport java.util.Locale'
+          assert text.count(old_import) == 1
+          text = text.replace(old_import, new_import)
+
+          start = text.index('            items(state.visibleItems, key = ActivityItem::id) { item ->')
+          close_sequence = '            }\n        }\n    }\n}\n\n@Composable\nfun ActivityDetailScreen'
+          end = text.index(close_sequence, start)
+          # Replace only the flat `items { ... }` block. Keep the existing `else`, LazyColumn and function braces.
+          end += len('            }\n')
+          new_list = '''            state.visibleSections.forEachIndexed { sectionIndex, section ->
+                  val monthKey = section.date.take(7)
+                  val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
+                  if (sectionIndex == 0 || monthKey != previousMonth) {
+                      item(key = "month-$monthKey") { ActivityMonthHeader(section.date) }
+                  }
+                  item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
+                  items(section.items, key = ActivityItem::id) { item ->
+                      MyFinHubFinanceRow(
+                          icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                          iconDescription = item.category ?: item.kind.label,
+                          title = item.title,
+                          subtitle = item.subtitle,
+                          meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
+                          amountText = formatSignedEuro(item.amount),
+                          tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                          onClick = { onSelect(item.id) },
+                          modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
+                      )
+                  }
+              }
+          '''
+          text = text[:start] + new_list + text[end:]
+
+          marker = '\n@Composable\nfun ActivityDetailScreen'
+          helpers = '''
+
+          @Composable
+          private fun ActivityMonthHeader(rawDate: String) {
+              val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+              val locale = Locale.forLanguageTag("el-GR")
+              val label = date?.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
+                  ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+                  ?: rawDate
+              Text(
+                  text = label,
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.sm, bottom = MyFinHubSpacing.xxs),
+              )
+          }
+
+          @Composable
+          private fun ActivityDayHeader(rawDate: String) {
+              val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+              val today = LocalDate.now()
+              val locale = Locale.forLanguageTag("el-GR")
+              val label = when (date) {
+                  today -> "Σήμερα"
+                  today.minusDays(1) -> "Χθες"
+                  null -> rawDate
+                  else -> date.format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale))
+                      .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+              }
+              Text(
+                  text = label,
+                  style = MaterialTheme.typography.titleMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.xs),
+              )
+          }
+          '''
+          assert text.count(marker) == 1
+          text = text.replace(marker, helpers + marker)
+          screen.write_text(text)
+
+          Path('.github/workflows/_uiux_batch_a_once.yml').unlink()
+
+      - name: Verify unit tests and compile
+        run: ./gradlew test compileDebugKotlin --stacktrace
+      - name: Commit retained batch
+        run: |
+          test ! -e .github/workflows/_uiux_batch_a_once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "feat: stabilize and group activity chronology"
+          git push origin HEAD:android/ui-ux-canonical-correction-pass
