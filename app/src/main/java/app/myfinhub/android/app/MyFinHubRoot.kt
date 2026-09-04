@@ -65,8 +65,8 @@ import kotlinx.coroutines.flow.merge
  *
  * Local biometric/PIN success is handled by [AuthShellViewModel]. A locally unlocked offline Ready
  * session may render only the encrypted device cache; finance network writes remain disabled until
- * AuthShell revalidates the server session. Updater failures remain isolated from finance/auth
- * rejection so a failed update check or install can never log the user out.
+ * AuthShell revalidates the server session. Card-secret and updater controllers are also detached
+ * while the session is offline-only so no network-sensitive capability can use an unvalidated token.
  */
 @Composable
 fun MyFinHubRoot(
@@ -128,8 +128,13 @@ fun MyFinHubRoot(
                     session = state.session,
                     allowAutomaticSync = !state.offline,
                 )
-                cardSecretViewModel.attachSession(state.session)
-                updateViewModel.attachSession(state.session)
+                if (state.offline) {
+                    cardSecretViewModel.clear()
+                    updateViewModel.clearSession()
+                } else {
+                    cardSecretViewModel.attachSession(state.session)
+                    updateViewModel.attachSession(state.session)
+                }
             }
             else -> {
                 // Finance clear is intentionally volatile-only; encrypted offline cache survives lock.
