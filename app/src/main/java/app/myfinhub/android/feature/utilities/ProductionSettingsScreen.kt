@@ -12,6 +12,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,10 +34,7 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 
-/**
- * Production settings expose only controls that change real application behavior.
- * Preview/local-only switches stay out of the signed-in product until their behavior is wired.
- */
+/** Production settings expose only controls that change real application behavior. */
 @Composable
 fun ProductionSettingsScreen(
     @Suppress("UNUSED_PARAMETER") state: FrontendUtilitiesUiState,
@@ -48,6 +46,7 @@ fun ProductionSettingsScreen(
     val context = LocalContext.current
     val updateController = LocalUpdateController.current
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
+    var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var diagnosticsExpanded by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -72,7 +71,7 @@ fun ProductionSettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Η επιλογή αποθηκεύεται σε αυτή τη συσκευή και εφαρμόζεται αμέσως.",
+                        "Οι επιλογές αποθηκεύονται σε αυτή τη συσκευή και εφαρμόζονται αμέσως.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -103,9 +102,29 @@ fun ProductionSettingsScreen(
                                 )
                             }
                         }
-                        if (index != AppAppearance.entries.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Εμφάνιση ποσών", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Εμφανίζει υπόλοιπα και ποσά στην Αρχική. Όταν είναι κλειστό, παραμένουν καλυμμένα.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
+                        Switch(
+                            checked = amountsVisible,
+                            onCheckedChange = { visible ->
+                                amountsVisible = visible
+                                AmountVisibilityPreference.write(context, visible)
+                            },
+                            modifier = Modifier.semantics { contentDescription = "Εμφάνιση ποσών" },
+                        )
                     }
                 }
             }
@@ -119,7 +138,7 @@ fun ProductionSettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        "Δεν εμφανίζονται διακόπτες χωρίς ενεργή production συμπεριφορά.",
+                        "Δεν εμφανίζονται διακόπτες για μυστικά κάρτας χωρίς ενεργή production συμπεριφορά.",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
