@@ -102,6 +102,8 @@ data class QuickEntryUiState(
     val validationMessage: String? = null,
     val savedSummary: String? = null,
     val persisted: Boolean = false,
+    /** True after a successful encrypted local enqueue and before server reconciliation. */
+    val pendingSync: Boolean = false,
     val dirty: Boolean = false,
 ) {
     val amount: Double?
@@ -215,6 +217,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         validationMessage = null,
         savedSummary = null,
         persisted = false,
+        pendingSync = false,
         dirty = true,
     )
 }
@@ -248,6 +251,7 @@ private fun QuickEntryUiState.changed(
     validationMessage = null,
     savedSummary = null,
     persisted = false,
+    pendingSync = false,
     dirty = true,
 )
 
@@ -261,6 +265,7 @@ private fun addSplitPart(state: QuickEntryUiState): QuickEntryUiState {
         validationMessage = null,
         savedSummary = null,
         persisted = false,
+        pendingSync = false,
         dirty = true,
     )
 }
@@ -272,6 +277,7 @@ private fun removeSplitPart(state: QuickEntryUiState, id: String): QuickEntryUiS
         validationMessage = null,
         savedSummary = null,
         persisted = false,
+        pendingSync = false,
         dirty = true,
     )
 }
@@ -285,6 +291,7 @@ private fun updateSplitPart(
     validationMessage = null,
     savedSummary = null,
     persisted = false,
+    pendingSync = false,
     dirty = true,
 )
 
@@ -304,6 +311,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         validationMessage = null,
         savedSummary = null,
         persisted = false,
+        pendingSync = false,
         dirty = false,
     )
 }
@@ -396,6 +404,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         validationMessage = null,
         savedSummary = summary,
         persisted = false,
+        pendingSync = false,
     )
 }
 
@@ -403,6 +412,7 @@ private fun QuickEntryUiState.invalid(message: String): QuickEntryUiState = copy
     validationMessage = message,
     savedSummary = null,
     persisted = false,
+    pendingSync = false,
 )
 
 private fun formatMoney(value: Double): String = if (value % 1.0 == 0.0) {
