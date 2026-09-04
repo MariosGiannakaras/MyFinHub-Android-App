@@ -1,0 +1,312 @@
+name: Protected Phase 6 Test Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: 'Exact 40-character Android source commit already validated by PR CI'
+        required: true
+        type: string
+      version_code:
+        description: 'Strictly increasing phase6-test versionCode (for example 6012)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: protected-phase6-test-release
+  cancel-in-progress: false
+
+jobs:
+  publisher-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted publisher automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Publisher reconciliation tests
+        run: python3 -m unittest scripts.test_phase6_release_publisher
+
+  source-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Validate immutable source and exact-head CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'source_sha must be an exact lowercase 40-character commit SHA.' >&2
+            exit 1
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.request
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          sha = os.environ["SOURCE_SHA"]
+          token = os.environ["GH_TOKEN"]
+          url = f"https://api.github.com/repos/{repo}/commits/{sha}/check-runs?per_page=100"
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+          with urllib.request.urlopen(req, timeout=20) as response:
+              payload = json.load(response)
+
+          required = {"verify", "screenshot-regression", "s24-ultra-target-instrumented"}
+          successes = {
+              item.get("name")
+              for item in payload.get("check_runs", [])
+              if item.get("conclusion") == "success"
+          }
+          missing = sorted(required - successes)
+          if missing:
+              print(f"Exact source commit lacks successful required checks: {', '.join(missing)}", file=sys.stderr)
+              raise SystemExit(1)
+          print("Exact source commit has all required Android CI/UI checks.")
+          PY
+
+  build:
+    needs:
+      - publisher-tests
+      - source-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      VERSION_CODE: ${{ inputs.version_code }}
+      UPDATE_CHANNEL: phase6-test
+    steps:
+      - name: Validate release version input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION_CODE" =~ ^[0-9]+$ ]] || (( VERSION_CODE <= 6000 )); then
+            echo 'version_code must be numeric and above 6000.' >&2
+            exit 1
+          fi
+          echo "VERSION_NAME=0.1.0-phase6.$((VERSION_CODE - 6000))" >> "$GITHUB_ENV"
+
+      - name: Checkout exact validated Android source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ inputs.source_sha }}
+          path: product
+
+      - name: Prove checkout identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git -C product rev-parse HEAD)"
+          test "$actual" = "$SOURCE_SHA"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        working-directory: product
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Test exact source with private test channel
+        working-directory: product
+        run: ./gradlew test -PANDROID_UPDATE_CHANNEL="$UPDATE_CHANNEL" --stacktrace
+
+      - name: Apply CI-workspace-only test version
+        working-directory: product
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$VERSION_CODE" "$VERSION_NAME" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path("app/build.gradle.kts")
+          text = path.read_text()
+          old_code = "        versionCode = 1"
+          old_name = '        versionName = "0.1.0"'
+          if text.count(old_code) != 1 or text.count(old_name) != 1:
+              raise SystemExit("Unexpected Android version declaration; refusing release patch.")
+          text = text.replace(old_code, f"        versionCode = {sys.argv[1]}", 1)
+          text = text.replace(old_name, f'        versionName = "{sys.argv[2]}"', 1)
+          path.write_text(text)
+          PY
+
+      - name: Build unsigned release candidate
+        working-directory: product
+        run: ./gradlew assembleRelease -PANDROID_UPDATE_CHANNEL="$UPDATE_CHANNEL" --stacktrace
+
+      - name: Verify intermediate is unsigned and exact package/version
+        working-directory: product
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          badging="$("$aapt" dump badging "$apk" | head -n 1)"
+          grep -F "package: name='app.myfinhub.android'" <<<"$badging"
+          grep -F "versionCode='$VERSION_CODE'" <<<"$badging"
+          grep -F "versionName='$VERSION_NAME'" <<<"$badging"
+          if "$apksigner" verify "$apk" >/dev/null 2>&1; then
+            echo 'Intermediate release must remain unsigned before the protected publish job.' >&2
+            exit 1
+          fi
+          cp "$apk" ../MyFinHub-unsigned-release.apk
+
+      - name: Transfer unsigned build input only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: phase6-test-unsigned-release-input
+          path: MyFinHub-unsigned-release.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs:
+      - build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: phase6-test-release
+    env:
+      VERSION_CODE: ${{ inputs.version_code }}
+      SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
+    steps:
+      - name: Derive locked phase6-test version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION_CODE" =~ ^[0-9]+$ ]] || (( VERSION_CODE <= 6000 )); then
+            exit 1
+          fi
+          echo "VERSION_NAME=0.1.0-phase6.$((VERSION_CODE - 6000))" >> "$GITHUB_ENV"
+
+      - name: Checkout trusted publisher automation only
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: automation
+
+      - name: Download unsigned build input
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: phase6-test-unsigned-release-input
+          path: input
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Provision Android SDK for signing verification
+        working-directory: automation
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Prepare pinned stable NON-PROD signer
+        shell: bash
+        env:
+          AOSP_BUILD_COMMIT: 045a3d6a3e359633a14853a5a5e1e4f2a11cbdae
+          AOSP_TESTKEY_PK8_BLOB: 586c1bd5cf96f9358f36b37ea98fef93f4d0a8e3
+          AOSP_TESTKEY_CERT_BLOB: e242d83e2bf72169ab0abd5280d4d455caef71eb
+        run: |
+          set -euo pipefail
+          key="$RUNNER_TEMP/aosp-testkey.pk8"
+          cert="$RUNNER_TEMP/aosp-testkey.x509.pem"
+          base="https://raw.githubusercontent.com/aosp-mirror/platform_build/${AOSP_BUILD_COMMIT}/target/product/security"
+          curl --fail --silent --show-error --location "$base/testkey.pk8" --output "$key"
+          curl --fail --silent --show-error --location "$base/testkey.x509.pem" --output "$cert"
+          python3 - "$key" "$AOSP_TESTKEY_PK8_BLOB" "$cert" "$AOSP_TESTKEY_CERT_BLOB" <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          def git_blob_sha(path: Path) -> str:
+              data = path.read_bytes()
+              return hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+
+          for path_raw, expected in ((sys.argv[1], sys.argv[2]), (sys.argv[3], sys.argv[4])):
+              if git_blob_sha(Path(path_raw)) != expected:
+                  raise SystemExit("Pinned AOSP test-key blob mismatch.")
+          PY
+
+      - name: Sign and verify private candidate locally
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          build_tools="$(find "$sdk_root/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          apksigner="$build_tools/apksigner"
+          zipalign="$build_tools/zipalign"
+          aapt="$build_tools/aapt"
+          input="input/MyFinHub-unsigned-release.apk"
+          aligned="$RUNNER_TEMP/MyFinHub-aligned.apk"
+          output="$RUNNER_TEMP/MyFinHub-Phase6-${VERSION_CODE}.apk"
+          key="$RUNNER_TEMP/aosp-testkey.pk8"
+          cert="$RUNNER_TEMP/aosp-testkey.x509.pem"
+
+          "$zipalign" -f -p 4 "$input" "$aligned"
+          "$apksigner" sign --key "$key" --cert "$cert" --out "$output" "$aligned"
+          "$apksigner" verify --verbose --print-certs "$output" > "$RUNNER_TEMP/apksigner.txt"
+
+          cert_sha256="$(openssl x509 -in "$cert" -outform DER | sha256sum | awk '{print $1}')"
+          grep -F "certificate SHA-256 digest: $cert_sha256" "$RUNNER_TEMP/apksigner.txt"
+
+          badging="$("$aapt" dump badging "$output" | head -n 1)"
+          grep -F "package: name='app.myfinhub.android'" <<<"$badging"
+          grep -F "versionCode='$VERSION_CODE'" <<<"$badging"
+          grep -F "versionName='$VERSION_NAME'" <<<"$badging"
+
+          echo "apk=$output" >> "$GITHUB_OUTPUT"
+
+      - name: Upload, re-read exact bytes, then publish metadata last
+        id: publish
+        shell: bash
+        env:
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
+        run: |
+          set -euo pipefail
+          result="$(python3 automation/scripts/phase6_release_publisher.py publish \
+            --apk "${{ steps.candidate.outputs.apk }}" \
+            --version-code "$VERSION_CODE" \
+            --version-name "$VERSION_NAME")"
+          printf '%s\n' "$result"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+
+      - name: Write safe release summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - '${{ steps.publish.outputs.result }}' >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+          data = json.loads(sys.argv[1])
+          print("## Private phase6-test release")
+          print(f"- result: `{data['result']}`")
+          print(f"- version: `{data['version_name']}` (`{data['version_code']}`)")
+          print(f"- path: `{data['storage_path']}`")
+          print(f"- SHA-256: `{data['sha256']}`")
+          print(f"- size: `{data['size_bytes']}` bytes")
+          print("- signer: pinned AOSP development testkey; NON-PRODUCTION ONLY")
+          PY
