@@ -158,9 +158,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
         val ready = mutableState.value as? FinanceProductState.Ready
         if (previous?.userId == session.userId && ready != null) {
-            if (allowAutomaticSync && connectivityObserver.current() == NetworkStatus.ONLINE &&
-                (ready.offline || reloadWhenOnline || pendingTransactions.isNotEmpty())
-            ) {
+            if (canUseServer() && (ready.offline || reloadWhenOnline || pendingTransactions.isNotEmpty())) {
                 loadFresh(preserveUi = true)
             }
             return
@@ -189,7 +187,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     /** Explicit recovery for either an ambiguous queued transaction or a non-transaction mutation. */
     fun retryPendingMutation() {
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
+        if (!canUseServer()) {
             mutableNotices.tryEmit(offlineUserNotice("Συγχρονισμός εκκρεμών κινήσεων"))
             return
         }
@@ -251,8 +249,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     )
                     return
                 }
-                if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-                    mutableNotices.tryEmit(offlineMutationNotice("Η επεξεργασία συγχρονισμένης κίνησης χρειάζεται σύνδεση."))
+                if (!canUseServer()) {
+                    mutableNotices.tryEmit(offlineMutationNotice("Η επεξεργασία συγχρονισμένης κίνησης χρειάζεται επαληθευμένη σύνδεση."))
                     return
                 }
                 applyMutation(
@@ -281,7 +279,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             viewModelScope.launch {
                 pendingTransactions = pendingTransactions.filterNot { it.eventId == id }
                 persistLocalSnapshot()
-                renderLocalState(previous = ready.projection, offline = connectivityObserver.current() != NetworkStatus.ONLINE)
+                renderLocalState(previous = ready.projection, offline = !canUseServer())
                 mutableNotices.emit(
                     UserNotice(
                         message = "Η τοπική κίνηση ακυρώθηκε.",
@@ -293,8 +291,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             return
         }
 
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή συγχρονισμένης κίνησης χρειάζεται σύνδεση."))
+        if (!canUseServer()) {
+            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή συγχρονισμένης κίνησης χρειάζεται επαληθευμένη σύνδεση."))
             return
         }
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
@@ -303,8 +301,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun deleteCard(cardId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή κάρτας χρειάζεται σύνδεση."))
+        if (!canUseServer()) {
+            mutableNotices.tryEmit(offlineMutationNotice("Η διαγραφή κάρτας χρειάζεται επαληθευμένη σύνδεση."))
             return
         }
         val normalizedCardId = cardId.trim()
@@ -372,8 +370,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             mutableState.value = ready.copy(projection = ready.projection.copy(planState = reducePlan(ready.projection.planState, action)))
             return
         }
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-            mutableNotices.tryEmit(offlineMutationNotice("Η αλλαγή budget χρειάζεται σύνδεση."))
+        if (!canUseServer()) {
+            mutableNotices.tryEmit(offlineMutationNotice("Η αλλαγή budget χρειάζεται επαληθευμένη σύνδεση."))
             return
         }
 
@@ -410,7 +408,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 mutableLastSuccessfulSync.value = cached.lastSuccessfulSync
             }
 
-            if (connectivityObserver.current() != NetworkStatus.ONLINE || !automaticSyncAllowed) {
+            if (!canUseServer()) {
                 reloadWhenOnline = true
                 if (lastServerDocument != null) {
                     renderLocalState(previous = previous, offline = true)
@@ -470,6 +468,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         previousProjection: CanonicalProductProjection?,
         eligible: List<PendingTransactionIntent>,
     ) {
+        if (!canUseServer()) {
+            renderLocalState(previousProjection, offline = true)
+            return
+        }
         val eligibleIds = eligible.map(PendingTransactionIntent::eventId).toSet()
         // Persist NEEDS_REVIEW before crossing the write boundary. From here on, any transport
         // failure is ambiguous and automatic reconnect must not send these intents again.
@@ -556,7 +558,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
 
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
+        if (!canUseServer()) {
             if (mutation is AppendCanonicalEvent) {
                 mutationLaunchInFlight = true
                 mutationJob = viewModelScope.launch {
@@ -567,7 +569,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     }
                 }
             } else {
-                mutableNotices.tryEmit(offlineMutationNotice("Αυτή η αλλαγή χρειάζεται σύνδεση."))
+                mutableNotices.tryEmit(offlineMutationNotice("Αυτή η αλλαγή χρειάζεται επαληθευμένη σύνδεση."))
             }
             return
         }
@@ -675,14 +677,14 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             return
         }
 
-        if (connectivityObserver.current() != NetworkStatus.ONLINE) {
+        if (!canUseServer()) {
             if (mutation is AppendCanonicalEvent && previousProjection != null) {
                 pendingMutation = null
                 queueOfflineTransaction(session, mutation, previousProjection)
             } else {
                 pendingMutation = null
                 previousProjection?.let { mutableState.value = readyForProjection(it, offline = true) }
-                mutableNotices.emit(offlineMutationNotice("Η αλλαγή δεν στάλθηκε και χρειάζεται σύνδεση."))
+                mutableNotices.emit(offlineMutationNotice("Η αλλαγή δεν στάλθηκε και χρειάζεται επαληθευμένη σύνδεση."))
             }
             return
         }
@@ -961,6 +963,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (current.saving || current.issue != null) return
         mutableState.value = transform(current)
     }
+
+    private fun canUseServer(): Boolean =
+        automaticSyncAllowed && connectivityObserver.current() == NetworkStatus.ONLINE
 
     private fun offlineMutationNotice(message: String): UserNotice = UserNotice(
         message = message,
