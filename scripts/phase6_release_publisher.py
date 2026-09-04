@@ -20,6 +20,7 @@ CHANNEL = "phase6-test"
 TABLE = "rheomiq_android_releases"
 MAX_APK_BYTES = 300 * 1024 * 1024
 PHASE6_VERSION_BASE = 6000
+NOTES_PREFIX = "Protected automated phase6-test publisher"
 
 
 class PublisherError(RuntimeError):
@@ -34,6 +35,18 @@ class RemoteWriteError(PublisherError):
     pass
 
 
+def validate_release_run_id(value: str) -> str:
+    if re.fullmatch(r"[1-9][0-9]{0,19}", value or "") is None:
+        raise PublisherError("A valid GitHub release run ID is required.")
+    return value
+
+
+def release_notes(release_run_id: str | None) -> str:
+    if release_run_id is None:
+        return f"{NOTES_PREFIX}."
+    return f"{NOTES_PREFIX}; github_run_id={validate_release_run_id(release_run_id)}."
+
+
 @dataclass(frozen=True)
 class ReleaseSpec:
     version_code: int
@@ -43,6 +56,7 @@ class ReleaseSpec:
     size_bytes: int
     mandatory: bool = False
     enabled: bool = True
+    release_run_id: str | None = None
 
     def metadata(self) -> dict[str, Any]:
         return {
@@ -54,12 +68,13 @@ class ReleaseSpec:
             "size_bytes": self.size_bytes,
             "mandatory": self.mandatory,
             "enabled": self.enabled,
-            "notes": "Protected automated phase6-test publisher.",
+            "notes": release_notes(self.release_run_id),
         }
 
 
 class ReleaseClient(Protocol):
     def get_release(self, version_code: int) -> dict[str, Any] | None: ...
+    def get_release_by_run_id(self, release_run_id: str) -> dict[str, Any] | None: ...
     def get_latest_version_code(self) -> int | None: ...
     def download_object(self, storage_path: str) -> bytes: ...
     def upload_object(self, storage_path: str, data: bytes) -> None: ...
@@ -90,7 +105,18 @@ def expected_version_name(version_code: int) -> str:
     return f"0.1.0-phase6.{version_code - PHASE6_VERSION_BASE}"
 
 
-def build_spec(apk_path: Path, version_code: int, version_name: str) -> ReleaseSpec:
+def expected_storage_path(version_code: int) -> str:
+    if version_code <= PHASE6_VERSION_BASE:
+        raise PublisherError("phase6-test versionCode must be above the Phase 6 base.")
+    return f"{CHANNEL}/{version_code}/MyFinHub-Phase6-{version_code}.apk"
+
+
+def build_spec(
+    apk_path: Path,
+    version_code: int,
+    version_name: str,
+    release_run_id: str | None = None,
+) -> ReleaseSpec:
     if not apk_path.is_file():
         raise PublisherError("APK file is missing.")
     data = apk_path.read_bytes()
@@ -102,17 +128,25 @@ def build_spec(apk_path: Path, version_code: int, version_name: str) -> ReleaseS
         raise PublisherError(f"Unexpected phase6-test versionName; expected {expected_name}.")
     if not re.fullmatch(r"0\.1\.0-phase6\.[1-9][0-9]*", version_name):
         raise PublisherError("Invalid phase6-test versionName format.")
+    if release_run_id is not None:
+        validate_release_run_id(release_run_id)
     sha = hashlib.sha256(data).hexdigest()
-    path = f"{CHANNEL}/{version_code}/MyFinHub-Phase6-{version_code}.apk"
-    return ReleaseSpec(version_code, version_name, path, sha, size)
+    return ReleaseSpec(
+        version_code,
+        version_name,
+        expected_storage_path(version_code),
+        sha,
+        size,
+        release_run_id=release_run_id,
+    )
 
 
 def release_matches(row: dict[str, Any], spec: ReleaseSpec) -> bool:
     expected = spec.metadata()
-    for key in ("channel", "version_code", "version_name", "storage_path", "sha256", "size_bytes", "mandatory", "enabled"):
-        if row.get(key) != expected[key]:
-            return False
-    return True
+    keys = ["channel", "version_code", "version_name", "storage_path", "sha256", "size_bytes", "mandatory", "enabled"]
+    if spec.release_run_id is not None:
+        keys.append("notes")
+    return all(row.get(key) == expected[key] for key in keys)
 
 
 def verify_remote_object(client: ReleaseClient, spec: ReleaseSpec) -> bool:
@@ -160,7 +194,44 @@ def publish_release(client: ReleaseClient, spec: ReleaseSpec, apk_bytes: bytes) 
     return "published"
 
 
+def plan_next_release(client: ReleaseClient, release_run_id: str) -> dict[str, Any]:
+    release_run_id = validate_release_run_id(release_run_id)
+    correlated = client.get_release_by_run_id(release_run_id)
+    if correlated is not None:
+        try:
+            version_code = int(correlated["version_code"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise PublisherError("Correlated release metadata has an invalid versionCode.") from exc
+        version_name = expected_version_name(version_code)
+        storage_path = expected_storage_path(version_code)
+        if correlated.get("channel") != CHANNEL:
+            raise PublisherError("Correlated release belongs to an unexpected channel.")
+        if correlated.get("version_name") != version_name or correlated.get("storage_path") != storage_path:
+            raise PublisherError("Correlated release metadata is noncanonical.")
+        if correlated.get("notes") != release_notes(release_run_id):
+            raise PublisherError("Correlated release run marker does not match.")
+        return {
+            "version_code": version_code,
+            "version_name": version_name,
+            "storage_path": storage_path,
+            "resumed": True,
+        }
+
+    latest = client.get_latest_version_code()
+    if latest is None:
+        raise PublisherError("No existing phase6-test baseline exists; refusing automatic version planning.")
+    version_code = latest + 1
+    return {
+        "version_code": version_code,
+        "version_name": expected_version_name(version_code),
+        "storage_path": expected_storage_path(version_code),
+        "resumed": False,
+    }
+
+
 class SupabaseReleaseClient:
+    RELEASE_SELECT = "channel,version_code,version_name,storage_path,sha256,size_bytes,mandatory,enabled,notes"
+
     def __init__(self, project_url: str, secret_key: str, timeout_seconds: float = 30.0) -> None:
         self.project_url = validate_project_url(project_url)
         if not secret_key or len(secret_key) < 20:
@@ -169,8 +240,16 @@ class SupabaseReleaseClient:
         self.timeout_seconds = timeout_seconds
         api_key_headers(secret_key)
 
-    def _request(self, method: str, path: str, *, data: bytes | None = None, headers: dict[str, str] | None = None,
-                 allow_not_found: bool = False, write: bool = False) -> bytes:
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        data: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        allow_not_found: bool = False,
+        write: bool = False,
+    ) -> bytes:
         request_headers = api_key_headers(self.secret_key)
         if headers:
             request_headers.update(headers)
@@ -189,19 +268,31 @@ class SupabaseReleaseClient:
                 raise RemoteWriteError("Remote write transport outcome is ambiguous.") from None
             raise PublisherError("Supabase read transport failed.") from None
 
+    def _single_release(self, query: str, description: str) -> dict[str, Any] | None:
+        raw = self._request("GET", f"/rest/v1/{TABLE}?{query}")
+        rows = json.loads(raw.decode("utf-8"))
+        if not isinstance(rows, list):
+            raise PublisherError(f"Unexpected {description} response.")
+        if len(rows) > 1:
+            raise PublisherError(f"Multiple rows returned for {description}.")
+        return rows[0] if rows else None
+
     def get_release(self, version_code: int) -> dict[str, Any] | None:
         query = urllib.parse.urlencode({
             "channel": f"eq.{CHANNEL}",
             "version_code": f"eq.{version_code}",
-            "select": "channel,version_code,version_name,storage_path,sha256,size_bytes,mandatory,enabled",
+            "select": self.RELEASE_SELECT,
         })
-        raw = self._request("GET", f"/rest/v1/{TABLE}?{query}")
-        rows = json.loads(raw.decode("utf-8"))
-        if not isinstance(rows, list):
-            raise PublisherError("Unexpected release metadata response.")
-        if len(rows) > 1:
-            raise PublisherError("Multiple release rows exist for one phase6-test versionCode.")
-        return rows[0] if rows else None
+        return self._single_release(query, "release metadata")
+
+    def get_release_by_run_id(self, release_run_id: str) -> dict[str, Any] | None:
+        marker = release_notes(release_run_id)
+        query = urllib.parse.urlencode({
+            "channel": f"eq.{CHANNEL}",
+            "notes": f"eq.{marker}",
+            "select": self.RELEASE_SELECT,
+        })
+        return self._single_release(query, "release run correlation")
 
     def get_latest_version_code(self) -> int | None:
         query = urllib.parse.urlencode({
@@ -247,19 +338,15 @@ class SupabaseReleaseClient:
 
 def command_plan(args: argparse.Namespace) -> int:
     client = SupabaseReleaseClient(args.project_url, args.secret_key)
-    latest = client.get_latest_version_code()
-    if latest is None:
-        raise PublisherError("No existing phase6-test baseline exists; refusing automatic version planning.")
-    version_code = latest + 1
-    version_name = expected_version_name(version_code)
-    storage_path = f"{CHANNEL}/{version_code}/MyFinHub-Phase6-{version_code}.apk"
-    print(json.dumps({"version_code": version_code, "version_name": version_name, "storage_path": storage_path}, separators=(",", ":")))
+    plan = plan_next_release(client, args.release_run_id)
+    print(json.dumps(plan, separators=(",", ":")))
     return 0
 
 
 def command_publish(args: argparse.Namespace) -> int:
     apk_path = Path(args.apk)
-    spec = build_spec(apk_path, args.version_code, args.version_name)
+    release_run_id = validate_release_run_id(args.release_run_id)
+    spec = build_spec(apk_path, args.version_code, args.version_name, release_run_id)
     client = SupabaseReleaseClient(args.project_url, args.secret_key)
     result = publish_release(client, spec, apk_path.read_bytes())
     print(json.dumps({
@@ -278,6 +365,7 @@ def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description="Protected MyFinHub phase6-test release publisher.")
     result.add_argument("--project-url", default=os.environ.get("SUPABASE_URL", f"https://{EXPECTED_PROJECT_HOST}"))
     result.add_argument("--secret-key", default=os.environ.get("SUPABASE_RELEASE_PUBLISH_KEY", ""), help=argparse.SUPPRESS)
+    result.add_argument("--release-run-id", default=os.environ.get("GITHUB_RUN_ID", ""), help=argparse.SUPPRESS)
     sub = result.add_subparsers(dest="command", required=True)
     sub.add_parser("plan")
     publish = sub.add_parser("publish")
