@@ -192,7 +192,6 @@ jobs:
     env:
       VERSION_CODE: ${{ inputs.version_code }}
       SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
-      SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
     steps:
       - name: Derive locked phase6-test version
         shell: bash
@@ -284,6 +283,8 @@ jobs:
       - name: Upload, re-read exact bytes, then publish metadata last
         id: publish
         shell: bash
+        env:
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
         run: |
           set -euo pipefail
           result="$(python3 automation/scripts/phase6_release_publisher.py publish \
