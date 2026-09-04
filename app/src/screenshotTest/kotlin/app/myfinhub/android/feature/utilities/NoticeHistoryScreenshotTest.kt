@@ -6,6 +6,7 @@ import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+// Screenshot fixtures intentionally exercise only privacy-safe diagnostic codes and timestamps.
 private val noticeHistoryScreenshotEntries = listOf(
     PrivacySafeNoticeRecord(
         diagnosticCode = "MFH-NET-OFFLINE-PENDING",
