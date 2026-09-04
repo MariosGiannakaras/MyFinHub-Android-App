@@ -43,6 +43,7 @@ fun MyFinHubOutlinedField(
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     focusRequester: FocusRequester? = null,
+    enabled: Boolean = true,
 ) {
     var fieldModifier = modifier
         .fillMaxWidth()
@@ -56,6 +57,7 @@ fun MyFinHubOutlinedField(
         value = value,
         onValueChange = onValueChange,
         modifier = fieldModifier,
+        enabled = enabled,
         label = { Text(label) },
         supportingText = when {
             errorMessage != null -> ({ Text(errorMessage) })
