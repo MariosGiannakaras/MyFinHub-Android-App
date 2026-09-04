@@ -23,6 +23,9 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Repair batch F production settings guard
+        run: python scripts/_repair_uiux_batch_f.py
+
       - name: Apply guarded notice and pending UX batch
         run: python scripts/_uiux_batch_f.py
 
@@ -37,7 +40,7 @@ jobs:
       - name: Commit retained notice and pending UX correction
         shell: bash
         run: |
-          rm -f scripts/_uiux_batch_f.py .github/workflows/_uiux_batch_f_one_shot.yml
+          rm -f scripts/_uiux_batch_f.py scripts/_repair_uiux_batch_f.py .github/workflows/_uiux_batch_f_one_shot.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
