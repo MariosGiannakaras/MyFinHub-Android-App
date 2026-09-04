@@ -22,6 +22,7 @@ import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
@@ -156,18 +157,20 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         selectedQuickEntryType = oldHome?.selectedQuickEntryType,
     )
 
+    val quickEntry = projectQuickEntryState(
+        document = document,
+        today = today,
+        previous = previous?.quickEntryState,
+    )
+
     val oldActivity = previous?.activityState
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
         selectedId = oldActivity?.selectedId?.takeIf { id -> activityItems.any { it.id == id } },
         items = activityItems,
-    )
-
-    val quickEntry = projectQuickEntryState(
-        document = document,
-        today = today,
-        previous = previous?.quickEntryState,
+        expenseCategories = quickEntry.expenseCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
+        incomeCategories = quickEntry.incomeCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
     )
 
     val activeCards = document.canonicalCards().filter { it.active }
@@ -293,6 +296,7 @@ private fun buildActivityItems(
                     amount = if (tx.type == "expense") -tx.amount else tx.amount,
                     accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
                     category = tx.category,
+                    subcategory = tx.subcategory,
                     rawDate = tx.date,
                     accountId = tx.accountId,
                     fromAccountId = tx.fromAccountId,
@@ -314,6 +318,7 @@ private fun buildActivityItems(
                     amount = eventDisplayAmount(event),
                     accountLabel = accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames),
                     category = event.category,
+                    subcategory = event.subcategory,
                     rawDate = event.date,
                     accountId = event.accountId,
                     fromAccountId = event.fromAccountId,

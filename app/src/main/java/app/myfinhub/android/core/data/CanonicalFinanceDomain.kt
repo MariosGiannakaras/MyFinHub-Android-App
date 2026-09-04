@@ -29,6 +29,7 @@ data class CanonicalLegacyTransaction(
     val amount: Double,
     val note: String,
     val category: String?,
+    val subcategory: String? = null,
 )
 
 data class CanonicalLedgerLeg(val accountId: String, val amount: Double)
@@ -49,6 +50,7 @@ data class CanonicalEvent(
     val amount: Double,
     val note: String,
     val category: String?,
+    val subcategory: String? = null,
     val accountId: String?,
     val fromAccountId: String?,
     val toAccountId: String?,
@@ -153,6 +155,7 @@ fun CanonicalFinanceDocument.canonicalEvents(): List<CanonicalEvent> =
             amount = event.number("amount") ?: 0.0,
             note = event.string("note").orEmpty(),
             category = event.string("category"),
+            subcategory = event.string("subcategory"),
             accountId = event.string("accountId"),
             fromAccountId = event.string("fromAccountId"),
             toAccountId = event.string("toAccountId"),
@@ -429,6 +432,7 @@ private fun JsonObject.toLegacyTransaction(): CanonicalLegacyTransaction? = Cano
     amount = number("amount") ?: 0.0,
     note = string("note").orEmpty(),
     category = string("category"),
+    subcategory = string("subcategory"),
 )
 
 private fun JsonObject.isSelfLoan(): Boolean {

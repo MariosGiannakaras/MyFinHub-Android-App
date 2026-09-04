@@ -57,6 +57,8 @@ data class PendingCanonicalMutationIntent(
             note = payload.string("note").orEmpty(),
             category = payload.string("category").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
+            date = payload.string("date"),
+            subcategory = if ("subcategory" in payload) payload.string("subcategory").orEmpty() else null,
         )
         PendingMutationKind.DELETE_ACTIVITY -> DeleteCanonicalActivity(
             transactionId = payload.string("transactionId").orEmpty(),
@@ -91,11 +93,16 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             val expectedNote = payload.string("note").orEmpty().trim()
             val expectedCategory = payload.string("category").orEmpty().trim()
+            val expectedDate = payload.string("date")
+            val subcategoryWasSpecified = "subcategory" in payload
+            val expectedSubcategory = payload.string("subcategory").orEmpty().trim()
             val transaction = effectiveTransaction(document, id)
             id.isNotBlank() && (
                 transaction == null ||
                     (transaction.string("note").orEmpty().trim() == expectedNote &&
-                        transaction.string("category").orEmpty().trim() == expectedCategory)
+                        transaction.string("category").orEmpty().trim() == expectedCategory &&
+                        (expectedDate == null || transaction.string("date").orEmpty() == expectedDate) &&
+                        (!subcategoryWasSpecified || transaction.string("subcategory").orEmpty().trim() == expectedSubcategory))
             )
         }
         PendingMutationKind.DELETE_ACTIVITY -> {
@@ -146,14 +153,14 @@ data class PendingCanonicalMutationIntent(
             is EditCanonicalActivity -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.EDIT_ACTIVITY,
-                payload = JsonObject(
-                    mapOf(
-                        "transactionId" to JsonPrimitive(mutation.transactionId),
-                        "note" to JsonPrimitive(mutation.note),
-                        "category" to JsonPrimitive(mutation.category),
-                        "nowIso" to JsonPrimitive(mutation.nowIso),
-                    ),
-                ),
+                payload = JsonObject(buildMap {
+                    put("transactionId", JsonPrimitive(mutation.transactionId))
+                    put("note", JsonPrimitive(mutation.note))
+                    put("category", JsonPrimitive(mutation.category))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.date?.let { put("date", JsonPrimitive(it)) }
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                }),
                 syncState = syncState,
             )
             is DeleteCanonicalActivity -> PendingCanonicalMutationIntent(

@@ -24,6 +24,11 @@ data class ActivityItem(
     val toAccountId: String? = null,
 )
 
+data class ActivityCategoryOption(
+    val name: String,
+    val subcategories: List<String> = emptyList(),
+)
+
 enum class ActivityKind(val label: String) {
     EXPENSE("Έξοδα"),
     INCOME("Έσοδα"),
@@ -45,6 +50,8 @@ data class ActivityUiState(
     val filter: ActivityFilter = ActivityFilter.ALL,
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
+    val expenseCategories: List<ActivityCategoryOption> = emptyList(),
+    val incomeCategories: List<ActivityCategoryOption> = emptyList(),
 ) {
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
@@ -81,13 +88,22 @@ data class ActivityUiState(
     }
 
     val selectedItem: ActivityItem? = items.firstOrNull { it.id == selectedId }
+
+    fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> =
+        if (item.kind == ActivityKind.INCOME) incomeCategories else expenseCategories
 }
 
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class Select(val id: String?) : ActivityAction
-    data class SaveEdit(val id: String, val note: String, val category: String) : ActivityAction
+    data class SaveEdit(
+        val id: String,
+        val note: String,
+        val category: String,
+        val date: String? = null,
+        val subcategory: String? = null,
+    ) : ActivityAction
     data class Delete(val id: String) : ActivityAction
 }
 
@@ -98,7 +114,17 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
     is ActivityAction.SaveEdit -> state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) {
-                item.copy(subtitle = action.note, category = action.category.takeIf(String::isNotBlank))
+                item.copy(
+                    rawDate = action.date ?: item.rawDate,
+                    dateLabel = action.date ?: item.dateLabel,
+                    subtitle = action.note,
+                    category = action.category.takeIf(String::isNotBlank),
+                    subcategory = if (action.subcategory != null) {
+                        action.subcategory.takeIf(String::isNotBlank)
+                    } else {
+                        item.subcategory
+                    },
+                )
             } else {
                 item
             }

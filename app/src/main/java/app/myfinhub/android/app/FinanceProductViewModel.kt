@@ -266,6 +266,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                         note = action.note,
                         category = action.category,
                         nowIso = Instant.now().toString(),
+                        date = action.date,
+                        subcategory = action.subcategory,
                     ),
                 )
             }

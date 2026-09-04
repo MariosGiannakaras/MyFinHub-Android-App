@@ -266,11 +266,21 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.ActivityDetail> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
                     ActivityDetailScreen(
-                        item = activityState.items.firstOrNull { it.id == route.eventId },
+                        item = item,
+                        categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
                         onBack = { activityBackStack.removeLastOrNull() },
-                        onSave = { note, category ->
-                            onActivityAction(ActivityAction.SaveEdit(route.eventId, note, category))
+                        onSave = { date, note, category, subcategory ->
+                            onActivityAction(
+                                ActivityAction.SaveEdit(
+                                    id = route.eventId,
+                                    note = note,
+                                    category = category,
+                                    date = date,
+                                    subcategory = subcategory,
+                                ),
+                            )
                         },
                         onDelete = {
                             onActivityAction(ActivityAction.Delete(route.eventId))
