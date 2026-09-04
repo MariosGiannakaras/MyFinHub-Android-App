@@ -46,92 +46,33 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          [[ "$(git hash-object app/src/main/java/app/myfinhub/android/app/PendingUiProjection.kt)" == "e8dd7a8e3aef5acc05630401bcd2a1f0e2518c26" ]]
+          [[ "$(git hash-object app/src/test/java/app/myfinhub/android/app/PendingUiProjectionTest.kt)" == "011da7bb9fbf441e9c7cb46d0a823abec9964cff" ]]
           python3 <<'PY'
           from pathlib import Path
-
-          projection = Path('app/src/main/java/app/myfinhub/android/app/PendingUiProjection.kt')
+          projection = Path("app/src/main/java/app/myfinhub/android/app/PendingUiProjection.kt")
           text = projection.read_text()
-          old = '''    if (pending.isEmpty()) return projection
-
-    val pendingTransactionIds = pending
-'''
-          new = '''    val retainedPlanMessage = projection.planState.message
-        ?.takeUnless { it.startsWith("Αλλαγή budget ·") }
-    if (pending.isEmpty()) {
-        return if (retainedPlanMessage == projection.planState.message) {
-            projection
-        } else {
-            projection.copy(planState = projection.planState.copy(message = retainedPlanMessage))
-        }
-    }
-
-    val pendingTransactionIds = pending
-'''
+          old = "    if (pending.isEmpty()) return projection\n\n    val pendingTransactionIds = pending\n"
+          new = "    val retainedPlanMessage = projection.planState.message\n        ?.takeUnless { it.startsWith(\"Αλλαγή budget ·\") }\n    if (pending.isEmpty()) {\n        return if (retainedPlanMessage == projection.planState.message) {\n            projection\n        } else {\n            projection.copy(planState = projection.planState.copy(message = retainedPlanMessage))\n        }\n    }\n\n    val pendingTransactionIds = pending\n"
           if text.count(old) != 1:
-              raise SystemExit('Unexpected PendingUiProjection early-return shape')
+              raise SystemExit("Unexpected PendingUiProjection early-return shape")
           text = text.replace(old, new, 1)
-          old = '''        planState = projection.planState.copy(
-            message = budgetMessage ?: projection.planState.message,
-        ),
-'''
-          new = '''        planState = projection.planState.copy(
-            message = budgetMessage ?: retainedPlanMessage,
-        ),
-'''
+          old = "            message = budgetMessage ?: projection.planState.message,\n"
+          new = "            message = budgetMessage ?: retainedPlanMessage,\n"
           if text.count(old) != 1:
-              raise SystemExit('Unexpected PendingUiProjection plan message shape')
+              raise SystemExit("Unexpected PendingUiProjection plan-message shape")
           projection.write_text(text.replace(old, new, 1))
 
-          tests = Path('app/src/test/java/app/myfinhub/android/app/PendingUiProjectionTest.kt')
+          tests = Path("app/src/test/java/app/myfinhub/android/app/PendingUiProjectionTest.kt")
           text = tests.read_text()
-          old = 'import org.junit.Assert.assertNotNull\n'
-          new = old + 'import org.junit.Assert.assertNull\n'
+          old = "import org.junit.Assert.assertNotNull\n"
           if text.count(old) != 1:
-              raise SystemExit('Unexpected test import shape')
-          text = text.replace(old, new, 1)
-          marker = '''    private fun projectWithPending(
-        server: CanonicalFinanceDocument,
-        pending: List<PendingCanonicalMutationIntent>,
-    ): CanonicalProductProjection {
-'''
-          addition = '''    @Test
-    fun confirmedBudget_clearsStalePendingInlineState() {
-        val server = canonicalFixture()
-        val base = projectCanonicalProduct(server, today)
-        val stale = base.copy(
-            planState = base.planState.copy(message = "Αλλαγή budget · Προς συγχρονισμό"),
-        )
-
-        val refreshed = projectCanonicalProduct(server, today, previous = stale)
-        val result = projectPendingUi(
-            projection = refreshed,
-            serverDocument = server,
-            pending = emptyList(),
-            today = today,
-        )
-
-        assertNull(result.planState.message)
-    }
-
-    @Test
-    fun emptyQueue_preservesNonPendingPlanMessage() {
-        val server = canonicalFixture()
-        val base = projectCanonicalProduct(server, today)
-        val projection = base.copy(planState = base.planState.copy(message = "Έλεγξε το μηνιαίο όριο."))
-
-        val result = projectPendingUi(
-            projection = projection,
-            serverDocument = server,
-            pending = emptyList(),
-            today = today,
-        )
-
-        assertEquals("Έλεγξε το μηνιαίο όριο.", result.planState.message)
-    }
-
-'''
+              raise SystemExit("Unexpected test import shape")
+          text = text.replace(old, old + "import org.junit.Assert.assertNull\n", 1)
+          marker = "    private fun projectWithPending(\n        server: CanonicalFinanceDocument,\n        pending: List<PendingCanonicalMutationIntent>,\n    ): CanonicalProductProjection {\n"
+          addition = "    @Test\n    fun confirmedBudget_clearsStalePendingInlineState() {\n        val server = canonicalFixture()\n        val base = projectCanonicalProduct(server, today)\n        val stale = base.copy(\n            planState = base.planState.copy(message = \"Αλλαγή budget · Προς συγχρονισμό\"),\n        )\n\n        val refreshed = projectCanonicalProduct(server, today, previous = stale)\n        val result = projectPendingUi(\n            projection = refreshed,\n            serverDocument = server,\n            pending = emptyList(),\n            today = today,\n        )\n\n        assertNull(result.planState.message)\n    }\n\n    @Test\n    fun emptyQueue_preservesNonPendingPlanMessage() {\n        val server = canonicalFixture()\n        val base = projectCanonicalProduct(server, today)\n        val projection = base.copy(planState = base.planState.copy(message = \"Έλεγξε το μηνιαίο όριο.\"))\n\n        val result = projectPendingUi(\n            projection = projection,\n            serverDocument = server,\n            pending = emptyList(),\n            today = today,\n        )\n\n        assertEquals(\"Έλεγξε το μηνιαίο όριο.\", result.planState.message)\n    }\n\n"
           if text.count(marker) != 1:
-              raise SystemExit('Unexpected test insertion point')
+              raise SystemExit("Unexpected test insertion point")
           tests.write_text(text.replace(marker, addition + marker, 1))
           PY
 
