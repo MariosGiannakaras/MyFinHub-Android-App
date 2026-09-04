@@ -376,7 +376,7 @@ private fun FinanceProductSurface(
 }
 
 @Composable
-private fun PendingChangesBanner(
+internal fun PendingChangesBanner(
     changeCount: Int,
     latest: PendingChangeUi,
     onUndoLatest: () -> Unit,
