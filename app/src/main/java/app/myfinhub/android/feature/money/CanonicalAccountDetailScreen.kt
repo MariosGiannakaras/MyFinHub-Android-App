@@ -45,6 +45,7 @@ fun CanonicalAccountDetailScreen(
     activityItems: List<ActivityItem>,
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
+    referenceDate: LocalDate = LocalDate.now(),
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -128,7 +129,7 @@ fun CanonicalAccountDetailScreen(
                 sections.forEach { (date, sectionItems) ->
                     item(key = "account-day-$date") {
                         Text(
-                            accountDayLabel(date),
+                            accountDayLabel(date, referenceDate),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -151,9 +152,8 @@ fun CanonicalAccountDetailScreen(
     }
 }
 
-private fun accountDayLabel(rawDate: String): String {
+private fun accountDayLabel(rawDate: String, today: LocalDate): String {
     val date = runCatching { LocalDate.parse(rawDate) }.getOrNull() ?: return rawDate
-    val today = LocalDate.now()
     if (date == today) return "Σήμερα"
     if (date == today.minusDays(1)) return "Χθες"
     return date.format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.forLanguageTag("el-GR")))
