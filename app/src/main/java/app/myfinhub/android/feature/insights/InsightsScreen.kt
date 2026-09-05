@@ -71,7 +71,7 @@ fun InsightsScreen(
                 )
             }
 
-            item { SectionTitle("Πορεία") }
+            item { SectionTitle("Μηνιαία ροή") }
             if (state.monthlyTrend.isEmpty()) {
                 item { EmptyInsightCard("Χρειάζονται περισσότερες κινήσεις για να εμφανιστεί μηνιαία πορεία.") }
             } else {
@@ -91,7 +91,7 @@ fun InsightsScreen(
                                 CategoryRow(category = category, largeFont = largeFont)
                             }
                             TextButton(onClick = onOpenSupportingActivity) {
-                                Text("Άνοιγμα κινήσεων εξόδων")
+                                Text("Προβολή σχετικών κινήσεων")
                             }
                         }
                     }
