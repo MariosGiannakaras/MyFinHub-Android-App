@@ -6,6 +6,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
 import com.android.tools.screenshot.PreviewTest
+import java.time.LocalDate
 
 private val correctionAccount = MoneyAccount(
     id = "acc-payroll",
@@ -79,6 +80,7 @@ private fun AccountDetailFixture(darkTheme: Boolean) {
             activityItems = correctionAccountActivity,
             onBack = {},
             onOpenActivity = {},
+            referenceDate = LocalDate.of(2026, 9, 4),
         )
     }
 }
