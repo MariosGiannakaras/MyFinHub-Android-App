@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,6 +56,8 @@ fun CanonicalMoneyScreen(
     onHideCardSecrets: () -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
     onOpenCard: (String) -> Unit,
+    onAddCard: () -> Unit = {},
+    onOpenAccount: (String) -> Unit = {},
     onOpenSavings: () -> Unit,
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
@@ -103,7 +106,7 @@ fun CanonicalMoneyScreen(
                         } else {
                             state.accounts.forEachIndexed { index, account ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) },
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
@@ -179,6 +182,7 @@ fun CanonicalMoneyScreen(
                     icon = MyFinHubIcons.Card,
                     tone = FinanceTone.Transfer,
                 )
+                TextButton(onClick = onAddCard) { Text("Προσθήκη κάρτας") }
             }
             state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
             item {

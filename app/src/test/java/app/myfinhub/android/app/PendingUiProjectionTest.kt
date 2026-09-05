@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
@@ -69,6 +70,35 @@ class PendingUiProjectionTest {
         assertTrue(message.orEmpty().contains("Πιστωτική"))
         assertTrue(message.orEmpty().contains("Εκκρεμεί διαγραφή"))
         assertTrue(message.orEmpty().contains("Προς συγχρονισμό"))
+    }
+
+    @Test
+    fun neverSentCreateThenDelete_remainsVisibleAsPendingDeletionAndCanBeUndoneCausally() {
+        val server = cardFixture()
+        val create = PendingCanonicalMutationIntent.fromMutation(
+            CreateCanonicalCard(
+                cardId = "card-local",
+                bankId = "issuer-local",
+                nickname = "Νέα κάρτα",
+                kind = "debit",
+                network = "visa",
+                formFactor = "physical",
+                last4 = "4242",
+                creditLimit = null,
+                nowIso = now,
+            ),
+            intentId = "intent-card-create",
+        )
+        val delete = PendingCanonicalMutationIntent.fromMutation(
+            DeactivateCanonicalCard("card-local", now),
+            intentId = "intent-card-delete-local",
+        )
+
+        val result = projectWithPending(server, listOf(create, delete))
+
+        assertFalse(result.moneyState.cards.any { it.id == "card-local" })
+        assertTrue(result.moneyState.frontendMessage.orEmpty().contains("Νέα κάρτα ••••4242"))
+        assertTrue(result.moneyState.frontendMessage.orEmpty().contains("Εκκρεμεί διαγραφή"))
     }
 
     @Test

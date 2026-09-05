@@ -22,6 +22,7 @@ import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
@@ -81,7 +82,12 @@ fun projectCanonicalProduct(
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
     val legacy = document.effectiveLegacyTransactions()
-    val activityItems = buildActivityItems(legacy, events, accountNames)
+    val eventChronology = document.state.array("events").mapNotNull { raw ->
+    val event = raw as? JsonObject ?: return@mapNotNull null
+    val id = event.string("id") ?: return@mapNotNull null
+    id to (event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty())
+}.toMap()
+val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology)
 
     val oldHome = previous?.homeState
     val homeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
@@ -151,18 +157,20 @@ fun projectCanonicalProduct(
         selectedQuickEntryType = oldHome?.selectedQuickEntryType,
     )
 
+    val quickEntry = projectQuickEntryState(
+        document = document,
+        today = today,
+        previous = previous?.quickEntryState,
+    )
+
     val oldActivity = previous?.activityState
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
         selectedId = oldActivity?.selectedId?.takeIf { id -> activityItems.any { it.id == id } },
         items = activityItems,
-    )
-
-    val quickEntry = projectQuickEntryState(
-        document = document,
-        today = today,
-        previous = previous?.quickEntryState,
+        expenseCategories = quickEntry.expenseCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
+        incomeCategories = quickEntry.incomeCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
     )
 
     val activeCards = document.canonicalCards().filter { it.active }
@@ -255,20 +263,31 @@ fun projectCanonicalProduct(
     )
 }
 
+private data class ActivitySortRow(
+    val date: String,
+    val chronology: String,
+    val sourceOrder: Int,
+    val item: ActivityItem,
+)
+
 private fun buildActivityItems(
     legacy: List<CanonicalLegacyTransaction>,
     events: List<CanonicalEvent>,
     accountNames: Map<String, String>,
+    eventChronology: Map<String, String>,
 ): List<ActivityItem> {
-    val datedItems = buildList<Pair<String, ActivityItem>> {
-        legacy.forEach { tx ->
+    val rows = buildList {
+        legacy.forEachIndexed { index, tx ->
             val kind = when (tx.type) {
                 "income" -> ActivityKind.INCOME
                 "transfer" -> ActivityKind.TRANSFER
                 else -> ActivityKind.EXPENSE
             }
-            add(
-                tx.date to ActivityItem(
+            add(ActivitySortRow(
+                date = tx.date,
+                chronology = tx.date,
+                sourceOrder = index,
+                item = ActivityItem(
                     id = tx.id,
                     dateLabel = formatDate(tx.date),
                     kind = kind,
@@ -277,12 +296,20 @@ private fun buildActivityItems(
                     amount = if (tx.type == "expense") -tx.amount else tx.amount,
                     accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
                     category = tx.category,
+                    subcategory = tx.subcategory,
+                    rawDate = tx.date,
+                    accountId = tx.accountId,
+                    fromAccountId = tx.fromAccountId,
+                    toAccountId = tx.toAccountId,
                 ),
-            )
+            ))
         }
-        events.forEach { event ->
-            add(
-                event.date to ActivityItem(
+        events.forEachIndexed { index, event ->
+            add(ActivitySortRow(
+                date = event.date,
+                chronology = eventChronology[event.id].orEmpty().ifBlank { event.date },
+                sourceOrder = index,
+                item = ActivityItem(
                     id = event.id,
                     dateLabel = formatDate(event.date),
                     kind = eventActivityKind(event.kind),
@@ -291,13 +318,22 @@ private fun buildActivityItems(
                     amount = eventDisplayAmount(event),
                     accountLabel = accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames),
                     category = event.category,
+                    subcategory = event.subcategory,
+                    rawDate = event.date,
+                    accountId = event.accountId,
+                    fromAccountId = event.fromAccountId,
+                    toAccountId = event.toAccountId,
                 ),
-            )
+            ))
         }
     }
-    return datedItems.sortedByDescending { it.first }.map { it.second }
+    return rows.sortedWith(
+        compareByDescending<ActivitySortRow> { it.date }
+            .thenByDescending { it.chronology }
+            .thenByDescending { it.sourceOrder }
+            .thenByDescending { it.item.id },
+    ).map(ActivitySortRow::item)
 }
-
 private fun eventActivityKind(kind: String): ActivityKind = when (kind) {
     "income", "refund", "repayment" -> ActivityKind.INCOME
     "transfer", "withdrawal", "saving_cash_offset", "reconciliation" -> ActivityKind.TRANSFER

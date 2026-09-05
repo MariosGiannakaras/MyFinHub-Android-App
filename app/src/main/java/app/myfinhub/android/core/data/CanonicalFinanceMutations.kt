@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.data
 
+import java.time.LocalDate
 import kotlin.math.roundToLong
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -155,6 +156,10 @@ data class EditCanonicalActivity(
     val note: String,
     val category: String,
     val nowIso: String,
+    /** null keeps an older queued edit backward-compatible; non-null is an explicit date edit. */
+    val date: String? = null,
+    /** null preserves the existing value; an empty string explicitly clears subcategory. */
+    val subcategory: String? = null,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αποθήκευση αλλαγών κίνησης"
 
@@ -162,16 +167,28 @@ data class EditCanonicalActivity(
         val normalizedNote = note.trim()
         require(normalizedNote.isNotBlank()) { "Η σημείωση δεν μπορεί να είναι κενή." }
         val normalizedCategory = category.trim()
-        val categoryValue = normalizedCategory.takeIf { it.isNotBlank() }?.let { JsonPrimitive(it) }
+        val categoryValue = normalizedCategory.takeIf(String::isNotBlank)?.let(::JsonPrimitive)
+        val normalizedDate = date?.trim()?.also { raw ->
+            require(runCatching { LocalDate.parse(raw) }.isSuccess) { "Η ημερομηνία δεν είναι έγκυρη." }
+        }
+        val subcategoryWasSpecified = subcategory != null
+        val normalizedSubcategory = subcategory?.trim()
+        val subcategoryValue = normalizedSubcategory?.takeIf(String::isNotBlank)?.let(::JsonPrimitive)
+
+        fun commonUpdates(current: JsonObject): JsonObject {
+            var updated = current
+                .updated("note", JsonPrimitive(normalizedNote))
+                .updated("category", categoryValue)
+            if (normalizedDate != null) updated = updated.updated("date", JsonPrimitive(normalizedDate))
+            if (subcategoryWasSpecified) updated = updated.updated("subcategory", subcategoryValue)
+            return updated
+        }
 
         val events = document.state.array("events")
         val eventIndex = events.indexOfFirst { (it as? JsonObject)?.string("id") == transactionId }
         if (eventIndex >= 0) {
             val current = events[eventIndex] as JsonObject
-            val updatedEvent = current
-                .updated("note", JsonPrimitive(normalizedNote))
-                .updated("category", categoryValue)
-                .updated("updatedAt", JsonPrimitive(nowIso))
+            val updatedEvent = commonUpdates(current).updated("updatedAt", JsonPrimitive(nowIso))
             val updatedEvents = events.toMutableList().apply { this[eventIndex] = updatedEvent }
             return document.withMutableState(document.state.updated("events", JsonArray(updatedEvents)), nowIso)
         }
@@ -179,10 +196,7 @@ data class EditCanonicalActivity(
         val custom = document.state.array("customTransactions")
         val customIndex = custom.indexOfFirst { (it as? JsonObject)?.string("id") == transactionId }
         if (customIndex >= 0) {
-            val current = custom[customIndex] as JsonObject
-            val updatedTx = current
-                .updated("note", JsonPrimitive(normalizedNote))
-                .updated("category", categoryValue)
+            val updatedTx = commonUpdates(custom[customIndex] as JsonObject)
             val updatedCustom = custom.toMutableList().apply { this[customIndex] = updatedTx }
             return document.withMutableState(document.state.updated("customTransactions", JsonArray(updatedCustom)), nowIso)
         }
@@ -193,16 +207,13 @@ data class EditCanonicalActivity(
             ?: error("Η κίνηση δεν είναι πλέον διαθέσιμη.")
         val overrides = document.state.obj("overrides")
         val currentOverride = overrides[transactionId] as? JsonObject ?: seedTransaction
-        val updatedOverride = currentOverride
-            .updated("note", JsonPrimitive(normalizedNote))
-            .updated("category", categoryValue)
+        val updatedOverride = commonUpdates(currentOverride)
         return document.withMutableState(
             document.state.updated("overrides", overrides.updated(transactionId, updatedOverride)),
             nowIso,
         )
     }
 }
-
 /** Removes a transaction from the canonical effective ledger while preserving shared schema semantics. */
 data class DeleteCanonicalActivity(
     val transactionId: String,

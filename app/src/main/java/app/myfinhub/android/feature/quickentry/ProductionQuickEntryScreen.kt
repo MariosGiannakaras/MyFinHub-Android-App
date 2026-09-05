@@ -46,8 +46,9 @@ private val FastKinds = listOf(
 )
 
 /**
- * Production fast path for the three everyday cash-flow types. Less-frequent semantics, including
- * card payments, remain fully available through the advanced type menu and use the complete editor.
+ * Production fast path for the three everyday cash-flow types. Account/category/subcategory choices
+ * are the canonical choices projected from the synchronized finance document. Less-frequent finance
+ * semantics remain available through the complete editor.
  */
 @Composable
 fun ProductionQuickEntryScreen(
@@ -60,7 +61,7 @@ fun ProductionQuickEntryScreen(
         return
     }
 
-    var moreFields by rememberSaveable { mutableStateOf(false) }
+    var noteExpanded by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
@@ -72,6 +73,11 @@ fun ProductionQuickEntryScreen(
 
     LaunchedEffect(Unit) {
         amountFocus.requestFocus()
+    }
+    // Local encrypted enqueue is the successful mobile form submission boundary. Sync/Undo remains
+    // visible centrally, so keeping the form open after a safe enqueue only creates a dead-end screen.
+    LaunchedEffect(savedLocally) {
+        if (savedLocally) onBack()
     }
 
     Scaffold(
@@ -162,9 +168,28 @@ fun ProductionQuickEntryScreen(
                     choices = state.activeCategoryOptions.map { it.name to it.name },
                     onSelected = { onAction(QuickEntryAction.CategoryChanged(it)) },
                 )
+                if (state.activeSubcategoryOptions.isNotEmpty()) {
+                    CompactChoice(
+                        label = "Υποκατηγορία",
+                        selectedId = state.subcategory,
+                        choices = listOf("" to "Χωρίς υποκατηγορία") +
+                            state.activeSubcategoryOptions.map { it to it },
+                        onSelected = { onAction(QuickEntryAction.SubcategoryChanged(it)) },
+                    )
+                }
             }
 
-            if (state.validationMessage != null && state.validationMessage != "Βάλε ποσό μεγαλύτερο από μηδέν.") {
+            DateEntryField(
+                value = state.dateText,
+                onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },
+                label = "Ημερομηνία",
+                errorMessage = state.validationMessage.takeIf { it == "Συμπλήρωσε έγκυρη ημερομηνία." },
+            )
+
+            if (state.validationMessage != null &&
+                state.validationMessage != "Βάλε ποσό μεγαλύτερο από μηδέν." &&
+                state.validationMessage != "Συμπλήρωσε έγκυρη ημερομηνία."
+            ) {
                 Text(
                     state.validationMessage,
                     style = MaterialTheme.typography.bodySmall,
@@ -172,29 +197,14 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
-            TextButton(onClick = { moreFields = !moreFields }) {
-                Text(if (moreFields) "Λιγότερα στοιχεία" else "Περισσότερα στοιχεία")
+            TextButton(onClick = { noteExpanded = !noteExpanded }) {
+                Text(if (noteExpanded) "Απόκρυψη σημείωσης" else "Προσθήκη σημείωσης")
             }
-            if (moreFields) {
-                MyFinHubOutlinedField(
-                    value = state.dateText,
-                    onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },
-                    label = "Ημερομηνία",
-                    supportingText = "YYYY-MM-DD",
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                )
-                if (state.activeSubcategoryOptions.isNotEmpty() && state.kind.usesCategory) {
-                    CompactChoice(
-                        label = "Υποκατηγορία",
-                        selectedId = state.subcategory,
-                        choices = listOf("" to "Χωρίς υποκατηγορία") + state.activeSubcategoryOptions.map { it to it },
-                        onSelected = { onAction(QuickEntryAction.SubcategoryChanged(it)) },
-                    )
-                }
+            if (noteExpanded || state.note.isNotBlank()) {
                 MyFinHubOutlinedField(
                     value = state.note,
                     onValueChange = { onAction(QuickEntryAction.NoteChanged(it)) },
-                    label = "Περιγραφή · προαιρετική",
+                    label = "Σημείωση · προαιρετική",
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done,
@@ -203,7 +213,7 @@ fun ProductionQuickEntryScreen(
             }
 
             Box {
-                TextButton(onClick = { advancedMenuOpen = true }) { Text("Άλλος τύπος κίνησης") }
+                TextButton(onClick = { advancedMenuOpen = true }) { Text("Περισσότεροι τύποι κίνησης") }
                 DropdownMenu(expanded = advancedMenuOpen, onDismissRequest = { advancedMenuOpen = false }) {
                     QuickEntryKind.entries.filterNot(FastKinds::contains).forEach { kind ->
                         DropdownMenuItem(
@@ -227,20 +237,6 @@ fun ProductionQuickEntryScreen(
                 onClick = { onAction(QuickEntryAction.Save) },
                 modifier = Modifier.fillMaxWidth(),
             )
-
-            state.savedSummary?.let { summary ->
-                Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-            }
-            if (savedLocally) {
-                Text(
-                    "Αναμονή συγχρονισμού · μπορείς να κλείσεις αυτή την οθόνη με ασφάλεια.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                TextButton(onClick = { onAction(QuickEntryAction.Reset) }) {
-                    Text("Νέα καταχώριση")
-                }
-            }
         }
     }
 
@@ -248,7 +244,7 @@ fun ProductionQuickEntryScreen(
         AlertDialog(
             onDismissRequest = { discardDialogOpen = false },
             title = { Text("Απόρριψη καταχώρισης;") },
-            text = { Text("Το ποσό ή η περιγραφή που έβαλες δεν έχουν αποθηκευτεί.") },
+            text = { Text("Τα στοιχεία που συμπλήρωσες δεν έχουν αποθηκευτεί.") },
             confirmButton = {
                 TextButton(
                     onClick = {

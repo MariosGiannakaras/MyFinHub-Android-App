@@ -43,7 +43,9 @@ internal fun projectPendingUi(
     val visibleIds = markedActivity.map(ActivityItem::id).toSet()
     val activityItems = tombstones.asReversed().filterNot { it.id in visibleIds } + markedActivity
 
-    val cardMessage = serverDocument?.let { pendingCardDeletionMessage(it, pending, today) }
+    val cardMessage = serverDocument?.let {
+        pendingCardChangeMessage(it, projection.moneyState.cards, pending, today)
+    }
     val budgetMessage = pending.lastOrNull { it.kind == PendingMutationKind.UPSERT_OVERALL_BUDGET }
         ?.let { intent -> "Αλλαγή budget · ${intent.syncState.pendingStatusLabel()}" }
 
@@ -96,28 +98,46 @@ private fun pendingDeletionTombstones(
     return tombstones
 }
 
-private fun pendingCardDeletionMessage(
+private fun pendingCardChangeMessage(
     serverDocument: CanonicalFinanceDocument,
+    @Suppress("UNUSED_PARAMETER") optimisticCards: List<app.myfinhub.android.feature.money.MoneyCard>,
     pending: List<PendingCanonicalMutationIntent>,
     today: LocalDate,
 ): String? {
-    val cardIntents = pending
-        .filter { it.kind == PendingMutationKind.DEACTIVATE_CARD }
-        .distinctBy(PendingCanonicalMutationIntent::affectedCardId)
-    if (cardIntents.isEmpty()) return null
+    var replayDocument = serverDocument
+    val linesByCardId = linkedMapOf<String, String>()
 
-    val serverCards = runCatching {
-        projectCanonicalProduct(serverDocument, today).moneyState.cards.associateBy { it.id }
-    }.getOrNull() ?: return null
-    val lines = cardIntents.mapNotNull { intent ->
-        val cardId = intent.affectedCardId ?: return@mapNotNull null
-        val card = serverCards[cardId] ?: return@mapNotNull null
-        val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
-        "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
+    for (intent in pending) {
+        val before = replayDocument
+        val next = runCatching { intent.asMutation().apply(before) }.getOrNull() ?: break
+        when (intent.kind) {
+            PendingMutationKind.CREATE_CARD -> {
+                val cardId = intent.payload.string("cardId").orEmpty()
+                val card = runCatching {
+                    projectCanonicalProduct(next, today).moneyState.cards.firstOrNull { it.id == cardId }
+                }.getOrNull()
+                if (card != null) {
+                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί προσθήκη · ${intent.syncState.pendingStatusLabel()}"
+                }
+            }
+            PendingMutationKind.DEACTIVATE_CARD -> {
+                val cardId = intent.affectedCardId.orEmpty()
+                val card = runCatching {
+                    projectCanonicalProduct(before, today).moneyState.cards.firstOrNull { it.id == cardId }
+                }.getOrNull()
+                if (card != null) {
+                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
+                }
+            }
+            else -> Unit
+        }
+        replayDocument = next
     }
-    if (lines.isEmpty()) return null
 
-    return "Εκκρεμείς διαγραφές καρτών:\n${lines.joinToString("\n")}"
+    if (linesByCardId.isEmpty()) return null
+    return "Εκκρεμείς αλλαγές καρτών:\n${linesByCardId.values.joinToString("\n")}"
 }
 
 private fun PendingMutationSyncState.pendingStatusLabel(): String = when (this) {

@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.activity
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,9 +50,13 @@ import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+import app.myfinhub.android.feature.quickentry.DateEntryField
 import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
@@ -95,8 +102,17 @@ fun ActivityScreen(
                     if (selected != null) {
                         ActivityDetailContent(
                             item = selected,
-                            onSave = { note, category ->
-                                onAction(ActivityAction.SaveEdit(selected.id, note, category))
+                            categoryOptions = state.categoryOptionsFor(selected),
+                            onSave = { date, note, category, subcategory ->
+                                onAction(
+                                    ActivityAction.SaveEdit(
+                                        id = selected.id,
+                                        note = note,
+                                        category = category,
+                                        date = date,
+                                        subcategory = subcategory,
+                                    ),
+                                )
                             },
                             onDelete = { onAction(ActivityAction.Delete(selected.id)) },
                             modifier = Modifier.weight(0.85f),
@@ -122,6 +138,9 @@ private fun ActivityList(
     onSelect: (String) -> Unit,
     modifier: Modifier,
 ) {
+    var contextItemId by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(
@@ -166,32 +185,116 @@ private fun ActivityList(
                 }
             }
         } else {
-            items(state.visibleItems, key = ActivityItem::id) { item ->
+            state.visibleSections.forEachIndexed { sectionIndex, section ->
+        val monthKey = section.date.take(7)
+        val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
+        if (sectionIndex == 0 || monthKey != previousMonth) {
+            item(key = "month-$monthKey") { ActivityMonthHeader(section.date) }
+        }
+        item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
+        items(section.items, key = ActivityItem::id) { item ->
+            Box {
                 MyFinHubFinanceRow(
                     icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
                     iconDescription = item.category ?: item.kind.label,
                     title = item.title,
                     subtitle = item.subtitle,
-                    meta = if (item.pendingSync) {
-                        "Εκκρεμεί επιβεβαίωση"
-                    } else {
-                        "${item.dateLabel} · ${item.accountLabel}"
-                    },
+                    meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
                     amountText = formatSignedEuro(item.amount),
                     tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
                     onClick = { onSelect(item.id) },
+                    onLongClick = { contextItemId = item.id },
                     modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
                 )
+                DropdownMenu(
+                    expanded = contextItemId == item.id,
+                    onDismissRequest = { contextItemId = null },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Λεπτομέρειες / επεξεργασία") },
+                        onClick = {
+                            contextItemId = null
+                            onSelect(item.id)
+                        },
+                    )
+                    if (!item.pendingSync) {
+                        DropdownMenuItem(
+                            text = { Text("Διαγραφή") },
+                            onClick = {
+                                contextItemId = null
+                                confirmDeleteId = item.id
+                            },
+                        )
+                    }
+                }
             }
         }
     }
+        }
+    }
+
+    val deleteItem = state.items.firstOrNull { it.id == confirmDeleteId }
+    if (deleteItem != null && !deleteItem.pendingSync) {
+        AlertDialog(
+            onDismissRequest = { confirmDeleteId = null },
+            title = { Text("Διαγραφή κίνησης;") },
+            text = { Text("Η κίνηση θα αφαιρεθεί από τα οικονομικά δεδομένα και θα ενημερωθούν τα σχετικά υπόλοιπα.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val id = deleteItem.id
+                    confirmDeleteId = null
+                    onAction(ActivityAction.Delete(id))
+                }) { Text("Διαγραφή") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteId = null }) { Text("Πίσω") }
+            },
+        )
+    }
+}
+
+
+@Composable
+private fun ActivityMonthHeader(rawDate: String) {
+    val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+    val locale = Locale.forLanguageTag("el-GR")
+    val label = date?.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
+        ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+        ?: rawDate
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.sm, bottom = MyFinHubSpacing.xxs),
+    )
+}
+
+@Composable
+private fun ActivityDayHeader(rawDate: String) {
+    val date = runCatching { LocalDate.parse(rawDate.take(10)) }.getOrNull()
+    val today = LocalDate.now()
+    val locale = Locale.forLanguageTag("el-GR")
+    val label = when (date) {
+        today -> "Σήμερα"
+        today.minusDays(1) -> "Χθες"
+        null -> rawDate
+        else -> date.format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale))
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.xs),
+    )
 }
 
 @Composable
 fun ActivityDetailScreen(
     item: ActivityItem?,
+    categoryOptions: List<ActivityCategoryOption>,
     onBack: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String, String, String, String) -> Unit,
     onDelete: () -> Unit,
 ) {
     Scaffold(
@@ -212,6 +315,7 @@ fun ActivityDetailScreen(
         } else {
             ActivityDetailContent(
                 item = item,
+                categoryOptions = categoryOptions,
                 onSave = onSave,
                 onDelete = onDelete,
                 modifier = Modifier.padding(padding).padding(MyFinHubSpacing.lg),
@@ -223,13 +327,20 @@ fun ActivityDetailScreen(
 @Composable
 private fun ActivityDetailContent(
     item: ActivityItem,
-    onSave: (String, String) -> Unit,
+    categoryOptions: List<ActivityCategoryOption>,
+    onSave: (String, String, String, String) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier,
 ) {
+    var date by rememberSaveable(item.id, item.rawDate) { mutableStateOf(item.rawDate.take(10)) }
     var note by rememberSaveable(item.id, item.subtitle) { mutableStateOf(item.subtitle) }
     var category by rememberSaveable(item.id, item.category) { mutableStateOf(item.category.orEmpty()) }
+    var subcategory by rememberSaveable(item.id, item.subcategory) { mutableStateOf(item.subcategory.orEmpty()) }
     var confirmDelete by rememberSaveable(item.id) { mutableStateOf(false) }
+    val effectiveCategoryOptions = categoryOptions.ifEmpty {
+        item.category?.takeIf(String::isNotBlank)?.let { listOf(ActivityCategoryOption(it)) }.orEmpty()
+    }
+    val subcategoryOptions = effectiveCategoryOptions.firstOrNull { it.name == category }?.subcategories.orEmpty()
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -274,6 +385,35 @@ private fun ActivityDetailContent(
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        DateEntryField(
+            value = date,
+            onValueChange = { date = it },
+            label = "Ημερομηνία",
+            errorMessage = null,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (effectiveCategoryOptions.isNotEmpty()) {
+            ActivityChoiceField(
+                label = "Κατηγορία",
+                selectedId = category,
+                choices = effectiveCategoryOptions.map { it.name to it.name },
+                enabled = !item.pendingSync,
+                onSelected = { selected ->
+                    category = selected
+                    val allowed = effectiveCategoryOptions.firstOrNull { it.name == selected }?.subcategories.orEmpty()
+                    if (subcategory !in allowed) subcategory = ""
+                },
+            )
+            if (subcategoryOptions.isNotEmpty()) {
+                ActivityChoiceField(
+                    label = "Υποκατηγορία",
+                    selectedId = subcategory,
+                    choices = listOf("" to "Χωρίς υποκατηγορία") + subcategoryOptions.map { it to it },
+                    enabled = !item.pendingSync,
+                    onSelected = { subcategory = it },
+                )
+            }
+        }
         MyFinHubOutlinedField(
             value = note,
             onValueChange = { note = it },
@@ -284,21 +424,16 @@ private fun ActivityDetailContent(
             ),
             enabled = !item.pendingSync,
         )
-        MyFinHubOutlinedField(
-            value = category,
-            onValueChange = { category = it },
-            label = "Κατηγορία",
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Done,
-            ),
-            enabled = !item.pendingSync,
-        )
         MyFinHubPrimaryAction(
             label = "Αποθήκευση αλλαγών",
-            onClick = { onSave(note, category) },
+            onClick = { onSave(date, note, category, subcategory) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !item.pendingSync && note.isNotBlank() && (note != item.subtitle || category != item.category.orEmpty()),
+            enabled = !item.pendingSync && note.isNotBlank() && date.isNotBlank() && (
+                date != item.rawDate.take(10) ||
+                    note != item.subtitle ||
+                    category != item.category.orEmpty() ||
+                    subcategory != item.subcategory.orEmpty()
+            ),
             icon = null,
         )
         if (item.pendingSync) {
@@ -350,6 +485,41 @@ private fun ActivityDetailContent(
                 }
             },
         )
+    }
+}
+
+
+@Composable
+private fun ActivityChoiceField(
+    label: String,
+    selectedId: String,
+    choices: List<Pair<String, String>>,
+    enabled: Boolean,
+    onSelected: (String) -> Unit,
+) {
+    var expanded by rememberSaveable(label, selectedId) { mutableStateOf(false) }
+    val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second
+        ?: choices.firstOrNull()?.second
+        ?: "Δεν υπάρχει διαθέσιμη επιλογή"
+    Box(modifier = Modifier.fillMaxWidth()) {
+        MyFinHubSelectorButton(
+            label = label,
+            onClick = { if (enabled && choices.isNotEmpty()) expanded = true },
+            enabled = enabled && choices.isNotEmpty(),
+        ) {
+            Text(selectedLabel, modifier = Modifier.weight(1f))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            choices.forEach { (id, text) ->
+                DropdownMenuItem(
+                    text = { Text(text) },
+                    onClick = {
+                        expanded = false
+                        onSelected(id)
+                    },
+                )
+            }
+        }
     }
 }
 

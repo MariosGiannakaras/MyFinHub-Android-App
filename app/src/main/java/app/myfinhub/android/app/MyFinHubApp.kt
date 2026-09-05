@@ -37,7 +37,11 @@ import app.myfinhub.android.feature.home.ProductionHomeScreen
 import app.myfinhub.android.feature.insights.InsightsScreen
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.InsightsViewModel
+import app.myfinhub.android.feature.money.CanonicalAccountDetailScreen
+import app.myfinhub.android.feature.money.CanonicalCardCreateScreen
 import app.myfinhub.android.feature.money.CanonicalCardDetailScreen
+import app.myfinhub.android.feature.money.CardCreateRequest
+import app.myfinhub.android.feature.money.accountActivityItems
 import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
 import app.myfinhub.android.feature.money.CanonicalMoneyScreen
@@ -72,6 +76,8 @@ import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import app.myfinhub.android.feature.utilities.ChangeHistoryScreen
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
+import app.myfinhub.android.feature.utilities.NoticeHistoryScreen
+import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.feature.utilities.ProductionSettingsScreen
 import app.myfinhub.android.feature.utilities.SettingsScreen
 import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
@@ -126,10 +132,12 @@ internal fun MyFinHubAppContent(
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteLocalCvv: () -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
+    onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onPlanAction: (PlanAction) -> Unit = {},
     insightsState: InsightsUiState = InsightsUiState(),
     diagnostics: AppDiagnosticsSnapshot? = null,
+    noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
     onLogout: (() -> Unit)? = null,
     canonicalProductMode: Boolean = false,
 ) {
@@ -203,6 +211,8 @@ internal fun MyFinHubAppContent(
                             onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
                             onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                             onOpenQuickEntry = { openFastExpense(homeBackStack) },
+                            onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                            onOpenRecent = { eventId -> homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         )
                     } else {
                         HomeScreen(
@@ -238,6 +248,8 @@ internal fun MyFinHubAppContent(
                             onAction = onFrontendUtilitiesAction,
                             onBack = { homeBackStack.removeLastOrNull() },
                             diagnostics = diagnostics,
+                            noticeHistoryCount = noticeHistory.size,
+                            onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },
                             onLogout = onLogout,
                         )
                     } else {
@@ -249,6 +261,12 @@ internal fun MyFinHubAppContent(
                             onLogout = onLogout,
                         )
                     }
+                }
+                entry<AppRoute.NoticeHistory> {
+                    NoticeHistoryScreen(
+                        entries = noticeHistory,
+                        onBack = { homeBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.ChangeHistory> {
                     ChangeHistoryScreen(
@@ -266,15 +284,25 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.ActivityDetail> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
                     ActivityDetailScreen(
-                        item = activityState.items.firstOrNull { it.id == route.eventId },
-                        onBack = { activityBackStack.removeLastOrNull() },
-                        onSave = { note, category ->
-                            onActivityAction(ActivityAction.SaveEdit(route.eventId, note, category))
+                        item = item,
+                        categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        onSave = { date, note, category, subcategory ->
+                            onActivityAction(
+                                ActivityAction.SaveEdit(
+                                    id = route.eventId,
+                                    note = note,
+                                    category = category,
+                                    date = date,
+                                    subcategory = subcategory,
+                                ),
+                            )
                         },
                         onDelete = {
                             onActivityAction(ActivityAction.Delete(route.eventId))
-                            activityBackStack.removeLastOrNull()
+                            activeBackStack.removeLastOrNull()
                         },
                     )
                 }
@@ -304,6 +332,8 @@ internal fun MyFinHubAppContent(
                             onHideCardSecrets = onHideCardSecrets,
                             onDeleteCard = onDeleteCard,
                             onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
+                            onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
+                            onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                             onOpenSavings = { moneyBackStack.pushIfNew(AppRoute.Savings) },
                             onOpenLoans = { moneyBackStack.pushIfNew(AppRoute.Loans) },
                             onOpenLending = { moneyBackStack.pushIfNew(AppRoute.Lending) },
@@ -323,6 +353,22 @@ internal fun MyFinHubAppContent(
                             onOpenLending = { moneyBackStack.pushIfNew(AppRoute.Lending) },
                         )
                     }
+                }
+                entry<AppRoute.AccountDetail> { route ->
+                    val account = moneyState.accounts.firstOrNull { it.id == route.accountId }
+                    CanonicalAccountDetailScreen(
+                        account = account,
+                        activityItems = accountActivityItems(route.accountId, activityState.items),
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                    )
+                }
+                entry<AppRoute.CardCreate> {
+                    CanonicalCardCreateScreen(
+                        cards = moneyState.cards,
+                        onCreate = onCreateCard,
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.CardDetail> { route ->
                     DisposableEffect(route.cardId) {

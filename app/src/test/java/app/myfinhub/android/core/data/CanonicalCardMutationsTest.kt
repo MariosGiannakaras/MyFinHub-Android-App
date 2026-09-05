@@ -54,4 +54,39 @@ class CanonicalCardMutationsTest {
             nowIso = "2026-08-23T19:30:00Z",
         ).apply(canonicalFixture())
     }
+    @Test
+    fun createCard_addsOnlySafeCanonicalMetadataAndIsIdempotent() {
+        val mutation = CreateCanonicalCard(
+            cardId = "card-new",
+            bankId = "issuer",
+            nickname = "Καθημερινή",
+            kind = "credit",
+            network = "visa",
+            formFactor = "physical",
+            last4 = "1234",
+            creditLimit = 1500.0,
+            nowIso = "2026-09-04T20:00:00Z",
+        )
+        val once = mutation.apply(canonicalFixture())
+        val twice = mutation.apply(once)
+        val card = twice.state.array("cards").mapNotNull { it as? JsonObject }.single { it.string("id") == "card-new" }
+
+        assertEquals("issuer", card.string("bankId"))
+        assertEquals("Καθημερινή", card.string("nickname"))
+        assertEquals("credit", card.string("kind"))
+        assertEquals("visa", card.string("network"))
+        assertEquals("1234", card.string("last4"))
+        assertTrue(card.bool("active") == true)
+        assertFalse(card.keys.any { key ->
+            key.lowercase() in setOf("pan", "cardnumber", "expiry", "expirydate", "cvv", "cvc", "securitycode")
+        })
+        assertEquals(1, twice.state.array("cards").count { (it as? JsonObject)?.string("id") == "card-new" })
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun createCard_rejectsMalformedLast4() {
+        CreateCanonicalCard("new", "issuer", "Name", "debit", "visa", "physical", "12x4", null, "2026-09-04T20:00:00Z")
+            .apply(canonicalFixture())
+    }
+
 }
