@@ -16,6 +16,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,9 +86,32 @@ fun ProductionQuickEntryScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Νέα κίνηση",
-                subtitle = "Γρήγορη καταχώριση",
+                subtitle = "${state.kind.label} · γρήγορη καταχώριση",
                 navigation = { MyFinHubBackButton(requestBack) },
             )
+        },
+        bottomBar = {
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = MyFinHubDesignMetrics.cardElevation,
+                shadowElevation = MyFinHubDesignMetrics.cardElevation,
+            ) {
+                MyFinHubPrimaryAction(
+                    label = when {
+                        state.persisted -> "Αποθηκεύτηκε"
+                        savedLocally -> "Αποθηκεύτηκε στη συσκευή"
+                        else -> "Αποθήκευση ${state.kind.label.lowercase()}"
+                    },
+                    enabled = !state.persisted && !savedLocally,
+                    onClick = { onAction(QuickEntryAction.Save) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
+                            vertical = MyFinHubSpacing.sm,
+                        ),
+                )
+            }
         },
     ) { padding ->
         Column(
@@ -226,17 +250,6 @@ fun ProductionQuickEntryScreen(
                     }
                 }
             }
-
-            MyFinHubPrimaryAction(
-                label = when {
-                    state.persisted -> "Αποθηκεύτηκε"
-                    savedLocally -> "Αποθηκεύτηκε στη συσκευή"
-                    else -> "Αποθήκευση κίνησης"
-                },
-                enabled = !state.persisted && !savedLocally,
-                onClick = { onAction(QuickEntryAction.Save) },
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 
