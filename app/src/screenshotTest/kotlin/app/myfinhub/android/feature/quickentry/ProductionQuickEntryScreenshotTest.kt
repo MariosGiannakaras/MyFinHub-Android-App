@@ -36,7 +36,11 @@ fun ProductionQuickEntryCompactLargeFontScreenshot() {
 private fun ProductionQuickEntryFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
         ProductionQuickEntryScreen(
-            state = QuickEntryUiState(amountText = "42.60", dirty = true),
+            state = QuickEntryUiState(
+                amountText = "42.60",
+                dateText = "2026-09-04",
+                dirty = true,
+            ),
             onAction = {},
             onBack = {},
         )
