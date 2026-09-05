@@ -172,7 +172,11 @@ private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boo
                         Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(account.role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(account.balance) else "•••• €", if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense, MaterialTheme.typography.titleMedium)
+                    MyFinHubAmountText(
+                        text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
+                        tone = if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 }
                 if (index != accounts.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -194,7 +198,11 @@ private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Bool
                         Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(listOf(item.dateLabel, item.subtitle).filter(String::isNotBlank).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(item.amount) else "•••• €", tone, MaterialTheme.typography.titleMedium)
+                    MyFinHubAmountText(
+                        text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
+                        tone = tone,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 }
                 if (index != items.take(4).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -236,7 +244,11 @@ private fun ProductionUpcomingCard(items: List<HomeUpcomingItem>, amountsVisible
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(item.amount) else "•••• €", FinanceTone.Expense, MaterialTheme.typography.titleMedium)
+                    MyFinHubAmountText(
+                        text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
+                        tone = FinanceTone.Expense,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
                 }
                 if (index != items.take(3).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
