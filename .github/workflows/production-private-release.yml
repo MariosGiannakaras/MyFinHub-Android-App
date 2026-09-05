@@ -1,0 +1,386 @@
+name: Protected Production Private Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_pr:
+        description: 'Open Android PR to develop with green exact-head CI/UI checks'
+        required: true
+        type: string
+      version_name:
+        description: 'Production versionName, for example 1.0.0'
+        required: true
+        type: string
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/release-requests/production.json
+
+permissions:
+  contents: read
+  checks: read
+  pull-requests: read
+
+concurrency:
+  group: protected-production-private-release
+  cancel-in-progress: false
+
+jobs:
+  request-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_pr: ${{ steps.request.outputs.source_pr }}
+      version_name: ${{ steps.request.outputs.version_name }}
+    env:
+      SOURCE_PR: ${{ inputs.source_pr }}
+      VERSION_NAME: ${{ inputs.version_name }}
+      GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+    steps:
+      - name: Require trusted develop ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted production request automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 2
+      - name: Validate guarded production release request
+        id: request
+        run: python3 scripts/production_release_request_gate.py
+
+  publisher-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require trusted workflow ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted production automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Production publisher tests
+        run: python3 -m unittest discover -s scripts -p 'test_production_release*.py'
+
+  source-gate:
+    needs:
+      - request-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
+    env:
+      SOURCE_PR: ${{ needs.request-gate.outputs.source_pr }}
+    steps:
+      - name: Require trusted workflow ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted source-gate automation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Resolve exact validated Android PR source
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/phase6_release_source_gate.py
+
+  plan:
+    needs:
+      - publisher-tests
+      - source-gate
+      - request-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: android-production-release
+    outputs:
+      version_code: ${{ steps.plan.outputs.version_code }}
+      version_name: ${{ steps.plan.outputs.version_name }}
+      storage_path: ${{ steps.plan.outputs.storage_path }}
+    env:
+      SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
+      REQUESTED_VERSION_NAME: ${{ needs.request-gate.outputs.version_name }}
+    steps:
+      - name: Require trusted workflow ref
+        shell: bash
+        run: test "$GITHUB_REF" = 'refs/heads/develop'
+      - name: Checkout trusted production publisher
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: automation
+      - name: Plan next private production version
+        id: plan
+        shell: bash
+        env:
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
+        run: |
+          set -euo pipefail
+          result="$(python3 automation/scripts/production_release_publisher.py plan --version-name "$REQUESTED_VERSION_NAME")"
+          python3 - "$result" "$GITHUB_OUTPUT" "$REQUESTED_VERSION_NAME" <<'PY'
+          import json
+          import sys
+
+          data = json.loads(sys.argv[1])
+          code = data.get("version_code")
+          name = data.get("version_name")
+          path = data.get("storage_path")
+          if not isinstance(code, int) or code < 10000:
+              raise SystemExit("Publisher returned an invalid production versionCode.")
+          if name != sys.argv[3]:
+              raise SystemExit("Publisher changed the requested production versionName.")
+          expected_path = f"production/{code}/MyFinHub-{code}.apk"
+          if path != expected_path:
+              raise SystemExit("Publisher returned a noncanonical production path.")
+          with open(sys.argv[2], "a", encoding="utf-8") as out:
+              out.write(f"version_code={code}\n")
+              out.write(f"version_name={name}\n")
+              out.write(f"storage_path={path}\n")
+          PY
+
+  build:
+    needs:
+      - publisher-tests
+      - source-gate
+      - plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
+      VERSION_CODE: ${{ needs.plan.outputs.version_code }}
+      VERSION_NAME: ${{ needs.plan.outputs.version_name }}
+      UPDATE_CHANNEL: production
+    steps:
+      - name: Validate production release plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]
+          (( VERSION_CODE >= 10000 ))
+          [[ "$VERSION_NAME" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$ ]]
+      - name: Checkout exact validated Android source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ needs.source-gate.outputs.source_sha }}
+          path: product
+      - name: Prove checkout identity
+        shell: bash
+        run: test "$(git -C product rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Provision Android SDK
+        working-directory: product
+        run: bash scripts/install-android-sdk.sh
+      - name: Test exact source with production update channel
+        working-directory: product
+        run: ./gradlew test -PANDROID_UPDATE_CHANNEL="$UPDATE_CHANNEL" --stacktrace
+      - name: Apply CI-workspace-only production version
+        working-directory: product
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$VERSION_CODE" "$VERSION_NAME" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path("app/build.gradle.kts")
+          text = path.read_text()
+          old_code = "        versionCode = 1"
+          old_name = '        versionName = "0.1.0"'
+          if text.count(old_code) != 1 or text.count(old_name) != 1:
+              raise SystemExit("Unexpected Android version declaration; refusing production patch.")
+          text = text.replace(old_code, f"        versionCode = {sys.argv[1]}", 1)
+          text = text.replace(old_name, f'        versionName = "{sys.argv[2]}"', 1)
+          path.write_text(text)
+          PY
+      - name: Build unsigned production candidate
+        working-directory: product
+        run: ./gradlew assembleRelease -PANDROID_UPDATE_CHANNEL="$UPDATE_CHANNEL" --stacktrace
+      - name: Verify unsigned intermediate package and version
+        working-directory: product
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          badging="$("$aapt" dump badging "$apk" | head -n 1)"
+          grep -F "package: name='app.myfinhub.android'" <<<"$badging"
+          grep -F "versionCode='$VERSION_CODE'" <<<"$badging"
+          grep -F "versionName='$VERSION_NAME'" <<<"$badging"
+          if "$apksigner" verify "$apk" >/dev/null 2>&1; then
+            echo 'Production intermediate must remain unsigned before protected signing.' >&2
+            exit 1
+          fi
+          cp "$apk" ../MyFinHub-unsigned-production.apk
+      - name: Transfer unsigned build input only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: production-unsigned-release-input
+          path: MyFinHub-unsigned-production.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs:
+      - source-gate
+      - plan
+      - build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: android-production-release
+    env:
+      SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
+      VERSION_CODE: ${{ needs.plan.outputs.version_code }}
+      VERSION_NAME: ${{ needs.plan.outputs.version_name }}
+      STORAGE_PATH: ${{ needs.plan.outputs.storage_path }}
+      SUPABASE_URL: https://ahsukppxwaiagampsuzb.supabase.co
+      ANDROID_PRODUCTION_KEYSTORE_B64: ${{ secrets.ANDROID_PRODUCTION_KEYSTORE_B64 }}
+      ANDROID_PRODUCTION_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_PRODUCTION_KEYSTORE_PASSWORD }}
+      ANDROID_PRODUCTION_KEY_ALIAS: ${{ secrets.ANDROID_PRODUCTION_KEY_ALIAS }}
+      ANDROID_PRODUCTION_KEY_PASSWORD: ${{ secrets.ANDROID_PRODUCTION_KEY_PASSWORD }}
+      ANDROID_PRODUCTION_SIGNER_SHA256: ${{ secrets.ANDROID_PRODUCTION_SIGNER_SHA256 }}
+    steps:
+      - name: Require trusted workflow ref and canonical production plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/develop'
+          [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]
+          (( VERSION_CODE >= 10000 ))
+          test "$STORAGE_PATH" = "production/${VERSION_CODE}/MyFinHub-${VERSION_CODE}.apk"
+      - name: Checkout trusted production publisher only
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: automation
+      - name: Download unsigned build input
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: production-unsigned-release-input
+          path: input
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Provision Android SDK for protected signing verification
+        working-directory: automation
+        run: bash scripts/install-android-sdk.sh
+      - name: Materialize and verify the enrolled production signer
+        id: signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in \
+            ANDROID_PRODUCTION_KEYSTORE_B64 \
+            ANDROID_PRODUCTION_KEYSTORE_PASSWORD \
+            ANDROID_PRODUCTION_KEY_ALIAS \
+            ANDROID_PRODUCTION_KEY_PASSWORD \
+            ANDROID_PRODUCTION_SIGNER_SHA256; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Required protected production signing secret is unavailable: $name" >&2
+              exit 1
+            fi
+          done
+          expected="$(printf '%s' "$ANDROID_PRODUCTION_SIGNER_SHA256" | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
+          [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || { echo 'Pinned production signer SHA-256 is invalid.' >&2; exit 1; }
+          keystore="$RUNNER_TEMP/myfinhub-production-keystore.p12"
+          cert="$RUNNER_TEMP/myfinhub-production-cert.der"
+          python3 - "$keystore" <<'PY'
+          import base64
+          import os
+          import sys
+          from pathlib import Path
+
+          raw = os.environ.get("ANDROID_PRODUCTION_KEYSTORE_B64", "")
+          try:
+              data = base64.b64decode(raw, validate=True)
+          except Exception as exc:
+              raise SystemExit("Protected production keystore is not valid base64.") from exc
+          if not data:
+              raise SystemExit("Protected production keystore is empty.")
+          Path(sys.argv[1]).write_bytes(data)
+          PY
+          chmod 600 "$keystore"
+          keytool -exportcert \
+            -alias "$ANDROID_PRODUCTION_KEY_ALIAS" \
+            -keystore "$keystore" \
+            -storepass:env ANDROID_PRODUCTION_KEYSTORE_PASSWORD \
+            -file "$cert" >/dev/null
+          actual="$(sha256sum "$cert" | awk '{print $1}')"
+          test "$actual" = "$expected" || { echo 'Production keystore signer does not match the enrolled fingerprint.' >&2; exit 1; }
+          echo "keystore=$keystore" >> "$GITHUB_OUTPUT"
+          echo "cert_sha256=$actual" >> "$GITHUB_OUTPUT"
+      - name: Sign and verify production candidate locally
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          build_tools="$(find "$sdk_root/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          apksigner="$build_tools/apksigner"
+          zipalign="$build_tools/zipalign"
+          aapt="$build_tools/aapt"
+          input="input/MyFinHub-unsigned-production.apk"
+          aligned="$RUNNER_TEMP/MyFinHub-production-aligned.apk"
+          output="$RUNNER_TEMP/MyFinHub-${VERSION_CODE}.apk"
+          "$zipalign" -f -p 4 "$input" "$aligned"
+          "$apksigner" sign \
+            --ks "${{ steps.signer.outputs.keystore }}" \
+            --ks-key-alias "$ANDROID_PRODUCTION_KEY_ALIAS" \
+            --ks-pass env:ANDROID_PRODUCTION_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_PRODUCTION_KEY_PASSWORD \
+            --out "$output" \
+            "$aligned"
+          "$apksigner" verify --verbose --print-certs "$output" > "$RUNNER_TEMP/production-apksigner.txt"
+          grep -F "certificate SHA-256 digest: ${{ steps.signer.outputs.cert_sha256 }}" "$RUNNER_TEMP/production-apksigner.txt"
+          badging="$("$aapt" dump badging "$output" | head -n 1)"
+          grep -F "package: name='app.myfinhub.android'" <<<"$badging"
+          grep -F "versionCode='$VERSION_CODE'" <<<"$badging"
+          grep -F "versionName='$VERSION_NAME'" <<<"$badging"
+          echo "apk=$output" >> "$GITHUB_OUTPUT"
+      - name: Upload, re-read exact production bytes, then publish metadata last
+        id: publish
+        shell: bash
+        env:
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
+        run: |
+          set -euo pipefail
+          result="$(python3 automation/scripts/production_release_publisher.py publish \
+            --apk "${{ steps.candidate.outputs.apk }}" \
+            --version-code "$VERSION_CODE" \
+            --version-name "$VERSION_NAME")"
+          printf '%s\n' "$result"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+      - name: Write safe production release summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - '${{ steps.publish.outputs.result }}' "$SOURCE_SHA" '${{ steps.signer.outputs.cert_sha256 }}' >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+          data = json.loads(sys.argv[1])
+          print("## Private production release")
+          print(f"- source: validated Android PR head `{sys.argv[2][:12]}`")
+          print(f"- result: `{data['result']}`")
+          print(f"- version: `{data['version_name']}` (`{data['version_code']}`)")
+          print(f"- path: `{data['storage_path']}`")
+          print(f"- SHA-256: `{data['sha256']}`")
+          print(f"- size: `{data['size_bytes']}` bytes")
+          print(f"- signer certificate SHA-256: `{sys.argv[3]}`")
+          PY
+      - name: Remove production signing material from runner
+        if: always()
+        shell: bash
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/myfinhub-production-keystore.p12" \
+            "$RUNNER_TEMP/myfinhub-production-cert.der" \
+            "$RUNNER_TEMP/MyFinHub-production-aligned.apk" \
+            "$RUNNER_TEMP/MyFinHub-${VERSION_CODE:-unknown}.apk" \
+            "$RUNNER_TEMP/production-apksigner.txt"
