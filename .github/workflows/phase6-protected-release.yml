@@ -82,7 +82,7 @@ jobs:
       - source-gate
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    environment: android-apk-release
+    environment: android-test-release
     outputs:
       version_code: ${{ steps.plan.outputs.version_code }}
       version_name: ${{ steps.plan.outputs.version_name }}
@@ -101,7 +101,7 @@ jobs:
         id: plan
         shell: bash
         env:
-          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_TEST_PUBLISH_KEY }}
         run: |
           set -euo pipefail
           result="$(python3 automation/scripts/phase6_release_publisher.py plan)"
@@ -243,7 +243,7 @@ jobs:
       - build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: android-apk-release
+    environment: android-test-release
     env:
       SOURCE_SHA: ${{ needs.source-gate.outputs.source_sha }}
       VERSION_CODE: ${{ needs.plan.outputs.version_code }}
@@ -341,7 +341,7 @@ jobs:
         id: publish
         shell: bash
         env:
-          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_RELEASE_PUBLISH_KEY }}
+          SUPABASE_RELEASE_PUBLISH_KEY: ${{ secrets.SUPABASE_TEST_PUBLISH_KEY }}
         run: |
           set -euo pipefail
           result="$(python3 automation/scripts/phase6_release_publisher.py publish \
