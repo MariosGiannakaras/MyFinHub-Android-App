@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.designsystem.FinanceTone
@@ -91,12 +90,8 @@ fun ProductionHomeScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item { FinancialSnapshotCard(state = state, amountsVisible = amountsVisible) }
-
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     ExtendedFloatingActionButton(
                         onClick = onOpenQuickEntry,
                         icon = { Icon(MyFinHubIcons.Add, contentDescription = null) },
@@ -104,15 +99,10 @@ fun ProductionHomeScreen(
                     )
                 }
             }
-
-            if (state.attentionItems.isNotEmpty()) {
-                item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
-            }
+            if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
             item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible, onOpenAccount) }
             item { RecentActivityCard(state.recentItems, amountsVisible, onOpenRecent) }
-            if (state.upcomingItems.isNotEmpty()) {
-                item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
-            }
+            if (state.upcomingItems.isNotEmpty()) item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
         }
     }
 }
@@ -123,73 +113,27 @@ private fun FinancialSnapshotCard(state: HomeUiState, amountsVisible: Boolean) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                Text(
-                    "Διαθέσιμα τώρα",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Text("Διαθέσιμα τώρα", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 MyFinHubAmountText(
                     text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
                     tone = if (state.liquidTotal >= 0) FinanceTone.Income else FinanceTone.Expense,
                     style = MaterialTheme.typography.headlineLarge,
                 )
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            ) {
-                SnapshotMetric(
-                    label = "Έσοδα μήνα",
-                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €",
-                    tone = FinanceTone.Income,
-                    modifier = Modifier.weight(1f),
-                )
-                SnapshotMetric(
-                    label = "Έξοδα μήνα",
-                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €",
-                    tone = FinanceTone.Expense,
-                    modifier = Modifier.weight(1f),
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                SnapshotMetric("Έσοδα μήνα", if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €", FinanceTone.Income, Modifier.weight(1f))
+                SnapshotMetric("Έξοδα μήνα", if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €", FinanceTone.Expense, Modifier.weight(1f))
             }
-
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        "Προϋπολογισμός",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    Text(
-                        if (state.monthFlow.budget > 0.0) "$budgetPercent%" else "—",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Προϋπολογισμός", style = MaterialTheme.typography.labelLarge)
+                    Text(if (state.monthFlow.budget > 0.0) "$budgetPercent%" else "—", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                LinearProgressIndicator(
-                    progress = { state.monthFlow.budgetProgress },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+                LinearProgressIndicator(progress = { state.monthFlow.budgetProgress }, modifier = Modifier.fillMaxWidth())
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(if (amountsVisible) "Αποταμίευση ${formatHomeEuro(state.monthFlow.saving)}" else "Αποταμίευση •••• €", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        if (amountsVisible) "Αποταμίευση ${formatHomeEuro(state.monthFlow.saving)}" else "Αποταμίευση •••• €",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        if (amountsVisible && state.monthFlow.budget > 0.0) {
-                            "από ${formatHomeEuro(state.monthFlow.budget)}"
-                        } else if (state.monthFlow.budget > 0.0) {
-                            "από •••• €"
-                        } else {
-                            "Χωρίς όριο"
-                        },
+                        if (amountsVisible && state.monthFlow.budget > 0.0) "από ${formatHomeEuro(state.monthFlow.budget)}" else if (state.monthFlow.budget > 0.0) "από •••• €" else "Χωρίς όριο",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -200,26 +144,10 @@ private fun FinancialSnapshotCard(state: HomeUiState, amountsVisible: Boolean) {
 }
 
 @Composable
-private fun SnapshotMetric(
-    label: String,
-    value: String,
-    tone: FinanceTone,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        MyFinHubAmountText(
-            text = value,
-            tone = tone,
-            style = MaterialTheme.typography.titleMedium,
-        )
+private fun SnapshotMetric(label: String, value: String, tone: FinanceTone, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        MyFinHubAmountText(text = value, tone = tone, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -230,40 +158,23 @@ private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boo
             Text("Λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             if (accounts.isEmpty()) {
                 Text("Δεν υπάρχουν διαθέσιμοι λογαριασμοί.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else {
-                accounts.forEachIndexed { index, account ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onOpenAccount(account.id) }
-                            .semantics(mergeDescendants = true) {
-                                contentDescription = if (amountsVisible) {
-                                    "${account.name}, ${formatHomeEuro(account.balance)}"
-                                } else {
-                                    "${account.name}, ποσό κρυφό"
-                                }
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val savings = account.group == HomeAccountGroup.SAVINGS
-                        MyFinHubIconBadge(
-                            icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
-                            tone = if (savings) FinanceTone.Savings else FinanceTone.Neutral,
-                            contentDescription = null,
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text(account.role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        MyFinHubAmountText(
-                            text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
-                            tone = if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+            } else accounts.forEachIndexed { index, account ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable { onOpenAccount(account.id) }.semantics(mergeDescendants = true) {
+                        contentDescription = if (amountsVisible) "${account.name}, ${formatHomeEuro(account.balance)}" else "${account.name}, ποσό κρυφό"
+                    },
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val savings = account.group == HomeAccountGroup.SAVINGS
+                    MyFinHubIconBadge(if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account, if (savings) FinanceTone.Savings else FinanceTone.Neutral, null)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(account.role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (index != accounts.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(account.balance) else "•••• €", if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense, MaterialTheme.typography.titleMedium)
                 }
+                if (index != accounts.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         }
     }
@@ -274,45 +185,18 @@ private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Bool
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Πρόσφατες κινήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            if (items.isEmpty()) {
-                Text("Δεν υπάρχουν ακόμη κινήσεις.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            } else {
-                items.take(4).forEachIndexed { index, item ->
-                    val tone = when (item.tone) {
-                        HomeRecentTone.INCOME -> FinanceTone.Income
-                        HomeRecentTone.EXPENSE -> FinanceTone.Expense
-                        HomeRecentTone.TRANSFER -> FinanceTone.Transfer
+            if (items.isEmpty()) Text("Δεν υπάρχουν ακόμη κινήσεις.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            else items.take(4).forEachIndexed { index, item ->
+                val tone = when (item.tone) { HomeRecentTone.INCOME -> FinanceTone.Income; HomeRecentTone.EXPENSE -> FinanceTone.Expense; HomeRecentTone.TRANSFER -> FinanceTone.Transfer }
+                Row(modifier = Modifier.fillMaxWidth().clickable { onOpenRecent(item.id) }.semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                    MyFinHubIconBadge(when (item.tone) { HomeRecentTone.INCOME -> MyFinHubIcons.Income; HomeRecentTone.EXPENSE -> MyFinHubIcons.Expense; HomeRecentTone.TRANSFER -> MyFinHubIcons.Transfer }, tone, null)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(listOf(item.dateLabel, item.subtitle).filter(String::isNotBlank).joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onOpenRecent(item.id) }.semantics(mergeDescendants = true) {},
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        MyFinHubIconBadge(
-                            icon = when (item.tone) {
-                                HomeRecentTone.INCOME -> MyFinHubIcons.Income
-                                HomeRecentTone.EXPENSE -> MyFinHubIcons.Expense
-                                HomeRecentTone.TRANSFER -> MyFinHubIcons.Transfer
-                            },
-                            tone = tone,
-                            contentDescription = null,
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                listOf(item.dateLabel, item.subtitle).filter(String::isNotBlank).joinToString(" · "),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        MyFinHubAmountText(
-                            text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
-                            tone = tone,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                    if (index != items.take(4).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(item.amount) else "•••• €", tone, MaterialTheme.typography.titleMedium)
                 }
+                if (index != items.take(4).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         }
     }
@@ -324,17 +208,15 @@ private fun ProductionAttentionCard(items: List<HomeAttentionItem>, onOpen: (Str
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Χρειάζεται προσοχή", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             items.take(2).forEachIndexed { index, item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    MyFinHubIconBadge(MyFinHubIcons.Attention, FinanceTone.Attention, null)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(item.title, style = MaterialTheme.typography.titleMedium)
-                        Text(item.dueLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.Top) {
+                        MyFinHubIconBadge(MyFinHubIcons.Attention, FinanceTone.Attention, null)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(item.title, style = MaterialTheme.typography.titleMedium)
+                            Text(item.dueLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        }
                     }
-                    TextButton(onClick = { onOpen(item.id) }) { Text("Έλεγχος") }
+                    TextButton(onClick = { onOpen(item.id) }, modifier = Modifier.align(Alignment.End)) { Text("Έλεγχος") }
                 }
                 if (index != items.take(2).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -348,21 +230,13 @@ private fun ProductionUpcomingCard(items: List<HomeUpcomingItem>, amountsVisible
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Επόμενες υποχρεώσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             items.take(3).forEachIndexed { index, item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
                     MyFinHubIconBadge(MyFinHubIcons.Plan, FinanceTone.Attention, null)
                     Column(modifier = Modifier.weight(1f)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    MyFinHubAmountText(
-                        text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
-                        tone = FinanceTone.Expense,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
+                    MyFinHubAmountText(if (amountsVisible) formatHomeEuro(item.amount) else "•••• €", FinanceTone.Expense, MaterialTheme.typography.titleMedium)
                 }
                 if (index != items.take(3).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
