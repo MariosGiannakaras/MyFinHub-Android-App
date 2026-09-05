@@ -80,7 +80,7 @@ fun InsightsScreen(
                 }
             }
 
-            item { SectionTitle("Πού ξοδεύεις περισσότερο") }
+            item { SectionTitle("Κορυφαίες κατηγορίες") }
             if (state.categories.isEmpty()) {
                 item { EmptyInsightCard("Δεν υπάρχουν ακόμη κατηγοριοποιημένα έξοδα για αυτόν τον μήνα.") }
             } else {
