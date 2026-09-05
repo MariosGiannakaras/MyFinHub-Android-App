@@ -13,7 +13,12 @@ on:
       - scripts/test_phase6_release_source_gate.py
       - scripts/phase6_release_request_gate.py
       - scripts/test_phase6_release_request_gate.py
+      - scripts/production_release_publisher.py
+      - scripts/test_production_release_publisher.py
+      - scripts/production_release_request_gate.py
+      - scripts/test_production_release_request_gate.py
       - .github/workflows/phase6-protected-release.yml
+      - .github/workflows/production-private-release.yml
       - .github/workflows/release-publisher-tests.yml
   push:
     branches:
@@ -27,7 +32,12 @@ on:
       - scripts/test_phase6_release_source_gate.py
       - scripts/phase6_release_request_gate.py
       - scripts/test_phase6_release_request_gate.py
+      - scripts/production_release_publisher.py
+      - scripts/test_production_release_publisher.py
+      - scripts/production_release_request_gate.py
+      - scripts/test_production_release_request_gate.py
       - .github/workflows/phase6-protected-release.yml
+      - .github/workflows/production-private-release.yml
       - .github/workflows/release-publisher-tests.yml
 
 permissions:
@@ -41,4 +51,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Run fail-closed publisher tests
-        run: python3 -m unittest discover -s scripts -p 'test_phase6_release*.py'
+        run: python3 -m unittest discover -s scripts -p 'test_*release*.py'
