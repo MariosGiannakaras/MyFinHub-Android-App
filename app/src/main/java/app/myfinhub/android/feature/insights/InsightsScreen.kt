@@ -39,13 +39,15 @@ fun InsightsScreen(
     onOpenSupportingActivity: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val latest = state.monthlyTrend.lastOrNull()
+    val latestNet = latest?.let { it.income - it.expense } ?: 0.0
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
                 title = "Αναλύσεις",
-                subtitle = "Πού πηγαίνουν τα χρήματά σου",
+                subtitle = "Τι συμβαίνει στα χρήματά σου",
             )
         },
     ) { padding ->
@@ -59,100 +61,38 @@ fun InsightsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            item { SectionTitle("Με μια ματιά") }
             item {
-                if (largeFont) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                    ) {
-                        SummaryCard(
-                            label = "Μέση μηνιαία δαπάνη",
-                            value = formatEuro(state.averageMonthlySpend),
-                            icon = MyFinHubIcons.Expense,
-                            tone = FinanceTone.Expense,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        SummaryCard(
-                            label = "Ρυθμός αποταμίευσης",
-                            value = "${state.savingsRate}%",
-                            icon = MyFinHubIcons.Savings,
-                            tone = FinanceTone.Savings,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                    ) {
-                        SummaryCard(
-                            label = "Μέση μηνιαία δαπάνη",
-                            value = formatEuro(state.averageMonthlySpend),
-                            icon = MyFinHubIcons.Expense,
-                            tone = FinanceTone.Expense,
-                            modifier = Modifier.weight(1f),
-                        )
-                        SummaryCard(
-                            label = "Ρυθμός αποταμίευσης",
-                            value = "${state.savingsRate}%",
-                            icon = MyFinHubIcons.Savings,
-                            tone = FinanceTone.Savings,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
+                FinancialPulseCard(
+                    latestMonth = latest?.label,
+                    latestNet = latestNet,
+                    averageSpend = state.averageMonthlySpend,
+                    savingsRate = state.savingsRate,
+                    largeFont = largeFont,
+                )
             }
 
-            item { SectionTitle("Μηνιαία ροή") }
+            item { SectionTitle("Πορεία") }
             if (state.monthlyTrend.isEmpty()) {
-                item {
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "Δεν υπάρχουν ακόμη αρκετές κινήσεις για μηνιαία σύγκριση.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                item { EmptyInsightCard("Χρειάζονται περισσότερες κινήσεις για να εμφανιστεί μηνιαία πορεία.") }
             } else {
-                items(state.monthlyTrend, key = TrendPoint::label) { point ->
-                    MonthlyTrendCard(point)
+                items(state.monthlyTrend.takeLast(4), key = TrendPoint::label) { point ->
+                    MonthlyTrendRow(point)
                 }
             }
 
-            item { SectionTitle("Κορυφαίες κατηγορίες") }
+            item { SectionTitle("Πού ξοδεύεις περισσότερο") }
             if (state.categories.isEmpty()) {
+                item { EmptyInsightCard("Δεν υπάρχουν ακόμη κατηγοριοποιημένα έξοδα για αυτόν τον μήνα.") }
+            } else {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "Δεν υπάρχουν ακόμη κατηγοριοποιημένα έξοδα για αυτόν τον μήνα.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            } else {
-                items(state.categories, key = InsightCategory::name) { category ->
-                    CategoryCard(category = category, largeFont = largeFont)
-                }
-            }
-
-            item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        Text(
-                            "Θες να δεις τις κινήσεις πίσω από τα ποσά;",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            "Άνοιξε τα σχετικά έξοδα για να ελέγξεις κατηγορίες και λεπτομέρειες.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        TextButton(onClick = onOpenSupportingActivity) {
-                            Text("Προβολή σχετικών κινήσεων")
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            state.categories.take(5).forEach { category ->
+                                CategoryRow(category = category, largeFont = largeFont)
+                            }
+                            TextButton(onClick = onOpenSupportingActivity) {
+                                Text("Άνοιγμα κινήσεων εξόδων")
+                            }
                         }
                     }
                 }
@@ -162,28 +102,72 @@ fun InsightsScreen(
 }
 
 @Composable
-private fun SummaryCard(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    tone: FinanceTone,
-    modifier: Modifier,
+private fun FinancialPulseCard(
+    latestMonth: String?,
+    latestNet: Double,
+    averageSpend: Double,
+    savingsRate: Int,
+    largeFont: Boolean,
 ) {
-    MyFinHubSectionCard(modifier = modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            MyFinHubIconBadge(icon = icon, tone = tone, contentDescription = null)
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            MyFinHubAmountText(
-                text = value,
-                tone = tone,
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text(
+                "Οικονομικός παλμός",
                 style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.semantics { heading() },
             )
+            Text(
+                latestMonth?.let { "Καθαρή ροή $it" } ?: "Καθαρή ροή",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            MyFinHubAmountText(
+                text = formatEuro(latestNet),
+                tone = if (latestNet >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    PulseMetric("Μέση μηνιαία δαπάνη", formatEuro(averageSpend), MyFinHubIcons.Expense, FinanceTone.Expense)
+                    PulseMetric("Ρυθμός αποταμίευσης", "$savingsRate%", MyFinHubIcons.Savings, FinanceTone.Savings)
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        PulseMetric("Μέση δαπάνη", formatEuro(averageSpend), MyFinHubIcons.Expense, FinanceTone.Expense)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        PulseMetric("Αποταμίευση", "$savingsRate%", MyFinHubIcons.Savings, FinanceTone.Savings)
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun MonthlyTrendCard(point: TrendPoint) {
+private fun PulseMetric(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tone: FinanceTone,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+        MyFinHubIconBadge(icon = icon, tone = tone, contentDescription = null)
+        Column {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            MyFinHubAmountText(value, tone, style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+@Composable
+private fun MonthlyTrendRow(point: TrendPoint) {
     val ratio = if (point.income <= 0.0) {
         if (point.expense > 0.0) 1f else 0f
     } else {
@@ -191,16 +175,17 @@ private fun MonthlyTrendCard(point: TrendPoint) {
     }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text(point.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Έσοδα", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    MyFinHubAmountText(formatEuro(point.income), FinanceTone.Income)
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Έξοδα", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    MyFinHubAmountText(formatEuro(point.expense), FinanceTone.Expense)
-                }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(point.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                MyFinHubAmountText(
+                    text = formatEuro(point.income - point.expense),
+                    tone = if (point.income >= point.expense) FinanceTone.Income else FinanceTone.Expense,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Έσοδα ${formatEuro(point.income)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Έξοδα ${formatEuro(point.expense)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             LinearProgressIndicator(
                 progress = { ratio },
@@ -213,27 +198,32 @@ private fun MonthlyTrendCard(point: TrendPoint) {
 }
 
 @Composable
-private fun CategoryCard(category: InsightCategory, largeFont: Boolean) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            if (largeFont) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
-                    Text(category.name, style = MaterialTheme.typography.titleMedium)
-                    MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
-                }
-            } else {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(category.name, style = MaterialTheme.typography.titleMedium)
-                    MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
-                }
+private fun CategoryRow(category: InsightCategory, largeFont: Boolean) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+        if (largeFont) {
+            Column {
+                Text(category.name, style = MaterialTheme.typography.titleMedium)
+                MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
             }
-            LinearProgressIndicator(
-                progress = { category.share.coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth(),
-                color = financeToneColors(FinanceTone.Expense).accent,
-                trackColor = financeToneColors(FinanceTone.Expense).container,
-            )
+        } else {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(category.name, style = MaterialTheme.typography.titleMedium)
+                MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
+            }
         }
+        LinearProgressIndicator(
+            progress = { category.share.coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth(),
+            color = financeToneColors(FinanceTone.Expense).accent,
+            trackColor = financeToneColors(FinanceTone.Expense).container,
+        )
+    }
+}
+
+@Composable
+private fun EmptyInsightCard(message: String) {
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
