@@ -170,13 +170,12 @@ def publish_release(client: ReleaseClient, spec: ReleaseSpec, apk_bytes: bytes) 
             raise PublisherError("Matching metadata exists but the private APK object is missing.")
         return "already-published"
 
-    object_verified = verify_remote_object(client, spec)
-    if not object_verified:
-        try:
-            client.upload_object(spec.storage_path, apk_bytes)
-        except RemoteWriteError:
-            if not verify_remote_object(client, spec):
-                raise PublisherError("Upload outcome could not be confirmed; refusing blind retry.")
+    try:
+        client.upload_object(spec.storage_path, apk_bytes)
+    except RemoteWriteError:
+        if not verify_remote_object(client, spec):
+            raise PublisherError("Upload outcome could not be confirmed; refusing blind retry.")
+    else:
         if not verify_remote_object(client, spec):
             raise PublisherError("Uploaded APK could not be re-read and verified.")
 

@@ -77,24 +77,25 @@ class FakeClient:
 
 
 class PublisherFlowTest(unittest.TestCase):
-    def test_fresh_publish_orders_upload_verify_then_metadata(self):
+    def test_fresh_publish_uploads_before_first_storage_read(self):
         data = b"fresh-apk"
         spec = make_spec(data)
         client = FakeClient(spec, data)
         result = publish_release(client, spec, data)
         self.assertEqual("published", result)
         self.assertEqual(
-            ["get_release", "download", "upload", "download", "insert", "get_release"],
+            ["get_release", "upload", "download", "insert", "get_release"],
             [call[0] for call in client.calls],
         )
 
-    def test_existing_exact_object_skips_upload_and_publishes_metadata(self):
+    def test_existing_exact_object_reconciles_create_only_upload_conflict(self):
         data = b"resume-apk"
         spec = make_spec(data)
         client = FakeClient(spec, data)
         client.object_data = data
+        client.upload_error = True
         self.assertEqual("published", publish_release(client, spec, data))
-        self.assertNotIn("upload", [call[0] for call in client.calls])
+        self.assertEqual(1, [call[0] for call in client.calls].count("upload"))
 
     def test_ambiguous_upload_reconciles_without_second_write(self):
         data = b"ambiguous-upload"
@@ -116,15 +117,16 @@ class PublisherFlowTest(unittest.TestCase):
         self.assertEqual(1, names.count("upload"))
         self.assertNotIn("insert", names)
 
-    def test_mismatched_existing_object_fails_before_metadata(self):
+    def test_mismatched_existing_object_fails_after_create_only_conflict(self):
         data = b"expected"
         spec = make_spec(data)
         client = FakeClient(spec, data)
         client.object_data = b"different"
+        client.upload_error = True
         with self.assertRaises(PublisherError):
             publish_release(client, spec, data)
         names = [call[0] for call in client.calls]
-        self.assertNotIn("upload", names)
+        self.assertEqual(1, names.count("upload"))
         self.assertNotIn("insert", names)
 
     def test_ambiguous_metadata_insert_reconciles_without_second_insert(self):
@@ -132,6 +134,7 @@ class PublisherFlowTest(unittest.TestCase):
         spec = make_spec(data)
         client = FakeClient(spec, data)
         client.object_data = data
+        client.upload_error = True
         client.insert_error = True
         client.insert_materializes = True
         self.assertEqual("published-after-reconciliation", publish_release(client, spec, data))
