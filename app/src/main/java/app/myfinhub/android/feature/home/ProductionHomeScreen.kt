@@ -9,9 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -73,7 +74,7 @@ fun ProductionHomeScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "MyFinHub",
-                subtitle = "Η καθημερινή οικονομική σου εικόνα",
+                subtitle = "Η οικονομική σου εικόνα σήμερα",
                 navigation = { MyFinHubBrandMark() },
                 trailing = { TextButton(onClick = onOpenSettings) { Text("Ρυθμίσεις") } },
             )
@@ -89,39 +90,136 @@ fun ProductionHomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            item { FinancialSnapshotCard(state = state, amountsVisible = amountsVisible) }
+
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End,
                 ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-                    ) {
-                        Text(
-                            "Οι λογαριασμοί σου",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.semantics { heading() },
-                        )
-                        Text(
-                            "Υπόλοιπα και πρόσφατη δραστηριότητα",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    FloatingActionButton(onClick = onOpenQuickEntry) {
-                        Icon(MyFinHubIcons.Add, contentDescription = "Νέα κίνηση")
-                    }
+                    ExtendedFloatingActionButton(
+                        onClick = onOpenQuickEntry,
+                        icon = { Icon(MyFinHubIcons.Add, contentDescription = null) },
+                        text = { Text("Νέα κίνηση") },
+                    )
                 }
             }
 
+            if (state.attentionItems.isNotEmpty()) {
+                item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
+            }
             item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible, onOpenAccount) }
             item { RecentActivityCard(state.recentItems, amountsVisible, onOpenRecent) }
-            if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
-            if (state.upcomingItems.isNotEmpty()) item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
+            if (state.upcomingItems.isNotEmpty()) {
+                item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
+            }
         }
+    }
+}
+
+@Composable
+private fun FinancialSnapshotCard(state: HomeUiState, amountsVisible: Boolean) {
+    val budgetPercent = (state.monthFlow.budgetProgress * 100f).toInt()
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                Text(
+                    "Διαθέσιμα τώρα",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                MyFinHubAmountText(
+                    text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
+                    tone = if (state.liquidTotal >= 0) FinanceTone.Income else FinanceTone.Expense,
+                    style = MaterialTheme.typography.headlineLarge,
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                SnapshotMetric(
+                    label = "Έσοδα μήνα",
+                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €",
+                    tone = FinanceTone.Income,
+                    modifier = Modifier.weight(1f),
+                )
+                SnapshotMetric(
+                    label = "Έξοδα μήνα",
+                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €",
+                    tone = FinanceTone.Expense,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Προϋπολογισμός",
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                    Text(
+                        if (state.monthFlow.budget > 0.0) "$budgetPercent%" else "—",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { state.monthFlow.budgetProgress },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        if (amountsVisible) "Αποταμίευση ${formatHomeEuro(state.monthFlow.saving)}" else "Αποταμίευση •••• €",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        if (amountsVisible && state.monthFlow.budget > 0.0) {
+                            "από ${formatHomeEuro(state.monthFlow.budget)}"
+                        } else if (state.monthFlow.budget > 0.0) {
+                            "από •••• €"
+                        } else {
+                            "Χωρίς όριο"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SnapshotMetric(
+    label: String,
+    value: String,
+    tone: FinanceTone,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        MyFinHubAmountText(
+            text = value,
+            tone = tone,
+            style = MaterialTheme.typography.titleMedium,
+        )
     }
 }
 
@@ -129,7 +227,7 @@ fun ProductionHomeScreen(
 private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boolean, onOpenAccount: (String) -> Unit) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text("Βασικοί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             if (accounts.isEmpty()) {
                 Text("Δεν υπάρχουν διαθέσιμοι λογαριασμοί.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
@@ -175,11 +273,11 @@ private fun PrimaryAccountsCard(accounts: List<HomeAccount>, amountsVisible: Boo
 private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Boolean, onOpenRecent: (String) -> Unit) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Text("Τελευταίες κινήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Πρόσφατες κινήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             if (items.isEmpty()) {
                 Text("Δεν υπάρχουν ακόμη κινήσεις.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                items.take(6).forEachIndexed { index, item ->
+                items.take(4).forEachIndexed { index, item ->
                     val tone = when (item.tone) {
                         HomeRecentTone.INCOME -> FinanceTone.Income
                         HomeRecentTone.EXPENSE -> FinanceTone.Expense
@@ -213,7 +311,7 @@ private fun RecentActivityCard(items: List<HomeRecentItem>, amountsVisible: Bool
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }
-                    if (index != items.take(6).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    if (index != items.take(4).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
