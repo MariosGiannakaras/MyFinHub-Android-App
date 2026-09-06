@@ -64,15 +64,37 @@ data class ActivityUiState(
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
                 ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
+            val searchableAmount = item.amount.toString()
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
                 item.subtitle.contains(needle, ignoreCase = true) ||
+                item.kind.label.contains(needle, ignoreCase = true) ||
                 item.category?.contains(needle, ignoreCase = true) == true ||
                 item.subcategory?.contains(needle, ignoreCase = true) == true ||
-                item.accountLabel.contains(needle, ignoreCase = true)
+                item.accountLabel.contains(needle, ignoreCase = true) ||
+                item.dateLabel.contains(needle, ignoreCase = true) ||
+                item.rawDate.contains(needle, ignoreCase = true) ||
+                searchableAmount.contains(needle, ignoreCase = true)
             matchesFilter && matchesQuery
         }
     }
+
+    /**
+     * Read-only summary for the current search/filter projection. Transfers are intentionally
+     * excluded from income/expense/net so the UI never double-counts internal money movement.
+     */
+    val visibleIncome: Double = visibleItems
+        .asSequence()
+        .filter { it.kind == ActivityKind.INCOME }
+        .sumOf { it.amount.coerceAtLeast(0.0) }
+
+    val visibleExpense: Double = visibleItems
+        .asSequence()
+        .filter { it.kind == ActivityKind.EXPENSE || it.kind == ActivityKind.CARD_PAYMENT }
+        .sumOf { kotlin.math.abs(it.amount) }
+
+    val visibleNet: Double = visibleIncome - visibleExpense
+    val visiblePendingCount: Int = visibleItems.count(ActivityItem::pendingSync)
 
     /** Input order is already canonical newest-first; grouping must never reorder rows. */
     val visibleSections: List<ActivitySection> = buildList {

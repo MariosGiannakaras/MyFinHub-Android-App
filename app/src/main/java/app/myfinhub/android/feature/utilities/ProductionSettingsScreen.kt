@@ -8,9 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -23,12 +22,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -48,6 +49,7 @@ fun ProductionSettingsScreen(
 ) {
     val context = LocalContext.current
     val updateController = LocalUpdateController.current
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var diagnosticsExpanded by rememberSaveable { mutableStateOf(false) }
@@ -57,7 +59,7 @@ fun ProductionSettingsScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ρυθμίσεις",
-                subtitle = "Εμφάνιση και λογαριασμός",
+                subtitle = "Προσαρμογή και λογαριασμός",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -67,45 +69,41 @@ fun ProductionSettingsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(MyFinHubSpacing.lg),
+                .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "Οι επιλογές αποθηκεύονται σε αυτή τη συσκευή και εφαρμόζονται αμέσως.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    AppAppearance.entries.forEachIndexed { index, option ->
-                        Row(
+                    val appearanceOption: @Composable (AppAppearance, Modifier) -> Unit = { option, modifier ->
+                        FilterChip(
+                            selected = appearance == option,
+                            onClick = {
+                                appearance = option
+                                AppAppearancePreference.write(context, option)
+                            },
+                            label = { Text(option.label, maxLines = 1) },
+                            modifier = modifier,
+                        )
+                    }
+                    if (largeFont) {
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
-                            RadioButton(
-                                selected = appearance == option,
-                                onClick = {
-                                    appearance = option
-                                    AppAppearancePreference.write(context, option)
-                                },
-                                modifier = Modifier.semantics { contentDescription = "Θέμα ${option.label}" },
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(option.label, style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    when (option) {
-                                        AppAppearance.SYSTEM -> "Ακολουθεί το φωτεινό ή σκούρο θέμα του κινητού."
-                                        AppAppearance.LIGHT -> "Χρησιμοποιεί πάντα φωτεινό θέμα."
-                                        AppAppearance.DARK -> "Χρησιμοποιεί πάντα σκούρο θέμα."
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                            AppAppearance.entries.forEach { option ->
+                                appearanceOption(option, Modifier.fillMaxWidth())
                             }
                         }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        ) {
+                            AppAppearance.entries.forEach { option ->
+                                appearanceOption(option, Modifier.weight(1f))
+                            }
+                        }
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -115,7 +113,7 @@ fun ProductionSettingsScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Εμφάνιση ποσών", style = MaterialTheme.typography.titleMedium)
                             Text(
-                                "Εμφανίζει υπόλοιπα και ποσά στην Αρχική. Όταν είναι κλειστό, παραμένουν καλυμμένα.",
+                                if (amountsVisible) "Τα ποσά φαίνονται στην Αρχική." else "Τα ποσά παραμένουν καλυμμένα στην Αρχική.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -134,30 +132,14 @@ fun ProductionSettingsScreen(
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    Text("Ιδιωτικότητα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Απόρρητο και ειδοποιήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Τα ασφαλή στοιχεία κάρτας εμφανίζονται μόνο μετά από την απαιτούμενη επαλήθευση. Το CVV παραμένει κρυπτογραφημένο μόνο στη συσκευή και τα screenshots μπλοκάρονται όσο προβάλλονται μυστικά κάρτας.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        "Δεν εμφανίζονται διακόπτες για μυστικά κάρτας χωρίς ενεργή production συμπεριφορά.",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    Text("Ειδοποιήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "Το τοπικό ιστορικό κρατά μόνο ασφαλή κατηγορία, διαγνωστικό κωδικό και χρόνο. Επαναλαμβανόμενες ίδιες ειδοποιήσεις συμπτύσσονται.",
+                        "PAN/λήξη εμφανίζονται μόνο μετά την απαιτούμενη επαλήθευση. Το CVV μένει κρυπτογραφημένο στη συσκευή και τα screenshots μπλοκάρονται όσο προβάλλονται μυστικά κάρτας.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     MyFinHubOutlinedAction(
-                        label = if (noticeHistoryCount == 0) "Ιστορικό ειδοποιήσεων" else "Ιστορικό ειδοποιήσεων ($noticeHistoryCount)",
+                        label = if (noticeHistoryCount == 0) "Ιστορικό ειδοποιήσεων" else "Ιστορικό ειδοποιήσεων · $noticeHistoryCount",
                         onClick = onOpenNoticeHistory,
                         modifier = Modifier.fillMaxWidth(),
                         icon = MyFinHubIcons.Activity,
@@ -179,15 +161,11 @@ fun ProductionSettingsScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Λογαριασμός", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Η αποσύνδεση κλείνει την ενεργή συνεδρία σε αυτή τη συσκευή. Τα συγχρονισμένα οικονομικά δεδομένα παραμένουν στον λογαριασμό σου.",
+                            "Η αποσύνδεση κλείνει τη συνεδρία μόνο σε αυτή τη συσκευή. Τα συγχρονισμένα δεδομένα παραμένουν στον λογαριασμό σου.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        MyFinHubOutlinedAction(
-                            label = "Αποσύνδεση",
-                            onClick = logout,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        MyFinHubOutlinedAction(label = "Αποσύνδεση", onClick = logout, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }

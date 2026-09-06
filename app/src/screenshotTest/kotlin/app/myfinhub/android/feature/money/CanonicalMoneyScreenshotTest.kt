@@ -43,6 +43,19 @@ fun CanonicalMoneyCompactDarkScreenshot() {
 
 @PreviewTest
 @Preview(
+    name = "canonical_money_compact_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun CanonicalMoneyCompactLargeFontScreenshot() {
+    CanonicalMoneyScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
     name = "canonical_loans_compact_light",
     widthDp = 412,
     heightDp = 915,
