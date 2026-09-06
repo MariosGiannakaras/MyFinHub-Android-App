@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -44,12 +45,15 @@ fun CanonicalPlanScreen(
     val obligations = state.items.filter { it.flow == PlannedFlow.OBLIGATION }
     val expectedIncome = state.items.filter { it.flow == PlannedFlow.INCOME }
     val transfers = state.items.filter { it.flow == PlannedFlow.TRANSFER }
+    val obligationsTotal = obligations.sumOf(PlannedItem::amount)
+    val incomeTotal = expectedIncome.sumOf(PlannedItem::amount)
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
 
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Πλάνο",
-                subtitle = "Επόμενες κινήσεις και budget",
+                subtitle = "Τι έρχεται και πού καταλήγεις",
             )
         },
     ) { padding ->
@@ -66,6 +70,15 @@ fun CanonicalPlanScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            item {
+                PlanSnapshotCard(
+                    obligationsTotal = obligationsTotal,
+                    incomeTotal = incomeTotal,
+                    forecastEndBalance = state.forecastEndBalance,
+                    largeFont = largeFont,
+                )
+            }
+
             item {
                 PlannedFlowSection(
                     title = "Επόμενες υποχρεώσεις",
@@ -104,22 +117,28 @@ fun CanonicalPlanScreen(
                 MyFinHubActionCard(onClick = onOpenBudget, modifier = Modifier.fillMaxWidth()) {
                     MyFinHubSectionHeading(
                         title = "Μηνιαίο budget",
-                        subtitle = "Το συνολικό όριο αποθηκεύεται στον λογαριασμό σου",
+                        subtitle = "Συνολικό όριο και έγκαιρη ειδοποίηση",
                         icon = MyFinHubIcons.Savings,
                         tone = FinanceTone.Savings,
                     )
                     val amount = state.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
                     if (amount != null && amount > 0.0) {
-                        MyFinHubAmountText(
-                            text = formatCanonicalPlanEuro(amount),
-                            tone = FinanceTone.Savings,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            "Ειδοποίηση στο ${state.budget.alertThresholdText}%",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            MyFinHubAmountText(
+                                text = formatCanonicalPlanEuro(amount),
+                                tone = FinanceTone.Savings,
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                "Alert ${state.budget.alertThresholdText}%",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     } else {
                         Text(
                             "Δεν έχει οριστεί συνολικό budget.",
@@ -142,7 +161,7 @@ fun CanonicalPlanScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         MyFinHubSectionHeading(
                             title = "Πρόβλεψη",
-                            subtitle = "Διαθέσιμα μετά τις καταγεγραμμένες επόμενες κινήσεις",
+                            subtitle = "Μετά τις συγχρονισμένες επόμενες κινήσεις",
                             icon = MyFinHubIcons.Insights,
                             tone = FinanceTone.Transfer,
                         )
@@ -152,7 +171,7 @@ fun CanonicalPlanScreen(
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         Text(
-                            "Η πρόβλεψη βασίζεται μόνο στα τρέχοντα διαθέσιμα και στις συγχρονισμένες εκκρεμείς κινήσεις. Δεν προστίθενται υποθετικά 30/60/90 ημερών σενάρια.",
+                            "Υπολογίζεται μόνο από τα τρέχοντα διαθέσιμα και τις καταγεγραμμένες επόμενες κινήσεις.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -161,6 +180,67 @@ fun CanonicalPlanScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PlanSnapshotCard(
+    obligationsTotal: Double,
+    incomeTotal: Double,
+    forecastEndBalance: Double,
+    largeFont: Boolean,
+) {
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text(
+                "Επόμενη εικόνα",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "Προγραμματισμένη ροή και αναμενόμενο διαθέσιμο",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    PlanSnapshotMetric("Υποχρεώσεις", obligationsTotal, FinanceTone.Expense)
+                    PlanSnapshotMetric("Αναμενόμενα έσοδα", incomeTotal, FinanceTone.Income)
+                    PlanSnapshotMetric(
+                        "Μετά τις κινήσεις",
+                        forecastEndBalance,
+                        if (forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        PlanSnapshotMetric("Υποχρεώσεις", obligationsTotal, FinanceTone.Expense)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        PlanSnapshotMetric("Έσοδα", incomeTotal, FinanceTone.Income)
+                    }
+                }
+                PlanSnapshotMetric(
+                    "Μετά τις κινήσεις",
+                    forecastEndBalance,
+                    if (forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlanSnapshotMetric(label: String, amount: Double, tone: FinanceTone) {
+    Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    MyFinHubAmountText(
+        text = formatCanonicalPlanEuro(amount),
+        tone = tone,
+        style = MaterialTheme.typography.titleMedium,
+    )
 }
 
 @Composable
