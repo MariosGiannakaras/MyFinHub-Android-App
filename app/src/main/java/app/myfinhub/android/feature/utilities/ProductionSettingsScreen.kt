@@ -75,7 +75,7 @@ fun ProductionSettingsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    val appearanceOption: @Composable (AppAppearance) -> Unit = { option ->
+                    val appearanceOption: @Composable (AppAppearance, Modifier) -> Unit = { option, modifier ->
                         FilterChip(
                             selected = appearance == option,
                             onClick = {
@@ -83,7 +83,7 @@ fun ProductionSettingsScreen(
                                 AppAppearancePreference.write(context, option)
                             },
                             label = { Text(option.label, maxLines = 1) },
-                            modifier = if (largeFont) Modifier.fillMaxWidth() else Modifier.weight(1f),
+                            modifier = modifier,
                         )
                     }
                     if (largeFont) {
@@ -91,14 +91,18 @@ fun ProductionSettingsScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
-                            AppAppearance.entries.forEach(appearanceOption)
+                            AppAppearance.entries.forEach { option ->
+                                appearanceOption(option, Modifier.fillMaxWidth())
+                            }
                         }
                     } else {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                         ) {
-                            AppAppearance.entries.forEach(appearanceOption)
+                            AppAppearance.entries.forEach { option ->
+                                appearanceOption(option, Modifier.weight(1f))
+                            }
                         }
                     }
                     Row(
