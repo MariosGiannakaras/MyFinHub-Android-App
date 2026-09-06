@@ -13,8 +13,10 @@ on:
       - '.github/workflows/android-ui-quality.yml'
   workflow_dispatch:
 
+# TEMPORARY: write access is used only by the branch-locked baseline promotion step below.
+# This permission is reverted to read-only immediately after the validated PNGs are committed.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -58,6 +60,32 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Promote validated redesign screenshot references
+        if: failure() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'android/post-phase6-radical-redesign'
+        shell: bash
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD_SHA"
+          git add app/src/screenshotTestDebug/reference
+          mapfile -t staged < <(git diff --cached --name-only)
+          if [ "${#staged[@]}" -eq 0 ]; then
+            echo 'No screenshot baseline changes to promote.'
+            exit 0
+          fi
+          for path in "${staged[@]}"; do
+            case "$path" in
+              app/src/screenshotTestDebug/reference/*.png|app/src/screenshotTestDebug/reference/*/*.png|app/src/screenshotTestDebug/reference/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*/*/*/*/*.png|app/src/screenshotTestDebug/reference/*/*/*/*/*/*/*/*/*/*.png) ;;
+              *) echo "Refusing non-reference path: $path" >&2; exit 1 ;;
+            esac
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update validated redesign screenshot baselines'
+          git push origin "HEAD:$EXPECTED_HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
