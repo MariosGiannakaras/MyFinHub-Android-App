@@ -1,0 +1,74 @@
+name: Fix pass 3 Activity large font filters
+
+on:
+  push:
+    branches:
+      - android/post-phase6-redesign-pass3
+    paths:
+      - .github/workflows/pass3-fix-activity.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/post-phase6-redesign-pass3
+          fetch-depth: 0
+      - name: Replace horizontally clipped filters with wrapping layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt')
+          text = p.read_text(encoding='utf-8')
+          replacements = [
+            ('import androidx.compose.foundation.horizontalScroll\n', ''),
+            ('import androidx.compose.foundation.layout.Column\n', 'import androidx.compose.foundation.layout.Column\nimport androidx.compose.foundation.layout.FlowRow\n'),
+            ('import androidx.compose.foundation.rememberScrollState\n', ''),
+            ('''            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                ActivityFilter.entries.forEach { filter ->
+                    MyFinHubFilterChip(
+                        selected = state.filter == filter,
+                        onClick = { onAction(ActivityAction.FilterChanged(filter)) },
+                        label = filter.label,
+                        icon = filter.icon(),
+                        tone = filter.tone(),
+                    )
+                }
+            }''', '''            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
+                ActivityFilter.entries.forEach { filter ->
+                    MyFinHubFilterChip(
+                        selected = state.filter == filter,
+                        onClick = { onAction(ActivityAction.FilterChanged(filter)) },
+                        label = filter.label,
+                        icon = filter.icon(),
+                        tone = filter.tone(),
+                    )
+                }
+            }'''),
+          ]
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one occurrence, found {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+          p.write_text(text, encoding='utf-8')
+          PY
+          rm .github/workflows/pass3-fix-activity.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/app/myfinhub/android/feature/activity/ActivityScreen.kt .github/workflows/pass3-fix-activity.yml
+          git commit -m 'Wrap Activity filters at large font'
+          git push origin HEAD:android/post-phase6-redesign-pass3
