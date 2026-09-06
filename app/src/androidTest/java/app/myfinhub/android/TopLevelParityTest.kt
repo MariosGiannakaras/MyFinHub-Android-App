@@ -75,7 +75,25 @@ class TopLevelParityTest {
     }
 
     @Test
+    fun reselectingTopLevelDestination_returnsNestedFlowToRoot() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
     fun insights_drillsIntoExpenseActivityProjection() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+
         composeRule.onNodeWithText("Αναλύσεις").performClick()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Προβολή σχετικών κινήσεων"))

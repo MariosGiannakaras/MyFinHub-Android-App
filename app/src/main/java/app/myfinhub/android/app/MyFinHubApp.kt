@@ -178,7 +178,13 @@ internal fun MyFinHubAppContent(
             TopLevelDestination.entries.forEach { destination ->
                 item(
                     selected = currentDestination == destination,
-                    onClick = { currentDestination = destination },
+                    onClick = {
+                        if (currentDestination == destination) {
+                            activeBackStack.popToRoot()
+                        } else {
+                            currentDestination = destination
+                        }
+                    },
                     icon = {
                         Icon(
                             imageVector = destination.icon,
@@ -500,6 +506,7 @@ internal fun MyFinHubAppContent(
                         state = insightsState,
                         onOpenSupportingActivity = {
                             onActivityAction(ActivityAction.FilterChanged(ActivityFilter.EXPENSE))
+                            activityBackStack.popToRoot()
                             currentDestination = TopLevelDestination.ACTIVITY
                         },
                     )
@@ -518,4 +525,8 @@ private fun HomeQuickEntryType.toQuickEntryKind(): QuickEntryKind = when (this) 
 
 private fun NavBackStack<NavKey>.pushIfNew(route: NavKey) {
     if (lastOrNull() != route) add(route)
+}
+
+private fun NavBackStack<NavKey>.popToRoot() {
+    while (size > 1) removeLastOrNull()
 }
