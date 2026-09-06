@@ -1,0 +1,59 @@
+name: Accept inspected pass 3 screenshot baselines
+
+on:
+  push:
+    branches:
+      - android/post-phase6-redesign-pass3
+    paths:
+      - .github/workflows/pass3-accept-screenshots.yml
+
+permissions:
+  contents: write
+
+jobs:
+  accept:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/post-phase6-redesign-pass3
+          fetch-depth: 0
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Provision Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Regenerate inspected canonical screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew updateDebugScreenshotTest --stacktrace
+
+          mapfile -t changed < <(git diff --name-only -- app/src/screenshotTestDebug/reference | sort)
+          printf '%s\n' "${changed[@]}"
+          if [ "${#changed[@]}" -ne 23 ]; then
+            echo "Expected exactly 23 changed screenshot references, found ${#changed[@]}" >&2
+            exit 1
+          fi
+          if printf '%s\n' "${changed[@]}" | grep -Ev '^app/src/screenshotTestDebug/reference/.+\.png$'; then
+            echo 'Unexpected non-PNG screenshot reference change' >&2
+            exit 1
+          fi
+
+          rm .github/workflows/pass3-accept-screenshots.yml
+          unexpected=$(git diff --name-only | grep -Ev '^(app/src/screenshotTestDebug/reference/.+\.png|\.github/workflows/pass3-accept-screenshots\.yml)$' || true)
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected files changed:" >&2
+            echo "$unexpected" >&2
+            exit 1
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/screenshotTestDebug/reference .github/workflows/pass3-accept-screenshots.yml
+          git commit -m 'Accept inspected pass 3 screenshot baselines'
+          git push origin HEAD:android/post-phase6-redesign-pass3
