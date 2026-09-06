@@ -5,11 +5,11 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Audit the actual production MyFinHubRoot -> MyFinHubAppContent route and all production-only surfaces.
-- [ ] Implement a genuinely visible third redesign pass across the daily-use production UI, not only Activity/navigation behavior.
-- [ ] Render real Compose screenshots for every materially changed surface, personally inspect them, replace canonical references, and run Android/UI/S24-target gates.
-- [ ] Publish a higher same-signer private production candidate only after the redesigned source is fully validated.
-- [ ] Repeat authoritative physical Galaxy S24 Ultra acceptance; only then advance progress.
+- [ ] Run Android compile/unit/lint/release checks and representative S24-target instrumentation for the third redesign pass.
+- [ ] Render fresh real Compose screenshots for every changed production surface in light, dark and large-font states; personally inspect and correct visual defects before accepting new canonical references.
+- [ ] Merge the validated third redesign pass into develop only after clean tracking, screenshot and Android gates.
+- [ ] Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 source.
+- [ ] Repeat authoritative physical Galaxy S24 Ultra acceptance; owner visual acceptance is required before progress advances.
 
 ## Completed foundations
 
@@ -19,6 +19,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Post-Phase-6 redesign pass 1 (#74)
 - [x] Post-Phase-6 Activity/navigation pass 2 (#75)
 - [x] Protected private rc4 publication
+- [x] Memory-independent, CI-enforced repository tracking (#79/#80)
 
 ## Rule
 
