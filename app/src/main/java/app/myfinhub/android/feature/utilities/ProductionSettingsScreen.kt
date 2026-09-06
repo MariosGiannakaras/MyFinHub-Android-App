@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +49,7 @@ fun ProductionSettingsScreen(
 ) {
     val context = LocalContext.current
     val updateController = LocalUpdateController.current
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var diagnosticsExpanded by rememberSaveable { mutableStateOf(false) }
@@ -73,17 +75,30 @@ fun ProductionSettingsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        AppAppearance.entries.forEach { option ->
-                            FilterChip(
-                                selected = appearance == option,
-                                onClick = {
-                                    appearance = option
-                                    AppAppearancePreference.write(context, option)
-                                },
-                                label = { Text(option.label) },
-                                modifier = Modifier.weight(1f),
-                            )
+                    val appearanceOption: @Composable (AppAppearance) -> Unit = { option ->
+                        FilterChip(
+                            selected = appearance == option,
+                            onClick = {
+                                appearance = option
+                                AppAppearancePreference.write(context, option)
+                            },
+                            label = { Text(option.label, maxLines = 1) },
+                            modifier = if (largeFont) Modifier.fillMaxWidth() else Modifier.weight(1f),
+                        )
+                    }
+                    if (largeFont) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            AppAppearance.entries.forEach(appearanceOption)
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        ) {
+                            AppAppearance.entries.forEach(appearanceOption)
                         }
                     }
                     Row(
