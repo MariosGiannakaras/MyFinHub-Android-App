@@ -30,6 +30,9 @@ import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -72,6 +75,23 @@ fun ProductionSettingsScreen(
                 .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+                    MyFinHubHeroHeading(
+                        eyebrow = "Έλεγχος εφαρμογής",
+                        title = "Δική σου εμπειρία, ασφαλή δεδομένα",
+                        supporting = "Ρύθμισε τι βλέπεις χωρίς να αλλάξεις τα συγχρονισμένα οικονομικά δεδομένα",
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+                    ) {
+                        MyFinHubHeroMetric("Θέμα", appearance.label, Modifier.weight(1f))
+                        MyFinHubHeroMetric("Ποσά", if (amountsVisible) "Ορατά" else "Κρυφά", Modifier.weight(1f))
+                    }
+                }
+            }
+
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)

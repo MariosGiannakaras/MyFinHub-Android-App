@@ -30,6 +30,10 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
+import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -95,80 +99,27 @@ fun CanonicalMoneyScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                        Text(
-                            "Συνολική εικόνα",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
+                MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+                        MyFinHubHeroHeading(
+                            eyebrow = "Καθαρή θέση",
+                            title = "Όλα τα χρήματά σου",
+                            supporting = "Λογαριασμοί, αποταμίευση, οφειλές και απαιτήσεις",
                         )
-                        Text(
-                            "Καθαρή θέση από λογαριασμούς, οφειλές και απαιτήσεις",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        MyFinHubAmountText(
-                            text = formatCanonicalEuro(netPosition),
-                            tone = if (netPosition >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
+                        MyFinHubHeroValue(formatCanonicalEuro(netPosition))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "Λογαριασμοί",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                MyFinHubAmountText(
-                                    text = formatCanonicalEuro(accountTotal),
-                                    tone = if (accountTotal >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "Αποταμίευση",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                MyFinHubAmountText(
-                                    text = formatCanonicalEuro(state.savingsCurrent),
-                                    tone = FinanceTone.Savings,
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
+                            MyFinHubHeroMetric("Λογαριασμοί", formatCanonicalEuro(accountTotal), Modifier.weight(1f))
+                            MyFinHubHeroMetric("Αποταμίευση", formatCanonicalEuro(state.savingsCurrent), Modifier.weight(1f))
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "Οφειλές",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                MyFinHubAmountText(
-                                    text = formatCanonicalEuro(state.loanOutstanding),
-                                    tone = FinanceTone.Expense,
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "Απαιτήσεις",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                MyFinHubAmountText(
-                                    text = formatCanonicalEuro(state.lendingReceivable),
-                                    tone = FinanceTone.Income,
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
+                            MyFinHubHeroMetric("Οφειλές", formatCanonicalEuro(state.loanOutstanding), Modifier.weight(1f))
+                            MyFinHubHeroMetric("Απαιτήσεις", formatCanonicalEuro(state.lendingReceivable), Modifier.weight(1f))
                         }
                     }
                 }

@@ -25,6 +25,10 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
+import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
@@ -189,45 +193,27 @@ private fun PlanSnapshotCard(
     forecastEndBalance: Double,
     largeFont: Boolean,
 ) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Text(
-                "Επόμενη εικόνα",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+            MyFinHubHeroHeading(
+                eyebrow = "Πρόβλεψη",
+                title = "Μετά τις επόμενες κινήσεις",
+                supporting = "Αναμενόμενο διαθέσιμο με βάση το συγχρονισμένο πλάνο",
             )
-            Text(
-                "Προγραμματισμένη ροή και αναμενόμενο διαθέσιμο",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            MyFinHubHeroValue(formatCanonicalPlanEuro(forecastEndBalance))
             if (largeFont) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    PlanSnapshotMetric("Υποχρεώσεις", obligationsTotal, FinanceTone.Expense)
-                    PlanSnapshotMetric("Αναμενόμενα έσοδα", incomeTotal, FinanceTone.Income)
-                    PlanSnapshotMetric(
-                        "Μετά τις κινήσεις",
-                        forecastEndBalance,
-                        if (forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                    )
+                    MyFinHubHeroMetric("Υποχρεώσεις", formatCanonicalPlanEuro(obligationsTotal))
+                    MyFinHubHeroMetric("Αναμενόμενα έσοδα", formatCanonicalPlanEuro(incomeTotal))
                 }
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        PlanSnapshotMetric("Υποχρεώσεις", obligationsTotal, FinanceTone.Expense)
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        PlanSnapshotMetric("Έσοδα", incomeTotal, FinanceTone.Income)
-                    }
+                    MyFinHubHeroMetric("Υποχρεώσεις", formatCanonicalPlanEuro(obligationsTotal), Modifier.weight(1f))
+                    MyFinHubHeroMetric("Έσοδα", formatCanonicalPlanEuro(incomeTotal), Modifier.weight(1f))
                 }
-                PlanSnapshotMetric(
-                    "Μετά τις κινήσεις",
-                    forecastEndBalance,
-                    if (forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                )
             }
         }
     }

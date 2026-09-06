@@ -34,6 +34,11 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBrandMark
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubHeroAction
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
+import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -89,16 +94,7 @@ fun ProductionHomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            item { FinancialSnapshotCard(state = state, amountsVisible = amountsVisible) }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    ExtendedFloatingActionButton(
-                        onClick = onOpenQuickEntry,
-                        icon = { Icon(MyFinHubIcons.Add, contentDescription = null) },
-                        text = { Text("Νέα κίνηση") },
-                    )
-                }
-            }
+            item { FinancialSnapshotCard(state = state, amountsVisible = amountsVisible, onOpenQuickEntry = onOpenQuickEntry) }
             if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
             item { PrimaryAccountsCard(state.accounts.take(3), amountsVisible, onOpenAccount) }
             item { RecentActivityCard(state.recentItems, amountsVisible, onOpenRecent) }
@@ -108,37 +104,57 @@ fun ProductionHomeScreen(
 }
 
 @Composable
-private fun FinancialSnapshotCard(state: HomeUiState, amountsVisible: Boolean) {
+private fun FinancialSnapshotCard(
+    state: HomeUiState,
+    amountsVisible: Boolean,
+    onOpenQuickEntry: () -> Unit,
+) {
     val budgetPercent = (state.monthFlow.budgetProgress * 100f).toInt()
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                Text("Διαθέσιμα τώρα", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                MyFinHubAmountText(
-                    text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
-                    tone = if (state.liquidTotal >= 0) FinanceTone.Income else FinanceTone.Expense,
-                    style = MaterialTheme.typography.headlineLarge,
-                )
-            }
+    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+            MyFinHubHeroHeading(
+                eyebrow = "Σήμερα",
+                title = "Η οικονομική σου θέση",
+                supporting = "Διαθέσιμα, ροή μήνα και budget σε μία ματιά",
+            )
+            MyFinHubHeroValue(if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                SnapshotMetric("Έσοδα μήνα", if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €", FinanceTone.Income, Modifier.weight(1f))
-                SnapshotMetric("Έξοδα μήνα", if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €", FinanceTone.Expense, Modifier.weight(1f))
+                MyFinHubHeroMetric(
+                    "Έσοδα μήνα",
+                    if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €",
+                    Modifier.weight(1f),
+                )
+                MyFinHubHeroMetric(
+                    "Έξοδα μήνα",
+                    if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €",
+                    Modifier.weight(1f),
+                )
             }
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Προϋπολογισμός", style = MaterialTheme.typography.labelLarge)
-                    Text(if (state.monthFlow.budget > 0.0) "$budgetPercent%" else "—", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Προϋπολογισμός", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(if (state.monthFlow.budget > 0.0) "$budgetPercent%" else "—", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f))
                 }
-                LinearProgressIndicator(progress = { state.monthFlow.budgetProgress }, modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(
+                    progress = { state.monthFlow.budgetProgress },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    trackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.22f),
+                )
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(if (amountsVisible) "Αποταμίευση ${formatHomeEuro(state.monthFlow.saving)}" else "Αποταμίευση •••• €", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (amountsVisible) "Αποταμίευση ${formatHomeEuro(state.monthFlow.saving)}" else "Αποταμίευση •••• €", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f))
                     Text(
                         if (amountsVisible && state.monthFlow.budget > 0.0) "από ${formatHomeEuro(state.monthFlow.budget)}" else if (state.monthFlow.budget > 0.0) "από •••• €" else "Χωρίς όριο",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f),
                     )
                 }
             }
+            MyFinHubHeroAction(
+                label = "Νέα κίνηση",
+                onClick = onOpenQuickEntry,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
