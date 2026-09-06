@@ -152,6 +152,9 @@ private fun ActivityList(
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
     ) {
         item {
+            ActivityProjectionSummary(state = state)
+        }
+        item {
             MyFinHubSearchField(
                 value = state.query,
                 onValueChange = { onAction(ActivityAction.QueryChanged(it)) },
@@ -186,50 +189,50 @@ private fun ActivityList(
             }
         } else {
             state.visibleSections.forEachIndexed { sectionIndex, section ->
-        val monthKey = section.date.take(7)
-        val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
-        if (sectionIndex == 0 || monthKey != previousMonth) {
-            item(key = "month-$monthKey") { ActivityMonthHeader(section.date) }
-        }
-        item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
-        items(section.items, key = ActivityItem::id) { item ->
-            Box {
-                MyFinHubFinanceRow(
-                    icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
-                    iconDescription = item.category ?: item.kind.label,
-                    title = item.title,
-                    subtitle = item.subtitle,
-                    meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
-                    amountText = formatSignedEuro(item.amount),
-                    tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
-                    onClick = { onSelect(item.id) },
-                    onLongClick = { contextItemId = item.id },
-                    modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
-                )
-                DropdownMenu(
-                    expanded = contextItemId == item.id,
-                    onDismissRequest = { contextItemId = null },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Λεπτομέρειες / επεξεργασία") },
-                        onClick = {
-                            contextItemId = null
-                            onSelect(item.id)
-                        },
-                    )
-                    if (!item.pendingSync) {
-                        DropdownMenuItem(
-                            text = { Text("Διαγραφή") },
-                            onClick = {
-                                contextItemId = null
-                                confirmDeleteId = item.id
-                            },
+                val monthKey = section.date.take(7)
+                val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
+                if (sectionIndex == 0 || monthKey != previousMonth) {
+                    item(key = "month-$monthKey") { ActivityMonthHeader(section.date) }
+                }
+                item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
+                items(section.items, key = ActivityItem::id) { item ->
+                    Box {
+                        MyFinHubFinanceRow(
+                            icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                            iconDescription = item.category ?: item.kind.label,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
+                            amountText = formatSignedEuro(item.amount),
+                            tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                            onClick = { onSelect(item.id) },
+                            onLongClick = { contextItemId = item.id },
+                            modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
                         )
+                        DropdownMenu(
+                            expanded = contextItemId == item.id,
+                            onDismissRequest = { contextItemId = null },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Λεπτομέρειες / επεξεργασία") },
+                                onClick = {
+                                    contextItemId = null
+                                    onSelect(item.id)
+                                },
+                            )
+                            if (!item.pendingSync) {
+                                DropdownMenuItem(
+                                    text = { Text("Διαγραφή") },
+                                    onClick = {
+                                        contextItemId = null
+                                        confirmDeleteId = item.id
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
         }
     }
 
@@ -253,6 +256,90 @@ private fun ActivityList(
     }
 }
 
+@Composable
+private fun ActivityProjectionSummary(state: ActivityUiState) {
+    val netTone = when {
+        state.visibleNet > 0.0 -> FinanceTone.Income
+        state.visibleNet < 0.0 -> FinanceTone.Expense
+        else -> FinanceTone.Neutral
+    }
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                Text(
+                    text = "Ορατή εικόνα",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "${state.visibleItems.size} κινήσεις με τα τρέχοντα φίλτρα",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                Text(
+                    text = "Καθαρή ροή",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                MyFinHubAmountText(
+                    text = formatSignedEuro(state.visibleNet),
+                    tone = netTone,
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+            ) {
+                ActivitySummaryMetric(
+                    label = "Έσοδα",
+                    value = state.visibleIncome,
+                    tone = FinanceTone.Income,
+                    modifier = Modifier.weight(1f),
+                )
+                ActivitySummaryMetric(
+                    label = "Έξοδα",
+                    value = state.visibleExpense,
+                    tone = FinanceTone.Expense,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            if (state.visiblePendingCount > 0) {
+                Text(
+                    text = "${state.visiblePendingCount} ${if (state.visiblePendingCount == 1) "κίνηση περιμένει" else "κινήσεις περιμένουν"} επιβεβαίωση από τον server",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivitySummaryMetric(
+    label: String,
+    value: Double,
+    tone: FinanceTone,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        MyFinHubAmountText(
+            text = formatUnsignedEuro(value),
+            tone = tone,
+            style = MaterialTheme.typography.titleMedium,
+        )
+    }
+}
 
 @Composable
 private fun ActivityMonthHeader(rawDate: String) {
@@ -488,7 +575,6 @@ private fun ActivityDetailContent(
     }
 }
 
-
 @Composable
 private fun ActivityChoiceField(
     label: String,
@@ -553,3 +639,6 @@ private fun ActivityKind.tone(): FinanceTone = when (this) {
 
 private fun formatSignedEuro(amount: Double): String =
     NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+
+private fun formatUnsignedEuro(amount: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(kotlin.math.abs(amount))
