@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-07  
 **Tracker:** #73  
-**Status:** active implementation reference
+**Status:** hosted validation in progress
 
 ## Scope
 
@@ -12,25 +12,23 @@ The goal is not to rewrite working infrastructure. Existing canonical finance pa
 
 ## Canonical desktop capability map
 
-The desktop currently exposes these product areas:
-
 | Desktop area | Canonical user capability | Android ownership after re-audit |
 | --- | --- | --- |
 | Overview | balances, current cash position, recent movements, upcoming obligations, month summary | Home |
 | Transactions | search/filter/read/edit/delete movements | Activity |
-| Review | confirm/keep/snooze legacy suggestions and split a movement | Activity → Review |
-| Savings | savings balance/progress and three canonical saving-source actions | Money → Savings |
+| Review | confirm/keep/snooze legacy suggestions and split a movement | Activity → Review follow-up |
+| Savings | savings balance/progress and canonical saving-source actions | Money → Savings |
 | Cards | debit/prepaid vault management by bank | Money → Cards |
-| Credit card | credit debt/limit, purchases, payments, statements, card lifecycle | Money → Credit |
-| Loans & installments | active/completed obligations, payment, edit, self-loan support | Money → Debt |
+| Credit card | credit debt/limit, purchases, payments, statements, card lifecycle | Money → Credit follow-up where mutation semantics are not yet wired |
+| Loans & installments | active/completed obligations, payment, edit, self-loan support | Money → Debt; lifecycle mutations remain follow-up where not canonically wired |
 | Lending/receivables | people, outstanding receivables, lend/repay history | Money → Receivables |
-| Recurring | recurring obligations/subscriptions, lifecycle and payment | Plan → Recurring |
+| Recurring | recurring obligations/subscriptions, lifecycle and payment | Plan → Recurring follow-up where mutation semantics are not yet wired |
 | Planning | one-off scheduled items, completion, lifecycle, deterministic forecast | Plan |
 | Attention | urgent/warning/info signals with action/snooze/dismiss | Home → Attention |
 | Reports | trends, comparisons, categories, obligations, account series, budget context | Insights |
-| Settings | general preferences, accounts, budgets/goals, taxonomy, data/backup/import, diagnostics | Settings |
+| Settings | general preferences, accounts, budgets/goals, taxonomy, data/backup/import, diagnostics | Settings; server history/backup/import remain follow-up until real APIs are integrated |
 
-The mobile product should preserve all supported capabilities, but it should not port thirteen desktop pages or desktop dashboard geometry into thirteen mobile destinations.
+The mobile product preserves safely supported capabilities without porting thirteen desktop pages or desktop dashboard geometry into thirteen mobile destinations.
 
 ## Backend contract map
 
@@ -59,9 +57,9 @@ Supabase reinforces those boundaries:
 - `rheomiq_financial_providers` + assets: stable provider identity and owner-provided visual assets.
 - `rheomiq_android_releases`: private signed Android release metadata.
 
-Therefore Android navigation must be organized around **user goals**, not backend tables and not desktop routes.
+Therefore Android navigation is organized around **user goals**, not backend tables and not desktop routes.
 
-## Problems found in the current Android IA
+## Problems found in the prior Android IA
 
 ### Repeated information
 
@@ -88,7 +86,7 @@ Some information did not have a single canonical screen owner:
 
 ### Desktop-shaped secondary functionality
 
-The desktop has separate pages for Review, Attention, Reports, Recurring, Savings, Cards, Credit, Loans and Lending. A direct mobile copy would create too many first-level destinations. These must be grouped under the five stable mobile goals.
+The desktop has separate pages for Review, Attention, Reports, Recurring, Savings, Cards, Credit, Loans and Lending. A direct mobile copy would create too many first-level destinations. These are grouped under five stable mobile goals, while unsupported mutations remain explicit follow-up work rather than fake local controls.
 
 ## New mobile information architecture
 
@@ -104,15 +102,13 @@ Settings remains a secondary app-level destination, not a sixth bottom-navigatio
 
 ### Secondary ownership
 
-- **Activity** owns Review because both workflows correct/confirm movement semantics.
+- **Activity** owns movement correction and is the future home of Review semantics.
 - **Money** owns Savings, Cards/Credit, Loans and Lending.
 - **Plan** owns Recurring and budgets because they describe future obligations.
 - **Home** owns Attention because it answers “what needs action now?” without becoming another finance-summary dashboard.
 - **Insights** owns report-only derived analysis and must not repeat Home or Activity.
 
 ## Content ownership rules
-
-These rules are mandatory for the redesign:
 
 1. A financial metric has one primary home.
 2. Other screens may reference it only when it is needed to complete that screen’s task.
@@ -124,54 +120,53 @@ These rules are mandatory for the redesign:
 8. Insights owns change over time, comparisons and concentration; it does not restate current totals.
 9. Sensitive card values are revealed only in card detail under the existing secure-window/session boundaries.
 10. Every canonical workflow should be reachable within two meaningful taps from a top-level destination where feasible.
+11. A desktop action is exposed on Android only when the current Android API/domain layer can express the canonical mutation and recovery semantics safely.
 
 ## Production screen redesign
 
 ### Home
 
-Primary task:
-- see the important accounts immediately, without first interpreting a global total.
+Primary task: see the important accounts immediately, without first interpreting a global total.
 
-Keep / implement:
+Implemented:
 - the same three primary account identities used by the desktop dashboard: `cash`, `piraeus-payroll`, `piraeus-savings`;
 - canonical current balance per primary account;
 - compact seven-day canonical balance trend per primary account;
 - secondary accounts below the primary three;
 - fast entry access;
-- attention/upcoming content only when it remains concise and action-oriented.
+- concise attention/upcoming content.
 
-Do not use as the lead content:
+Not used as lead content:
 - total available/liquid money;
 - net position;
 - monthly income/expense KPI hero;
 - savings/budget aggregate hero.
 
-Account metadata such as IBAN is a separate backend contract (`/api/account-metadata`). Android must not fabricate it from FinanceData; it can be added only through an explicit safe API integration.
+Account metadata such as IBAN is a separate backend contract (`/api/account-metadata`). Android does not fabricate it from FinanceData; management remains a follow-up until that owner+AAL2 API is explicitly integrated.
 
 ### Activity
 
-Primary task:
-- browse and work with actual transactions.
+Primary task: browse and work with actual transactions.
 
-Keep / implement:
+Implemented:
 - search;
 - account filter;
 - chronological date/month sections;
 - transaction rows;
 - detail/edit/delete where canonically supported;
-- new-transaction entry.
+- new-transaction entry in a real opaque Scaffold bottom action so large-font rows cannot remain visible behind it.
 
-Do not show:
+Removed:
 - global or filtered finance hero;
 - income/expense/net KPI summary;
-- transaction-type chips solely for dashboard-style segmentation.
+- transaction-type chips used as dashboard segmentation;
+- hidden Insights-to-Activity expense filtering that had no visible Activity control to clear it.
 
-“Needs review” remains a secondary Activity workflow rather than another main destination.
+“Needs review” remains a secondary Activity follow-up rather than another main destination.
 
 ### Money → “Περιουσία”
 
-Primary task:
-- inspect durable assets, liabilities and financial instruments that do not belong in the compact Home prioritization.
+Primary task: inspect durable assets, liabilities and financial instruments that do not belong in the compact Home prioritization.
 
 Sections:
 - accounts/details beyond Home’s primary three;
@@ -180,22 +175,20 @@ Sections:
 - debt;
 - receivables.
 
-Avoid repeating Home’s three account cards or decorative top-level totals when the same values are immediately repeated in sections below.
+The screen keeps one net-position overview and avoids repeating the same four values again inside the hero before their detailed sections.
 
 ### Plan
 
-Primary task:
-- what is due and what happens next.
+Primary task: what is due and what happens next.
 
-Sections:
-- due now;
-- upcoming one-off items;
-- recurring;
-- expected income/transfers;
-- budget controls;
-- deterministic forecast.
+Implemented sections:
+- upcoming obligations;
+- expected income;
+- scheduled transfers;
+- canonical overall budget controls;
+- deterministic forecast shown once.
 
-Show forecast once.
+Recurring/payment/lifecycle write controls are not fabricated where current canonical mutation semantics are not wired.
 
 ### Insights → “Εικόνα”
 
@@ -205,37 +198,52 @@ Primary questions:
 - Where is spending concentrated?
 - What is the savings trend?
 
-Do not show another current-month net-flow hero.
+The screen does not show another current-month net-flow hero. Its Activity action opens the transaction workspace neutrally; it does not silently apply a filter that the user cannot see or clear.
+
+### Quick Entry
+
+The production quick-entry fast path was re-reviewed. Expense, income and transfer remain optimized around amount-first entry and canonical synchronized account/category choices. Less-frequent supported finance types continue into the complete canonical editor. No new local-only mutation semantics were introduced.
 
 ### Settings
 
-Group by:
-- Appearance & privacy
-- Finance defaults
-- Accounts/taxonomy
-- Data, backup/history
-- Diagnostics/update/session
+Production Settings exposes real controls only:
+- appearance and amount visibility;
+- privacy/card-secret explanation and privacy-safe notice history;
+- updater;
+- logout/session control;
+- diagnostics.
 
-Do not surface disabled desktop-only tabs as if they were supported mobile functionality.
+The existing `ChangeHistoryScreen`/`FrontendUtilitiesUiState.history` is synthetic preview/test state and is not exposed as real production server history. Backup/import/history and other desktop data-management actions remain follow-up work until the corresponding canonical API operations are explicitly integrated.
 
-## Functional parity gaps to close after the IA pass
+## Explicit follow-up parity gaps
 
-The current canonical Android projection already covers accounts, movements, savings aggregate, cards, debt aggregate, receivables aggregate, scheduled/recurring projection, budget, forecast and basic insights. The following desktop capabilities require deliberate Android access checks rather than visual imitation:
+These are not blockers to the information-architecture redesign because Android would otherwise have to invent semantics not backed by its current canonical API/domain layer:
 
-- legacy Review suggestions and split confirmation;
-- complete Attention aggregation beyond overdue scheduled expenses;
-- recurring lifecycle/payment actions;
-- richer credit statement lifecycle and purchases/payments where safely supported;
-- backup/import/history access at Settings level;
-- account metadata management through the separate owner+AAL2 metadata contract;
-- report comparisons beyond the minimal current Android insight projection.
+- legacy Review suggestion confirmation/keep/snooze and split workflows;
+- complete Attention aggregation beyond currently projected canonical signals;
+- recurring lifecycle/payment mutations;
+- richer credit statement/purchase/payment lifecycle;
+- loan/lending lifecycle mutations not already represented safely by the Android domain layer;
+- real server `/api/history`, `/api/backup` and `/api/import` controls;
+- `/api/account-metadata` management such as IBAN;
+- richer report comparisons beyond the current read-only insight projection.
 
-Each gap must reuse canonical server/domain semantics. If the current Android model cannot express a desktop action safely, the UI must not invent a local-only approximation.
+Each follow-up must reuse canonical server/domain semantics, optimistic concurrency and existing ambiguity/reconciliation rules. No local-only approximation is accepted as parity.
+
+## Visual-validation result
+
+Fresh exact-head real Compose candidate renders were personally inspected for the redesigned production surfaces in light, dark and large-font states. During inspection:
+- Home’s large-font section action was moved into a stable vertical hierarchy;
+- Activity’s first padding-only and viewport-reserve fixes were rejected because the action still obscured or visually overlaid list content at 150% font;
+- Activity was converted to a real Scaffold bottom action and then given an opaque screen-colored Surface;
+- the final Activity light/dark/150% renders show no transaction content behind the action;
+- Home, Money, Plan, Insights, Quick Entry and Settings showed no remaining clipping or overlap in the reviewed variants.
+
+The inspected candidate references are approved for baseline replacement. A clean exact-head screenshot-regression pass, representative S24-target instrumentation and full Android CI/R8 remain required before merge.
 
 ## Validation contract
 
 For every changed production surface:
-
 - render real Compose screenshots;
 - inspect light mode;
 - inspect dark mode;
