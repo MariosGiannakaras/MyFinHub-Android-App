@@ -5,11 +5,11 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Create a new Android-owned release-source branch from current develop for 1.0.0-rc5, changing only the nonfunctional production baseline marker, and open it as a PR to develop.
-- [ ] Require exact-head verify, clean screenshot regression and representative S24-target instrumentation to pass on the rc5 release-source PR.
-- [ ] Change only .github/release-requests/production.json on develop to request 1.0.0-rc5 from that exact validated source PR, triggering the protected private production publisher.
-- [ ] After protected publication succeeds with the enrolled production signer, update canonical tracking to the published rc5 checkpoint.
-- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity, then perform owner visual acceptance of Home, Activity, Money, Plan, Insights, Quick Entry and Settings.
+- [ ] Run exact-head Android CI, clean screenshot regression, representative S24-target instrumentation and Project Tracking gates on this rc5 release-source PR.
+- [ ] If all required exact-head checks are green, update only .github/release-requests/production.json on develop to request 1.0.0-rc5 from this open source PR.
+- [ ] Require the protected private production publisher to build the exact PR head, use the enrolled production signer, verify package/version/signature, re-read uploaded bytes and publish metadata last.
+- [ ] After protected publication succeeds, close this release-source PR without merging and update develop canonical tracking to the published rc5 checkpoint.
+- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 and perform continuity plus visual acceptance.
 
 ## Completed foundations
 

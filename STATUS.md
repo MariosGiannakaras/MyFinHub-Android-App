@@ -9,23 +9,23 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `pass3_merged_awaiting_private_candidate`
+State: `rc5_release_source_validation_in_progress`
 
-The owner rejected rc4 as visually insufficient. The third production redesign pass has now been merged into develop after full hosted validation: fresh real Compose renders were personally inspected in light, dark and large-font states, the Activity large-font filter clipping found during inspection was fixed, exactly 23 changed screenshot references were accepted, and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates passed. Physical redesign acceptance is still open; the next checkpoint is a strictly higher same-signer private production candidate built from an exact validated post-pass3 release-source PR.
+The third production redesign pass is merged into develop after full hosted validation and inspected real Compose screenshots. This branch is the Android-owned exact release-source candidate for 1.0.0-rc5. Its only non-tracking repository change is the nonfunctional production baseline marker; finance semantics, product behavior, backend/API contracts, auth/security boundaries, offline/reconcile behavior, updater behavior and signing identity are unchanged. The rc5 source must pass exact-head verify, clean screenshot regression and representative S24-target instrumentation before the protected production request can reference it.
 
 ## Current production candidate
 
 `1.0.0-rc4` / versionCode `10003` — **published_but_not_accepted**.
 
-rc4 remains the installed same-signer production baseline, but its visual delta was rejected. Pass 3 is now merged into develop; rc4 must be superseded by a strictly higher same-signer private candidate for renewed physical acceptance.
+rc4 remains the installed same-signer baseline. This branch prepares the strictly higher rc5 candidate from the merged pass-3 source; no rc5 publication is claimed until the protected publisher succeeds.
 
 ## Next
 
-1. Create a new Android-owned release-source branch from current develop for 1.0.0-rc5, changing only the nonfunctional production baseline marker, and open it as a PR to develop.
-2. Require exact-head verify, clean screenshot regression and representative S24-target instrumentation to pass on the rc5 release-source PR.
-3. Change only .github/release-requests/production.json on develop to request 1.0.0-rc5 from that exact validated source PR, triggering the protected private production publisher.
-4. After protected publication succeeds with the enrolled production signer, update canonical tracking to the published rc5 checkpoint.
-5. On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity, then perform owner visual acceptance of Home, Activity, Money, Plan, Insights, Quick Entry and Settings.
+1. Run exact-head Android CI, clean screenshot regression, representative S24-target instrumentation and Project Tracking gates on this rc5 release-source PR.
+2. If all required exact-head checks are green, update only .github/release-requests/production.json on develop to request 1.0.0-rc5 from this open source PR.
+3. Require the protected private production publisher to build the exact PR head, use the enrolled production signer, verify package/version/signature, re-read uploaded bytes and publish metadata last.
+4. After protected publication succeeds, close this release-source PR without merging and update develop canonical tracking to the published rc5 checkpoint.
+5. On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 and perform continuity plus visual acceptance.
 
 ## Non-negotiable constraints
 
