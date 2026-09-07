@@ -18,6 +18,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -77,22 +78,24 @@ fun ActivityScreen(
             )
         },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
-                        vertical = MyFinHubSpacing.xs,
-                    ),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                MyFinHubPrimaryAction(
-                    label = "Νέα κίνηση",
-                    onClick = onOpenQuickEntry,
-                    modifier = Modifier.semantics {
-                        contentDescription = "Δημιουργία νέας κίνησης"
-                    },
-                )
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
+                            vertical = MyFinHubSpacing.xs,
+                        ),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    MyFinHubPrimaryAction(
+                        label = "Νέα κίνηση",
+                        onClick = onOpenQuickEntry,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Δημιουργία νέας κίνησης"
+                        },
+                    )
+                }
             }
         },
     ) { innerPadding ->

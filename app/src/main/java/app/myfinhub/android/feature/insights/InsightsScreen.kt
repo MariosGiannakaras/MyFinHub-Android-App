@@ -99,7 +99,7 @@ fun InsightsScreen(
                                 CategoryRow(category = category, largeFont = largeFont)
                             }
                             TextButton(onClick = onOpenSupportingActivity) {
-                                Text("Προβολή σχετικών κινήσεων")
+                                Text("Άνοιγμα κινήσεων")
                             }
                         }
                     }
