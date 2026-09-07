@@ -3,7 +3,7 @@
     <string name="app_name">MyFinHub</string>
     <string name="nav_home">Αρχική</string>
     <string name="nav_activity">Κινήσεις</string>
-    <string name="nav_money">Χρήματα</string>
+    <string name="nav_money">Περιουσία</string>
     <string name="nav_plan">Πλάνο</string>
-    <string name="nav_insights">Αναλύσεις</string>
+    <string name="nav_insights">Εικόνα</string>
 </resources>

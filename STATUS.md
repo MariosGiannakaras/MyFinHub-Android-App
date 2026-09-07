@@ -9,23 +9,22 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc5_published_awaiting_physical_acceptance`
+State: `full_product_reaudit_hosted_validation_complete_ready_to_merge`
 
-The third production redesign pass is merged into develop and the strictly higher private production candidate 1.0.0-rc5 has now been published successfully from exact release-source PR #82 through the protected production pipeline. Exact-head tracking, Android verify, clean screenshot regression and representative S24-target instrumentation passed before publication. The protected publisher verified the enrolled production signer, signed and verified the candidate, uploaded it privately, re-read the exact production bytes, and published metadata last. PR #82 was then closed without merge. Final redesign completion is still blocked on authoritative in-place rc4 -> rc5 physical acceptance on the Samsung Galaxy S24 Ultra.
+The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
 
 ## Current production candidate
 
-`1.0.0-rc5` / versionCode `10004` — **published_awaiting_physical_acceptance**.
+`1.0.0-rc5` / versionCode `10004` — **published_baseline_superseded_by_reaudit**.
 
-rc5 is the exact hosted-validated post-pass3 production candidate. It was privately published by the protected pipeline with the already enrolled signer and supersedes rc4 as the candidate to install in place. Physical owner acceptance has not yet been recorded.
+rc5 remains the last successfully protected, same-signer published production APK and a valid technical baseline. The owner requested a broader from-scratch product re-audit before accepting it, so it must not be treated as final redesign acceptance and will be superseded by a higher candidate after the new redesign is hosted-validated.
 
 ## Next
 
-1. On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling the app or installing a parallel package.
-2. Verify that 1.0.0-rc5 is installed and that the existing session, local PIN/biometric state and device-local CVV state (when applicable) survived the same-signer update.
-3. Perform owner visual acceptance of the redesigned Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces, including Activity filter wrapping at real large-font scale.
-4. Verify top-level navigation reselect-to-root, Insights-to-Activity expense drill-in without stale detail, and absence of clipping or overlap on the physical device.
-5. Only after owner physical acceptance, close issue #73 and advance overall progress appropriately.
+1. Merge #83 to develop only; do not touch main.
+2. Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
+3. Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+4. Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Non-negotiable constraints
 

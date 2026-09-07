@@ -5,11 +5,10 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling the app or installing a parallel package.
-- [ ] Verify that 1.0.0-rc5 is installed and that the existing session, local PIN/biometric state and device-local CVV state (when applicable) survived the same-signer update.
-- [ ] Perform owner visual acceptance of the redesigned Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces, including Activity filter wrapping at real large-font scale.
-- [ ] Verify top-level navigation reselect-to-root, Insights-to-Activity expense drill-in without stale detail, and absence of clipping or overlap on the physical device.
-- [ ] Only after owner physical acceptance, close issue #73 and advance overall progress appropriately.
+- [ ] Merge #83 to develop only; do not touch main.
+- [ ] Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+- [ ] Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Completed foundations
 
@@ -22,6 +21,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Memory-independent, CI-enforced repository tracking (#79/#80)
 - [x] Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)
 - [x] Exact post-pass3 rc5 release-source validation and protected private publication (#82)
+- [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
 
 ## Rule
 

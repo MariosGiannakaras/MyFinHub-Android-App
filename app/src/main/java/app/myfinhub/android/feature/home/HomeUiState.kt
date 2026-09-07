@@ -22,6 +22,8 @@ data class HomeAccount(
     val role: String,
     val balance: Double,
     val group: HomeAccountGroup,
+    val isPrimary: Boolean = false,
+    val balanceTrend: List<Double> = listOf(balance, balance),
 )
 
 enum class HomeAccountGroup {
@@ -99,33 +101,48 @@ fun reduceHomeState(state: HomeUiState, action: HomeAction): HomeUiState = when 
     )
 }
 
+/** Explicit preview/test fixture. Production state is always projected from the canonical document. */
 fun syntheticHomeUiState(): HomeUiState = HomeUiState(
     accounts = listOf(
         HomeAccount(
             id = "cash",
             name = "Μετρητά",
-            role = "Καθημερινά",
+            role = "Μετρητά",
             balance = 185.40,
             group = HomeAccountGroup.LIQUID,
+            isPrimary = true,
+            balanceTrend = listOf(164.20, 176.80, 153.40, 194.10, 188.60, 181.20, 185.40),
         ),
         HomeAccount(
-            id = "payroll",
-            name = "Κύριος λογαριασμός",
-            role = "Μισθοδοσία",
+            id = "piraeus-payroll",
+            name = "Πειραιώς Μισθοδοσίας",
+            role = "Μισθοδοσίας",
             balance = 2_465.80,
             group = HomeAccountGroup.LIQUID,
+            isPrimary = true,
+            balanceTrend = listOf(2_128.40, 2_094.20, 2_028.70, 1_962.10, 1_884.00, 2_512.30, 2_465.80),
         ),
         HomeAccount(
-            id = "savings",
-            name = "Αποταμίευση",
-            role = "Μαξιλάρι ασφαλείας",
+            id = "piraeus-savings",
+            name = "Πειραιώς Αποταμίευση",
+            role = "Αποταμιευτικός",
             balance = 6_240.00,
             group = HomeAccountGroup.SAVINGS,
+            isPrimary = true,
+            balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
+        ),
+        HomeAccount(
+            id = "revolut-main",
+            name = "Revolut",
+            role = "Καθημερινός",
+            balance = 428.35,
+            group = HomeAccountGroup.LIQUID,
+            balanceTrend = listOf(510.20, 494.10, 481.60, 472.00, 451.20, 439.70, 428.35),
         ),
     ),
     recentItems = listOf(
-        HomeRecentItem("recent-1", "Σούπερ μάρκετ", "Κύριος λογαριασμός", "Σήμερα", -42.60, HomeRecentTone.EXPENSE),
-        HomeRecentItem("recent-2", "Μισθός", "Κύριος λογαριασμός", "Χθες", 1_650.00, HomeRecentTone.INCOME),
+        HomeRecentItem("recent-1", "Σούπερ μάρκετ", "Πειραιώς Μισθοδοσίας", "Σήμερα", -42.60, HomeRecentTone.EXPENSE),
+        HomeRecentItem("recent-2", "Μισθός", "Πειραιώς Μισθοδοσίας", "Χθες", 1_650.00, HomeRecentTone.INCOME),
     ),
     attentionItems = listOf(
         HomeAttentionItem(

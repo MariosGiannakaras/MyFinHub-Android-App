@@ -22,6 +22,7 @@ class CanonicalProductProjectionTest {
 
         assertEquals(2, projection.homeState.accounts.size)
         assertEquals(1_155.0, projection.homeState.accounts.first { it.id == "acc-main" }.balance, 0.001)
+        assertEquals(7, projection.homeState.accounts.first { it.id == "acc-main" }.balanceTrend.size)
         assertEquals(200.0, projection.homeState.monthFlow.income, 0.001)
         assertEquals(155.0, projection.homeState.monthFlow.expense, 0.001)
         assertEquals(800.0, projection.homeState.monthFlow.budget, 0.001)

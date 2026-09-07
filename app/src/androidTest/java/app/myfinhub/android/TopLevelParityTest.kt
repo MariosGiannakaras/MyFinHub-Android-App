@@ -8,7 +8,6 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -18,7 +17,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,7 +26,7 @@ class TopLevelParityTest {
 
     @Test
     fun moneyPlanAndInsights_haveRealMobileContent() {
-        composeRule.onNodeWithText("Χρήματα").performClick()
+        composeRule.onNodeWithText("Περιουσία").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
@@ -49,7 +47,7 @@ class TopLevelParityTest {
             .performScrollTo()
             .assertIsDisplayed()
 
-        composeRule.onNodeWithText("Αναλύσεις").performClick()
+        composeRule.onNodeWithText("Εικόνα").performClick()
         composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Κορυφαίες κατηγορίες"))
@@ -87,20 +85,22 @@ class TopLevelParityTest {
     }
 
     @Test
-    fun insights_drillsIntoExpenseActivityProjection() {
+    fun insights_opensActivityWithoutHiddenTransactionFilter() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
             .performScrollTo()
             .performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Αναλύσεις").performClick()
+        composeRule.onNodeWithText("Εικόνα").performClick()
         composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Προβολή σχετικών κινήσεων"))
-        composeRule.onNodeWithText("Προβολή σχετικών κινήσεων").performClick()
+            .performScrollToNode(hasText("Άνοιγμα κινήσεων"))
+        composeRule.onNodeWithText("Άνοιγμα κινήσεων").performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        assertTrue(composeRule.onAllNodesWithText("Μισθός").fetchSemanticsNodes().isEmpty())
+        composeRule.onNode(hasScrollAction())
+            .performScrollToNode(hasText("Μισθός"))
+        composeRule.onNodeWithText("Μισθός").assertIsDisplayed()
     }
 }

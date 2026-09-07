@@ -54,7 +54,14 @@ fun ProductionActivityPendingDetailScreenshot() {
 private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
         ActivityScreen(
-            state = ActivityUiState(items = pendingActivityItems()),
+            state = ActivityUiState(
+                items = pendingActivityItems(),
+                accountOptions = listOf(
+                    ActivityAccountOption("piraeus-payroll", "Πειραιώς Μισθοδοσίας"),
+                    ActivityAccountOption("cash", "Μετρητά"),
+                    ActivityAccountOption("piraeus-savings", "Πειραιώς Αποταμίευση"),
+                ),
+            ),
             onAction = {},
             onOpenDetail = {},
             onOpenQuickEntry = {},
@@ -73,6 +80,8 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Έξοδος",
         pendingSync = true,
+        rawDate = "2026-09-07",
+        accountId = "piraeus-payroll",
     ),
     ActivityItem(
         id = "evt-offline-market",
@@ -84,6 +93,8 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Τρόφιμα",
         pendingSync = true,
+        rawDate = "2026-09-07",
+        accountId = "piraeus-payroll",
     ),
     ActivityItem(
         id = "evt-synced-expense",
@@ -92,8 +103,10 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         title = "Μετακίνηση",
         subtitle = "Εισιτήριο",
         amount = -3.60,
-        accountLabel = "Πειραιώς Μισθοδοσίας",
+        accountLabel = "Μετρητά",
         category = "Μεταφορές",
+        rawDate = "2026-09-06",
+        accountId = "cash",
     ),
     ActivityItem(
         id = "evt-synced-income",
@@ -104,5 +117,7 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         amount = 1840.00,
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Μισθός",
+        rawDate = "2026-09-02",
+        accountId = "piraeus-payroll",
     ),
 )
