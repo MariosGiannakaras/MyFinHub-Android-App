@@ -1,0 +1,34 @@
+name: Temporary Activity FAB Clearance
+
+on:
+  push:
+    branches:
+      - android/full-product-reaudit-redesign
+    paths:
+      - scripts/temporary_activity_fab_clearance.py
+      - .github/workflows/temporary-activity-fab-clearance.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/full-product-reaudit-redesign
+          fetch-depth: 0
+      - name: Apply Activity FAB clearance fix
+        run: python3 scripts/temporary_activity_fab_clearance.py
+      - name: Commit production change and remove temporary helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm scripts/temporary_activity_fab_clearance.py
+          rm .github/workflows/temporary-activity-fab-clearance.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Reserve compact Activity space above FAB"
+          git push origin HEAD:android/full-product-reaudit-redesign
