@@ -65,26 +65,26 @@ Therefore Android navigation must be organized around **user goals**, not backen
 
 ### Repeated information
 
-The current production surfaces repeat the same values in multiple top-level contexts:
+The prior production surfaces repeated the same values in multiple top-level contexts:
 
-- monthly income/expense appears on Home, Activity and Insights;
-- savings appears on Home, Money and Insights;
-- budget appears on Home and Plan;
-- account totals appear on Home and Money;
-- forecast/end balance appears twice inside Plan;
-- “hero” treatment is used on nearly every top-level tab, so every screen competes to be the dashboard.
+- monthly income/expense appeared on Home, Activity and Insights;
+- savings appeared on Home, Money and Insights;
+- budget appeared on Home and Plan;
+- account totals appeared on Home and Money;
+- forecast/end balance appeared twice inside Plan;
+- “hero” treatment was used on nearly every top-level tab, so every screen competed to be the dashboard.
 
-This makes the application feel like several variations of the same summary instead of distinct tools.
+This made the application feel like several variations of the same summary instead of distinct tools.
 
 ### Weak ownership
 
-Some information does not have a single canonical screen owner:
+Some information did not have a single canonical screen owner:
 
-- Home mixes stock values, flow values, budget and savings.
-- Activity begins with another finance summary instead of the movement-management task.
-- Money mixes portfolio totals with the same account/savings values already shown on Home.
-- Plan repeats its forecast and uses budget as both summary content and a configuration destination.
-- Insights begins with current-month net flow again instead of answering “what changed and why?”
+- Home mixed stock values, flow values, budget and savings.
+- Activity began with another finance summary instead of the movement-management task.
+- Money mixed portfolio totals with the same account/savings values already shown on Home.
+- Plan repeated its forecast and used budget as both summary content and a configuration destination.
+- Insights began with current-month net flow again instead of answering “what changed and why?”.
 
 ### Desktop-shaped secondary functionality
 
@@ -94,7 +94,7 @@ The desktop has separate pages for Review, Attention, Reports, Recurring, Saving
 
 ### Bottom navigation
 
-1. **Αρχική** — what matters today.
+1. **Αρχική** — the accounts that matter most now.
 2. **Κινήσεις** — find, inspect and correct financial events.
 3. **Περιουσία** — accounts, savings, cards, debt and receivables.
 4. **Πλάνο** — scheduled, recurring, budgets and deterministic forecast.
@@ -107,8 +107,8 @@ Settings remains a secondary app-level destination, not a sixth bottom-navigatio
 - **Activity** owns Review because both workflows correct/confirm movement semantics.
 - **Money** owns Savings, Cards/Credit, Loans and Lending.
 - **Plan** owns Recurring and budgets because they describe future obligations.
-- **Home** owns Attention because it answers “what needs action now?”
-- **Insights** owns report-only derived analysis and must not repeat Home’s current-month dashboard.
+- **Home** owns Attention because it answers “what needs action now?” without becoming another finance-summary dashboard.
+- **Insights** owns report-only derived analysis and must not repeat Home or Activity.
 
 ## Content ownership rules
 
@@ -117,9 +117,9 @@ These rules are mandatory for the redesign:
 1. A financial metric has one primary home.
 2. Other screens may reference it only when it is needed to complete that screen’s task.
 3. No top-level screen gets a decorative hero merely for visual consistency.
-4. Home may summarize; it must not duplicate full lists that belong elsewhere.
-5. Activity starts with search/filter/results, not global month KPIs.
-6. Money owns current stock values: balances, debts, receivables and card position.
+4. Home is account-first: it prioritizes the three canonical primary accounts and then secondary accounts; it does not lead with total cash or net-position aggregation.
+5. Activity starts with search/account filtering/results and contains transactions only; it does not own global month KPIs or transaction-type summary chips.
+6. Money owns current stock categories beyond the Home prioritization: balances, debts, receivables and card position.
 7. Plan owns future state: due items, recurring obligations, budget controls and forecast.
 8. Insights owns change over time, comparisons and concentration; it does not restate current totals.
 9. Sensitive card values are revealed only in card detail under the existing secure-window/session boundaries.
@@ -129,44 +129,58 @@ These rules are mandatory for the redesign:
 
 ### Home
 
-Keep:
-- available/liquid money as the single primary value;
-- one fast-entry action;
-- urgent attention;
-- next due obligations;
-- compact month context;
-- a small recent-activity preview.
+Primary task:
+- see the important accounts immediately, without first interpreting a global total.
 
-Remove:
-- full account list duplication;
-- full month KPI grid;
-- savings/budget detail that belongs to Money/Plan.
+Keep / implement:
+- the same three primary account identities used by the desktop dashboard: `cash`, `piraeus-payroll`, `piraeus-savings`;
+- canonical current balance per primary account;
+- compact seven-day canonical balance trend per primary account;
+- secondary accounts below the primary three;
+- fast entry access;
+- attention/upcoming content only when it remains concise and action-oriented.
+
+Do not use as the lead content:
+- total available/liquid money;
+- net position;
+- monthly income/expense KPI hero;
+- savings/budget aggregate hero.
+
+Account metadata such as IBAN is a separate backend contract (`/api/account-metadata`). Android must not fabricate it from FinanceData; it can be added only through an explicit safe API integration.
 
 ### Activity
 
-Keep:
-- search;
-- filter chips;
-- chronological sections;
-- detail/edit/delete.
+Primary task:
+- browse and work with actual transactions.
 
-Change:
-- replace the global hero with a compact result context (count + filtered net only when useful);
-- make “needs review” a future first-class Activity sub-workflow rather than another main destination.
+Keep / implement:
+- search;
+- account filter;
+- chronological date/month sections;
+- transaction rows;
+- detail/edit/delete where canonically supported;
+- new-transaction entry.
+
+Do not show:
+- global or filtered finance hero;
+- income/expense/net KPI summary;
+- transaction-type chips solely for dashboard-style segmentation.
+
+“Needs review” remains a secondary Activity workflow rather than another main destination.
 
 ### Money → “Περιουσία”
 
-Primary value:
-- net financial position.
+Primary task:
+- inspect durable assets, liabilities and financial instruments that do not belong in the compact Home prioritization.
 
 Sections:
-- liquid/accounts;
+- accounts/details beyond Home’s primary three;
 - savings;
 - cards/credit;
 - debt;
 - receivables.
 
-Do not repeat four hero metrics that are immediately repeated by the sections below.
+Avoid repeating Home’s three account cards or decorative top-level totals when the same values are immediately repeated in sections below.
 
 ### Plan
 
@@ -213,7 +227,7 @@ The current canonical Android projection already covers accounts, movements, sav
 - recurring lifecycle/payment actions;
 - richer credit statement lifecycle and purchases/payments where safely supported;
 - backup/import/history access at Settings level;
-- account metadata management where supported;
+- account metadata management through the separate owner+AAL2 metadata contract;
 - report comparisons beyond the minimal current Android insight projection.
 
 Each gap must reuse canonical server/domain semantics. If the current Android model cannot express a desktop action safely, the UI must not invent a local-only approximation.
