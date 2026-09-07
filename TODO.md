@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge #83 to develop only; do not touch main.
-- [ ] Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
-- [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+- [ ] Install or update to the privately published 1.0.0-rc6 / 10005 candidate on the Samsung Galaxy S24 Ultra without replacing the enrolled signing identity.
+- [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, account-first Home, transaction-only Activity, account filtering, navigation behavior and visual inspection.
+- [ ] If physical owner feedback rejects any product result, keep overall progress at 4/6, reopen the relevant redesign work and publish a higher same-signer candidate only after fixes and hosted validation.
 - [ ] Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Completed foundations
@@ -21,7 +21,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Memory-independent, CI-enforced repository tracking (#79/#80)
 - [x] Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)
 - [x] Exact post-pass3 rc5 release-source validation and protected private publication (#82)
-- [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
+- [x] Full-product re-audit information architecture, implementation, hosted validation and merge (#83)
+- [x] Exact full-product re-audit rc6 release-source validation and protected private publication (#84)
 
 ## Rule
 
