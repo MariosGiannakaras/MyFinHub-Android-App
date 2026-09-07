@@ -160,28 +160,6 @@ fun CanonicalPlanScreen(
                 }
             }
 
-            item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        MyFinHubSectionHeading(
-                            title = "Πρόβλεψη",
-                            subtitle = "Μετά τις συγχρονισμένες επόμενες κινήσεις",
-                            icon = MyFinHubIcons.Insights,
-                            tone = FinanceTone.Transfer,
-                        )
-                        MyFinHubAmountText(
-                            text = formatCanonicalPlanEuro(state.forecastEndBalance),
-                            tone = if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                        Text(
-                            "Υπολογίζεται μόνο από τα τρέχοντα διαθέσιμα και τις καταγεγραμμένες επόμενες κινήσεις.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
         }
     }
 }

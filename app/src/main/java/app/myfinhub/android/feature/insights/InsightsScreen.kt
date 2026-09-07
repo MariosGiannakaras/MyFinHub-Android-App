@@ -44,14 +44,16 @@ fun InsightsScreen(
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val latest = state.monthlyTrend.lastOrNull()
+    val previous = state.monthlyTrend.dropLast(1).lastOrNull()
     val latestNet = latest?.let { it.income - it.expense } ?: 0.0
+    val previousNet = previous?.let { it.income - it.expense }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
-                title = "Αναλύσεις",
-                subtitle = "Τι συμβαίνει στα χρήματά σου",
+                title = "Εικόνα",
+                subtitle = "Τι αλλάζει και πού πηγαίνουν τα χρήματά σου",
             )
         },
     ) { padding ->
@@ -68,8 +70,10 @@ fun InsightsScreen(
             item {
                 FinancialPulseCard(
                     latestMonth = latest?.label,
+                    latestExpense = latest?.expense ?: 0.0,
+                    previousExpense = previous?.expense,
                     latestNet = latestNet,
-                    averageSpend = state.averageMonthlySpend,
+                    previousNet = previousNet,
                     savingsRate = state.savingsRate,
                     largeFont = largeFont,
                 )
@@ -108,35 +112,49 @@ fun InsightsScreen(
 @Composable
 private fun FinancialPulseCard(
     latestMonth: String?,
+    latestExpense: Double,
+    previousExpense: Double?,
     latestNet: Double,
-    averageSpend: Double,
+    previousNet: Double?,
     savingsRate: Int,
     largeFont: Boolean,
 ) {
-    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
-            MyFinHubHeroHeading(
-                eyebrow = latestMonth?.let { "Καθαρή ροή $it" } ?: "Καθαρή ροή",
-                title = "Οικονομικός παλμός",
-                supporting = "Τάση δαπανών και ρυθμός αποταμίευσης",
-                modifier = Modifier.semantics { heading() },
-            )
-            MyFinHubHeroValue(formatEuro(latestNet))
+    val expenseDelta = previousExpense?.takeIf { kotlin.math.abs(it) > 0.005 }?.let { ((latestExpense - it) / kotlin.math.abs(it)) * 100.0 }
+    val netDelta = previousNet?.let { latestNet - it }
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text("Τι άλλαξε", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            latestMonth?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (largeFont) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    MyFinHubHeroMetric("Μέση μηνιαία δαπάνη", formatEuro(averageSpend))
-                    MyFinHubHeroMetric("Ρυθμός αποταμίευσης", "$savingsRate%")
+                    InsightComparisonMetric("Έξοδα", formatEuro(latestExpense), expenseDelta?.let { "${if (it >= 0) "+" else ""}${it.toInt()}% από πριν" } ?: "Χωρίς βάση")
+                    InsightComparisonMetric("Μεταβολή καθαρής ροής", netDelta?.let(::formatEuro) ?: "—", "έναντι προηγούμενου μήνα")
+                    InsightComparisonMetric("Ρυθμός αποταμίευσης", "$savingsRate%", "τρέχων μήνας")
                 }
             } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-                ) {
-                    MyFinHubHeroMetric("Μέση δαπάνη", formatEuro(averageSpend), Modifier.weight(1f))
-                    MyFinHubHeroMetric("Αποταμίευση", "$savingsRate%", Modifier.weight(1f))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    InsightComparisonMetric("Έξοδα", formatEuro(latestExpense), expenseDelta?.let { "${if (it >= 0) "+" else ""}${it.toInt()}%" } ?: "—", Modifier.weight(1f))
+                    InsightComparisonMetric("Διαφορά ροής", netDelta?.let(::formatEuro) ?: "—", "από πριν", Modifier.weight(1f))
                 }
+                InsightComparisonMetric("Ρυθμός αποταμίευσης", "$savingsRate%", "τρέχων μήνας")
             }
         }
+    }
+}
+
+@Composable
+private fun InsightComparisonMetric(
+    label: String,
+    value: String,
+    supporting: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
+        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(supporting, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

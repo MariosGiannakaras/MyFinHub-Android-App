@@ -80,8 +80,8 @@ fun CanonicalMoneyScreen(
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
-                title = "Χρήματα",
-                subtitle = "Η συγχρονισμένη οικονομική σου εικόνα",
+                title = "Περιουσία",
+                subtitle = "Τι έχεις και τι οφείλεις",
             )
         },
     ) { padding ->
@@ -103,24 +103,15 @@ fun CanonicalMoneyScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
                         MyFinHubHeroHeading(
                             eyebrow = "Καθαρή θέση",
-                            title = "Όλα τα χρήματά σου",
-                            supporting = "Λογαριασμοί, αποταμίευση, οφειλές και απαιτήσεις",
+                            title = "Η συνολική σου θέση",
+                            supporting = "Λογαριασμοί και απαιτήσεις, μείον τις οφειλές",
                         )
                         MyFinHubHeroValue(formatCanonicalEuro(netPosition))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-                        ) {
-                            MyFinHubHeroMetric("Λογαριασμοί", formatCanonicalEuro(accountTotal), Modifier.weight(1f))
-                            MyFinHubHeroMetric("Αποταμίευση", formatCanonicalEuro(state.savingsCurrent), Modifier.weight(1f))
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-                        ) {
-                            MyFinHubHeroMetric("Οφειλές", formatCanonicalEuro(state.loanOutstanding), Modifier.weight(1f))
-                            MyFinHubHeroMetric("Απαιτήσεις", formatCanonicalEuro(state.lendingReceivable), Modifier.weight(1f))
-                        }
+                        Text(
+                            "Οι αναλυτικές αξίες εμφανίζονται στις αντίστοιχες ενότητες παρακάτω.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f),
+                        )
                     }
                 }
             }

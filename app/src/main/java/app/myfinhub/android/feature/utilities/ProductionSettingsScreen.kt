@@ -62,7 +62,7 @@ fun ProductionSettingsScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ρυθμίσεις",
-                subtitle = "Προσαρμογή και λογαριασμός",
+                subtitle = "Εμφάνιση, απόρρητο, ενημέρωση και συνεδρία",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -75,23 +75,6 @@ fun ProductionSettingsScreen(
                 .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.sm),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
-                    MyFinHubHeroHeading(
-                        eyebrow = "Έλεγχος εφαρμογής",
-                        title = "Δική σου εμπειρία, ασφαλή δεδομένα",
-                        supporting = "Ρύθμισε τι βλέπεις χωρίς να αλλάξεις τα συγχρονισμένα οικονομικά δεδομένα",
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-                    ) {
-                        MyFinHubHeroMetric("Θέμα", appearance.label, Modifier.weight(1f))
-                        MyFinHubHeroMetric("Ποσά", if (amountsVisible) "Ορατά" else "Κρυφά", Modifier.weight(1f))
-                    }
-                }
-            }
-
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)

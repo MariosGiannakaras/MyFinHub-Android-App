@@ -276,26 +276,28 @@ private fun ActivityList(
 
 @Composable
 private fun ActivityProjectionSummary(state: ActivityUiState) {
-    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
-            MyFinHubHeroHeading(
-                eyebrow = "Τρέχον φίλτρο",
-                title = "Ορατή εικόνα",
-                supporting = "${state.visibleItems.size} κινήσεις · καθαρή ροή",
-            )
-            MyFinHubHeroValue(formatSignedEuro(state.visibleNet))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-            ) {
-                MyFinHubHeroMetric("Έσοδα", formatUnsignedEuro(state.visibleIncome), Modifier.weight(1f))
-                MyFinHubHeroMetric("Έξοδα", formatUnsignedEuro(state.visibleExpense), Modifier.weight(1f))
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Αποτελέσματα", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "${state.visibleItems.size} ${if (state.visibleItems.size == 1) "κίνηση" else "κινήσεις"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                MyFinHubAmountText(
+                    text = formatSignedEuro(state.visibleNet),
+                    tone = if (state.visibleNet >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
             if (state.visiblePendingCount > 0) {
                 Text(
                     text = "${state.visiblePendingCount} ${if (state.visiblePendingCount == 1) "κίνηση περιμένει" else "κινήσεις περιμένουν"} επιβεβαίωση από τον server",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
