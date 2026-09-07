@@ -5,11 +5,11 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run Android compile/unit/lint/release checks and representative S24-target instrumentation for the third redesign pass.
-- [ ] Render fresh real Compose screenshots for every changed production surface in light, dark and large-font states; personally inspect and correct visual defects before accepting new canonical references.
-- [ ] Merge the validated third redesign pass into develop only after clean tracking, screenshot and Android gates.
-- [ ] Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 source.
-- [ ] Repeat authoritative physical Galaxy S24 Ultra acceptance; owner visual acceptance is required before progress advances.
+- [ ] Merge the hosted-validated third redesign pass into develop.
+- [ ] After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.
+- [ ] Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.
+- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.
+- [ ] Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73.
 
 ## Completed foundations
 

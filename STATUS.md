@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `pass3_implementation_in_progress`
+State: `pass3_hosted_validated_ready_for_merge`
 
-The owner rejected rc4 as visually insufficient. A third production redesign pass is now implemented on the active branch across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, replacing the repeated neutral-card hierarchy with a high-emphasis brand hero layer. This pass is not complete until fresh real Compose screenshots are inspected and all hosted gates pass.
+The owner rejected rc4 as visually insufficient. The third production redesign pass is now implemented across Home, Activity, Money, Plan, Insights, Quick Entry and Settings with a high-emphasis brand hero layer. Fresh real Compose renders were personally inspected in light, dark and large-font states; the Activity large-font filter clipping found during inspection was corrected; exactly 23 changed screenshot references were accepted; and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates are green. The pass is hosted-validated and ready to merge into develop, but physical redesign acceptance has not yet occurred.
 
 ## Current production candidate
 
@@ -21,11 +21,11 @@ rc4 remains a technically valid same-signer production build, but owner physical
 
 ## Next
 
-1. Run Android compile/unit/lint/release checks and representative S24-target instrumentation for the third redesign pass.
-2. Render fresh real Compose screenshots for every changed production surface in light, dark and large-font states; personally inspect and correct visual defects before accepting new canonical references.
-3. Merge the validated third redesign pass into develop only after clean tracking, screenshot and Android gates.
-4. Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 source.
-5. Repeat authoritative physical Galaxy S24 Ultra acceptance; owner visual acceptance is required before progress advances.
+1. Merge the hosted-validated third redesign pass into develop.
+2. After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.
+3. Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.
+4. On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.
+5. Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73.
 
 ## Non-negotiable constraints
 
