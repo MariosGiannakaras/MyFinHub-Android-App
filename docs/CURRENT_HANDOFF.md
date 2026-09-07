@@ -17,20 +17,22 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_rc6_published_awaiting_physical_acceptance`.
-- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_awaiting_physical_owner_acceptance`.
+- Workstream state: `rc6_owner_feedback_rework_in_progress`.
+- Latest private production candidate: `1.0.0-rc6` / `10005` — `owner_rejected_rework_in_progress`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The first-principles Android product re-audit was merged to develop by PR #83 after fresh real Compose light, dark and large-font inspection, clean screenshot regression, S24-target instrumentation and full Android CI/R8. The owner-requested account-first Home prioritizes the three primary accounts with canonical seven-day trends and secondary accounts below; Activity is transaction-only with search and account filtering. Exact release-source PR #84 then passed Project Tracking, Android CI/R8, screenshot regression without baseline regeneration and S24-target instrumentation. The protected publisher built immutable source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled production signer, and privately published 1.0.0-rc6 / 10005. Backend release metadata independently confirms SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. PR #84 was closed without merge as required. Hosted validation and publication do not constitute owner acceptance; the remaining authority is physical in-place acceptance on the Samsung Galaxy S24 Ultra.
+Protected same-signer 1.0.0-rc6 / 10005 remains a valid technical publication but was explicitly rejected by the owner during the physical/product review. The required rework is now focused on four concrete product gaps: account identity must use semantic account names with the financial provider shown separately and official provider logos; Cards must expose canonical creation, credit-card activity, working carousel position indicators and deletion motion parity with the desktop product; the Insights surface (`Εικόνα`) must be materially redesigned around clearer trend/comparison storytelling rather than the current presentation. The transaction-only Activity direction and account-first Home structure remain accepted foundations. No local-only finance approximations are allowed; every action must use existing canonical Android/domain/backend contracts or remain an explicit gap. A higher protected same-signer candidate will be required after fresh real-render inspection and exact-head hosted validation.
 
 ## Immediate work
 
-- Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-- Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-- If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-- Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+- Map canonical account/provider identity and official provider assets, then replace abbreviated account labels with semantic account names plus separate provider identity across the changed Android surfaces.
+- Complete the canonical Cards experience: expose card creation, surface supported credit-card activity, bind carousel indicators to real pager state and restore deletion transition parity without weakening mutation/reconciliation safety.
+- Redesign `Εικόνα` around mobile-first trends, period comparison and category/change insight while removing repetitive presentation.
+- Produce fresh real Compose light, dark and large-font renders for every changed production surface, personally inspect and fix them, then update canonical screenshot references only after approval.
+- Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8; merge only to develop and publish a version strictly higher than 10005 through the protected enrolled-signer publisher.
+- Perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra; only explicit acceptance may close issue #73 and advance overall progress.
 
 ## Constraints
 
