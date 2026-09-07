@@ -17,22 +17,22 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_and_mobile_rearchitecture_in_progress`.
+- Workstream state: `full_product_reaudit_visual_validation_in_progress`.
 - Latest private production candidate: `1.0.0-rc5` / `10004` — `published_baseline_superseded_by_reaudit`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner explicitly requested a fresh whole-product audit and Android rebuild based on the current canonical desktop product and backend, rather than another incremental visual pass. The re-audit maps every desktop workflow and the revisioned owner-only backend contracts, then rebuilds the Android information architecture and production Compose surfaces around mobile user goals while preserving the existing canonical data, auth, offline, reconciliation, updater and signing foundations. The published same-signer rc5 remains a valid unaccepted baseline, but physical acceptance of rc5 is no longer the active product checkpoint because this broader redesign supersedes it.
+The owner explicitly requested a fresh whole-product audit and Android rebuild based on the current canonical desktop product and backend, rather than another incremental visual pass. The re-audit now includes the owner-requested account-first Home and transaction-only Activity: Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day account trends and secondary accounts below, while Activity contains search, account filtering and transactions without an aggregate hero. Fresh Compose candidate inspection found large-font layout defects in Home and Activity; those defects were corrected before baseline acceptance. The published same-signer rc5 remains a valid unaccepted technical baseline and will be superseded only after this broader redesign passes hosted validation.
 
 ## Immediate work
 
-- Complete and keep checked in the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow.
-- Rebuild the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, removing repeated information and desktop-shaped page structure.
-- Expose any high-value canonical workflows still missing from Android only where the existing backend/domain contracts support them safely; do not invent semantics or rewrite stable infrastructure.
-- Generate fresh real Compose renders for every changed production surface in light, dark and large-font states, personally inspect them, fix defects and accept only validated canonical references.
-- Run exact-head Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8 gates on the completed redesign PR.
-- Only after hosted validation, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
+- Generate fresh exact-head real Compose renders after the inspected Home and Activity large-font fixes, then personally inspect light, dark and large-font states before accepting any screenshot baseline.
+- Complete the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow, exposing only high-value gaps supported safely by existing contracts.
+- Finish the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings without reintroducing repeated summaries.
+- Accept only visually validated screenshot references, then require a clean exact-head screenshot-regression pass and representative S24-target instrumentation.
+- Run full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
+- Only after hosted validation, merge to develop, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Constraints
 

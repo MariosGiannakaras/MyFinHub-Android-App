@@ -5,12 +5,12 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete and keep checked in the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow.
-- [ ] Rebuild the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, removing repeated information and desktop-shaped page structure.
-- [ ] Expose any high-value canonical workflows still missing from Android only where the existing backend/domain contracts support them safely; do not invent semantics or rewrite stable infrastructure.
-- [ ] Generate fresh real Compose renders for every changed production surface in light, dark and large-font states, personally inspect them, fix defects and accept only validated canonical references.
-- [ ] Run exact-head Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8 gates on the completed redesign PR.
-- [ ] Only after hosted validation, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
+- [ ] Generate fresh exact-head real Compose renders after the inspected Home and Activity large-font fixes, then personally inspect light, dark and large-font states before accepting any screenshot baseline.
+- [ ] Complete the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow, exposing only high-value gaps supported safely by existing contracts.
+- [ ] Finish the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings without reintroducing repeated summaries.
+- [ ] Accept only visually validated screenshot references, then require a clean exact-head screenshot-regression pass and representative S24-target instrumentation.
+- [ ] Run full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
+- [ ] Only after hosted validation, merge to develop, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Completed foundations
 

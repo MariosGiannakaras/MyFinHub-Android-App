@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `full_product_reaudit_and_mobile_rearchitecture_in_progress`
+State: `full_product_reaudit_visual_validation_in_progress`
 
-The owner explicitly requested a fresh whole-product audit and Android rebuild based on the current canonical desktop product and backend, rather than another incremental visual pass. The re-audit maps every desktop workflow and the revisioned owner-only backend contracts, then rebuilds the Android information architecture and production Compose surfaces around mobile user goals while preserving the existing canonical data, auth, offline, reconciliation, updater and signing foundations. The published same-signer rc5 remains a valid unaccepted baseline, but physical acceptance of rc5 is no longer the active product checkpoint because this broader redesign supersedes it.
+The owner explicitly requested a fresh whole-product audit and Android rebuild based on the current canonical desktop product and backend, rather than another incremental visual pass. The re-audit now includes the owner-requested account-first Home and transaction-only Activity: Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day account trends and secondary accounts below, while Activity contains search, account filtering and transactions without an aggregate hero. Fresh Compose candidate inspection found large-font layout defects in Home and Activity; those defects were corrected before baseline acceptance. The published same-signer rc5 remains a valid unaccepted technical baseline and will be superseded only after this broader redesign passes hosted validation.
 
 ## Current production candidate
 
@@ -21,12 +21,12 @@ rc5 remains the last successfully protected, same-signer published production AP
 
 ## Next
 
-1. Complete and keep checked in the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow.
-2. Rebuild the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, removing repeated information and desktop-shaped page structure.
-3. Expose any high-value canonical workflows still missing from Android only where the existing backend/domain contracts support them safely; do not invent semantics or rewrite stable infrastructure.
-4. Generate fresh real Compose renders for every changed production surface in light, dark and large-font states, personally inspect them, fix defects and accept only validated canonical references.
-5. Run exact-head Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8 gates on the completed redesign PR.
-6. Only after hosted validation, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
+1. Generate fresh exact-head real Compose renders after the inspected Home and Activity large-font fixes, then personally inspect light, dark and large-font states before accepting any screenshot baseline.
+2. Complete the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow, exposing only high-value gaps supported safely by existing contracts.
+3. Finish the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings without reintroducing repeated summaries.
+4. Accept only visually validated screenshot references, then require a clean exact-head screenshot-regression pass and representative S24-target instrumentation.
+5. Run full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
+6. Only after hosted validation, merge to develop, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Non-negotiable constraints
 
