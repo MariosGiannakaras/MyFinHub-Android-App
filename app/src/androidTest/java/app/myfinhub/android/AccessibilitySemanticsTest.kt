@@ -24,7 +24,7 @@ class AccessibilitySemanticsTest {
     fun criticalSurfaces_haveSpokenLabelsForClickableSemantics() {
         assertClickableNodesHaveSpokenLabels("Home")
 
-        listOf("Κινήσεις", "Χρήματα", "Πλάνο", "Αναλύσεις").forEach { destination ->
+        listOf("Κινήσεις", "Περιουσία", "Πλάνο", "Εικόνα").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
@@ -45,7 +45,7 @@ class AccessibilitySemanticsTest {
         composeRule.enableAccessibilityChecks()
         checkCurrentSurface()
 
-        listOf("Κινήσεις", "Χρήματα", "Πλάνο", "Αναλύσεις").forEach { destination ->
+        listOf("Κινήσεις", "Περιουσία", "Πλάνο", "Εικόνα").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             checkCurrentSurface()
