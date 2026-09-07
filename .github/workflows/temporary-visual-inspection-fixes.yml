@@ -19,8 +19,9 @@ jobs:
           ref: android/full-product-reaudit-redesign
           fetch-depth: 0
       - name: Apply inspected layout fixes
-        shell: python
+        shell: bash
         run: |
+          python - <<'PY'
           from pathlib import Path
 
           home = Path('app/src/main/java/app/myfinhub/android/feature/home/ProductionHomeScreen.kt')
@@ -75,12 +76,12 @@ jobs:
           new = 'bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,'
           if old not in text:
               raise SystemExit('Activity bottom-clearance pattern not found')
-          text = text.replace(old, new, 1)
-          activity.write_text(text)
+          activity.write_text(text.replace(old, new, 1))
 
-          workflow = Path('.github/workflows/temporary-visual-inspection-fixes.yml')
-          workflow.unlink()
+          Path('.github/workflows/temporary-visual-inspection-fixes.yml').unlink()
+          PY
       - name: Commit fixes and remove temporary workflow
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
