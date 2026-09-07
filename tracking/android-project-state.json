@@ -1,21 +1,24 @@
 {
   "schema_version": 1,
   "updated_at": "2026-09-07",
-  "overall_progress": {"completed": 4, "total": 6},
+  "overall_progress": {
+    "completed": 4,
+    "total": 6
+  },
   "supported_device": "Samsung Galaxy S24 Ultra",
   "authoritative_branch": "develop",
   "release_branch": "main",
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "implementation_reopened_after_physical_feedback",
-    "summary": "The owner installed 1.0.0-rc4 and reported that the product shows little or no materially visible redesign versus rc3. Physical acceptance therefore failed; the redesign workstream is back in implementation rather than final acceptance.",
+    "status": "pass3_hosted_validated_ready_for_merge",
+    "summary": "The owner rejected rc4 as visually insufficient. The third production redesign pass is now implemented across Home, Activity, Money, Plan, Insights, Quick Entry and Settings with a high-emphasis brand hero layer. Fresh real Compose renders were personally inspected in light, dark and large-font states; the Activity large-font filter clipping found during inspection was corrected; exactly 23 changed screenshot references were accepted; and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates are green. The pass is hosted-validated and ready to merge into develop, but physical redesign acceptance has not yet occurred.",
     "next": [
-      "Audit the actual production MyFinHubRoot -> MyFinHubAppContent route and all production-only surfaces.",
-      "Implement a genuinely visible third redesign pass across the daily-use production UI, not only Activity/navigation behavior.",
-      "Render real Compose screenshots for every materially changed surface, personally inspect them, replace canonical references, and run Android/UI/S24-target gates.",
-      "Publish a higher same-signer private production candidate only after the redesigned source is fully validated.",
-      "Repeat authoritative physical Galaxy S24 Ultra acceptance; only then advance progress."
+      "Merge the hosted-validated third redesign pass into develop.",
+      "After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.",
+      "Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.",
+      "On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.",
+      "Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73."
     ]
   },
   "latest_production_candidate": {
@@ -23,7 +26,7 @@
     "version_code": 10003,
     "status": "published_but_not_accepted",
     "source_pr": 78,
-    "notes": "Includes PR #75 over the rc3 baseline. Hosted validation and protected publication passed, but owner physical feedback says the visual delta is insufficient for the radical-redesign goal."
+    "notes": "rc4 remains a technically valid same-signer production build, but owner physical feedback rejected its visual delta. It is the installed baseline for the next in-place candidate, not the accepted redesign result."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -31,19 +34,24 @@
     "General offline-first canonical mutation queue (#56/#57)",
     "Post-Phase-6 redesign pass 1 (#74)",
     "Post-Phase-6 Activity/navigation pass 2 (#75)",
-    "Protected private rc4 publication"
+    "Protected private rc4 publication",
+    "Memory-independent, CI-enforced repository tracking (#79/#80)"
   ],
   "constraints": [
     "Android-only scope unless a real Android dependency requires central integration.",
     "main is release-only; do not promote develop -> main without an explicit release decision.",
     "Use only the enrolled production signer and protected private publisher for production APKs.",
     "Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI reference.",
-    "For UI changes use real rendered Compose screenshots, personally inspect them, and replace stale canonical references.",
+    "For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.",
     "Do not infer completion from hosted gates when owner physical feedback rejects the product result."
   ],
   "repo_tracking": {
     "source_of_truth": "tracking/android-project-state.json",
-    "generated_files": ["STATUS.md", "TODO.md", "docs/CURRENT_HANDOFF.md"],
+    "generated_files": [
+      "STATUS.md",
+      "TODO.md",
+      "docs/CURRENT_HANDOFF.md"
+    ],
     "policy": "Product/release PRs must update the canonical state in the same PR; CI verifies generated tracking is synchronized. New chats/agents must read AGENTS.md, this state file, generated handoff, permanent issue #27, and live GitHub state before acting."
   }
 }

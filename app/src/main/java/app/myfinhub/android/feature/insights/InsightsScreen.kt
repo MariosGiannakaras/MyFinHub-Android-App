@@ -24,6 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
+import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -109,41 +113,27 @@ private fun FinancialPulseCard(
     savingsRate: Int,
     largeFont: Boolean,
 ) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Text(
-                "Οικονομικός παλμός",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+            MyFinHubHeroHeading(
+                eyebrow = latestMonth?.let { "Καθαρή ροή $it" } ?: "Καθαρή ροή",
+                title = "Οικονομικός παλμός",
+                supporting = "Τάση δαπανών και ρυθμός αποταμίευσης",
                 modifier = Modifier.semantics { heading() },
             )
-            Text(
-                latestMonth?.let { "Καθαρή ροή $it" } ?: "Καθαρή ροή",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            MyFinHubAmountText(
-                text = formatEuro(latestNet),
-                tone = if (latestNet >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                style = MaterialTheme.typography.headlineMedium,
-            )
-
+            MyFinHubHeroValue(formatEuro(latestNet))
             if (largeFont) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    PulseMetric("Μέση μηνιαία δαπάνη", formatEuro(averageSpend), MyFinHubIcons.Expense, FinanceTone.Expense)
-                    PulseMetric("Ρυθμός αποταμίευσης", "$savingsRate%", MyFinHubIcons.Savings, FinanceTone.Savings)
+                    MyFinHubHeroMetric("Μέση μηνιαία δαπάνη", formatEuro(averageSpend))
+                    MyFinHubHeroMetric("Ρυθμός αποταμίευσης", "$savingsRate%")
                 }
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        PulseMetric("Μέση δαπάνη", formatEuro(averageSpend), MyFinHubIcons.Expense, FinanceTone.Expense)
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        PulseMetric("Αποταμίευση", "$savingsRate%", MyFinHubIcons.Savings, FinanceTone.Savings)
-                    }
+                    MyFinHubHeroMetric("Μέση δαπάνη", formatEuro(averageSpend), Modifier.weight(1f))
+                    MyFinHubHeroMetric("Αποταμίευση", "$savingsRate%", Modifier.weight(1f))
                 }
             }
         }

@@ -34,6 +34,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -125,23 +127,32 @@ fun ProductionQuickEntryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            Text(
-                "Πόσο;",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            MyFinHubOutlinedField(
-                value = state.amountText,
-                onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                label = "Ποσό",
-                suffix = { Text("€") },
-                errorMessage = state.validationMessage.takeIf { it == "Βάλε ποσό μεγαλύτερο από μηδέν." },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Next,
-                ),
-                focusRequester = amountFocus,
-            )
+            MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    MyFinHubHeroHeading(
+                        eyebrow = "Γρήγορη καταχώριση",
+                        title = "Πόσο ${state.kind.label.lowercase()};",
+                        supporting = "Το ποσό και ο τύπος είναι τα μόνα απαραίτητα για να ξεκινήσεις",
+                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Box(modifier = Modifier.padding(MyFinHubSpacing.xs)) {
+                            MyFinHubOutlinedField(
+                                value = state.amountText,
+                                onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
+                                label = "Ποσό",
+                                suffix = { Text("€") },
+                                errorMessage = state.validationMessage.takeIf { it == "Βάλε ποσό μεγαλύτερο από μηδέν." },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                                focusRequester = amountFocus,
+                            )
+                        }
+                    }
+                }
+            }
 
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             Row(

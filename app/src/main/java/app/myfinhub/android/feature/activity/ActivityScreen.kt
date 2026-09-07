@@ -1,10 +1,10 @@
 package app.myfinhub.android.feature.activity
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -45,6 +44,10 @@ import app.myfinhub.android.designsystem.MyFinHubFilterChip
 import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubHeroCard
+import app.myfinhub.android.designsystem.MyFinHubHeroHeading
+import app.myfinhub.android.designsystem.MyFinHubHeroMetric
+import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -162,19 +165,34 @@ private fun ActivityList(
             )
         }
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            FlowRow(
+
+                modifier = Modifier.fillMaxWidth(),
+
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+
             ) {
+
                 ActivityFilter.entries.forEach { filter ->
+
                     MyFinHubFilterChip(
+
                         selected = state.filter == filter,
+
                         onClick = { onAction(ActivityAction.FilterChanged(filter)) },
+
                         label = filter.label,
+
                         icon = filter.icon(),
+
                         tone = filter.tone(),
+
                     )
+
                 }
+
             }
         }
         if (state.visibleItems.isEmpty()) {
@@ -258,59 +276,26 @@ private fun ActivityList(
 
 @Composable
 private fun ActivityProjectionSummary(state: ActivityUiState) {
-    val netTone = when {
-        state.visibleNet > 0.0 -> FinanceTone.Income
-        state.visibleNet < 0.0 -> FinanceTone.Expense
-        else -> FinanceTone.Neutral
-    }
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                Text(
-                    text = "Ορατή εικόνα",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = "${state.visibleItems.size} κινήσεις με τα τρέχοντα φίλτρα",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                Text(
-                    text = "Καθαρή ροή",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                MyFinHubAmountText(
-                    text = formatSignedEuro(state.visibleNet),
-                    tone = netTone,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
-            }
+    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+            MyFinHubHeroHeading(
+                eyebrow = "Τρέχον φίλτρο",
+                title = "Ορατή εικόνα",
+                supporting = "${state.visibleItems.size} κινήσεις · καθαρή ροή",
+            )
+            MyFinHubHeroValue(formatSignedEuro(state.visibleNet))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
             ) {
-                ActivitySummaryMetric(
-                    label = "Έσοδα",
-                    value = state.visibleIncome,
-                    tone = FinanceTone.Income,
-                    modifier = Modifier.weight(1f),
-                )
-                ActivitySummaryMetric(
-                    label = "Έξοδα",
-                    value = state.visibleExpense,
-                    tone = FinanceTone.Expense,
-                    modifier = Modifier.weight(1f),
-                )
+                MyFinHubHeroMetric("Έσοδα", formatUnsignedEuro(state.visibleIncome), Modifier.weight(1f))
+                MyFinHubHeroMetric("Έξοδα", formatUnsignedEuro(state.visibleExpense), Modifier.weight(1f))
             }
             if (state.visiblePendingCount > 0) {
                 Text(
                     text = "${state.visiblePendingCount} ${if (state.visiblePendingCount == 1) "κίνηση περιμένει" else "κινήσεις περιμένουν"} επιβεβαίωση από τον server",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f),
                 )
             }
         }

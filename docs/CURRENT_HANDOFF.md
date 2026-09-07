@@ -17,21 +17,21 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `implementation_reopened_after_physical_feedback`.
+- Workstream state: `pass3_hosted_validated_ready_for_merge`.
 - Latest private production candidate: `1.0.0-rc4` / `10003` — `published_but_not_accepted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner installed 1.0.0-rc4 and reported that the product shows little or no materially visible redesign versus rc3. Physical acceptance therefore failed; the redesign workstream is back in implementation rather than final acceptance.
+The owner rejected rc4 as visually insufficient. The third production redesign pass is now implemented across Home, Activity, Money, Plan, Insights, Quick Entry and Settings with a high-emphasis brand hero layer. Fresh real Compose renders were personally inspected in light, dark and large-font states; the Activity large-font filter clipping found during inspection was corrected; exactly 23 changed screenshot references were accepted; and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates are green. The pass is hosted-validated and ready to merge into develop, but physical redesign acceptance has not yet occurred.
 
 ## Immediate work
 
-- Audit the actual production MyFinHubRoot -> MyFinHubAppContent route and all production-only surfaces.
-- Implement a genuinely visible third redesign pass across the daily-use production UI, not only Activity/navigation behavior.
-- Render real Compose screenshots for every materially changed surface, personally inspect them, replace canonical references, and run Android/UI/S24-target gates.
-- Publish a higher same-signer private production candidate only after the redesigned source is fully validated.
-- Repeat authoritative physical Galaxy S24 Ultra acceptance; only then advance progress.
+- Merge the hosted-validated third redesign pass into develop.
+- After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.
+- Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.
+- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.
+- Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73.
 
 ## Constraints
 
@@ -39,7 +39,7 @@ The owner installed 1.0.0-rc4 and reported that the product shows little or no m
 - main is release-only; do not promote develop -> main without an explicit release decision.
 - Use only the enrolled production signer and protected private publisher for production APKs.
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI reference.
-- For UI changes use real rendered Compose screenshots, personally inspect them, and replace stale canonical references.
+- For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.
 - Do not infer completion from hosted gates when owner physical feedback rejects the product result.
 
 ## Tracking discipline
