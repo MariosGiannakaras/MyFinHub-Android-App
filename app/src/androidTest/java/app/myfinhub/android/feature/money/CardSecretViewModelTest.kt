@@ -70,6 +70,30 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun saveServerPanAndExpiry_usesNativeVaultBoundary_zeroesInputs_andRevealsSavedValues() = runBlocking {
+        val api = FakeCardApi(ApiResult.Failure(ApiFailureKind.INVALID_DATA))
+        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))
+        val viewModel = CardSecretViewModel(application, api, vault)
+
+        viewModel.attachSession(session)
+        viewModel.openCard("card-1")
+        val pan = "4242424242424242".toCharArray()
+        val expiry = "12/30".toCharArray()
+        viewModel.saveServerSecrets(pan, expiry)
+
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+
+        val revealed = viewModel.state.value as CardSecretUiState.Revealed
+        assertEquals("4242", revealed.pan?.takeLast(4))
+        assertEquals("12/30", revealed.expiry)
+        assertEquals("321", revealed.cvv)
+        assertEquals(1, api.serverSecretWriteCalls)
+        assertFalse(revealed.toString().contains("4242424242424242"))
+    }
+
+    @Test
     fun purgeCard_clearsRevealedStateAndDeviceLocalCvv() = runBlocking {
         val api = FakeCardApi(ApiResult.Success(CardSecrets("4242424242424242", "12/30")))
         val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))

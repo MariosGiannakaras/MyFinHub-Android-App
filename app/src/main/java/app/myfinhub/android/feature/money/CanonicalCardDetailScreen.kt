@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,22 +54,55 @@ fun CanonicalCardDetailScreen(
     secretState: CardSecretUiState = CardSecretUiState.Hidden(),
     onReveal: () -> Unit = {},
     onHideSecrets: () -> Unit = {},
+    onSaveServerSecrets: (CharArray, CharArray) -> Unit = { pan, expiry ->
+        pan.fill('\u0000')
+        expiry.fill('\u0000')
+    },
     onSaveCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteCvv: () -> Unit = {},
+    onAddPurchase: () -> Unit = {},
+    onPayCard: () -> Unit = {},
     onBack: () -> Unit,
 ) {
     val relevantState = when (secretState) {
         is CardSecretUiState.Hidden -> secretState.takeIf { it.cardId == null || it.cardId == card?.id }
         is CardSecretUiState.Loading -> secretState.takeIf { it.cardId == card?.id }
+        is CardSecretUiState.Saving -> secretState.takeIf { it.cardId == card?.id }
         is CardSecretUiState.Revealed -> secretState.takeIf { it.cardId == card?.id }
         is CardSecretUiState.Failure -> secretState.takeIf { it.cardId == card?.id }
         CardSecretUiState.AuthRejected -> secretState
     } ?: CardSecretUiState.Hidden(card?.id)
 
-    SecureWindowProtection(active = relevantState is CardSecretUiState.Revealed)
     var cvvDraft by remember(card?.id) { mutableStateOf("") }
+    var secretEditorOpen by remember(card?.id) { mutableStateOf(false) }
+    var panDraft by remember(card?.id) { mutableStateOf("") }
+    var expiryDraft by remember(card?.id) { mutableStateOf("") }
+    var secretValidation by remember(card?.id) { mutableStateOf<String?>(null) }
     val provider = card?.let { financialProvider(it.bankId, it.nickname) }
     val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
+
+    SecureWindowProtection(
+        active = relevantState is CardSecretUiState.Revealed ||
+            relevantState is CardSecretUiState.Saving ||
+            secretEditorOpen,
+    )
+
+    LaunchedEffect(relevantState) {
+        if (secretEditorOpen && relevantState is CardSecretUiState.Revealed) {
+            secretEditorOpen = false
+            panDraft = ""
+            expiryDraft = ""
+            secretValidation = null
+        }
+    }
+
+    fun openSecretEditor() {
+        val revealed = relevantState as? CardSecretUiState.Revealed
+        panDraft = revealed?.pan.orEmpty().filter(Char::isDigit).take(19)
+        expiryDraft = revealed?.expiry.orEmpty()
+        secretValidation = null
+        secretEditorOpen = true
+    }
 
     Scaffold(
         topBar = {
@@ -112,7 +146,10 @@ fun CanonicalCardDetailScreen(
                                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        Text("•••• ${card.last4}", style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            if (card.last4.isBlank()) "••••" else "•••• ${card.last4}",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                     Text(card.kind, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (isCredit) {
@@ -134,6 +171,30 @@ fun CanonicalCardDetailScreen(
             }
 
             if (isCredit) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Οι ενέργειες ανοίγουν την υπάρχουσα canonical καταχώριση και περνούν από το ίδιο offline-safe mutation queue.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        MyFinHubPrimaryAction(
+                            label = "Καταχώριση αγοράς",
+                            onClick = onAddPurchase,
+                            modifier = Modifier.fillMaxWidth(),
+                            icon = null,
+                        )
+                        MyFinHubPrimaryAction(
+                            label = "Πληρωμή πιστωτικής",
+                            onClick = onPayCard,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = card.currentBalance > 0.005,
+                            icon = null,
+                        )
+                    }
+                }
+
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Κινήσεις πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -174,11 +235,69 @@ fun CanonicalCardDetailScreen(
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text("Ασφαλή στοιχεία", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
+                        "PAN/λήξη αποθηκεύονται μόνο μέσω του owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά στο κρυπτογραφημένο vault αυτής της συσκευής.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+
+                    if (secretEditorOpen) {
+                        MyFinHubOutlinedField(
+                            value = panDraft,
+                            onValueChange = { input ->
+                                panDraft = input.filter(Char::isDigit).take(19)
+                                secretValidation = null
+                            },
+                            label = "Αριθμός κάρτας (PAN)",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
+                            visualTransformation = PasswordVisualTransformation(),
+                        )
+                        MyFinHubOutlinedField(
+                            value = expiryDraft,
+                            onValueChange = { input ->
+                                val digits = input.filter(Char::isDigit).take(6)
+                                expiryDraft = if (digits.length <= 2) digits else "${digits.take(2)}/${digits.drop(2)}"
+                                secretValidation = null
+                            },
+                            label = "Λήξη (MM/YY ή MM/YYYY)",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                        )
+                        secretValidation?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                        MyFinHubPrimaryAction(
+                            label = if (relevantState is CardSecretUiState.Saving) "Αποθήκευση…" else "Αποθήκευση PAN / λήξης",
+                            onClick = {
+                                val normalizedPan = panDraft.filter(Char::isDigit)
+                                val normalizedExpiry = expiryDraft.trim()
+                                secretValidation = when {
+                                    normalizedPan.length !in 12..19 -> "Ο αριθμός κάρτας πρέπει να έχει 12 έως 19 ψηφία."
+                                    !isValidCardExpiry(normalizedExpiry) -> "Η λήξη πρέπει να είναι MM/YY ή MM/YYYY."
+                                    else -> null
+                                }
+                                if (secretValidation == null) {
+                                    val panChars = normalizedPan.toCharArray()
+                                    val expiryChars = normalizedExpiry.toCharArray()
+                                    panDraft = ""
+                                    expiryDraft = ""
+                                    onSaveServerSecrets(panChars, expiryChars)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = relevantState !is CardSecretUiState.Saving,
+                            icon = null,
+                        )
+                        TextButton(
+                            onClick = {
+                                panDraft = ""
+                                expiryDraft = ""
+                                secretValidation = null
+                                secretEditorOpen = false
+                            },
+                            enabled = relevantState !is CardSecretUiState.Saving,
+                        ) { Text("Ακύρωση") }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+
                     when (relevantState) {
                         is CardSecretUiState.Hidden -> {
                             MyFinHubPrimaryAction(
@@ -187,15 +306,14 @@ fun CanonicalCardDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 icon = null,
                             )
-                            Text(
-                                "Η οθόνη και το recent-app thumbnail προστατεύονται μόνο όσο εμφανίζονται τα πραγματικά στοιχεία.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
                         }
                         is CardSecretUiState.Loading -> {
                             CircularProgressIndicator()
                             Text("Ανάκτηση ασφαλών στοιχείων…")
+                        }
+                        is CardSecretUiState.Saving -> {
+                            CircularProgressIndicator()
+                            Text("Αποθήκευση PAN / λήξης στο ασφαλές vault…")
                         }
                         is CardSecretUiState.Failure -> {
                             Text(relevantState.message, color = MaterialTheme.colorScheme.error)
@@ -246,6 +364,17 @@ fun CanonicalCardDetailScreen(
                             }
                         }
                     }
+
+                    if (!secretEditorOpen && relevantState !is CardSecretUiState.Saving && relevantState !is CardSecretUiState.AuthRejected) {
+                        TextButton(onClick = ::openSecretEditor) {
+                            Text(if (relevantState is CardSecretUiState.Revealed) "Αλλαγή PAN / λήξης" else "Προσθήκη PAN / λήξης")
+                        }
+                    }
+                    Text(
+                        "Η προστασία screenshot/recent-app thumbnail ενεργοποιείται όσο εμφανίζονται ή επεξεργάζονται πραγματικά στοιχεία.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -263,6 +392,9 @@ private fun SecretValue(label: String, value: String) {
         Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
+
+private fun isValidCardExpiry(value: String): Boolean =
+    Regex("^(0[1-9]|1[0-2])/(\\d{2}|\\d{4})$").matches(value)
 
 private fun formatCardEuro(value: Double): String =
     NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
