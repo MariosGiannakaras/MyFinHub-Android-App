@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_hosted_validation_complete_ready_to_merge`.
-- Latest private production candidate: `1.0.0-rc5` / `10004` — `published_baseline_superseded_by_reaudit`.
+- Workstream state: `rc6_published_waiting_physical_owner_acceptance`.
+- Latest private production candidate: `1.0.0-rc6` / `10005` — `published_waiting_physical_owner_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
+The first-principles Android product re-audit is implemented, merged to develop, hosted-validated and privately published as 1.0.0-rc6 / 10005 from exact release-source PR #84. Home is account-first with the three canonical primary accounts and compact seven-day trends; Activity is transaction-only with search and account filtering; Insights-to-Activity opens the neutral transaction workspace. Fresh real Compose light, dark and large-font references are accepted, exact-head screenshot regression and S24-target instrumentation are green, and full Android CI/R8 is green. The protected publisher built exact source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled signer, published SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c, and server metadata was re-verified after publication. Overall progress remains 4/6 until authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Immediate work
 
-- Merge #83 to develop only; do not touch main.
-- Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
-- Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+- Install or update to the privately published 1.0.0-rc6 / 10005 candidate on the Samsung Galaxy S24 Ultra without replacing the enrolled signing identity.
+- Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, account-first Home, transaction-only Activity, account filtering, navigation behavior and visual inspection.
+- If physical owner feedback rejects any product result, keep overall progress at 4/6, reopen the relevant redesign work and publish a higher same-signer candidate only after fixes and hosted validation.
 - Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Constraints
