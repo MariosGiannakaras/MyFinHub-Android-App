@@ -5,10 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Commit the personally approved exact-head Compose screenshot references and require a clean screenshot-regression pass with no candidate regeneration.
-- [ ] Require representative S24-target instrumentation and full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
-- [ ] After all hosted gates are green and the PR has no unresolved review threads, merge #83 to develop only; do not touch main.
-- [ ] Validate and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- [ ] Merge #83 to develop only; do not touch main.
+- [ ] Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
 - [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
 - [ ] Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
