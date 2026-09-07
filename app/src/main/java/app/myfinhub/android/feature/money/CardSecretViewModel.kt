@@ -29,8 +29,8 @@ import kotlinx.coroutines.launch
 
 sealed interface CardSecretUiState {
     data class Hidden(val cardId: String? = null) : CardSecretUiState
-    data class Loading(val cardId: String) : CardSecretUiState
-    data class Saving(val cardId: String) : CardSecretUiState
+    open class Loading(val cardId: String) : CardSecretUiState
+    class Saving(cardId: String) : Loading(cardId)
 
     data class Revealed(
         val cardId: String,
