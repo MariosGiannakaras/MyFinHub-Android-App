@@ -9,22 +9,22 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `full_product_reaudit_hosted_validation_complete_ready_to_merge`
+State: `full_product_reaudit_rc6_published_awaiting_physical_acceptance`
 
-The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
+The first-principles Android product re-audit was merged to develop by PR #83 after fresh real Compose light, dark and large-font inspection, clean screenshot regression, S24-target instrumentation and full Android CI/R8. The owner-requested account-first Home prioritizes the three primary accounts with canonical seven-day trends and secondary accounts below; Activity is transaction-only with search and account filtering. Exact release-source PR #84 then passed Project Tracking, Android CI/R8, screenshot regression without baseline regeneration and S24-target instrumentation. The protected publisher built immutable source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled production signer, and privately published 1.0.0-rc6 / 10005. Backend release metadata independently confirms SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. PR #84 was closed without merge as required. Hosted validation and publication do not constitute owner acceptance; the remaining authority is physical in-place acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Current production candidate
 
-`1.0.0-rc5` / versionCode `10004` — **published_baseline_superseded_by_reaudit**.
+`1.0.0-rc6` / versionCode `10005` — **protected_published_awaiting_physical_owner_acceptance**.
 
-rc5 remains the last successfully protected, same-signer published production APK and a valid technical baseline. The owner requested a broader from-scratch product re-audit before accepting it, so it must not be treated as final redesign acceptance and will be superseded by a higher candidate after the new redesign is hosted-validated.
+Protected same-signer rc6 was published from immutable release-source PR #84 head c6dd2170598f14835d30c4e0c95f086344aa74c0. The publisher verified package app.myfinhub.android, versionCode 10005, versionName 1.0.0-rc6 and the enrolled signer before publication; it uploaded and re-read the exact bytes before writing release metadata. Independently verified backend metadata reports SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. This is the current physical-acceptance candidate, not an accepted final release.
 
 ## Next
 
-1. Merge #83 to develop only; do not touch main.
-2. Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
-3. Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
-4. Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
+1. Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
+2. Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
+3. If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
+4. Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
 
 ## Non-negotiable constraints
 
