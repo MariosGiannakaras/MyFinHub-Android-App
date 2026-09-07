@@ -149,7 +149,7 @@ private fun ActivityList(
             start = MyFinHubDesignMetrics.screenHorizontalPadding,
             top = MyFinHubSpacing.xs,
             end = MyFinHubDesignMetrics.screenHorizontalPadding,
-            bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
+            bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,
         ),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
     ) {

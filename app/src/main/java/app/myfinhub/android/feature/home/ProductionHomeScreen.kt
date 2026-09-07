@@ -91,7 +91,6 @@ fun ProductionHomeScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "MyFinHub",
-                subtitle = "Οι λογαριασμοί μου",
                 navigation = { MyFinHubBrandMark() },
                 trailing = { TextButton(onClick = onOpenSettings) { Text("Ρυθμίσεις") } },
             )
@@ -132,19 +131,13 @@ private fun PrimaryAccountsSection(
     onOpenQuickEntry: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column {
-                Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(
-                    "Οι 3 λογαριασμοί που χρησιμοποιείς περισσότερο",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+            Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(
+                "Οι 3 βασικοί λογαριασμοί",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             TextButton(onClick = onOpenQuickEntry) { Text("Νέα κίνηση") }
         }
         if (accounts.isEmpty()) {
