@@ -17,21 +17,21 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `pass3_hosted_validated_ready_for_merge`.
+- Workstream state: `pass3_merged_awaiting_private_candidate`.
 - Latest private production candidate: `1.0.0-rc4` / `10003` — `published_but_not_accepted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner rejected rc4 as visually insufficient. The third production redesign pass is now implemented across Home, Activity, Money, Plan, Insights, Quick Entry and Settings with a high-emphasis brand hero layer. Fresh real Compose renders were personally inspected in light, dark and large-font states; the Activity large-font filter clipping found during inspection was corrected; exactly 23 changed screenshot references were accepted; and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates are green. The pass is hosted-validated and ready to merge into develop, but physical redesign acceptance has not yet occurred.
+The owner rejected rc4 as visually insufficient. The third production redesign pass has now been merged into develop after full hosted validation: fresh real Compose renders were personally inspected in light, dark and large-font states, the Activity large-font filter clipping found during inspection was fixed, exactly 23 changed screenshot references were accepted, and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates passed. Physical redesign acceptance is still open; the next checkpoint is a strictly higher same-signer private production candidate built from an exact validated post-pass3 release-source PR.
 
 ## Immediate work
 
-- Merge the hosted-validated third redesign pass into develop.
-- After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.
-- Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.
-- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.
-- Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73.
+- Create a new Android-owned release-source branch from current develop for 1.0.0-rc5, changing only the nonfunctional production baseline marker, and open it as a PR to develop.
+- Require exact-head verify, clean screenshot regression and representative S24-target instrumentation to pass on the rc5 release-source PR.
+- Change only .github/release-requests/production.json on develop to request 1.0.0-rc5 from that exact validated source PR, triggering the protected private production publisher.
+- After protected publication succeeds with the enrolled production signer, update canonical tracking to the published rc5 checkpoint.
+- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity, then perform owner visual acceptance of Home, Activity, Money, Plan, Insights, Quick Entry and Settings.
 
 ## Constraints
 

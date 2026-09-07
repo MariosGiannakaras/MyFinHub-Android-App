@@ -5,11 +5,11 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge the hosted-validated third redesign pass into develop.
-- [ ] After merge, update canonical tracking on develop to record pass 3 as merged and make the next production candidate the active checkpoint.
-- [ ] Publish a strictly higher same-signer private production candidate from the exact validated post-pass3 develop source through the protected private publisher.
-- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to the new candidate without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity.
-- [ ] Perform owner physical visual acceptance of the materially changed Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces; only then advance overall progress and close #73.
+- [ ] Create a new Android-owned release-source branch from current develop for 1.0.0-rc5, changing only the nonfunctional production baseline marker, and open it as a PR to develop.
+- [ ] Require exact-head verify, clean screenshot regression and representative S24-target instrumentation to pass on the rc5 release-source PR.
+- [ ] Change only .github/release-requests/production.json on develop to request 1.0.0-rc5 from that exact validated source PR, triggering the protected private production publisher.
+- [ ] After protected publication succeeds with the enrolled production signer, update canonical tracking to the published rc5 checkpoint.
+- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity, then perform owner visual acceptance of Home, Activity, Money, Plan, Insights, Quick Entry and Settings.
 
 ## Completed foundations
 
@@ -20,6 +20,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Post-Phase-6 Activity/navigation pass 2 (#75)
 - [x] Protected private rc4 publication
 - [x] Memory-independent, CI-enforced repository tracking (#79/#80)
+- [x] Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)
 
 ## Rule
 
