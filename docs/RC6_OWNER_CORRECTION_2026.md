@@ -16,6 +16,7 @@
 - Card-stack indicators retain stable card identity, visibly track the active card and can select a card directly.
 - Card deactivation waits for the approved shred/collapse transition before invoking the existing canonical deactivation mutation. Reduced-motion behavior skips decorative delay while preserving the same mutation semantics.
 - `Εικόνα` has been restructured around month-over-month narrative, a common-scale four-month income/expense chart and category concentration instead of another set of repeated KPI cards.
+- Compile compatibility is explicit across retained card-detail surfaces: the secure `Saving` state is handled exhaustively rather than falling through older reveal-only state machines.
 
 ## Security and data-boundary constraints
 
