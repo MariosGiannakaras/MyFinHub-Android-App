@@ -5,12 +5,12 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Generate fresh exact-head real Compose renders after the inspected Home and Activity large-font fixes, then personally inspect light, dark and large-font states before accepting any screenshot baseline.
-- [ ] Complete the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow, exposing only high-value gaps supported safely by existing contracts.
-- [ ] Finish the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings without reintroducing repeated summaries.
-- [ ] Accept only visually validated screenshot references, then require a clean exact-head screenshot-regression pass and representative S24-target instrumentation.
-- [ ] Run full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
-- [ ] Only after hosted validation, merge to develop, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
+- [ ] Commit the personally approved exact-head Compose screenshot references and require a clean screenshot-regression pass with no candidate regeneration.
+- [ ] Require representative S24-target instrumentation and full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
+- [ ] After all hosted gates are green and the PR has no unresolved review threads, merge #83 to develop only; do not touch main.
+- [ ] Validate and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+- [ ] Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Completed foundations
 
@@ -23,6 +23,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Memory-independent, CI-enforced repository tracking (#79/#80)
 - [x] Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)
 - [x] Exact post-pass3 rc5 release-source validation and protected private publication (#82)
+- [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
 
 ## Rule
 
