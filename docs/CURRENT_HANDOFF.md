@@ -17,18 +17,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_hosted_validation_complete_ready_to_merge`.
+- Workstream state: `full_product_reaudit_rc6_release_source_validation_in_progress`.
 - Latest private production candidate: `1.0.0-rc5` / `10004` — `published_baseline_superseded_by_reaudit`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
+PR #83 is merged to develop and the full-product re-audit is hosted-validated. A no-functional-change Android-owned release-source branch now freezes the merged redesign for the next private production candidate, 1.0.0-rc6. The source preserves the account-first Home, transaction-only Activity, accepted Compose baselines, neutral Insights-to-Activity behavior, canonical auth/security/offline/updater foundations and all exact product semantics from the merged redesign. The release-source PR must remain open and ready for review with green exact-head verify, screenshot-regression and S24-target instrumentation checks so the protected publisher can build its immutable head. rc5 remains the last published same-signer technical baseline until rc6 is successfully published.
 
 ## Immediate work
 
-- Merge #83 to develop only; do not touch main.
-- Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- Require exact-head Project Tracking, Android verify/R8, screenshot regression with no baseline regeneration, and S24-target instrumentation on the rc6 release-source PR.
+- Keep the validated release-source PR open and ready for review, then update the guarded production request on develop to reference it for versionName 1.0.0-rc6.
+- Require the protected publisher to allocate a versionCode strictly greater than 10004, build the immutable PR head, verify the enrolled signer, upload exact bytes privately, re-read them and publish metadata last.
+- After successful private publication, close the release-source PR without merging and update canonical tracking to the new published candidate.
 - Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
 - Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 

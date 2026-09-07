@@ -5,8 +5,10 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge #83 to develop only; do not touch main.
-- [ ] Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- [ ] Require exact-head Project Tracking, Android verify/R8, screenshot regression with no baseline regeneration, and S24-target instrumentation on the rc6 release-source PR.
+- [ ] Keep the validated release-source PR open and ready for review, then update the guarded production request on develop to reference it for versionName 1.0.0-rc6.
+- [ ] Require the protected publisher to allocate a versionCode strictly greater than 10004, build the immutable PR head, verify the enrolled signer, upload exact bytes privately, re-read them and publish metadata last.
+- [ ] After successful private publication, close the release-source PR without merging and update canonical tracking to the new published candidate.
 - [ ] Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
 - [ ] Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
@@ -21,7 +23,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Memory-independent, CI-enforced repository tracking (#79/#80)
 - [x] Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)
 - [x] Exact post-pass3 rc5 release-source validation and protected private publication (#82)
-- [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
+- [x] Full-product re-audit hosted validation and merge (#83)
 
 ## Rule
 
