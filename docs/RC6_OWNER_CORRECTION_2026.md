@@ -18,6 +18,10 @@
 - `Εικόνα` has been restructured around month-over-month narrative, a common-scale four-month income/expense chart and category concentration instead of another set of repeated KPI cards.
 - Compile compatibility is explicit across retained card-detail surfaces: the secure `Saving` state is handled exhaustively rather than falling through older reveal-only state machines.
 
+## Current validation checkpoint
+
+The first exact-head CI attempt correctly exposed integration blockers before any baseline acceptance: the canonical money surface was missing the `dp` import and retained legacy card-detail surfaces did not yet handle the new secure `Saving` state exhaustively. These are compile integration issues, not accepted product behavior, and are being fixed before visual validation continues.
+
 ## Security and data-boundary constraints
 
 - No service-role credential or card-vault encryption key is introduced into the Android client.
