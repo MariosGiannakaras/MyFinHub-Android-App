@@ -9,21 +9,21 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `full_product_reaudit_hosted_validation_complete_ready_to_merge`
+State: `rc6_published_waiting_physical_owner_acceptance`
 
-The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
+The first-principles Android product re-audit is implemented, merged to develop, hosted-validated and privately published as 1.0.0-rc6 / 10005 from exact release-source PR #84. Home is account-first with the three canonical primary accounts and compact seven-day trends; Activity is transaction-only with search and account filtering; Insights-to-Activity opens the neutral transaction workspace. Fresh real Compose light, dark and large-font references are accepted, exact-head screenshot regression and S24-target instrumentation are green, and full Android CI/R8 is green. The protected publisher built exact source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled signer, published SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c, and server metadata was re-verified after publication. Overall progress remains 4/6 until authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Current production candidate
 
-`1.0.0-rc5` / versionCode `10004` — **published_baseline_superseded_by_reaudit**.
+`1.0.0-rc6` / versionCode `10005` — **published_waiting_physical_owner_acceptance**.
 
-rc5 remains the last successfully protected, same-signer published production APK and a valid technical baseline. The owner requested a broader from-scratch product re-audit before accepting it, so it must not be treated as final redesign acceptance and will be superseded by a higher candidate after the new redesign is hosted-validated.
+rc6 was protected-published from exact release-source SHA c6dd2170598f14835d30c4e0c95f086344aa74c0 using the enrolled production signer. Published SHA-256 is 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size is 3151628 bytes. Server-side release metadata confirms production channel, enabled=true and mandatory=false. It is not accepted until the owner physically validates it on the Samsung Galaxy S24 Ultra.
 
 ## Next
 
-1. Merge #83 to develop only; do not touch main.
-2. Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
-3. Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
+1. Install or update to the privately published 1.0.0-rc6 / 10005 candidate on the Samsung Galaxy S24 Ultra without replacing the enrolled signing identity.
+2. Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, account-first Home, transaction-only Activity, account filtering, navigation behavior and visual inspection.
+3. If physical owner feedback rejects any product result, keep overall progress at 4/6, reopen the relevant redesign work and publish a higher same-signer candidate only after fixes and hosted validation.
 4. Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Non-negotiable constraints
