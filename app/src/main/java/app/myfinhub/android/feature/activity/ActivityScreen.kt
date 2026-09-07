@@ -76,14 +76,24 @@ fun ActivityScreen(
                 subtitle = "Όλες οι καταχωρισμένες κινήσεις",
             )
         },
-        floatingActionButton = {
-            MyFinHubPrimaryAction(
-                label = "Νέα κίνηση",
-                onClick = onOpenQuickEntry,
-                modifier = Modifier.semantics {
-                    contentDescription = "Δημιουργία νέας κίνησης"
-                },
-            )
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
+                        vertical = MyFinHubSpacing.xs,
+                    ),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                MyFinHubPrimaryAction(
+                    label = "Νέα κίνηση",
+                    onClick = onOpenQuickEntry,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Δημιουργία νέας κίνησης"
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         BoxWithConstraints(
@@ -126,9 +136,7 @@ fun ActivityScreen(
                     state = state,
                     onAction = onAction,
                     onSelect = onOpenDetail,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = MyFinHubDesignMetrics.primaryActionMinHeight + MyFinHubSpacing.lg),
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }
