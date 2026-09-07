@@ -9,22 +9,23 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `full_product_reaudit_rc6_published_awaiting_physical_acceptance`
+State: `full_product_reaudit_rc6_rejected_owner_corrections_in_progress`
 
-The first-principles Android product re-audit was merged to develop by PR #83 after fresh real Compose light, dark and large-font inspection, clean screenshot regression, S24-target instrumentation and full Android CI/R8. The owner-requested account-first Home prioritizes the three primary accounts with canonical seven-day trends and secondary accounts below; Activity is transaction-only with search and account filtering. Exact release-source PR #84 then passed Project Tracking, Android CI/R8, screenshot regression without baseline regeneration and S24-target instrumentation. The protected publisher built immutable source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled production signer, and privately published 1.0.0-rc6 / 10005. Backend release metadata independently confirms SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. PR #84 was closed without merge as required. Hosted validation and publication do not constitute owner acceptance; the remaining authority is physical in-place acceptance on the Samsung Galaxy S24 Ultra.
+The protected same-signer 1.0.0-rc6 / 10005 publication is technically valid but was physically rejected by the owner on the Samsung Galaxy S24 Ultra. The active correction pass is addressing the concrete feedback rather than treating hosted validation as acceptance: account cards must show the real account role/name with a separate institution label and approved local provider branding; card creation must be obvious and canonical; credit cards must expose their linked canonical purchases/payments; card-stack indicators must track and control the active card; deletion must use the approved desktop-quality animation while preserving canonical mutation safety; and the Insights/Εικόνα surface must be redesigned with a clearer visual hierarchy. The correction branch starts from current develop and rc6 remains only the latest published technical baseline until a higher candidate passes the full validation loop and physical owner acceptance.
 
 ## Current production candidate
 
-`1.0.0-rc6` / versionCode `10005` — **protected_published_awaiting_physical_owner_acceptance**.
+`1.0.0-rc6` / versionCode `10005` — **protected_published_physically_rejected_superseded_by_fix_pass**.
 
-Protected same-signer rc6 was published from immutable release-source PR #84 head c6dd2170598f14835d30c4e0c95f086344aa74c0. The publisher verified package app.myfinhub.android, versionCode 10005, versionName 1.0.0-rc6 and the enrolled signer before publication; it uploaded and re-read the exact bytes before writing release metadata. Independently verified backend metadata reports SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. This is the current physical-acceptance candidate, not an accepted final release.
+Protected same-signer rc6 was published from immutable release-source PR #84 head c6dd2170598f14835d30c4e0c95f086344aa74c0. Backend metadata confirms SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. The owner physically rejected rc6 because account identity/provider branding, card workflows/stack interactions/deletion animation and the Εικόνα presentation still require correction. rc6 is therefore a technical same-signer baseline only and must not be treated as an accepted final release.
 
 ## Next
 
-1. Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-2. Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-3. If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-4. Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+1. Implement the owner-requested account identity and approved provider-brand treatment across Home and relevant money/account surfaces, without inventing institution data.
+2. Repair and expose the canonical card creation/detail flows, including linked credit-card purchases/payments, interactive stack indicators and the approved deletion animation while preserving offline/reconciliation safety.
+3. Redesign Εικόνα around clearer comparisons, trends and category composition without duplicating current balances or KPI-card clutter.
+4. Render fresh real Compose light, dark and 150%-font screenshots for every changed production surface, personally inspect/fix them, then run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8.
+5. After merge to develop, privately publish a strictly higher same-signer candidate through the protected publisher and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Non-negotiable constraints
 
