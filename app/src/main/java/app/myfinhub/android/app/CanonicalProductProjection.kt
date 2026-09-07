@@ -22,6 +22,8 @@ import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.core.ui.financialAccountDisplayName
+import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.feature.activity.ActivityAccountOption
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
@@ -42,6 +44,8 @@ import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.MoneyCard
+import app.myfinhub.android.feature.money.MoneyCardActivity
+import app.myfinhub.android.feature.money.MoneyCardActivityKind
 import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
 import app.myfinhub.android.feature.plan.BudgetDraft
@@ -54,6 +58,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonObject
 
@@ -98,10 +103,12 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         document.accountBalances(today.minusDays(offset).toString())
     }
     val rawHomeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
+        val provider = financialProvider(account.id, account.name)
         HomeAccount(
             id = account.id,
-            name = account.name,
-            role = account.shortName ?: accountKindLabel(account.kind),
+            name = financialAccountDisplayName(account.id, account.name, account.kind),
+            role = accountKindLabel(account.kind),
+            institution = provider?.institutionLabel,
             balance = balances[account.id] ?: 0.0,
             group = if (account.kind == "savings" || account.excludeFromAvailable) {
                 HomeAccountGroup.SAVINGS
@@ -198,15 +205,30 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
+            val provider = financialProvider(account.id, account.name)
             MoneyAccount(
                 id = account.id,
-                name = account.name,
+                name = financialAccountDisplayName(account.id, account.name, account.kind),
                 balance = balances[account.id] ?: 0.0,
                 kind = accountKindLabel(account.kind),
+                institution = provider?.institutionLabel,
             )
         },
         cards = activeCards.map { card ->
             val eventOutstanding = document.cardOutstanding(card.id, asOf)
+            val cardActivity = events
+                .filter { event -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
+                .sortedWith(compareByDescending<CanonicalEvent> { it.date }.thenByDescending { eventChronology[it.id].orEmpty() }.thenByDescending { it.id })
+                .map { event ->
+                    val payment = event.kind == "card_payment"
+                    MoneyCardActivity(
+                        id = event.id,
+                        dateLabel = formatDate(event.date),
+                        title = event.note.ifBlank { if (payment) "Πληρωμή κάρτας" else event.category ?: "Αγορά" },
+                        amount = if (payment) abs(event.amount) else -abs(event.amount),
+                        kind = if (payment) MoneyCardActivityKind.PAYMENT else MoneyCardActivityKind.PURCHASE,
+                    )
+                }
             MoneyCard(
                 id = card.id,
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
@@ -221,6 +243,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 vaultState = if (card.vaultRef.isNullOrBlank()) VaultState.LOCKED else VaultState.AVAILABLE,
                 network = card.network.ifBlank { "VISA" },
                 bankId = bankIdsByCard[card.id].orEmpty(),
+                canonicalKind = card.kind,
+                activity = cardActivity,
             )
         },
         savingsGoal = null,

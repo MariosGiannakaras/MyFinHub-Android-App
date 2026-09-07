@@ -119,6 +119,31 @@ class CreditCardStackTest {
     }
 
     @Test
+    fun paginationDot_selectsCardByStableId() {
+        var activeCardId: String? = null
+        val cards = testCards(3)
+
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = cards,
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = { activeCardId = it },
+                    onRevealSecrets = {},
+                    onHideSecrets = {},
+                    onOpenCard = {},
+                    onDeleteCard = {},
+                )
+            }
+        }
+
+        composeRule.waitUntil { activeCardId == "card-a" }
+        composeRule.onNodeWithTag("credit_card_dot_card-c").performClick()
+        composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { activeCardId == "card-c" }
+        composeRule.onNodeWithContentDescription("Κάρτα 3 από 3: Bonus Visa Gold, ενεργή").assertIsDisplayed()
+    }
+
+    @Test
     fun deleteCancel_restoresNormalCardState() {
         val cards = testCards(1)
 

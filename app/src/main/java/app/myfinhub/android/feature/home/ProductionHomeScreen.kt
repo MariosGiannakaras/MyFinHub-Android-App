@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -38,6 +39,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBrandMark
@@ -48,6 +50,7 @@ import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -182,14 +185,21 @@ private fun PrimaryAccountCard(
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                MyFinHubIconBadge(
-                    icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
-                    tone = if (savings) FinanceTone.Savings else FinanceTone.Neutral,
-                    contentDescription = null,
-                )
+                val provider = financialProvider(account.id, account.institution ?: account.name)
+                if (provider != null) {
+                    MyFinHubProviderMark(provider, modifier = Modifier.size(36.dp), contentDescription = provider.institutionLabel)
+                } else {
+                    MyFinHubIconBadge(
+                        icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
+                        tone = if (savings) FinanceTone.Savings else FinanceTone.Neutral,
+                        contentDescription = null,
+                    )
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(account.role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    account.institution?.takeIf(String::isNotBlank)?.let { institution ->
+                        Text(institution, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
                 MyFinHubAmountText(
                     text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
@@ -278,14 +288,21 @@ private fun SecondaryAccountsCard(
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MyFinHubIconBadge(
-                        icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
-                        tone = if (savings) FinanceTone.Savings else FinanceTone.Neutral,
-                        contentDescription = null,
-                    )
+                    val provider = financialProvider(account.id, account.institution ?: account.name)
+                    if (provider != null) {
+                        MyFinHubProviderMark(provider, modifier = Modifier.size(32.dp), contentDescription = provider.institutionLabel)
+                    } else {
+                        MyFinHubIconBadge(
+                            icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
+                            tone = if (savings) FinanceTone.Savings else FinanceTone.Neutral,
+                            contentDescription = null,
+                        )
+                    }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text(account.role, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        account.institution?.takeIf(String::isNotBlank)?.let { institution ->
+                            Text(institution, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                     MyFinHubAmountText(
                         text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",

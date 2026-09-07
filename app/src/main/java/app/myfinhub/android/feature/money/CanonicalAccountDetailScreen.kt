@@ -65,7 +65,7 @@ fun CanonicalAccountDetailScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = account?.name ?: "Λογαριασμός",
-                subtitle = account?.kind ?: "Λεπτομέρειες λογαριασμού",
+                subtitle = account?.institution ?: account?.kind ?: "Λεπτομέρειες λογαριασμού",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },

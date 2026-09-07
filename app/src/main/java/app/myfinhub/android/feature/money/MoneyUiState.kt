@@ -11,6 +11,17 @@ data class MoneyAccount(
     val name: String,
     val balance: Double,
     val kind: String,
+    val institution: String? = null,
+)
+
+enum class MoneyCardActivityKind { PURCHASE, PAYMENT }
+
+data class MoneyCardActivity(
+    val id: String,
+    val dateLabel: String,
+    val title: String,
+    val amount: Double,
+    val kind: MoneyCardActivityKind,
 )
 
 data class MoneyCard(
@@ -23,6 +34,8 @@ data class MoneyCard(
     val vaultState: VaultState,
     val network: String = "VISA",
     val bankId: String = "",
+    val canonicalKind: String = "",
+    val activity: List<MoneyCardActivity> = emptyList(),
 )
 
 enum class VaultState { LOCKED, AVAILABLE }
