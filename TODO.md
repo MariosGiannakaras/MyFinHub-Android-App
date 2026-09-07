@@ -5,11 +5,12 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling the app or installing a parallel package.
-- [ ] Verify that 1.0.0-rc5 is installed and that the existing session, local PIN/biometric state and device-local CVV state (when applicable) survived the same-signer update.
-- [ ] Perform owner visual acceptance of the redesigned Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces, including Activity filter wrapping at real large-font scale.
-- [ ] Verify top-level navigation reselect-to-root, Insights-to-Activity expense drill-in without stale detail, and absence of clipping or overlap on the physical device.
-- [ ] Only after owner physical acceptance, close issue #73 and advance overall progress appropriately.
+- [ ] Complete and keep checked in the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow.
+- [ ] Rebuild the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, removing repeated information and desktop-shaped page structure.
+- [ ] Expose any high-value canonical workflows still missing from Android only where the existing backend/domain contracts support them safely; do not invent semantics or rewrite stable infrastructure.
+- [ ] Generate fresh real Compose renders for every changed production surface in light, dark and large-font states, personally inspect them, fix defects and accept only validated canonical references.
+- [ ] Run exact-head Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8 gates on the completed redesign PR.
+- [ ] Only after hosted validation, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Completed foundations
 

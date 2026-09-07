@@ -17,21 +17,22 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc5_published_awaiting_physical_acceptance`.
-- Latest private production candidate: `1.0.0-rc5` / `10004` — `published_awaiting_physical_acceptance`.
+- Workstream state: `full_product_reaudit_and_mobile_rearchitecture_in_progress`.
+- Latest private production candidate: `1.0.0-rc5` / `10004` — `published_baseline_superseded_by_reaudit`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The third production redesign pass is merged into develop and the strictly higher private production candidate 1.0.0-rc5 has now been published successfully from exact release-source PR #82 through the protected production pipeline. Exact-head tracking, Android verify, clean screenshot regression and representative S24-target instrumentation passed before publication. The protected publisher verified the enrolled production signer, signed and verified the candidate, uploaded it privately, re-read the exact production bytes, and published metadata last. PR #82 was then closed without merge. Final redesign completion is still blocked on authoritative in-place rc4 -> rc5 physical acceptance on the Samsung Galaxy S24 Ultra.
+The owner explicitly requested a fresh whole-product audit and Android rebuild based on the current canonical desktop product and backend, rather than another incremental visual pass. The re-audit maps every desktop workflow and the revisioned owner-only backend contracts, then rebuilds the Android information architecture and production Compose surfaces around mobile user goals while preserving the existing canonical data, auth, offline, reconciliation, updater and signing foundations. The published same-signer rc5 remains a valid unaccepted baseline, but physical acceptance of rc5 is no longer the active product checkpoint because this broader redesign supersedes it.
 
 ## Immediate work
 
-- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling the app or installing a parallel package.
-- Verify that 1.0.0-rc5 is installed and that the existing session, local PIN/biometric state and device-local CVV state (when applicable) survived the same-signer update.
-- Perform owner visual acceptance of the redesigned Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces, including Activity filter wrapping at real large-font scale.
-- Verify top-level navigation reselect-to-root, Insights-to-Activity expense drill-in without stale detail, and absence of clipping or overlap on the physical device.
-- Only after owner physical acceptance, close issue #73 and advance overall progress appropriately.
+- Complete and keep checked in the desktop/backend capability map, duplication audit and mobile ownership rules for every canonical workflow.
+- Rebuild the production Android information architecture and content hierarchy across Home, Activity, Money, Plan, Insights, Quick Entry and Settings, removing repeated information and desktop-shaped page structure.
+- Expose any high-value canonical workflows still missing from Android only where the existing backend/domain contracts support them safely; do not invent semantics or rewrite stable infrastructure.
+- Generate fresh real Compose renders for every changed production surface in light, dark and large-font states, personally inspect them, fix defects and accept only validated canonical references.
+- Run exact-head Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8 gates on the completed redesign PR.
+- Only after hosted validation, publish a strictly higher same-signer private production candidate and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Constraints
 
