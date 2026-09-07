@@ -17,21 +17,21 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `pass3_merged_awaiting_private_candidate`.
-- Latest private production candidate: `1.0.0-rc4` / `10003` — `published_but_not_accepted`.
+- Workstream state: `rc5_published_awaiting_physical_acceptance`.
+- Latest private production candidate: `1.0.0-rc5` / `10004` — `published_awaiting_physical_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner rejected rc4 as visually insufficient. The third production redesign pass has now been merged into develop after full hosted validation: fresh real Compose renders were personally inspected in light, dark and large-font states, the Activity large-font filter clipping found during inspection was fixed, exactly 23 changed screenshot references were accepted, and Project Tracking, clean screenshot regression, representative S24-target instrumentation, Android compile/unit/lint/debug, optimized release/R8 and unsigned-release policy gates passed. Physical redesign acceptance is still open; the next checkpoint is a strictly higher same-signer private production candidate built from an exact validated post-pass3 release-source PR.
+The third production redesign pass is merged into develop and the strictly higher private production candidate 1.0.0-rc5 has now been published successfully from exact release-source PR #82 through the protected production pipeline. Exact-head tracking, Android verify, clean screenshot regression and representative S24-target instrumentation passed before publication. The protected publisher verified the enrolled production signer, signed and verified the candidate, uploaded it privately, re-read the exact production bytes, and published metadata last. PR #82 was then closed without merge. Final redesign completion is still blocked on authoritative in-place rc4 -> rc5 physical acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Immediate work
 
-- Create a new Android-owned release-source branch from current develop for 1.0.0-rc5, changing only the nonfunctional production baseline marker, and open it as a PR to develop.
-- Require exact-head verify, clean screenshot regression and representative S24-target instrumentation to pass on the rc5 release-source PR.
-- Change only .github/release-requests/production.json on develop to request 1.0.0-rc5 from that exact validated source PR, triggering the protected private production publisher.
-- After protected publication succeeds with the enrolled production signer, update canonical tracking to the published rc5 checkpoint.
-- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling or installing a parallel package; verify session, PIN/biometric and device-local CVV continuity, then perform owner visual acceptance of Home, Activity, Money, Plan, Insights, Quick Entry and Settings.
+- On the physical Samsung Galaxy S24 Ultra, update in place from rc4 to rc5 without uninstalling the app or installing a parallel package.
+- Verify that 1.0.0-rc5 is installed and that the existing session, local PIN/biometric state and device-local CVV state (when applicable) survived the same-signer update.
+- Perform owner visual acceptance of the redesigned Home, Activity, Money, Plan, Insights, Quick Entry and Settings surfaces, including Activity filter wrapping at real large-font scale.
+- Verify top-level navigation reselect-to-root, Insights-to-Activity expense drill-in without stale detail, and absence of clipping or overlap on the physical device.
+- Only after owner physical acceptance, close issue #73 and advance overall progress appropriately.
 
 ## Constraints
 
