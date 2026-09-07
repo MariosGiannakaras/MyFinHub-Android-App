@@ -5,10 +5,11 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-- [ ] Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-- [ ] If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-- [ ] Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+- [ ] Implement the owner-requested account identity and approved provider-brand treatment across Home and relevant money/account surfaces, without inventing institution data.
+- [ ] Repair and expose the canonical card creation/detail flows, including linked credit-card purchases/payments, interactive stack indicators and the approved deletion animation while preserving offline/reconciliation safety.
+- [ ] Redesign Εικόνα around clearer comparisons, trends and category composition without duplicating current balances or KPI-card clutter.
+- [ ] Render fresh real Compose light, dark and 150%-font screenshots for every changed production surface, personally inspect/fix them, then run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8.
+- [ ] After merge to develop, privately publish a strictly higher same-signer candidate through the protected publisher and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
 
 ## Completed foundations
 
