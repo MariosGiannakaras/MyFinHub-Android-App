@@ -17,20 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_hosted_validation_in_progress`.
+- Workstream state: `full_product_reaudit_hosted_validation_complete_ready_to_merge`.
 - Latest private production candidate: `1.0.0-rc5` / `10004` — `published_baseline_superseded_by_reaudit`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The first-principles Android product re-audit is now through personal visual inspection. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering, and its new-entry action now uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity no longer applies an invisible expense filter. Fresh exact-head real Compose light, dark and large-font renders for the redesigned production surfaces were personally inspected without remaining clipping or overlap, so the candidate references are approved for baseline replacement. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is hosted-validated and physically accepted.
+The first-principles Android product re-audit is hosted-validated and ready to merge to develop. The owner-requested account-first Home prioritizes cash, Piraeus payroll and Piraeus savings with canonical seven-day trends and secondary accounts below. Activity is a transaction-only workspace with search and account filtering; its new-entry action uses an opaque Scaffold bottom surface so no transaction content remains visible behind it at 150% font. Insights-to-Activity opens the neutral transaction workspace without an invisible expense filter. Fresh real Compose light, dark and large-font renders were personally inspected and committed as canonical references. Exact-head Project Tracking, screenshot regression with no regeneration, S24-target instrumentation and full Android CI/R8 are all green, and PR #83 has no unresolved review threads. Unsupported desktop-only mutations remain explicit follow-up gaps rather than local Android approximations. The published same-signer rc5 remains an unaccepted technical baseline until a higher re-audit candidate is privately published and physically accepted.
 
 ## Immediate work
 
-- Commit the personally approved exact-head Compose screenshot references and require a clean screenshot-regression pass with no candidate regeneration.
-- Require representative S24-target instrumentation and full exact-head Android CI/R8 including benchmark/profile tooling, unit/instrumentation compile, lint/debug, optimized unsigned release and release-policy audit.
-- After all hosted gates are green and the PR has no unresolved review threads, merge #83 to develop only; do not touch main.
-- Validate and privately publish a strictly higher same-signer production candidate through the protected publisher.
+- Merge #83 to develop only; do not touch main.
+- Validate the merged develop source and privately publish a strictly higher same-signer production candidate through the protected publisher.
 - Perform authoritative in-place physical acceptance on the Samsung Galaxy S24 Ultra, including session/PIN/biometric/CVV continuity, navigation behavior and visual inspection.
 - Only after physical owner acceptance, close issue #73 and advance overall progress appropriately.
 
