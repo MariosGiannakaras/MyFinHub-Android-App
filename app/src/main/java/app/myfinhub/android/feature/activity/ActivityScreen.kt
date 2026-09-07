@@ -126,7 +126,9 @@ fun ActivityScreen(
                     state = state,
                     onAction = onAction,
                     onSelect = onOpenDetail,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = MyFinHubDesignMetrics.primaryActionMinHeight + MyFinHubSpacing.lg),
                 )
             }
         }
