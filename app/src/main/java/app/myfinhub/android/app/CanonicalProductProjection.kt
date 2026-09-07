@@ -22,6 +22,7 @@ import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.feature.activity.ActivityAccountOption
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
@@ -67,6 +68,8 @@ data class CanonicalProductProjection(
     val insightsState: InsightsUiState,
 )
 
+private val PRIMARY_HOME_ACCOUNT_IDS = listOf("cash", "piraeus-payroll", "piraeus-savings")
+
 fun projectCanonicalProduct(
     document: CanonicalFinanceDocument,
     today: LocalDate,
@@ -90,7 +93,11 @@ fun projectCanonicalProduct(
 val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology)
 
     val oldHome = previous?.homeState
-    val homeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
+    val primaryHomeAccountIds = PRIMARY_HOME_ACCOUNT_IDS.toSet()
+    val homeTrendBalances = (6L downTo 0L).map { offset ->
+        document.accountBalances(today.minusDays(offset).toString())
+    }
+    val rawHomeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
         HomeAccount(
             id = account.id,
             name = account.name,
@@ -101,8 +108,13 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
             } else {
                 HomeAccountGroup.LIQUID
             },
+            isPrimary = account.id in primaryHomeAccountIds,
+            balanceTrend = homeTrendBalances.map { dailyBalances -> dailyBalances[account.id] ?: 0.0 },
         )
     }
+    val homeAccountsById = rawHomeAccounts.associateBy(HomeAccount::id)
+    val homeAccounts = PRIMARY_HOME_ACCOUNT_IDS.mapNotNull(homeAccountsById::get) +
+        rawHomeAccounts.filterNot { it.id in primaryHomeAccountIds }
     val homeRecentItems = activityItems.take(6).map { item ->
         HomeRecentItem(
             id = item.id,
@@ -164,13 +176,20 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     )
 
     val oldActivity = previous?.activityState
+    val activityAccountOptions = accounts
+        .filter { it.kind != "credit" }
+        .map { account -> ActivityAccountOption(account.id, account.name) }
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
-        filter = oldActivity?.filter ?: ActivityFilter.ALL,
+        filter = ActivityFilter.ALL,
+        accountFilterId = oldActivity?.accountFilterId?.takeIf { selectedId ->
+            activityAccountOptions.any { it.id == selectedId }
+        },
         selectedId = oldActivity?.selectedId?.takeIf { id -> activityItems.any { it.id == id } },
         items = activityItems,
         expenseCategories = quickEntry.expenseCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
         incomeCategories = quickEntry.incomeCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
+        accountOptions = activityAccountOptions,
     )
 
     val activeCards = document.canonicalCards().filter { it.active }

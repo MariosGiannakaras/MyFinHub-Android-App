@@ -33,4 +33,55 @@ class ActivityReducerTest {
         assertEquals("Νέα κατηγορία", edited.category)
         assertEquals(initial.items.first { it.id == "evt-2" }, updated.items.first { it.id == "evt-2" })
     }
+    @Test
+    fun accountFilter_keepsDirectAndTransferAccountActivity() {
+        val items = listOf(
+            ActivityItem(
+                id = "direct",
+                dateLabel = "Σήμερα",
+                kind = ActivityKind.EXPENSE,
+                title = "Άμεση",
+                subtitle = "",
+                amount = -10.0,
+                accountLabel = "Κύριος",
+                category = null,
+                rawDate = "2026-09-07",
+                accountId = "main",
+            ),
+            ActivityItem(
+                id = "transfer",
+                dateLabel = "Σήμερα",
+                kind = ActivityKind.TRANSFER,
+                title = "Μεταφορά",
+                subtitle = "",
+                amount = 20.0,
+                accountLabel = "Κύριος → Αποταμίευση",
+                category = null,
+                rawDate = "2026-09-07",
+                fromAccountId = "main",
+                toAccountId = "savings",
+            ),
+            ActivityItem(
+                id = "other",
+                dateLabel = "Σήμερα",
+                kind = ActivityKind.EXPENSE,
+                title = "Άλλος",
+                subtitle = "",
+                amount = -5.0,
+                accountLabel = "Μετρητά",
+                category = null,
+                rawDate = "2026-09-07",
+                accountId = "cash",
+            ),
+        )
+        val initial = ActivityUiState(
+            items = items,
+            accountOptions = listOf(ActivityAccountOption("main", "Κύριος")),
+        )
+
+        val filtered = reduceActivity(initial, ActivityAction.AccountFilterChanged("main"))
+
+        assertEquals(listOf("direct", "transfer"), filtered.visibleItems.map { it.id })
+    }
+
 }

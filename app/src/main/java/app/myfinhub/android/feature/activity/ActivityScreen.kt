@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,7 +73,7 @@ fun ActivityScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Κινήσεις",
-                subtitle = "Η οικονομική σου δραστηριότητα",
+                subtitle = "Όλες οι καταχωρισμένες κινήσεις",
             )
         },
         floatingActionButton = {
@@ -155,44 +154,19 @@ private fun ActivityList(
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
     ) {
         item {
-            ActivityProjectionSummary(state = state)
-        }
-        item {
             MyFinHubSearchField(
                 value = state.query,
                 onValueChange = { onAction(ActivityAction.QueryChanged(it)) },
                 placeholder = "Αναζήτηση κινήσεων",
             )
         }
-        item {
-            FlowRow(
-
-                modifier = Modifier.fillMaxWidth(),
-
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-
-            ) {
-
-                ActivityFilter.entries.forEach { filter ->
-
-                    MyFinHubFilterChip(
-
-                        selected = state.filter == filter,
-
-                        onClick = { onAction(ActivityAction.FilterChanged(filter)) },
-
-                        label = filter.label,
-
-                        icon = filter.icon(),
-
-                        tone = filter.tone(),
-
-                    )
-
-                }
-
+        if (state.accountOptions.isNotEmpty()) {
+            item {
+                ActivityAccountFilterSelector(
+                    selectedId = state.accountFilterId,
+                    options = state.accountOptions,
+                    onSelected = { onAction(ActivityAction.AccountFilterChanged(it)) },
+                )
             }
         }
         if (state.visibleItems.isEmpty()) {
@@ -275,56 +249,42 @@ private fun ActivityList(
 }
 
 @Composable
-private fun ActivityProjectionSummary(state: ActivityUiState) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Αποτελέσματα", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "${state.visibleItems.size} ${if (state.visibleItems.size == 1) "κίνηση" else "κινήσεις"}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                MyFinHubAmountText(
-                    text = formatSignedEuro(state.visibleNet),
-                    tone = if (state.visibleNet >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            if (state.visiblePendingCount > 0) {
-                Text(
-                    text = "${state.visiblePendingCount} ${if (state.visiblePendingCount == 1) "κίνηση περιμένει" else "κινήσεις περιμένουν"} επιβεβαίωση από τον server",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+private fun ActivityAccountFilterSelector(
+    selectedId: String?,
+    options: List<ActivityAccountOption>,
+    onSelected: (String?) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val selectedLabel = options.firstOrNull { it.id == selectedId }?.label ?: "Όλοι οι λογαριασμοί"
+    Box {
+        MyFinHubSelectorButton(
+            label = "Λογαριασμός",
+            onClick = { expanded = true },
+            enabled = options.isNotEmpty(),
+        ) {
+            Text(selectedLabel, modifier = Modifier.weight(1f))
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("Όλοι οι λογαριασμοί") },
+                onClick = {
+                    expanded = false
+                    onSelected(null)
+                },
+            )
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    onClick = {
+                        expanded = false
+                        onSelected(option.id)
+                    },
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ActivitySummaryMetric(
-    label: String,
-    value: Double,
-    tone: FinanceTone,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        MyFinHubAmountText(
-            text = formatUnsignedEuro(value),
-            tone = tone,
-            style = MaterialTheme.typography.titleMedium,
-        )
     }
 }
 

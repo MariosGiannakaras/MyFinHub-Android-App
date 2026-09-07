@@ -22,6 +22,8 @@ data class HomeAccount(
     val role: String,
     val balance: Double,
     val group: HomeAccountGroup,
+    val isPrimary: Boolean = false,
+    val balanceTrend: List<Double> = listOf(balance, balance),
 )
 
 enum class HomeAccountGroup {

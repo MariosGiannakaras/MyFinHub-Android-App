@@ -29,6 +29,11 @@ data class ActivityCategoryOption(
     val subcategories: List<String> = emptyList(),
 )
 
+data class ActivityAccountOption(
+    val id: String,
+    val label: String,
+)
+
 enum class ActivityKind(val label: String) {
     EXPENSE("Έξοδα"),
     INCOME("Έσοδα"),
@@ -48,10 +53,12 @@ data class ActivitySection(val date: String, val items: List<ActivityItem>)
 data class ActivityUiState(
     val query: String = "",
     val filter: ActivityFilter = ActivityFilter.ALL,
+    val accountFilterId: String? = null,
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
+    val accountOptions: List<ActivityAccountOption> = emptyList(),
 ) {
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
@@ -64,6 +71,10 @@ data class ActivityUiState(
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
                 ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
+            val matchesAccount = accountFilterId == null ||
+                item.accountId == accountFilterId ||
+                item.fromAccountId == accountFilterId ||
+                item.toAccountId == accountFilterId
             val searchableAmount = item.amount.toString()
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
@@ -75,7 +86,7 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(needle, ignoreCase = true)
-            matchesFilter && matchesQuery
+            matchesFilter && matchesAccount && matchesQuery
         }
     }
 
@@ -118,6 +129,7 @@ data class ActivityUiState(
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
+    data class AccountFilterChanged(val accountId: String?) : ActivityAction
     data class Select(val id: String?) : ActivityAction
     data class SaveEdit(
         val id: String,
@@ -132,6 +144,7 @@ sealed interface ActivityAction {
 fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiState = when (action) {
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     is ActivityAction.FilterChanged -> state.copy(filter = action.value)
+    is ActivityAction.AccountFilterChanged -> state.copy(accountFilterId = action.accountId)
     is ActivityAction.Select -> state.copy(selectedId = action.id)
     is ActivityAction.SaveEdit -> state.copy(
         items = state.items.map { item ->
