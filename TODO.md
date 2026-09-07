@@ -5,10 +5,12 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-- [ ] Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-- [ ] If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-- [ ] Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+- [ ] Map canonical account/provider identity and official provider assets, then replace abbreviated account labels with semantic account names plus separate provider identity across the changed Android surfaces.
+- [ ] Complete the canonical Cards experience: expose card creation, surface supported credit-card activity, bind carousel indicators to real pager state and restore deletion transition parity without weakening mutation/reconciliation safety.
+- [ ] Redesign `Εικόνα` around mobile-first trends, period comparison and category/change insight while removing repetitive presentation.
+- [ ] Produce fresh real Compose light, dark and large-font renders for every changed production surface, personally inspect and fix them, then update canonical screenshot references only after approval.
+- [ ] Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8; merge only to develop and publish a version strictly higher than 10005 through the protected enrolled-signer publisher.
+- [ ] Perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra; only explicit acceptance may close issue #73 and advance overall progress.
 
 ## Completed foundations
 
