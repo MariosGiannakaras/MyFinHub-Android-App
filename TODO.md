@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.
-- [ ] Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.
-- [ ] If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity.
+- [ ] Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: replace compact popup selectors with mobile bottom-sheet selection patterns, improve Quick Entry density/contextual flow, fix helper copy and Greek date presentation, and preserve offline enqueue/reconcile/undo semantics; render and visually inspect real Compose screenshots and run relevant hosted gates.
+- [ ] Continue Slices B-G in the exact order and acceptance criteria defined by `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` (Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics), updating canonical tracking after each merged slice and never skipping the owner-recorded physical findings.
+- [ ] After Slices A-G plus full Slice H hosted validation, publish a strictly higher same-signer production candidate than versionCode `10006`, install it in place on the authorized S24 without clearing data, and obtain explicit owner physical acceptance before any stable-final claim or deliberate `develop -> main` promotion.
 
 ## Completed foundations
 
@@ -30,6 +30,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Exact corrected rc7 release-source hosted validation (#97)
 - [x] Protected rc7 AAB signer-verification correction and hosted validation (#98)
 - [x] Protected same-signer rc7 publication to private update channel and GitHub prerelease
+- [x] rc7 in-place S24 installation with same-signer update continuity and existing session continuity
 
 ## Rule
 
