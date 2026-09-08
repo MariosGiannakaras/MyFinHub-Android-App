@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_source_validated_publication_blocked_aab_verification_fix_pending`.
-- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_physically_rejected_superseded_by_merged_fix_pass`.
+- Workstream state: `rc7_protected_published_pending_physical_s24_acceptance`.
+- Latest private production candidate: `1.0.0-rc7` / `10006` — `protected_published_pending_physical_s24_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The exact no-functional-change `1.0.0-rc7` release-source PR is open and green on Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation. The first protected rc7 publication attempt allocated versionCode `10006`, completed the exact-source build, verified the enrolled production signer, and successfully signed/verified the direct APK, but stopped before any upload because `jarsigner -verify -strict` treats the expected self-signed Android app-signing certificate as a PKIX trust-chain error for the AAB. No rc7 artifact or metadata was published, so rc6 remains the latest production candidate. The correction keeps the existing signer and source unchanged, verifies AAB JAR integrity without PKIX trust-chain strictness, and separately requires the AAB certificate SHA-256 to match the already verified enrolled production signer.
+The corrected `1.0.0-rc7` source completed exact-head hosted validation and the protected production publisher now completed successfully. The enrolled long-lived production signer was verified, the direct APK and companion AAB were signed and verified, the direct APK was published to the private update channel, and the GitHub prerelease was created with checksums and safe metadata. The published direct candidate is `1.0.0-rc7` / versionCode `10006`, built from the immutable validated rc7 source; its APK SHA-256 is `ec4fc37f4023e76f1eacb44c74bf071186a89e61b77780d921ce383c4acf7315`. The rc7 release-source PR was then closed without merging as required. Android Developer Console Limited distribution remains configured for `app.myfinhub.android`, the enrolled signer, and the authorized Samsung Galaxy S24 Ultra. Overall progress remains 4/6 until rc7 is installed in place over rc6 and receives authoritative physical acceptance on that device.
 
 ## Immediate work
 
-- Validate and merge the narrow protected-publisher AAB verification correction: keep non-strict JAR integrity verification for the self-signed Android app certificate, separately compare the signed AAB certificate SHA-256 to the enrolled production signer, and require synchronized Project Tracking plus normal hosted validation.
-- After the correction is merged to `develop`, retrigger the guarded `1.0.0-rc7` production request against the still-open validated release-source PR by changing only `.github/release-requests/production.json`; require the protected publisher to use the next strictly increasing versionCode, the enrolled signer, the exact validated source, the private update channel and immutable GitHub prerelease artifacts/checksums.
-- After successful rc7 publication, close the release-source PR without merging, synchronize canonical tracking to the published candidate, then install rc7 in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
+- Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.
+- Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.
+- If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity.
 
 ## Constraints
 
