@@ -373,7 +373,14 @@ jobs:
             -keypass:env ANDROID_PRODUCTION_KEY_PASSWORD \
             "$aab_output" \
             "$ANDROID_PRODUCTION_KEY_ALIAS"
-          jarsigner -verify -strict "$aab_output"
+          jarsigner -verify "$aab_output"
+          aab_cert_info="$RUNNER_TEMP/production-aab-cert.txt"
+          LC_ALL=C keytool -printcert -jarfile "$aab_output" > "$aab_cert_info"
+          aab_cert_sha256="$(awk '/SHA256:/{print $2; exit}' "$aab_cert_info" | tr '[:upper:]' '[:lower:]' | tr -d ':')"
+          test "$aab_cert_sha256" = "${{ steps.signer.outputs.cert_sha256 }}" || {
+            echo 'Signed Play AAB certificate does not match the enrolled production signer.' >&2
+            exit 1
+          }
 
           echo "apk=$apk_output" >> "$GITHUB_OUTPUT"
           echo "aab=$aab_output" >> "$GITHUB_OUTPUT"
@@ -501,5 +508,6 @@ jobs:
             "$RUNNER_TEMP/MyFinHub-production-aligned.apk" \
             "$RUNNER_TEMP/MyFinHub-${VERSION_NAME:-unknown}-${VERSION_CODE:-unknown}.apk" \
             "$RUNNER_TEMP/MyFinHub-${VERSION_NAME:-unknown}-${VERSION_CODE:-unknown}-play.aab" \
-            "$RUNNER_TEMP/production-apksigner.txt"
+            "$RUNNER_TEMP/production-apksigner.txt" \
+            "$RUNNER_TEMP/production-aab-cert.txt"
           rm -rf "$RUNNER_TEMP/github-release"
