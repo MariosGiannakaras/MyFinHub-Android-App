@@ -10,7 +10,7 @@ The currently published `1.0.0-rc6` / versionCode `10005` remains a technically 
 
 ## Authorized sequence
 
-1. Finish and merge PR #92, which makes the direct production APK, checksums, GitHub Release and private update publication reproducible.
+1. Finish and merge the active final release-preparation PR, which makes the direct production APK, checksums, GitHub Release and private update publication reproducible.
 2. Create a short-lived exact release-source PR from current `develop`, targeting `develop`, for `1.0.0-rc7` with synchronized canonical tracking.
 3. Require exact-head Project Tracking, Android `verify`, screenshot regression and representative S24-target instrumentation to pass.
 4. Trigger the protected production publisher. The protected workflow must verify the enrolled signer before signing anything.
