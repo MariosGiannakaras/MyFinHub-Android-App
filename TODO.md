@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete the active final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
-- [ ] Create an exact release-source PR for `1.0.0-rc7`, pass the exact-head release gates, and use the protected enrolled signer to publish the direct APK to the private update channel plus an immutable GitHub prerelease with APK, checksums and safe metadata.
-- [ ] Install `1.0.0-rc7` in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
+- [ ] Create an exact no-functional-change release-source PR for `1.0.0-rc7` from current `develop`, update the production baseline marker and canonical tracking, and require green Project Tracking, Android `verify`/R8, screenshot regression with no baseline regeneration, and representative S24-target instrumentation on its exact head.
+- [ ] Keep the validated rc7 release-source PR open, then change only `.github/release-requests/production.json` on `develop` to reference it for `1.0.0-rc7`; require the protected publisher to allocate the next strictly increasing production versionCode, verify the enrolled signer, publish the direct APK to the private update channel, and create the immutable GitHub prerelease with checksums and safe metadata.
+- [ ] After successful rc7 publication, close the release-source PR without merging, synchronize canonical tracking to the published candidate, then install rc7 in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
 
 ## Completed foundations
 
@@ -26,6 +26,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Final S24/signing handoff documentation refresh (#90)
 - [x] Protected public production signer fingerprint utility (#91)
 - [x] Android Developer Console Limited distribution package/signer/device authorization (owner-reported)
+- [x] Final protected release preparation and exact-head hosted validation (#95)
 
 ## Rule
 
