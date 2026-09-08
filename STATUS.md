@@ -9,21 +9,21 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `final_release_preparation_authorized`
+State: `final_release_preparation_pr_active_limited_distribution_ready`
 
-The owner has explicitly authorized the separate final production signing/release handoff and removed the prior stage-specific prohibition on creating a higher production candidate or GitHub Release. The owner-rejected rc6 correction implementation remains merged and hosted-validated on `develop`. Final release preparation now makes the production pipeline reproducible for both the existing direct/private same-signer APK path and a Google Play-compatible AAB that removes MyFinHub's direct installer permissions and self-update UI. The enrolled long-lived production signing identity must be preserved. Overall progress remains 4/6 until a higher protected candidate is successfully produced and the corrected build receives authoritative in-place acceptance on the physical Samsung Galaxy S24 Ultra; Google Play Console enrollment/distribution cannot be claimed without actual Console access.
+The owner has explicitly authorized the final production signing/release handoff. The owner-rejected rc6 correction implementation remains merged and hosted-validated on `develop`. Android Developer Console Limited distribution is now the selected Google-supported non-public distribution mechanism: the owner reports that `app.myfinhub.android`, the enrolled production signing certificate, and the Samsung Galaxy S24 Ultra are authorized, so no Play Console or MCP integration is required for this release path. The final release-preparation PR is active. The required release output is the direct production APK signed by the existing long-lived production identity, published both to the existing private updater channel and an immutable GitHub prerelease with checksums and safe metadata. Overall progress remains 4/6 until a strictly higher candidate is successfully produced and the corrected build receives authoritative in-place acceptance on the physical Samsung Galaxy S24 Ultra.
 
 ## Current production candidate
 
 `1.0.0-rc6` / versionCode `10005` — **protected_published_physically_rejected_superseded_by_merged_fix_pass**.
 
-Protected same-signer rc6 remains the installed/available technical baseline but was physically rejected. Its correction pass is merged and validated on `develop`; no higher production candidate exists yet. The owner has now authorized creation of the next protected candidate and release artifacts, but rc6 must not be treated as accepted final product evidence.
+Protected same-signer rc6 remains the installed/available technical baseline but was physically rejected. Its correction pass is merged and validated on `develop`; no higher production candidate exists yet. Production signing/release is authorized, Android Developer Console Limited distribution is owner-configured for the package/signer/S24 target, and rc7 is the next intended protected candidate.
 
 ## Next
 
-1. Complete the final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
-2. Create an exact release-source PR for the next higher candidate, pass the exact-head release gates, and use the protected enrolled signer to publish the same direct APK to the private update channel plus an immutable GitHub prerelease with APK, Play-compatible AAB, checksums and safe metadata.
-3. Install the higher same-signer candidate in place over rc6 on the physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim; complete Play Console Internal testing enrollment when Console access is available.
+1. Complete the active final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
+2. Create an exact release-source PR for `1.0.0-rc7`, pass the exact-head release gates, and use the protected enrolled signer to publish the direct APK to the private update channel plus an immutable GitHub prerelease with APK, checksums and safe metadata.
+3. Install `1.0.0-rc7` in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
 
 ## Non-negotiable constraints
 
@@ -33,8 +33,9 @@ Protected same-signer rc6 remains the installed/available technical baseline but
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI/reference environment.
 - For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.
 - Do not infer final product acceptance from hosted gates when owner physical feedback has rejected the currently installed candidate.
-- Production signing and release are now explicitly authorized. Approved release APK/AAB/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.
-- Google Play-distributed builds must use Google Play's update mechanism and must not request MyFinHub's direct package-install/self-update permissions.
+- Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.
+- The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.
+- A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.
 
 ## Tracking contract
 

@@ -1,31 +1,48 @@
 # Phase 6 production signing handoff
 
-## Current authoritative boundary — 2026-09-05
+## Current authoritative boundary — 2026-09-08
 
-The protected Phase 6 private test-release path and the final supported-device correction pass are complete.
+The owner has explicitly authorized the final production signing/release handoff. The earlier stage-specific prohibition on producing a higher production-signed candidate or GitHub Release no longer applies.
 
-- The validated canonical UI/UX correction pass is merged into Android `develop`.
-- The protected `phase6-test` publisher is proven end-to-end with a private NON-PROD build, exact post-upload byte verification and metadata-last publication.
-- The product owner completed the authoritative Samsung Galaxy S24 Ultra acceptance for updater discovery/download/install, Samsung/Android confirmation, in-place package replacement, session/local-data continuity and the remaining physical UI/interaction delta.
-- The UI/interaction tracker and protected test-publisher tracker are closed.
-- Issue #14 remains the Phase 6 source of truth.
+The production signing identity is already enrolled and has been used for prior same-signer production candidates. Preserve that identity. Do not create, rotate, replace or expose a signing key.
 
-## Explicit authorization boundary
+The currently published `1.0.0-rc6` / versionCode `10005` remains a technically valid same-signer baseline but was physically rejected for product/UI reasons. The correction pass is merged and hosted-validated on `develop`, so the next physical acceptance candidate must be strictly higher than rc6 and signed with the same enrolled identity.
 
-Do not create or use a production signing identity, do not publish a production-signed APK, do not freeze the final version, and do not promote Android `develop` to `main` until the product owner explicitly authorizes the production signing handoff.
+## Authorized sequence
 
-The completed physical NON-PROD acceptance is a prerequisite, not authorization for production signing.
+1. Finish and merge the active final release-preparation PR, which makes the direct production APK, checksums, GitHub Release and private update publication reproducible.
+2. Create a short-lived exact release-source PR from current `develop`, targeting `develop`, for `1.0.0-rc7` with synchronized canonical tracking.
+3. Require exact-head Project Tracking, Android `verify`, screenshot regression and representative S24-target instrumentation to pass.
+4. Trigger the protected production publisher. The protected workflow must verify the enrolled signer before signing anything.
+5. Produce the direct optimized APK signed with the enrolled production identity. This is the required artifact for same-signer in-place continuity, the private updater, GitHub Release and Android Developer Console Limited distribution.
+6. Publish the direct APK to the existing private production update channel, re-read/verify the exact remote bytes, and publish metadata last.
+7. Create an immutable GitHub prerelease for the exact validated source with the signed APK, `SHA256SUMS.txt`, safe release metadata and release notes. Do not reuse or overwrite an existing version tag.
+8. Install/update the direct candidate in place over the existing rc6 installation on the owner's authorized Samsung Galaxy S24 Ultra.
+9. Verify session/PIN/biometric/device-local CVV continuity, production Auth/API, finance mutation/reconcile behavior, updater behavior, corrected Home/cards/Εικόνα, navigation, accessibility/light/dark/large-font and physical-device performance.
+10. Treat signer mismatch, forced uninstall, parallel package, lost application data, unexpected full-login requirement, or a physically rejected product result as blockers.
+11. Only after explicit physical owner acceptance may a stable-final completion claim and release-only `main` promotion be made.
 
-## Sequence after explicit production-signing authorization
+## Google-supported limited distribution
 
-1. Create and preserve one long-lived Android production signing identity outside the public repository. Never commit or log the private key or passwords.
-2. Build the exact accepted production baseline from the authoritative Android `develop` state and sign it with that identity.
-3. Build a strictly higher-version candidate with the same production identity.
-4. Publish only through the protected private production release path; never expose the production APK as a public GitHub artifact or release.
-5. On the owner's Samsung Galaxy S24 Ultra, verify an in-place update with no uninstall and no parallel package.
-6. Verify encrypted session, PIN and device-local CVV continuity. Local biometric/PIN unlock must still work; email/password/TOTP must not be required unless the server session is genuinely invalid, expired or revoked.
-7. Treat signer mismatch, forced uninstall, lost application data, unexpected full-login requirement, or updater failure that leaves the installed app unusable as a Phase 6 blocker.
-8. Only after the production same-signer update-continuity smoke passes may the final version be frozen and the release candidate be promoted through the repository's `develop -> main` workflow.
+The selected non-public Google-supported distribution mechanism is **Android Developer Console Limited distribution**, not a public Google Play listing.
+
+Owner-reported setup is complete for the current path:
+
+- `app.myfinhub.android` is registered;
+- the enrolled production signing certificate is authorized;
+- the Samsung Galaxy S24 Ultra acceptance device is authorized.
+
+The signed APK may continue to be delivered through the existing private updater and GitHub Release. Android Developer Console provides the package/signing/device authorization layer for the Limited plan. A Play Console account, Play track, AAB upload or MCP integration is not required for this selected release path.
+
+See `docs/ANDROID_DEVELOPER_CONSOLE_LIMITED_DISTRIBUTION.md`.
+
+## Optional future Play artifact
+
+If the repository retains a Play-compatible AAB for future use, it is optional and non-gating for the current Limited-distribution release. Do not interpret its presence as a requirement to create a Play Console account or switch distribution mechanisms.
+
+## Security guard
+
+Signing material and publisher credentials remain protected secrets. Authorization to release binaries is not authorization to expose keys/passwords/tokens. Signed APK/checksum artifacts may be published only through the explicitly approved release/distribution channels, never committed to Git history.
 
 ## Scope guard
 

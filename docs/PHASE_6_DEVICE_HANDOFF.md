@@ -2,239 +2,151 @@
 
 ## Purpose
 
-This document is the executable handoff after autonomous Android repository work is merged and green. The **owner's physical Samsung Galaxy S24 Ultra is the sole supported device and the authoritative physical acceptance environment**.
+This is the executable physical handoff for the final post-rc6 correction release. The **owner's Samsung Galaxy S24 Ultra is the sole supported device and authoritative physical acceptance environment**.
 
-Physical acceptance is intentionally different from hosted CI: it verifies the real production public-client configuration, Samsung One UI rendering/display settings, device-specific lifecycle/performance behavior and — only when explicitly authorized — the protected same-signer candidate/signing path.
+Hosted CI/device-lab evidence validates build/runtime contracts, but it does not replace owner acceptance on the real phone.
 
-### Current post-rc6 checkpoint
+## Current checkpoint — 2026-09-08
 
-- `1.0.0-rc6` / versionCode `10005` is a valid production-signed technical baseline but was physically rejected by the owner.
-- The owner-rejected rc6 correction pass is merged to `develop` and has already passed fresh real Compose light/dark/150%-font inspection, Project Tracking, screenshot regression, representative S24-target instrumentation and full Android CI/R8.
-- The merged corrections cover semantic account role/name plus separate institution/provider identity, approved provider mapping/branding, canonical card creation/detail and secure secret handling, linked credit-card purchases/payments, stable card-stack selection controls, the approved delete transition and the redesigned `Εικόνα` hierarchy.
-- No higher production candidate has been created or published from the corrected `develop` state.
-- The long-lived production signing identity already exists and is enrolled. **Do not create, replace, rotate or expose a production signing key.**
-- Until the owner explicitly authorizes the separate final signing/publication handoff, do not create a production-signed APK, publish a higher production candidate, perform a release or promote `develop` to `main`.
+- `1.0.0-rc6` / versionCode `10005` is a valid production-signed technical baseline but was physically rejected for product/UI reasons.
+- The owner-rejected correction pass is merged to `develop` and already passed fresh real Compose light/dark/150%-font inspection plus hosted Android gates.
+- The long-lived production signing identity already exists and is enrolled. **Never create, replace, rotate or expose it.**
+- The owner has explicitly authorized final production signing/publication and GitHub Release creation.
+- Android Developer Console Limited distribution is the selected Google-supported non-public distribution path. The owner reports `app.myfinhub.android`, the production signing certificate and the S24 Ultra are authorized.
+- The next intended candidate is `1.0.0-rc7`, produced through the protected same-signer release path.
+- `main` remains release-only and must not be promoted until the corrected candidate is physically accepted.
 
-Because the installed rc6 package is production-signed, authoritative continuity acceptance of the merged corrections requires a strictly higher package signed by the **same enrolled production identity**. A debug/test-signed build cannot replace rc6 in place. Uninstalling rc6 or installing a parallel package is not valid evidence for session/PIN/biometric/CVV continuity.
+Because rc6 is production-signed, authoritative continuity acceptance requires a strictly higher package signed by the **same enrolled production identity**. A debug/test-signed build, uninstall, or parallel package is not valid continuity evidence.
 
-## Repository / workstation prerequisites
+## Release prerequisites
 
-Before connecting the phone:
+Before touching the phone:
 
-1. Use the current `develop` integration state with no unresolved supported-device blocker.
-2. Confirm `tracking/android-project-state.json`, `STATUS.md`, `TODO.md` and `docs/CURRENT_HANDOFF.md` agree with live GitHub state.
-3. Confirm no open implementation PR supersedes the accepted correction baseline.
-4. Use JDK 17.
-5. Use the repository Gradle wrapper (Gradle 9.7.0) and Android Gradle Plugin 9.3.0.
-6. Provision Android SDK compileSdk 37; the app targets SDK 36 and minSdk 26.
-7. Confirm a clean clone passes the normal non-device verification path. The one-command Gradle validation path is:
-   - `./gradlew :benchmark:assembleBenchmark test lint assembleDebug assembleDebugAndroidTest assembleRelease analyzeReleaseR8Config`
-   The equivalent split commands are:
-   - `./gradlew test lint assembleDebug`
-   - `./gradlew :benchmark:assembleBenchmark`
-   - `./gradlew assembleDebugAndroidTest assembleRelease analyzeReleaseR8Config`
-8. Confirm Project Tracking, screenshot regression, representative S24-target instrumentation, the normal CI release-manifest audit and unsigned-APK policy audit are green for the accepted implementation state.
-9. Do not place service-role keys, vault keys, signing passwords, keystores, real finance exports or other server/private secrets in the repository or APK.
+1. The active final release-preparation PR must be merged to `develop` with Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation green.
+2. Create an exact no-functional-change release-source PR from current `develop` for `1.0.0-rc7`.
+3. Require exact-head Project Tracking, Android `verify`, screenshot regression and representative S24-target instrumentation to pass on that source PR.
+4. Trigger the protected production publisher using the guarded production release request.
+5. Verify the publisher uses the existing enrolled signer, plans a versionCode strictly higher than `10005`, publishes the direct APK to the private production update channel, re-reads the exact bytes, and creates the immutable GitHub prerelease/checksums/safe metadata.
+6. Do not expose or move signing secrets outside the protected environment.
 
-## Public build-time configuration
+## Physical installation / continuity
 
-The Android app has no end-user configuration fields. Its production public-client defaults are compiled through `BuildConfig` and are already present in the public repository:
+On the owner's authorized Galaxy S24 Ultra:
 
-- `MYFINHUB_API_BASE_URL=https://mgfinhub.vercel.app`
-- `SUPABASE_URL=https://ahsukppxwaiagampsuzb.supabase.co`
-- `SUPABASE_PUBLISHABLE_KEY=sb_publishable_Ee7nzCpHN5AKwjXkPBvxdw_bTJXoJGC`
+1. Record current Samsung One UI / Android version, display resolution, screen zoom and font size. Do not change settings merely to make the UI pass.
+2. Preserve the installed rc6 package and application data.
+3. Update **in place** from rc6 to rc7 through the private updater or the signed GitHub Release APK. Do not uninstall first.
+4. Confirm Android reports the expected newer version and no parallel package was created.
+5. Confirm the encrypted server session remains present.
+6. Confirm existing local PIN/biometric enrollment remains present where applicable.
+7. Confirm device-local encrypted CVV state remains present where applicable.
+8. After local unlock, confirm the stored server session validates/refreshes normally without an unnecessary full email/password/TOTP login.
 
-These values identify public client endpoints/credentials and are **not** service-role or server secrets. A workstation can override any of them with the Gradle properties of the same names when a deliberate environment change is required. Do not add service-role keys, vault keys or signing material to these properties.
+Signer mismatch, forced uninstall, lost application data, lost PIN/CVV state or unexplained full-login requirement are blockers.
 
-## Physical-device setup
+## Corrected product acceptance
 
-On the owner's Galaxy S24 Ultra:
+### Home / identity / provider
 
-- Record Samsung One UI / Android version.
-- Record the owner's current display resolution, screen zoom and font size settings; do not change them merely to make the UI pass.
-- Enable the normal developer/USB debugging path if needed for diagnostics, without replacing the installed production package with a differently signed build.
-- Preserve the installed rc6 package and its application data until a same-signer in-place candidate is explicitly authorized.
-- Do not uninstall rc6 as a shortcut around signer/update problems.
-- Do not install a parallel package and treat it as continuity evidence.
-- Keep the S24 Ultra as the only device acceptance target; do not reopen tablet/foldable work.
-
-## Corrected rc6 product acceptance
-
-After a strictly higher same-signer candidate is explicitly authorized and installed **in place** over rc6, verify the owner rejection points first.
-
-### Home / account identity and provider branding
-
-- Primary accounts show semantic account role/name separately from institution/provider.
-- Example structure is equivalent to `Μισθοδοσίας` as the account identity and `Τράπεζα Πειραιώς` as the institution, not a combined shorthand label.
-- Account/provider identity remains readable at the owner's normal and large-font settings.
-- Approved provider mapping/brand marks render correctly where the product owns a supported local provider asset.
+- Semantic account role/name is separate from institution/provider.
+- Supported provider mapping/branding is correct.
+- Identity remains readable at normal and large-font settings.
 
 ### Cards
 
-- Canonical card creation is obvious, reachable and completes through the supported finance mutation boundary.
-- Card detail shows the correct account/card/provider identity.
-- Credit-card detail exposes linked canonical `card_purchase` / `card_payment` history where present in synchronized data.
-- Card-stack indicators reflect the active card and work as stable navigation/position controls.
-- Card deletion uses the approved transition quality while preserving canonical mutation/reconciliation safety.
-- PAN/expiry remain behind the server vault boundary and owner+AAL2 checks; CVV remains device-local and protected.
+- Canonical card creation is obvious and completes through the supported mutation boundary.
+- Card detail shows correct account/card/provider identity.
+- Credit-card detail exposes linked canonical purchase/payment history when synchronized data exists.
+- Card-stack indicators reflect and control the active card reliably.
+- Card deletion uses the approved transition quality.
+- PAN/expiry remain behind the server vault + owner/AAL2 boundary; CVV remains device-local and protected.
 
-### `Εικόνα`
+### Εικόνα
 
-- The redesigned comparison/trend/category hierarchy is materially clearer than the rejected rc6 KPI-card-heavy presentation.
-- No clipping, overlap, unreadable labels or broken chart/category hierarchy appears in light, dark or the owner's large-font settings.
-- Drill-in/navigation does not expose stale nested destination state.
+- The redesigned comparison/trend/category hierarchy is materially clearer than the rejected rc6 presentation.
+- No clipping, overlap, unreadable labels or broken hierarchy appears in light, dark or large-font settings.
+- Drill-in/navigation does not expose stale nested state.
 
-## Production Auth/API smoke sequence
+## Production Auth/API and finance smoke
 
-Use the real production public-client configuration already intended for the Android app. Do not enter infrastructure secrets into the phone.
+1. Cold launch the updated app and verify no configuration/error loop.
+2. Confirm canonical finance data loads and visible totals/lists are plausible.
+3. Open Money and Plan and verify truthful synchronized state with no fabricated finance details.
+4. Open Quick Entry, choose at least one transaction type and verify the canonical form opens correctly.
+5. Verify date selection, monetary input, validation and first-invalid-field focus/scroll on the physical Samsung keyboard/display.
+6. Perform one reversible finance mutation and verify it syncs exactly once.
+7. Test one offline mutation: optimistic/pending local state should appear, relaunch while offline should preserve it, then reconnect should reload fresh server state and reconcile without duplicate writes.
+8. Test one transient load failure/reconnect and confirm recovery without a loading loop.
+9. Open a card-secret flow and re-check owner+AAL2, PAN/expiry server-vault and device-local CVV boundaries.
+10. Verify Settings logout is present and diagnostics remain privacy-safe.
+11. Perform logout/re-auth only as the final deliberate auth-flow check.
 
-1. Cold-launch the in-place updated app and verify no configuration/error loop appears.
-2. Verify the expected higher version is installed over the existing package; no uninstall or parallel package occurred.
-3. Verify the encrypted stored server session was not cleared by the update.
-4. Verify the existing local PIN/biometric enrollment is still present where applicable.
-5. After local unlock, confirm the stored server session is validated/refreshed before product access.
-6. Email/password/TOTP should be required only if the server session actually expired, was revoked or otherwise became invalid.
-7. Confirm canonical finance data loads and the visible totals/lists are plausible.
-8. Open Money and Plan and verify production state ownership is truthful:
-   - account/card/savings/debt/scheduled totals match synchronized data;
-   - no fabricated loan name, lender, due date, lending person, savings target, category budget, rule or forecast window appears when the canonical payload does not provide it;
-   - unsupported detailed editing is read-only/unavailable rather than presented as a successful synchronized save.
-9. From Home, open Quick Entry through the primary add action, choose at least one transaction type and verify the real canonical form opens with that type preselected.
-10. Verify the transaction date selector, monetary keyboard/input, field-level validation and first-invalid-field focus/scroll behavior on the physical Samsung keyboard/display settings.
-11. Perform one reversible finance mutation and verify server sync completes once.
-12. Test the resilience flow deliberately:
-   - disconnect networking before a mutation;
-   - verify the UI shows the change as waiting for network and no server request is assumed sent;
-   - restore networking;
-   - verify server state is reloaded before the stable mutation is replayed and no duplicate finance event is created.
-13. Test a transient load failure/reconnect and verify the app recovers without a loading loop.
-14. Open a card-detail secret flow and verify owner+AAL2 requirements, server PAN/expiry boundary and device-local CVV behavior remain intact.
-15. Open Settings and verify account logout is present there rather than as a persistent overlay over finance screens.
-16. Log out only as a deliberate final auth-flow check; verify local protected state is cleared.
-17. Relaunch and verify login is required, then re-authenticate successfully.
+## Rendering / accessibility / navigation
 
-## Safe diagnostics check
+Inspect current real application surfaces on the owner's unchanged S24 settings:
 
-Open Settings → Diagnostics and verify only safe support metadata is visible:
+- Home;
+- Activity / Κινήσεις and filters;
+- Money / Περιουσία, card stack/detail/create;
+- Plan / Πλάνο;
+- Εικόνα;
+- Quick Entry;
+- Settings/Diagnostics/Updates;
+- login/TOTP/PIN/local-unlock states;
+- loading/empty/offline/retry/pending states;
+- Snackbar/dialog/detail surfaces.
 
-- app version/build type;
-- public environment/API host;
-- network state;
-- API/sync state;
-- session state/AAL level;
-- last successful sync timestamp;
-- last diagnostic code.
+Reject clipped text, inaccessible controls, overlap with bottom navigation/FAB/Snackbar, unreadable long labels, duplicate navigation, stale nested detail, broken card indicators or stuck loading/recovery states.
 
-There must be no password, PIN, TOTP, access/refresh token, user identifier, finance payload, account/transaction content, PAN, expiry or CVV in the diagnostics surface.
+Verify specifically:
 
-## Private self-update physical upgrade smoke
-
-The private updater contract is documented in `docs/PRIVATE_SELF_UPDATE.md`. Hosted tests can verify metadata, download integrity, package identity, signer checks and PackageInstaller handoff, but **only an update over the already installed production package on the owner's S24 Ultra can validate application-data/session continuity for the current rc6 correction acceptance**.
-
-A two-build non-production same-test-signer rehearsal remains useful only on a fresh/non-production installation for updater mechanics. It does **not** count as acceptance of the current rc6 -> corrected-candidate continuity because a test signer cannot replace the installed production-signed rc6 package.
-
-For the authoritative current smoke, only after explicit owner authorization for the final signing/publication handoff:
-
-1. Use the existing enrolled production signing identity; do not generate or rotate it.
-2. Create a strictly higher candidate from the exact validated corrected `develop` state through the protected private publisher path.
-3. Verify package/version/signer identity and published bytes/metadata according to the protected publisher contract.
-4. Open Settings → Updates on the installed rc6 build and verify the newer version is detected without interrupting normal finance use.
-5. Start the in-app download and verify progress is visible and the verified-install state is reached.
-6. If Samsung/Android requires "Install unknown apps" permission for MyFinHub, grant it through the OS-scoped permission screen and return to the app. Verify installation resumes correctly.
-7. If Android displays the system package-install confirmation, complete it. Do not treat the presence of this platform confirmation as a failure.
-8. Let Android replace the installed app, then relaunch MyFinHub.
-9. Verify the app reports the newer version and no downgrade/parallel-package installation occurred.
-10. Verify the encrypted stored server session was not cleared by the updater. Normal local PIN/biometric unlock should be offered where applicable.
-11. After local unlock, verify the existing server session is validated/refreshed normally and finance data loads without an unnecessary email/password/TOTP flow.
-12. Verify updater work did not clear the existing local PIN enrollment or the device-local encrypted CVV vault. Re-check card-secret access through the normal owner+AAL2 boundary.
-13. Confirm finance mutations/reconnect still behave exactly once after the update and no updater failure can trigger account logout.
-
-Never change the production signing identity between versions: Android must reject a package signed by a different identity, and MyFinHub independently checks the signer before opening PackageInstaller.
-
-## Samsung rendering / UX acceptance
-
-Inspect the real app on the owner's unchanged S24 Ultra settings:
-
-- Home, including corrected account/institution/provider identity and the primary Quick Entry action.
-- Activity / Κινήσεις, including filters and navigation behavior.
-- Money / Περιουσία, including card stack/detail, creation and linked credit-card activity.
-- Plan / Πλάνο.
-- `Εικόνα`, including the redesigned comparison/trend/category hierarchy.
-- Canonical Money nested savings/loan/lending states, especially empty/read-only detail handling.
-- Canonical Plan and overall-budget editing.
-- Quick Entry, Material date selection, validation/error states and split-entry scrolling.
-- Settings/Diagnostics, Settings/Updates and truthful empty Change History.
-- Login, TOTP, PIN enrollment, locked/local-unlock states.
-- Loading, empty/first-use, offline, retry, revision-conflict and pending-network states.
-- Card stack/detail and card-secret dialogs.
-- Global Snackbar and details dialog.
-
-Reject clipped text, inaccessible controls, overlapping bottom navigation/FAB/Snackbar, unreadable long labels, broken large/negative amounts, duplicate rapid navigation, stale nested detail, broken card indicator behavior or stuck loading/recovery states.
-
-Specifically verify the hardening accessibility/navigation outcomes on the real device:
-
-- interactive controls remain comfortably tappable at the owner's display/zoom settings;
-- Settings switches and other stateful controls announce useful labels/state with TalkBack;
-- validation errors are understandable without relying only on color;
-- large-font settings do not hide the primary action or make Activity filters/navigation unusable;
-- dark mode keeps muted text, borders, progress/status content and disabled controls readable;
-- top-level destination reselect returns the destination to root;
+- comfortable touch targets at the owner's display/zoom settings;
+- useful TalkBack labels/state for stateful controls;
+- validation errors understandable without color alone;
+- large-font settings do not hide primary actions or break Activity filters/navigation;
+- dark mode keeps muted/status/disabled content readable;
+- top-level destination reselect returns to root;
 - cross-destination drill-in does not expose stale nested detail.
 
-Only current real application screenshots from this device count as device-specific acceptance evidence. Replace superseded physical screenshots rather than treating old evidence as current.
+Only current real screenshots from the supported phone count as device-specific acceptance evidence.
 
-## Device-specific performance acceptance
+## Performance acceptance
 
-Hosted Macrobenchmark/Baseline Profile infrastructure is diagnostic; the physical S24 Ultra is authoritative here.
+Verify on the physical S24 Ultra:
 
-Validate at minimum:
+- cold start reaches expected auth/product state without abnormal delay;
+- Home and Activity scroll smoothly with realistic data;
+- Quick Entry opens/submits without visible duplicate or jank;
+- Money/Plan/card detail navigation remains responsive;
+- top-level navigation and local unlock remain responsive;
+- offline → online recovery does not freeze navigation;
+- update checking/downloading remains nonblocking until Android installation begins.
 
-- cold start feels responsive and reaches the expected auth/product state;
-- Home and Activity scrolling remain smooth with realistic data volume;
-- Quick Entry opens, date selection/validation responds normally and submit does not visibly jank or duplicate;
-- canonical Money/Plan/card-detail navigation remains responsive;
-- navigation among the five top-level destinations remains responsive;
-- app relaunch/local unlock has no abnormal delay or loop;
-- offline → online recovery does not block the main thread or freeze navigation;
-- Settings update check remains nonblocking and downloading an update does not make normal navigation unusable before installation begins.
+A reproducible physical performance defect blocks acceptance.
 
-If a reproducible S24 Ultra performance defect is found, fix it before candidate acceptance and repeat the relevant exact-head repository gates.
+## Limited distribution
 
-## Release-candidate / signing boundary
+Android Developer Console Limited distribution does not host the release as a public Play listing. The signed direct APK may be delivered by the existing private updater or GitHub Release to authorized devices.
 
-Do **not** do any of the following until the owner explicitly starts the separate final signing/publication handoff:
+Keep package `app.myfinhub.android` and the enrolled production signing certificate registered. Additional devices must be explicitly authorized through the supported Limited-distribution flow and remain within the plan's device limit.
 
-- create or replace a production signing key/keystore;
-- expose signing material or passwords;
-- generate/distribute a production-signed APK;
-- publish a higher production candidate;
-- create/promote a production release;
-- promote `develop` to `main`.
-
-At explicit authorization, use only the **existing enrolled long-lived production signing identity** and the protected private publisher. Build/publish the exact validated corrected candidate, verify package/version/signer and byte integrity, then perform the in-place rc6 -> higher-candidate smoke on the physical S24 Ultra before any release completion claim.
-
-Treat signer mismatch, forced uninstall, parallel install, lost application data, lost PIN/CVV state or an unexplained full-login requirement as blockers.
+See `docs/ANDROID_DEVELOPER_CONSOLE_LIMITED_DISTRIBUTION.md`.
 
 ## Completion record
 
-The original Phase 6 tracker (#14) is historical and already closed. For the current post-Phase-6 redesign/correction work, record authoritative acceptance in **issue #73**.
+Record authoritative acceptance in issue #73:
 
-Record:
-
-- device/One UI/Android version and display/font settings used;
-- installed lower baseline and higher tested candidate versions;
-- confirmation that the update was in-place with the enrolled production signer;
-- session/PIN/biometric/device-local CVV continuity result;
-- Home account/institution/provider-branding result;
-- card creation/detail/activity/indicator/delete-transition result;
-- `Εικόνα` visual/hierarchy result;
-- Activity/navigation/large-font/light/dark result;
-- production Auth/API smoke result;
-- canonical Money/Plan truthfulness and Quick Entry physical-UX result;
-- offline/reconnect and duplicate-write result;
-- private update-over-installed-build result, including failure isolation;
-- Samsung visual/accessibility acceptance result with current real-device screenshots;
-- device-specific performance result;
+- device/One UI/Android + display/font settings;
+- installed rc6 baseline and tested rc7 candidate;
+- in-place same-signer update result;
+- session/PIN/biometric/CVV continuity;
+- Home/provider/card/Εικόνα results;
+- Activity/navigation/large-font/light/dark results;
+- production Auth/API and canonical Money/Plan/Quick Entry results;
+- offline/reconnect/exactly-once result;
+- updater result;
+- current real-device screenshots;
+- performance result;
 - explicit owner acceptance or rejection.
 
-Overall progress must remain unchanged until the authoritative physical acceptance requirements for issue #73 are actually satisfied. Hosted gates alone cannot close the tracker after a physical owner rejection.
+Overall progress remains **4/6** until these authoritative physical requirements are satisfied. Hosted green checks alone cannot close #73 after the prior physical rejection.
