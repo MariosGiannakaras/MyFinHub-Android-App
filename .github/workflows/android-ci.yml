@@ -96,10 +96,10 @@ jobs:
         shell: bash
         run: ./gradlew test :app:compileDebugAndroidTestKotlin lint assembleDebug --stacktrace
 
-      - name: Optimized unsigned release assembly and R8 analysis
+      - name: Optimized unsigned release and Play bundle assembly
         if: steps.project.outputs.present == 'true'
         shell: bash
-        run: ./gradlew assembleRelease analyzeReleaseR8Config --stacktrace
+        run: ./gradlew assembleRelease bundlePlayRelease analyzeReleaseR8Config --stacktrace
 
       - name: Audit release manifest and unsigned APK policy
         if: steps.project.outputs.present == 'true'
@@ -136,6 +136,30 @@ jobs:
             exit 1
           fi
           echo 'Release artifact is unsigned and free of benchmark/debug manifest leakage.'
+
+      - name: Audit Google Play distribution bundle policy
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          aab=$(find app/build/outputs/bundle/playRelease -type f -name '*.aab' -print -quit)
+          if [[ -z "$aab" ]]; then
+            echo 'Play release AAB was not produced.' >&2
+            exit 1
+          fi
+
+          mapfile -t play_manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/playRelease/*' -print)
+          if [[ ${#play_manifests[@]} -eq 0 ]]; then
+            echo 'No processed playRelease manifest found.' >&2
+            exit 1
+          fi
+          for manifest in "${play_manifests[@]}"; do
+            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION' "$manifest"; then
+              echo "Installer permission leaked into Google Play manifest: $manifest" >&2
+              exit 1
+            fi
+          done
+          echo 'Google Play bundle is built without direct/self-update installer permissions.'
 
       - name: No Android project yet
         if: steps.project.outputs.present != 'true'
