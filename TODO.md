@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Validate and merge the narrow protected-publisher AAB verification correction: keep non-strict JAR integrity verification for the self-signed Android app certificate, separately compare the signed AAB certificate SHA-256 to the enrolled production signer, and require synchronized Project Tracking plus normal hosted validation.
-- [ ] After the correction is merged to `develop`, retrigger the guarded `1.0.0-rc7` production request against the still-open validated release-source PR by changing only `.github/release-requests/production.json`; require the protected publisher to use the next strictly increasing versionCode, the enrolled signer, the exact validated source, the private update channel and immutable GitHub prerelease artifacts/checksums.
-- [ ] After successful rc7 publication, close the release-source PR without merging, synchronize canonical tracking to the published candidate, then install rc7 in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
+- [ ] Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.
+- [ ] Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.
+- [ ] If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity.
 
 ## Completed foundations
 
@@ -28,6 +28,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Android Developer Console Limited distribution package/signer/device authorization (owner-reported)
 - [x] Final protected release preparation and exact-head hosted validation (#95)
 - [x] Exact corrected rc7 release-source hosted validation (#97)
+- [x] Protected rc7 AAB signer-verification correction and hosted validation (#98)
+- [x] Protected same-signer rc7 publication to private update channel and GitHub prerelease
 
 ## Rule
 
