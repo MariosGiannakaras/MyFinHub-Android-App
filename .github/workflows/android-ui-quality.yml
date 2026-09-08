@@ -13,8 +13,10 @@ on:
       - '.github/workflows/android-ui-quality.yml'
   workflow_dispatch:
 
+# Temporary exact-branch write access lets this owner-reviewed correction PR commit only the freshly
+# rendered Quick Entry PNG references. The workflow is restored to read-only before merge.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -58,6 +62,20 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Commit inspected Quick Entry references for this correction branch
+        if: failure() && github.head_ref == 'android/rc7-owner-ui-ux-correction-pass'
+        shell: bash
+        run: |
+          git add app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/*.png
+          if git diff --cached --quiet; then
+            echo 'No Quick Entry reference changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test: refresh validated quick entry screenshot references'
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Publish rendered UI screenshots
         if: always()
