@@ -76,7 +76,7 @@ If an Android requirement can be satisfied entirely inside `MyFinHub-Android-App
 - Web/desktop cookie and same-origin protection must not be weakened to support Android.
 - Durable FinanceData remains server-side by default; do not introduce a second canonical Room/SQLite finance database.
 - PAN/expiry remain in the server vault. CVV remains device-local only and uses Android Keystore-backed encryption.
-- Never commit real finance data, credentials, JWTs, refresh tokens, PAN/expiry/CVV, vault keys, signing keystores/passwords, or private APKs.
+- Never commit real finance data, credentials, JWTs, refresh tokens, PAN/expiry/CVV, vault keys, signing keystores/passwords, or APK/AAB binaries to Git history. Approved signed release binaries belong only in the explicitly authorized release/distribution channels.
 
 ## GitHub workflow
 
@@ -84,8 +84,9 @@ If an Android requirement can be satisfied entirely inside `MyFinHub-Android-App
 - Use short-lived branches from `develop` and PR back into `develop` for Android-repository implementation/research batches.
 - Production/release promotion is deliberate and traceable from `develop` to `main`.
 - Keep durable decisions in `docs/`; keep changing progress in `STATUS.md`, `TODO.md`, Issues, PRs, and commits.
-- Public source is intentional. Public workflows must never upload signed private APKs or secrets as public artifacts/releases.
+- Public source is intentional. At an explicit owner-authorized release checkpoint, protected workflows may publish approved production-signed APK/AAB/checksum artifacts to GitHub Releases and the documented private update channel. Signing keys, passwords, tokens and other secrets must never be exposed as artifacts, release assets, logs or repository content.
 - Routine development does not need signed APK production. Final APK/build/signing/distribution work happens only at an explicit release checkpoint.
+- Google Play-distributed builds must use Google Play's update mechanism and must not request MyFinHub's direct package-install/self-update permissions.
 - Pin third-party GitHub Actions by immutable commit SHA where practical. Prefer first-party GitHub/Gradle/Android tooling and least-privilege `GITHUB_TOKEN` permissions.
 
 ## Validation order
