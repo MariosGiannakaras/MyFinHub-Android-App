@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_rc6_rejected_corrections_hosted_validation_in_progress`.
-- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_physically_rejected_superseded_by_fix_pass`.
+- Workstream state: `full_product_reaudit_rc6_rejected_corrections_merged_awaiting_final_phase6_handoff`.
+- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_physically_rejected_superseded_by_merged_fix_pass`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner-rejected rc6 correction pass is implemented in PR #88: account role/name and institution are separated with approved provider mapping; canonical card creation/detail and secure secret handling, linked credit-card purchase/payment history, stable card-stack selection, and the approved deletion transition are implemented; and Εικόνα uses the redesigned comparison/trend/category hierarchy. Fresh real Compose light/dark/150%-font renders for every changed production surface were generated and personally inspected, the corrected account identity is visible in the Home renders, and the changed screenshot baselines plus touched curated references were replaced only after inspection. Overall progress remains 4/6 while exact-head hosted validation is rerun against those accepted references; authoritative physical-device acceptance and production signing/release remain a separate final stage and are not part of this correction phase.
+The owner-rejected rc6 correction pass is now merged to develop through PR #88. Account role/name and institution are separated with approved provider mapping; canonical card creation/detail and secure secret handling, linked credit-card purchase/payment history, stable card-stack selection, and the approved deletion transition are implemented; and Εικόνα uses the redesigned comparison/trend/category hierarchy. Fresh real Compose light/dark/150%-font renders for every changed production surface were generated and personally inspected, the corrected account identity is visible in the Home renders, the changed screenshot baselines plus touched curated references were replaced only after inspection, and exact-head Project Tracking, screenshot regression, representative S24-target instrumentation, and full Android CI/R8 all passed before merge. Overall progress remains 4/6 because the separate final Phase 6 physical-device/signing handoff has not been started; no release or production signing action belongs to this completed correction stage.
 
 ## Immediate work
 
-- Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8 against the visually accepted correction references; fix only any real regression.
-- Keep PR #88 unmerged until its required hosted gates are green and the correction pass is ready for owner review.
-- Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and production signing/release to the separate final Phase 6 handoff; do not publish or sign a production APK in this phase.
+- Keep develop as the validated rc6-correction implementation baseline and make further Android product changes only for a newly observed real regression or new explicit owner requirement.
+- Do not create a release, production-signed APK, production signing key, or higher production candidate during this stage.
+- Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and any approved protected same-signer signing/publication to the separate final Phase 6 handoff, started only by explicit owner instruction.
 
 ## Constraints
 
@@ -39,7 +39,7 @@ The owner-rejected rc6 correction pass is implemented in PR #88: account role/na
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI reference.
 - For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.
 - Do not infer completion from hosted gates when owner physical feedback rejects the product result.
-- Do not create a production-signed APK, create a production signing key, or perform a release during the current correction phase; physical-device/signing handoff is a separate final stage.
+- Do not create a production-signed APK, create a production signing key, perform a release, or publish a higher production candidate during the completed correction stage; physical-device/signing handoff is a separate final stage.
 
 ## Tracking discipline
 
