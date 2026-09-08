@@ -86,6 +86,7 @@ android {
         buildConfigField("String", "SUPABASE_URL", supabaseUrl.get().asBuildConfigString())
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", supabasePublishableKey.get().asBuildConfigString())
         buildConfigField("String", "ANDROID_UPDATE_CHANNEL", androidUpdateChannel.get().asBuildConfigString())
+        buildConfigField("boolean", "SELF_UPDATE_ENABLED", "true")
     }
 
     buildTypes {
@@ -93,6 +94,15 @@ android {
             optimization {
                 enable = true
             }
+        }
+
+        // Google Play testing/distribution must use Play's update path rather than MyFinHub's
+        // direct PackageInstaller updater. This variant keeps the production application ID and
+        // release optimizations while removing installer permissions in its manifest overlay.
+        create("playRelease") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            buildConfigField("boolean", "SELF_UPDATE_ENABLED", "false")
         }
 
         // These names are owned by the Baseline Profile Gradle plugin for the release variant.
