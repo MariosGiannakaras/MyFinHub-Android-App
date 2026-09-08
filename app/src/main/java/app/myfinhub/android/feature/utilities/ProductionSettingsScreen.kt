@@ -150,14 +150,16 @@ fun ProductionSettingsScreen(
                 }
             }
 
-            UpdateSettingsCard(
-                currentVersionName = BuildConfig.VERSION_NAME,
-                state = updateController.state,
-                onCheck = updateController.check,
-                onDownload = updateController.download,
-                onInstall = updateController.install,
-                onOpenInstallPermission = updateController.openInstallPermission,
-            )
+            if (BuildConfig.SELF_UPDATE_ENABLED) {
+                UpdateSettingsCard(
+                    currentVersionName = BuildConfig.VERSION_NAME,
+                    state = updateController.state,
+                    onCheck = updateController.check,
+                    onDownload = updateController.download,
+                    onInstall = updateController.install,
+                    onOpenInstallPermission = updateController.openInstallPermission,
+                )
+            }
 
             onLogout?.let { logout ->
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
