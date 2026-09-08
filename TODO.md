@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Keep develop as the validated rc6-correction implementation baseline and make further Android product changes only for a newly observed real regression or new explicit owner requirement.
-- [ ] Do not create a release, production-signed APK, production signing key, or higher production candidate during this stage.
-- [ ] Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and any approved protected same-signer signing/publication to the separate final Phase 6 handoff, started only by explicit owner instruction.
+- [ ] Complete the final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
+- [ ] Create an exact release-source PR for the next higher candidate, pass the exact-head release gates, and use the protected enrolled signer to publish the same direct APK to the private update channel plus an immutable GitHub prerelease with APK, Play-compatible AAB, checksums and safe metadata.
+- [ ] Install the higher same-signer candidate in place over rc6 on the physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim; complete Play Console Internal testing enrollment when Console access is available.
 
 ## Completed foundations
 
@@ -23,6 +23,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
 - [x] Exact full-re-audit rc6 release-source validation and protected same-signer private publication (#84)
 - [x] Owner-rejected rc6 correction implementation, visual validation, hosted gates and merge (#88)
+- [x] Final S24/signing handoff documentation refresh (#90)
 
 ## Rule
 
