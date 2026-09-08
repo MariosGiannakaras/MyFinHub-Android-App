@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete the final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
-- [ ] Create an exact release-source PR for the next higher candidate, pass the exact-head release gates, and use the protected enrolled signer to publish the same direct APK to the private update channel plus an immutable GitHub prerelease with APK, Play-compatible AAB, checksums and safe metadata.
-- [ ] Install the higher same-signer candidate in place over rc6 on the physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim; complete Play Console Internal testing enrollment when Console access is available.
+- [ ] Complete PR #92 with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
+- [ ] Create an exact release-source PR for `1.0.0-rc7`, pass the exact-head release gates, and use the protected enrolled signer to publish the direct APK to the private update channel plus an immutable GitHub prerelease with APK, checksums and safe metadata.
+- [ ] Install `1.0.0-rc7` in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
 
 ## Completed foundations
 
@@ -24,6 +24,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Exact full-re-audit rc6 release-source validation and protected same-signer private publication (#84)
 - [x] Owner-rejected rc6 correction implementation, visual validation, hosted gates and merge (#88)
 - [x] Final S24/signing handoff documentation refresh (#90)
+- [x] Protected public production signer fingerprint utility (#91)
+- [x] Android Developer Console Limited distribution package/signer/device authorization (owner-reported)
 
 ## Rule
 
