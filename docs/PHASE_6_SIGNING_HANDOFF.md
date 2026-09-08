@@ -1,31 +1,38 @@
 # Phase 6 production signing handoff
 
-## Current authoritative boundary — 2026-09-05
+## Current authoritative boundary — 2026-09-08
 
-The protected Phase 6 private test-release path and the final supported-device correction pass are complete.
+The owner has explicitly authorized the final production signing/release handoff. The earlier stage-specific prohibition on producing a higher production-signed candidate or GitHub Release no longer applies.
 
-- The validated canonical UI/UX correction pass is merged into Android `develop`.
-- The protected `phase6-test` publisher is proven end-to-end with a private NON-PROD build, exact post-upload byte verification and metadata-last publication.
-- The product owner completed the authoritative Samsung Galaxy S24 Ultra acceptance for updater discovery/download/install, Samsung/Android confirmation, in-place package replacement, session/local-data continuity and the remaining physical UI/interaction delta.
-- The UI/interaction tracker and protected test-publisher tracker are closed.
-- Issue #14 remains the Phase 6 source of truth.
+The production signing identity is not new: it is already enrolled and has been used for the prior same-signer production candidates. Preserve that identity. Do not create, rotate, replace or expose a signing key.
 
-## Explicit authorization boundary
+The currently published `1.0.0-rc6` / versionCode `10005` remains a technically valid same-signer baseline but was physically rejected for product/UI reasons. The correction pass is merged and hosted-validated on `develop`, so the next physical acceptance candidate must be strictly higher than rc6 and signed with the same enrolled identity.
 
-Do not create or use a production signing identity, do not publish a production-signed APK, do not freeze the final version, and do not promote Android `develop` to `main` until the product owner explicitly authorizes the production signing handoff.
+## Authorized sequence
 
-The completed physical NON-PROD acceptance is a prerequisite, not authorization for production signing.
+1. Finish and merge the release-preparation changes that make the direct APK, Google Play AAB, checksums, GitHub Release and private update publication reproducible.
+2. Create a short-lived exact release-source PR from current `develop`, targeting `develop`, with synchronized canonical tracking.
+3. Require exact-head Project Tracking, Android `verify`, screenshot regression and representative S24-target instrumentation to pass.
+4. Trigger the protected production publisher for the next version. The protected workflow must verify the enrolled signer before signing anything.
+5. Produce both:
+   - a direct optimized APK signed with the enrolled production identity for same-signer in-place continuity/private updater/GitHub Release; and
+   - a Google Play-compatible AAB with direct installer permissions/self-update UI removed.
+6. Publish the direct APK to the existing private production update channel, re-read/verify the exact remote bytes, and publish metadata last.
+7. Create an immutable GitHub Release for the exact validated source with the signed APK, signed Play AAB, `SHA256SUMS.txt`, safe release metadata and release notes. Do not reuse/overwrite an existing version tag.
+8. Install/update the direct candidate in place over the existing rc6 installation on the owner's Samsung Galaxy S24 Ultra.
+9. Verify session/PIN/biometric/device-local CVV continuity, production Auth/API, finance mutation/reconcile behavior, updater behavior, corrected Home/cards/Εικόνα, navigation, accessibility/light/dark/large-font and physical-device performance.
+10. Treat signer mismatch, forced uninstall, parallel package, lost application data, unexpected full-login requirement, or a physically rejected product result as blockers.
+11. Only after explicit physical owner acceptance may a stable-final completion claim and release-only `main` promotion be made.
 
-## Sequence after explicit production-signing authorization
+## Google Play limited distribution
 
-1. Create and preserve one long-lived Android production signing identity outside the public repository. Never commit or log the private key or passwords.
-2. Build the exact accepted production baseline from the authoritative Android `develop` state and sign it with that identity.
-3. Build a strictly higher-version candidate with the same production identity.
-4. Publish only through the protected private production release path; never expose the production APK as a public GitHub artifact or release.
-5. On the owner's Samsung Galaxy S24 Ultra, verify an in-place update with no uninstall and no parallel package.
-6. Verify encrypted session, PIN and device-local CVV continuity. Local biometric/PIN unlock must still work; email/password/TOTP must not be required unless the server session is genuinely invalid, expired or revoked.
-7. Treat signer mismatch, forced uninstall, lost application data, unexpected full-login requirement, or updater failure that leaves the installed app unusable as a Phase 6 blocker.
-8. Only after the production same-signer update-continuity smoke passes may the final version be frozen and the release candidate be promoted through the repository's `develop -> main` workflow.
+The selected Google-supported non-public distribution method is **Google Play Internal testing** (or Closed testing if a wider private tester set is later required). See `docs/GOOGLE_PLAY_PRIVATE_DISTRIBUTION.md`.
+
+The repository now prepares the compliant AAB, but first-time Play Console app creation/Play App Signing enrollment/tester-track configuration requires actual Play Console access. When enrolling, preserve the existing app-signing identity so Google-delivered updates remain compatible with the installed MyFinHub package.
+
+## Security guard
+
+Signing material and publisher credentials remain protected secrets. Authorization to release binaries is not authorization to expose keys/passwords/tokens. Signed APK/AAB/checksum artifacts may be published only through the explicitly approved release/distribution channels, never committed to Git history.
 
 ## Scope guard
 
