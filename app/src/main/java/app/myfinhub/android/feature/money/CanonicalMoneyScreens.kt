@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.security.SecureWindowProtection
+import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
@@ -35,6 +38,7 @@ import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -134,19 +138,20 @@ fun CanonicalMoneyScreen(
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    MyFinHubIconBadge(
-                                        icon = MyFinHubIcons.Account,
-                                        tone = if (account.kind.contains("Αποταμί", ignoreCase = true)) {
-                                            FinanceTone.Savings
-                                        } else {
-                                            FinanceTone.Neutral
-                                        },
-                                        contentDescription = null,
-                                    )
+                                    val provider = financialProvider(account.id, account.institution ?: account.name)
+                                    if (provider != null) {
+                                        MyFinHubProviderMark(provider, modifier = Modifier.size(34.dp), contentDescription = provider.institutionLabel)
+                                    } else {
+                                        MyFinHubIconBadge(
+                                            icon = MyFinHubIcons.Account,
+                                            tone = if (account.kind.contains("Αποταμί", ignoreCase = true)) FinanceTone.Savings else FinanceTone.Neutral,
+                                            contentDescription = null,
+                                        )
+                                    }
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(account.name, style = MaterialTheme.typography.titleMedium)
                                         Text(
-                                            account.kind,
+                                            account.institution ?: account.kind,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -219,7 +224,7 @@ fun CanonicalMoneyScreen(
                         icon = MyFinHubIcons.Card,
                         tone = FinanceTone.Transfer,
                     )
-                    TextButton(onClick = onAddCard) { Text("Προσθήκη") }
+                    FilledTonalButton(onClick = onAddCard) { Text("Νέα κάρτα") }
                 }
             }
             state.frontendMessage?.takeIf { it.isNotBlank() }?.let { message ->
@@ -236,7 +241,10 @@ fun CanonicalMoneyScreen(
             if (state.cards.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        EmptyFinanceText("Δεν υπάρχουν ενεργές κάρτες.")
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            EmptyFinanceText("Δεν υπάρχουν ενεργές κάρτες.")
+                            FilledTonalButton(onClick = onAddCard) { Text("Δημιουργία πρώτης κάρτας") }
+                        }
                     }
                 }
             } else {

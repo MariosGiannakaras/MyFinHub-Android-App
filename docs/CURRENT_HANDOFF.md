@@ -17,20 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `full_product_reaudit_rc6_published_awaiting_physical_acceptance`.
-- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_awaiting_physical_owner_acceptance`.
+- Workstream state: `full_product_reaudit_rc6_rejected_corrections_hosted_validation_in_progress`.
+- Latest private production candidate: `1.0.0-rc6` / `10005` — `protected_published_physically_rejected_superseded_by_fix_pass`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The first-principles Android product re-audit was merged to develop by PR #83 after fresh real Compose light, dark and large-font inspection, clean screenshot regression, S24-target instrumentation and full Android CI/R8. The owner-requested account-first Home prioritizes the three primary accounts with canonical seven-day trends and secondary accounts below; Activity is transaction-only with search and account filtering. Exact release-source PR #84 then passed Project Tracking, Android CI/R8, screenshot regression without baseline regeneration and S24-target instrumentation. The protected publisher built immutable source c6dd2170598f14835d30c4e0c95f086344aa74c0, verified the enrolled production signer, and privately published 1.0.0-rc6 / 10005. Backend release metadata independently confirms SHA-256 5901d64e2b87d9b1f465524426ac842558c43dfe1e8818fa0b430c662859f87c and size 3151628 bytes. PR #84 was closed without merge as required. Hosted validation and publication do not constitute owner acceptance; the remaining authority is physical in-place acceptance on the Samsung Galaxy S24 Ultra.
+The owner-rejected rc6 correction pass is implemented in PR #88: account role/name and institution are separated with approved provider mapping; canonical card creation/detail and secure secret handling, linked credit-card purchase/payment history, stable card-stack selection, and the approved deletion transition are implemented; and Εικόνα uses the redesigned comparison/trend/category hierarchy. Fresh real Compose light/dark/150%-font renders for every changed production surface were generated and personally inspected, the corrected account identity is visible in the Home renders, and the changed screenshot baselines plus touched curated references were replaced only after inspection. Overall progress remains 4/6 while exact-head hosted validation is rerun against those accepted references; authoritative physical-device acceptance and production signing/release remain a separate final stage and are not part of this correction phase.
 
 ## Immediate work
 
-- Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-- Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-- If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-- Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+- Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8 against the visually accepted correction references; fix only any real regression.
+- Keep PR #88 unmerged until its required hosted gates are green and the correction pass is ready for owner review.
+- Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and production signing/release to the separate final Phase 6 handoff; do not publish or sign a production APK in this phase.
 
 ## Constraints
 
@@ -40,6 +39,7 @@ The first-principles Android product re-audit was merged to develop by PR #83 af
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI reference.
 - For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.
 - Do not infer completion from hosted gates when owner physical feedback rejects the product result.
+- Do not create a production-signed APK, create a production signing key, or perform a release during the current correction phase; physical-device/signing handoff is a separate final stage.
 
 ## Tracking discipline
 

@@ -48,10 +48,10 @@ class TopLevelParityTest {
             .assertIsDisplayed()
 
         composeRule.onNodeWithText("Εικόνα").performClick()
-        composeRule.onNodeWithText("Μηνιαία ροή").assertIsDisplayed()
+        composeRule.onNodeWithText("Πορεία 4 μηνών").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Κορυφαίες κατηγορίες"))
-        composeRule.onNodeWithText("Κορυφαίες κατηγορίες").assertIsDisplayed()
+            .performScrollToNode(hasText("Πού πηγαίνουν τα έξοδα"))
+        composeRule.onNodeWithText("Πού πηγαίνουν τα έξοδα").assertIsDisplayed()
     }
 
     @Test
@@ -94,8 +94,8 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Εικόνα").performClick()
         composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Άνοιγμα κινήσεων"))
-        composeRule.onNodeWithText("Άνοιγμα κινήσεων").performClick()
+            .performScrollToNode(hasText("Δες τις κινήσεις"))
+        composeRule.onNodeWithText("Δες τις κινήσεις").performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()

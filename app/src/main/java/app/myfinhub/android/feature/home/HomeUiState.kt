@@ -24,6 +24,7 @@ data class HomeAccount(
     val group: HomeAccountGroup,
     val isPrimary: Boolean = false,
     val balanceTrend: List<Double> = listOf(balance, balance),
+    val institution: String? = null,
 )
 
 enum class HomeAccountGroup {
@@ -115,29 +116,32 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
         ),
         HomeAccount(
             id = "piraeus-payroll",
-            name = "Πειραιώς Μισθοδοσίας",
+            name = "Μισθοδοσίας",
             role = "Μισθοδοσίας",
             balance = 2_465.80,
             group = HomeAccountGroup.LIQUID,
             isPrimary = true,
             balanceTrend = listOf(2_128.40, 2_094.20, 2_028.70, 1_962.10, 1_884.00, 2_512.30, 2_465.80),
+            institution = "Τράπεζα Πειραιώς",
         ),
         HomeAccount(
             id = "piraeus-savings",
-            name = "Πειραιώς Αποταμίευση",
+            name = "Αποταμίευση",
             role = "Αποταμιευτικός",
             balance = 6_240.00,
             group = HomeAccountGroup.SAVINGS,
             isPrimary = true,
             balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
+            institution = "Τράπεζα Πειραιώς",
         ),
         HomeAccount(
             id = "revolut-main",
-            name = "Revolut",
+            name = "Καθημερινός",
             role = "Καθημερινός",
             balance = 428.35,
             group = HomeAccountGroup.LIQUID,
             balanceTrend = listOf(510.20, 494.10, 481.60, 472.00, 451.20, 439.70, 428.35),
+            institution = "Revolut",
         ),
     ),
     recentItems = listOf(

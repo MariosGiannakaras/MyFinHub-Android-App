@@ -91,6 +91,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import app.myfinhub.android.R
+import app.myfinhub.android.core.ui.FinancialProvider
+import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -281,17 +284,34 @@ fun CreditCardStack(
         statusMessage = "$label αντιγράφηκε"
     }
 
+    fun selectCard(cardId: String) {
+        val index = order.indexOf(cardId)
+        if (index <= 0 || deletingId != null || deleteArmedId != null) return
+        onHideSecrets()
+        scope.launch {
+            if (!reducedMotion) {
+                settleOffset.snapTo(0f)
+                settleOffset.animateTo(restackDistance * .55f, tween(140))
+            }
+            order = order.drop(index) + order.take(index)
+            settleOffset.snapTo(0f)
+        }
+    }
+
     fun commitDelete(cardId: String) {
         if (deletingId != null) return
         deleteArmedId = null
         deleteProgress = 0f
         onHideSecrets()
         statusMessage = "Η διαγραφή της κάρτας ξεκίνησε"
-        onDeleteCard(cardId)
         deletingId = cardId
         scope.launch {
+            // Keep the canonical card in the projected list until the approved shred/collapse
+            // transition has actually been visible. Reduced-motion users skip decoration.
             if (!reducedMotion) delay(620)
-            deletingId = null
+            onDeleteCard(cardId)
+            if (!reducedMotion) delay(80)
+            if (deletingId == cardId) deletingId = null
         }
     }
 
@@ -477,20 +497,36 @@ fun CreditCardStack(
         }
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.testTag("credit_card_stack_dots"),
         ) {
-            orderedCards.forEachIndexed { index, card ->
+            ids.forEachIndexed { index, cardId ->
+                val card = cardById[cardId] ?: return@forEachIndexed
                 if (card.id != deletingId) {
+                    val active = card.id == activeId
                     Box(
-                        Modifier
-                            .width(if (index == 0) 22.dp else 6.dp)
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(if (index == 0) Color(0xFF4777D6) else Color(0xFFBDC9DB))
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clickable(
+                                enabled = !active && deletingId == null && deleteArmedId == null,
+                                role = Role.Button,
+                                onClick = { selectCard(card.id) },
+                            )
+                            .semantics {
+                                contentDescription = "Κάρτα ${index + 1} από ${ids.size}: ${card.nickname}${if (active) ", ενεργή" else ""}"
+                            }
                             .testTag("credit_card_dot_${card.id}"),
-                    )
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            Modifier
+                                .width(if (active) 22.dp else 7.dp)
+                                .height(7.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(if (active) Color(0xFF4777D6) else Color(0xFFBDC9DB)),
+                        )
+                    }
                 }
             }
         }
@@ -570,7 +606,7 @@ private fun ReferenceCardFace(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    ReferenceBrandMark(visual)
+                    ReferenceBrandMark(visual, card)
                     Text(
                         card.nickname,
                         color = visual.muted,
@@ -687,58 +723,10 @@ private fun ReferenceSurfaceDecoration(visual: ReferenceCardVisual) {
 }
 
 @Composable
-private fun ReferenceBrandMark(visual: ReferenceCardVisual) {
-    when (visual.brand) {
-        ReferenceBrand.PIRAEUS -> Row(verticalAlignment = Alignment.CenterVertically) {
-            Canvas(Modifier.size(width = 22.dp, height = 24.dp)) {
-                repeat(3) { index ->
-                    val x = 4f + index * 6f
-                    drawLine(
-                        color = visual.text,
-                        start = Offset(x + 3f, 2f),
-                        end = Offset(x - 2f, size.height - 2f),
-                        strokeWidth = 3f,
-                        cap = StrokeCap.Round,
-                    )
-                }
-            }
-            Spacer(Modifier.width(5.dp))
-            Text(
-                "Piraeus",
-                color = visual.text,
-                fontSize = 20.sp,
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-
-        ReferenceBrand.REVOLUT -> Text(
-            "Revolut",
-            color = visual.text,
-            fontSize = 21.sp,
-            fontWeight = FontWeight.Bold,
-        )
-
-        ReferenceBrand.ALPHA -> Column {
-            Text("ALPHA BANK", color = visual.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, letterSpacing = 1.sp)
-            Text(if (visual.templateId == "alpha") "enter" else "bonus", color = visual.text, fontSize = 12.sp)
-        }
-
-        ReferenceBrand.PAYZY -> Image(
-            painter = painterResource(R.drawable.mfh_payzy_reference_logo),
-            contentDescription = "payzy by COSMOTE",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.height(27.dp).widthIn(max = 112.dp),
-        )
-
-        ReferenceBrand.VIVA -> Image(
-            painter = painterResource(R.drawable.mfh_viva_reference_logo),
-            contentDescription = "Viva Wallet",
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.height(23.dp).widthIn(max = 132.dp),
-        )
-
-        ReferenceBrand.CUSTOM -> Text(
+private fun ReferenceBrandMark(visual: ReferenceCardVisual, card: MoneyCard) {
+    val provider = financialProvider(card.bankId, visual.label)
+    if (provider == null) {
+        Text(
             visual.label,
             color = visual.text,
             fontSize = 18.sp,
@@ -746,6 +734,31 @@ private fun ReferenceBrandMark(visual: ReferenceCardVisual) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+        return
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        MyFinHubProviderMark(
+            provider = provider,
+            modifier = if (provider == FinancialProvider.PAYZY || provider == FinancialProvider.VIVA) {
+                Modifier.height(26.dp).widthIn(max = 92.dp)
+            } else {
+                Modifier.size(27.dp)
+            },
+            contentDescription = provider.institutionLabel,
+        )
+        if (provider != FinancialProvider.PAYZY && provider != FinancialProvider.VIVA) {
+            Text(
+                provider.cardLabel,
+                color = visual.text,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

@@ -5,10 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install the exact protected 1.0.0-rc6 / 10005 APK in place on the Samsung Galaxy S24 Ultra and verify the published SHA-256 before testing.
-- [ ] Perform authoritative physical acceptance: session/PIN/biometric/CVV continuity, account-first Home hierarchy and mini-trends, transaction-only Activity with account filtering, navigation, light/dark appearance, large-font behavior, offline/reconnect behavior and updater continuity.
-- [ ] If physical feedback rejects any behavior or visual result, keep issue #73 open, reproduce it against rc6 and fix through the normal develop/PR/real-render validation loop before publishing a higher same-signer candidate.
-- [ ] Only after explicit physical owner acceptance, update canonical tracking, close issue #73 and advance overall progress appropriately.
+- [ ] Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8 against the visually accepted correction references; fix only any real regression.
+- [ ] Keep PR #88 unmerged until its required hosted gates are green and the correction pass is ready for owner review.
+- [ ] Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and production signing/release to the separate final Phase 6 handoff; do not publish or sign a production APK in this phase.
 
 ## Completed foundations
 

@@ -128,6 +128,7 @@ internal fun MyFinHubAppContent(
     onCardDetailClosed: (String) -> Unit = {},
     onRevealCardSecrets: () -> Unit = {},
     onHideCardSecrets: () -> Unit = {},
+    onSaveServerCardSecrets: (CharArray, CharArray) -> Unit = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteLocalCvv: () -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
@@ -391,8 +392,21 @@ internal fun MyFinHubAppContent(
                             secretState = cardSecretState,
                             onReveal = onRevealCardSecrets,
                             onHideSecrets = onHideCardSecrets,
+                            onSaveServerSecrets = onSaveServerCardSecrets,
                             onSaveCvv = onSaveLocalCvv,
                             onDeleteCvv = onDeleteLocalCvv,
+                            onAddPurchase = {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            },
+                            onPayCard = {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            },
                             onBack = { moneyBackStack.removeLastOrNull() },
                         )
                     } else {

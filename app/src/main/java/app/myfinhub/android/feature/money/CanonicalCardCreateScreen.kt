@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -22,8 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -40,6 +44,14 @@ data class CardCreateRequest(
     val creditLimit: Double?,
 )
 
+private val cardProviders = listOf(
+    FinancialProvider.PIRAEUS,
+    FinancialProvider.ALPHA,
+    FinancialProvider.REVOLUT,
+    FinancialProvider.PAYZY,
+    FinancialProvider.VIVA,
+)
+
 @Composable
 fun CanonicalCardCreateScreen(
     cards: List<MoneyCard>,
@@ -47,7 +59,8 @@ fun CanonicalCardCreateScreen(
     onBack: () -> Unit,
 ) {
     var nickname by remember { mutableStateOf("") }
-    var bankId by remember { mutableStateOf("") }
+    var selectedProvider by remember { mutableStateOf<FinancialProvider?>(FinancialProvider.PIRAEUS) }
+    var customBank by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf("debit") }
     var network by remember { mutableStateOf("visa") }
     var formFactor by remember { mutableStateOf("physical") }
@@ -64,8 +77,8 @@ fun CanonicalCardCreateScreen(
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
-                title = "Προσθήκη κάρτας",
-                subtitle = "Μόνο ασφαλή στοιχεία κάρτας",
+                title = "Νέα κάρτα",
+                subtitle = "Χρεωστική, προπληρωμένη ή πιστωτική",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -80,7 +93,7 @@ fun CanonicalCardCreateScreen(
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Δεν αποθηκεύονται εδώ πλήρης αριθμός κάρτας, ημερομηνία λήξης ή CVV.",
+                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. PAN και λήξη παραμένουν στο ασφαλές server vault και το CVV μόνο στη συσκευή.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -93,14 +106,42 @@ fun CanonicalCardCreateScreen(
                 singleLine = true,
                 enabled = submittedId == null,
             )
-            OutlinedTextField(
-                value = bankId,
-                onValueChange = { bankId = it; validation = null },
+
+            Text("Τράπεζα / εκδότης", style = MaterialTheme.typography.labelLarge)
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Τράπεζα / εκδότης") },
-                singleLine = true,
-                enabled = submittedId == null,
-            )
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
+                cardProviders.forEach { provider ->
+                    FilterChip(
+                        selected = selectedProvider == provider,
+                        onClick = { selectedProvider = provider; validation = null },
+                        label = { Text(provider.institutionLabel) },
+                        leadingIcon = {
+                            MyFinHubProviderMark(provider, modifier = Modifier.size(20.dp), contentDescription = null)
+                        },
+                        enabled = submittedId == null,
+                    )
+                }
+                FilterChip(
+                    selected = selectedProvider == null,
+                    onClick = { selectedProvider = null; validation = null },
+                    label = { Text("Άλλος εκδότης") },
+                    enabled = submittedId == null,
+                )
+            }
+            if (selectedProvider == null) {
+                OutlinedTextField(
+                    value = customBank,
+                    onValueChange = { customBank = it; validation = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Όνομα εκδότη") },
+                    singleLine = true,
+                    enabled = submittedId == null,
+                )
+            }
+
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -169,10 +210,10 @@ fun CanonicalCardCreateScreen(
             }
             validation?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             MyFinHubPrimaryAction(
-                label = if (submittedId == null) "Αποθήκευση κάρτας" else "Αποθήκευση στη συσκευή…",
+                label = if (submittedId == null) "Δημιουργία κάρτας" else "Αποθήκευση…",
                 onClick = {
                     val normalizedNickname = nickname.trim()
-                    val normalizedBank = bankId.trim()
+                    val normalizedBank = selectedProvider?.key ?: customBank.trim()
                     val normalizedLast4 = last4.trim().takeIf(String::isNotBlank)
                     val limit = creditLimit.trim().replace(',', '.').takeIf(String::isNotBlank)?.toDoubleOrNull()
                     validation = when {
