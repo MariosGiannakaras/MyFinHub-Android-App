@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8 against the visually accepted correction references; fix only any real regression.
-- [ ] Keep PR #88 unmerged until its required hosted gates are green and the correction pass is ready for owner review.
-- [ ] Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and production signing/release to the separate final Phase 6 handoff; do not publish or sign a production APK in this phase.
+- [ ] Keep develop as the validated rc6-correction implementation baseline and make further Android product changes only for a newly observed real regression or new explicit owner requirement.
+- [ ] Do not create a release, production-signed APK, production signing key, or higher production candidate during this stage.
+- [ ] Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and any approved protected same-signer signing/publication to the separate final Phase 6 handoff, started only by explicit owner instruction.
 
 ## Completed foundations
 
@@ -22,6 +22,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Exact post-pass3 rc5 release-source validation and protected private publication (#82)
 - [x] Full-product re-audit information architecture and personal real-render visual validation (#83)
 - [x] Exact full-re-audit rc6 release-source validation and protected same-signer private publication (#84)
+- [x] Owner-rejected rc6 correction implementation, visual validation, hosted gates and merge (#88)
 
 ## Rule
 
