@@ -22,7 +22,7 @@ Because rc6 is production-signed, authoritative continuity acceptance requires a
 
 Before touching the phone:
 
-1. PR #92 must be merged to `develop` with Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation green.
+1. The active final release-preparation PR must be merged to `develop` with Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation green.
 2. Create an exact no-functional-change release-source PR from current `develop` for `1.0.0-rc7`.
 3. Require exact-head Project Tracking, Android `verify`, screenshot regression and representative S24-target instrumentation to pass on that source PR.
 4. Trigger the protected production publisher using the guarded production release request.
