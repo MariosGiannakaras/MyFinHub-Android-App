@@ -10,9 +10,7 @@ Do not create, rotate, replace, expose or commit the production signing key duri
 
 ## Protected environment
 
-The trusted production workflow is `.github/workflows/production-private-release.yml` and uses GitHub Environment:
-
-`android-production-release`
+The trusted production workflow is `.github/workflows/production-private-release.yml` and uses GitHub Environment `android-production-release`.
 
 The protected Environment contains the existing publisher/signing credentials:
 
@@ -27,9 +25,7 @@ Private signing material must never be committed, pasted into Issues/PRs/chat, w
 
 ## Release request and immutable source gate
 
-Normal production publishing is triggered from trusted `develop` by changing exactly:
-
-`.github/release-requests/production.json`
+Normal production publishing is triggered from trusted `develop` by changing exactly `.github/release-requests/production.json`.
 
 Example:
 
@@ -45,51 +41,54 @@ The source must be an open same-repository `android/...` PR targeting `develop`.
 
 Production version codes use the reserved range beginning at `10000`. The publisher plans the next strictly increasing code from production metadata rather than trusting a hand-entered versionCode.
 
-## What the protected workflow produces
+## Required release output
 
-The workflow:
+The required release artifact is the optimized direct APK signed with the existing enrolled production identity.
 
-1. validates the owner-authored guarded request;
-2. resolves the immutable validated source PR head;
-3. plans the next production versionCode;
-4. tests the exact source with `ANDROID_UPDATE_CHANNEL=production`;
-5. patches versionCode/versionName only in the ephemeral CI workspace;
-6. builds an unsigned optimized direct `release` APK;
-7. builds an unsigned `playRelease` Android App Bundle;
-8. verifies the Play merged manifest does not contain `REQUEST_INSTALL_PACKAGES` or `UPDATE_PACKAGES_WITHOUT_USER_ACTION`;
-9. transfers only unsigned build inputs into the protected job;
-10. materializes the enrolled keystore only in runner temporary storage;
-11. verifies the keystore certificate SHA-256 against the pinned production signer;
-12. signs/verifies the direct APK and signs/verifies the Play AAB;
-13. create-only uploads the direct APK to the private Supabase update channel and re-reads the exact bytes before publishing metadata;
-14. verifies local/public checksums agree with the privately published direct APK;
-15. creates an immutable GitHub Release tag pointing at the exact validated source, attaching the signed APK, signed Play AAB, `SHA256SUMS.txt`, and safe `release-metadata.json`;
-16. marks version names containing a prerelease suffix such as `-rc7` as GitHub prereleases;
-17. removes temporary signing material from the runner.
+The protected workflow must:
 
-The existing private update path remains:
+1. validate the guarded request and immutable source PR head;
+2. plan the next production versionCode;
+3. test the exact source with the production update channel;
+4. patch versionCode/versionName only in the ephemeral CI workspace;
+5. build an unsigned optimized direct APK;
+6. transfer only unsigned build input into the protected job;
+7. materialize the enrolled keystore only in runner temporary storage;
+8. verify its certificate SHA-256 against the pinned production signer;
+9. sign and verify package/version/signer identity;
+10. create-only upload the direct APK to the private Supabase production update channel;
+11. re-read the exact uploaded bytes and publish metadata last;
+12. verify the GitHub Release APK checksum matches the privately published bytes;
+13. create an immutable GitHub Release/prerelease pointing at the exact validated source, with the signed APK, `SHA256SUMS.txt`, safe `release-metadata.json` and release notes;
+14. remove temporary signing material from the runner.
+
+The private update object path remains:
 
 `production/<versionCode>/MyFinHub-<versionCode>.apk`
 
-The signed GitHub Release assets are explicitly owner-authorized release outputs. APK/AAB binaries still must not be committed to Git history.
+Signed release binaries must never be committed to Git history.
 
-## Direct APK versus Google Play AAB
+## Android Developer Console Limited distribution
 
-The direct `release` APK preserves the already-proven private self-update flow and is the artifact used for in-place continuity from the currently installed production-signed candidate.
+The selected Google-supported non-public distribution path is **Android Developer Console Limited distribution**.
 
-The `playRelease` AAB is intentionally different only in distribution/update policy:
+Owner-reported current setup:
 
-- package ID remains `app.myfinhub.android`;
-- release optimization remains enabled;
-- direct/self-update UI is disabled;
-- package-installer permissions are removed;
-- updates are owned by Google Play.
+- package `app.myfinhub.android` is registered;
+- the enrolled production app-signing certificate is authorized;
+- the Samsung Galaxy S24 Ultra acceptance device is authorized.
 
-See `docs/GOOGLE_PLAY_PRIVATE_DISTRIBUTION.md` for the Play Internal testing decision and one-time Play App Signing enrollment requirement.
+The direct signed APK remains the installable artifact. It may be delivered through the existing private updater or the GitHub Release while Android Developer Console provides the developer/package/signing/device authorization layer for the Limited plan.
+
+A Google Play Console account, Play testing track, AAB upload or MCP integration is not required for this selected path. See `docs/ANDROID_DEVELOPER_CONSOLE_LIMITED_DISTRIBUTION.md`.
+
+## Optional future Play compatibility
+
+The release-preparation work may retain a Play-compatible build variant/AAB for possible future migration. That artifact is optional and non-gating for Android Developer Console Limited distribution. Its presence must not be treated as a requirement to create a Play account or alter the current release channel.
 
 ## GitHub Release policy
 
-The repository may remain public during the explicitly authorized release. The protected workflow may publish the approved production-signed APK/AAB/checksum/metadata files to a GitHub Release. It must never publish the keystore, passwords, publisher credential, signing private key, finance data or authentication material.
+The repository may remain public during the explicitly authorized release. The protected workflow may publish approved production-signed APK/checksum/safe-metadata files to a GitHub Release. It must never publish the keystore, passwords, publisher credential, signing private key, finance data or authentication material.
 
 A release tag is immutable release identity. Do not overwrite/reuse an existing version tag or replace assets under a previously published version. If a candidate is rejected, publish a strictly higher version instead.
 
@@ -97,8 +96,8 @@ A release tag is immutable release identity. Do not overwrite/reuse an existing 
 
 The current installed technical baseline is `1.0.0-rc6` / versionCode `10005`, which was physically rejected for product/UI reasons. The merged correction source is newer than rc6.
 
-The next protected candidate must therefore have a strictly higher versionCode and use the same enrolled signer so Android can update rc6 in place. After publication, perform the authoritative Samsung Galaxy S24 Ultra acceptance described in `docs/PHASE_6_DEVICE_HANDOFF.md`.
+The next protected candidate is `1.0.0-rc7` and must receive a strictly higher versionCode from the publisher. It must use the same enrolled signer so Android can update rc6 in place. After publication, perform the authoritative Samsung Galaxy S24 Ultra acceptance described in `docs/PHASE_6_DEVICE_HANDOFF.md`.
 
-Do not claim stable-final product acceptance merely because signing, GitHub Release, private publication, CI or emulator/device-lab checks are green. If the higher candidate has not yet been accepted on the owner's physical S24 Ultra, keep it as a release candidate/prerelease and record that blocker explicitly.
+Do not claim stable-final product acceptance merely because signing, GitHub Release, private publication, CI or hosted device checks are green. If rc7 has not yet been accepted on the owner's physical S24 Ultra, keep it as a prerelease and record that blocker explicitly.
 
 Promotion from `develop` to release-only `main` is deliberate and should represent the exact accepted release state. Do not use `main` as an integration branch.
