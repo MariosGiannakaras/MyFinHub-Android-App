@@ -5,11 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Implement the owner-requested account identity and approved provider-brand treatment across Home and relevant money/account surfaces, without inventing institution data.
-- [ ] Repair and expose the canonical card creation/detail flows, including linked credit-card purchases/payments, interactive stack indicators and the approved deletion animation while preserving offline/reconciliation safety.
-- [ ] Redesign Εικόνα around clearer comparisons, trends and category composition without duplicating current balances or KPI-card clutter.
-- [ ] Render fresh real Compose light, dark and 150%-font screenshots for every changed production surface, personally inspect/fix them, then run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8.
-- [ ] After merge to develop, privately publish a strictly higher same-signer candidate through the protected publisher and perform authoritative physical owner acceptance on the Samsung Galaxy S24 Ultra.
+- [ ] Run exact-head Project Tracking, screenshot regression, S24-target instrumentation and full Android CI/R8 against the visually accepted correction references; fix only any real regression.
+- [ ] Keep PR #88 unmerged until its required hosted gates are green and the correction pass is ready for owner review.
+- [ ] Leave authoritative Samsung Galaxy S24 Ultra physical-device acceptance and production signing/release to the separate final Phase 6 handoff; do not publish or sign a production APK in this phase.
 
 ## Completed foundations
 

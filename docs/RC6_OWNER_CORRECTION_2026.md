@@ -1,6 +1,6 @@
 # RC6 owner-feedback correction
 
-**Date:** 2026-09-07  
+**Date:** 2026-09-08  
 **Tracker:** #73  
 **Implementation PR:** #88  
 **Overall progress:** 4/6
@@ -20,7 +20,9 @@
 
 ## Current validation checkpoint
 
-The first exact-head CI attempt correctly exposed integration blockers before any baseline acceptance: the canonical money surface was missing the `dp` import and retained legacy card-detail surfaces did not yet handle the new secure `Saving` state exhaustively. These are compile integration issues, not accepted product behavior, and are being fixed before visual validation continues.
+The integration blockers found by the first exact-head CI attempt have been resolved. Fresh real Compose renders were then generated from the correction branch for Activity, Home, Insights, canonical card detail/create, canonical Money, the credit-card stack and Money overview.
+
+All changed rendered candidates were personally inspected before acceptance. The Home fixture was corrected so the screenshots exercise the production account-name/institution split rather than masking it with combined synthetic labels. Twenty-one changed screenshot references were accepted after inspection, and the touched curated Activity, Home, credit-card-stack and Money-overview references were replaced with the corresponding validated renders. The next checkpoint is an exact-head rerun of the hosted gates against those accepted references.
 
 ## Security and data-boundary constraints
 
@@ -32,4 +34,4 @@ The first exact-head CI attempt correctly exposed integration blockers before an
 
 ## Validation still required
 
-Before PR #88 can merge, the exact head must pass Project Tracking, Android CI/R8, screenshot regression and S24-target instrumentation. Every changed production surface must receive fresh real Compose light/dark/150%-font renders and personal inspection before screenshot baselines are accepted. A higher protected same-signer candidate may be published only after that hosted validation, and overall progress remains 4/6 until physical owner acceptance on the Samsung Galaxy S24 Ultra.
+Before PR #88 can be considered ready for owner review, the exact head must pass Project Tracking, Android CI/R8, screenshot regression and S24-target instrumentation against the accepted references. Overall progress remains 4/6. No production-signed APK, production signing key or release is created in this correction phase; authoritative Samsung Galaxy S24 Ultra physical-device acceptance and signing handoff remain a separate final Phase 6 stage.
