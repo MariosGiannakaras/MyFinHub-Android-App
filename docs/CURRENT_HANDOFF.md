@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_protected_published_pending_physical_s24_acceptance`.
-- Latest private production candidate: `1.0.0-rc7` / `10006` — `protected_published_pending_physical_s24_acceptance`.
+- Workstream state: `rc7_physical_audit_complete_owner_ui_correction_implementation`.
+- Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The corrected `1.0.0-rc7` source completed exact-head hosted validation and the protected production publisher now completed successfully. The enrolled long-lived production signer was verified, the direct APK and companion AAB were signed and verified, the direct APK was published to the private update channel, and the GitHub prerelease was created with checksums and safe metadata. The published direct candidate is `1.0.0-rc7` / versionCode `10006`, built from the immutable validated rc7 source; its APK SHA-256 is `ec4fc37f4023e76f1eacb44c74bf071186a89e61b77780d921ce383c4acf7315`. The rc7 release-source PR was then closed without merging as required. Android Developer Console Limited distribution remains configured for `app.myfinhub.android`, the enrolled signer, and the authorized Samsung Galaxy S24 Ultra. Overall progress remains 4/6 until rc7 is installed in place over rc6 and receives authoritative physical acceptance on that device.
+Production-signed `1.0.0-rc7` / versionCode `10006` was installed in place over rc6 on the authorized Samsung Galaxy S24 Ultra without uninstall or data clearing. Same-signer update continuity and existing session continuity passed. The owner then completed a physical screen-by-screen UI/UX audit across Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics/notifications and Quick Entry, and explicitly requested a further correction implementation pass before final acceptance. The durable implementation specification is `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`. Work starts on `android/rc7-owner-ui-ux-correction-pass` with Slice A (shared mobile selection foundations + Quick Entry). Overall progress remains 4/6; rc7 is a valid production-signed technical baseline but is not owner-accepted as the final product.
 
 ## Immediate work
 
-- Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.
-- Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.
-- If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity.
+- Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: replace compact popup selectors with mobile bottom-sheet selection patterns, improve Quick Entry density/contextual flow, fix helper copy and Greek date presentation, and preserve offline enqueue/reconcile/undo semantics; render and visually inspect real Compose screenshots and run relevant hosted gates.
+- Continue Slices B-G in the exact order and acceptance criteria defined by `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` (Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics), updating canonical tracking after each merged slice and never skipping the owner-recorded physical findings.
+- After Slices A-G plus full Slice H hosted validation, publish a strictly higher same-signer production candidate than versionCode `10006`, install it in place on the authorized S24 without clearing data, and obtain explicit owner physical acceptance before any stable-final claim or deliberate `develop -> main` promotion.
 
 ## Constraints
 
@@ -42,6 +42,7 @@ The corrected `1.0.0-rc7` source completed exact-head hosted validation and the 
 - Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.
 - The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.
 - A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.
+- The owner physical findings and ordered correction acceptance criteria in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` are mandatory for this pass; do not replace them with generic redesign discovery.
 
 ## Tracking discipline
 
