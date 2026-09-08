@@ -11,7 +11,7 @@
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
 State: `final_release_preparation_pr_active_limited_distribution_ready`
 
-The owner has explicitly authorized the final production signing/release handoff. The owner-rejected rc6 correction implementation remains merged and hosted-validated on `develop`. Android Developer Console Limited distribution is now the selected Google-supported non-public distribution mechanism: the owner reports that `app.myfinhub.android`, the enrolled production signing certificate, and the Samsung Galaxy S24 Ultra are authorized, so no Play Console or MCP integration is required for this release path. PR #92 is the active release-preparation PR. The required release output is the direct production APK signed by the existing long-lived production identity, published both to the existing private updater channel and an immutable GitHub prerelease with checksums and safe metadata. Overall progress remains 4/6 until a strictly higher candidate is successfully produced and the corrected build receives authoritative in-place acceptance on the physical Samsung Galaxy S24 Ultra.
+The owner has explicitly authorized the final production signing/release handoff. The owner-rejected rc6 correction implementation remains merged and hosted-validated on `develop`. Android Developer Console Limited distribution is now the selected Google-supported non-public distribution mechanism: the owner reports that `app.myfinhub.android`, the enrolled production signing certificate, and the Samsung Galaxy S24 Ultra are authorized, so no Play Console or MCP integration is required for this release path. The final release-preparation PR is active. The required release output is the direct production APK signed by the existing long-lived production identity, published both to the existing private updater channel and an immutable GitHub prerelease with checksums and safe metadata. Overall progress remains 4/6 until a strictly higher candidate is successfully produced and the corrected build receives authoritative in-place acceptance on the physical Samsung Galaxy S24 Ultra.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected same-signer rc6 remains the installed/available technical baseline but
 
 ## Next
 
-1. Complete PR #92 with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
+1. Complete the active final-release-preparation PR with green Project Tracking, Android CI/R8, screenshot regression and representative S24-target instrumentation, then merge it to `develop`.
 2. Create an exact release-source PR for `1.0.0-rc7`, pass the exact-head release gates, and use the protected enrolled signer to publish the direct APK to the private update channel plus an immutable GitHub prerelease with APK, checksums and safe metadata.
 3. Install `1.0.0-rc7` in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra and validate session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font, production Auth/API, offline reconciliation and performance before any stable-final completion claim.
 
