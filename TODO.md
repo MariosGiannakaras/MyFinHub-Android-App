@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge Slice C Activity/Transactions PR #104 to `develop` only after the exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are green; do not alter the accepted Activity references without new evidence.
-- [ ] Start Slice D — Money / Net Worth / Cards / details from the exact post-#104 `develop` head, preserving trustworthy net-worth arithmetic, explicit savings-subset semantics, accessible card destructive actions, provider identity and dense detail ledgers.
-- [ ] Continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Complete Slice D Money / Net Worth / Cards / details on `android/rc7-owner-money-ui-correction`, including trustworthy net-worth composition, explicit savings-subset semantics, dense account-detail transfer treatment, accessible card deletion and consumer-facing detail copy.
+- [ ] Render fresh canonical Money, account-detail, card-delete, Savings/Loans/Claims light/dark/150%-font evidence; personally inspect it, fix defects, then run relevant unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
+- [ ] After Slice D merge, continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
