@@ -1,22 +1,37 @@
 package app.myfinhub.android.feature.activity
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,30 +41,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubFilterChip
-import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
-import app.myfinhub.android.designsystem.MyFinHubHeroCard
-import app.myfinhub.android.designsystem.MyFinHubHeroHeading
-import app.myfinhub.android.designsystem.MyFinHubHeroMetric
-import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -157,20 +172,26 @@ private fun ActivityList(
     var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.testTag("activity_list"),
         contentPadding = PaddingValues(
             start = MyFinHubDesignMetrics.screenHorizontalPadding,
-            top = MyFinHubSpacing.xs,
+            top = MyFinHubSpacing.xxs,
             end = MyFinHubDesignMetrics.screenHorizontalPadding,
             bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,
         ),
-        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
     ) {
         item {
             MyFinHubSearchField(
                 value = state.query,
                 onValueChange = { onAction(ActivityAction.QueryChanged(it)) },
                 placeholder = "Αναζήτηση κινήσεων",
+            )
+        }
+        item {
+            ActivityTypeFilters(
+                selected = state.filter,
+                onSelected = { onAction(ActivityAction.FilterChanged(it)) },
             )
         }
         if (state.accountOptions.isNotEmpty()) {
@@ -202,17 +223,11 @@ private fun ActivityList(
                 item(key = "day-${section.date}") { ActivityDayHeader(section.date) }
                 items(section.items, key = ActivityItem::id) { item ->
                     Box {
-                        MyFinHubFinanceRow(
-                            icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
-                            iconDescription = item.category ?: item.kind.label,
-                            title = item.title,
-                            subtitle = item.subtitle,
-                            meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else item.accountLabel,
-                            amountText = formatSignedEuro(item.amount),
-                            tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                        ActivityLedgerRow(
+                            item = item,
+                            accountOptions = state.accountOptions,
                             onClick = { onSelect(item.id) },
                             onLongClick = { contextItemId = item.id },
-                            modifier = if (item.pendingSync) Modifier.alpha(0.74f) else Modifier,
                         )
                         DropdownMenu(
                             expanded = contextItemId == item.id,
@@ -262,6 +277,138 @@ private fun ActivityList(
 }
 
 @Composable
+private fun ActivityTypeFilters(
+    selected: ActivityFilter,
+    onSelected: (ActivityFilter) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+    ) {
+        ActivityFilter.values().forEach { filter ->
+            MyFinHubFilterChip(
+                selected = selected == filter,
+                onClick = { onSelected(filter) },
+                label = filter.label,
+                icon = filter.icon(),
+                tone = filter.tone(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityLedgerRow(
+    item: ActivityItem,
+    accountOptions: List<ActivityAccountOption>,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+) {
+    val tone = when {
+        item.pendingSync -> FinanceTone.Neutral
+        item.kind == ActivityKind.TRANSFER -> FinanceTone.Neutral
+        else -> item.kind.tone()
+    }
+    val expandedTransferRoute = item.kind == ActivityKind.TRANSFER && LocalDensity.current.fontScale >= 1.3f
+    val subtitle = if (item.kind == ActivityKind.TRANSFER) {
+        val route = activityTransferRouteLabel(item, accountOptions)
+        if (expandedTransferRoute) route.replace(" → Προς ", "\nΠρος ") else route
+    } else {
+        item.subtitle
+    }
+    val meta = when {
+        item.pendingSync -> "Εκκρεμεί επιβεβαίωση"
+        item.kind == ActivityKind.TRANSFER -> "Εσωτερική μεταφορά"
+        else -> item.accountLabel
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .then(if (item.pendingSync) Modifier.alpha(0.74f) else Modifier),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubDesignMetrics.cardElevation),
+        border = BorderStroke(
+            MyFinHubDesignMetrics.cardBorderWidth,
+            MaterialTheme.colorScheme.outlineVariant,
+        ),
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                vertical = MyFinHubSpacing.xs,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MyFinHubIconBadge(
+                icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
+                tone = tone,
+                contentDescription = item.category ?: item.kind.label,
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+            ) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (expandedTransferRoute) {
+                    val routeLines = subtitle.split("\n", limit = 2)
+                    Text(
+                        text = routeLines.first(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (routeLines.size == 2) {
+                        Text(
+                            text = routeLines[1],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (meta.isNotBlank()) {
+                    Text(
+                        text = meta,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(MyFinHubSpacing.xxs))
+            MyFinHubAmountText(
+                text = formatSignedEuro(item.amount),
+                tone = tone,
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun ActivityAccountFilterSelector(
     selectedId: String?,
     options: List<ActivityAccountOption>,
@@ -269,36 +416,171 @@ private fun ActivityAccountFilterSelector(
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val selectedLabel = options.firstOrNull { it.id == selectedId }?.label ?: "Όλοι οι λογαριασμοί"
-    Box {
-        MyFinHubSelectorButton(
-            label = "Λογαριασμός",
-            onClick = { expanded = true },
-            enabled = options.isNotEmpty(),
-        ) {
-            Text(selectedLabel, modifier = Modifier.weight(1f))
-        }
-        DropdownMenu(
-            expanded = expanded,
+
+    MyFinHubSelectorButton(
+        label = "Λογαριασμός",
+        onClick = { expanded = true },
+        enabled = options.isNotEmpty(),
+    ) {
+        Text(
+            selectedLabel,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+
+    if (expanded) {
+        ModalBottomSheet(
             onDismissRequest = { expanded = false },
         ) {
-            DropdownMenuItem(
-                text = { Text("Όλοι οι λογαριασμοί") },
-                onClick = {
+            ActivityAccountFilterSheetContent(
+                selectedId = selectedId,
+                options = options,
+                onSelected = { id ->
                     expanded = false
-                    onSelected(null)
+                    onSelected(id)
                 },
             )
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.label) },
-                    onClick = {
-                        expanded = false
-                        onSelected(option.id)
-                    },
+        }
+    }
+}
+
+@Composable
+internal fun ActivityAccountFilterSheetContent(
+    selectedId: String?,
+    options: List<ActivityAccountOption>,
+    onSelected: (String?) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(bottom = MyFinHubSpacing.md),
+    ) {
+        Text(
+            text = "Λογαριασμός",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(
+                start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                bottom = MyFinHubSpacing.xxs,
+            ),
+        )
+        Text(
+            text = "Εμφάνισε κινήσεις από έναν λογαριασμό ή όλες μαζί.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(
+                start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                bottom = MyFinHubSpacing.xs,
+            ),
+        )
+        ActivityAccountFilterRow(
+            label = "Όλοι οι λογαριασμοί",
+            option = null,
+            selected = selectedId == null,
+            onClick = { onSelected(null) },
+        )
+        options.forEach { option ->
+            ActivityAccountFilterRow(
+                label = option.label,
+                option = option,
+                selected = option.id == selectedId,
+                onClick = { onSelected(option.id) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityAccountFilterRow(
+    label: String,
+    option: ActivityAccountOption?,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val provider = option?.let { financialProvider(it.id, it.label) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .heightIn(min = 56.dp)
+            .padding(
+                horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
+                vertical = MyFinHubSpacing.xs,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        when {
+            provider != null -> {
+                MyFinHubProviderMark(
+                    provider = provider,
+                    modifier = Modifier.size(MyFinHubDesignMetrics.iconBadgeSize),
+                    contentDescription = provider.institutionLabel,
+                )
+            }
+            option == null -> {
+                MyFinHubIconBadge(
+                    icon = MyFinHubIcons.All,
+                    tone = FinanceTone.Neutral,
+                    contentDescription = null,
+                )
+            }
+            else -> {
+                MyFinHubIconBadge(
+                    icon = MyFinHubIcons.Account,
+                    tone = FinanceTone.Neutral,
+                    contentDescription = null,
                 )
             }
         }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            provider?.let {
+                Text(
+                    text = it.institutionLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+        )
     }
+}
+
+internal fun activityTransferRouteLabel(
+    item: ActivityItem,
+    accountOptions: List<ActivityAccountOption>,
+): String {
+    val from = item.fromAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
+    val to = item.toAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
+    if (!from.isNullOrBlank() && !to.isNullOrBlank()) {
+        return "Από $from → Προς $to"
+    }
+
+    val route = item.accountLabel
+        .replace("->", "→")
+        .split("→", limit = 2)
+        .map(String::trim)
+    if (route.size == 2 && route.all(String::isNotBlank)) {
+        return "Από ${route[0]} → Προς ${route[1]}"
+    }
+    return item.subtitle
 }
 
 @Composable
@@ -310,9 +592,11 @@ private fun ActivityMonthHeader(rawDate: String) {
         ?: rawDate
     Text(
         text = label,
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.sm, bottom = MyFinHubSpacing.xxs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = MyFinHubSpacing.xs),
     )
 }
 
@@ -330,9 +614,9 @@ private fun ActivityDayHeader(rawDate: String) {
     }
     Text(
         text = label,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.xs),
+        modifier = Modifier.fillMaxWidth().padding(top = MyFinHubSpacing.xxs),
     )
 }
 
@@ -388,6 +672,11 @@ private fun ActivityDetailContent(
         item.category?.takeIf(String::isNotBlank)?.let { listOf(ActivityCategoryOption(it)) }.orEmpty()
     }
     val subcategoryOptions = effectiveCategoryOptions.firstOrNull { it.name == category }?.subcategories.orEmpty()
+    val detailTone = if (item.pendingSync || item.kind == ActivityKind.TRANSFER) {
+        FinanceTone.Neutral
+    } else {
+        item.kind.tone()
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -399,7 +688,7 @@ private fun ActivityDetailContent(
             ) {
                 MyFinHubIconBadge(
                     icon = myFinHubCategoryIcon(item.category, item.kind.icon()),
-                    tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                    tone = detailTone,
                     contentDescription = item.category ?: item.kind.label,
                 )
                 Column(
@@ -413,7 +702,7 @@ private fun ActivityDetailContent(
                     )
                     MyFinHubAmountText(
                         text = formatSignedEuro(item.amount),
-                        tone = if (item.pendingSync) FinanceTone.Neutral else item.kind.tone(),
+                        tone = detailTone,
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
@@ -421,6 +710,13 @@ private fun ActivityDetailContent(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (item.kind == ActivityKind.TRANSFER) {
+                        Text(
+                            text = activityTransferRouteLabel(item, emptyList()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     if (item.pendingSync) {
                         Text(
                             text = "Εκκρεμεί επιβεβαίωση από τον server",
@@ -580,7 +876,7 @@ private fun ActivityFilter.tone(): FinanceTone = when (this) {
     ActivityFilter.ALL -> FinanceTone.Neutral
     ActivityFilter.EXPENSE -> FinanceTone.Expense
     ActivityFilter.INCOME -> FinanceTone.Income
-    ActivityFilter.TRANSFER -> FinanceTone.Transfer
+    ActivityFilter.TRANSFER -> FinanceTone.Neutral
 }
 
 private fun ActivityKind.icon(): ImageVector = when (this) {
@@ -593,12 +889,19 @@ private fun ActivityKind.icon(): ImageVector = when (this) {
 private fun ActivityKind.tone(): FinanceTone = when (this) {
     ActivityKind.EXPENSE -> FinanceTone.Expense
     ActivityKind.INCOME -> FinanceTone.Income
-    ActivityKind.TRANSFER -> FinanceTone.Transfer
+    ActivityKind.TRANSFER -> FinanceTone.Neutral
     ActivityKind.CARD_PAYMENT -> FinanceTone.Transfer
 }
 
-private fun formatSignedEuro(amount: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+internal fun formatSignedEuro(amount: Double): String {
+    val formatted = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+        .format(kotlin.math.abs(amount))
+    return when {
+        amount > 0.0 -> "+$formatted"
+        amount < 0.0 -> "−$formatted"
+        else -> formatted
+    }
+}
 
 private fun formatUnsignedEuro(amount: Double): String =
     NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(kotlin.math.abs(amount))

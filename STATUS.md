@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_b_home_final_gates`
+State: `rc7_owner_ui_correction_slice_d_money_ready`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A is merged to `develop` via PR #100 with immediate connected writes, offline-only durable pending/Undo semantics and shared short motion/micro-interaction foundations. Slice B Home is implemented on the single active PR #101 (`android/rc7-owner-home-ui-correction`): the Home now starts with a compact financial snapshot and primary Quick Entry action, promotes attention before lower-priority content, uses denser provider-aware account surfaces and interpretable 7-day trends, and preserves the non-blocking motion contract. Fresh real light/dark/150%-font Home renders were personally inspected and the three validated Home screenshot references were refreshed; the duplicate Home PR #102 was closed without merge. Final exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are the only remaining Slice B merge gates. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A is merged to `develop` via PR #100 with immediate connected writes, offline-only durable pending/Undo semantics and shared short motion/micro-interaction foundations. Slice B Home is merged to `develop` via PR #103 after fresh owner-audited renders and required hosted gates passed. Slice C Activity/Transactions is complete in PR #104 with denser ledger scanning, compact reducer-backed type filtering, a provider-aware account bottom sheet, neutral transfers with explicit `Από … → Προς …` routing that remains visible at 150% font, explicit amount signs, and fresh accepted Activity/Phase2B screenshot references. Slice D Money / Net Worth / Cards / details is next after the Slice C merge checkpoint. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Run the final exact-head Slice B gates on PR #101: Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fix any real regression and merge only when all required checks are green.
-2. After Slice B is merged to `develop`, start Slice C Activity/Transactions from current `develop` without repeating discovery, preserving the immediate-online/offline-only-pending delivery contract and shared motion language.
-3. Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+1. Merge Slice C Activity/Transactions PR #104 to `develop` only after the exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are green; do not alter the accepted Activity references without new evidence.
+2. Start Slice D — Money / Net Worth / Cards / details from the exact post-#104 `develop` head, preserving trustworthy net-worth arithmetic, explicit savings-subset semantics, accessible card destructive actions, provider identity and dense detail ledgers.
+3. Continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 

@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run the final exact-head Slice B gates on PR #101: Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fix any real regression and merge only when all required checks are green.
-- [ ] After Slice B is merged to `develop`, start Slice C Activity/Transactions from current `develop` without repeating discovery, preserving the immediate-online/offline-only-pending delivery contract and shared motion language.
-- [ ] Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Merge Slice C Activity/Transactions PR #104 to `develop` only after the exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are green; do not alter the accepted Activity references without new evidence.
+- [ ] Start Slice D — Money / Net Worth / Cards / details from the exact post-#104 `develop` head, preserving trustworthy net-worth arithmetic, explicit savings-subset semantics, accessible card destructive actions, provider identity and dense detail ledgers.
+- [ ] Continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -32,6 +32,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Protected same-signer rc7 publication to private update channel and GitHub prerelease
 - [x] rc7 in-place S24 installation with same-signer update continuity and existing session continuity
 - [x] Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)
+- [x] Owner correction Slice B — Home compact snapshot, attention hierarchy, provider-aware accounts, interpretable 7-day trends and hosted validation (#103)
+- [x] Owner correction Slice C — Activity ledger density, provider-aware account filtering, explicit transfer routing/signs and owner-audited screenshot validation (#104)
 
 ## Rule
 
