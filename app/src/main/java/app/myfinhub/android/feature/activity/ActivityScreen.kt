@@ -45,6 +45,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +172,7 @@ private fun ActivityList(
     var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.testTag("activity_list"),
         contentPadding = PaddingValues(
             start = MyFinHubDesignMetrics.screenHorizontalPadding,
             top = MyFinHubSpacing.xxs,
@@ -309,8 +311,10 @@ private fun ActivityLedgerRow(
         item.kind == ActivityKind.TRANSFER -> FinanceTone.Neutral
         else -> item.kind.tone()
     }
+    val expandedTransferRoute = item.kind == ActivityKind.TRANSFER && LocalDensity.current.fontScale >= 1.3f
     val subtitle = if (item.kind == ActivityKind.TRANSFER) {
-        activityTransferRouteLabel(item, accountOptions)
+        val route = activityTransferRouteLabel(item, accountOptions)
+        if (expandedTransferRoute) route.replace(" → Προς ", "\nΠρος ") else route
     } else {
         item.subtitle
     }
@@ -360,7 +364,7 @@ private fun ActivityLedgerRow(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = if (expandedTransferRoute) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (meta.isNotBlank()) {
