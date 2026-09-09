@@ -28,8 +28,12 @@ fun Modifier.myFinHubPressScale(
         animationSpec = tween(durationMillis = MyFinHubMotion.QuickDurationMillis),
         label = "MyFinHub press feedback",
     )
-    return graphicsLayer {
-        scaleX = scale
-        scaleY = scale
+    return if (!pressed && scale == 1f) {
+        this
+    } else {
+        graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
     }
 }
