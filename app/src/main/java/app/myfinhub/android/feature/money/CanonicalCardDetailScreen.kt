@@ -175,7 +175,7 @@ fun CanonicalCardDetailScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Ενέργειες πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Οι ενέργειες ανοίγουν την υπάρχουσα canonical καταχώριση και περνούν από το ίδιο offline-safe mutation queue.",
+                            "Οι αγορές και οι πληρωμές ενημερώνουν την κάρτα άμεσα όταν υπάρχει σύνδεση. Χωρίς σύνδεση, θα συγχρονιστούν με ασφάλεια όταν επανέλθει.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -199,7 +199,7 @@ fun CanonicalCardDetailScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Κινήσεις πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Αγορές και πληρωμές που είναι πραγματικά συνδεδεμένες με αυτή την κάρτα.",
+                            "Αγορές και πληρωμές που είναι συνδεδεμένες με αυτή την κάρτα.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -237,7 +237,7 @@ fun CanonicalCardDetailScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text("Ασφαλή στοιχεία", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "PAN/λήξη αποθηκεύονται μόνο μέσω του owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά στο κρυπτογραφημένο vault αυτής της συσκευής.",
+                        "Ο αριθμός κάρτας και η λήξη προστατεύονται στον λογαριασμό σου. Το CVV αποθηκεύεται μόνο κρυπτογραφημένο σε αυτή τη συσκευή.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -249,7 +249,7 @@ fun CanonicalCardDetailScreen(
                                 panDraft = input.filter(Char::isDigit).take(19)
                                 secretValidation = null
                             },
-                            label = "Αριθμός κάρτας (PAN)",
+                            label = "Αριθμός κάρτας",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
                             visualTransformation = PasswordVisualTransformation(),
                         )
@@ -265,7 +265,7 @@ fun CanonicalCardDetailScreen(
                         )
                         secretValidation?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                         MyFinHubPrimaryAction(
-                            label = if (relevantState is CardSecretUiState.Saving) "Αποθήκευση…" else "Αποθήκευση PAN / λήξης",
+                            label = if (relevantState is CardSecretUiState.Saving) "Αποθήκευση…" else "Αποθήκευση αριθμού / λήξης",
                             onClick = {
                                 val normalizedPan = panDraft.filter(Char::isDigit)
                                 val normalizedExpiry = expiryDraft.trim()
@@ -313,7 +313,7 @@ fun CanonicalCardDetailScreen(
                         }
                         is CardSecretUiState.Saving -> {
                             CircularProgressIndicator()
-                            Text("Αποθήκευση PAN / λήξης στο ασφαλές vault…")
+                            Text("Αποθήκευση ασφαλών στοιχείων…")
                         }
                         is CardSecretUiState.Failure -> {
                             Text(relevantState.message, color = MaterialTheme.colorScheme.error)
@@ -330,7 +330,7 @@ fun CanonicalCardDetailScreen(
                             Text("Η ασφαλής συνεδρία δεν είναι πλέον έγκυρη. Θα χρειαστεί νέα σύνδεση.", color = MaterialTheme.colorScheme.error)
                         }
                         is CardSecretUiState.Revealed -> {
-                            SecretValue("PAN", relevantState.pan ?: "Δεν έχει αποθηκευτεί")
+                            SecretValue("Αριθμός", relevantState.pan ?: "Δεν έχει αποθηκευτεί")
                             SecretValue("Λήξη", relevantState.expiry ?: "Δεν έχει αποθηκευτεί")
                             SecretValue("CVV", relevantState.cvv ?: "Δεν έχει αποθηκευτεί στη συσκευή")
                             TextButton(onClick = onHideSecrets) { Text("Απόκρυψη στοιχείων") }
@@ -367,11 +367,11 @@ fun CanonicalCardDetailScreen(
 
                     if (!secretEditorOpen && relevantState !is CardSecretUiState.Saving && relevantState !is CardSecretUiState.AuthRejected) {
                         TextButton(onClick = ::openSecretEditor) {
-                            Text(if (relevantState is CardSecretUiState.Revealed) "Αλλαγή PAN / λήξης" else "Προσθήκη PAN / λήξης")
+                            Text(if (relevantState is CardSecretUiState.Revealed) "Αλλαγή αριθμού / λήξης" else "Προσθήκη αριθμού / λήξης")
                         }
                     }
                     Text(
-                        "Η προστασία screenshot/recent-app thumbnail ενεργοποιείται όσο εμφανίζονται ή επεξεργάζονται πραγματικά στοιχεία.",
+                        "Για την προστασία σου, τα screenshots και η προεπισκόπηση πρόσφατων εφαρμογών απενεργοποιούνται όσο εμφανίζονται ή επεξεργάζονται στοιχεία κάρτας.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
