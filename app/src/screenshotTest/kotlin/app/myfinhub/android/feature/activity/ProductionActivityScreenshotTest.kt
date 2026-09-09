@@ -5,6 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+// Canonical Slice C references cover light, dark, 150% font, account-filter sheet and detail states.
 @PreviewTest
 @Preview(name = "production_activity_pending_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
