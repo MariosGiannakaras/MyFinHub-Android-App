@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_owner_ui_correction_slice_a_complete_slice_b_home_next`.
+- Workstream state: `rc7_owner_ui_correction_slice_b_home_implementation`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Slice A of the owner correction pass is complete on PR #100: Quick Entry now uses mobile bottom-sheet selection patterns, Greek human-readable date presentation, contextual account flow, and reduced vertical weight; the connected mutation path writes immediately with no Undo grace delay, while durable pending + Undo remains offline/local-only; shared short motion/press/reveal micro-interaction foundations are in place. Real light/dark/150%-font renders were personally inspected, stale Quick Entry and offline-pending Activity references were replaced with the validated renders, Android CI and Project Tracking are green, and Android UI Quality including the S24-target instrumentation gate is green. Overall progress remains 4/6. The next implementation slice is Home, per `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A merged to `develop` via PR #100 with the validated Quick Entry/mobile picker work, immediate connected writes, offline-only pending/Undo behavior and shared motion foundations. Slice B Home is now active on `android/rc7-owner-ui-ux-home`: the implementation introduces a canonical-data liquidity/month-flow summary with a primary `Νέα κίνηση` action, moves attention ahead of account lists, makes account cards denser, keeps provider identity consistent, upgrades seven-day sparklines with direction/delta and an endpoint, improves attention copy/CTA hierarchy and adds non-blocking press/content motion. Overall progress remains 4/6 until a higher corrected production candidate receives explicit physical S24 owner acceptance.
 
 ## Immediate work
 
-- Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
-- Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
-- Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- Complete Slice B Home on `android/rc7-owner-ui-ux-home`: compile and exercise the real production Compose hierarchy, render light/dark/150%-font Home screenshots, personally inspect them against the owner audit, fix defects, replace only validated stale Home references, and keep Android CI, Project Tracking and S24-target UI quality gates green.
+- After Slice B is validated and merged to `develop`, start Slice C Activity / Transactions from fresh `develop` without reopening discovery, preserving the immediate-online/offline-only-pending contract and shared motion requirements.
+- Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Constraints
 
