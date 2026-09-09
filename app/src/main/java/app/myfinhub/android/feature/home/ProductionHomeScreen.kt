@@ -1,8 +1,12 @@
 package app.myfinhub.android.feature.home
 
 import android.content.Context
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,10 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,12 +28,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -50,11 +51,14 @@ import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
-import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubMotion
+import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.designsystem.financeToneColors
+import app.myfinhub.android.designsystem.myFinHubPressScale
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
@@ -100,7 +104,9 @@ fun ProductionHomeScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().testTag("home_list"),
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("home_list"),
             contentPadding = PaddingValues(
                 start = MyFinHubDesignMetrics.screenHorizontalPadding,
                 top = padding.calculateTopPadding() + MyFinHubSpacing.xs,
@@ -110,18 +116,75 @@ fun ProductionHomeScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
+                HomeSummaryCard(
+                    state = state,
+                    amountsVisible = amountsVisible,
+                    onOpenQuickEntry = onOpenQuickEntry,
+                )
+            }
+            if (state.attentionItems.isNotEmpty()) {
+                item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
+            }
+            item {
                 PrimaryAccountsSection(
                     accounts = primaryAccounts,
                     amountsVisible = amountsVisible,
                     onOpenAccount = onOpenAccount,
-                    onOpenQuickEntry = onOpenQuickEntry,
                 )
             }
             if (secondaryAccounts.isNotEmpty()) {
                 item { SecondaryAccountsCard(secondaryAccounts, amountsVisible, onOpenAccount) }
             }
-            if (state.attentionItems.isNotEmpty()) item { ProductionAttentionCard(state.attentionItems, onOpenAttention) }
-            if (state.upcomingItems.isNotEmpty()) item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
+            if (state.upcomingItems.isNotEmpty()) {
+                item { ProductionUpcomingCard(state.upcomingItems, amountsVisible) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeSummaryCard(
+    state: HomeUiState,
+    amountsVisible: Boolean,
+    onOpenQuickEntry: () -> Unit,
+) {
+    val netFlow = state.monthFlow.income - state.monthFlow.expense
+    MyFinHubHeroCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            horizontal = MyFinHubDesignMetrics.cardContentPadding,
+            vertical = MyFinHubSpacing.md,
+        ),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            MyFinHubHeroHeading(
+                eyebrow = "Σύνοψη",
+                title = "Ρευστό υπόλοιπο",
+                supporting = "Η άμεσα διαθέσιμη εικόνα σου και η ροή του μήνα.",
+            )
+            MyFinHubHeroValue(
+                text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+            ) {
+                MyFinHubHeroMetric(
+                    label = "Έσοδα μήνα",
+                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €",
+                    modifier = Modifier.weight(1f),
+                )
+                MyFinHubHeroMetric(
+                    label = "Καθαρή ροή",
+                    value = if (amountsVisible) formatSignedHomeEuro(netFlow) else "•••• €",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            MyFinHubHeroAction(
+                label = "Νέα κίνηση",
+                onClick = onOpenQuickEntry,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
@@ -131,17 +194,15 @@ private fun PrimaryAccountsSection(
     accounts: List<HomeAccount>,
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
-    onOpenQuickEntry: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
             Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
-                "Οι 3 βασικοί λογαριασμοί",
+                "Οι βασικοί λογαριασμοί σου με τάση 7 ημερών",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TextButton(onClick = onOpenQuickEntry) { Text("Νέα κίνηση") }
         }
         if (accounts.isEmpty()) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -167,19 +228,30 @@ private fun PrimaryAccountCard(
     } else {
         0.0
     }
+    val interactionSource = remember { MutableInteractionSource() }
+    val indication = LocalIndication.current
     MyFinHubSectionCard(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpenAccount(account.id) }
+            .myFinHubPressScale(interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = indication,
+                onClick = { onOpenAccount(account.id) },
+            )
             .semantics(mergeDescendants = true) {
                 contentDescription = if (amountsVisible) {
-                    "${account.name}, ${formatHomeEuro(account.balance)}"
+                    "${account.name}, ${formatHomeEuro(account.balance)}, τάση επτά ημερών ${formatSignedHomeEuro(delta)}"
                 } else {
                     "${account.name}, ποσό κρυφό"
                 }
             },
+        contentPadding = PaddingValues(
+            horizontal = MyFinHubDesignMetrics.cardContentPadding,
+            vertical = MyFinHubSpacing.sm,
+        ),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
@@ -187,7 +259,11 @@ private fun PrimaryAccountCard(
             ) {
                 val provider = financialProvider(account.id, account.institution ?: account.name)
                 if (provider != null) {
-                    MyFinHubProviderMark(provider, modifier = Modifier.size(36.dp), contentDescription = provider.institutionLabel)
+                    MyFinHubProviderMark(
+                        provider,
+                        modifier = Modifier.size(36.dp),
+                        contentDescription = provider.institutionLabel,
+                    )
                 } else {
                     MyFinHubIconBadge(
                         icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
@@ -198,7 +274,11 @@ private fun PrimaryAccountCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     account.institution?.takeIf(String::isNotBlank)?.let { institution ->
-                        Text(institution, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            institution,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 MyFinHubAmountText(
@@ -207,25 +287,33 @@ private fun PrimaryAccountCard(
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
-            AccountSparkline(values = account.balanceTrend)
+            AccountSparkline(values = account.balanceTrend, delta = delta)
             Text(
                 text = if (amountsVisible && account.balanceTrend.size >= 2) {
-                    "Τάση 7 ημερών · ${formatSignedHomeEuro(delta)}"
+                    "7 ημέρες · ${formatSignedHomeEuro(delta)}"
                 } else {
                     "Τάση 7 ημερών"
                 },
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = when {
+                    delta > 0.005 -> financeToneColors(FinanceTone.Income).accent
+                    delta < -0.005 -> financeToneColors(FinanceTone.Expense).accent
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
         }
     }
 }
 
 @Composable
-private fun AccountSparkline(values: List<Double>) {
-    val lineColor = MaterialTheme.colorScheme.primary
+private fun AccountSparkline(values: List<Double>, delta: Double) {
+    val lineColor = when {
+        delta > 0.005 -> financeToneColors(FinanceTone.Income).accent
+        delta < -0.005 -> financeToneColors(FinanceTone.Expense).accent
+        else -> MaterialTheme.colorScheme.primary
+    }
     val guideColor = MaterialTheme.colorScheme.outlineVariant
-    Canvas(modifier = Modifier.fillMaxWidth().height(44.dp)) {
+    Canvas(modifier = Modifier.fillMaxWidth().height(32.dp)) {
         if (values.size < 2) {
             drawLine(
                 color = guideColor,
@@ -235,22 +323,31 @@ private fun AccountSparkline(values: List<Double>) {
             )
             return@Canvas
         }
+
         val minimum = values.minOrNull() ?: 0.0
         val maximum = values.maxOrNull() ?: minimum
         val range = (maximum - minimum).takeIf { it > 0.005 } ?: 1.0
+        val verticalInset = 3.dp.toPx()
+        val drawableHeight = (size.height - verticalInset * 2f).coerceAtLeast(1f)
+        fun yFor(value: Double): Float {
+            val normalized = ((value - minimum) / range).toFloat()
+            return verticalInset + (1f - normalized) * drawableHeight
+        }
+
+        val referenceY = yFor(values.first())
+        drawLine(
+            color = guideColor,
+            start = Offset(0f, referenceY),
+            end = Offset(size.width, referenceY),
+            strokeWidth = 1.dp.toPx(),
+        )
+
         val path = Path()
         values.forEachIndexed { index, value ->
             val x = size.width * index / values.lastIndex.toFloat()
-            val normalized = ((value - minimum) / range).toFloat()
-            val y = size.height - normalized * size.height
+            val y = yFor(value)
             if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
-        drawLine(
-            color = guideColor,
-            start = Offset(0f, size.height),
-            end = Offset(size.width, size.height),
-            strokeWidth = 1.dp.toPx(),
-        )
         drawPath(
             path = path,
             color = lineColor,
@@ -259,6 +356,11 @@ private fun AccountSparkline(values: List<Double>) {
                 cap = StrokeCap.Round,
                 join = StrokeJoin.Round,
             ),
+        )
+        drawCircle(
+            color = lineColor,
+            radius = 3.dp.toPx(),
+            center = Offset(size.width, yFor(values.last())),
         )
     }
 }
@@ -290,7 +392,11 @@ private fun SecondaryAccountsCard(
                 ) {
                     val provider = financialProvider(account.id, account.institution ?: account.name)
                     if (provider != null) {
-                        MyFinHubProviderMark(provider, modifier = Modifier.size(32.dp), contentDescription = provider.institutionLabel)
+                        MyFinHubProviderMark(
+                            provider,
+                            modifier = Modifier.size(32.dp),
+                            contentDescription = provider.institutionLabel,
+                        )
                     } else {
                         MyFinHubIconBadge(
                             icon = if (savings) MyFinHubIcons.Savings else MyFinHubIcons.Account,
@@ -301,7 +407,11 @@ private fun SecondaryAccountsCard(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(account.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         account.institution?.takeIf(String::isNotBlank)?.let { institution ->
-                            Text(institution, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                institution,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                     MyFinHubAmountText(
@@ -318,19 +428,50 @@ private fun SecondaryAccountsCard(
 
 @Composable
 private fun ProductionAttentionCard(items: List<HomeAttentionItem>, onOpen: (String) -> Unit) {
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+    MyFinHubSectionCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(animationSpec = tween(MyFinHubMotion.StandardDurationMillis)),
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Χρειάζεται προσοχή", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             items.take(2).forEachIndexed { index, item ->
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.Top) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        verticalAlignment = Alignment.Top,
+                    ) {
                         MyFinHubIconBadge(MyFinHubIcons.Attention, FinanceTone.Attention, null)
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.title, style = MaterialTheme.typography.titleMedium)
-                            Text(item.dueLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                            if (item.reason.isNotBlank()) {
+                                Text(
+                                    item.reason,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Text(
+                                item.dueLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (item.tone == HomeAttentionTone.URGENT) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
                         }
                     }
-                    TextButton(onClick = { onOpen(item.id) }, modifier = Modifier.align(Alignment.End)) { Text("Έλεγχος") }
+                    TextButton(
+                        onClick = { onOpen(item.id) },
+                        modifier = Modifier.align(Alignment.End),
+                    ) {
+                        Text(if (item.tone == HomeAttentionTone.URGENT) "Προβολή τώρα" else "Προβολή")
+                    }
                 }
                 if (index != items.take(2).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -344,11 +485,19 @@ private fun ProductionUpcomingCard(items: List<HomeUpcomingItem>, amountsVisible
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text("Επόμενες υποχρεώσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             items.take(3).forEachIndexed { index, item ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     MyFinHubIconBadge(MyFinHubIcons.Plan, FinanceTone.Attention, null)
                     Column(modifier = Modifier.weight(1f)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
-                        Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            item.dateLabel,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     MyFinHubAmountText(
                         text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
@@ -362,7 +511,8 @@ private fun ProductionUpcomingCard(items: List<HomeUpcomingItem>, amountsVisible
     }
 }
 
-private fun formatHomeEuro(value: Double): String = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+private fun formatHomeEuro(value: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
 
 private fun formatSignedHomeEuro(value: Double): String =
     (if (value > 0.005) "+" else "") + formatHomeEuro(value)
