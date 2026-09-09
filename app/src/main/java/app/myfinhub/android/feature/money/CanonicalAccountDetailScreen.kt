@@ -168,7 +168,7 @@ private fun AccountLedgerRow(
     onClick: () -> Unit,
 ) {
     val transfer = item.kind == ActivityKind.TRANSFER
-    val subtitle = if (transfer) accountTransferRouteLabel(item) else item.subtitle
+    val transferRoute = if (transfer) accountTransferRouteParts(item) else null
     val meta = when {
         item.pendingSync -> "Εκκρεμεί επιβεβαίωση"
         transfer -> ""
@@ -200,13 +200,30 @@ private fun AccountLedgerRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (transfer) 2 else 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (transferRoute != null) {
+                Text(
+                    text = "Από ${transferRoute.first}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "→ Προς ${transferRoute.second}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            } else {
+                Text(
+                    text = item.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = if (transfer) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             if (meta.isNotBlank()) {
                 Text(
                     text = meta,
@@ -225,13 +242,9 @@ private fun AccountLedgerRow(
     }
 }
 
-internal fun accountTransferRouteLabel(item: ActivityItem): String {
-    val route = item.accountLabel.split("→", limit = 2).map(String::trim)
-    return if (route.size == 2 && route.all(String::isNotBlank)) {
-        "Από ${route[0]}\n→ Προς ${route[1]}"
-    } else {
-        item.subtitle
-    }
+internal fun accountTransferRouteParts(item: ActivityItem): Pair<String, String>? {
+    val route = item.accountLabel.split("→", limit = 2).map { it.trim() }
+    return if (route.size == 2 && route.all { it.isNotBlank() }) route[0] to route[1] else null
 }
 
 private fun accountDayLabel(rawDate: String, today: LocalDate): String {
