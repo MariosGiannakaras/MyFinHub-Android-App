@@ -28,4 +28,11 @@ class AccountActivityProjectionTest {
         assertEquals(20.0, destinationTransfer.amount, 0.0)
         assertEquals(40.0, incomingTransfer.amount, 0.0)
     }
+
+    @Test
+    fun transferRoutePartsKeepSourceAndDestinationSeparatelyRenderable() {
+        val transfer = items.first { it.id == "transfer" }
+
+        assertEquals("Main" to "Save", accountTransferRouteParts(transfer))
+    }
 }
