@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_owner_ui_correction_slice_a_fast_online_delivery_and_motion`.
+- Workstream state: `rc7_owner_ui_correction_slice_a_complete_slice_b_home_next`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. The owner physical correction pass is active on `android/rc7-owner-ui-ux-correction-pass` / PR #100. Slice A has started with mobile bottom-sheet selection and Greek date corrections. The owner additionally requires the pre-offline fast online mutation behavior: when connected, canonical writes must be sent to the database immediately with no Undo grace delay; durable pending + Undo is offline-only. Purposeful animations, micro-animations and micro-interactions are mandatory across the correction slices. The durable implementation specification remains `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`. Overall progress remains 4/6.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Slice A of the owner correction pass is complete on PR #100: Quick Entry now uses mobile bottom-sheet selection patterns, Greek human-readable date presentation, contextual account flow, and reduced vertical weight; the connected mutation path writes immediately with no Undo grace delay, while durable pending + Undo remains offline/local-only; shared short motion/press/reveal micro-interaction foundations are in place. Real light/dark/150%-font renders were personally inspected, stale Quick Entry and offline-pending Activity references were replaced with the validated renders, Android CI and Project Tracking are green, and Android UI Quality including the S24-target instrumentation gate is green. Overall progress remains 4/6. The next implementation slice is Home, per `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`.
 
 ## Immediate work
 
-- Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: keep the validated mobile bottom-sheet/Greek-date corrections, restore immediate online canonical writes with no Undo grace timer, keep durable pending + Undo only for offline mutations, add shared motion/micro-interaction primitives and Quick Entry motion, then run unit/compile/UI/screenshot/S24-target gates and inspect real renders.
-- Continue Slices B-G in the exact order and acceptance criteria defined by `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` (Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics), updating canonical tracking after each merged slice and never skipping the owner-recorded physical findings.
-- After Slices A-G plus full Slice H hosted validation, publish a strictly higher same-signer production candidate than versionCode `10006`, install it in place on the authorized S24 without clearing data, and obtain explicit owner physical acceptance before any stable-final claim or deliberate `develop -> main` promotion.
+- Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
+- Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
+- Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Constraints
 
