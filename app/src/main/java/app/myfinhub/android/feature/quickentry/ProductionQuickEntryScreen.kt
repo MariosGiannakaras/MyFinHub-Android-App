@@ -1,6 +1,13 @@
 package app.myfinhub.android.feature.quickentry
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +60,7 @@ import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubHeroCard
 import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubMotion
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -70,7 +78,7 @@ private val FastKinds = listOf(
     QuickEntryKind.TRANSFER,
 )
 
-private val GreekDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("el", "GR"))
+private val GreekDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR"))
 
 /**
  * Production fast path for the three everyday cash-flow types. Account/category/subcategory choices
@@ -101,10 +109,10 @@ fun ProductionQuickEntryScreen(
     LaunchedEffect(Unit) {
         amountFocus.requestFocus()
     }
-    // Local encrypted enqueue is the successful mobile form submission boundary. Sync/Undo remains
-    // visible centrally, so keeping the form open after a safe enqueue only creates a dead-end screen.
-    LaunchedEffect(savedLocally) {
-        if (savedLocally) onBack()
+    // Connected saves close only after server acknowledgement. Offline saves close after the durable
+    // encrypted local enqueue; only that offline path owns pending-sync/Undo semantics.
+    LaunchedEffect(state.persisted, savedLocally) {
+        if (state.persisted || savedLocally) onBack()
     }
 
     Scaffold(
@@ -152,7 +160,11 @@ fun ProductionQuickEntryScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             MyFinHubHeroCard(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(
+                        animationSpec = tween(durationMillis = MyFinHubMotion.StandardDurationMillis),
+                    ),
                 contentPadding = PaddingValues(
                     horizontal = MyFinHubDesignMetrics.cardContentPadding,
                     vertical = MyFinHubSpacing.sm,
@@ -272,7 +284,13 @@ fun ProductionQuickEntryScreen(
             TextButton(onClick = { noteExpanded = !noteExpanded }) {
                 Text(if (noteExpanded) "Απόκρυψη σημείωσης" else "Προσθήκη σημείωσης")
             }
-            if (noteExpanded || state.note.isNotBlank()) {
+            AnimatedVisibility(
+                visible = noteExpanded || state.note.isNotBlank(),
+                enter = fadeIn(tween(MyFinHubMotion.QuickDurationMillis)) +
+                    expandVertically(tween(MyFinHubMotion.StandardDurationMillis)),
+                exit = fadeOut(tween(MyFinHubMotion.QuickDurationMillis)) +
+                    shrinkVertically(tween(MyFinHubMotion.StandardDurationMillis)),
+            ) {
                 MyFinHubOutlinedField(
                     value = state.note,
                     onValueChange = { onAction(QuickEntryAction.NoteChanged(it)) },
@@ -521,7 +539,7 @@ private fun GreekDatePicker(
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
     val greekConfiguration = remember(configuration) {
-        Configuration(configuration).apply { setLocale(Locale("el", "GR")) }
+        Configuration(configuration).apply { setLocale(Locale.forLanguageTag("el-GR")) }
     }
     val greekContext = remember(context, greekConfiguration) {
         context.createConfigurationContext(greekConfiguration)

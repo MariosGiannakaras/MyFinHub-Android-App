@@ -17,17 +17,17 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_physical_audit_complete_owner_ui_correction_implementation`.
+- Workstream state: `rc7_owner_ui_correction_slice_a_fast_online_delivery_and_motion`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` was installed in place over rc6 on the authorized Samsung Galaxy S24 Ultra without uninstall or data clearing. Same-signer update continuity and existing session continuity passed. The owner then completed a physical screen-by-screen UI/UX audit across Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics/notifications and Quick Entry, and explicitly requested a further correction implementation pass before final acceptance. The durable implementation specification is `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`. Work starts on `android/rc7-owner-ui-ux-correction-pass` with Slice A (shared mobile selection foundations + Quick Entry). Overall progress remains 4/6; rc7 is a valid production-signed technical baseline but is not owner-accepted as the final product.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. The owner physical correction pass is active on `android/rc7-owner-ui-ux-correction-pass` / PR #100. Slice A has started with mobile bottom-sheet selection and Greek date corrections. The owner additionally requires the pre-offline fast online mutation behavior: when connected, canonical writes must be sent to the database immediately with no Undo grace delay; durable pending + Undo is offline-only. Purposeful animations, micro-animations and micro-interactions are mandatory across the correction slices. The durable implementation specification remains `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`. Overall progress remains 4/6.
 
 ## Immediate work
 
-- Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: replace compact popup selectors with mobile bottom-sheet selection patterns, improve Quick Entry density/contextual flow, fix helper copy and Greek date presentation, and preserve offline enqueue/reconcile/undo semantics; render and visually inspect real Compose screenshots and run relevant hosted gates.
+- Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: keep the validated mobile bottom-sheet/Greek-date corrections, restore immediate online canonical writes with no Undo grace timer, keep durable pending + Undo only for offline mutations, add shared motion/micro-interaction primitives and Quick Entry motion, then run unit/compile/UI/screenshot/S24-target gates and inspect real renders.
 - Continue Slices B-G in the exact order and acceptance criteria defined by `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` (Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics), updating canonical tracking after each merged slice and never skipping the owner-recorded physical findings.
 - After Slices A-G plus full Slice H hosted validation, publish a strictly higher same-signer production candidate than versionCode `10006`, install it in place on the authorized S24 without clearing data, and obtain explicit owner physical acceptance before any stable-final claim or deliberate `develop -> main` promotion.
 
@@ -43,6 +43,8 @@ Production-signed `1.0.0-rc7` / versionCode `10006` was installed in place over 
 - The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.
 - A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.
 - The owner physical findings and ordered correction acceptance criteria in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` are mandatory for this pass; do not replace them with generic redesign discovery.
+- Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.
+- Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation.
 
 ## Tracking discipline
 

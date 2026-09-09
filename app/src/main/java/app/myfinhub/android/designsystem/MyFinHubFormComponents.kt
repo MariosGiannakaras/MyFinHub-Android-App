@@ -1,5 +1,6 @@
 package app.myfinhub.android.designsystem
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -14,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -86,6 +88,7 @@ fun MyFinHubSelectorButton(
     errorMessage: String? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     val semanticsModifier = if (errorMessage == null) modifier else {
         modifier.semantics { error(errorMessage) }
     }
@@ -100,9 +103,11 @@ fun MyFinHubSelectorButton(
         OutlinedButton(
             onClick = onClick,
             modifier = semanticsModifier
+                .myFinHubPressScale(interactionSource)
                 .fillMaxWidth()
                 .heightIn(min = MyFinHubDesignMetrics.textFieldMinHeight),
             enabled = enabled,
+            interactionSource = interactionSource,
             shape = MaterialTheme.shapes.extraSmall,
             content = content,
         )

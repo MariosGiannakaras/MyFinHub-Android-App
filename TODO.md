@@ -5,7 +5,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: replace compact popup selectors with mobile bottom-sheet selection patterns, improve Quick Entry density/contextual flow, fix helper copy and Greek date presentation, and preserve offline enqueue/reconcile/undo semantics; render and visually inspect real Compose screenshots and run relevant hosted gates.
+- [ ] Complete Slice A on `android/rc7-owner-ui-ux-correction-pass`: keep the validated mobile bottom-sheet/Greek-date corrections, restore immediate online canonical writes with no Undo grace timer, keep durable pending + Undo only for offline mutations, add shared motion/micro-interaction primitives and Quick Entry motion, then run unit/compile/UI/screenshot/S24-target gates and inspect real renders.
 - [ ] Continue Slices B-G in the exact order and acceptance criteria defined by `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` (Home, Activity, Money/details/cards, Plan/budget, Insights, Settings/diagnostics), updating canonical tracking after each merged slice and never skipping the owner-recorded physical findings.
 - [ ] After Slices A-G plus full Slice H hosted validation, publish a strictly higher same-signer production candidate than versionCode `10006`, install it in place on the authorized S24 without clearing data, and obtain explicit owner physical acceptance before any stable-final claim or deliberate `develop -> main` promotion.
 

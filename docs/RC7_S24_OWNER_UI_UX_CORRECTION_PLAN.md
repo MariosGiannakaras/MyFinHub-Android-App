@@ -53,6 +53,18 @@ Cross-screen visual direction:
 - Use Greek, human-readable dates and user-facing copy. ISO timestamps/canonical/debug codes may remain internal or secondary diagnostic details.
 - Internal words such as `canonical`, raw API/auth error codes, implementation terminology and backend constraints must not be primary consumer copy.
 
+## Runtime delivery and motion contract — owner requirement 2026-09-09
+
+These requirements apply across every correction slice and are not optional polish:
+
+- When the server is reachable and the canonical repository is ready, a finance mutation must cross the network write boundary immediately using the current server revision. Do **not** hold online writes behind an Undo grace timer or an offline queue delay. The target behavior is the fast database update path that existed before general offline mutation support.
+- The durable pending queue, `Προς συγχρονισμό` state and user Undo window belong to **offline/local-only mutations**. They remain encrypted on-device and reconcile from a fresh server revision when connectivity returns.
+- If an online write suffers an ambiguous transport/server failure, retain the crash-safe `NEEDS_REVIEW` reconciliation safety contract; this is an error-recovery state, not an intentional Undo delay. Never blindly replay an ambiguous write.
+- Online success must clear transient pending state immediately after server acknowledgement and refresh the in-memory/cached canonical projection without an unnecessary pre-save reload round trip.
+- Add purposeful motion throughout the product: short state transitions, bottom-sheet motion, content reveal/collapse, press feedback and selection feedback. Motion must explain state/causality, not delay actions.
+- Micro-animations and micro-interactions should normally stay in the ~120–240 ms range, respect platform animation scaling/accessibility behavior, preserve touch targets, and never block persistence/network work.
+- Destructive confirmation remains explicit. Animation must never become the only cue for a finance-critical state change.
+
 ## Ordered implementation slices
 
 Implementation should proceed in these slices. Complete, screenshot-validate and host-validate a slice before moving to the next unless a shared primitive deliberately spans adjacent slices.
@@ -74,7 +86,9 @@ Required outcomes:
 - Date UI must be human-readable Greek to the user; keep canonical ISO representation internally as needed.
 - Date picker must not expose English `Select date`, `September`, etc. in the Greek product experience.
 - Offline success should read as successful local save with pending sync, not as a warning: e.g. `Αποθηκεύτηκε` + `Θα συγχρονιστεί όταν υπάρχει σύνδεση` + `Αναίρεση`.
-- Preserve the encrypted local enqueue/reconcile/undo contract exactly.
+- Online mutations must save to the server immediately with no Undo grace delay; offline/local-only mutations retain durable pending + Undo behavior.
+- Add functional motion to the Quick Entry flow: animated note reveal/collapse, animated mobile sheets and lightweight press/selection feedback with no persistence delay.
+- Preserve the encrypted offline enqueue/reconcile safety contract, while keeping the normal online path direct and fast.
 
 ### Slice B — Home
 
