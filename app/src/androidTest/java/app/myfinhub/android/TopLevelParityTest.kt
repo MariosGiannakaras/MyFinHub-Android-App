@@ -99,7 +99,7 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        composeRule.onNode(hasScrollAction())
+        composeRule.onNodeWithTag("activity_list")
             .performScrollToNode(hasText("Μισθός"))
         composeRule.onNodeWithText("Μισθός").assertIsDisplayed()
     }
