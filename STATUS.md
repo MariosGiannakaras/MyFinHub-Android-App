@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_a_complete_slice_b_home_next`
+State: `rc7_owner_ui_correction_slice_b_home_in_progress`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Slice A of the owner correction pass is complete on PR #100: Quick Entry now uses mobile bottom-sheet selection patterns, Greek human-readable date presentation, contextual account flow, and reduced vertical weight; the connected mutation path writes immediately with no Undo grace delay, while durable pending + Undo remains offline/local-only; shared short motion/press/reveal micro-interaction foundations are in place. Real light/dark/150%-font renders were personally inspected, stale Quick Entry and offline-pending Activity references were replaced with the validated renders, Android CI and Project Tracking are green, and Android UI Quality including the S24-target instrumentation gate is green. Overall progress remains 4/6. The next implementation slice is Home, per `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A is merged to `develop` via PR #100 with validated Quick Entry mobile pickers, immediate online finance writes, offline-only pending/Undo behavior, and shared short motion/micro-interaction foundations. The active implementation is Slice B — Home on `android/owner-ui-home-slice-b`: improve top-level summary and primary action, move attention ahead of secondary accounts, tighten account-card density, normalize provider identity, make 7-day sparklines intentional, and add purposeful non-blocking micro-interactions. Overall progress remains 4/6 until a corrected higher production candidate receives explicit physical S24 owner acceptance.
 
 ## Current production candidate
 
@@ -21,8 +21,8 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
-2. Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
+1. Complete Slice B Home on `android/owner-ui-home-slice-b`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions.
+2. Render and personally inspect fresh real Home light/dark/150%-font Compose screenshots, replace only validated stale references, and keep Android CI, Project Tracking, screenshot regression and S24-target instrumentation green before merging Slice B to `develop`.
 3. Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
