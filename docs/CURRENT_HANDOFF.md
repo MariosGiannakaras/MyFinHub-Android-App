@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_owner_ui_correction_slice_d_money_ready`.
+- Workstream state: `rc7_owner_ui_correction_slice_d_money_implementation`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A is merged to `develop` via PR #100 with immediate connected writes, offline-only durable pending/Undo semantics and shared short motion/micro-interaction foundations. Slice B Home is merged to `develop` via PR #103 after fresh owner-audited renders and required hosted gates passed. Slice C Activity/Transactions is complete in PR #104 with denser ledger scanning, compact reducer-backed type filtering, a provider-aware account bottom sheet, neutral transfers with explicit `Από … → Προς …` routing that remains visible at 150% font, explicit amount signs, and fresh accepted Activity/Phase2B screenshot references. Slice D Money / Net Worth / Cards / details is next after the Slice C merge checkpoint. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-C are merged to `develop`, with Slice C Activity/Transactions completed via PR #104 after exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed. Slice D Money / Net Worth / Cards / details is now active on `android/rc7-owner-money-ui-correction`: implementation is correcting canonical net-worth composition to include visible credit-card debt, making savings explicitly a subset already counted in account assets, densifying account-detail ledgers with account-relative transfer signs and `Από … → Προς …` routing, replacing internal empty-state language, and adding a visible accessible card-delete action with explicit confirmation while preserving canonical mutation semantics. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Immediate work
 
-- Merge Slice C Activity/Transactions PR #104 to `develop` only after the exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are green; do not alter the accepted Activity references without new evidence.
-- Start Slice D — Money / Net Worth / Cards / details from the exact post-#104 `develop` head, preserving trustworthy net-worth arithmetic, explicit savings-subset semantics, accessible card destructive actions, provider identity and dense detail ledgers.
-- Continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- Complete Slice D Money / Net Worth / Cards / details on `android/rc7-owner-money-ui-correction`, including trustworthy net-worth composition, explicit savings-subset semantics, dense account-detail transfer treatment, accessible card deletion and consumer-facing detail copy.
+- Render fresh canonical Money, account-detail, card-delete, Savings/Loans/Claims light/dark/150%-font evidence; personally inspect it, fix defects, then run relevant unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
+- After Slice D merge, continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Constraints
 
