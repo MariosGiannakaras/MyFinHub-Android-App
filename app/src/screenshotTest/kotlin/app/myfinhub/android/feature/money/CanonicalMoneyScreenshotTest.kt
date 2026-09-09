@@ -5,16 +5,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+private val canonicalMoneyPreviewCard = MoneyCard(
+    id = "card-credit",
+    nickname = "Κύρια πιστωτική",
+    last4 = "1881",
+    kind = "Πιστωτική",
+    currentBalance = 420.0,
+    limit = 2_000.0,
+    vaultState = VaultState.AVAILABLE,
+    network = "VISA",
+    bankId = "piraeus",
+    canonicalKind = "credit",
+)
+
 private fun canonicalMoneyScreenshotState() = MoneyUiState(
     accounts = listOf(
-        MoneyAccount("acc-main", "Κύριος λογαριασμός", 1_155.0, "Τράπεζα"),
-        MoneyAccount("acc-save", "Αποταμίευση", 540.0, "Αποταμίευση"),
+        MoneyAccount("piraeus-payroll", "Πειραιώς Μισθοδοσίας", 1_155.0, "Τράπεζα", "Τράπεζα Πειραιώς"),
+        MoneyAccount("piraeus-savings", "Πειραιώς Αποταμίευση", 540.0, "Αποταμίευση", "Τράπεζα Πειραιώς"),
     ),
-    cards = emptyList(),
+    cards = listOf(canonicalMoneyPreviewCard),
     savingsCurrent = 540.0,
     loanOutstanding = 4_240.0,
     lendingReceivable = 310.0,
-    frontendMessage = "Εκκρεμείς διαγραφές καρτών:\nΠιστωτική ••••1881 · Εκκρεμεί διαγραφή · Προς συγχρονισμό",
 )
 
 @PreviewTest
@@ -85,6 +97,24 @@ fun CanonicalSavingsLargeFontScreenshot() {
         CanonicalSavingsScreen(
             state = canonicalMoneyScreenshotState(),
             onBack = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_card_delete_dialog_light",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun CanonicalCardDeleteDialogLightScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        CanonicalCardDeleteDialog(
+            card = canonicalMoneyPreviewCard,
+            onConfirm = {},
+            onDismiss = {},
         )
     }
 }
