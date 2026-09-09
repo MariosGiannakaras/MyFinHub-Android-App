@@ -100,7 +100,6 @@ fun ProductionHomeScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "MyFinHub",
-                subtitle = "Η οικονομική σου εικόνα",
                 navigation = { MyFinHubBrandMark() },
                 trailing = { TextButton(onClick = onOpenSettings) { Text("Ρυθμίσεις") } },
             )
@@ -152,19 +151,22 @@ private fun HomeSnapshotCard(
     onOpenQuickEntry: () -> Unit,
 ) {
     val monthNetFlow = state.monthFlow.income - state.monthFlow.expense
-    MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+    MyFinHubHeroCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = MyFinHubSpacing.md, vertical = MyFinHubSpacing.sm),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             MyFinHubHeroHeading(
-                eyebrow = "Σήμερα",
+                eyebrow = "Σύνοψη",
                 title = "Διαθέσιμα τώρα",
-                supporting = "Σύνολο ρευστών λογαριασμών",
             )
             MyFinHubHeroValue(
                 text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
+                style = MaterialTheme.typography.headlineMedium,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
             ) {
                 MyFinHubHeroMetric(
                     label = "Έσοδα μήνα",
@@ -179,9 +181,9 @@ private fun HomeSnapshotCard(
             }
             Text(
                 text = if (amountsVisible) {
-                    "Καθαρή ροή μήνα ${formatSignedHomeEuro(monthNetFlow)}"
+                    "Καθαρή ροή ${formatSignedHomeEuro(monthNetFlow)}"
                 } else {
-                    "Καθαρή ροή μήνα •••• €"
+                    "Καθαρή ροή •••• €"
                 },
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
@@ -515,20 +517,20 @@ private fun ProductionAttentionCard(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             MyFinHubSectionHeading(
                 title = "Χρειάζεται προσοχή",
-                subtitle = if (items.size == 1) "1 θέμα χρειάζεται ενέργεια" else "${items.size} θέματα χρειάζονται ενέργεια",
                 icon = MyFinHubIcons.Attention,
                 tone = FinanceTone.Attention,
             )
             items.take(2).forEachIndexed { index, item ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                     verticalAlignment = Alignment.Top,
                 ) {
                     MyFinHubIconBadge(
                         icon = MyFinHubIcons.Attention,
                         tone = if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Attention else FinanceTone.Neutral,
                         contentDescription = null,
+                        modifier = Modifier.size(32.dp),
                     )
                     Column(
                         modifier = Modifier.weight(1f),
@@ -536,7 +538,7 @@ private fun ProductionAttentionCard(
                     ) {
                         Text(
                             text = item.title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
                         if (item.reason.isNotBlank()) {
@@ -555,12 +557,9 @@ private fun ProductionAttentionCard(
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         )
-                        TextButton(
-                            onClick = { onOpen(item.id) },
-                            modifier = Modifier.align(Alignment.End),
-                        ) {
-                            Text("Προβολή")
-                        }
+                    }
+                    TextButton(onClick = { onOpen(item.id) }) {
+                        Text("Προβολή")
                     }
                 }
                 if (index != items.take(2).lastIndex) {
