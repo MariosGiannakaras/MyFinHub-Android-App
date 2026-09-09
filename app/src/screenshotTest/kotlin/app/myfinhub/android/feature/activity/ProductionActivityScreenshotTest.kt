@@ -33,6 +33,19 @@ fun ProductionActivityPendingLargeFontScreenshot() {
 }
 
 @PreviewTest
+@Preview(name = "production_activity_account_filter_sheet", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityAccountFilterSheetScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        ActivityAccountFilterSheetContent(
+            selectedId = "piraeus-payroll",
+            options = activityAccountOptions(),
+            onSelected = {},
+        )
+    }
+}
+
+@PreviewTest
 @Preview(name = "production_activity_pending_detail", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun ProductionActivityPendingDetailScreenshot() {
@@ -56,11 +69,7 @@ private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
         ActivityScreen(
             state = ActivityUiState(
                 items = pendingActivityItems(),
-                accountOptions = listOf(
-                    ActivityAccountOption("piraeus-payroll", "Πειραιώς Μισθοδοσίας"),
-                    ActivityAccountOption("cash", "Μετρητά"),
-                    ActivityAccountOption("piraeus-savings", "Πειραιώς Αποταμίευση"),
-                ),
+                accountOptions = activityAccountOptions(),
             ),
             onAction = {},
             onOpenDetail = {},
@@ -68,6 +77,12 @@ private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
         )
     }
 }
+
+private fun activityAccountOptions(): List<ActivityAccountOption> = listOf(
+    ActivityAccountOption("piraeus-payroll", "Πειραιώς Μισθοδοσίας"),
+    ActivityAccountOption("cash", "Μετρητά"),
+    ActivityAccountOption("piraeus-savings", "Πειραιώς Αποταμίευση"),
+)
 
 private fun pendingActivityItems(): List<ActivityItem> = listOf(
     ActivityItem(
@@ -95,6 +110,19 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         pendingSync = true,
         rawDate = "2026-09-07",
         accountId = "piraeus-payroll",
+    ),
+    ActivityItem(
+        id = "evt-transfer",
+        dateLabel = "Σήμερα, 08:10",
+        kind = ActivityKind.TRANSFER,
+        title = "Μεταφορά στην αποταμίευση",
+        subtitle = "Εσωτερική μεταφορά",
+        amount = 250.00,
+        accountLabel = "Πειραιώς Μισθοδοσίας → Πειραιώς Αποταμίευση",
+        category = "Αποταμίευση",
+        rawDate = "2026-09-07",
+        fromAccountId = "piraeus-payroll",
+        toAccountId = "piraeus-savings",
     ),
     ActivityItem(
         id = "evt-synced-expense",

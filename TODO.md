@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run the final exact-head Slice B gates on PR #101: Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fix any real regression and merge only when all required checks are green.
-- [ ] After Slice B is merged to `develop`, start Slice C Activity/Transactions from current `develop` without repeating discovery, preserving the immediate-online/offline-only-pending delivery contract and shared motion language.
-- [ ] Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Complete Slice C Activity/Transactions on `android/rc7-owner-activity-ui-correction`, render fresh light/dark/150%-font and account-filter-sheet Compose screenshots, personally inspect them, fix visual regressions and replace stale Activity references.
+- [ ] Run the relevant Activity unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation; merge Slice C to `develop` only when the exact-head required gates are green.
+- [ ] After Slice C merge, continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -32,6 +32,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Protected same-signer rc7 publication to private update channel and GitHub prerelease
 - [x] rc7 in-place S24 installation with same-signer update continuity and existing session continuity
 - [x] Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)
+- [x] Owner correction Slice B — Home compact snapshot, attention hierarchy, provider-aware accounts, interpretable 7-day trends and hosted validation (#103)
 
 ## Rule
 

@@ -33,6 +33,7 @@ class ActivityReducerTest {
         assertEquals("Νέα κατηγορία", edited.category)
         assertEquals(initial.items.first { it.id == "evt-2" }, updated.items.first { it.id == "evt-2" })
     }
+
     @Test
     fun accountFilter_keepsDirectAndTransferAccountActivity() {
         val items = listOf(
@@ -84,4 +85,36 @@ class ActivityReducerTest {
         assertEquals(listOf("direct", "transfer"), filtered.visibleItems.map { it.id })
     }
 
+    @Test
+    fun transferRoute_usesCanonicalAccountOptionsWhenAvailable() {
+        val item = ActivityItem(
+            id = "transfer",
+            dateLabel = "Σήμερα",
+            kind = ActivityKind.TRANSFER,
+            title = "Μεταφορά",
+            subtitle = "Εσωτερική μεταφορά",
+            amount = 120.0,
+            accountLabel = "Fallback",
+            category = null,
+            rawDate = "2026-09-09",
+            fromAccountId = "main",
+            toAccountId = "savings",
+        )
+
+        val label = activityTransferRouteLabel(
+            item,
+            listOf(
+                ActivityAccountOption("main", "Κύριος"),
+                ActivityAccountOption("savings", "Αποταμίευση"),
+            ),
+        )
+
+        assertEquals("Από Κύριος → Προς Αποταμίευση", label)
+    }
+
+    @Test
+    fun signedAmount_keepsExplicitPositiveAndNegativeSigns() {
+        assertTrue(formatSignedEuro(12.5).startsWith("+"))
+        assertTrue(formatSignedEuro(-12.5).startsWith("−"))
+    }
 }
