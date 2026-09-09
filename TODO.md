@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
-- [ ] Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
-- [ ] Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Complete Slice B Home on `android/rc7-owner-ui-ux-home`: compile and exercise the real production Compose hierarchy, render light/dark/150%-font Home screenshots, personally inspect them against the owner audit, fix defects, replace only validated stale Home references, and keep Android CI, Project Tracking and S24-target UI quality gates green.
+- [ ] After Slice B is validated and merged to `develop`, start Slice C Activity / Transactions from fresh `develop` without reopening discovery, preserving the immediate-online/offline-only-pending contract and shared motion requirements.
+- [ ] Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
