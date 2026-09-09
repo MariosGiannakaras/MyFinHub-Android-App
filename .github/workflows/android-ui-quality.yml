@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -59,42 +59,6 @@ jobs:
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
-      - name: Commit accepted Activity references
-        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-activity-ui-correction'
-        shell: bash
-        run: |
-          refs=(
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityAccountFilterSheetScreenshot_production_activity_account_filter_sheet_c54cb18a_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLargeFontScreenshot_phase2b_activity_compact_large_font_028afa13_0.png"
-            "app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BActivityCompactLightScreenshot_phase2b_activity_compact_light_5f73a0b5_0.png"
-          )
-          tmp="$(mktemp -d)"
-          for path in "${refs[@]}"; do
-            mkdir -p "$tmp/$(dirname "$path")"
-            cp "$path" "$tmp/$path"
-          done
-          git reset --hard
-          git clean -fd -- app/src/screenshotTestDebug/reference
-          git fetch origin "$GITHUB_HEAD_REF"
-          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
-          for path in "${refs[@]}"; do
-            mkdir -p "$(dirname "$path")"
-            cp "$tmp/$path" "$path"
-          done
-          git add "${refs[@]}"
-          if git diff --cached --quiet; then
-            echo 'Accepted Activity references are already current.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Android: refresh accepted Activity screenshot references'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
-
       - name: Publish rendered UI screenshots
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -119,7 +83,7 @@ jobs:
       - name: Enable KVM
         shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
