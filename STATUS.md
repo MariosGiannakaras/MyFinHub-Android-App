@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_a_complete_slice_b_home_next`
+State: `rc7_owner_ui_correction_slice_b_home_final_gates`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Slice A of the owner correction pass is complete on PR #100: Quick Entry now uses mobile bottom-sheet selection patterns, Greek human-readable date presentation, contextual account flow, and reduced vertical weight; the connected mutation path writes immediately with no Undo grace delay, while durable pending + Undo remains offline/local-only; shared short motion/press/reveal micro-interaction foundations are in place. Real light/dark/150%-font renders were personally inspected, stale Quick Entry and offline-pending Activity references were replaced with the validated renders, Android CI and Project Tracking are green, and Android UI Quality including the S24-target instrumentation gate is green. Overall progress remains 4/6. The next implementation slice is Home, per `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slice A is merged to `develop` via PR #100 with immediate connected writes, offline-only durable pending/Undo semantics and shared short motion/micro-interaction foundations. Slice B Home is implemented on the single active PR #101 (`android/rc7-owner-home-ui-correction`): the Home now starts with a compact financial snapshot and primary Quick Entry action, promotes attention before lower-priority content, uses denser provider-aware account surfaces and interpretable 7-day trends, and preserves the non-blocking motion contract. Fresh real light/dark/150%-font Home renders were personally inspected and the three validated Home screenshot references were refreshed; the duplicate Home PR #102 was closed without merge. Final exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation are the only remaining Slice B merge gates. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
-2. Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
-3. Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+1. Run the final exact-head Slice B gates on PR #101: Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fix any real regression and merge only when all required checks are green.
+2. After Slice B is merged to `develop`, start Slice C Activity/Transactions from current `develop` without repeating discovery, preserving the immediate-online/offline-only-pending delivery contract and shared motion language.
+3. Continue Slices D-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 
