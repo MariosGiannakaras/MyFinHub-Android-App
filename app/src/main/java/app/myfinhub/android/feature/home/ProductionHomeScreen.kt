@@ -102,7 +102,7 @@ fun ProductionHomeScreen(
                         modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
                     ) {
                         Icon(
-                            imageVector = MyFinHubIcons.Settings,
+                            imageVector = MyFinHubIcons.Filter,
                             contentDescription = "Ρυθμίσεις",
                             modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
                         )
@@ -423,7 +423,8 @@ private fun SecondaryAccountsCard(
                 fontWeight = FontWeight.SemiBold,
             )
             accounts.forEachIndexed { index, account ->
-                Row(
+                Surface(
+                    onClick = { onOpenAccount(account.id) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .semantics(mergeDescendants = true) {
@@ -433,42 +434,35 @@ private fun SecondaryAccountsCard(
                                 "${account.name}, ποσό κρυφό"
                             }
                         },
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically,
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
-                    Surface(
-                        onClick = { onOpenAccount(account.id) },
-                        color = MaterialTheme.colorScheme.surface,
-                        modifier = Modifier.fillMaxWidth(),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = MyFinHubSpacing.xxs),
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = MyFinHubSpacing.xxs),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            AccountIdentityMark(account)
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    account.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                account.institution?.takeIf(String::isNotBlank)?.let { institution ->
-                                    Text(
-                                        institution,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                            MyFinHubAmountText(
-                                text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
-                                tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                        AccountIdentityMark(account)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                account.name,
                                 style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
                             )
+                            account.institution?.takeIf(String::isNotBlank)?.let { institution ->
+                                Text(
+                                    institution,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
+                        MyFinHubAmountText(
+                            text = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
+                            tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                     }
                 }
                 if (index != accounts.lastIndex) {
