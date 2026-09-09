@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -156,6 +157,12 @@ private fun HomeFinancialSnapshot(
     amountsVisible: Boolean,
     onOpenQuickEntry: () -> Unit,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val netFlow = state.monthFlow.income - state.monthFlow.expense
+    val incomeText = if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €"
+    val expenseText = if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €"
+    val netFlowText = if (amountsVisible) formatSignedHomeEuro(netFlow) else "•••• €"
+
     MyFinHubHeroCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(MyFinHubSpacing.md),
@@ -163,31 +170,39 @@ private fun HomeFinancialSnapshot(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             MyFinHubHeroHeading(
                 eyebrow = "Σήμερα",
-                title = "Διαθέσιμη εικόνα",
+                title = "Διαθέσιμα τώρα",
                 supporting = "Μετρητά και καθημερινοί λογαριασμοί",
             )
             MyFinHubHeroValue(
                 text = if (amountsVisible) formatHomeEuro(state.liquidTotal) else "•••• €",
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            ) {
-                MyFinHubHeroMetric(
-                    label = "Έσοδα μήνα",
-                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.income) else "•••• €",
-                    modifier = Modifier.weight(1f),
-                )
-                MyFinHubHeroMetric(
-                    label = "Έξοδα μήνα",
-                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.expense) else "•••• €",
-                    modifier = Modifier.weight(1f),
-                )
-                MyFinHubHeroMetric(
-                    label = "Αποταμίευση",
-                    value = if (amountsVisible) formatHomeEuro(state.monthFlow.saving) else "•••• €",
-                    modifier = Modifier.weight(1f),
-                )
+            if (largeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    MyFinHubHeroMetric(label = "Έσοδα μήνα", value = incomeText)
+                    MyFinHubHeroMetric(label = "Έξοδα μήνα", value = expenseText)
+                    MyFinHubHeroMetric(label = "Καθαρή ροή", value = netFlowText)
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                ) {
+                    MyFinHubHeroMetric(
+                        label = "Έσοδα μήνα",
+                        value = incomeText,
+                        modifier = Modifier.weight(1f),
+                    )
+                    MyFinHubHeroMetric(
+                        label = "Έξοδα μήνα",
+                        value = expenseText,
+                        modifier = Modifier.weight(1f),
+                    )
+                    MyFinHubHeroMetric(
+                        label = "Καθαρή ροή",
+                        value = netFlowText,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
             MyFinHubHeroAction(
                 label = "Νέα κίνηση",
