@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-08",
+  "updated_at": "2026-09-09",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,20 +11,20 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "rc7_protected_published_pending_physical_s24_acceptance",
-    "summary": "The corrected `1.0.0-rc7` source completed exact-head hosted validation and the protected production publisher now completed successfully. The enrolled long-lived production signer was verified, the direct APK and companion AAB were signed and verified, the direct APK was published to the private update channel, and the GitHub prerelease was created with checksums and safe metadata. The published direct candidate is `1.0.0-rc7` / versionCode `10006`, built from the immutable validated rc7 source; its APK SHA-256 is `ec4fc37f4023e76f1eacb44c74bf071186a89e61b77780d921ce383c4acf7315`. The rc7 release-source PR was then closed without merging as required. Android Developer Console Limited distribution remains configured for `app.myfinhub.android`, the enrolled signer, and the authorized Samsung Galaxy S24 Ultra. Overall progress remains 4/6 until rc7 is installed in place over rc6 and receives authoritative physical acceptance on that device.",
+    "status": "rc7_owner_ui_correction_slice_a_complete_slice_b_home_next",
+    "summary": "Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Slice A of the owner correction pass is complete on PR #100: Quick Entry now uses mobile bottom-sheet selection patterns, Greek human-readable date presentation, contextual account flow, and reduced vertical weight; the connected mutation path writes immediately with no Undo grace delay, while durable pending + Undo remains offline/local-only; shared short motion/press/reveal micro-interaction foundations are in place. Real light/dark/150%-font renders were personally inspected, stale Quick Entry and offline-pending Activity references were replaced with the validated renders, Android CI and Project Tracking are green, and Android UI Quality including the S24-target instrumentation gate is green. Overall progress remains 4/6. The next implementation slice is Home, per `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`.",
     "next": [
-      "Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.",
-      "Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.",
-      "If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity."
+      "Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.",
+      "Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.",
+      "Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion."
     ]
   },
   "latest_production_candidate": {
     "version_name": "1.0.0-rc7",
     "version_code": 10006,
-    "status": "protected_published_pending_physical_s24_acceptance",
+    "status": "physically_installed_owner_not_final_correction_pass_open",
     "source_pr": 97,
-    "notes": "Protected same-signer rc7 is published to the private update channel and as GitHub prerelease `v1.0.0-rc7`. The direct APK is `MyFinHub-1.0.0-rc7-10006.apk`, SHA-256 `ec4fc37f4023e76f1eacb44c74bf071186a89e61b77780d921ce383c4acf7315`, and the release also carries checksums and safe metadata. The validated source PR was closed without merge after publication. Final product acceptance still requires an in-place install over rc6 and physical validation on the authorized Samsung Galaxy S24 Ultra."
+    "notes": "Protected same-signer rc7 remains the installed production baseline on the authorized Galaxy S24 Ultra. The in-place update over rc6 succeeded and existing session continuity passed. The owner has not accepted rc7 as visual/product final and requested the correction implementation plan in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`. Do not promote rc7 to stable/main; complete the correction slices, hosted validation and a higher same-signer physical candidate first."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -45,7 +45,9 @@
     "Final protected release preparation and exact-head hosted validation (#95)",
     "Exact corrected rc7 release-source hosted validation (#97)",
     "Protected rc7 AAB signer-verification correction and hosted validation (#98)",
-    "Protected same-signer rc7 publication to private update channel and GitHub prerelease"
+    "Protected same-signer rc7 publication to private update channel and GitHub prerelease",
+    "rc7 in-place S24 installation with same-signer update continuity and existing session continuity",
+    "Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)"
   ],
   "constraints": [
     "Android-only scope unless a real Android dependency requires central integration.",
@@ -56,7 +58,10 @@
     "Do not infer final product acceptance from hosted gates when owner physical feedback has rejected the currently installed candidate.",
     "Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.",
     "The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.",
-    "A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path."
+    "A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.",
+    "The owner physical findings and ordered correction acceptance criteria in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` are mandatory for this pass; do not replace them with generic redesign discovery.",
+    "Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.",
+    "Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation."
   ],
   "repo_tracking": {
     "source_of_truth": "tracking/android-project-state.json",
@@ -65,6 +70,22 @@
       "TODO.md",
       "docs/CURRENT_HANDOFF.md"
     ],
-    "policy": "Product/release PRs must update the canonical state in the same PR; CI verifies generated tracking is synchronized. New chats/agents must read AGENTS.md, this state file, generated handoff, permanent issue #27, and live GitHub state before acting."
+    "policy": "Product/release PRs must update the canonical state in the same PR; CI verifies generated tracking is synchronized. New chats/agents must read AGENTS.md, this state file, generated handoff, permanent issue #27, the rc7 owner UI/UX correction plan, and live GitHub state before acting."
+  },
+  "current_redesign_pass": {
+    "plan_doc": "docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md",
+    "branch": "android/rc7-owner-ui-ux-correction-pass",
+    "current_slice": "B — Home",
+    "checkpoint": "slice_a_validated_green_ready_to_merge_then_start_home",
+    "owner_audited_surfaces": [
+      "Home",
+      "Activity / Transactions",
+      "Money / Net Worth / Cards / Cash / Savings / Loans / Claims",
+      "Plan / Monthly budget",
+      "Insights",
+      "Settings / Diagnostics / Notification history",
+      "Quick Entry / account-category-type pickers / date picker / offline pending feedback"
+    ],
+    "completion_rule": "Each slice requires real Compose render inspection plus relevant hosted gates and a canonical tracking update before advancing. Online writes must remain immediate; offline-only pending/undo and the shared motion contract must remain regression-protected. A higher production candidate and explicit S24 owner acceptance are required before final/stable promotion."
   }
 }

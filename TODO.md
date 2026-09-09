@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install the production-signed `1.0.0-rc7` / versionCode `10006` APK in place over rc6 on the authorized physical Samsung Galaxy S24 Ultra without clearing app data, confirming same-signer update continuity.
-- [ ] Run authoritative physical validation on the S24 Ultra: session/PIN/biometric/CVV continuity, corrected Home/cards/Εικόνα, navigation, light/dark/large-font behavior, production Auth/API, offline reconciliation and performance; capture fresh real app screenshots wherever UI acceptance evidence is required.
-- [ ] If rc7 is physically accepted, synchronize canonical tracking and perform the deliberate stable-final promotion through release-only `main` under the existing production signer. If it is rejected, keep overall progress at 4/6 and open a focused correction pass from `develop` without changing signing identity.
+- [ ] Merge validated Slice A PR #100 to `develop`, then start/resume Slice B Home from current `develop` without reopening discovery.
+- [ ] Implement Slice B Home exactly from `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md`: clearer top summary and primary action, attention before secondary accounts, specific alert CTAs, denser account cards, consistent provider identity, intentional 7-day sparklines, and purposeful non-blocking micro-interactions; render and personally inspect real light/dark/large-font Compose screenshots and keep hosted UI/S24 gates green.
+- [ ] Continue Slices C-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -30,6 +30,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Exact corrected rc7 release-source hosted validation (#97)
 - [x] Protected rc7 AAB signer-verification correction and hosted validation (#98)
 - [x] Protected same-signer rc7 publication to private update channel and GitHub prerelease
+- [x] rc7 in-place S24 installation with same-signer update continuity and existing session continuity
+- [x] Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)
 
 ## Rule
 

@@ -48,7 +48,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -141,7 +140,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var mutationLaunchInFlight = false
     private var loadJob: Job? = null
     private var mutationJob: Job? = null
-    private var autoSyncJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -214,6 +212,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun undoLatestPendingMutation() {
+        if (canUseServer()) {
+            mutableNotices.tryEmit(
+                UserNotice(
+                    message = "Η αναίρεση εκκρεμούς αλλαγής είναι διαθέσιμη μόνο για αλλαγές που αποθηκεύτηκαν offline.",
+                    details = "Ενέργεια: Αναίρεση αλλαγής\nΚατηγορία: OFFLINE_ONLY_UNDO\nΟι online αλλαγές αποστέλλονται άμεσα στον server.",
+                    diagnosticCode = "MFH-OFFLINE-UNDO-ONLY",
+                ),
+            )
+            return
+        }
         val latest = pendingMutations.lastOrNull() ?: return
         if (latest.syncState != PendingMutationSyncState.NEVER_SENT) {
             mutableNotices.tryEmit(
@@ -227,8 +235,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         if (loadJob?.isActive == true || mutationJob?.isActive == true) return
 
-        autoSyncJob?.cancel()
-        autoSyncJob = null
         viewModelScope.launch {
             val previous = (mutableState.value as? FinanceProductState.Ready)?.projection
             pendingMutations = undoLatestNeverSentPendingMutation(pendingMutations)
@@ -245,9 +251,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     diagnosticCode = "MFH-OFFLINE-PENDING-UNDONE",
                 ),
             )
-            if (canUseServer() && pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
-                scheduleAutoSync()
-            }
         }
     }
 
@@ -596,13 +599,38 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutationLaunchInFlight = true
         mutationJob = viewModelScope.launch {
             try {
-                val queued = queueLocalMutation(
-                    session = session,
-                    mutation = mutation,
-                    previousProjection = ready.projection,
-                )
-                if (queued && canUseServer()) {
-                    scheduleAutoSync()
+                when (
+                    mutationDeliveryMode(
+                        serverAvailable = canUseServer(),
+                        repositoryReady = repository.state.value is FinanceSyncState.Ready,
+                        hasPendingMutations = pendingMutations.isNotEmpty(),
+                    )
+                ) {
+                    MutationDeliveryMode.IMMEDIATE_SERVER -> commitOnlineMutation(
+                        session = session,
+                        mutation = mutation,
+                        previousProjection = ready.projection,
+                    )
+                    MutationDeliveryMode.DURABLE_OFFLINE_QUEUE -> queueLocalMutation(
+                        session = session,
+                        mutation = mutation,
+                        previousProjection = ready.projection,
+                    )
+                    MutationDeliveryMode.RECONCILE_PENDING_FIRST -> {
+                        val queued = queueLocalMutation(
+                            session = session,
+                            mutation = mutation,
+                            previousProjection = ready.projection,
+                        )
+                        if (queued && canUseServer()) {
+                            synchronizePendingFromServer(
+                                session = session,
+                                previousProjection = (mutableState.value as? FinanceProductState.Ready)?.projection
+                                    ?: ready.projection,
+                                includeNeedsReview = false,
+                            )
+                        }
+                    }
                 }
             } finally {
                 mutationLaunchInFlight = false
@@ -610,12 +638,133 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    private fun scheduleAutoSync() {
-        autoSyncJob?.cancel()
-        autoSyncJob = viewModelScope.launch {
-            delay(UNDO_GRACE_PERIOD_MILLIS)
-            if (canUseServer() && currentSession != null && pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
-                loadFresh(preserveUi = true)
+    /**
+     * Fast connected path: one canonical save using the current server revision. The temporary
+     * NEEDS_REVIEW intent is crash-safety only; it is hidden during a healthy online request and
+     * removed immediately on acknowledgement. No Undo grace timer or pre-save reload is involved.
+     */
+    private suspend fun commitOnlineMutation(
+        session: AuthSession,
+        mutation: CanonicalFinanceMutation,
+        previousProjection: CanonicalProductProjection,
+    ) {
+        val serverDocument = lastServerDocument ?: previousProjection.document
+        lastServerDocument = serverDocument
+        val candidateDocument = runCatching { mutation.apply(serverDocument) }.getOrElse { error ->
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Προετοιμασία online αλλαγής",
+                    throwable = error,
+                    message = "Η αλλαγή δεν μπόρεσε να εφαρμοστεί με ασφάλεια.",
+                ),
+            )
+            return
+        }
+
+        val inFlightIntent = PendingCanonicalMutationIntent.fromMutation(
+            mutation = mutation,
+            intentId = "mutation-online-${UUID.randomUUID()}",
+            syncState = PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        pendingMutations = pendingMutations + inFlightIntent
+        persistLocalSnapshot()
+
+        val optimisticProjection = runCatching {
+            projectCanonicalProduct(candidateDocument, LocalDate.now(), previousProjection)
+        }.getOrElse { error ->
+            pendingMutations = pendingMutations.filterNot { it.intentId == inFlightIntent.intentId }
+            persistLocalSnapshot()
+            mutableNotices.emit(
+                unexpectedUserNotice(
+                    operation = "Προεπισκόπηση online αλλαγής",
+                    throwable = error,
+                    message = "Η αλλαγή δεν μπόρεσε να εμφανιστεί με ασφάλεια.",
+                ),
+            )
+            return
+        }
+        mutableState.value = readyForProjection(
+            projection = optimisticProjection,
+            saving = true,
+            offline = false,
+        )
+
+        repository.save(session, candidateDocument)
+        when (val saved = repository.state.value) {
+            is FinanceSyncState.Ready -> {
+                pendingMutations = pendingMutations.filterNot { it.intentId == inFlightIntent.intentId }
+                lastServerDocument = saved.envelope.document
+                recordSuccessfulSync(saved.envelope.lastSavedAt)
+                if (mutation is DeactivateCanonicalCard) {
+                    mutableCommittedCardDeletions.emit(mutation.cardId)
+                }
+                persistLocalSnapshot()
+
+                var committedProjection = projectCanonicalProduct(
+                    saved.envelope.document,
+                    LocalDate.now(),
+                    previousProjection,
+                )
+                if (mutation is AppendCanonicalEvent) {
+                    committedProjection = committedProjection.copy(
+                        quickEntryState = committedProjection.quickEntryState.copy(
+                            persisted = true,
+                            pendingSync = false,
+                            dirty = false,
+                            validationMessage = null,
+                        ),
+                    )
+                }
+                mutableState.value = readyForProjection(
+                    projection = committedProjection,
+                    saving = false,
+                    offline = false,
+                )
+            }
+            is FinanceSyncState.Conflict -> {
+                persistLocalSnapshot()
+                renderLocalState(
+                    previous = previousProjection,
+                    offline = false,
+                    issue = FinanceSyncIssue(
+                        FinanceSyncIssueKind.REVISION_CONFLICT,
+                        "Η αλλαγή διατηρήθηκε με ασφάλεια. Φόρτωσε τα νεότερα δεδομένα πριν από ρητή επανάληψη.",
+                    ),
+                )
+            }
+            is FinanceSyncState.Error -> {
+                persistLocalSnapshot()
+                if (saved.failure.kind.isAuthRejection()) {
+                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση αλλαγής"))
+                    repository.clear()
+                    mutableState.value = FinanceProductState.AuthRejected
+                } else {
+                    if (saved.failure.kind == ApiFailureKind.NETWORK) reloadWhenOnline = true
+                    renderLocalState(
+                        previous = previousProjection,
+                        offline = saved.failure.kind == ApiFailureKind.NETWORK,
+                        issue = FinanceSyncIssue(
+                            if (saved.failure.kind == ApiFailureKind.NETWORK) {
+                                FinanceSyncIssueKind.WAITING_FOR_NETWORK
+                            } else {
+                                FinanceSyncIssueKind.SAVE_FAILED
+                            },
+                            "Η αλλαγή διατηρήθηκε με ασφάλεια και θα συμφωνηθεί με την τρέχουσα κατάσταση του server πριν από οποιαδήποτε επανάληψη.",
+                        ),
+                    )
+                    mutableNotices.emit(saved.failure.toUserNotice("Αποθήκευση αλλαγής"))
+                }
+            }
+            else -> {
+                persistLocalSnapshot()
+                renderLocalState(
+                    previous = previousProjection,
+                    offline = false,
+                    issue = FinanceSyncIssue(
+                        FinanceSyncIssueKind.SAVE_FAILED,
+                        "Η αλλαγή διατηρήθηκε με ασφάλεια και χρειάζεται συμφωνία με τον server.",
+                    ),
+                )
             }
         }
     }
@@ -756,15 +905,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         issue: FinanceSyncIssue? = null,
     ): FinanceProductState.Ready {
         val projection = projectCanonicalProduct(document, LocalDate.now(), previous)
+        val exposePending = offline || issue != null
         return FinanceProductState.Ready(
-            projection = markPendingTransactions(projection),
+            projection = if (exposePending) markPendingTransactions(projection) else projection,
             saving = saving,
             issue = issue,
             offline = offline,
-            pendingTransactionCount = pendingTransactionIds().size,
-            pendingChangeCount = pendingMutations.size,
-            latestPendingChange = latestPendingChangeUi(),
-            pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
+            pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
+            pendingChangeCount = if (exposePending) pendingMutations.size else 0,
+            latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
+            pendingReviewCount = if (exposePending) {
+                pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW }
+            } else {
+                0
+            },
         )
     }
 
@@ -773,16 +927,23 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         saving: Boolean = false,
         offline: Boolean = false,
         issue: FinanceSyncIssue? = null,
-    ): FinanceProductState.Ready = FinanceProductState.Ready(
-        projection = markPendingTransactions(projection),
-        saving = saving,
-        issue = issue,
-        offline = offline,
-        pendingTransactionCount = pendingTransactionIds().size,
-        pendingChangeCount = pendingMutations.size,
-        latestPendingChange = latestPendingChangeUi(),
-        pendingReviewCount = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
-    )
+    ): FinanceProductState.Ready {
+        val exposePending = offline || issue != null
+        return FinanceProductState.Ready(
+            projection = if (exposePending) markPendingTransactions(projection) else projection,
+            saving = saving,
+            issue = issue,
+            offline = offline,
+            pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
+            pendingChangeCount = if (exposePending) pendingMutations.size else 0,
+            latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
+            pendingReviewCount = if (exposePending) {
+                pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW }
+            } else {
+                0
+            },
+        )
+    }
 
     private fun applyAllPending(serverDocument: CanonicalFinanceDocument): CanonicalFinanceDocument =
         pendingMutations.fold(serverDocument) { document, pending -> pending.asMutation().apply(document) }
@@ -815,7 +976,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             } else {
                 "Αναμονή επιβεβαίωσης από τον server"
             },
-            canUndo = pending.syncState == PendingMutationSyncState.NEVER_SENT,
+            canUndo = !canUseServer() && pending.syncState == PendingMutationSyncState.NEVER_SENT,
         )
     }
 
@@ -886,10 +1047,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private fun cancelOperations() {
         loadJob?.cancel()
         mutationJob?.cancel()
-        autoSyncJob?.cancel()
         loadJob = null
         mutationJob = null
-        autoSyncJob = null
         mutationLaunchInFlight = false
     }
 
@@ -916,7 +1075,4 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private fun ApiFailureKind.isAuthRejection(): Boolean =
         this == ApiFailureKind.AUTH_REQUIRED || this == ApiFailureKind.MFA_REQUIRED
 
-    private companion object {
-        const val UNDO_GRACE_PERIOD_MILLIS = 5_000L
-    }
 }

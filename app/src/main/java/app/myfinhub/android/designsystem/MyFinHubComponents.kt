@@ -2,6 +2,7 @@ package app.myfinhub.android.designsystem
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -344,10 +346,14 @@ fun MyFinHubPrimaryAction(
     enabled: Boolean = true,
     icon: ImageVector? = MyFinHubIcons.Add,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
-        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+        modifier = modifier
+            .myFinHubPressScale(interactionSource)
+            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
         enabled = enabled,
+        interactionSource = interactionSource,
         contentPadding = PaddingValues(
             horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
             vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
@@ -373,10 +379,14 @@ fun MyFinHubOutlinedAction(
     enabled: Boolean = true,
     icon: ImageVector? = null,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
+        modifier = modifier
+            .myFinHubPressScale(interactionSource)
+            .heightIn(min = MyFinHubDesignMetrics.primaryActionMinHeight),
         enabled = enabled,
+        interactionSource = interactionSource,
         contentPadding = PaddingValues(
             horizontal = MyFinHubDesignMetrics.primaryActionHorizontalPadding,
             vertical = MyFinHubDesignMetrics.primaryActionVerticalPadding,
