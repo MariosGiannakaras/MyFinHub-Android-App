@@ -1,9 +1,9 @@
 package app.myfinhub.android.feature.utilities
 
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -15,6 +15,7 @@ import app.myfinhub.android.core.update.UpdateUiState
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -98,7 +99,7 @@ class UpdateSettingsCardTest {
 
         composeRule.onNodeWithText("Χρειάζεται επιπλέον επαλήθευση ταυτότητας για τις ιδιωτικές ενημερώσεις.")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("AAL2", substring = true).assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
     }
 
     @Test
@@ -123,8 +124,8 @@ class UpdateSettingsCardTest {
 
         composeRule.onNodeWithText("Τοπικό αντίγραφο · 2 εκκρεμείς").assertIsDisplayed()
         composeRule.onNodeWithText("Συνδεδεμένη και επαληθευμένη").assertIsDisplayed()
-        composeRule.onNodeWithText("AAL2", substring = true).assertDoesNotExist()
-        composeRule.onNodeWithText("MFH-API-SERVER-503", substring = true).assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("MFH-API-SERVER-503", substring = true).fetchSemanticsNodes().isEmpty())
 
         composeRule.onNodeWithText("Λεπτομέρειες για υποστήριξη").performClick()
         composeRule.waitForIdle()
