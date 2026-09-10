@@ -515,14 +515,22 @@ internal fun MyFinHubAppContent(
                     }
                 }
                 entry<AppRoute.Insights> {
-                    InsightsScreen(
-                        state = insightsState,
-                        onOpenSupportingActivity = {
-                            activityBackStack.popToRoot()
-                            currentDestination = TopLevelDestination.ACTIVITY
-                        },
-                    )
-                }
+            InsightsScreen(
+                state = insightsState,
+                onOpenSupportingActivity = {
+                    activityBackStack.popToRoot()
+                    currentDestination = TopLevelDestination.ACTIVITY
+                },
+                onOpenCategoryActivity = { category ->
+                    onActivityAction(ActivityAction.FilterChanged(app.myfinhub.android.feature.activity.ActivityFilter.EXPENSE))
+                    onActivityAction(ActivityAction.QueryChanged(category))
+                    onActivityAction(ActivityAction.AccountFilterChanged(null))
+                    onActivityAction(ActivityAction.Select(null))
+                    activityBackStack.popToRoot()
+                    currentDestination = TopLevelDestination.ACTIVITY
+                },
+            )
+        }
             },
         )
     }

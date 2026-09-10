@@ -259,28 +259,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         previous = previous?.planState,
     )
 
-    val trend = (3L downTo 0L).map { offset -> YearMonth.from(today).minusMonths(offset) }.map { trendMonth ->
-        val monthly = document.monthlyFlow(trendMonth.toString())
-        TrendPoint(monthLabel(trendMonth), monthly.income, monthly.expense)
-    }
-    val categories = document.categoryTotals(month).entries.sortedByDescending { it.value }
-    val categoryTotal = categories.sumOf { it.value }
-    val insights = InsightsUiState(
-        monthlyTrend = trend,
-        categories = categories.take(8).map { (name, amount) ->
-            InsightCategory(
-                name = name,
-                amount = amount,
-                share = if (categoryTotal <= 0.0) 0f else (amount / categoryTotal).toFloat(),
-            )
-        },
-        averageMonthlySpend = trend.map { it.expense }.average().takeIf { it.isFinite() } ?: 0.0,
-        savingsRate = if (flow.income > 0.0) {
-            (((flow.income - flow.expense) / flow.income) * 100.0).roundToInt()
-        } else {
-            0
-        },
-    )
+    val insights = projectCanonicalInsightsState(
+    document = document,
+    today = today,
+)
 
     return CanonicalProductProjection(
         document = document,

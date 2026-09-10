@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated Slice E PR #106 to `develop`, then create `android/rc7-owner-insights-ui-correction` from the exact merged `develop` head.
-- [ ] Implement Slice F Insights / analytics: correct equivalent-period comparability, replace ambiguous finance metrics, mark partial months, preserve accessible exact values, add percentage context to category bars and deep-link relevant Activity filters where supported; evaluate `Εικόνα` -> `Ανάλυση` only if navigation width/tests remain coherent.
-- [ ] After Slice F, complete Slice G Settings / diagnostics / notifications, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Merge the validated Slice F PR #107 to `develop`; then create or resume `android/rc7-owner-settings-ui-correction` from the exact post-merge `develop` head.
+- [ ] Complete Slice G Settings / diagnostics / notifications: simplify visual grouping, keep technical diagnostics secondary/expandable, present human-readable auth/update states and local date/time first, retain raw codes only as secondary copyable support detail, and keep notification history privacy-safe.
+- [ ] Render fresh Settings/diagnostics/notification light/dark/150%-font evidence, personally inspect it, run relevant accessibility/unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation, then proceed to full Slice H validation and a strictly higher same-signer production candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -36,6 +36,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice C — Activity ledger density, provider-aware account filtering, explicit transfer routing/signs and owner-audited screenshot validation (#104)
 - [x] Owner correction Slice D — trustworthy Money/net-worth composition, dense account transfers, compact card stack, accessible explicit card deletion and owner-audited screenshot validation (#105)
 - [x] Owner correction Slice E — explainable 30-day Plan forecast, urgency-grouped obligations, conservative duplicate reconciliation, Greek dates, neutral transfer reconciliation, useful monthly-budget progress and owner-audited screenshot validation (#106)
+- [x] Owner correction Slice F — equivalent-period Insights comparisons, explicit finance metrics, partial-month semantics, category percentages/drill-down, `Ανάλυση` navigation and owner-audited screenshot/S24 validation (#107)
 
 ## Rule
 

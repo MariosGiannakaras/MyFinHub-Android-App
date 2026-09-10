@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_f_insights_ready`
+State: `rc7_owner_ui_correction_slice_g_settings_diagnostics_ready`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-D are merged to `develop`. Slice E Plan / cash-flow / budget is completed in PR #106 after the canonical 30-day forecast was made explainable across current position, obligations, expected income, transfers and projected position; obligations were grouped by urgency; exact scheduled/recurring duplicates were conservatively reconciled; Plan dates were normalized for Greek user-facing presentation; category/service identity and neutral transfer semantics were preserved; the monthly budget was upgraded to spent/remaining/percentage/threshold progress; and fresh light/dark/150%-font evidence, screenshot regression, Android CI, Project Tracking and S24-target instrumentation all passed. Slice F Insights / analytics is next after Slice E merges to `develop`. Overall progress remains 4/6 until Slices F-G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are complete through Slice F Insights / analytics in PR #107: equivalent-period canonical comparisons replace partial-month versus full-month comparisons, finance metrics are explicit, partial months remain identifiable with accessible exact values, category context and Activity drill-down are wired, and the top-level analytics destination is now `Ανάλυση`. Fresh light/dark/150%-font renders were personally inspected, accepted screenshot references match the current UI, and Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed on the validated implementation head. Slice G Settings / diagnostics / notifications is next. Overall progress remains 4/6 until Slice G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Merge validated Slice E PR #106 to `develop`, then create `android/rc7-owner-insights-ui-correction` from the exact merged `develop` head.
-2. Implement Slice F Insights / analytics: correct equivalent-period comparability, replace ambiguous finance metrics, mark partial months, preserve accessible exact values, add percentage context to category bars and deep-link relevant Activity filters where supported; evaluate `Εικόνα` -> `Ανάλυση` only if navigation width/tests remain coherent.
-3. After Slice F, complete Slice G Settings / diagnostics / notifications, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+1. Merge the validated Slice F PR #107 to `develop`; then create or resume `android/rc7-owner-settings-ui-correction` from the exact post-merge `develop` head.
+2. Complete Slice G Settings / diagnostics / notifications: simplify visual grouping, keep technical diagnostics secondary/expandable, present human-readable auth/update states and local date/time first, retain raw codes only as secondary copyable support detail, and keep notification history privacy-safe.
+3. Render fresh Settings/diagnostics/notification light/dark/150%-font evidence, personally inspect it, run relevant accessibility/unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation, then proceed to full Slice H validation and a strictly higher same-signer production candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 
