@@ -17,11 +17,15 @@ data class PlannedItem(
     val accountLabel: String = "",
     val note: String = "",
     val paused: Boolean = false,
+    val dueDateIso: String = "",
+    val urgency: PlannedUrgency = PlannedUrgency.LATER,
 )
 
 enum class PlannedKind { RECURRING, SCHEDULED }
 
 enum class PlannedFlow { OBLIGATION, INCOME, TRANSFER }
+
+enum class PlannedUrgency { OVERDUE, THIS_WEEK, LATER }
 
 data class BudgetDraft(
     val monthlyLimitText: String = "",
@@ -60,7 +64,14 @@ data class PlanUiState(
     val rules: List<PlanningRule> = emptyList(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
+    val forecastStartBalance: Double = 0.0,
+    val forecastExpectedIncome: Double = 0.0,
+    val forecastObligations: Double = 0.0,
+    val forecastTransferImpact: Double = 0.0,
     val forecastEndBalance: Double = 0.0,
+    val forecastEndDateLabel: String = "",
+    val budgetSpent: Double = 0.0,
+    val budgetMonthLabel: String = "",
     val message: String? = null,
     val itemMessage: String? = null,
     val categoryBudgetMessage: String? = null,
@@ -108,7 +119,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
         when {
             limit == null || limit <= 0 -> state.copy(message = "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν.")
             threshold == null || threshold !in 1..100 -> state.copy(message = "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%.")
-            else -> state.copy(message = "Το μηνιαίο budget ενημερώθηκε.")
+            else -> state.copy(message = "Ο μηνιαίος προϋπολογισμός ενημερώθηκε.")
         }
     }
 
