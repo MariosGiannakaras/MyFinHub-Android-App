@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge the validated Slice F PR #107 to `develop`; then create or resume `android/rc7-owner-settings-ui-correction` from the exact post-merge `develop` head.
-- [ ] Complete Slice G Settings / diagnostics / notifications: simplify visual grouping, keep technical diagnostics secondary/expandable, present human-readable auth/update states and local date/time first, retain raw codes only as secondary copyable support detail, and keep notification history privacy-safe.
-- [ ] Render fresh Settings/diagnostics/notification light/dark/150%-font evidence, personally inspect it, run relevant accessibility/unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation, then proceed to full Slice H validation and a strictly higher same-signer production candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Complete Slice G Settings / diagnostics / notifications on `android/rc7-owner-settings-ui-correction`: keep appearance/privacy/update/account actions clear, make diagnostics secondary and support-focused, show human-readable state/time first, keep raw codes copyable only as secondary detail, and preserve the privacy-safe notification history contract.
+- [ ] Add focused presentation and interaction coverage, render fresh Settings/diagnostics/notification light/dark/150%-font evidence including expanded diagnostics and update-failure states, personally inspect and fix visual defects, then run Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
+- [ ] After Slice G merge, run full Slice H validation and request a strictly higher same-signer production candidate than versionCode `10006`; install it in place on the authorized S24 and require explicit physical owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
