@@ -11,6 +11,9 @@ import app.myfinhub.android.feature.quickentry.QuickEntrySplitPartDraft
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import com.android.tools.screenshot.PreviewTest
 
+// Slice H full-product validation checkpoint. This intentionally changes no product semantics;
+// it makes the final correction-pass validation run the complete Android/screenshot/S24 gates.
+
 @PreviewTest
 @Preview(
     name = "phase2b_activity_compact_light",
