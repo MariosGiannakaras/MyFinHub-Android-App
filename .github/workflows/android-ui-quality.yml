@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,73 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-
-      - name: Wire structural Slice F production flow
-        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-insights-ui-correction'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin "$GITHUB_HEAD_REF" develop --depth=1
-          git checkout "$GITHUB_HEAD_REF"
-          python3 - <<'PY'
-          from pathlib import Path
-
-          projection = Path('app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt')
-          source = projection.read_text()
-          start_token = '    val trend = (3L downTo 0L).map { offset -> YearMonth.from(today).minusMonths(offset) }'
-          if source.count(start_token) != 1:
-              raise SystemExit(f'projection start anchor count={source.count(start_token)}')
-          start = source.index(start_token)
-          end_token = '\n\n    return CanonicalProductProjection('
-          end = source.index(end_token, start)
-          region = source[start:end]
-          if region.count('val insights = InsightsUiState(') != 1:
-              raise SystemExit('projection region does not contain exactly one legacy Insights construction')
-          replacement = '''    val insights = projectCanonicalInsightsState(
-              document = document,
-              today = today,
-          )'''
-          projection.write_text(source[:start] + replacement + source[end:])
-
-          app = Path('app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt')
-          source = app.read_text()
-          start_token = '                entry<AppRoute.Insights> {'
-          if source.count(start_token) != 1:
-              raise SystemExit(f'Insights route start anchor count={source.count(start_token)}')
-          start = source.index(start_token)
-          provider_end_token = '\n            },\n        )\n    }\n}'
-          end = source.index(provider_end_token, start)
-          region = source[start:end]
-          if region.count('InsightsScreen(') != 1:
-              raise SystemExit('Insights route region does not contain exactly one InsightsScreen')
-          replacement = '''                entry<AppRoute.Insights> {
-                      InsightsScreen(
-                          state = insightsState,
-                          onOpenSupportingActivity = {
-                              activityBackStack.popToRoot()
-                              currentDestination = TopLevelDestination.ACTIVITY
-                          },
-                          onOpenCategoryActivity = { category ->
-                              onActivityAction(ActivityAction.FilterChanged(app.myfinhub.android.feature.activity.ActivityFilter.EXPENSE))
-                              onActivityAction(ActivityAction.QueryChanged(category))
-                              onActivityAction(ActivityAction.AccountFilterChanged(null))
-                              onActivityAction(ActivityAction.Select(null))
-                              activityBackStack.popToRoot()
-                              currentDestination = TopLevelDestination.ACTIVITY
-                          },
-                      )
-                  }'''
-          app.write_text(source[:start] + replacement + source[end:])
-          PY
-          git show origin/develop:.github/workflows/android-ui-quality.yml > .github/workflows/android-ui-quality.yml
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt \
-                  app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt \
-                  .github/workflows/android-ui-quality.yml
-          git diff --cached --check
-          git commit -m 'Android: wire canonical Insights production flow'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
