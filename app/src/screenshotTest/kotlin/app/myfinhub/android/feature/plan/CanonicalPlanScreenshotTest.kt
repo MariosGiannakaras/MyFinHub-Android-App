@@ -8,40 +8,75 @@ import com.android.tools.screenshot.PreviewTest
 private fun canonicalPlanScreenshotState() = PlanUiState(
     items = listOf(
         PlannedItem(
-            id = "scheduled-1",
+            id = "scheduled-rent",
             title = "Ενοίκιο",
-            dueLabel = "5 Σεπ",
+            dueLabel = "8 Σεπ",
+            dueDateIso = "2026-09-08",
             amount = 680.0,
             kind = PlannedKind.SCHEDULED,
             flow = PlannedFlow.OBLIGATION,
+            category = "Στέγαση",
+            accountLabel = "Πειραιώς Μισθοδοσίας",
+            urgency = PlannedUrgency.OVERDUE,
         ),
         PlannedItem(
-            id = "recurring-1",
+            id = "recurring-internet",
             title = "Internet",
-            dueLabel = "Κάθε μήνα, ημέρα 8",
+            dueLabel = "12 Σεπ",
+            dueDateIso = "2026-09-12",
             amount = 34.90,
             kind = PlannedKind.RECURRING,
             flow = PlannedFlow.OBLIGATION,
+            category = "Λογαριασμοί",
+            accountLabel = "Πειραιώς Μισθοδοσίας",
+            urgency = PlannedUrgency.THIS_WEEK,
+        ),
+        PlannedItem(
+            id = "scheduled-loan",
+            title = "Δόση δανείου",
+            dueLabel = "25 Σεπ",
+            dueDateIso = "2026-09-25",
+            amount = 185.0,
+            kind = PlannedKind.SCHEDULED,
+            flow = PlannedFlow.OBLIGATION,
+            category = "Δάνειο",
+            accountLabel = "Πειραιώς Μισθοδοσίας",
+            urgency = PlannedUrgency.LATER,
         ),
         PlannedItem(
             id = "scheduled-income",
             title = "Μισθός",
-            dueLabel = "10 Σεπ",
+            dueLabel = "15 Σεπ",
+            dueDateIso = "2026-09-15",
             amount = 1_650.0,
             kind = PlannedKind.SCHEDULED,
             flow = PlannedFlow.INCOME,
+            category = "Μισθός",
+            accountLabel = "Πειραιώς Μισθοδοσίας",
+            urgency = PlannedUrgency.THIS_WEEK,
         ),
         PlannedItem(
             id = "scheduled-transfer",
             title = "Μεταφορά στην αποταμίευση",
-            dueLabel = "12 Σεπ",
+            dueLabel = "18 Σεπ",
+            dueDateIso = "2026-09-18",
             amount = 200.0,
             kind = PlannedKind.SCHEDULED,
             flow = PlannedFlow.TRANSFER,
+            accountLabel = "Από Πειραιώς Μισθοδοσίας → Προς Πειραιώς Αποταμίευση",
+            urgency = PlannedUrgency.LATER,
         ),
     ),
     budget = BudgetDraft(monthlyLimitText = "800", alertThresholdText = "80"),
-    forecastEndBalance = 1_695.0,
+    forecastHorizonDays = 30,
+    forecastStartBalance = 1_695.0,
+    forecastExpectedIncome = 1_650.0,
+    forecastObligations = 899.90,
+    forecastTransferImpact = 0.0,
+    forecastEndBalance = 2_445.10,
+    forecastEndDateLabel = "10 Οκτ 2026",
+    budgetSpent = 680.0,
+    budgetMonthLabel = "Σεπ 2026",
     message = "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
 )
 
@@ -92,6 +127,24 @@ fun CanonicalPlanCompactLargeFontScreenshot() {
 )
 @Composable
 fun CanonicalBudgetCompactLargeFontScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        CanonicalBudgetScreen(
+            state = canonicalPlanScreenshotState(),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_budget_compact_light",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun CanonicalBudgetCompactLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         CanonicalBudgetScreen(
             state = canonicalPlanScreenshotState(),
