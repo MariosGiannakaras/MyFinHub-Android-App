@@ -1,11 +1,11 @@
 package app.myfinhub.android.feature.utilities
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +29,11 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 internal fun ProductionDiagnosticsCard(
     diagnostics: AppDiagnosticsSnapshot,
     modifier: Modifier = Modifier,
+    supportDetailsInitiallyExpanded: Boolean = false,
 ) {
-    var supportDetailsExpanded by rememberSaveable { mutableStateOf(false) }
+    var supportDetailsExpanded by rememberSaveable {
+        mutableStateOf(supportDetailsInitiallyExpanded)
+    }
     MyFinHubSectionCard(modifier = modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Text(
