@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,115 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-
-      - name: Apply Slice H audit corrections
-        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-full-validation'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          card_path = Path('app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardCreateScreen.kt')
-          card = card_path.read_text()
-          old_card = 'Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. PAN και λήξη παραμένουν στο ασφαλές server vault και το CVV μόνο στη συσκευή.'
-          new_card = 'Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. Τα ευαίσθητα στοιχεία προστατεύονται και δεν εμφανίζονται σε screenshots ή διαγνωστικά.'
-          if card.count(old_card) != 1:
-              raise SystemExit('Card-create copy guard failed')
-          card_path.write_text(card.replace(old_card, new_card))
-
-          production_path = Path('app/src/main/java/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreen.kt')
-          production = production_path.read_text()
-          for old, new in (
-              ('private fun GreekDatePicker(', 'internal fun GreekDatePicker('),
-              ('private fun String.toGreekDateLabel(): String', 'internal fun String.toGreekDateLabel(): String'),
-          ):
-              if production.count(old) != 1:
-                  raise SystemExit(f'Production date helper guard failed: {old}')
-              production = production.replace(old, new)
-          production_path.write_text(production)
-
-          quick_path = Path('app/src/main/java/app/myfinhub/android/feature/quickentry/QuickEntryScreen.kt')
-          quick = quick_path.read_text()
-          old_field = '''    MyFinHubOutlinedField(
-              value = value,
-              onValueChange = onValueChange,
-              label = label,
-              modifier = modifier,
-              supportingText = if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD",
-              errorMessage = errorMessage,
-              trailingIcon = {
-                  MyFinHubFieldIconButton(
-                      icon = MyFinHubIcons.Plan,
-                      contentDescription = "Επιλογή ημερομηνίας",
-                      onClick = { pickerOpen = true },
-                  )
-              },
-              keyboardOptions = KeyboardOptions(
-                  keyboardType = KeyboardType.Ascii,
-                  imeAction = ImeAction.Next,
-              ),
-          )'''
-          new_field = '''    val displayValue = when {
-              value.isBlank() && optional -> "Δεν έχει οριστεί"
-              value.isBlank() -> "Επιλογή ημερομηνίας"
-              else -> value.toGreekDateLabel()
-          }
-
-          MyFinHubSelectorButton(
-              label = label,
-              onClick = { pickerOpen = true },
-              modifier = modifier,
-              errorMessage = errorMessage,
-          ) {
-              Text(displayValue, modifier = Modifier.weight(1f))
-              Text(
-                  if (value.isBlank()) "Επιλογή" else "Αλλαγή",
-                  style = MaterialTheme.typography.labelMedium,
-              )
-          }
-          if (optional && errorMessage == null) {
-              Text(
-                  "Προαιρετικό",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-          }'''
-          if quick.count(old_field) != 1:
-              raise SystemExit('Shared date field guard failed')
-          quick = quick.replace(old_field, new_field)
-          old_picker = '''        ) {
-              DatePicker(state = pickerState)
-          }'''
-          new_picker = '''        ) {
-              GreekDatePicker(
-                  selectedDate = pickerState.selectedDateMillis?.toDateText()?.toGreekDateLabel()
-                      ?: displayValue,
-              ) {
-                  DatePicker(
-                      state = pickerState,
-                      title = { Text("Επιλογή ημερομηνίας") },
-                      headline = { Text(it) },
-                  )
-              }
-          }'''
-          if quick.count(old_picker) != 1:
-              raise SystemExit('Shared date picker locale guard failed')
-          quick_path.write_text(quick.replace(old_picker, new_picker))
-          PY
-
-          git fetch origin develop "$GITHUB_HEAD_REF"
-          git checkout origin/develop -- .github/workflows/android-ui-quality.yml
-          git add \
-            .github/workflows/android-ui-quality.yml \
-            app/src/main/java/app/myfinhub/android/feature/money/CanonicalCardCreateScreen.kt \
-            app/src/main/java/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreen.kt \
-            app/src/main/java/app/myfinhub/android/feature/quickentry/QuickEntryScreen.kt
-          git diff --cached --check
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Android: fix full-validation date and card copy findings'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
