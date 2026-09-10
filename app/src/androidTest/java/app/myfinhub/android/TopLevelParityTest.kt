@@ -2,6 +2,7 @@ package app.myfinhub.android
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
@@ -47,7 +48,7 @@ class TopLevelParityTest {
             .performScrollTo()
             .assertIsDisplayed()
 
-        composeRule.onNodeWithText("Εικόνα").performClick()
+        composeRule.onNodeWithText("Ανάλυση").performClick()
         composeRule.onNodeWithText("Πορεία 4 μηνών").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Πού πηγαίνουν τα έξοδα"))
@@ -85,22 +86,22 @@ class TopLevelParityTest {
     }
 
     @Test
-    fun insights_opensActivityWithoutHiddenTransactionFilter() {
+    fun insights_categoryDeepLink_opensExpenseActivityWithCategoryQuery() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
             .performScrollTo()
             .performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Εικόνα").performClick()
+        composeRule.onNodeWithText("Ανάλυση").performClick()
         composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Δες τις κινήσεις"))
-        composeRule.onNodeWithText("Δες τις κινήσεις").performClick()
+            .performScrollToNode(hasText("Τρόφιμα"))
+        composeRule.onNodeWithContentDescription("Προβολή κινήσεων κατηγορίας Τρόφιμα")
+            .performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        composeRule.onNodeWithTag("activity_list")
-            .performScrollToNode(hasText("Μισθός"))
-        composeRule.onNodeWithText("Μισθός").assertIsDisplayed()
+        composeRule.onNodeWithText("Μισθός").assertDoesNotExist()
     }
 }
