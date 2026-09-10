@@ -41,7 +41,7 @@ internal fun humanReadableSyncStatus(rawStatus: String): String {
     return when {
         status.startsWith("Offline cache", ignoreCase = true) -> {
             val pending = status.substringAfter('·', "").trim()
-            if (pending.isBlank()) "Τοπικά διαθέσιμο · αναμονή σύνδεσης" else "Τοπικά διαθέσιμο · $pending"
+            if (pending.isBlank()) "Τοπικό αντίγραφο · αναμονή σύνδεσης" else "Τοπικό αντίγραφο · $pending"
         }
         status == "Απαιτεί ανάκτηση" -> "Χρειάζεται έλεγχος συγχρονισμού"
         else -> status.ifBlank { "Μη διαθέσιμη κατάσταση" }
@@ -51,9 +51,9 @@ internal fun humanReadableSyncStatus(rawStatus: String): String {
 internal fun humanReadableSessionStatus(rawStatus: String): String {
     val status = rawStatus.trim()
     return when {
+        status.startsWith("Ενεργή ·", ignoreCase = true) -> "Συνδεδεμένη και επαληθευμένη"
         status.contains("AAL", ignoreCase = true) || status.contains("MFA", ignoreCase = true) ->
             "Χρειάζεται επιπλέον επαλήθευση"
-        status.startsWith("Ενεργή ·", ignoreCase = true) -> "Συνδεδεμένη και επαληθευμένη"
         status.contains("server", ignoreCase = true) -> "Ξεκλειδωμένη στη συσκευή · αναμονή ελέγχου σύνδεσης"
         else -> status.ifBlank { "Μη διαθέσιμη κατάσταση" }
     }
