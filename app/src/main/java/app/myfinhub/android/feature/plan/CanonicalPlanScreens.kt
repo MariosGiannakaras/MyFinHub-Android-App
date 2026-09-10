@@ -278,63 +278,75 @@ private fun PlannedFlowRow(
         PlannedKind.SCHEDULED -> "Προγραμματισμένο"
     }
     val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val amountText = when (item.flow) {
+        PlannedFlow.OBLIGATION -> formatSignedCanonicalPlanEuro(-abs(item.amount))
+        PlannedFlow.INCOME -> formatSignedCanonicalPlanEuro(abs(item.amount), showPositiveSign = true)
+        PlannedFlow.TRANSFER -> formatCanonicalPlanEuro(abs(item.amount))
+    }
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+  .fillMaxWidth()
+  .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         MyFinHubIconBadge(
-            icon = icon,
-            tone = tone,
-            contentDescription = null,
+  icon = icon,
+  tone = tone,
+  contentDescription = null,
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                item.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                "${item.dueLabel} · $sourceLabel",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (item.accountLabel.isNotBlank()) {
-                if (item.flow == PlannedFlow.TRANSFER && " → Προς " in item.accountLabel) {
-                    val route = item.accountLabel.split(" → Προς ", limit = 2)
-                    Text(
-                        route.first(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = if (largeFont) 2 else 1,
-                    )
-                    Text(
-                        "→ Προς ${route[1]}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = if (largeFont) 2 else 1,
-                    )
-                } else {
-                    Text(
-                        item.accountLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = if (largeFont) 2 else 1,
-                    )
-                }
-            }
+  Text(
+      item.title,
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.SemiBold,
+  )
+  Text(
+      "${item.dueLabel} · $sourceLabel",
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+  )
+  if (item.accountLabel.isNotBlank()) {
+      if (item.flow == PlannedFlow.TRANSFER && " → Προς " in item.accountLabel) {
+val route = item.accountLabel.split(" → Προς ", limit = 2)
+Text(
+    route.first(),
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    maxLines = if (largeFont) 2 else 1,
+)
+Text(
+    "→ Προς ${route[1]}",
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    maxLines = if (largeFont) 2 else 1,
+)
+      } else {
+Text(
+    item.accountLabel,
+    style = MaterialTheme.typography.bodySmall,
+    color = MaterialTheme.colorScheme.onSurfaceVariant,
+    maxLines = if (largeFont) 2 else 1,
+)
+      }
+  }
+  if (largeFont) {
+      MyFinHubAmountText(
+text = amountText,
+tone = tone,
+modifier = Modifier
+    .align(Alignment.End)
+    .padding(top = MyFinHubSpacing.xxs),
+      )
+  }
         }
-        MyFinHubAmountText(
-            text = when (item.flow) {
-                PlannedFlow.OBLIGATION -> formatSignedCanonicalPlanEuro(-abs(item.amount))
-                PlannedFlow.INCOME -> formatSignedCanonicalPlanEuro(abs(item.amount), showPositiveSign = true)
-                PlannedFlow.TRANSFER -> formatCanonicalPlanEuro(abs(item.amount))
-            },
-            tone = tone,
-        )
+        if (!largeFont) {
+  MyFinHubAmountText(
+      text = amountText,
+      tone = tone,
+  )
+        }
     }
 }
 
