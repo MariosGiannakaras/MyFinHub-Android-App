@@ -44,14 +44,10 @@ jobs:
           block = text[start:end]
           declaration = '    val largeFont = LocalDensity.current.fontScale >= 1.3f\n'
           if declaration not in block:
-              needle = '''    val sourceLabel = when (item.kind) {
-              PlannedKind.RECURRING -> "Επαναλαμβανόμενο"
-              PlannedKind.SCHEDULED -> "Προγραμματισμένο"
-          }
-          '''.replace('          ', '')
-              if block.count(needle) != 1:
-                  raise SystemExit(f'Expected one source-label insertion point, found {block.count(needle)}; refusing to patch.')
-              block = block.replace(needle, needle + declaration, 1)
+              source = block.index('    val sourceLabel = when (item.kind) {')
+              boundary = block.index('\n    }\n\n    Row(', source)
+              insert_at = boundary + len('\n    }\n')
+              block = block[:insert_at] + declaration + block[insert_at:]
               text = text[:start] + block + text[end:]
           path.write_text(text, encoding='utf-8')
           PY
