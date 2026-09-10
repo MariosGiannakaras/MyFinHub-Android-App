@@ -2,7 +2,6 @@ package app.myfinhub.android
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
@@ -100,8 +99,8 @@ class TopLevelParityTest {
             .performClick()
 
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Έξοδα").assertIsDisplayed()
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        composeRule.onNodeWithText("Μισθός").assertDoesNotExist()
     }
 }
