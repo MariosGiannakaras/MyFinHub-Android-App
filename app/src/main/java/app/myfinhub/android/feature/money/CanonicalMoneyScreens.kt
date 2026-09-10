@@ -456,11 +456,6 @@ fun CanonicalSavingsScreen(
                                 "Στόχος ${formatCanonicalEuro(goal)}",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                        } else {
-                            Text(
-                                "Δεν έχει οριστεί στόχος αποταμίευσης.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
                         }
                     }
                 }
