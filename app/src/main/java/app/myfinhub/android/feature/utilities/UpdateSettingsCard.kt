@@ -125,11 +125,11 @@ internal fun updateFailureMessage(kind: UpdateFailureKind): String = when (kind)
     UpdateFailureKind.MALFORMED_METADATA -> "Τα στοιχεία της διαθέσιμης ενημέρωσης δεν είναι έγκυρα."
     UpdateFailureKind.INSECURE_DOWNLOAD -> "Η πηγή λήψης της ενημέρωσης απορρίφθηκε για λόγους ασφαλείας."
     UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
-    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το ληφθέν αρχείο δεν πέρασε τον έλεγχο ακεραιότητας και διαγράφηκε."
+    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το αρχείο ενημέρωσης δεν πέρασε τον έλεγχο ακεραιότητας και διαγράφηκε."
     UpdateFailureKind.WRONG_PACKAGE,
     UpdateFailureKind.WRONG_VERSION,
     UpdateFailureKind.WRONG_SIGNER,
-    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το APK δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και διαγράφηκε."
+    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το αρχείο ενημέρωσης δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και διαγράφηκε."
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> "Απαιτείται άδεια εγκατάστασης ιδιωτικών ενημερώσεων."
     UpdateFailureKind.INSTALL_BLOCKED -> "Το Android εμπόδισε την έναρξη της εγκατάστασης."
     UpdateFailureKind.INSTALL_FAILED -> "Η εγκατάσταση δεν ολοκληρώθηκε. Το υπάρχον MyFinHub παραμένει εγκατεστημένο."
