@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete Slice D Money / Net Worth / Cards / details on `android/rc7-owner-money-ui-correction`, including trustworthy net-worth composition, explicit savings-subset semantics, dense account-detail transfer treatment, accessible card deletion and consumer-facing detail copy.
-- [ ] Render fresh canonical Money, account-detail, card-delete, Savings/Loans/Claims light/dark/150%-font evidence; personally inspect it, fix defects, then run relevant unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
-- [ ] After Slice D merge, continue Slices E-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Merge Slice D Money / Net Worth / Cards / details PR #105 to `develop` only with the accepted Money references and exact-head required gates green.
+- [ ] Start Slice E — Plan / cash-flow / budget from the exact post-#105 `develop` head: make forecast composition and horizon explainable, group obligations by urgency, investigate duplicate rent presentation, normalize Greek user dates, reconcile expected income/transfers, and upgrade monthly budget to spent/remaining/percentage/threshold progress.
+- [ ] Continue Slices F-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -34,6 +34,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)
 - [x] Owner correction Slice B — Home compact snapshot, attention hierarchy, provider-aware accounts, interpretable 7-day trends and hosted validation (#103)
 - [x] Owner correction Slice C — Activity ledger density, provider-aware account filtering, explicit transfer routing/signs and owner-audited screenshot validation (#104)
+- [x] Owner correction Slice D — trustworthy Money/net-worth composition, dense account transfers, compact card stack, accessible explicit card deletion and owner-audited screenshot validation (#105)
 
 ## Rule
 
