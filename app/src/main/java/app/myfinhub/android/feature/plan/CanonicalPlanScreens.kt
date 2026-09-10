@@ -277,6 +277,7 @@ private fun PlannedFlowRow(
         PlannedKind.RECURRING -> "Επαναλαμβανόμενο"
         PlannedKind.SCHEDULED -> "Προγραμματισμένο"
     }
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
 
     Row(
         modifier = Modifier
