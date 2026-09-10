@@ -318,7 +318,7 @@ fun CreditCardStack(
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(54.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Box(
             modifier = Modifier

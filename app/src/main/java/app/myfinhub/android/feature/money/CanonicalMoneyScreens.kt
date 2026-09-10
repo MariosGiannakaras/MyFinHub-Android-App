@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,6 +34,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubHeroCard
 import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubHeroMetric
@@ -71,9 +73,11 @@ fun CanonicalMoneyScreen(
     onOpenLending: () -> Unit,
 ) {
     var activeCardId by remember(state.cards) { mutableStateOf(state.cards.firstOrNull()?.id) }
+    var cardDeleteConfirmationId by remember(state.cards) { mutableStateOf<String?>(null) }
     val revealedCardId = (secretState as? CardSecretUiState.Revealed)?.cardId
     val accountTotal = state.accounts.sumOf(MoneyAccount::balance)
-    val netPosition = accountTotal + state.lendingReceivable - state.loanOutstanding
+    val creditOutstanding = canonicalCreditOutstanding(state)
+    val netPosition = canonicalNetPosition(state)
 
     SecureWindowProtection(active = revealedCardId != null && revealedCardId == activeCardId)
     DisposableEffect(activeCardId) {
@@ -104,18 +108,43 @@ fun CanonicalMoneyScreen(
         ) {
             item {
                 MyFinHubHeroCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                         MyFinHubHeroHeading(
                             eyebrow = "Καθαρή θέση",
                             title = "Η συνολική σου θέση",
-                            supporting = "Λογαριασμοί και απαιτήσεις, μείον τις οφειλές",
+                            supporting = "Λογαριασμοί + απαιτήσεις − δάνεια − οφειλές πιστωτικών",
                         )
                         MyFinHubHeroValue(formatCanonicalEuro(netPosition))
-                        Text(
-                            "Οι αναλυτικές αξίες εμφανίζονται στις αντίστοιχες ενότητες παρακάτω.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.78f),
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        ) {
+                            MyFinHubHeroMetric(
+                                label = "Λογαριασμοί",
+                                value = formatCanonicalEuro(accountTotal),
+                                modifier = Modifier.weight(1f),
+                            )
+                            MyFinHubHeroMetric(
+                                label = "Απαιτήσεις",
+                                value = formatCanonicalEuro(state.lendingReceivable),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                        ) {
+                            MyFinHubHeroMetric(
+                                label = "Δάνεια",
+                                value = formatCanonicalEuro(-state.loanOutstanding),
+                                modifier = Modifier.weight(1f),
+                            )
+                            MyFinHubHeroMetric(
+                                label = "Πιστωτικές",
+                                value = formatCanonicalEuro(-creditOutstanding),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
@@ -125,7 +154,7 @@ fun CanonicalMoneyScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                         MyFinHubSectionHeading(
                             title = "Λογαριασμοί",
-                            subtitle = "${state.accounts.size} συγχρονισμένοι λογαριασμοί",
+                            subtitle = "${state.accounts.size} λογαριασμοί στην καθαρή θέση",
                             icon = MyFinHubIcons.Account,
                             tone = FinanceTone.Neutral,
                         )
@@ -174,7 +203,7 @@ fun CanonicalMoneyScreen(
                 MyFinHubActionCard(onClick = onOpenSavings, modifier = Modifier.fillMaxWidth()) {
                     MyFinHubSectionHeading(
                         title = "Αποταμίευση",
-                        subtitle = "Πρόοδος προς τον συγχρονισμένο στόχο",
+                        subtitle = "Μέρος των λογαριασμών σου · ήδη στην καθαρή θέση",
                         icon = MyFinHubIcons.Savings,
                         tone = FinanceTone.Savings,
                     )
@@ -204,7 +233,7 @@ fun CanonicalMoneyScreen(
                         )
                     } else {
                         Text(
-                            "Δεν έχει οριστεί συγχρονισμένος στόχος.",
+                            "Δεν έχει οριστεί στόχος αποταμίευσης.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -249,23 +278,32 @@ fun CanonicalMoneyScreen(
                 }
             } else {
                 item {
-                    CreditCardStack(
-                        cards = state.cards,
-                        secretState = secretState,
-                        onActiveCardChanged = { activeCardId = it },
-                        onRevealSecrets = onRevealCardSecrets,
-                        onHideSecrets = onHideCardSecrets,
-                        onOpenCard = onOpenCard,
-                        onDeleteCard = onDeleteCard,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                        CreditCardStack(
+                            cards = state.cards,
+                            secretState = secretState,
+                            onActiveCardChanged = { activeCardId = it },
+                            onRevealSecrets = onRevealCardSecrets,
+                            onHideSecrets = onHideCardSecrets,
+                            onOpenCard = onOpenCard,
+                            onDeleteCard = onDeleteCard,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        activeCardId?.let { cardId ->
+                            MyFinHubDestructiveTextAction(
+                                label = "Διαγραφή ενεργής κάρτας",
+                                onClick = { cardDeleteConfirmationId = cardId },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
                 }
             }
 
             item {
                 MyFinHubSectionHeading(
                     title = "Υποχρεώσεις & επιστροφές",
-                    subtitle = "Συνολική εικόνα χωρίς υποθετικές λεπτομέρειες",
+                    subtitle = "Όσα οφείλεις και όσα αναμένεις να επιστραφούν",
                     icon = MyFinHubIcons.Plan,
                     tone = FinanceTone.Neutral,
                 )
@@ -282,7 +320,7 @@ fun CanonicalMoneyScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Δάνεια", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (state.loans.isEmpty()) "Συνολικό συγχρονισμένο υπόλοιπο" else "${state.loans.size} διαθέσιμες εγγραφές",
+                                if (state.loans.isEmpty()) "Συνολικό υπόλοιπο δανείων" else "${state.loans.size} διαθέσιμες εγγραφές",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -307,7 +345,7 @@ fun CanonicalMoneyScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Απαιτήσεις", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (state.lendingItems.isEmpty()) "Αναμενόμενες επιστροφές" else "${state.lendingItems.size} διαθέσιμες εγγραφές",
+                                if (state.lendingItems.isEmpty()) "Ποσά που αναμένεις να επιστραφούν" else "${state.lendingItems.size} διαθέσιμες εγγραφές",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -322,7 +360,57 @@ fun CanonicalMoneyScreen(
             }
         }
     }
+
+    cardDeleteConfirmationId?.let { cardId ->
+        val card = state.cards.firstOrNull { it.id == cardId }
+        if (card != null) {
+            CanonicalCardDeleteDialog(
+                card = card,
+                onDismiss = { cardDeleteConfirmationId = null },
+                onConfirm = {
+                    onHideCardSecrets()
+                    cardDeleteConfirmationId = null
+                    onDeleteCard(cardId)
+                },
+            )
+        }
+    }
 }
+
+@Composable
+internal fun CanonicalCardDeleteDialog(
+    card: MoneyCard,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Διαγραφή κάρτας;") },
+        text = {
+            Text(
+                "Η ${card.nickname} ••••${card.last4.ifBlank { "••••" }} θα αφαιρεθεί. Η ενέργεια δεν αναιρείται.",
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Διαγραφή", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Ακύρωση") }
+        },
+    )
+}
+
+internal fun canonicalCreditOutstanding(state: MoneyUiState): Double = state.cards
+    .filter { card -> card.canonicalKind == "credit" || card.kind.contains("Πιστωτική", ignoreCase = true) }
+    .sumOf { card -> card.currentBalance.coerceAtLeast(0.0) }
+
+internal fun canonicalNetPosition(state: MoneyUiState): Double =
+    state.accounts.sumOf(MoneyAccount::balance) +
+        state.lendingReceivable -
+        state.loanOutstanding -
+        canonicalCreditOutstanding(state)
 
 @Composable
 fun CanonicalSavingsScreen(
@@ -333,7 +421,7 @@ fun CanonicalSavingsScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Αποταμίευση",
-                subtitle = "Συγχρονισμένα δεδομένα",
+                subtitle = "Από τους λογαριασμούς αποταμίευσης",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -353,6 +441,11 @@ fun CanonicalSavingsScreen(
                             tone = FinanceTone.Savings,
                             style = MaterialTheme.typography.headlineMedium,
                         )
+                        Text(
+                            "Το ποσό είναι μέρος των λογαριασμών σου και έχει ήδη συμπεριληφθεί στην καθαρή θέση.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0) {
                             LinearProgressIndicator(
@@ -361,11 +454,6 @@ fun CanonicalSavingsScreen(
                             )
                             Text(
                                 "Στόχος ${formatCanonicalEuro(goal)}",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        } else {
-                            Text(
-                                "Δεν υπάρχει συγχρονισμένος στόχος αποταμίευσης στον λογαριασμό σου.",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
@@ -377,12 +465,12 @@ fun CanonicalSavingsScreen(
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
-                                "Επεξεργασία στόχου μη διαθέσιμη",
+                                "Ο στόχος δεν είναι διαθέσιμος ακόμη",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Η εφαρμογή δεν θα εμφανίσει ή αποθηκεύσει τοπικό στόχο σαν να έχει συγχρονιστεί. Η επεξεργασία θα ενεργοποιηθεί όταν υπάρχει αντίστοιχη canonical δυνατότητα.",
+                                "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -403,7 +491,7 @@ fun CanonicalLoansScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Δάνεια",
-                subtitle = "Συγχρονισμένο υπόλοιπο",
+                subtitle = "Συνολικό υπόλοιπο οφειλών",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -430,12 +518,12 @@ fun CanonicalLoansScreen(
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
-                                "Δεν υπάρχουν διαθέσιμες λεπτομέρειες ανά δάνειο",
+                                "Δεν υπάρχουν αναλυτικά στοιχεία δανείων",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Το συνολικό υπόλοιπο προκύπτει από τα συγχρονισμένα οικονομικά δεδομένα. Δεν εμφανίζονται εκτιμώμενα ονόματα, πιστωτές, δόσεις ή ημερομηνίες όταν αυτά δεν παρέχονται με ασφαλή canonical μορφή.",
+                                "Το συνολικό υπόλοιπο παραμένει διαθέσιμο. Αν προστεθούν στοιχεία ανά δάνειο, θα εμφανιστούν εδώ.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -488,7 +576,7 @@ fun CanonicalLendingScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Απαιτήσεις",
-                subtitle = "Συγχρονισμένο υπόλοιπο",
+                subtitle = "Ποσά που αναμένεις να επιστραφούν",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -515,12 +603,12 @@ fun CanonicalLendingScreen(
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
-                                "Δεν υπάρχουν διαθέσιμες λεπτομέρειες ανά απαίτηση",
+                                "Δεν υπάρχουν αναλυτικά στοιχεία απαιτήσεων",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Το συνολικό ποσό παραμένει ορατό, αλλά δεν εμφανίζονται υποθετικά πρόσωπα ή ημερομηνίες όταν αυτά δεν υπάρχουν στα συγχρονισμένα δεδομένα.",
+                                "Το συνολικό ποσό παραμένει διαθέσιμο. Αν προστεθούν πρόσωπα ή ημερομηνίες επιστροφής, θα εμφανιστούν εδώ.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
