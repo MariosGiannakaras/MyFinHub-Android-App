@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -58,49 +58,6 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
-
-      - name: Commit accepted Slice D references
-        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-money-ui-correction'
-        shell: bash
-        run: |
-          refs=(
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailHiddenLightScreenshot_canonical_card_detail_hidden_light_9af08816_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailRevealedSanitizedLargeFontScreenshot_canonical_card_detail_revealed_sanitized_large_font_7fe73c16_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailHiddenDarkScreenshot_canonical_card_detail_hidden_dark_4614f179_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactLightScreenshot_canonical_money_compact_light_2b156103_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalLoansCompactLightScreenshot_canonical_loans_compact_light_48b79ab1_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactLargeFontScreenshot_canonical_money_compact_large_font_cadce763_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalSavingsLargeFontScreenshot_canonical_savings_large_font_38536db9_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalMoneyCompactDarkScreenshot_canonical_money_compact_dark_8ace8741_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalCardDeleteDialogLightScreenshot_canonical_card_delete_dialog_light_353b0dea_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CreditCardStackScreenshotTestKt/CreditCardStackCompactLargeFontScreenshot_card_stack_compact_150_percent_font_c9b36481_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CreditCardStackScreenshotTestKt/CreditCardStackCompactLightScreenshot_card_stack_compact_light_04e49ab8_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/MoneyParityScreenshotTestKt/MoneyOverviewCompactLightScreenshot_money_overview_compact_light_98c1b72f_0.png'
-          )
-          tmp_dir="$(mktemp -d)"
-          for path in "${refs[@]}"; do
-            test -f "$path"
-            mkdir -p "$tmp_dir/$(dirname "$path")"
-            cp "$path" "$tmp_dir/$path"
-          done
-          git fetch origin "$GITHUB_HEAD_REF"
-          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
-          for path in "${refs[@]}"; do
-            mkdir -p "$(dirname "$path")"
-            cp "$tmp_dir/$path" "$path"
-          done
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "${refs[@]}"
-          if git diff --cached --quiet; then
-            echo 'Accepted Slice D references are already current.'
-            exit 0
-          fi
-          git commit -m 'Android: accept owner-audited Slice D references'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
