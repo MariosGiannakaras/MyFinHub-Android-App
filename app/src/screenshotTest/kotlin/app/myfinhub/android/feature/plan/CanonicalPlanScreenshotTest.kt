@@ -80,6 +80,15 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
     message = "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
 )
 
+private fun canonicalPlanFlowScreenshotState(): PlanUiState {
+    val base = canonicalPlanScreenshotState()
+    return base.copy(
+        items = base.items.filter { it.flow != PlannedFlow.OBLIGATION },
+        forecastObligations = 0.0,
+        forecastEndBalance = 3_345.0,
+    )
+}
+
 @PreviewTest
 @Preview(
     name = "canonical_plan_compact_light",
@@ -115,6 +124,24 @@ fun CanonicalPlanCompactDarkScreenshot() {
 @Composable
 fun CanonicalPlanCompactLargeFontScreenshot() {
     CanonicalPlanScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
+    name = "canonical_plan_flow_large_font",
+    widthDp = 412,
+    heightDp = 1600,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun CanonicalPlanFlowLargeFontScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        CanonicalPlanScreen(
+            state = canonicalPlanFlowScreenshotState(),
+            onOpenBudget = {},
+        )
+    }
 }
 
 @PreviewTest
