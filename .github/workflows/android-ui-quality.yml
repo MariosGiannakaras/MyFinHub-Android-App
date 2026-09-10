@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +27,56 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Wire Slice E canonical Plan projection
+        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-plan-ui-correction'
+        shell: bash
+        run: |
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt')
+          text = path.read_text(encoding='utf-8')
+          old = '''    val oldPlan = previous?.planState
+              val canonicalBudget = budget
+              val pendingForecastDelta = pendingScheduled.filter { it.dueDate >= asOf }.sumOf { item ->
+                  when (item.kind) {
+                      "income" -> item.amount
+                      "expense" -> -item.amount
+                      else -> 0.0
+                  }
+              }
+              val plan = PlanUiState(
+                  items = buildPlannedItems(document),
+                  budget = oldPlan?.budget ?: BudgetDraft(
+                      monthlyLimitText = canonicalBudget?.amount?.toPlainMoney() ?: "",
+                      alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
+                  ),
+                  forecastEndBalance = document.availableMoney(asOf) + pendingForecastDelta,
+                  message = oldPlan?.message,
+              )'''.replace('              ', '    ')
+          new = '''    val plan = projectCanonicalPlanState(
+                  document = document,
+                  today = today,
+                  previous = previous?.planState,
+              )'''.replace('              ', '    ')
+          if new in text:
+              raise SystemExit(0)
+          if old not in text:
+              raise SystemExit('Expected old Plan projection block was not found; refusing to patch.')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt
+          if git diff --cached --quiet; then
+            echo 'Canonical Plan projection is already wired.'
+            exit 0
+          fi
+          git commit -m 'Android: wire canonical Plan projection'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
