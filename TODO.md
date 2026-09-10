@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge Slice D Money / Net Worth / Cards / details PR #105 to `develop` only with the accepted Money references and exact-head required gates green.
-- [ ] Start Slice E — Plan / cash-flow / budget from the exact post-#105 `develop` head: make forecast composition and horizon explainable, group obligations by urgency, investigate duplicate rent presentation, normalize Greek user dates, reconcile expected income/transfers, and upgrade monthly budget to spent/remaining/percentage/threshold progress.
-- [ ] Continue Slices F-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- [ ] Complete Slice E Plan / cash-flow / budget on `android/rc7-owner-plan-ui-correction`, including explainable forecast arithmetic and horizon, urgency grouping, conservative duplicate-rent reconciliation, Greek user dates, category/service identity, transfer reconciliation and useful monthly-budget progress.
+- [ ] Render fresh canonical Plan and Budget light/dark/150%-font evidence; personally inspect it, fix defects, then run relevant unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
+- [ ] After Slice E merge, continue Slices F-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
