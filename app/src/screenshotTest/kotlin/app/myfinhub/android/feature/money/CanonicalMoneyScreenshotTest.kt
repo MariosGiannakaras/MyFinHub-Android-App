@@ -5,6 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
+// Branch-scoped reference refresh trigger; removed after accepted PNGs are committed.
 private val canonicalMoneyPreviewCard = MoneyCard(
     id = "card-credit",
     nickname = "Κύρια πιστωτική",
