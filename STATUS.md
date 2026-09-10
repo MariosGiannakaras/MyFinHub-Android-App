@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_g_settings_diagnostics_implementation`
+State: `rc7_owner_ui_correction_slice_h_full_validation_ready`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are merged to `develop`. Slice G Settings / diagnostics / notifications is active on `android/rc7-owner-settings-ui-correction`: implementation is simplifying Settings grouping, moving raw diagnostics behind secondary support detail, presenting connection/sync/session state and timestamps in consumer-readable Greek, mapping privacy-safe diagnostic codes to human descriptions while preserving the existing code+timestamp-only history contract, and removing internal auth/update terminology from primary copy. Overall progress remains 4/6 until Slice G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are merged to `develop`, and Slice G Settings / diagnostics / notifications is completed in PR #108 with consumer-first Settings grouping, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy, fresh owner-audited light/dark/150%-font references, and green Android CI / screenshot regression / S24-target instrumentation. After Slice G merge, Slice H is the only remaining correction slice: full-product regression/visual validation followed, only if exact-head gates remain green, by a strictly higher same-signer production candidate and explicit physical S24 owner acceptance. Overall progress remains 4/6 until that physical acceptance is complete.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Complete Slice G Settings / diagnostics / notifications on `android/rc7-owner-settings-ui-correction`: keep appearance/privacy/update/account actions clear, make diagnostics secondary and support-focused, show human-readable state/time first, keep raw codes copyable only as secondary detail, and preserve the privacy-safe notification history contract.
-2. Add focused presentation and interaction coverage, render fresh Settings/diagnostics/notification light/dark/150%-font evidence including expanded diagnostics and update-failure states, personally inspect and fix visual defects, then run Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
-3. After Slice G merge, run full Slice H validation and request a strictly higher same-signer production candidate than versionCode `10006`; install it in place on the authorized S24 and require explicit physical owner acceptance before any stable/main promotion.
+1. After Slice G merge, create or resume `android/rc7-owner-full-validation` from the exact `develop` head and run Slice H full validation across every materially changed production surface/state using fresh actual Compose evidence.
+2. Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.
+3. Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 
