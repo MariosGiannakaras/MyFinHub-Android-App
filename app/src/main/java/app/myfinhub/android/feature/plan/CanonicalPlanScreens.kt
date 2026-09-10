@@ -308,20 +308,20 @@ private fun PlannedFlowRow(
                         route.first(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = if (largeFont) 2 else 1,
                     )
                     Text(
                         "→ Προς ${route[1]}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = if (largeFont) 2 else 1,
                     )
                 } else {
                     Text(
                         item.accountLabel,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = if (largeFont) 2 else 1,
                     )
                 }
             }
