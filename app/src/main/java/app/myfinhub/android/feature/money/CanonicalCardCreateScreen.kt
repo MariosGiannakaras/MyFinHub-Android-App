@@ -93,7 +93,7 @@ fun CanonicalCardCreateScreen(
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. Τα ευαίσθητα στοιχεία προστατεύονται και δεν εμφανίζονται σε screenshots ή διαγνωστικά.",
+                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. Τα ευαίσθητα στοιχεία προστατεύονται και δεν εμφανίζονται σε στιγμιότυπα οθόνης ή διαγνωστικά.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
