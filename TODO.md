@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete Slice G Settings / diagnostics / notifications on `android/rc7-owner-settings-ui-correction`: keep appearance/privacy/update/account actions clear, make diagnostics secondary and support-focused, show human-readable state/time first, keep raw codes copyable only as secondary detail, and preserve the privacy-safe notification history contract.
-- [ ] Add focused presentation and interaction coverage, render fresh Settings/diagnostics/notification light/dark/150%-font evidence including expanded diagnostics and update-failure states, personally inspect and fix visual defects, then run Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
-- [ ] After Slice G merge, run full Slice H validation and request a strictly higher same-signer production candidate than versionCode `10006`; install it in place on the authorized S24 and require explicit physical owner acceptance before any stable/main promotion.
+- [ ] After Slice G merge, create or resume `android/rc7-owner-full-validation` from the exact `develop` head and run Slice H full validation across every materially changed production surface/state using fresh actual Compose evidence.
+- [ ] Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.
+- [ ] Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion.
 
 ## Completed foundations
 
@@ -37,6 +37,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice D — trustworthy Money/net-worth composition, dense account transfers, compact card stack, accessible explicit card deletion and owner-audited screenshot validation (#105)
 - [x] Owner correction Slice E — explainable 30-day Plan forecast, urgency-grouped obligations, conservative duplicate reconciliation, Greek dates, neutral transfer reconciliation, useful monthly-budget progress and owner-audited screenshot validation (#106)
 - [x] Owner correction Slice F — equivalent-period Insights comparisons, explicit finance metrics, partial-month semantics, category percentages/drill-down, `Ανάλυση` navigation and owner-audited screenshot/S24 validation (#107)
+- [x] Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)
 
 ## Rule
 
