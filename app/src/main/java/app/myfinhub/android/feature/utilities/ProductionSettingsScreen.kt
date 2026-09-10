@@ -1,5 +1,11 @@
 package app.myfinhub.android.feature.utilities
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -30,10 +37,8 @@ import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubHeroCard
-import app.myfinhub.android.designsystem.MyFinHubHeroHeading
-import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubMotion
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -49,20 +54,21 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     onOpenNoticeHistory: () -> Unit = {},
     onLogout: (() -> Unit)? = null,
+    diagnosticsInitiallyExpanded: Boolean = false,
 ) {
     val context = LocalContext.current
     val updateController = LocalUpdateController.current
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
-    var diagnosticsExpanded by rememberSaveable { mutableStateOf(false) }
+    var diagnosticsExpanded by rememberSaveable { mutableStateOf(diagnosticsInitiallyExpanded) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ρυθμίσεις",
-                subtitle = "Εμφάνιση, απόρρητο, ενημέρωση και συνεδρία",
+                subtitle = "Προτιμήσεις, ενημερώσεις και λογαριασμός",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -77,7 +83,8 @@ fun ProductionSettingsScreen(
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Προτιμήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text("Εμφάνιση", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     val appearanceOption: @Composable (AppAppearance, Modifier) -> Unit = { option, modifier ->
                         FilterChip(
                             selected = appearance == option,
@@ -130,14 +137,10 @@ fun ProductionSettingsScreen(
                             modifier = Modifier.semantics { contentDescription = "Εμφάνιση ποσών" },
                         )
                     }
-                }
-            }
-
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    Text("Απόρρητο και ειδοποιήσεις", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text("Απόρρητο", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "PAN/λήξη εμφανίζονται μόνο μετά την απαιτούμενη επαλήθευση. Το CVV μένει κρυπτογραφημένο στη συσκευή και τα screenshots μπλοκάρονται όσο προβάλλονται μυστικά κάρτας.",
+                        "Τα ευαίσθητα στοιχεία κάρτας προστατεύονται με επιπλέον επαλήθευση, παραμένουν κρυπτογραφημένα και δεν επιτρέπονται screenshots όσο προβάλλονται.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -177,11 +180,19 @@ fun ProductionSettingsScreen(
 
             diagnostics?.let { snapshot ->
                 MyFinHubOutlinedAction(
-                    label = if (diagnosticsExpanded) "Απόκρυψη τεχνικών πληροφοριών" else "Τεχνικές πληροφορίες",
+                    label = if (diagnosticsExpanded) "Απόκρυψη κατάστασης εφαρμογής" else "Κατάσταση εφαρμογής και υποστήριξη",
                     onClick = { diagnosticsExpanded = !diagnosticsExpanded },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                if (diagnosticsExpanded) DiagnosticsCard(snapshot)
+                AnimatedVisibility(
+                    visible = diagnosticsExpanded,
+                    enter = fadeIn(tween(MyFinHubMotion.StandardDurationMillis)) +
+                        expandVertically(tween(MyFinHubMotion.StandardDurationMillis)),
+                    exit = fadeOut(tween(MyFinHubMotion.QuickDurationMillis)) +
+                        shrinkVertically(tween(MyFinHubMotion.StandardDurationMillis)),
+                ) {
+                    ProductionDiagnosticsCard(snapshot)
+                }
             }
         }
     }
