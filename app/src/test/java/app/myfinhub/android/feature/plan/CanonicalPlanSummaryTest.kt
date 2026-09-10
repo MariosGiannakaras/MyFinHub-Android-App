@@ -1,7 +1,6 @@
 package app.myfinhub.android.feature.plan
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,7 +12,7 @@ class CanonicalPlanSummaryTest {
             budgetSpent = 680.0,
         )
 
-        val progress = assertNotNull(canonicalBudgetProgress(state))
+        val progress = requireNotNull(canonicalBudgetProgress(state))
 
         assertEquals(800.0, progress.limit, 0.001)
         assertEquals(680.0, progress.spent, 0.001)
@@ -30,7 +29,7 @@ class CanonicalPlanSummaryTest {
             budgetSpent = 900.0,
         )
 
-        val progress = assertNotNull(canonicalBudgetProgress(state))
+        val progress = requireNotNull(canonicalBudgetProgress(state))
 
         assertEquals(-100.0, progress.remaining, 0.001)
         assertEquals(113, progress.percent)
