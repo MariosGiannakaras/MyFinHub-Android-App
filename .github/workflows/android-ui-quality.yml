@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +27,125 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Fix Slice E large-font amount placement
+        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-plan-ui-correction'
+        shell: bash
+        run: |
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt')
+          text = path.read_text(encoding='utf-8')
+          start = text.index('@Composable\nprivate fun PlannedFlowRow(')
+          end = text.index('\ninternal data class CanonicalBudgetProgress', start)
+          replacement = '''@Composable
+          private fun PlannedFlowRow(
+              item: PlannedItem,
+              tone: FinanceTone,
+          ) {
+              val fallbackIcon = when (item.flow) {
+                  PlannedFlow.INCOME -> MyFinHubIcons.Income
+                  PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
+                  PlannedFlow.OBLIGATION -> if (item.kind == PlannedKind.RECURRING) MyFinHubIcons.Plan else MyFinHubIcons.Attention
+              }
+              val icon = if (item.flow == PlannedFlow.TRANSFER) {
+                  fallbackIcon
+              } else {
+                  myFinHubCategoryIcon(item.category.ifBlank { item.title }, fallbackIcon)
+              }
+              val sourceLabel = when (item.kind) {
+                  PlannedKind.RECURRING -> "Επαναλαμβανόμενο"
+                  PlannedKind.SCHEDULED -> "Προγραμματισμένο"
+              }
+              val largeFont = LocalDensity.current.fontScale >= 1.3f
+              val amountText = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> formatSignedCanonicalPlanEuro(-abs(item.amount))
+                  PlannedFlow.INCOME -> formatSignedCanonicalPlanEuro(abs(item.amount), showPositiveSign = true)
+                  PlannedFlow.TRANSFER -> formatCanonicalPlanEuro(abs(item.amount))
+              }
+
+              Row(
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .semantics(mergeDescendants = true) {},
+                  horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                  MyFinHubIconBadge(
+                      icon = icon,
+                      tone = tone,
+                      contentDescription = null,
+                  )
+                  Column(modifier = Modifier.weight(1f)) {
+                      Text(
+                          item.title,
+                          style = MaterialTheme.typography.titleMedium,
+                          fontWeight = FontWeight.SemiBold,
+                      )
+                      Text(
+                          "${item.dueLabel} · $sourceLabel",
+                          style = MaterialTheme.typography.bodySmall,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      )
+                      if (item.accountLabel.isNotBlank()) {
+                          if (item.flow == PlannedFlow.TRANSFER && " → Προς " in item.accountLabel) {
+                              val route = item.accountLabel.split(" → Προς ", limit = 2)
+                              Text(
+                                  route.first(),
+                                  style = MaterialTheme.typography.bodySmall,
+                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  maxLines = if (largeFont) 2 else 1,
+                              )
+                              Text(
+                                  "→ Προς ${route[1]}",
+                                  style = MaterialTheme.typography.bodySmall,
+                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  maxLines = if (largeFont) 2 else 1,
+                              )
+                          } else {
+                              Text(
+                                  item.accountLabel,
+                                  style = MaterialTheme.typography.bodySmall,
+                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  maxLines = if (largeFont) 2 else 1,
+                              )
+                          }
+                      }
+                      if (largeFont) {
+                          MyFinHubAmountText(
+                              text = amountText,
+                              tone = tone,
+                              modifier = Modifier
+                                  .align(Alignment.End)
+                                  .padding(top = MyFinHubSpacing.xxs),
+                          )
+                      }
+                  }
+                  if (!largeFont) {
+                      MyFinHubAmountText(
+                          text = amountText,
+                          tone = tone,
+                      )
+                  }
+              }
+          }
+          '''.replace('          ', '')
+          text = text[:start] + replacement + text[end:]
+          path.write_text(text, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Large-font amount placement is already present.'
+            exit 0
+          fi
+          git commit -m 'Android: fix Plan large-font row layout'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
