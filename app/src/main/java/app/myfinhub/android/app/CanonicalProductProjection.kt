@@ -253,23 +253,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         lendingReceivable = document.receivableOutstanding(),
     )
 
-    val oldPlan = previous?.planState
-    val canonicalBudget = budget
-    val pendingForecastDelta = pendingScheduled.filter { it.dueDate >= asOf }.sumOf { item ->
-        when (item.kind) {
-            "income" -> item.amount
-            "expense" -> -item.amount
-            else -> 0.0
-        }
-    }
-    val plan = PlanUiState(
-        items = buildPlannedItems(document),
-        budget = oldPlan?.budget ?: BudgetDraft(
-            monthlyLimitText = canonicalBudget?.amount?.toPlainMoney() ?: "",
-            alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
-        ),
-        forecastEndBalance = document.availableMoney(asOf) + pendingForecastDelta,
-        message = oldPlan?.message,
+    val plan = projectCanonicalPlanState(
+        document = document,
+        today = today,
+        previous = previous?.planState,
     )
 
     val trend = (3L downTo 0L).map { offset -> YearMonth.from(today).minusMonths(offset) }.map { trendMonth ->
