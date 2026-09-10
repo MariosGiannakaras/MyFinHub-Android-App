@@ -36,6 +36,29 @@ internal fun formatDiagnosticTime(
     return instant.atZone(zoneId).format(greekDiagnosticTimeFormatter)
 }
 
+internal fun humanReadableSyncStatus(rawStatus: String): String {
+    val status = rawStatus.trim()
+    return when {
+        status.startsWith("Offline cache", ignoreCase = true) -> {
+            val pending = status.substringAfter('·', "").trim()
+            if (pending.isBlank()) "Τοπικά διαθέσιμο · αναμονή σύνδεσης" else "Τοπικά διαθέσιμο · $pending"
+        }
+        status == "Απαιτεί ανάκτηση" -> "Χρειάζεται έλεγχος συγχρονισμού"
+        else -> status.ifBlank { "Μη διαθέσιμη κατάσταση" }
+    }
+}
+
+internal fun humanReadableSessionStatus(rawStatus: String): String {
+    val status = rawStatus.trim()
+    return when {
+        status.contains("AAL", ignoreCase = true) || status.contains("MFA", ignoreCase = true) ->
+            "Χρειάζεται επιπλέον επαλήθευση"
+        status.startsWith("Ενεργή ·", ignoreCase = true) -> "Συνδεδεμένη και επαληθευμένη"
+        status.contains("server", ignoreCase = true) -> "Ξεκλειδωμένη στη συσκευή · αναμονή ελέγχου σύνδεσης"
+        else -> status.ifBlank { "Μη διαθέσιμη κατάσταση" }
+    }
+}
+
 internal fun diagnosticCodeDescription(rawCode: String?): String? {
     val code = rawCode?.trim()?.uppercase(Locale.ROOT).orEmpty()
     if (code.isBlank()) return null
