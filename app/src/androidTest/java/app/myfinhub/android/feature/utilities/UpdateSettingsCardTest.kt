@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.utilities
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.core.update.UpdateController
+import app.myfinhub.android.core.update.UpdateFailureKind
 import app.myfinhub.android.core.update.UpdateRelease
 import app.myfinhub.android.core.update.UpdateUiState
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -74,6 +76,59 @@ class UpdateSettingsCardTest {
         composeRule.onNodeWithText("Έλεγχος άδειας και εγκατάσταση").assertIsDisplayed().performClick()
         assertEquals(1, permissionOpens)
         assertEquals(1, installs)
+    }
+
+    @Test
+    fun verificationRequired_usesConsumerFacingCopy() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                UpdateSettingsCard(
+                    currentVersionName = "0.1.0",
+                    state = UpdateUiState.Failure(
+                        kind = UpdateFailureKind.MFA_REQUIRED,
+                        retryable = true,
+                    ),
+                    onCheck = {},
+                    onDownload = {},
+                    onInstall = {},
+                    onOpenInstallPermission = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Χρειάζεται επιπλέον επαλήθευση ταυτότητας για τις ιδιωτικές ενημερώσεις.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("AAL2", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun diagnostics_keepRawTermsBehindSupportDisclosure() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionDiagnosticsCard(
+                    diagnostics = AppDiagnosticsSnapshot(
+                        versionName = "1.0.0-rc7",
+                        buildType = "release",
+                        environment = "Production public client",
+                        apiHost = "api.myfinhub.app",
+                        networkStatus = "Χωρίς σύνδεση",
+                        apiStatus = "Offline cache · 2 εκκρεμείς",
+                        sessionStatus = "Ενεργή · AAL2",
+                        lastSuccessfulSync = "2026-09-10T12:30:00Z",
+                        lastDiagnosticCode = "MFH-API-SERVER-503",
+                    ),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Τοπικό αντίγραφο · 2 εκκρεμείς").assertIsDisplayed()
+        composeRule.onNodeWithText("Συνδεδεμένη και επαληθευμένη").assertIsDisplayed()
+        composeRule.onNodeWithText("AAL2", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("MFH-API-SERVER-503", substring = true).assertDoesNotExist()
+
+        composeRule.onNodeWithText("Λεπτομέρειες για υποστήριξη").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("MFH-API-SERVER-503").assertIsDisplayed()
     }
 
     private fun release() = UpdateRelease(
