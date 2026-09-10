@@ -41,6 +41,8 @@ data class InsightsUiState(
     val categories: List<InsightCategory> = syntheticCategories(),
     val averageMonthlySpend: Double = 1_040.0,
     val comparison: InsightsComparison = syntheticComparison(),
+    /** Compatibility-only during Slice F migration; the production UI no longer presents this ambiguous metric. */
+    val savingsRate: Int = 0,
 )
 
 class InsightsViewModel : ViewModel() {
