@@ -41,7 +41,10 @@ class CanonicalProductProjectionTest {
         assertEquals("", projection.moneyState.savingsPlan.monthlyContributionText)
 
         assertEquals("800", projection.planState.budget.monthlyLimitText)
+        assertEquals(1_695.0, projection.planState.forecastStartBalance, 0.001)
         assertEquals(1_695.0, projection.planState.forecastEndBalance, 0.001)
+        assertEquals(155.0, projection.planState.budgetSpent, 0.001)
+        assertTrue(projection.planState.budgetMonthLabel.contains("2026"))
         assertTrue(projection.planState.categoryBudgets.isEmpty())
         assertTrue(projection.planState.rules.isEmpty())
         assertTrue(projection.planState.forecastWindows.isEmpty())

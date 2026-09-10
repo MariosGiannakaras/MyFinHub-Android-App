@@ -21,7 +21,7 @@ class PlanReducerTest {
 
         val result = reducePlan(state, PlanAction.SaveBudget)
 
-        assertEquals("Το μηνιαίο budget ενημερώθηκε.", result.message)
+        assertEquals("Ο μηνιαίος προϋπολογισμός ενημερώθηκε.", result.message)
     }
 
     @Test

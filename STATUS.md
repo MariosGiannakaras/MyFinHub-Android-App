@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc7_owner_ui_correction_slice_e_plan_ready`
+State: `rc7_owner_ui_correction_slice_f_insights_ready`
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-C are merged to `develop`. Slice D Money / Net Worth / Cards / details is complete in PR #105 after trustworthy net-worth composition, explicit savings-subset semantics, denser account-detail transfer treatment with account-relative signs and `Από … → Προς …` routing, consumer-facing Savings/Loans/Claims copy, provider-aware account identity, compact card paging, and an explicit accessible card-delete action with confirmation. Fresh light/dark/150%-font Money and detail renders were personally inspected, the accepted Money references are current, and exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed. Slice E Plan / cash-flow / budget is next after the Slice D merge checkpoint. Overall progress remains 4/6 until all owner correction slices, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-D are merged to `develop`. Slice E Plan / cash-flow / budget is completed in PR #106 after the canonical 30-day forecast was made explainable across current position, obligations, expected income, transfers and projected position; obligations were grouped by urgency; exact scheduled/recurring duplicates were conservatively reconciled; Plan dates were normalized for Greek user-facing presentation; category/service identity and neutral transfer semantics were preserved; the monthly budget was upgraded to spent/remaining/percentage/threshold progress; and fresh light/dark/150%-font evidence, screenshot regression, Android CI, Project Tracking and S24-target instrumentation all passed. Slice F Insights / analytics is next after Slice E merges to `develop`. Overall progress remains 4/6 until Slices F-G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc7 remains the installed production baseline on the autho
 
 ## Next
 
-1. Merge Slice D Money / Net Worth / Cards / details PR #105 to `develop` only with the accepted Money references and exact-head required gates green.
-2. Start Slice E — Plan / cash-flow / budget from the exact post-#105 `develop` head: make forecast composition and horizon explainable, group obligations by urgency, investigate duplicate rent presentation, normalize Greek user dates, reconcile expected income/transfers, and upgrade monthly budget to spent/remaining/percentage/threshold progress.
-3. Continue Slices F-G in order, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+1. Merge validated Slice E PR #106 to `develop`, then create `android/rc7-owner-insights-ui-correction` from the exact merged `develop` head.
+2. Implement Slice F Insights / analytics: correct equivalent-period comparability, replace ambiguous finance metrics, mark partial months, preserve accessible exact values, add percentage context to category bars and deep-link relevant Activity filters where supported; evaluate `Εικόνα` -> `Ανάλυση` only if navigation width/tests remain coherent.
+3. After Slice F, complete Slice G Settings / diagnostics / notifications, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 
