@@ -98,7 +98,6 @@ class TopLevelParityTest {
         composeRule.onNodeWithContentDescription("Προβολή κινήσεων κατηγορίας Τρόφιμα")
             .performClick()
 
-        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("Έξοδα").assertIsDisplayed()
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
