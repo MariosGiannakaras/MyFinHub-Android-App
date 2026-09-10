@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +27,44 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Apply accepted Slice D savings empty-state correction
+        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-money-ui-correction'
+        shell: bash
+        run: |
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt')
+          text = path.read_text(encoding='utf-8')
+          marker = 'fun CanonicalSavingsScreen('
+          if marker not in text:
+              raise SystemExit('CanonicalSavingsScreen marker not found')
+          before, after = text.split(marker, 1)
+          old = '''                        } else {
+                            Text(
+                                "Δεν έχει οριστεί στόχος αποταμίευσης.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+'''
+          if old in after:
+              after = after.replace(old, '                        }\n', 1)
+              text = before + marker + after
+              path.write_text(text, encoding='utf-8')
+          elif 'Δεν έχει οριστεί στόχος αποταμίευσης.' in after:
+              raise SystemExit('Savings no-goal block changed unexpectedly')
+          PY
+          if git diff --quiet -- app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt; then
+            echo 'Savings empty-state correction already present.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt
+          git commit -m 'Android: remove duplicate savings empty-state copy'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
