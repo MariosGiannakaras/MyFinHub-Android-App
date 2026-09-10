@@ -35,6 +35,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -307,7 +308,11 @@ private fun CategoryCompositionCard(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        MyFinHubIconBadge(icon = myFinHubCategoryIcon(top.name))
+                        MyFinHubIconBadge(
+                            icon = myFinHubCategoryIcon(top.name, MyFinHubIcons.Expense),
+                            tone = FinanceTone.Expense,
+                            contentDescription = null,
+                        )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 "Μεγαλύτερη κατηγορία",
@@ -337,7 +342,11 @@ private fun CategoryRow(
         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MyFinHubIconBadge(icon = myFinHubCategoryIcon(category.name))
+        MyFinHubIconBadge(
+            icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense),
+            tone = FinanceTone.Expense,
+            contentDescription = null,
+        )
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
