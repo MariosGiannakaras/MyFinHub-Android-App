@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.core.update.UpdateController
+import app.myfinhub.android.core.update.UpdateFailureKind
 import app.myfinhub.android.core.update.UpdateRelease
 import app.myfinhub.android.core.update.UpdateUiState
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -54,24 +55,63 @@ fun ProductionSettingsCompactLargeFontScreenshot() {
 )
 @Composable
 fun ProductionSettingsUpdateAvailableLargeFontScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
-        Surface {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(MyFinHubSpacing.lg),
-            ) {
-                UpdateSettingsCard(
-                    currentVersionName = "0.1.0",
-                    state = UpdateUiState.Available(updateRelease()),
-                    onCheck = {},
-                    onDownload = {},
-                    onInstall = {},
-                    onOpenInstallPermission = {},
-                )
-            }
-        }
-    }
+    UpdateCardFixture(
+        state = UpdateUiState.Available(updateRelease()),
+    )
+}
+
+@PreviewTest
+@Preview(
+    name = "production_settings_update_verification_required_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun ProductionSettingsUpdateVerificationRequiredLargeFontScreenshot() {
+    UpdateCardFixture(
+        state = UpdateUiState.Failure(
+            kind = UpdateFailureKind.MFA_REQUIRED,
+            retryable = true,
+        ),
+    )
+}
+
+@PreviewTest
+@Preview(name = "production_diagnostics_compact_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionDiagnosticsCompactDarkScreenshot() {
+    DiagnosticsCardFixture(
+        darkTheme = true,
+        supportDetailsInitiallyExpanded = false,
+    )
+}
+
+@PreviewTest
+@Preview(name = "production_diagnostics_support_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionDiagnosticsSupportLightScreenshot() {
+    DiagnosticsCardFixture(
+        darkTheme = false,
+        supportDetailsInitiallyExpanded = true,
+    )
+}
+
+@PreviewTest
+@Preview(
+    name = "production_diagnostics_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun ProductionDiagnosticsLargeFontScreenshot() {
+    DiagnosticsCardFixture(
+        darkTheme = false,
+        supportDetailsInitiallyExpanded = false,
+    )
 }
 
 @Composable
@@ -92,6 +132,61 @@ private fun ProductionSettingsFixture(darkTheme: Boolean) {
         }
     }
 }
+
+@Composable
+private fun UpdateCardFixture(state: UpdateUiState) {
+    MyFinHubTheme(darkTheme = false) {
+        Surface {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(MyFinHubSpacing.lg),
+            ) {
+                UpdateSettingsCard(
+                    currentVersionName = "0.1.0",
+                    state = state,
+                    onCheck = {},
+                    onDownload = {},
+                    onInstall = {},
+                    onOpenInstallPermission = {},
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticsCardFixture(
+    darkTheme: Boolean,
+    supportDetailsInitiallyExpanded: Boolean,
+) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        Surface {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(MyFinHubSpacing.lg),
+            ) {
+                ProductionDiagnosticsCard(
+                    diagnostics = diagnosticsSnapshot(),
+                    supportDetailsInitiallyExpanded = supportDetailsInitiallyExpanded,
+                )
+            }
+        }
+    }
+}
+
+private fun diagnosticsSnapshot() = AppDiagnosticsSnapshot(
+    versionName = "1.0.0-rc7",
+    buildType = "release",
+    environment = "Production public client",
+    apiHost = "api.myfinhub.app",
+    networkStatus = "Χωρίς σύνδεση",
+    apiStatus = "Offline cache · 2 εκκρεμείς",
+    sessionStatus = "Ενεργή · AAL2",
+    lastSuccessfulSync = "2026-09-10T12:30:00Z",
+    lastDiagnosticCode = "MFH-API-SERVER-503",
+)
 
 private fun updateRelease() = UpdateRelease(
     versionCode = 2,
