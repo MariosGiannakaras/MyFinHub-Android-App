@@ -532,7 +532,7 @@ private fun ProductionDateChoice(
 }
 
 @Composable
-private fun GreekDatePicker(
+internal fun GreekDatePicker(
     selectedDate: String,
     content: @Composable (String) -> Unit,
 ) {
@@ -568,6 +568,6 @@ private fun Long.toIsoDateText(): String = Instant.ofEpochMilli(this)
     .toLocalDate()
     .toString()
 
-private fun String.toGreekDateLabel(): String = runCatching {
+internal fun String.toGreekDateLabel(): String = runCatching {
     LocalDate.parse(this).format(GreekDateFormatter)
 }.getOrDefault(this)

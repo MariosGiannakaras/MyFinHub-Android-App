@@ -417,25 +417,27 @@ internal fun DateEntryField(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
 
-    MyFinHubOutlinedField(
-        value = value,
-        onValueChange = onValueChange,
+    val displayValue = when {
+        value.isBlank() && optional -> "Δεν έχει οριστεί"
+        value.isBlank() -> "Επιλογή ημερομηνίας"
+        else -> value.toGreekDateLabel()
+    }
+
+    MyFinHubSelectorButton(
         label = label,
+        onClick = { pickerOpen = true },
         modifier = modifier,
-        supportingText = if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD",
         errorMessage = errorMessage,
-        trailingIcon = {
-            MyFinHubFieldIconButton(
-                icon = MyFinHubIcons.Plan,
-                contentDescription = "Επιλογή ημερομηνίας",
-                onClick = { pickerOpen = true },
-            )
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Ascii,
-            imeAction = ImeAction.Next,
-        ),
-    )
+    ) {
+        Text(displayValue)
+    }
+    if (optional && errorMessage == null) {
+        Text(
+            "Προαιρετικό",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 
     if (pickerOpen) {
         val pickerState = rememberDatePickerState(
@@ -462,7 +464,16 @@ internal fun DateEntryField(
                 }
             },
         ) {
-            DatePicker(state = pickerState)
+            GreekDatePicker(
+                selectedDate = pickerState.selectedDateMillis?.toDateText()?.toGreekDateLabel()
+                    ?: displayValue,
+            ) {
+                DatePicker(
+                    state = pickerState,
+                    title = { Text("Επιλογή ημερομηνίας") },
+                    headline = { Text(it) },
+                )
+            }
         }
     }
 }
