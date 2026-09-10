@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,39 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-
-      - name: Insert Slice E row-local font flag
-        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-plan-ui-correction'
-        shell: bash
-        run: |
-          git fetch origin "$GITHUB_HEAD_REF"
-          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt')
-          text = path.read_text(encoding='utf-8')
-          start = text.index('private fun PlannedFlowRow(')
-          end = text.index('internal data class CanonicalBudgetProgress', start)
-          block = text[start:end]
-          declaration = '    val largeFont = LocalDensity.current.fontScale >= 1.3f\n'
-          if declaration not in block:
-              source = block.index('    val sourceLabel = when (item.kind) {')
-              boundary = block.index('\n    }\n\n    Row(', source)
-              insert_at = boundary + len('\n    }\n')
-              block = block[:insert_at] + declaration + block[insert_at:]
-              text = text[:start] + block + text[end:]
-          path.write_text(text, encoding='utf-8')
-          PY
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt
-          if git diff --cached --quiet; then
-            echo 'Row-local font flag is already present.'
-            exit 0
-          fi
-          git commit -m 'Android: complete Plan large-font row fix'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
