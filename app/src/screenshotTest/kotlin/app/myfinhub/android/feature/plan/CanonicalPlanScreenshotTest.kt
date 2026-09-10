@@ -80,6 +80,7 @@ private fun canonicalPlanScreenshotState() = PlanUiState(
     message = "Αλλαγή budget · Αναμονή επιβεβαίωσης από τον server",
 )
 
+// Keeps income, transfer direction, and budget progress visible together at 150% font.
 private fun canonicalPlanFlowScreenshotState(): PlanUiState {
     val base = canonicalPlanScreenshotState()
     return base.copy(
