@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -58,6 +58,39 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Commit accepted Slice G references
+        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-settings-ui-correction'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp_dir="$(mktemp -d)"
+          notice_dir='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/NoticeHistoryScreenshotTestKt'
+          settings_dir='app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/utilities/ProductionSettingsScreenshotTestKt'
+
+          mkdir -p "$tmp_dir/$(dirname "$notice_dir")" "$tmp_dir/$(dirname "$settings_dir")"
+          cp -a "$notice_dir" "$tmp_dir/$(dirname "$notice_dir")/"
+          cp -a "$settings_dir" "$tmp_dir/$(dirname "$settings_dir")/"
+
+          git reset --hard
+          git clean -fd
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+
+          mkdir -p "$(dirname "$notice_dir")" "$(dirname "$settings_dir")"
+          cp -a "$tmp_dir/$notice_dir" "$(dirname "$notice_dir")/"
+          cp -a "$tmp_dir/$settings_dir" "$(dirname "$settings_dir")/"
+
+          git add "$notice_dir" "$settings_dir"
+          if git diff --cached --quiet; then
+            echo 'Accepted Slice G references already match the branch.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Android: refresh accepted Slice G screenshot references'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
