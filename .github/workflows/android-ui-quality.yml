@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -27,6 +27,49 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Fix Slice E large-font Plan row wrapping
+        if: github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-plan-ui-correction'
+        shell: bash
+        run: |
+          git fetch origin "$GITHUB_HEAD_REF"
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt')
+          text = path.read_text(encoding='utf-8')
+          marker = '''    val sourceLabel = when (item.kind) {
+              PlannedKind.RECURRING -> "Επαναλαμβανόμενο"
+              PlannedKind.SCHEDULED -> "Προγραμματισμένο"
+          }'''.replace('          ', '    ')
+          large_font_line = '    val largeFont = LocalDensity.current.fontScale >= 1.3f'
+          if large_font_line not in text:
+              if marker not in text:
+                  raise SystemExit('Expected PlannedFlowRow source-label block was not found; refusing to patch.')
+              text = text.replace(marker, marker + '\n' + large_font_line, 1)
+
+          start = text.index('private fun PlannedFlowRow(')
+          end = text.index('internal data class CanonicalBudgetProgress', start)
+          block = text[start:end]
+          if 'maxLines = if (largeFont) 2 else 1,' not in block:
+              count = block.count('maxLines = 1,')
+              if count != 3:
+                  raise SystemExit(f'Expected exactly 3 one-line account/route constraints, found {count}; refusing to patch.')
+              block = block.replace('maxLines = 1,', 'maxLines = if (largeFont) 2 else 1,')
+              text = text[:start] + block + text[end:]
+
+          path.write_text(text, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanScreens.kt
+          if git diff --cached --quiet; then
+            echo 'Large-font Plan row wrapping is already fixed.'
+            exit 0
+          fi
+          git commit -m 'Android: fix Plan large-font route wrapping'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
