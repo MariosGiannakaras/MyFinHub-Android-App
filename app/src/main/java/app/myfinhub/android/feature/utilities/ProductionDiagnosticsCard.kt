@@ -44,8 +44,8 @@ internal fun ProductionDiagnosticsCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             DiagnosticSummaryRow("Σύνδεση", diagnostics.networkStatus)
-            DiagnosticSummaryRow("Συγχρονισμός", diagnostics.apiStatus)
-            DiagnosticSummaryRow("Συνεδρία", diagnostics.sessionStatus)
+            DiagnosticSummaryRow("Συγχρονισμός", humanReadableSyncStatus(diagnostics.apiStatus))
+            DiagnosticSummaryRow("Συνεδρία", humanReadableSessionStatus(diagnostics.sessionStatus))
             DiagnosticSummaryRow(
                 "Τελευταίος επιτυχής συγχρονισμός",
                 formatDiagnosticTime(diagnostics.lastSuccessfulSync),
