@@ -36,7 +36,7 @@ internal fun UpdateSettingsCard(
             )
             when (state) {
                 UpdateUiState.Idle -> {
-                    StatusText("Ο αυτόματος έλεγχος γίνεται όταν η ασφαλής συνεδρία είναι έτοιμη.")
+                    StatusText("Ο αυτόματος έλεγχος γίνεται όταν η σύνδεση του λογαριασμού είναι έτοιμη.")
                     MyFinHubOutlinedAction("Έλεγχος για ενημερώσεις", onCheck, Modifier.fillMaxWidth())
                 }
                 UpdateUiState.Checking -> {
@@ -84,7 +84,7 @@ internal fun UpdateSettingsCard(
                 }
             }
             Text(
-                "Η ενημέρωση δεν αποσυνδέει τον λογαριασμό. Μετά την επανεκκίνηση συνεχίζει η κανονική τοπική επαλήθευση PIN/βιομετρικού και ο έλεγχος της υπάρχουσας server session.",
+                "Η ενημέρωση δεν αποσυνδέει τον λογαριασμό. Μετά την επανεκκίνηση συνεχίζει η κανονική τοπική επαλήθευση PIN/βιομετρικού και ο έλεγχος της υπάρχουσας ασφαλούς συνεδρίας.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -116,21 +116,23 @@ private fun formatBytes(bytes: Long): String = when {
     else -> "$bytes B"
 }
 
-private fun failureMessage(kind: UpdateFailureKind): String = when (kind) {
-    UpdateFailureKind.BUILD_NOT_CONFIGURED -> "Η υπηρεσία ενημερώσεων δεν είναι ρυθμισμένη σε αυτό το build."
-    UpdateFailureKind.AUTH_REQUIRED -> "Η ασφαλής συνεδρία δεν είναι διαθέσιμη για έλεγχο ενημέρωσης."
-    UpdateFailureKind.MFA_REQUIRED -> "Απαιτείται ολοκληρωμένη επαλήθευση AAL2 για ιδιωτικές ενημερώσεις."
+internal fun updateFailureMessage(kind: UpdateFailureKind): String = when (kind) {
+    UpdateFailureKind.BUILD_NOT_CONFIGURED -> "Η υπηρεσία ενημερώσεων δεν είναι διαθέσιμη σε αυτή την έκδοση."
+    UpdateFailureKind.AUTH_REQUIRED -> "Χρειάζεται ενεργή σύνδεση λογαριασμού για έλεγχο ενημέρωσης."
+    UpdateFailureKind.MFA_REQUIRED -> "Χρειάζεται επιπλέον επαλήθευση ταυτότητας για τις ιδιωτικές ενημερώσεις."
     UpdateFailureKind.NETWORK -> "Δεν ήταν δυνατή η σύνδεση με την υπηρεσία ενημερώσεων."
     UpdateFailureKind.SERVER -> "Η υπηρεσία ενημερώσεων δεν είναι προσωρινά διαθέσιμη."
     UpdateFailureKind.MALFORMED_METADATA -> "Τα στοιχεία της διαθέσιμης ενημέρωσης δεν είναι έγκυρα."
     UpdateFailureKind.INSECURE_DOWNLOAD -> "Η πηγή λήψης της ενημέρωσης απορρίφθηκε για λόγους ασφαλείας."
     UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
-    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το ληφθέν αρχείο δεν πέρασε τον έλεγχο ακεραιότητας και διαγράφηκε."
+    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το αρχείο ενημέρωσης δεν πέρασε τον έλεγχο ακεραιότητας και διαγράφηκε."
     UpdateFailureKind.WRONG_PACKAGE,
     UpdateFailureKind.WRONG_VERSION,
     UpdateFailureKind.WRONG_SIGNER,
-    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το APK δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και διαγράφηκε."
+    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το αρχείο ενημέρωσης δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και διαγράφηκε."
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> "Απαιτείται άδεια εγκατάστασης ιδιωτικών ενημερώσεων."
     UpdateFailureKind.INSTALL_BLOCKED -> "Το Android εμπόδισε την έναρξη της εγκατάστασης."
     UpdateFailureKind.INSTALL_FAILED -> "Η εγκατάσταση δεν ολοκληρώθηκε. Το υπάρχον MyFinHub παραμένει εγκατεστημένο."
 }
+
+private fun failureMessage(kind: UpdateFailureKind): String = updateFailureMessage(kind)

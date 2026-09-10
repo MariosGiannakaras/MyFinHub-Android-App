@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_owner_ui_correction_slice_g_settings_diagnostics_ready`.
+- Workstream state: `rc7_owner_ui_correction_slice_h_full_validation_ready`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are complete through Slice F Insights / analytics in PR #107: equivalent-period canonical comparisons replace partial-month versus full-month comparisons, finance metrics are explicit, partial months remain identifiable with accessible exact values, category context and Activity drill-down are wired, and the top-level analytics destination is now `Ανάλυση`. Fresh light/dark/150%-font renders were personally inspected, accepted screenshot references match the current UI, and Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed on the validated implementation head. Slice G Settings / diagnostics / notifications is next. Overall progress remains 4/6 until Slice G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are merged to `develop`, and Slice G Settings / diagnostics / notifications is completed in PR #108 with consumer-first Settings grouping, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy, fresh owner-audited light/dark/150%-font references, and green Android CI / screenshot regression / S24-target instrumentation. After Slice G merge, Slice H is the only remaining correction slice: full-product regression/visual validation followed, only if exact-head gates remain green, by a strictly higher same-signer production candidate and explicit physical S24 owner acceptance. Overall progress remains 4/6 until that physical acceptance is complete.
 
 ## Immediate work
 
-- Merge the validated Slice F PR #107 to `develop`; then create or resume `android/rc7-owner-settings-ui-correction` from the exact post-merge `develop` head.
-- Complete Slice G Settings / diagnostics / notifications: simplify visual grouping, keep technical diagnostics secondary/expandable, present human-readable auth/update states and local date/time first, retain raw codes only as secondary copyable support detail, and keep notification history privacy-safe.
-- Render fresh Settings/diagnostics/notification light/dark/150%-font evidence, personally inspect it, run relevant accessibility/unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation, then proceed to full Slice H validation and a strictly higher same-signer production candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- After Slice G merge, create or resume `android/rc7-owner-full-validation` from the exact `develop` head and run Slice H full validation across every materially changed production surface/state using fresh actual Compose evidence.
+- Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.
+- Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion.
 
 ## Constraints
 
