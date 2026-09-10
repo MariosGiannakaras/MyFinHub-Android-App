@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `rc7_owner_ui_correction_slice_f_insights_implementation`.
+- Workstream state: `rc7_owner_ui_correction_slice_g_settings_diagnostics_ready`.
 - Latest private production candidate: `1.0.0-rc7` / `10006` — `physically_installed_owner_not_final_correction_pass_open`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-E are merged to `develop`, with Slice E Plan / cash-flow / budget completed via PR #106 after owner-audited renders and exact-head Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed. Slice F Insights / analytics is active on `android/rc7-owner-insights-ui-correction`: implementation is replacing partial-month versus full-month comparisons with equivalent canonical date ranges, clarifying expense/income/net metrics, marking partial months in the four-month chart while preserving exact accessible values, adding category percentages/identity and category-aware Activity drill-down, and validating the owner-facing `Εικόνα` to `Ανάλυση` rename on S24-width renders. Overall progress remains 4/6 until Slices F-G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
+Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are complete through Slice F Insights / analytics in PR #107: equivalent-period canonical comparisons replace partial-month versus full-month comparisons, finance metrics are explicit, partial months remain identifiable with accessible exact values, category context and Activity drill-down are wired, and the top-level analytics destination is now `Ανάλυση`. Fresh light/dark/150%-font renders were personally inspected, accepted screenshot references match the current UI, and Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed on the validated implementation head. Slice G Settings / diagnostics / notifications is next. Overall progress remains 4/6 until Slice G, full Slice H validation, a higher same-signer production candidate and explicit physical S24 acceptance are complete.
 
 ## Immediate work
 
-- Complete Slice F Insights / analytics on `android/rc7-owner-insights-ui-correction`: wire equivalent-period canonical projections into production, mark partial months, use unambiguous finance metrics, add category percentages/identity and category-aware Activity drill-down, and validate `Ανάλυση` navigation naming.
-- Render fresh Insights light/dark/150%-font evidence; personally inspect comparison labels, partial-month chart semantics, category rows and navigation width, fix defects, then run relevant unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation before merge.
-- After Slice F merge, complete Slice G Settings / diagnostics / notifications, then run full Slice H validation and publish a strictly higher same-signer candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
+- Merge the validated Slice F PR #107 to `develop`; then create or resume `android/rc7-owner-settings-ui-correction` from the exact post-merge `develop` head.
+- Complete Slice G Settings / diagnostics / notifications: simplify visual grouping, keep technical diagnostics secondary/expandable, present human-readable auth/update states and local date/time first, retain raw codes only as secondary copyable support detail, and keep notification history privacy-safe.
+- Render fresh Settings/diagnostics/notification light/dark/150%-font evidence, personally inspect it, run relevant accessibility/unit/UI checks plus Project Tracking, Android CI, screenshot regression and S24-target instrumentation, then proceed to full Slice H validation and a strictly higher same-signer production candidate than versionCode `10006` for explicit physical S24 owner acceptance before any stable/main promotion.
 
 ## Constraints
 
