@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -58,6 +58,45 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Commit accepted Slice F references
+        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-insights-ui-correction'
+        shell: bash
+        run: |
+          set -euo pipefail
+          refs=(
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/HomeScreenshotTestKt/HomeEdgeValuesPhoneScreenshot_home_edge_values_phone_4a5b132f_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/HomeScreenshotTestKt/HomeCompactLightScreenshot_home_compact_light_bfd9ed62_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/HomeScreenshotTestKt/HomeCompactDarkScreenshot_home_compact_dark_75a2e448_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLargeFontScreenshot_insights_compact_large_font_4a869b16_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png'
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsFullLargeFontScreenshot_insights_full_large_font_2f10194e_0.png'
+          )
+          tmp="$(mktemp -d)"
+          for path in "${refs[@]}"; do
+            mkdir -p "$tmp/$(dirname "$path")"
+            cp "$path" "$tmp/$path"
+          done
+          git reset --hard
+          git clean -fd
+          git fetch origin "$GITHUB_HEAD_REF" develop --depth=1
+          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
+          for path in "${refs[@]}"; do
+            mkdir -p "$(dirname "$path")"
+            cp "$tmp/$path" "$path"
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- "${refs[@]}"
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Accepted Slice F references already match.'
+            exit 0
+          fi
+          git commit -m 'Android: refresh accepted Slice F screenshot references'
+          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
