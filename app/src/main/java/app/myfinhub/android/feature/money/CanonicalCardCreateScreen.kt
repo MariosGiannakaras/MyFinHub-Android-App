@@ -178,7 +178,7 @@ fun CanonicalCardCreateScreen(
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                listOf("physical" to "Φυσική", "virtual" to "Virtual").forEach { (value, label) ->
+                listOf("physical" to "Φυσική", "virtual" to "Εικονική").forEach { (value, label) ->
                     FilterChip(
                         selected = formFactor == value,
                         onClick = { formFactor = value },
