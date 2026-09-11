@@ -11,12 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_preparation_verified",
-    "summary": "Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.",
+    "status": "android_redesign_s1_projection_validation",
+    "summary": "Preparation merged through PR #111. S1.1 implements complete Plan inputs and canonical aggregate credit debt independent of card visibility. Similar scheduled/recurring display fields no longer suppress independent obligations. No layout redesign or shared-backend changes. Kotlin tests await hosted CI because local Gradle distribution download is network-blocked.",
     "next": [
-      "Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.",
-      "Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.",
-      "Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit."
+      "Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.",
+      "Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.3 capability map and S1.4 regression verification."
     ]
   },
   "latest_production_candidate": {
@@ -82,12 +81,14 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-tracking-foundation",
-    "pr": 111,
-    "current_slice": "Preparation",
-    "checkpoint": "preparation_verified_resume_from_live_pr111",
-    "blockers": [],
-    "next_action": "Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.",
+    "branch": "android/redesign-s1-projection-integrity",
+    "pr": null,
+    "current_slice": "S1.1",
+    "checkpoint": "implemented_pending_hosted_validation",
+    "blockers": [
+      "Local Gradle 9.7.0 distribution download failed: network unreachable. Use existing hosted Android CI; do not claim local Kotlin tests passed."
+    ],
+    "next_action": "Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -137,8 +138,11 @@
         {
           "id": "S1.1",
           "title": "Projection completeness and retained debt",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Added regression fixtures for >20 pending rows, horizon filtering, same-title independent obligations, card deactivation, payments, future entries and snapshot debt with no visible cards.",
+            "git diff --check passed; Kotlin execution awaits hosted Android CI."
+          ]
         },
         {
           "id": "S1.2",
