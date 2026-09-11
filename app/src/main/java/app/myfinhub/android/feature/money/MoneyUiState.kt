@@ -86,6 +86,8 @@ data class MoneyUiState(
     val loans: List<LoanItem> = emptyList(),
     val lendingItems: List<LendingItem> = emptyList(),
     val frontendMessage: String? = null,
+    /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
+    val aggregateCreditOutstanding: Double? = null,
 )
 
 sealed interface MoneyAction {
