@@ -5,7 +5,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] After Slice G merge, create or resume `android/rc7-owner-full-validation` from the exact `develop` head and run Slice H full validation across every materially changed production surface/state using fresh actual Compose evidence.
+- [ ] Complete Slice H on `android/rc7-owner-full-validation`: run full-product screenshot and regression validation across every materially changed production surface/state and personally inspect the fresh rendered evidence for unexpected drift.
 - [ ] Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.
 - [ ] Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion.
 

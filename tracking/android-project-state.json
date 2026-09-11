@@ -11,10 +11,10 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "rc7_owner_ui_correction_slice_h_full_validation_ready",
-    "summary": "Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-F are merged to `develop`, and Slice G Settings / diagnostics / notifications is completed in PR #108 with consumer-first Settings grouping, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy, fresh owner-audited light/dark/150%-font references, and green Android CI / screenshot regression / S24-target instrumentation. After Slice G merge, Slice H is the only remaining correction slice: full-product regression/visual validation followed, only if exact-head gates remain green, by a strictly higher same-signer production candidate and explicit physical S24 owner acceptance. Overall progress remains 4/6 until that physical acceptance is complete.",
+    "status": "rc7_owner_ui_correction_slice_h_full_validation_active",
+    "summary": "Production-signed `1.0.0-rc7` / versionCode `10006` remains the installed technical baseline on the authorized Samsung Galaxy S24 Ultra, but is not owner-accepted as final. Owner correction Slices A-G are merged to `develop`. Slice H full validation is active on `android/rc7-owner-full-validation`: re-run the complete production screenshot suite and Android/S24 regression gates across all materially changed surfaces, re-check light/dark/150%-font and accessibility/touch semantics where interactions changed, and preserve finance/auth/offline/reconcile behavior. Only after exact-head Slice H validation may the next protected same-signer production candidate be requested. Overall progress remains 4/6 until that higher candidate is installed in place and explicitly accepted on the physical S24.",
     "next": [
-      "After Slice G merge, create or resume `android/rc7-owner-full-validation` from the exact `develop` head and run Slice H full validation across every materially changed production surface/state using fresh actual Compose evidence.",
+      "Complete Slice H on `android/rc7-owner-full-validation`: run full-product screenshot and regression validation across every materially changed production surface/state and personally inspect the fresh rendered evidence for unexpected drift.",
       "Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.",
       "Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion."
     ]
@@ -82,7 +82,7 @@
     "plan_doc": "docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md",
     "branch": "android/rc7-owner-full-validation",
     "current_slice": "H — Full validation and corrected production candidate",
-    "checkpoint": "slice_h_full_validation_ready",
+    "checkpoint": "slice_h_full_validation_started",
     "owner_audited_surfaces": [
       "Home",
       "Activity / Transactions",

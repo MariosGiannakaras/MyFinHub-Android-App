@@ -11,6 +11,9 @@ import app.myfinhub.android.feature.quickentry.QuickEntrySplitPartDraft
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import com.android.tools.screenshot.PreviewTest
 
+// Slice H exact-head validation checkpoint after owner-inspected references were accepted.
+// This intentionally changes no product semantics and exists only to run the final hosted gates.
+
 @PreviewTest
 @Preview(
     name = "phase2b_activity_compact_light",
@@ -83,7 +86,48 @@ fun Phase2BQuickEntryCompactDarkScreenshot() {
 )
 @Composable
 fun Phase2BQuickEntrySplitCompactLightScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
+    QuickEntrySplitScreenshotFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(
+    name = "phase2b_quick_entry_split_compact_dark",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true,
+)
+@Composable
+fun Phase2BQuickEntrySplitCompactDarkScreenshot() {
+    QuickEntrySplitScreenshotFixture(darkTheme = true)
+}
+
+@PreviewTest
+@Preview(
+    name = "phase2b_quick_entry_split_compact_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun Phase2BQuickEntrySplitCompactLargeFontScreenshot() {
+    QuickEntrySplitScreenshotFixture(darkTheme = false)
+}
+
+@Composable
+private fun QuickEntryScreenshotFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        QuickEntryScreen(
+            state = QuickEntryUiState(dateText = "2026-09-02"),
+            onAction = {},
+            onBack = {},
+        )
+    }
+}
+
+@Composable
+private fun QuickEntrySplitScreenshotFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
         QuickEntryScreen(
             state = QuickEntryUiState(
                 kind = QuickEntryKind.SPLIT,
@@ -106,17 +150,6 @@ fun Phase2BQuickEntrySplitCompactLightScreenshot() {
                     ),
                 ),
             ),
-            onAction = {},
-            onBack = {},
-        )
-    }
-}
-
-@Composable
-private fun QuickEntryScreenshotFixture(darkTheme: Boolean) {
-    MyFinHubTheme(darkTheme = darkTheme) {
-        QuickEntryScreen(
-            state = QuickEntryUiState(dateText = "2026-09-02"),
             onAction = {},
             onBack = {},
         )

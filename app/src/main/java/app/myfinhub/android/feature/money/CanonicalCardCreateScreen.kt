@@ -93,7 +93,7 @@ fun CanonicalCardCreateScreen(
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. PAN και λήξη παραμένουν στο ασφαλές server vault και το CVV μόνο στη συσκευή.",
+                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. Τα ευαίσθητα στοιχεία προστατεύονται και δεν εμφανίζονται σε στιγμιότυπα οθόνης ή διαγνωστικά.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -178,7 +178,7 @@ fun CanonicalCardCreateScreen(
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
             ) {
-                listOf("physical" to "Φυσική", "virtual" to "Virtual").forEach { (value, label) ->
+                listOf("physical" to "Φυσική", "virtual" to "Εικονική").forEach { (value, label) ->
                     FilterChip(
                         selected = formFactor == value,
                         onClick = { formFactor = value },

@@ -14,6 +14,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,6 +51,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.util.Locale
 
 @Composable
 fun QuickEntryScreen(
@@ -417,30 +418,35 @@ internal fun DateEntryField(
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
 
-    MyFinHubOutlinedField(
-        value = value,
-        onValueChange = onValueChange,
+    val displayValue = when {
+        value.isBlank() && optional -> "Δεν έχει οριστεί"
+        value.isBlank() -> "Επιλογή ημερομηνίας"
+        else -> value.toGreekDateLabel()
+    }
+
+    MyFinHubSelectorButton(
         label = label,
+        onClick = { pickerOpen = true },
         modifier = modifier,
-        supportingText = if (optional) "Προαιρετικό · YYYY-MM-DD" else "YYYY-MM-DD",
         errorMessage = errorMessage,
-        trailingIcon = {
-            MyFinHubFieldIconButton(
-                icon = MyFinHubIcons.Plan,
-                contentDescription = "Επιλογή ημερομηνίας",
-                onClick = { pickerOpen = true },
-            )
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Ascii,
-            imeAction = ImeAction.Next,
-        ),
-    )
+    ) {
+        Text(displayValue)
+    }
+    if (optional && errorMessage == null) {
+        Text(
+            "Προαιρετικό",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 
     if (pickerOpen) {
-        val pickerState = rememberDatePickerState(
-            initialSelectedDateMillis = value.toDatePickerMillis(),
-        )
+        val pickerState = remember(value) {
+            DatePickerState(
+                locale = Locale.forLanguageTag("el-GR"),
+                initialSelectedDateMillis = value.toDatePickerMillis(),
+            )
+        }
         DatePickerDialog(
             onDismissRequest = { pickerOpen = false },
             confirmButton = {
@@ -462,7 +468,16 @@ internal fun DateEntryField(
                 }
             },
         ) {
-            DatePicker(state = pickerState)
+            GreekDatePicker(
+                selectedDate = pickerState.selectedDateMillis?.toDateText()?.toGreekDateLabel()
+                    ?: displayValue,
+            ) {
+                DatePicker(
+                    state = pickerState,
+                    title = { Text("Επιλογή ημερομηνίας") },
+                    headline = { Text(it) },
+                )
+            }
         }
     }
 }
