@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete Slice H on `android/rc7-owner-full-validation`: run full-product screenshot and regression validation across every materially changed production surface/state and personally inspect the fresh rendered evidence for unexpected drift.
-- [ ] Re-check affected light/dark/150%-font states, TalkBack/semantics/touch targets where interactions changed, and production finance/auth/offline/reconcile semantics; require Project Tracking, Android CI, screenshot regression and S24-target instrumentation green on the exact Slice H head.
-- [ ] Only after exact-head Slice H validation, request the next protected same-signer production candidate with a strictly higher versionCode than `10006`; install it in place on the authorized S24 without clearing data and require explicit physical owner acceptance before any stable/main promotion.
+- [ ] Install production-signed `1.0.0-rc8` / versionCode `10007` in place over rc7 on the authorized Samsung Galaxy S24 Ultra without uninstalling, clearing data or changing package/signing identity.
+- [ ] Run the physical rc8 acceptance checklist: verify existing session and local PIN/biometric continuity, device-local CVV where applicable, Home/account/provider identity, cards/create/detail/activity/stack/delete transition, Activity/navigation, Money/Plan/Insights/Quick Entry, light/dark/150%-font, production Auth/API, offline/reconnect exactly-once reconciliation and device performance.
+- [ ] Only after explicit owner acceptance of rc8 may tracking advance and a deliberate `develop -> main` stable promotion be considered; if physical findings reject rc8, keep progress at 4/6 and open only the minimum correction work required by those findings.
 
 ## Completed foundations
 
@@ -38,6 +38,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice E — explainable 30-day Plan forecast, urgency-grouped obligations, conservative duplicate reconciliation, Greek dates, neutral transfer reconciliation, useful monthly-budget progress and owner-audited screenshot validation (#106)
 - [x] Owner correction Slice F — equivalent-period Insights comparisons, explicit finance metrics, partial-month semantics, category percentages/drill-down, `Ανάλυση` navigation and owner-audited screenshot/S24 validation (#107)
 - [x] Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)
+- [x] Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)
+- [x] Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease
 
 ## Rule
 
