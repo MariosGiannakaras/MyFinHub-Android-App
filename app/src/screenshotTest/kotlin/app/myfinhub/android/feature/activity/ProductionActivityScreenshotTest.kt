@@ -7,6 +7,34 @@ import com.android.tools.screenshot.PreviewTest
 
 // Canonical Slice C references cover light, dark, 150% font, account-filter sheet and detail states.
 @PreviewTest
+@Preview(name = "category_activity_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CategoryActivityLightScreenshot() { CategoryActivityFixture(false) }
+
+@PreviewTest
+@Preview(name = "category_activity_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CategoryActivityDarkScreenshot() { CategoryActivityFixture(true) }
+
+@PreviewTest
+@Preview(name = "category_activity_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun CategoryActivityLargeFontScreenshot() { CategoryActivityFixture(false) }
+
+@Composable
+private fun CategoryActivityFixture(darkTheme: Boolean) {
+    val state = ActivityUiState(items = listOf(
+        ActivityItem("refund", "10 Σεπ", ActivityKind.INCOME, "Επιστροφή αγοράς", "Μερική επιστροφή", 5.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-09-10", categoryContributions = mapOf("Τρόφιμα" to -5.0)),
+        ActivityItem("split", "1 Σεπ", ActivityKind.EXPENSE, "Εβδομαδιαίες αγορές", "Μοιρασμένη κίνηση", -100.0,
+            "Πειραιώς Μισθοδοσίας", null, rawDate = "2026-09-01", categoryContributions = mapOf("Τρόφιμα" to 20.0)),
+    )).forCategory("Τρόφιμα", "2026-09-01", "2026-09-10")
+    MyFinHubTheme(darkTheme = darkTheme) {
+        ActivityScreen(state, {}, {}, {}, onBack = {})
+    }
+}
+
+@PreviewTest
 @Preview(name = "production_activity_pending_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun ProductionActivityPendingLightScreenshot() {

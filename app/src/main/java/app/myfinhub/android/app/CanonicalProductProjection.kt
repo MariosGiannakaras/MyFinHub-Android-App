@@ -14,6 +14,7 @@ import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.creditDebtForCardAt
 import app.myfinhub.android.core.data.categoryTotals
+import app.myfinhub.android.core.data.categoryContributionsBetween
 import app.myfinhub.android.core.data.effectiveLegacyTransactions
 import app.myfinhub.android.core.data.loanOutstanding
 import app.myfinhub.android.core.data.monthlyFlow
@@ -95,7 +96,12 @@ fun projectCanonicalProduct(
     val id = event.string("id") ?: return@mapNotNull null
     id to (event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty())
 }.toMap()
-val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology)
+val contributionsById = document.categoryContributionsBetween("0001-01-01", "9999-12-31")
+    .groupBy { it.transactionId }
+val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology).map { item ->
+    item.copy(categoryContributions = contributionsById[item.id].orEmpty()
+        .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } })
+}
 
     val oldHome = previous?.homeState
     val primaryHomeAccountIds = PRIMARY_HOME_ACCOUNT_IDS.toSet()
@@ -188,7 +194,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         .map { account -> ActivityAccountOption(account.id, account.name) }
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
-        filter = ActivityFilter.ALL,
+        filter = oldActivity?.filter ?: ActivityFilter.ALL,
+        categoryFilter = oldActivity?.categoryFilter,
+        dateFrom = oldActivity?.dateFrom,
+        dateTo = oldActivity?.dateTo,
         accountFilterId = oldActivity?.accountFilterId?.takeIf { selectedId ->
             activityAccountOptions.any { it.id == selectedId }
         },

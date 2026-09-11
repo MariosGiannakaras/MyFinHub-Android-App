@@ -29,16 +29,27 @@ fun CanonicalFinanceDocument.flowBetween(
     )
 }
 
+/** Exact signed expense contribution: refunds reduce the category total; IDs open full detail. */
+data class CategoryContribution(val transactionId: String, val category: String, val amount: Double)
+
 fun CanonicalFinanceDocument.categoryTotalsBetween(
     startInclusive: String,
     endInclusive: String,
-): Map<String, Double> {
-    if (endInclusive < startInclusive) return emptyMap()
+): Map<String, Double> = categoryContributionsBetween(startInclusive, endInclusive)
+    .groupBy(CategoryContribution::category)
+    .mapValues { (_, rows) -> max(0.0, rows.sumOf(CategoryContribution::amount)) }
+    .filterValues { it > 0.005 }
 
-    val totals = linkedMapOf<String, Double>()
-    fun add(category: String?, amount: Double) {
+fun CanonicalFinanceDocument.categoryContributionsBetween(
+    startInclusive: String,
+    endInclusive: String,
+): List<CategoryContribution> {
+    if (endInclusive < startInclusive) return emptyList()
+
+    val contributions = mutableListOf<CategoryContribution>()
+    fun add(transactionId: String, category: String?, amount: Double) {
         val key = category?.takeIf(String::isNotBlank) ?: "Άλλο"
-        totals[key] = (totals[key] ?: 0.0) + amount
+        contributions += CategoryContribution(transactionId, key, amount)
     }
 
     effectiveLegacyTransactions()
@@ -54,14 +65,14 @@ fun CanonicalFinanceDocument.categoryTotalsBetween(
                     val part = rawPart as? JsonObject ?: return@forEach
                     val amount = part.number("amount") ?: return@forEach
                     when (part.string("kind") ?: "expense") {
-                        "expense" -> add(part.string("category"), amount)
-                        "refund" -> add(part.string("category"), -amount)
+                        "expense" -> add(tx.id, part.string("category"), amount)
+                        "refund" -> add(tx.id, part.string("category"), -amount)
                     }
                 }
             } else {
                 val impact = insightsLegacyFlowImpact(tx)
                 if (impact.expense != 0.0) {
-                    add(decision?.string("category") ?: tx.category, impact.expense)
+                    add(tx.id, decision?.string("category") ?: tx.category, impact.expense)
                 }
             }
         }
@@ -70,16 +81,14 @@ fun CanonicalFinanceDocument.categoryTotalsBetween(
         .filter { it.date in startInclusive..endInclusive }
         .forEach { event ->
             if (event.kind == "split") {
-                event.parts.forEach { part -> add(part.category, part.amount) }
+                event.parts.forEach { part -> add(event.id, part.category, part.amount) }
             } else {
                 val impact = insightsEventFlowImpact(event)
-                if (impact.expense != 0.0) add(event.category, impact.expense)
+                if (impact.expense != 0.0) add(event.id, event.category, impact.expense)
             }
         }
 
-    return totals
-        .mapValues { (_, amount) -> max(0.0, amount) }
-        .filterValues { it > 0.005 }
+    return contributions
 }
 
 private data class InsightsFlowImpact(

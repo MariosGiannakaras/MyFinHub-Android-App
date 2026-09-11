@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
-- [ ] Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.4 regression verification. S1.3 production capability map is already documented; do not rediscover it.
+- [ ] Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
+- [ ] Complete S1.4 after regression checks; then begin S2 semantic tokens, shared rows and four-root navigation.
 
 ## Completed foundations
 
@@ -50,14 +50,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s1-projection-integrity`. PR: 112.
-Checkpoint: `s1_1_and_s1_3_verified_pending_final_integration`.
+Working branch: `android/redesign-s1-activity-scope`. PR: 113.
+Checkpoint: `reviewed_category_references_pending_final_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
+Next action: Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
-| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (pending); S1.4 Regression verification (pending) |
+| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (in_progress); S1.4 Regression verification (in_progress) |
 | S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |

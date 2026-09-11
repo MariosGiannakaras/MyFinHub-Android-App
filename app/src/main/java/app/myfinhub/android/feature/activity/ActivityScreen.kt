@@ -83,16 +83,20 @@ fun ActivityScreen(
     onAction: (ActivityAction) -> Unit,
     onOpenDetail: (String) -> Unit,
     onOpenQuickEntry: () -> Unit,
+    onBack: (() -> Unit)? = null,
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
-                title = "Κινήσεις",
-                subtitle = "Όλες οι καταχωρισμένες κινήσεις",
+                title = state.categoryFilter ?: "Κινήσεις",
+                subtitle = if (state.categoryFilter == null) "Όλες οι καταχωρισμένες κινήσεις" else
+                    "${formatScopeDate(state.dateFrom)} – ${formatScopeDate(state.dateTo)}",
+                navigation = if (onBack != null) { { MyFinHubBackButton(onBack) } } else null,
             )
         },
         bottomBar = {
+            if (state.categoryFilter == null) {
             Surface(color = MaterialTheme.colorScheme.background) {
                 Row(
                     modifier = Modifier
@@ -112,12 +116,13 @@ fun ActivityScreen(
                     )
                 }
             }
+            }
         },
     ) { innerPadding ->
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
         ) {
-            if (maxWidth >= 840.dp) {
+            if (maxWidth >= 840.dp && state.categoryFilter == null) {
                 Row(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
@@ -181,6 +186,16 @@ private fun ActivityList(
         ),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
     ) {
+        if (state.categoryFilter != null) {
+            item {
+                Text(
+                    text = "Ποσά που αντιστοιχούν στην κατηγορία. Άνοιξε μια κίνηση για το πλήρες ποσό και τις λεπτομέρειες.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = MyFinHubSpacing.sm),
+                )
+            }
+        } else {
         item {
             MyFinHubSearchField(
                 value = state.query,
@@ -202,6 +217,7 @@ private fun ActivityList(
                     onSelected = { onAction(ActivityAction.AccountFilterChanged(it)) },
                 )
             }
+        }
         }
         if (state.visibleItems.isEmpty()) {
             item {
@@ -275,6 +291,10 @@ private fun ActivityList(
         )
     }
 }
+
+private fun formatScopeDate(raw: String?): String = runCatching {
+    LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")))
+}.getOrDefault(raw.orEmpty())
 
 @Composable
 private fun ActivityTypeFilters(

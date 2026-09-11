@@ -22,6 +22,8 @@ data class ActivityItem(
     val accountId: String? = null,
     val fromAccountId: String? = null,
     val toAccountId: String? = null,
+    /** Signed expense amounts by exact canonical category; null only for legacy preview fixtures. */
+    val categoryContributions: Map<String, Double>? = null,
 )
 
 data class ActivityCategoryOption(
@@ -59,6 +61,9 @@ data class ActivityUiState(
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
     val accountOptions: List<ActivityAccountOption> = emptyList(),
+    val categoryFilter: String? = null,
+    val dateFrom: String? = null,
+    val dateTo: String? = null,
 ) {
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
@@ -86,7 +91,14 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(needle, ignoreCase = true)
-            matchesFilter && matchesAccount && matchesQuery
+            val matchesCategory = categoryFilter == null ||
+                (item.categoryContributions?.containsKey(categoryFilter)
+                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") == categoryFilter))
+            val matchesDate = (dateFrom == null && dateTo == null) ||
+                (item.rawDate.length >= 10 &&
+                    (dateFrom == null || item.rawDate.take(10) >= dateFrom) &&
+                    (dateTo == null || item.rawDate.take(10) <= dateTo))
+            matchesFilter && matchesAccount && matchesQuery && matchesCategory && matchesDate
         }
     }
 
@@ -124,6 +136,21 @@ data class ActivityUiState(
 
     fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> =
         if (item.kind == ActivityKind.INCOME) incomeCategories else expenseCategories
+
+    /** Isolated read view: opening analysis never replaces the user's global ledger filters. */
+    fun forCategory(category: String, start: String, end: String): ActivityUiState = copy(
+        query = "",
+        filter = ActivityFilter.ALL,
+        accountFilterId = null,
+        selectedId = null,
+        categoryFilter = category,
+        dateFrom = start,
+        dateTo = end,
+        items = items.map { item ->
+            val contribution = item.categoryContributions?.get(category)
+            if (contribution == null) item else item.copy(amount = -contribution)
+        },
+    )
 }
 
 sealed interface ActivityAction {
