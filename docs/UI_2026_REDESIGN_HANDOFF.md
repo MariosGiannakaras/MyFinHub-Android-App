@@ -185,6 +185,12 @@ S1 entrypoints: locate CanonicalPlanProjection.kt, CanonicalProductProjection.kt
 
 ## Checkpoint and completion rules
 
+### S1.1 implementation decision (2026-09-11)
+
+The inspected canonical scheduled projection exposes no link to a recurring source. Matching title, cents, date or account cannot prove two independently keyed obligations are identical. Retain both until an existing explicit canonical relationship can be verified; do not invent a linkage or suppress amounts heuristically. Plan totals use the complete eligible list before horizon filtering, with no presentation cap in the projection.
+
+Money total debt comes from the existing aggregate credit-account ledger balance (including snapshots), independent of active card visibility. Per-card amounts use the existing creditDebtForCardAt rule used by payment validation, including its legacy ownership rule. Never attribute the entire aggregate to the last active card. Snapshot/unallocated debt remains in the total even when no card can truthfully own it. No canonical write or backend formula is changed.
+
 Current state records stable IDs, pending/in_progress/blocked/completed, evidence, exact branch/PR, blockers and next action. Counts derive from subtask state. Completed requires evidence; all four complete makes a slice complete. Preparation has separate four steps, never counted as Android UI implementation. Historical project4/6 stays separate from redesign0/10 and subtasks0/40.
 
 At each coherent checkpoint run narrow checks, commit/push with tracking, update the same PR and persist exact next action before context/quota exhaustion. UI completion requires personally inspected actual Compose renders, not mockups or merely green goldens. Record unmerged/untested/physical-pending explicitly.
