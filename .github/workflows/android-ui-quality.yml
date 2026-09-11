@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
@@ -58,53 +58,6 @@ jobs:
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
-
-      - name: Commit accepted Slice H references
-        if: failure() && github.event_name == 'pull_request' && github.head_ref == 'android/rc7-owner-full-validation'
-        shell: bash
-        run: |
-          set -euo pipefail
-          paths=(
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntryCompactDarkScreenshot_phase2b_quick_entry_compact_dark_04c039f2_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntrySplitCompactLargeFontScreenshot_phase2b_quick_entry_split_compact_large_font_3c1a1156_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntrySplitCompactDarkScreenshot_phase2b_quick_entry_split_compact_dark_73c58653_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntrySplitCompactLightScreenshot_phase2b_quick_entry_split_compact_light_fcccbe67_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntryCompactLightScreenshot_phase2b_quick_entry_compact_light_0e13f224_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDetailScreenshot_production_activity_pending_detail_e48c1de9_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLightScreenshot_canonical_card_create_light_44a64eba_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateLargeFontScreenshot_canonical_card_create_large_font_40b70f4e_0.png'
-            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalCardCreateDarkScreenshot_canonical_card_create_dark_c24b0f7f_0.png'
-          )
-          tmp_dir="$(mktemp -d)"
-          for path in "${paths[@]}"; do
-            test -f "$path"
-            mkdir -p "$tmp_dir/$(dirname "$path")"
-            cp "$path" "$tmp_dir/$path"
-          done
-
-          git reset --hard
-          git clean -fd
-          git fetch origin "$GITHUB_HEAD_REF" develop
-          git checkout -B "$GITHUB_HEAD_REF" "origin/$GITHUB_HEAD_REF"
-
-          for path in "${paths[@]}"; do
-            mkdir -p "$(dirname "$path")"
-            cp "$tmp_dir/$path" "$path"
-          done
-          git checkout origin/develop -- .github/workflows/android-ui-quality.yml
-          git add "${paths[@]}" .github/workflows/android-ui-quality.yml
-
-          png_count="$(git diff --cached --name-only -- '*.png' | wc -l | tr -d ' ')"
-          if [ "$png_count" != '9' ]; then
-            echo "Expected exactly 9 accepted PNG changes, found $png_count"
-            git diff --cached --name-only
-            exit 1
-          fi
-
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Android: accept Slice H validation screenshot references'
-          git push origin HEAD:"$GITHUB_HEAD_REF"
 
       - name: Publish rendered UI screenshots
         if: always()
