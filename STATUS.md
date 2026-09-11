@@ -9,7 +9,7 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `android_redesign_preparation`
+State: `android_redesign_preparation_verified`
 
 Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.
 
@@ -21,7 +21,7 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.
+1. Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
 2. Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.
 3. Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit.
 
@@ -53,9 +53,9 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-tracking-foundation`. PR: 111.
-Checkpoint: `preparation_published_hosted_checks_pending`.
+Checkpoint: `preparation_verified_resume_from_live_pr111`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.
+Next action: Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
