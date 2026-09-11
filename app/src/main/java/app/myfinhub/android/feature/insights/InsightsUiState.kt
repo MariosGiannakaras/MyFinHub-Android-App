@@ -41,6 +41,8 @@ data class InsightsUiState(
     val categories: List<InsightCategory> = syntheticCategories(),
     val averageMonthlySpend: Double = 1_040.0,
     val comparison: InsightsComparison = syntheticComparison(),
+    val categoryStartDate: String = "2026-08-01",
+    val categoryEndDate: String = "2026-08-31",
 )
 
 class InsightsViewModel : ViewModel() {

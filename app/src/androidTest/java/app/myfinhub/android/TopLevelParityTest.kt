@@ -85,7 +85,7 @@ class TopLevelParityTest {
     }
 
     @Test
-    fun insights_categoryDeepLink_opensExpenseActivityWithCategoryQuery() {
+    fun insights_categoryDeepLink_preservesOriginAndGlobalActivityStack() {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
             .performScrollTo()
@@ -98,8 +98,11 @@ class TopLevelParityTest {
         composeRule.onNodeWithContentDescription("Προβολή κινήσεων κατηγορίας Τρόφιμα")
             .performClick()
 
-        composeRule.onNodeWithText("Έξοδα").assertIsDisplayed()
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
     }
 }

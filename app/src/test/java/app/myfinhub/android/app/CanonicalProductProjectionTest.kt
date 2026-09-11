@@ -6,6 +6,7 @@ import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.feature.money.canonicalCreditOutstanding
 import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
+import app.myfinhub.android.feature.activity.ActivityFilter
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -105,7 +106,9 @@ class CanonicalProductProjectionTest {
         val original = projectCanonicalProduct(canonicalFixture(), LocalDate.of(2026, 8, 23))
         val previous = original.copy(
             homeState = original.homeState.copy(amountsVisible = true),
-            activityState = original.activityState.copy(query = "καφ", selectedId = "evt-exp"),
+            activityState = original.activityState.copy(query = "καφ", selectedId = "evt-exp",
+                filter = ActivityFilter.EXPENSE, accountFilterId = "acc-main",
+                categoryFilter = "Τρόφιμα", dateFrom = "2026-08-01", dateTo = "2026-08-23"),
         )
 
         val refreshed = projectCanonicalProduct(
@@ -117,6 +120,22 @@ class CanonicalProductProjectionTest {
         assertTrue(refreshed.homeState.amountsVisible)
         assertEquals("καφ", refreshed.activityState.query)
         assertEquals("evt-exp", refreshed.activityState.selectedId)
+        assertEquals(ActivityFilter.EXPENSE, refreshed.activityState.filter)
+        assertEquals("acc-main", refreshed.activityState.accountFilterId)
+        assertEquals("Τρόφιμα", refreshed.activityState.categoryFilter)
+        assertEquals("2026-08-01", refreshed.activityState.dateFrom)
+        assertEquals("2026-08-23", refreshed.activityState.dateTo)
+    }
+
+    @Test
+    fun everyCategoryDrillDown_reconcilesToItsCanonicalTotal() {
+        val projection = projectCanonicalProduct(canonicalFixture(), LocalDate.of(2026, 8, 23))
+        projection.insightsState.categories.forEach { category ->
+            val rows = projection.activityState.forCategory(category.name,
+                projection.insightsState.categoryStartDate, projection.insightsState.categoryEndDate).visibleItems
+            assertEquals(category.amount, -rows.sumOf { it.amount }, 0.001)
+            assertTrue(rows.all { it.rawDate in "2026-08-01".."2026-08-23" })
+        }
     }
 
     @Test

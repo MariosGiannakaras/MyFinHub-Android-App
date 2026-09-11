@@ -3,8 +3,27 @@ package app.myfinhub.android.core.data
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 
 class CanonicalInsightsRangeTest {
+    @Test
+    fun contributionsIncludeOnlyActualCategoryPartsAndRefunds() {
+        val split = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{},"state":{"events":[
+              {"id":"split","kind":"split","date":"2026-09-01","amount":100,"parts":[
+                {"id":"food","category":"Τρόφιμα","amount":20},
+                {"id":"travel","category":"Μεταφορές","amount":80}]},
+              {"id":"refund","kind":"refund","date":"2026-09-10","amount":5,"category":"Τρόφιμα"},
+              {"id":"payment","kind":"card_payment","date":"2026-09-10","amount":100,"category":"Τρόφιμα"}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val food = split.categoryContributionsBetween("2026-09-01", "2026-09-10").filter { it.category == "Τρόφιμα" }
+        assertEquals(listOf("split", "refund"), food.map { it.transactionId })
+        assertEquals(listOf(20.0, -5.0), food.map { it.amount })
+        assertEquals(15.0, split.categoryTotalsBetween("2026-09-01", "2026-09-10").getValue("Τρόφιμα"), 0.001)
+    }
+
     private val document = canonicalFixture()
 
     @Test

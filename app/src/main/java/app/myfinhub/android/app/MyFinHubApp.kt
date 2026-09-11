@@ -312,6 +312,15 @@ internal fun MyFinHubAppContent(
                         },
                     )
                 }
+                entry<AppRoute.CategoryActivity> { route ->
+                    ActivityScreen(
+                        state = activityState.forCategory(route.category, route.start, route.end),
+                        onAction = onActivityAction,
+                        onOpenDetail = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenQuickEntry = { openFastExpense(activeBackStack) },
+                        onBack = { activeBackStack.removeLastOrNull() },
+                    )
+                }
                 entry<AppRoute.QuickEntry> {
                     if (canonicalProductMode) {
                         ProductionQuickEntryScreen(
@@ -522,12 +531,11 @@ internal fun MyFinHubAppContent(
                     currentDestination = TopLevelDestination.ACTIVITY
                 },
                 onOpenCategoryActivity = { category ->
-                    onActivityAction(ActivityAction.FilterChanged(app.myfinhub.android.feature.activity.ActivityFilter.EXPENSE))
-                    onActivityAction(ActivityAction.QueryChanged(category))
-                    onActivityAction(ActivityAction.AccountFilterChanged(null))
-                    onActivityAction(ActivityAction.Select(null))
-                    activityBackStack.popToRoot()
-                    currentDestination = TopLevelDestination.ACTIVITY
+                    insightsBackStack.pushIfNew(AppRoute.CategoryActivity(
+                        category = category,
+                        start = insightsState.categoryStartDate,
+                        end = insightsState.categoryEndDate,
+                    ))
                 },
             )
         }

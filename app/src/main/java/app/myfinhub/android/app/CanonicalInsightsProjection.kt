@@ -58,6 +58,8 @@ internal fun projectCanonicalInsightsState(
     val completedMonthSpend = trend.filterNot(TrendPoint::isPartial).map(TrendPoint::expense)
 
     return InsightsUiState(
+        categoryStartDate = currentStart.toString(),
+        categoryEndDate = currentEnd.toString(),
         monthlyTrend = trend,
         categories = categories.take(8).map { (name, amount) ->
             InsightCategory(

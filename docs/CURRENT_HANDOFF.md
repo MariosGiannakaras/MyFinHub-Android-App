@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s1_checkpoint_validated`.
+- Workstream state: `android_redesign_s1_scope_validation`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Preparation merged in PR #111. S1.1 projection integrity and S1.3 production capability map are implemented and verified in PR #112. Hosted unit/lint/debug checks, screenshots and S24-target instrumentation passed on the implementation head. Final current-head CI/integration must be checked live before merge. S1.2 and S1.4 remain open. No layout redesign, shared-backend changes or physical owner-acceptance claim.
+PR #112 merged with all checks green. S1.2 now preserves Activity filters and uses an isolated, date-bounded category route with canonical signed contributions for split/refund parity. S1.4 regression validation is in progress, including new light/dark/150% category screenshots. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
-- Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.4 regression verification. S1.3 production capability map is already documented; do not rediscover it.
+- Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
+- Complete S1.4 after regression checks; then begin S2 semantic tokens, shared rows and four-root navigation.
 
 ## Constraints
 
@@ -55,14 +55,14 @@ Preparation merged in PR #111. S1.1 projection integrity and S1.3 production cap
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s1-projection-integrity`. PR: 112.
-Checkpoint: `s1_1_and_s1_3_verified_pending_final_integration`.
+Working branch: `android/redesign-s1-activity-scope`. PR: not yet opened.
+Checkpoint: `scope_implemented_pending_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
+Next action: Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
-| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (pending); S1.4 Regression verification (pending) |
+| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (in_progress); S1.4 Regression verification (in_progress) |
 | S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
