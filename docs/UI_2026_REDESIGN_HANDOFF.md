@@ -185,6 +185,25 @@ S1 entrypoints: locate CanonicalPlanProjection.kt, CanonicalProductProjection.kt
 
 ## Checkpoint and completion rules
 
+### S1.3 verified production capability map (2026-09-11)
+
+Verified against MyFinHubRoot (canonicalProductMode=true), MyFinHubApp production route branches, FinanceProductViewModel, canonical mutation builders and CardSecretViewModel. This is an Android implementation map, not a claim that absent client operations are forbidden by the server. Before adding an absent mutation, inspect the existing contract read-only; do not invent a field or change the backend.
+
+| Capability | Current production path / write boundary | Redesign handling |
+|---|---|---|
+| Activity correction/deletion | FinanceProductViewModel.onActivityAction → EditCanonicalActivity (date/note/category/subcategory), DeleteCanonicalActivity | Reuse in S3; amount/type/account editing needs separate contract verification |
+| All twelve entry kinds | onQuickEntryAction → createQuickEntryCanonicalMutation → canonical finance mutation pipeline | Preserve in S4, including offline/review semantics |
+| Card creation/removal | createCard/deleteCard → CreateCanonicalCard/DeactivateCanonicalCard; post-commit secret purge | Reuse in S6; removal retains financial history |
+| Card metadata editing | No production metadata-update builder/handler in inspected path | Implement only if existing canonical contract supports it; otherwise record explicit dependency in S6, no fake local edit |
+| Server PAN/expiry and local CVV | CardSecretViewModel.reveal/saveServerSecrets/saveCvv/deleteCvv | Preserve separate server/local success and failure outcomes in S6 |
+| Accounts | AccountDetail → canonical account ledger; no production account administration route | Read/navigation in S5; no invented create/edit-account CTA |
+| Savings/loans/claims | Canonical aggregate screens; Money projection does not populate loan/claim item editor lists | Keep truthful summaries in S7; retained legacy editors are not production capabilities |
+| Plan/budget | CanonicalPlanScreen opens budget only; SaveBudget → UpsertOverallBudget | Read Plan/forecast and real overall-budget edit in S7; PlanItem editor is legacy navigation |
+| Attention reviewed | HomeAction.DismissAttention changes projected Home state only | Never present as paid or persistently completed |
+| Notice/change history | Production Settings opens NoticeHistory; ChangeHistory belongs to alternate frontend path | Safe operational notices in S9, not a financial audit-log promise |
+
+Deferred capability work is not counted as implemented here: S1.3 completes the map only. S3/S6/S7 own any missing-operation verification and must explicitly record blockers if existing contracts cannot support it.
+
 ### S1.1 implementation decision (2026-09-11)
 
 The inspected canonical scheduled projection exposes no link to a recurring source. Matching title, cents, date or account cannot prove two independently keyed obligations are identical. Retain both until an existing explicit canonical relationship can be verified; do not invent a linkage or suppress amounts heuristically. Plan totals use the complete eligible list before horizon filtering, with no presentation cap in the projection.
