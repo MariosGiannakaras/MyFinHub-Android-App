@@ -31,6 +31,8 @@ class DateEntryFieldTest {
             .assertIsDisplayed()
             .performClick()
         composeRule.onNodeWithText("Επιλογή ημερομηνίας").assertIsDisplayed()
+
+        // Keep accessibility semantics Greek as well as the visible picker headline.
         composeRule.onAllNodesWithText("September", substring = true).assertCountEquals(0)
         composeRule.onAllNodesWithText("Select date", substring = true).assertCountEquals(0)
     }
