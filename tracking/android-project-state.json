@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s1_projection_validation",
-    "summary": "Preparation merged through PR #111. S1.1 implements complete Plan inputs and canonical aggregate credit debt independent of card visibility. Similar scheduled/recurring display fields no longer suppress independent obligations. No layout redesign or shared-backend changes. Kotlin tests await hosted CI because local Gradle distribution download is network-blocked.",
+    "status": "android_redesign_s1_checkpoint_validated",
+    "summary": "Preparation merged in PR #111. S1.1 projection integrity and S1.3 production capability map are implemented and verified in PR #112. Hosted unit/lint/debug checks, screenshots and S24-target instrumentation passed on the implementation head. Final current-head CI/integration must be checked live before merge. S1.2 and S1.4 remain open. No layout redesign, shared-backend changes or physical owner-acceptance claim.",
     "next": [
-      "Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.",
-      "Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.3 capability map and S1.4 regression verification."
+      "Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.",
+      "Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.4 regression verification. S1.3 production capability map is already documented; do not rediscover it."
     ]
   },
   "latest_production_candidate": {
@@ -82,13 +82,11 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s1-projection-integrity",
-    "pr": null,
+    "pr": 112,
     "current_slice": "S1.1",
-    "checkpoint": "implemented_pending_hosted_validation",
-    "blockers": [
-      "Local Gradle 9.7.0 distribution download failed: network unreachable. Use existing hosted Android CI; do not claim local Kotlin tests passed."
-    ],
-    "next_action": "Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.",
+    "checkpoint": "s1_1_and_s1_3_verified_pending_final_integration",
+    "blockers": [],
+    "next_action": "Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -138,10 +136,12 @@
         {
           "id": "S1.1",
           "title": "Projection completeness and retained debt",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Added regression fixtures for >20 pending rows, horizon filtering, same-title independent obligations, card deactivation, payments, future entries and snapshot debt with no visible cards.",
-            "git diff --check passed; Kotlin execution awaits hosted Android CI."
+            "PR #112 implementation head a18d805924d5024b4b83c810a5ae37cbee832c43: Android CI unit/instrumentation-compile/lint/debug-assembly step passed; screenshot regression and S24-target instrumentation passed.",
+            "Regression fixtures verify >20 pending records, horizon/paid filtering, independent same-title obligations, card deactivation, retained history, partial repayment, future entries and snapshot debt without visible cards.",
+            "Local Gradle could not download its distribution; Kotlin validation was performed by hosted CI, not locally.",
+            "All four implementation-head checks completed successfully: Android CI (including optimized release and bundle policy audits), Project Tracking, screenshot regression, S24-target instrumentation. Head a18d805924d5024b4b83c810a5ae37cbee832c43."
           ]
         },
         {
@@ -153,8 +153,11 @@
         {
           "id": "S1.3",
           "title": "Verified production capability map",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Read production MyFinHubRoot/MyFinHubApp branches and FinanceProductViewModel mutation handlers plus CardSecretViewModel secure operations.",
+            "Persisted supported/absent client operation mapping and per-slice handling in docs/UI_2026_REDESIGN_HANDOFF.md (S1.3). No server capability or implementation claims inferred from dormant editors."
+          ]
         },
         {
           "id": "S1.4",
