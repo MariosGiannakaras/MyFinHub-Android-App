@@ -21,7 +21,7 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Complete and validate the preparation PR on android/redesign-tracking-foundation, then integrate through the normal develop PR workflow.
+1. Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.
 2. Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.
 3. Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit.
 
@@ -52,10 +52,10 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-tracking-foundation`. PR: not yet opened.
-Checkpoint: `preparation_locally_verified_pending_pr`.
+Working branch: `android/redesign-tracking-foundation`. PR: 111.
+Checkpoint: `preparation_published_hosted_checks_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Complete and validate the preparation PR on android/redesign-tracking-foundation, then integrate through the normal develop PR workflow.
+Next action: Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
