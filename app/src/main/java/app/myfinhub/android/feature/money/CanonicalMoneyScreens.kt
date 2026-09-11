@@ -402,7 +402,7 @@ internal fun CanonicalCardDeleteDialog(
     )
 }
 
-internal fun canonicalCreditOutstanding(state: MoneyUiState): Double = state.cards
+internal fun canonicalCreditOutstanding(state: MoneyUiState): Double = state.aggregateCreditOutstanding ?: state.cards
     .filter { card -> card.canonicalKind == "credit" || card.kind.contains("Πιστωτική", ignoreCase = true) }
     .sumOf { card -> card.currentBalance.coerceAtLeast(0.0) }
 
