@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.
-- [ ] Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.3 capability map and S1.4 regression verification.
+- [ ] Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
+- [ ] Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.4 regression verification. S1.3 production capability map is already documented; do not rediscover it.
 
 ## Completed foundations
 
@@ -46,18 +46,18 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 0/10 · Subtasks: 0/40 · Preparation: 4/4**
+**Tasks: 0/10 · Subtasks: 2/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s1-projection-integrity`. PR: not yet opened.
-Checkpoint: `implemented_pending_hosted_validation`.
+Working branch: `android/redesign-s1-projection-integrity`. PR: 112.
+Checkpoint: `s1_1_and_s1_3_verified_pending_final_integration`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.
+Next action: Read live PR #112 and current-head checks. Integrate only after all required checks pass; if merged, branch from latest develop and implement S1.2 exact filter/drill-down scope. S1.1 and S1.3 are verified; do not rediscover them.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
-| S1 Financial truth and capability | 0/4 | S1.1 Projection completeness and retained debt (in_progress); S1.2 Exact filter and drill-down scope (pending); S1.3 Verified production capability map (pending); S1.4 Regression verification (pending) |
+| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (pending); S1.4 Regression verification (pending) |
 | S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
@@ -77,4 +77,4 @@ Next action: Validate the S1.1 PR with hosted Android CI; inspect any failures b
 
 ### Blockers
 
-- Local Gradle 9.7.0 distribution download failed: network unreachable. Use existing hosted Android CI; do not claim local Kotlin tests passed.
+- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.
