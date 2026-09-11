@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -38,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -493,9 +493,12 @@ private fun ProductionDateChoice(
     }
 
     if (pickerOpen) {
-        val pickerState = rememberDatePickerState(
-            initialSelectedDateMillis = value.toDatePickerMillis(),
-        )
+        val pickerState = remember(value) {
+            DatePickerState(
+                locale = Locale.forLanguageTag("el-GR"),
+                initialSelectedDateMillis = value.toDatePickerMillis(),
+            )
+        }
         DatePickerDialog(
             onDismissRequest = { pickerOpen = false },
             confirmButton = {
