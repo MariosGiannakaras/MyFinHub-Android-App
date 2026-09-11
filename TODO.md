@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install production-signed `1.0.0-rc8` / versionCode `10007` in place over rc7 on the authorized Samsung Galaxy S24 Ultra without uninstalling, clearing data or changing package/signing identity.
-- [ ] Run the physical rc8 acceptance checklist: verify existing session and local PIN/biometric continuity, device-local CVV where applicable, Home/account/provider identity, cards/create/detail/activity/stack/delete transition, Activity/navigation, Money/Plan/Insights/Quick Entry, light/dark/150%-font, production Auth/API, offline/reconnect exactly-once reconciliation and device performance.
-- [ ] Only after explicit owner acceptance of rc8 may tracking advance and a deliberate `develop -> main` stable promotion be considered; if physical findings reject rc8, keep progress at 4/6 and open only the minimum correction work required by those findings.
+- [ ] Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
+- [ ] Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.
+- [ ] Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit.
 
 ## Completed foundations
 
@@ -44,3 +44,38 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 ## Rule
 
 Do not append historical TODO sections here. Git history and closed issues/PRs are the history. Update `tracking/android-project-state.json` and regenerate this file instead.
+
+## Android redesign progress
+
+**Tasks: 0/10 · Subtasks: 0/40 · Preparation: 4/4**
+
+These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
+
+Working branch: `android/redesign-tracking-foundation`. PR: 111.
+Checkpoint: `preparation_verified_resume_from_live_pr111`.
+Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
+Next action: Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
+
+| Slice | Completed subtasks | Remaining |
+|---|---|---|
+| S1 Financial truth and capability | 0/4 | S1.1 Projection completeness and retained debt (pending); S1.2 Exact filter and drill-down scope (pending); S1.3 Verified production capability map (pending); S1.4 Regression verification (pending) |
+| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
+| S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
+| S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
+| S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
+| S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
+| S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
+| S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
+| S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
+| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
+
+### Preparation
+
+- [x] P1 Inspect live repository, instructions and existing tracking — completed
+- [x] P2 Reconcile durable instructions and old design authority — completed
+- [x] P3 Persist design decisions and ten-slice implementation specification — completed
+- [x] P4 Validate counters and generated tracking — completed
+
+### Blockers
+
+- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.

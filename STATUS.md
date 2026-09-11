@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `rc8_protected_candidate_published_physical_acceptance_pending`
+State: `android_redesign_preparation_verified`
 
-Owner correction Slices A-H are complete and merged to `develop`. Exact-head Slice H validation passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fresh rendered Compose evidence was personally inspected without a blocking visual regression. Protected same-signer `1.0.0-rc8` / versionCode `10007` was then published from the exact validated PR #109 source to the private update channel and GitHub prerelease. rc8 is not yet physically installed or owner-accepted on the authorized Samsung Galaxy S24 Ultra, so overall progress remains 4/6 and no stable/main promotion is permitted yet.
+Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.
 
 ## Current production candidate
 
@@ -21,13 +21,13 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Install production-signed `1.0.0-rc8` / versionCode `10007` in place over rc7 on the authorized Samsung Galaxy S24 Ultra without uninstalling, clearing data or changing package/signing identity.
-2. Run the physical rc8 acceptance checklist: verify existing session and local PIN/biometric continuity, device-local CVV where applicable, Home/account/provider identity, cards/create/detail/activity/stack/delete transition, Activity/navigation, Money/Plan/Insights/Quick Entry, light/dark/150%-font, production Auth/API, offline/reconnect exactly-once reconciliation and device performance.
-3. Only after explicit owner acceptance of rc8 may tracking advance and a deliberate `develop -> main` stable promotion be considered; if physical findings reject rc8, keep progress at 4/6 and open only the minimum correction work required by those findings.
+1. Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
+2. Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.
+3. Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit.
 
 ## Non-negotiable constraints
 
-- Android-only scope unless a real Android dependency requires central integration.
+- Strict Android-only redesign: no changes to MyFinHub web/desktop, shared Supabase schema/data/configuration, APIs or server behavior. Record missing shared capabilities as blockers.
 - main is release-only; promotion from develop remains deliberate and must follow the validated release path.
 - Use only the enrolled long-lived production signer; never create, rotate, expose or commit production signing material.
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI/reference environment.
@@ -36,7 +36,7 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 - Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.
 - The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.
 - A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.
-- The owner physical findings and ordered correction acceptance criteria in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` remain the acceptance basis until the corrected physical candidate is explicitly accepted; do not replace them with generic redesign discovery.
+- docs/UI_2026_REDESIGN_HANDOFF.md is the active redesign specification. Earlier design and rc7 correction plans are historical context, not competing visual acceptance contracts.
 - Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.
 - Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation.
 
@@ -44,4 +44,39 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 Canonical source: `tracking/android-project-state.json`.
 
-Product/release PRs must update the canonical state in the same PR; CI verifies generated tracking is synchronized. New chats/agents must read AGENTS.md, this state file, generated handoff, permanent issue #27, the rc7 owner UI/UX correction plan, and live GitHub state before acting.
+Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks.
+
+## Android redesign progress
+
+**Tasks: 0/10 · Subtasks: 0/40 · Preparation: 4/4**
+
+These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
+
+Working branch: `android/redesign-tracking-foundation`. PR: 111.
+Checkpoint: `preparation_verified_resume_from_live_pr111`.
+Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
+Next action: Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
+
+| Slice | Completed subtasks | Remaining |
+|---|---|---|
+| S1 Financial truth and capability | 0/4 | S1.1 Projection completeness and retained debt (pending); S1.2 Exact filter and drill-down scope (pending); S1.3 Verified production capability map (pending); S1.4 Regression verification (pending) |
+| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
+| S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
+| S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
+| S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
+| S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
+| S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
+| S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
+| S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
+| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
+
+### Preparation
+
+- [x] P1 Inspect live repository, instructions and existing tracking — completed
+- [x] P2 Reconcile durable instructions and old design authority — completed
+- [x] P3 Persist design decisions and ten-slice implementation specification — completed
+- [x] P4 Validate counters and generated tracking — completed
+
+### Blockers
+
+- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.

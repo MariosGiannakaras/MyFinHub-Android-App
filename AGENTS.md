@@ -1,6 +1,18 @@
 # MyFinHub Android repository instructions
 
-> **Mandatory start:** Before any Android work, read permanent issue #27 first. Then inspect the whole repository plus active Issues/PRs and continue from the real current state.
+> **Mandatory start:** Read permanent issue #27, this file, `tracking/android-project-state.json`, and generated `docs/CURRENT_HANDOFF.md`. Inspect live develop, the active working branch/PR and relevant checks. Read only the active slice of `docs/UI_2026_REDESIGN_HANDOFF.md` and its implementation dependencies. Do not repeat the completed full-product audit without new evidence.
+
+## Active Android redesign boundary and continuity
+
+- The owner authorized repository cleanup and implementation of the September 2026 Android redesign. Earlier audit-only restrictions and old minimum-polish/final-completion claims do not govern this workstream.
+- Work only in `MyFinHub-Android-App`. Do not modify the MyFinHub web/desktop repository, shared Supabase schema/data/configuration, APIs or server behavior. Historical cross-repository instructions below are not authorization for this redesign. Record any unavoidable shared dependency as blocked; do not bypass it or invent local finance semantics.
+- `docs/UI_2026_REDESIGN_HANDOFF.md` is the current design specification. Older design documents and rc7 correction plans are historical evidence, not competing visual acceptance contracts. Preserve security, canonical data and release invariants.
+- Edit current progress only in `tracking/android-project-state.json`; generate STATUS.md, TODO.md and CURRENT_HANDOFF.md with `python3 scripts/render_project_tracking.py`. Keep task IDs stable and attach validation evidence to completed subtasks.
+- Report redesign tasks x/10 and subtasks x/40 separately from historical overall project progress 4/6. Preparation is a separate 4-step checkpoint; do not count documents as implemented Android screens. Identify unmerged, untested and physical-acceptance-pending work explicitly.
+- Finish one coherent slice at a time. Run narrow relevant checks first; commit and push each verified checkpoint with current tracking and an exact next action. Open/update its PR to develop. Do not accumulate all commits or handoff work until the end.
+- A new chat resumes the recorded branch/PR and first unfinished subtask, not a fresh audit. Update the specification only for a concrete implementation discovery or owner decision, recording the reason.
+- Preserve unrelated changes. Remove a legacy component only when its production route has a tested replacement and remaining references/previews are accounted for. Keep screenshot evidence until a replacement has been rendered and visually reviewed.
+- Existing signing authorization is not an instruction to publish during routine redesign slices. Keep package/signing identity and installed-data compatibility; main promotion still requires explicit physical owner acceptance.
 
 ## Mission
 
