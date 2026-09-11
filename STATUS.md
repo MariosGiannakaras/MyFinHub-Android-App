@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `android_redesign_preparation_verified`
+State: `android_redesign_s1_projection_validation`
 
-Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.
+Preparation merged through PR #111. S1.1 implements complete Plan inputs and canonical aggregate credit debt independent of card visibility. Similar scheduled/recurring display fields no longer suppress independent obligations. No layout redesign or shared-backend changes. Kotlin tests await hosted CI because local Gradle distribution download is network-blocked.
 
 ## Current production candidate
 
@@ -21,9 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
-2. Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.
-3. Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit.
+1. Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.
+2. Continue S1.2 exact Activity filter and analytics drill-down scope, then S1.3 capability map and S1.4 regression verification.
 
 ## Non-negotiable constraints
 
@@ -52,14 +51,14 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-tracking-foundation`. PR: 111.
-Checkpoint: `preparation_verified_resume_from_live_pr111`.
+Working branch: `android/redesign-s1-projection-integrity`. PR: not yet opened.
+Checkpoint: `implemented_pending_hosted_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.
+Next action: Validate the S1.1 PR with hosted Android CI; inspect any failures before marking S1.1 complete.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
-| S1 Financial truth and capability | 0/4 | S1.1 Projection completeness and retained debt (pending); S1.2 Exact filter and drill-down scope (pending); S1.3 Verified production capability map (pending); S1.4 Regression verification (pending) |
+| S1 Financial truth and capability | 0/4 | S1.1 Projection completeness and retained debt (in_progress); S1.2 Exact filter and drill-down scope (pending); S1.3 Verified production capability map (pending); S1.4 Regression verification (pending) |
 | S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
@@ -79,4 +78,4 @@ Next action: Read live PR #111: if open, finish integration after current-head t
 
 ### Blockers
 
-- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.
+- Local Gradle 9.7.0 distribution download failed: network unreachable. Use existing hosted Android CI; do not claim local Kotlin tests passed.
