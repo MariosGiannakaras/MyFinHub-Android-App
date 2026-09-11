@@ -11,10 +11,10 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_preparation",
+    "status": "android_redesign_preparation_verified",
     "summary": "Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.",
     "next": [
-      "Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.",
+      "Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.",
       "Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.",
       "Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit."
     ]
@@ -85,9 +85,9 @@
     "branch": "android/redesign-tracking-foundation",
     "pr": 111,
     "current_slice": "Preparation",
-    "checkpoint": "preparation_published_hosted_checks_pending",
+    "checkpoint": "preparation_verified_resume_from_live_pr111",
     "blockers": [],
-    "next_action": "Check PR #111 hosted results and integrate preparation via develop PR workflow; then implement S1.1 using the recorded specification and direct dependencies.",
+    "next_action": "Read live PR #111: if open, finish integration after current-head tracking checks pass; if merged, branch from latest develop and implement S1.1. Do not repeat preparation or full audit.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -122,7 +122,8 @@
           "python3 -m unittest discover -s scripts -p test_project_tracking.py: 7/7 passed",
           "python3 scripts/render_project_tracking.py --check: passed",
           "git diff --check: passed; no Android app or shared-backend files changed",
-          "Preparation published in PR #111; permanent #27 and active #73 updated to resume from canonical state."
+          "Preparation published in PR #111; permanent #27 and active #73 updated to resume from canonical state.",
+          "GitHub Project Tracking verify passed on 70ba9574b171eb71ade5644e3c2e85746fa6e184; published Git tree exactly matched locally validated tree ff857d98e7da6a71b6ed8176af96024c7f43523f. Later metadata updates must pass their own current-head check."
         ]
       }
     ]
