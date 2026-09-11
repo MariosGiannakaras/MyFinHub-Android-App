@@ -82,9 +82,9 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s1-activity-scope",
-    "pr": null,
+    "pr": 113,
     "current_slice": "S1.2 / S1.4",
-    "checkpoint": "scope_implemented_pending_validation",
+    "checkpoint": "reviewed_category_references_pending_final_validation",
     "blockers": [],
     "next_action": "Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
@@ -149,7 +149,8 @@
           "title": "Exact filter and drill-down scope",
           "status": "in_progress",
           "evidence": [
-            "Added exact category/date bounds, contribution-backed scoped rows and isolated Insights navigation; global ledger filters preserved on refresh. Pending hosted validation."
+            "Added exact category/date bounds, contribution-backed scoped rows and isolated Insights navigation; global ledger filters preserved on refresh. Pending hosted validation.",
+            "PR #113 head c9abe23afa86ead4395276a4c082a9cf66175177: hosted Unit, instrumentation compile, lint and debug assembly step passed. Remaining hosted jobs and final reference comparison pending."
           ]
         },
         {
@@ -166,7 +167,9 @@
           "title": "Regression verification",
           "status": "in_progress",
           "evidence": [
-            "Extended regression fixtures and origin/global-stack instrumentation; added real production category screen previews for light, dark and 150% font. References await rendering and personal review."
+            "Extended regression fixtures and origin/global-stack instrumentation; added real production category screen previews for light, dark and 150% font. References await rendering and personal review.",
+            "PR #113 initial render: 84 existing references byte-identical, three new category previews rendered and personally reviewed (light/dark/150%). Added only those three references; final screenshot validation pending. At 150% legacy row titles/account names ellipsize; S2/S3 shared-row redesign must replace this inherited constraint before final visual acceptance.",
+            "Initial S24-target run: 46/47 passed. The remaining test selected ambiguous text shared by four category buttons and the navigation tab after returning to Insights. All navigation selections in TopLevelParityTest now require Role.Tab plus exact label; assertions and test coverage unchanged. Await corrected-run validation."
           ]
         }
       ]

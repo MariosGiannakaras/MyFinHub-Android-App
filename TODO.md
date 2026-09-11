@@ -50,8 +50,8 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s1-activity-scope`. PR: not yet opened.
-Checkpoint: `scope_implemented_pending_validation`.
+Working branch: `android/redesign-s1-activity-scope`. PR: 113.
+Checkpoint: `reviewed_category_references_pending_final_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
 Next action: Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
 
