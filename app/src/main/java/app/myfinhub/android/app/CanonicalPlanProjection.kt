@@ -23,7 +23,6 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.min
-import kotlin.math.roundToLong
 import kotlinx.serialization.json.JsonObject
 
 /**
@@ -31,8 +30,8 @@ import kotlinx.serialization.json.JsonObject
  *
  * The forecast is intentionally explainable: current available money + expected income − pending
  * obligations ± the net available-money impact of scheduled transfers. Recurring obligations are
- * included once per next occurrence and collapse against an equivalent scheduled occurrence only
- * when title, amount, flow and due date all match.
+ * included once per next occurrence. Independently keyed scheduled/recurring records are retained:
+ * matching display fields do not establish a canonical relationship between obligations.
  */
 internal fun projectCanonicalPlanState(
     document: CanonicalFinanceDocument,
@@ -127,7 +126,6 @@ internal fun canonicalPlannedItems(
             )
         }
 
-    val scheduledIdentities = scheduled.mapNotNull(::plannedIdentity).toSet()
     val recurring = document.seed.array("recurring").mapNotNull { element ->
         val item = element as? JsonObject ?: return@mapNotNull null
         if (item.bool("active") == false || item.string("status") in setOf("paused", "stopped")) return@mapNotNull null
@@ -152,7 +150,7 @@ internal fun canonicalPlannedItems(
             note = item.string("note").orEmpty(),
             urgency = urgencyFor(dueDate, today),
         )
-    }.filterNot { item -> plannedIdentity(item)?.let(scheduledIdentities::contains) == true }
+    }
 
     return (scheduled + recurring)
         .sortedWith(
@@ -160,14 +158,6 @@ internal fun canonicalPlannedItems(
                 .thenBy { it.title.lowercase(Locale.forLanguageTag("el-GR")) }
                 .thenBy { it.id },
         )
-        .take(20)
-}
-
-private fun plannedIdentity(item: PlannedItem): String? {
-    if (item.dueDateIso.isBlank()) return null
-    val normalizedTitle = item.title.trim().lowercase(Locale.forLanguageTag("el-GR"))
-    val cents = (item.amount * 100.0).roundToLong()
-    return "${item.flow}|$normalizedTitle|$cents|${item.dueDateIso}"
 }
 
 private fun nextRecurringDate(

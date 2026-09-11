@@ -2,6 +2,9 @@ package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.canonicalFixture
+import app.myfinhub.android.core.data.DeactivateCanonicalCard
+import app.myfinhub.android.feature.money.canonicalCreditOutstanding
+import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
@@ -13,6 +16,43 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CanonicalProductProjectionTest {
+    @Test
+    fun deactivatingCard_preservesTotalDebtAndDoesNotAssignItToRemainingCard() {
+        val document = creditFixture()
+        val before = projectCanonicalProduct(document, LocalDate.of(2026, 9, 10)).moneyState
+        val removed = DeactivateCanonicalCard("old", "2026-09-10T12:00:00Z").apply(document)
+        val after = projectCanonicalProduct(removed, LocalDate.of(2026, 9, 10)).moneyState
+
+        assertEquals(250.0, canonicalCreditOutstanding(before), 0.001)
+        assertEquals(canonicalCreditOutstanding(before), canonicalCreditOutstanding(after), 0.001)
+        assertEquals(750.0, canonicalNetPosition(after), 0.001)
+        assertEquals("remaining", after.cards.single().id)
+        assertEquals(50.0, after.cards.single().currentBalance, 0.001)
+        assertEquals(document.state["events"], removed.state["events"])
+    }
+
+    @Test
+    fun aggregateDebtSurvivesNoVisibleCardsAndIncludesSnapshotDebt() {
+        val projection = projectCanonicalProduct(creditFixture(snapshotDebt = 300.0, cards = ""), LocalDate.of(2026, 9, 10))
+        assertTrue(projection.moneyState.cards.isEmpty())
+        assertEquals(550.0, canonicalCreditOutstanding(projection.moneyState), 0.001)
+        assertEquals(450.0, canonicalNetPosition(projection.moneyState), 0.001)
+    }
+
+    private fun creditFixture(
+        snapshotDebt: Double = 0.0,
+        cards: String = """{"id":"old","kind":"credit","active":true},{"id":"remaining","kind":"credit","active":true}""",
+    ) = CanonicalFinanceDocument(Json.parseToJsonElement("""
+        {"seed":{"accounts":[{"id":"bank","name":"Bank","kind":"bank"}],
+          "snapshots":[{"date":"2026-09-01","balances":{"bank":1000,"credit-card":${-snapshotDebt}}}]},
+         "state":{"cards":[$cards],"events":[
+          {"id":"old-purchase","date":"2026-09-02","kind":"card_purchase","cardId":"old","amount":200,"creditDelta":-200,"legs":[{"accountId":"credit-card","amount":-200}]},
+          {"id":"new-purchase","date":"2026-09-03","kind":"card_purchase","cardId":"remaining","amount":80,"creditDelta":-80,"legs":[{"accountId":"credit-card","amount":-80}]},
+          {"id":"payment","date":"2026-09-04","kind":"card_payment","cardId":"remaining","amount":30,"creditDelta":30,"legs":[{"accountId":"credit-card","amount":30}]},
+          {"id":"future","date":"2026-12-01","kind":"card_purchase","cardId":"remaining","amount":900,"creditDelta":-900,"legs":[{"accountId":"credit-card","amount":-900}]}
+         ]}}
+    """.trimIndent()).jsonObject)
+
     @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(

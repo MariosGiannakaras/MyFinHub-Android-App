@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.feature.plan.PlannedKind
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,17 +21,17 @@ class CanonicalPlanProjectionTest {
         )
 
         assertEquals(1_000.0, state.forecastStartBalance, 0.001)
-        assertEquals(100.0, state.forecastObligations, 0.001)
+        assertEquals(200.0, state.forecastObligations, 0.001)
         assertEquals(300.0, state.forecastExpectedIncome, 0.001)
         assertEquals(-50.0, state.forecastTransferImpact, 0.001)
-        assertEquals(1_150.0, state.forecastEndBalance, 0.001)
+        assertEquals(1_050.0, state.forecastEndBalance, 0.001)
         assertEquals("800", state.budget.monthlyLimitText)
         assertEquals(0.0, state.budgetSpent, 0.001)
         assertTrue(state.forecastEndDateLabel.contains("2026"))
     }
 
     @Test
-    fun equivalentScheduledRent_collapsesRecurringProjectionWithoutRawIsoDate() {
+    fun similarScheduledAndRecurringRent_remainDistinctWithoutCanonicalLink() {
         val state = projectCanonicalPlanState(
             document = planFixture(),
             today = LocalDate.of(2026, 9, 10),
@@ -39,10 +40,43 @@ class CanonicalPlanProjectionTest {
 
         val rents = state.items.filter { it.title == "Ενοίκιο" }
 
-        assertEquals(1, rents.size)
-        assertEquals(PlannedKind.SCHEDULED, rents.single().kind)
-        assertFalse(rents.single().dueLabel.contains("2026-09-12"))
-        assertEquals("2026-09-12", rents.single().dueDateIso)
+        assertEquals(2, rents.size)
+        assertEquals(setOf(PlannedKind.SCHEDULED, PlannedKind.RECURRING), rents.map { it.kind }.toSet())
+        assertTrue(rents.all { !it.dueLabel.contains("2026-09-12") })
+        assertTrue(rents.all { it.dueDateIso == "2026-09-12" })
+    }
+
+    @Test
+    fun forecastIncludesAllPendingItemsBeforeApplyingHorizon() {
+        val scheduled = (1..25).joinToString(",") { index ->
+            """{"id":"expense-$index","dueDate":"2026-09-12","kind":"expense","amount":10,"note":"Bill $index","accountId":"bank","status":"pending"}"""
+        } + """,{"id":"future","dueDate":"2026-12-01","kind":"income","amount":900,"status":"pending"},
+            {"id":"paid","dueDate":"2026-09-12","kind":"expense","amount":800,"status":"paid"}"""
+        val state = projectCanonicalPlanState(withPlanRows(scheduled, ""), LocalDate.of(2026, 9, 10), null)
+
+        assertEquals(26, state.items.size)
+        assertEquals(250.0, state.forecastObligations, 0.001)
+        assertEquals(0.0, state.forecastExpectedIncome, 0.001)
+        assertEquals(750.0, state.forecastEndBalance, 0.001)
+    }
+
+    @Test
+    fun sameTitleAmountAndDateAcrossAccounts_doNotSuppressObligations() {
+        val scheduled = """{"id":"scheduled","dueDate":"2026-09-12","kind":"expense","amount":100,"note":"Ενοίκιο","accountId":"bank","status":"pending"}"""
+        val recurring = """{"id":"rec-one","name":"Ενοίκιο","amount":100,"firstExpectedDate":"2026-09-12","accountId":"savings","active":true},
+            {"id":"rec-two","name":"Ενοίκιο","amount":100,"firstExpectedDate":"2026-09-12","accountId":"bank","active":true}"""
+        val state = projectCanonicalPlanState(withPlanRows(scheduled, recurring), LocalDate.of(2026, 9, 10), null)
+
+        assertEquals(setOf("scheduled", "rec-one", "rec-two"), state.items.map { it.id }.toSet())
+        assertEquals(300.0, state.forecastObligations, 0.001)
+    }
+
+    private fun withPlanRows(scheduled: String, recurring: String): CanonicalFinanceDocument {
+        val base = planFixture()
+        return CanonicalFinanceDocument(JsonObject(base.raw + mapOf(
+            "seed" to JsonObject(base.seed + ("recurring" to Json.parseToJsonElement("[$recurring]"))),
+            "state" to JsonObject(base.state + ("scheduled" to Json.parseToJsonElement("[$scheduled]"))),
+        )))
     }
 
     private fun planFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
