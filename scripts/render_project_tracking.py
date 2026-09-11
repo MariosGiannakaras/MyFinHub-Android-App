@@ -63,7 +63,71 @@ def load_state() -> dict:
         raise SystemExit("overall_progress.completed/total must be integers")
     if progress["completed"] < 0 or progress["completed"] > progress["total"]:
         raise SystemExit("overall_progress is invalid")
+    validate_redesign(data)
     return data
+
+
+def validate_redesign(s: dict) -> None:
+    """Validate checkpoint integrity; completion counts are derived, never entered."""
+    tasks = s.get("redesign_tasks")
+    if tasks is None:
+        return  # Historical schema-v1 state before the new redesign.
+    if not isinstance(tasks, list) or len(tasks) != 10:
+        raise SystemExit("redesign_tasks must contain the ten agreed slices")
+    rows = list(s["current_redesign_pass"]["preparation"])
+    if len(rows) != 4:
+        raise SystemExit("Preparation must retain four checkpoints")
+    for i, task in enumerate(tasks, 1):
+        if task["id"] != f"S{i}" or len(task["subtasks"]) != 4:
+            raise SystemExit("Redesign slice IDs/counts must remain stable")
+        for j, subtask in enumerate(task["subtasks"], 1):
+            if subtask["id"] != f"S{i}.{j}":
+                raise SystemExit("Redesign subtask IDs must remain stable")
+        rows.extend(task["subtasks"])
+    for i, row in enumerate(rows[:4], 1):
+        if row["id"] != f"P{i}":
+            raise SystemExit("Preparation IDs must remain stable")
+    for row in rows:
+        if row["status"] not in {"pending", "in_progress", "blocked", "completed"}:
+            raise SystemExit(f"Invalid checkpoint status: {row['id']}")
+        evidence = row.get("evidence", [])
+        if not isinstance(evidence, list) or any(not isinstance(e, str) or not e.strip() for e in evidence):
+            raise SystemExit(f"Invalid evidence: {row['id']}")
+        if row["status"] == "completed" and not evidence:
+            raise SystemExit(f"Completed checkpoint needs evidence: {row['id']}")
+        if row["status"] == "blocked" and not row.get("blocker", "").strip():
+            raise SystemExit(f"Blocked checkpoint needs a reason: {row['id']}")
+
+
+def redesign_lines(s: dict) -> list[str]:
+    tasks = s.get("redesign_tasks", [])
+    if not tasks:
+        return []
+    complete = lambda row: row["status"] == "completed"
+    subtasks = [sub for task in tasks for sub in task["subtasks"]]
+    completed_tasks = sum(all(complete(sub) for sub in task["subtasks"]) for task in tasks)
+    r = s["current_redesign_pass"]
+    prep = r["preparation"]
+    lines = [
+        "", "## Android redesign progress", "",
+        f"**Tasks: {completed_tasks}/{len(tasks)} · Subtasks: {sum(map(complete, subtasks))}/{len(subtasks)} · Preparation: {sum(map(complete, prep))}/{len(prep)}**",
+        "", "These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.",
+        "", f"Working branch: `{r['branch']}`. PR: {r.get('pr') or 'not yet opened'}.",
+        f"Checkpoint: `{r['checkpoint']}`.",
+        f"Specification: `{r['plan_doc']}`.",
+        f"Next action: {r['next_action']}",
+        "", "| Slice | Completed subtasks | Remaining |", "|---|---|---|",
+    ]
+    for task in tasks:
+        done = sum(map(complete, task["subtasks"]))
+        remaining = "; ".join(f"{sub['id']} {sub['title']} ({sub['status']})" for sub in task["subtasks"] if not complete(sub)) or "Complete"
+        lines.append(f"| {task['id']} {task['title']} | {done}/{len(task['subtasks'])} | {remaining} |")
+    lines += ["", "### Preparation", ""]
+    lines.extend(f"- [{'x' if complete(row) else ' '}] {row['id']} {row['title']} — {row['status']}" for row in prep)
+    lines += ["", "### Blockers", ""]
+    blockers = list(r.get("blockers", [])) + [f"{row['id']}: {row['blocker']}" for row in prep + subtasks if row["status"] == "blocked"]
+    lines.extend(f"- {b}" for b in blockers or ["No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim."])
+    return lines + [""]
 
 
 def header() -> str:
@@ -187,11 +251,13 @@ def render_handoff(s: dict) -> str:
 
 
 def rendered(s: dict) -> dict[Path, str]:
-    return {
+    outputs = {
         ROOT / "STATUS.md": render_status(s),
         ROOT / "TODO.md": render_todo(s),
         ROOT / "docs/CURRENT_HANDOFF.md": render_handoff(s),
     }
+    progress = "\n".join(redesign_lines(s))
+    return {path: content + progress for path, content in outputs.items()}
 
 
 def changed_files(base_ref: str) -> list[str]:
