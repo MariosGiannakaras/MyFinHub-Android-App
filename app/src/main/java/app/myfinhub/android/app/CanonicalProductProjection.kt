@@ -12,7 +12,7 @@ import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
-import app.myfinhub.android.core.data.cardOutstanding
+import app.myfinhub.android.core.data.creditDebtForCardAt
 import app.myfinhub.android.core.data.categoryTotals
 import app.myfinhub.android.core.data.effectiveLegacyTransactions
 import app.myfinhub.android.core.data.loanOutstanding
@@ -201,7 +201,6 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
 
     val activeCards = document.canonicalCards().filter { it.active }
     val bankIdsByCard = document.cards().associate { it.id to it.bankId }
-    val activeCreditCards = activeCards.filter { it.kind == "credit" }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
@@ -215,7 +214,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
             )
         },
         cards = activeCards.map { card ->
-            val eventOutstanding = document.cardOutstanding(card.id, asOf)
+            val eventOutstanding = document.creditDebtForCardAt(card.id, asOf)
             val cardActivity = events
                 .filter { event -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
                 .sortedWith(compareByDescending<CanonicalEvent> { it.date }.thenByDescending { eventChronology[it.id].orEmpty() }.thenByDescending { it.id })
@@ -234,11 +233,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
                 last4 = card.last4.orEmpty(),
                 kind = cardKindLabel(card.kind),
-                currentBalance = if (card.kind == "credit" && activeCreditCards.size == 1) {
-                    maxOf(eventOutstanding, globalCreditOutstanding)
-                } else {
-                    eventOutstanding
-                },
+                currentBalance = eventOutstanding,
                 limit = card.creditLimit,
                 vaultState = if (card.vaultRef.isNullOrBlank()) VaultState.LOCKED else VaultState.AVAILABLE,
                 network = card.network.ifBlank { "VISA" },
@@ -251,6 +246,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         savingsCurrent = accounts.filter { it.kind == "savings" }.sumOf { balances[it.id] ?: 0.0 },
         loanOutstanding = document.loanOutstanding(),
         lendingReceivable = document.receivableOutstanding(),
+        aggregateCreditOutstanding = globalCreditOutstanding,
     )
 
     val plan = projectCanonicalPlanState(
