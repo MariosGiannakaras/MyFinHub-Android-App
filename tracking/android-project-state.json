@@ -11,12 +11,12 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "rc8_protected_candidate_published_physical_acceptance_pending",
-    "summary": "Owner correction Slices A-H are complete and merged to `develop`. Exact-head Slice H validation passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation; fresh rendered Compose evidence was personally inspected without a blocking visual regression. Protected same-signer `1.0.0-rc8` / versionCode `10007` was then published from the exact validated PR #109 source to the private update channel and GitHub prerelease. rc8 is not yet physically installed or owner-accepted on the authorized Samsung Galaxy S24 Ultra, so overall progress remains 4/6 and no stable/main promotion is permitted yet.",
+    "status": "android_redesign_preparation",
+    "summary": "Owner authorized a new substantial Android-only redesign and durable implementation tracking on 2026-09-11. Earlier correction passes remain historical foundations, not acceptance of the new design. Preparation updates instructions, the existing master specification and generated tracking; Android UI implementation has not started. The rc8 published-candidate facts and historical overall 4/6 remain unchanged. No web/desktop/shared-backend changes are authorized.",
     "next": [
-      "Install production-signed `1.0.0-rc8` / versionCode `10007` in place over rc7 on the authorized Samsung Galaxy S24 Ultra without uninstalling, clearing data or changing package/signing identity.",
-      "Run the physical rc8 acceptance checklist: verify existing session and local PIN/biometric continuity, device-local CVV where applicable, Home/account/provider identity, cards/create/detail/activity/stack/delete transition, Activity/navigation, Money/Plan/Insights/Quick Entry, light/dark/150%-font, production Auth/API, offline/reconnect exactly-once reconciliation and device performance.",
-      "Only after explicit owner acceptance of rc8 may tracking advance and a deliberate `develop -> main` stable promotion be considered; if physical findings reject rc8, keep progress at 4/6 and open only the minimum correction work required by those findings."
+      "Complete and validate the preparation PR on android/redesign-tracking-foundation, then integrate through the normal develop PR workflow.",
+      "Start S1.1: inspect only CanonicalPlanProjection/CanonicalProductProjection and direct canonical dependencies; add fixtures for >20 planned records, distinct same-title obligations and inactive credit debt before correcting Android projections.",
+      "Continue S1.2–S1.4 and then S2–S10 in docs/UI_2026_REDESIGN_HANDOFF.md. Commit/push each coherent verified checkpoint with generated tracking; do not repeat the full audit."
     ]
   },
   "latest_production_candidate": {
@@ -58,7 +58,7 @@
     "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease"
   ],
   "constraints": [
-    "Android-only scope unless a real Android dependency requires central integration.",
+    "Strict Android-only redesign: no changes to MyFinHub web/desktop, shared Supabase schema/data/configuration, APIs or server behavior. Record missing shared capabilities as blockers.",
     "main is release-only; promotion from develop remains deliberate and must follow the validated release path.",
     "Use only the enrolled long-lived production signer; never create, rotate, expose or commit production signing material.",
     "Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI/reference environment.",
@@ -67,7 +67,7 @@
     "Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.",
     "The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.",
     "A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.",
-    "The owner physical findings and ordered correction acceptance criteria in `docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md` remain the acceptance basis until the corrected physical candidate is explicitly accepted; do not replace them with generic redesign discovery.",
+    "docs/UI_2026_REDESIGN_HANDOFF.md is the active redesign specification. Earlier design and rc7 correction plans are historical context, not competing visual acceptance contracts.",
     "Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.",
     "Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation."
   ],
@@ -78,22 +78,364 @@
       "TODO.md",
       "docs/CURRENT_HANDOFF.md"
     ],
-    "policy": "Product/release PRs must update the canonical state in the same PR; CI verifies generated tracking is synchronized. New chats/agents must read AGENTS.md, this state file, generated handoff, permanent issue #27, the rc7 owner UI/UX correction plan, and live GitHub state before acting."
+    "policy": "Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks."
   },
   "current_redesign_pass": {
-    "plan_doc": "docs/RC7_S24_OWNER_UI_UX_CORRECTION_PLAN.md",
-    "branch": "develop",
-    "current_slice": "Physical acceptance — rc8",
-    "checkpoint": "rc8_protected_candidate_published_physical_acceptance_pending",
-    "owner_audited_surfaces": [
-      "Home",
-      "Activity / Transactions",
-      "Money / Net Worth / Cards / Cash / Savings / Loans / Claims",
-      "Plan / Monthly budget",
-      "Insights",
-      "Settings / Diagnostics / Notification history",
-      "Quick Entry / account-category-type pickers / date picker / offline pending feedback"
-    ],
-    "completion_rule": "Hosted Slice H validation and protected rc8 publication are complete. Final completion now requires in-place rc8 installation on the authorized S24, explicit physical owner acceptance of the corrected product and continuity checks, then a separate deliberate stable/main promotion decision. Any physical rejection keeps progress at 4/6 and reopens only evidence-backed correction work."
-  }
+    "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
+    "branch": "android/redesign-tracking-foundation",
+    "pr": null,
+    "current_slice": "Preparation",
+    "checkpoint": "preparation_locally_verified_pending_pr",
+    "blockers": [],
+    "next_action": "Complete and validate the preparation PR on android/redesign-tracking-foundation, then integrate through the normal develop PR workflow.",
+    "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
+    "preparation": [
+      {
+        "id": "P1",
+        "title": "Inspect live repository, instructions and existing tracking",
+        "status": "completed",
+        "evidence": [
+          "develop 449ccb7adc3add2812c89f5bd868760b9c900641; no open PRs; active issues #27/#73; latest PR #110 merged; tracking renderer and workflow inspected."
+        ]
+      },
+      {
+        "id": "P2",
+        "title": "Reconcile durable instructions and old design authority",
+        "status": "completed",
+        "evidence": [
+          "AGENTS.md now scopes Android-only work and minimal resume reads; old documents retained as historical references through the master specification."
+        ]
+      },
+      {
+        "id": "P3",
+        "title": "Persist design decisions and ten-slice implementation specification",
+        "status": "completed",
+        "evidence": [
+          "docs/UI_2026_REDESIGN_HANDOFF.md replaces obsolete completion claims with screen specs, tokens, dependencies and acceptance criteria."
+        ]
+      },
+      {
+        "id": "P4",
+        "title": "Validate counters and generated tracking",
+        "status": "completed",
+        "evidence": [
+          "python3 -m unittest discover -s scripts -p test_project_tracking.py: 7/7 passed",
+          "python3 scripts/render_project_tracking.py --check: passed",
+          "git diff --check: passed; no Android app or shared-backend files changed"
+        ]
+      }
+    ]
+  },
+  "redesign_tasks": [
+    {
+      "id": "S1",
+      "title": "Financial truth and capability",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S1.1",
+          "title": "Projection completeness and retained debt",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S1.2",
+          "title": "Exact filter and drill-down scope",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S1.3",
+          "title": "Verified production capability map",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S1.4",
+          "title": "Regression verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Foundation and navigation",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S2.1",
+          "title": "Semantic tokens and shared rows",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S2.2",
+          "title": "Four top-level destinations",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S2.3",
+          "title": "Editor Back and state preservation",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S2.4",
+          "title": "Accessibility and real-render verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Activity",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S3.1",
+          "title": "Ledger, search and filter",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S3.2",
+          "title": "Read transaction detail",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S3.3",
+          "title": "Supported edit and delete",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S3.4",
+          "title": "Activity verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Quick Entry",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S4.1",
+          "title": "Unified form and pickers",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S4.2",
+          "title": "All twelve kinds and split",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S4.3",
+          "title": "Dirty draft and persistence behavior",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S4.4",
+          "title": "Quick Entry verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "Home and accounts",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S5.1",
+          "title": "Compact Home and attention",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S5.2",
+          "title": "Wallet account groups",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S5.3",
+          "title": "Account ledger and net-position entry",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S5.4",
+          "title": "Home/account verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "Cards",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S6.1",
+          "title": "List, detail and stable switching",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S6.2",
+          "title": "Creation and supported metadata editing",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S6.3",
+          "title": "Secure details and removal recovery",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S6.4",
+          "title": "Card verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "Plan and debts",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S7.1",
+          "title": "Urgency and complete forecast",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S7.2",
+          "title": "Monthly budget",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S7.3",
+          "title": "Savings, debts and claims consolidation",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S7.4",
+          "title": "Plan/debt verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "Analysis",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S8.1",
+          "title": "Equivalent interval comparisons",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S8.2",
+          "title": "Categories and remainder",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S8.3",
+          "title": "Scoped drill-down and trends",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S8.4",
+          "title": "Analysis verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "Settings and authentication",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S9.1",
+          "title": "Settings, privacy and notices",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S9.2",
+          "title": "Diagnostics and updater recovery",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S9.3",
+          "title": "Authentication and root states",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S9.4",
+          "title": "Settings/auth verification",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Integration and acceptance",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S10.1",
+          "title": "Remove proven obsolete paths",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S10.2",
+          "title": "Full affected hosted gates",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S10.3",
+          "title": "Inspect and replace actual screenshot evidence",
+          "status": "pending",
+          "evidence": []
+        },
+        {
+          "id": "S10.4",
+          "title": "Physical S24 acceptance",
+          "status": "pending",
+          "evidence": []
+        }
+      ]
+    }
+  ]
 }
