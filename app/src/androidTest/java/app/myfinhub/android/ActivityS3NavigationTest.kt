@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -23,8 +24,8 @@ class ActivityS3NavigationTest {
         composeRule.onNodeWithText("Λογαριασμός").assertIsDisplayed()
         composeRule.onNodeWithText("Κατηγορία").assertIsDisplayed()
         composeRule.onNodeWithText("Από ημερομηνία").assertIsDisplayed()
-        composeRule.onNodeWithText("Έως ημερομηνία").assertIsDisplayed()
-        composeRule.onNodeWithText("Εφαρμογή").assertIsDisplayed()
+        composeRule.onNodeWithText("Έως ημερομηνία").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Εφαρμογή").performScrollTo().assertIsDisplayed()
     }
 
     @Test
