@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s1_scope_validation`.
+- Workstream state: `android_redesign_s2_foundation_navigation_validation`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-PR #112 merged with all checks green. S1.2 now preserves Activity filters and uses an isolated, date-bounded category route with canonical signed contributions for split/refund parity. S1.4 regression validation is in progress, including new light/dark/150% category screenshots. No backend or web/desktop changes.
+S1 is complete and merged through PR #113 with Android CI, Project Tracking and Android UI Quality green. PR #114 implements the S2 semantic foundation, shared finance rows, four-root navigation, Κινήσεις/Ανάλυση sibling routing and dirty-form Back rules. Narrow compile/test regressions exposed by hosted validation were corrected; the reviewed S2 screenshot references are now committed for one consolidated validation pass. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
-- Complete S1.4 after regression checks; then begin S2 semantic tokens, shared rows and four-root navigation.
+- Run one consolidated hosted validation on PR #114 across Android CI, Project Tracking, screenshot regression and S24-target instrumentation.
+- Fix only evidence-backed S2 failures; when all final-head gates pass, record S2 completion and merge PR #114 without reopening completed discovery.
 
 ## Constraints
 
@@ -51,19 +51,19 @@ PR #112 merged with all checks green. S1.2 now preserves Activity filters and us
 
 ## Android redesign progress
 
-**Tasks: 0/10 · Subtasks: 2/40 · Preparation: 4/4**
+**Tasks: 1/10 · Subtasks: 4/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s1-activity-scope`. PR: 113.
-Checkpoint: `reviewed_category_references_pending_final_validation`.
+Working branch: `android/redesign-s2-foundation-navigation`. PR: 114.
+Checkpoint: `reviewed_s2_references_committed_pending_final_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.
+Next action: Validate the reviewed-reference PR #114 head once across Android CI, Project Tracking, screenshot regression and S24-target instrumentation; fix only evidence-backed failures.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
-| S1 Financial truth and capability | 2/4 | S1.2 Exact filter and drill-down scope (in_progress); S1.4 Regression verification (in_progress) |
-| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (pending); S2.2 Four top-level destinations (pending); S2.3 Editor Back and state preservation (pending); S2.4 Accessibility and real-render verification (pending) |
+| S1 Financial truth and capability | 4/4 | Complete |
+| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (in_progress); S2.2 Four top-level destinations (in_progress); S2.3 Editor Back and state preservation (in_progress); S2.4 Accessibility and real-render verification (in_progress) |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |

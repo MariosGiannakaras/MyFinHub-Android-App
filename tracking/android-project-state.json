@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-11",
+  "updated_at": "2026-09-12",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s1_scope_validation",
-    "summary": "PR #112 merged with all checks green. S1.2 now preserves Activity filters and uses an isolated, date-bounded category route with canonical signed contributions for split/refund parity. S1.4 regression validation is in progress, including new light/dark/150% category screenshots. No backend or web/desktop changes.",
+    "status": "android_redesign_s2_foundation_navigation_validation",
+    "summary": "S1 is complete and merged through PR #113 with Android CI, Project Tracking and Android UI Quality green. PR #114 implements the S2 semantic foundation, shared finance rows, four-root navigation, Κινήσεις/Ανάλυση sibling routing and dirty-form Back rules. Narrow compile/test regressions exposed by hosted validation were corrected; the reviewed S2 screenshot references are now committed for one consolidated validation pass. No backend or web/desktop changes.",
     "next": [
-      "Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.",
-      "Complete S1.4 after regression checks; then begin S2 semantic tokens, shared rows and four-root navigation."
+      "Run one consolidated hosted validation on PR #114 across Android CI, Project Tracking, screenshot regression and S24-target instrumentation.",
+      "Fix only evidence-backed S2 failures; when all final-head gates pass, record S2 completion and merge PR #114 without reopening completed discovery."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s1-activity-scope",
-    "pr": 113,
-    "current_slice": "S1.2 / S1.4",
-    "checkpoint": "reviewed_category_references_pending_final_validation",
+    "branch": "android/redesign-s2-foundation-navigation",
+    "pr": 114,
+    "current_slice": "S2.1 / S2.2 / S2.3 / S2.4",
+    "checkpoint": "reviewed_s2_references_committed_pending_final_validation",
     "blockers": [],
-    "next_action": "Validate S1.2 code and new category screenshots in hosted CI; inspect rendered images and commit only reviewed new references.",
+    "next_action": "Validate the reviewed-reference PR #114 head once across Android CI, Project Tracking, screenshot regression and S24-target instrumentation; fix only evidence-backed failures.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -147,10 +147,10 @@
         {
           "id": "S1.2",
           "title": "Exact filter and drill-down scope",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Added exact category/date bounds, contribution-backed scoped rows and isolated Insights navigation; global ledger filters preserved on refresh. Pending hosted validation.",
-            "PR #113 head c9abe23afa86ead4395276a4c082a9cf66175177: hosted Unit, instrumentation compile, lint and debug assembly step passed. Remaining hosted jobs and final reference comparison pending."
+            "PR #113 final head f598b0e7d23239bdd2477f94d9f60e5a98bf17b4 passed Android CI, Project Tracking and Android UI Quality, then merged to develop as fb1d638ddb1ee6fc512b5b6743a8478ec464ac55.",
+            "Exact category/date scope uses canonical signed contributions for split/refund parity while Activity global filters survive refresh and the isolated Insights drill-down preserves its origin stack."
           ]
         },
         {
@@ -165,11 +165,10 @@
         {
           "id": "S1.4",
           "title": "Regression verification",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Extended regression fixtures and origin/global-stack instrumentation; added real production category screen previews for light, dark and 150% font. References await rendering and personal review.",
-            "PR #113 initial render: 84 existing references byte-identical, three new category previews rendered and personally reviewed (light/dark/150%). Added only those three references; final screenshot validation pending. At 150% legacy row titles/account names ellipsize; S2/S3 shared-row redesign must replace this inherited constraint before final visual acceptance.",
-            "Initial S24-target run: 46/47 passed. The remaining test selected ambiguous text shared by four category buttons and the navigation tab after returning to Insights. All navigation selections in TopLevelParityTest now require Role.Tab plus exact label; assertions and test coverage unchanged. Await corrected-run validation."
+            "PR #113 reviewed the three new production category references in light, dark and 150% font before committing them; 84 pre-existing references remained byte-identical in the initial render.",
+            "Android UI Quality run 34643039915 passed both screenshot regression and S24-target instrumentation on final PR #113 head f598b0e7d23239bdd2477f94d9f60e5a98bf17b4."
           ]
         }
       ]
@@ -182,26 +181,39 @@
         {
           "id": "S2.1",
           "title": "Semantic tokens and shared rows",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "PR #114 applies the documented semantic light/dark palette, typography and geometry contracts and replaces the shared finance card-row treatment with a flat 64dp-minimum row that stacks trailing amounts at large font scale.",
+            "Android UI Quality rendered all 87 production screenshot candidates after the global token change; artifact 10301658408 (sha256 6a133bcb2f7c635b5749e127f53b3bb3713156d0ad2ad7afa30f2796bc490354) was personally reviewed before these references were accepted."
+          ]
         },
         {
           "id": "S2.2",
           "title": "Four top-level destinations",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Permanent navigation is reduced to four labelled roots: Αρχική, Κινήσεις, Πορτοφόλι and Πλάνο. Ανάλυση is a sibling of Ιστορικό inside the retained Κινήσεις stack, while secondary/detail/editor routes hide global navigation.",
+            "Top-level stack policy keeps each root back stack independently and returns an Insights category drill-down to the originating analysis surface."
+          ]
         },
         {
           "id": "S2.3",
           "title": "Editor Back and state preservation",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Quick Entry system/predictive Back and canonical card creation now route through dirty-draft confirmation rather than bypassing editor rules; root switching preserves nested state.",
+            "Hosted validation exposed and corrected the MovementRootSurface receiver-scope import, an unavailable Compose test assertion, and the inherited MoneyParityTest reference to the renamed Πορτοφόλι root. Final-head validation remains required."
+          ]
         },
         {
           "id": "S2.4",
           "title": "Accessibility and real-render verification",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Focused design-system/navigation/accessibility contracts were added or updated for touch geometry, contrast, four-root semantics, hidden secondary navigation and Back/origin behavior.",
+            "Reviewed production Home/Activity/Money/Quick Entry/Plan/Insights/Settings/auth candidates in light, dark and 150% show the intended global foundation. Activity filter density remains owned by S3 rather than being hidden as S2 acceptance.",
+            "At head 847333c3658ca580b87835ff3e2ca47d14ae8d82, instrumentation compiled and 46/47 S24-target tests passed; the sole failure was an inherited test clicking the old Περιουσία root label, corrected in e32ab00eb58ebdc59f6583c65de96a8d54aecf9f. Final-head rerun is pending."
+          ]
         }
       ]
     },

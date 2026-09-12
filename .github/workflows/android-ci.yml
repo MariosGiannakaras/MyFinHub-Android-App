@@ -5,10 +5,20 @@ on:
     branches:
       - develop
       - main
+    paths-ignore:
+      - 'tracking/**'
+      - 'STATUS.md'
+      - 'TODO.md'
+      - 'docs/CURRENT_HANDOFF.md'
   push:
     branches:
       - develop
       - main
+    paths-ignore:
+      - 'tracking/**'
+      - 'STATUS.md'
+      - 'TODO.md'
+      - 'docs/CURRENT_HANDOFF.md'
 
 permissions:
   contents: read

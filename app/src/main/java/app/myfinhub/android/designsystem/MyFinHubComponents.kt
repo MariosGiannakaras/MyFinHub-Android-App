@@ -21,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -266,6 +268,12 @@ fun MyFinHubAmountText(
     )
 }
 
+/**
+ * Canonical flat finance row for transactions/account-like summaries.
+ *
+ * At large font scales the amount moves below the identity block instead of forcing Greek labels
+ * into ellipsis. Descendant semantics are merged so TalkBack reads identity, amount and status once.
+ */
 @Composable
 fun MyFinHubFinanceRow(
     icon: ImageVector,
@@ -279,61 +287,108 @@ fun MyFinHubFinanceRow(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
 ) {
-    Card(
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = MyFinHubDesignMetrics.cardElevation),
-        border = BorderStroke(
-            MyFinHubDesignMetrics.cardBorderWidth,
-            MaterialTheme.colorScheme.outlineVariant,
-        ),
-        shape = MaterialTheme.shapes.medium,
+            .heightIn(min = MyFinHubDesignMetrics.rowMinHeight)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .semantics(mergeDescendants = true) {},
     ) {
-        Row(
-            modifier = Modifier.padding(
-                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
-                vertical = MyFinHubDesignMetrics.rowVerticalPadding,
-            ),
-            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MyFinHubIconBadge(
-                icon = icon,
-                tone = tone,
-                contentDescription = iconDescription,
-            )
+        if (largeFont) {
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+                modifier = Modifier.padding(
+                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                    vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                ),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (meta.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(MyFinHubSpacing.micro))
-                    Text(
-                        text = meta,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubDesignMetrics.iconTextGap),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    MyFinHubIconBadge(
+                        icon = icon,
+                        tone = tone,
+                        contentDescription = iconDescription,
+                    )
+                    FinanceRowIdentity(
+                        title = title,
+                        subtitle = subtitle,
+                        meta = meta,
+                        largeFont = true,
+                        modifier = Modifier.weight(1f),
                     )
                 }
+                MyFinHubAmountText(
+                    text = amountText,
+                    tone = tone,
+                    modifier = Modifier.align(Alignment.End),
+                )
             }
-            Spacer(modifier = Modifier.width(MyFinHubSpacing.xs))
-            MyFinHubAmountText(text = amountText, tone = tone)
+        } else {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                    vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubDesignMetrics.iconTextGap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MyFinHubIconBadge(
+                    icon = icon,
+                    tone = tone,
+                    contentDescription = iconDescription,
+                )
+                FinanceRowIdentity(
+                    title = title,
+                    subtitle = subtitle,
+                    meta = meta,
+                    largeFont = false,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(modifier = Modifier.width(MyFinHubSpacing.xs))
+                MyFinHubAmountText(text = amountText, tone = tone)
+            }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+@Composable
+private fun FinanceRowIdentity(
+    title: String,
+    subtitle: String,
+    meta: String,
+    largeFont: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = if (largeFont) 2 else 1,
+            overflow = if (largeFont) TextOverflow.Clip else TextOverflow.Ellipsis,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = if (largeFont) 2 else 1,
+            overflow = if (largeFont) TextOverflow.Clip else TextOverflow.Ellipsis,
+        )
+        if (meta.isNotBlank()) {
+            Text(
+                text = meta,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = if (largeFont) 2 else 1,
+                overflow = if (largeFont) TextOverflow.Clip else TextOverflow.Ellipsis,
+            )
         }
     }
 }

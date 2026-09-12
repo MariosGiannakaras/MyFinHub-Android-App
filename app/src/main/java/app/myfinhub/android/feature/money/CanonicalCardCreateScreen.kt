@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -10,16 +11,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -68,6 +72,25 @@ fun CanonicalCardCreateScreen(
     var creditLimit by remember { mutableStateOf("") }
     var validation by remember { mutableStateOf<String?>(null) }
     var submittedId by remember { mutableStateOf<String?>(null) }
+    var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
+
+    val dirty = nickname.isNotBlank() ||
+        selectedProvider != FinancialProvider.PIRAEUS ||
+        customBank.isNotBlank() ||
+        kind != "debit" ||
+        network != "visa" ||
+        formFactor != "physical" ||
+        last4.isNotBlank() ||
+        creditLimit.isNotBlank()
+    val requestBack = {
+        when {
+            submittedId != null -> Unit
+            dirty -> discardDialogOpen = true
+            else -> onBack()
+        }
+    }
+
+    BackHandler(onBack = requestBack)
 
     LaunchedEffect(cards, submittedId) {
         val id = submittedId ?: return@LaunchedEffect
@@ -79,7 +102,7 @@ fun CanonicalCardCreateScreen(
             MyFinHubScreenHeader(
                 title = "Νέα κάρτα",
                 subtitle = "Χρεωστική, προπληρωμένη ή πιστωτική",
-                navigation = { MyFinHubBackButton(onBack) },
+                navigation = { MyFinHubBackButton(requestBack) },
             )
         },
     ) { padding ->
@@ -245,5 +268,24 @@ fun CanonicalCardCreateScreen(
                 icon = null,
             )
         }
+    }
+
+    if (discardDialogOpen) {
+        AlertDialog(
+            onDismissRequest = { discardDialogOpen = false },
+            title = { Text("Απόρριψη αλλαγών;") },
+            text = { Text("Οι αλλαγές στη νέα κάρτα δεν έχουν αποθηκευτεί.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        discardDialogOpen = false
+                        onBack()
+                    },
+                ) { Text("Απόρριψη") }
+            },
+            dismissButton = {
+                TextButton(onClick = { discardDialogOpen = false }) { Text("Συνέχεια") }
+            },
+        )
     }
 }
