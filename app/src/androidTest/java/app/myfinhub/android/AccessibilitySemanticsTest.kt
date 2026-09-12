@@ -7,6 +7,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -24,11 +25,16 @@ class AccessibilitySemanticsTest {
     fun criticalSurfaces_haveSpokenLabelsForClickableSemantics() {
         assertClickableNodesHaveSpokenLabels("Home")
 
-        listOf("Κινήσεις", "Περιουσία", "Πλάνο", "Ανάλυση").forEach { destination ->
+        listOf("Κινήσεις", "Πορτοφόλι", "Πλάνο").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
         }
+
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+        composeRule.waitForIdle()
+        assertClickableNodesHaveSpokenLabels("Ανάλυση")
 
         openQuickEntryFromHome()
         assertClickableNodesHaveSpokenLabels("Quick Entry")
@@ -45,11 +51,16 @@ class AccessibilitySemanticsTest {
         composeRule.enableAccessibilityChecks()
         checkCurrentSurface()
 
-        listOf("Κινήσεις", "Περιουσία", "Πλάνο", "Ανάλυση").forEach { destination ->
+        listOf("Κινήσεις", "Πορτοφόλι", "Πλάνο").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             checkCurrentSurface()
         }
+
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+        composeRule.waitForIdle()
+        checkCurrentSurface()
 
         openQuickEntryFromHome()
         checkCurrentSurface()

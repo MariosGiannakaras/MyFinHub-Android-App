@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -151,20 +150,17 @@ internal fun MyFinHubAppContent(
     val onFrontendMoneyAction: (MoneyAction) -> Unit = { action ->
         frontendMoneyState = reduceMoney(frontendMoneyState, action)
     }
-    val alwaysShowNavigationLabels = LocalDensity.current.fontScale < 1.3f
 
     val homeBackStack = rememberNavBackStack(AppRoute.Home)
     val activityBackStack = rememberNavBackStack(AppRoute.Activity)
     val moneyBackStack = rememberNavBackStack(AppRoute.Money)
     val planBackStack = rememberNavBackStack(AppRoute.Plan)
-    val insightsBackStack = rememberNavBackStack(AppRoute.Insights)
 
     val activeBackStack: NavBackStack<NavKey> = when (currentDestination) {
         TopLevelDestination.HOME -> homeBackStack
         TopLevelDestination.ACTIVITY -> activityBackStack
         TopLevelDestination.MONEY -> moneyBackStack
         TopLevelDestination.PLAN -> planBackStack
-        TopLevelDestination.INSIGHTS -> insightsBackStack
     }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
@@ -173,36 +169,7 @@ internal fun MyFinHubAppContent(
         backStack.pushIfNew(AppRoute.QuickEntry)
     }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            TopLevelDestination.entries.forEach { destination ->
-                item(
-                    selected = currentDestination == destination,
-                    onClick = {
-                        if (currentDestination == destination) {
-                            activeBackStack.popToRoot()
-                        } else {
-                            currentDestination = destination
-                        }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = destination.icon,
-                            contentDescription = stringResource(destination.label),
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = stringResource(destination.label),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    alwaysShowLabel = alwaysShowNavigationLabels,
-                )
-            }
-        },
-    ) {
+    val navigationContent: @Composable () -> Unit = {
         NavDisplay(
             backStack = activeBackStack,
             onBack = {
@@ -282,12 +249,18 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Activity> {
-                    ActivityScreen(
-                        state = activityState,
-                        onAction = onActivityAction,
-                        onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
-                        onOpenQuickEntry = { openFastExpense(activityBackStack) },
-                    )
+                    MovementRootSurface(
+                        selected = ActivitySection.HISTORY,
+                        onHistory = {},
+                        onAnalysis = { activityBackStack.pushIfNew(AppRoute.Insights) },
+                    ) {
+                        ActivityScreen(
+                            state = activityState,
+                            onAction = onActivityAction,
+                            onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                            onOpenQuickEntry = { openFastExpense(activityBackStack) },
+                        )
+                    }
                 }
                 entry<AppRoute.ActivityDetail> { route ->
                     val item = activityState.items.firstOrNull { it.id == route.eventId }
@@ -524,23 +497,66 @@ internal fun MyFinHubAppContent(
                     }
                 }
                 entry<AppRoute.Insights> {
-            InsightsScreen(
-                state = insightsState,
-                onOpenSupportingActivity = {
-                    activityBackStack.popToRoot()
-                    currentDestination = TopLevelDestination.ACTIVITY
-                },
-                onOpenCategoryActivity = { category ->
-                    insightsBackStack.pushIfNew(AppRoute.CategoryActivity(
-                        category = category,
-                        start = insightsState.categoryStartDate,
-                        end = insightsState.categoryEndDate,
-                    ))
-                },
-            )
-        }
+                    MovementRootSurface(
+                        selected = ActivitySection.ANALYSIS,
+                        onHistory = { activityBackStack.popToRoot() },
+                        onAnalysis = {},
+                    ) {
+                        InsightsScreen(
+                            state = insightsState,
+                            onOpenSupportingActivity = { activityBackStack.popToRoot() },
+                            onOpenCategoryActivity = { category ->
+                                activityBackStack.pushIfNew(
+                                    AppRoute.CategoryActivity(
+                                        category = category,
+                                        start = insightsState.categoryStartDate,
+                                        end = insightsState.categoryEndDate,
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                }
             },
         )
+    }
+
+    val activeRoute = activeBackStack.lastOrNull() as? AppRoute
+    if (activeRoute?.showsGlobalNavigation == true) {
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                TopLevelDestination.entries.forEach { destination ->
+                    item(
+                        selected = currentDestination == destination,
+                        onClick = {
+                            if (currentDestination == destination) {
+                                activeBackStack.popToRoot()
+                            } else {
+                                currentDestination = destination
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = destination.icon,
+                                contentDescription = stringResource(destination.label),
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(destination.label),
+                                maxLines = 2,
+                                overflow = TextOverflow.Clip,
+                            )
+                        },
+                        alwaysShowLabel = true,
+                    )
+                }
+            },
+        ) {
+            navigationContent()
+        }
+    } else {
+        navigationContent()
     }
 }
 

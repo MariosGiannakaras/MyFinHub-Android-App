@@ -2,9 +2,10 @@ package app.myfinhub.android
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
@@ -33,9 +34,14 @@ class TopLevelParityTest {
         ).performClick()
     }
 
+    private fun selectAnalysis() {
+        selectDestination("Κινήσεις")
+        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+    }
+
     @Test
-    fun moneyPlanAndInsights_haveRealMobileContent() {
-        selectDestination("Περιουσία")
+    fun fourRoots_walletPlanAndAnalysis_haveRealMobileContent() {
+        selectDestination("Πορτοφόλι")
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
@@ -56,7 +62,7 @@ class TopLevelParityTest {
             .performScrollTo()
             .assertIsDisplayed()
 
-        selectDestination("Ανάλυση")
+        selectAnalysis()
         composeRule.onNodeWithText("Πορεία 4 μηνών").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Πού πηγαίνουν τα έξοδα"))
@@ -82,26 +88,22 @@ class TopLevelParityTest {
     }
 
     @Test
-    fun reselectingTopLevelDestination_returnsNestedFlowToRoot() {
+    fun secondaryRoute_hidesGlobalNavigation_andBackRestoresOrigin() {
         selectDestination("Κινήσεις")
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
             .performScrollTo()
             .performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
 
-        selectDestination("Κινήσεις")
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Πορτοφόλι").assertIsDisplayed()
     }
 
     @Test
-    fun insights_categoryDeepLink_preservesOriginAndGlobalActivityStack() {
-        selectDestination("Κινήσεις")
-        composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())
-            .performScrollTo()
-            .performClick()
-        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
-
-        selectDestination("Ανάλυση")
+    fun analysis_categoryDeepLink_preservesOrigin_andSiblingAcrossTabSwitches() {
+        selectAnalysis()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Τρόφιμα"))
         composeRule.onNodeWithContentDescription("Προβολή κινήσεων κατηγορίας Τρόφιμα")
@@ -109,9 +111,14 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
+        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+
+        selectDestination("Πλάνο")
         selectDestination("Κινήσεις")
-        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+        composeRule.onNodeWithTag("activity_section_history").performClick()
+        composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
     }
 }
