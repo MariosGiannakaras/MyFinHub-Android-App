@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run one consolidated hosted validation on PR #114 across Android CI, Project Tracking, screenshot regression and S24-target instrumentation.
-- [ ] Fix only evidence-backed S2 failures; when all final-head gates pass, record S2 completion and merge PR #114 without reopening completed discovery.
+- [ ] Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
+- [ ] Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
 
 ## Completed foundations
 
@@ -46,19 +46,19 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 1/10 · Subtasks: 4/40 · Preparation: 4/4**
+**Tasks: 2/10 · Subtasks: 8/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s2-foundation-navigation`. PR: 114.
-Checkpoint: `reviewed_s2_references_committed_pending_final_validation`.
+Working branch: `develop`. PR: not yet opened.
+Checkpoint: `s2_complete_s3_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the reviewed-reference PR #114 head once across Android CI, Project Tracking, screenshot regression and S24-target instrumentation; fix only evidence-backed failures.
+Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
 | S1 Financial truth and capability | 4/4 | Complete |
-| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (in_progress); S2.2 Four top-level destinations (in_progress); S2.3 Editor Back and state preservation (in_progress); S2.4 Accessibility and real-render verification (in_progress) |
+| S2 Foundation and navigation | 4/4 | Complete |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |

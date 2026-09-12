@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s2_foundation_navigation_validation",
-    "summary": "S1 is complete and merged through PR #113 with Android CI, Project Tracking and Android UI Quality green. PR #114 implements the S2 semantic foundation, shared finance rows, four-root navigation, Κινήσεις/Ανάλυση sibling routing and dirty-form Back rules. Narrow compile/test regressions exposed by hosted validation were corrected; the reviewed S2 screenshot references are now committed for one consolidated validation pass. No backend or web/desktop changes.",
+    "status": "android_redesign_s3_activity_ready",
+    "summary": "S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.",
     "next": [
-      "Run one consolidated hosted validation on PR #114 across Android CI, Project Tracking, screenshot regression and S24-target instrumentation.",
-      "Fix only evidence-backed S2 failures; when all final-head gates pass, record S2 completion and merge PR #114 without reopening completed discovery."
+      "Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.",
+      "Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s2-foundation-navigation",
-    "pr": 114,
-    "current_slice": "S2.1 / S2.2 / S2.3 / S2.4",
-    "checkpoint": "reviewed_s2_references_committed_pending_final_validation",
+    "branch": "develop",
+    "pr": null,
+    "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
+    "checkpoint": "s2_complete_s3_ready",
     "blockers": [],
-    "next_action": "Validate the reviewed-reference PR #114 head once across Android CI, Project Tracking, screenshot regression and S24-target instrumentation; fix only evidence-backed failures.",
+    "next_action": "Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -181,38 +181,41 @@
         {
           "id": "S2.1",
           "title": "Semantic tokens and shared rows",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "PR #114 applies the documented semantic light/dark palette, typography and geometry contracts and replaces the shared finance card-row treatment with a flat 64dp-minimum row that stacks trailing amounts at large font scale.",
-            "Android UI Quality rendered all 87 production screenshot candidates after the global token change; artifact 10301658408 (sha256 6a133bcb2f7c635b5749e127f53b3bb3713156d0ad2ad7afa30f2796bc490354) was personally reviewed before these references were accepted."
+            "Android UI Quality rendered all 87 production screenshot candidates after the global token change; artifact 10301658408 (sha256 6a133bcb2f7c635b5749e127f53b3bb3713156d0ad2ad7afa30f2796bc490354) was personally reviewed before the references were accepted.",
+            "Final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI run 34707117202, Project Tracking run 34707117240 and Android UI Quality run 34707117209, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638."
           ]
         },
         {
           "id": "S2.2",
           "title": "Four top-level destinations",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "Permanent navigation is reduced to four labelled roots: Αρχική, Κινήσεις, Πορτοφόλι and Πλάνο. Ανάλυση is a sibling of Ιστορικό inside the retained Κινήσεις stack, while secondary/detail/editor routes hide global navigation.",
-            "Top-level stack policy keeps each root back stack independently and returns an Insights category drill-down to the originating analysis surface."
+            "Top-level stack policy keeps each root back stack independently and returns an Insights category drill-down to the originating analysis surface.",
+            "Final-head S24-target instrumentation passed on Android UI Quality run 34707117209 after inherited root-label coverage was updated for Πορτοφόλι."
           ]
         },
         {
           "id": "S2.3",
           "title": "Editor Back and state preservation",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Quick Entry system/predictive Back and canonical card creation now route through dirty-draft confirmation rather than bypassing editor rules; root switching preserves nested state.",
-            "Hosted validation exposed and corrected the MovementRootSurface receiver-scope import, an unavailable Compose test assertion, and the inherited MoneyParityTest reference to the renamed Πορτοφόλι root. Final-head validation remains required."
+            "Quick Entry system/predictive Back and canonical card creation route through dirty-draft confirmation rather than bypassing editor rules; root switching preserves nested state.",
+            "Hosted validation exposed and corrected the MovementRootSurface receiver-scope import, an unavailable Compose test assertion, and inherited MoneyParityTest navigation coverage.",
+            "Final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed unit tests, instrumentation compilation, lint/debug assembly, release/bundle policy checks and S24-target instrumentation."
           ]
         },
         {
           "id": "S2.4",
           "title": "Accessibility and real-render verification",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Focused design-system/navigation/accessibility contracts were added or updated for touch geometry, contrast, four-root semantics, hidden secondary navigation and Back/origin behavior.",
-            "Reviewed production Home/Activity/Money/Quick Entry/Plan/Insights/Settings/auth candidates in light, dark and 150% show the intended global foundation. Activity filter density remains owned by S3 rather than being hidden as S2 acceptance.",
-            "At head 847333c3658ca580b87835ff3e2ca47d14ae8d82, instrumentation compiled and 46/47 S24-target tests passed; the sole failure was an inherited test clicking the old Περιουσία root label, corrected in e32ab00eb58ebdc59f6583c65de96a8d54aecf9f. Final-head rerun is pending."
+            "Focused design-system/navigation/accessibility contracts cover touch geometry, contrast, four-root semantics, hidden secondary navigation and Back/origin behavior.",
+            "Reviewed production Home/Activity/Money/Quick Entry/Plan/Insights/Settings/auth references in light, dark and 150% show the intended global foundation; Activity filter density remains explicitly owned by S3.",
+            "Android UI Quality run 34707117209 passed both screenshot regression and S24-target instrumentation on final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a; Android CI run 34707117202 and Project Tracking run 34707117240 also passed before merge."
           ]
         }
       ]

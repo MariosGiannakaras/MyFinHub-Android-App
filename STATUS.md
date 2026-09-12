@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**  
-State: `android_redesign_s2_foundation_navigation_validation`
+State: `android_redesign_s3_activity_ready`
 
-S1 is complete and merged through PR #113 with Android CI, Project Tracking and Android UI Quality green. PR #114 implements the S2 semantic foundation, shared finance rows, four-root navigation, Κινήσεις/Ανάλυση sibling routing and dirty-form Back rules. Narrow compile/test regressions exposed by hosted validation were corrected; the reviewed S2 screenshot references are now committed for one consolidated validation pass. No backend or web/desktop changes.
+S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.
 
 ## Current production candidate
 
@@ -21,8 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Run one consolidated hosted validation on PR #114 across Android CI, Project Tracking, screenshot regression and S24-target instrumentation.
-2. Fix only evidence-backed S2 failures; when all final-head gates pass, record S2 completion and merge PR #114 without reopening completed discovery.
+1. Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
+2. Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
 
 ## Non-negotiable constraints
 
@@ -47,19 +47,19 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 ## Android redesign progress
 
-**Tasks: 1/10 · Subtasks: 4/40 · Preparation: 4/4**
+**Tasks: 2/10 · Subtasks: 8/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s2-foundation-navigation`. PR: 114.
-Checkpoint: `reviewed_s2_references_committed_pending_final_validation`.
+Working branch: `develop`. PR: not yet opened.
+Checkpoint: `s2_complete_s3_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the reviewed-reference PR #114 head once across Android CI, Project Tracking, screenshot regression and S24-target instrumentation; fix only evidence-backed failures.
+Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
 | S1 Financial truth and capability | 4/4 | Complete |
-| S2 Foundation and navigation | 0/4 | S2.1 Semantic tokens and shared rows (in_progress); S2.2 Four top-level destinations (in_progress); S2.3 Editor Back and state preservation (in_progress); S2.4 Accessibility and real-render verification (in_progress) |
+| S2 Foundation and navigation | 4/4 | Complete |
 | S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
