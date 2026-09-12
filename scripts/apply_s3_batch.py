@@ -1,0 +1,875 @@
+from pathlib import Path
+import json
+
+
+def read(path: str) -> str:
+    return Path(path).read_text()
+
+
+def write(path: str, text: str) -> None:
+    Path(path).write_text(text)
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    text = read(path)
+    if old not in text:
+        raise SystemExit(f"Missing replacement anchor in {path}: {old[:120]!r}")
+    write(path, text.replace(old, new, 1))
+
+
+def replace_region(path: str, start: str, end: str, replacement: str) -> None:
+    text = read(path)
+    a = text.find(start)
+    if a < 0:
+        raise SystemExit(f"Missing start anchor in {path}: {start!r}")
+    b = text.find(end, a)
+    if b < 0:
+        raise SystemExit(f"Missing end anchor in {path}: {end!r}")
+    write(path, text[:a] + replacement + text[b:])
+
+
+# Activity state: exact ledger scope plus raw note/card identity.
+p = "app/src/main/java/app/myfinhub/android/feature/activity/ActivityUiState.kt"
+replace_once(
+    p,
+    "    /** Signed expense amounts by exact canonical category; null only for legacy preview fixtures. */\n"
+    "    val categoryContributions: Map<String, Double>? = null,\n"
+    ")",
+    "    /** Signed expense amounts by exact canonical category; null only for legacy preview fixtures. */\n"
+    "    val categoryContributions: Map<String, Double>? = null,\n"
+    "    /** Raw canonical note, separate from any presentation fallback text. */\n"
+    "    val note: String = subtitle,\n"
+    "    val cardId: String? = null,\n"
+    "    val cardLabel: String? = null,\n"
+    ")",
+)
+replace_once(
+    p,
+    "                item.subtitle.contains(needle, ignoreCase = true) ||\n"
+    "                item.kind.label.contains(needle, ignoreCase = true) ||",
+    "                item.subtitle.contains(needle, ignoreCase = true) ||\n"
+    "                item.note.contains(needle, ignoreCase = true) ||\n"
+    "                item.kind.label.contains(needle, ignoreCase = true) ||",
+)
+replace_once(
+    p,
+    "            val matchesCategory = exactCategory == null ||\n"
+    "                (item.categoryContributions?.containsKey(exactCategory)\n"
+    "                    ?: ((item.category?.takeIf(String::isNotBlank) ?: \"Άλλο\") == exactCategory))",
+    "            val matchesCategory = exactCategory == null ||\n"
+    "                (item.categoryContributions?.takeIf { it.isNotEmpty() }?.containsKey(exactCategory)\n"
+    "                    ?: ((item.category?.takeIf(String::isNotBlank) ?: \"Άλλο\") == exactCategory))",
+)
+replace_once(
+    p,
+    "                    subtitle = action.note,\n"
+    "                    category = action.category.takeIf(String::isNotBlank),",
+    "                    subtitle = action.note,\n"
+    "                    note = action.note,\n"
+    "                    category = action.category.takeIf(String::isNotBlank),",
+)
+
+# Canonical projection: retain S3 filter state across refresh and expose safe linked-card identity.
+p = "app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt"
+replace_once(
+    p,
+    "val contributionsById = document.categoryContributionsBetween(\"0001-01-01\", \"9999-12-31\")\n"
+    "    .groupBy { it.transactionId }\n"
+    "val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology).map { item ->",
+    "val contributionsById = document.categoryContributionsBetween(\"0001-01-01\", \"9999-12-31\")\n"
+    "    .groupBy { it.transactionId }\n"
+    "val activityCardLabels = document.canonicalCards().associate { card ->\n"
+    "    val base = card.nickname.ifBlank { card.network.ifBlank { \"Κάρτα\" } }\n"
+    "    val last4 = card.last4.orEmpty()\n"
+    "    card.id to if (last4.isBlank()) base else \"$base • $last4\"\n"
+    "}\n"
+    "val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology, activityCardLabels).map { item ->",
+)
+replace_once(
+    p,
+    "        filter = oldActivity?.filter ?: ActivityFilter.ALL,\n"
+    "        categoryFilter = oldActivity?.categoryFilter,\n"
+    "        dateFrom = oldActivity?.dateFrom,\n"
+    "        dateTo = oldActivity?.dateTo,",
+    "        filter = oldActivity?.filter ?: ActivityFilter.ALL,\n"
+    "        ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,\n"
+    "        ledgerDateFrom = oldActivity?.ledgerDateFrom,\n"
+    "        ledgerDateTo = oldActivity?.ledgerDateTo,\n"
+    "        categoryFilter = oldActivity?.categoryFilter,\n"
+    "        dateFrom = oldActivity?.dateFrom,\n"
+    "        dateTo = oldActivity?.dateTo,",
+)
+replace_once(
+    p,
+    "    accountNames: Map<String, String>,\n"
+    "    eventChronology: Map<String, String>,\n"
+    "): List<ActivityItem> {",
+    "    accountNames: Map<String, String>,\n"
+    "    eventChronology: Map<String, String>,\n"
+    "    cardLabels: Map<String, String>,\n"
+    "): List<ActivityItem> {",
+)
+replace_once(
+    p,
+    "                    category = tx.category,\n"
+    "                    subcategory = tx.subcategory,\n"
+    "                    rawDate = tx.date,",
+    "                    category = tx.category,\n"
+    "                    subcategory = tx.subcategory,\n"
+    "                    note = tx.note,\n"
+    "                    rawDate = tx.date,",
+)
+replace_once(
+    p,
+    "                    category = event.category,\n"
+    "                    subcategory = event.subcategory,\n"
+    "                    rawDate = event.date,\n"
+    "                    accountId = event.accountId,\n"
+    "                    fromAccountId = event.fromAccountId,\n"
+    "                    toAccountId = event.toAccountId,",
+    "                    category = event.category,\n"
+    "                    subcategory = event.subcategory,\n"
+    "                    note = event.note,\n"
+    "                    rawDate = event.date,\n"
+    "                    accountId = event.accountId,\n"
+    "                    fromAccountId = event.fromAccountId,\n"
+    "                    toAccountId = event.toAccountId,\n"
+    "                    cardId = event.cardId,\n"
+    "                    cardLabel = event.cardId?.let(cardLabels::get),",
+)
+
+# Wire S3 into the retained Activity back stack.
+p = "app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt"
+replace_once(
+    p,
+    "import app.myfinhub.android.feature.activity.ActivityDetailScreen\n"
+    "import app.myfinhub.android.feature.activity.ActivityScreen\n",
+    "import app.myfinhub.android.feature.activity.ActivityEditScreen\n"
+    "import app.myfinhub.android.feature.activity.ActivityLedgerScreen\n"
+    "import app.myfinhub.android.feature.activity.ActivityReadDetailScreen\n",
+)
+replace_once(
+    p,
+    "    activityState: ActivityUiState = ActivityUiState(),\n"
+    "    onActivityAction: (ActivityAction) -> Unit = {},\n",
+    "    activityState: ActivityUiState = ActivityUiState(),\n"
+    "    onActivityAction: (ActivityAction) -> Unit = {},\n"
+    "    activityMutationInFlight: Boolean = false,\n"
+    "    activityMutationBlocked: Boolean = false,\n",
+)
+new_routes = '''                entry<AppRoute.Activity> {
+                    MovementRootSurface(
+                        selected = ActivitySection.HISTORY,
+                        onHistory = {},
+                        onAnalysis = { activityBackStack.pushIfNew(AppRoute.Insights) },
+                    ) {
+                        ActivityLedgerScreen(
+                            state = activityState,
+                            onAction = onActivityAction,
+                            onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                            onOpenQuickEntry = { openFastExpense(activityBackStack) },
+                        )
+                    }
+                }
+                entry<AppRoute.ActivityDetail> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    ActivityReadDetailScreen(
+                        item = item,
+                        accountOptions = activityState.accountOptions,
+                        mutationBlocked = activityMutationBlocked,
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
+                        onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },
+                        onDeleted = { activeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.ActivityEdit> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    ActivityEditScreen(
+                        item = item,
+                        categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
+                        mutationInFlight = activityMutationInFlight,
+                        mutationBlocked = activityMutationBlocked,
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        onSave = { date, note, category, subcategory ->
+                            onActivityAction(
+                                ActivityAction.SaveEdit(
+                                    id = route.eventId,
+                                    note = note,
+                                    category = category,
+                                    date = date,
+                                    subcategory = subcategory,
+                                ),
+                            )
+                        },
+                        onSaved = { activeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.CategoryActivity> { route ->
+                    ActivityLedgerScreen(
+                        state = activityState.forCategory(route.category, route.start, route.end),
+                        onAction = onActivityAction,
+                        onOpenDetail = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenQuickEntry = { openFastExpense(activeBackStack) },
+                        onBack = { activeBackStack.removeLastOrNull() },
+                    )
+                }
+'''
+replace_region(
+    p,
+    "                entry<AppRoute.Activity> {",
+    "                entry<AppRoute.QuickEntry> {",
+    new_routes,
+)
+
+# Production root passes mutation progress separately from recovery blocking.
+p = "app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt"
+replace_once(
+    p,
+    "                    activityState = projection.activityState,\n"
+    "                    onActivityAction = onActivityAction,\n"
+    "                    quickEntryState = projection.quickEntryState,",
+    "                    activityState = projection.activityState,\n"
+    "                    onActivityAction = onActivityAction,\n"
+    "                    activityMutationInFlight = state.saving,\n"
+    "                    activityMutationBlocked = state.saving || state.issue != null,\n"
+    "                    quickEntryState = projection.quickEntryState,",
+)
+
+# S3 UI hardening: shared accessible flat row, honest detail and sticky durable-save editor.
+p = "app/src/main/java/app/myfinhub/android/feature/activity/ActivityS3Screens.kt"
+replace_once(
+    p,
+    "import androidx.compose.foundation.layout.heightIn\n",
+    "import androidx.compose.foundation.layout.heightIn\nimport androidx.compose.foundation.layout.imePadding\n",
+)
+replace_once(
+    p,
+    "import app.myfinhub.android.designsystem.MyFinHubDesignMetrics\n",
+    "import app.myfinhub.android.designsystem.MyFinHubDesignMetrics\n"
+    "import app.myfinhub.android.designsystem.MyFinHubFinanceRow\n",
+)
+flat_row = '''@Composable
+private fun ActivityFlatLedgerRow(
+    item: ActivityItem,
+    accountOptions: List<ActivityAccountOption>,
+    onClick: () -> Unit,
+) {
+    val tone = item.s3Tone()
+    val secondary = if (item.kind == ActivityKind.TRANSFER) {
+        activityTransferRouteLabel(item, accountOptions)
+    } else {
+        item.note
+    }
+    val meta = when {
+        item.pendingSync -> "Εκκρεμεί συγχρονισμός"
+        item.kind == ActivityKind.TRANSFER -> "Εσωτερική μεταφορά"
+        item.kind == ActivityKind.CARD_PAYMENT -> "Πληρωμή πιστωτικής · ${item.accountLabel}"
+        else -> item.accountLabel
+    }
+
+    MyFinHubFinanceRow(
+        icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
+        iconDescription = null,
+        title = item.title,
+        subtitle = secondary,
+        meta = meta,
+        amountText = formatSignedEuro(item.amount),
+        tone = tone,
+        onClick = onClick,
+    )
+}
+
+'''
+replace_region(
+    p,
+    "@Composable\nprivate fun ActivityFlatLedgerRow(",
+    "@Composable\ninternal fun ActivityFilterSheetContent(",
+    flat_row,
+)
+# Rename detail blocker within its isolated region.
+text = read(p)
+a = text.index("fun ActivityReadDetailScreen(")
+b = text.index("@Composable\nprivate fun ActivityMoreActions", a)
+region = text[a:b].replace("mutationInFlight: Boolean", "mutationBlocked: Boolean").replace("mutationInFlight", "mutationBlocked")
+write(p, text[:a] + region + text[b:])
+replace_once(
+    p,
+    "                item { ActivityReadField(\"Σημείωση\", item.subtitle.ifBlank { \"Χωρίς σημείωση\" }) }\n"
+    "                if (item.kind == ActivityKind.CARD_PAYMENT && item.subtitle.isNotBlank()) {\n"
+    "                    item { ActivityReadField(\"Συνδεδεμένη κάρτα\", item.subtitle) }\n"
+    "                }",
+    "                item { ActivityReadField(\"Σημείωση\", item.note.ifBlank { \"Χωρίς σημείωση\" }) }\n"
+    "                item.cardLabel?.takeIf(String::isNotBlank)?.let { cardLabel ->\n"
+    "                    item { ActivityReadField(\"Συνδεδεμένη κάρτα\", cardLabel) }\n"
+    "                }",
+)
+replace_once(
+    p,
+    "    mutationInFlight: Boolean,\n"
+    "    onBack: () -> Unit,",
+    "    mutationInFlight: Boolean,\n"
+    "    mutationBlocked: Boolean,\n"
+    "    onBack: () -> Unit,",
+)
+replace_once(
+    p,
+    "    var note by rememberSaveable(item.id) { mutableStateOf(item.subtitle) }",
+    "    var note by rememberSaveable(item.id) { mutableStateOf(item.note) }",
+)
+replace_once(
+    p,
+    "    var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }\n"
+    "    var requestedDate by rememberSaveable(item.id) { mutableStateOf(\"\") }",
+    "    var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }\n"
+    "    var observedMutationInFlight by rememberSaveable(item.id) { mutableStateOf(false) }\n"
+    "    var requestedDate by rememberSaveable(item.id) { mutableStateOf(\"\") }",
+)
+replace_once(
+    p,
+    "    val dirty = date != item.rawDate.take(10) ||\n"
+    "        note != item.subtitle ||",
+    "    val dirty = date != item.rawDate.take(10) ||\n"
+    "        note != item.note ||",
+)
+replace_once(
+    p,
+    '''    val requestBack = {
+        if (dirty && !saveRequested) discardDialogOpen = true else onBack()
+    }
+    BackHandler(onBack = requestBack)
+
+    LaunchedEffect(
+        item.rawDate,
+        item.subtitle,
+        item.category,
+        item.subcategory,
+        saveRequested,
+        requestedDate,
+        requestedNote,
+        requestedCategory,
+        requestedSubcategory,
+    ) {
+        if (
+            saveRequested &&
+            item.rawDate.take(10) == requestedDate &&
+            item.subtitle == requestedNote &&
+            item.category.orEmpty() == requestedCategory &&
+            item.subcategory.orEmpty() == requestedSubcategory
+        ) {
+            saveRequested = false
+            onSaved()
+        }
+    }''',
+    '''    val requestBack = {
+        when {
+            mutationInFlight -> Unit
+            dirty -> discardDialogOpen = true
+            else -> onBack()
+        }
+    }
+    BackHandler(onBack = requestBack)
+
+    LaunchedEffect(
+        item.rawDate,
+        item.note,
+        item.category,
+        item.subcategory,
+        mutationInFlight,
+        saveRequested,
+        requestedDate,
+        requestedNote,
+        requestedCategory,
+        requestedSubcategory,
+    ) {
+        val persisted = saveRequested &&
+            item.rawDate.take(10) == requestedDate &&
+            item.note == requestedNote &&
+            item.category.orEmpty() == requestedCategory &&
+            item.subcategory.orEmpty() == requestedSubcategory
+        when {
+            persisted -> {
+                saveRequested = false
+                observedMutationInFlight = false
+                onSaved()
+            }
+            saveRequested && mutationInFlight -> observedMutationInFlight = true
+            saveRequested && observedMutationInFlight && !mutationInFlight -> {
+                saveRequested = false
+                observedMutationInFlight = false
+            }
+        }
+    }''',
+)
+replace_once(
+    p,
+    '''    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            MyFinHubScreenHeader(
+                title = "Επεξεργασία κίνησης",
+                subtitle = item.title,
+                navigation = { MyFinHubBackButton(requestBack) },
+            )
+        },
+    ) { padding ->''',
+    '''    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            MyFinHubScreenHeader(
+                title = "Επεξεργασία κίνησης",
+                subtitle = item.title,
+                navigation = { MyFinHubBackButton(requestBack) },
+            )
+        },
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                MyFinHubPrimaryAction(
+                    label = if (mutationInFlight || saveRequested) "Αποθήκευση…" else "Αποθήκευση αλλαγών",
+                    onClick = {
+                        requestedDate = date
+                        requestedNote = note.trim()
+                        requestedCategory = category
+                        requestedSubcategory = subcategory
+                        saveRequested = true
+                        onSave(date, note.trim(), category, subcategory)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.xs)
+                        .navigationBarsPadding()
+                        .imePadding(),
+                    enabled = dirty && valid && !mutationBlocked && !saveRequested,
+                    icon = null,
+                )
+            }
+        },
+    ) { padding ->''',
+)
+replace_once(
+    p,
+    "                onValueChange = { date = it },",
+    "                onValueChange = { if (!mutationInFlight && !saveRequested) date = it },",
+)
+replace_once(
+    p,
+    "                    enabled = !mutationInFlight,\n"
+    "                    onSelected = { selected ->",
+    "                    enabled = !mutationInFlight && !saveRequested,\n"
+    "                    onSelected = { selected ->",
+)
+replace_once(
+    p,
+    "                        enabled = !mutationInFlight,\n"
+    "                        onSelected = { subcategory = it },",
+    "                        enabled = !mutationInFlight && !saveRequested,\n"
+    "                        onSelected = { subcategory = it },",
+)
+replace_once(
+    p,
+    "                onValueChange = { note = it },\n"
+    "                label = \"Σημείωση\",\n"
+    "                singleLine = false,\n"
+    "                enabled = !mutationInFlight,",
+    "                onValueChange = { note = it },\n"
+    "                label = \"Σημείωση\",\n"
+    "                singleLine = false,\n"
+    "                enabled = !mutationInFlight && !saveRequested,",
+)
+replace_once(
+    p,
+    '''            MyFinHubPrimaryAction(
+                label = if (mutationInFlight) "Αποθήκευση…" else "Αποθήκευση αλλαγών",
+                onClick = {
+                    requestedDate = date
+                    requestedNote = note.trim()
+                    requestedCategory = category
+                    requestedSubcategory = subcategory
+                    saveRequested = true
+                    onSave(date, note.trim(), category, subcategory)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = dirty && valid && !mutationInFlight,
+                icon = null,
+            )
+''',
+    "",
+)
+
+# Focused unit coverage.
+p = "app/src/test/java/app/myfinhub/android/feature/activity/ActivityReducerTest.kt"
+text = read(p)
+insert = r'''
+
+    @Test
+    fun ledgerFilters_areExactInclusiveAndIndependentlyRemovable() {
+        val items = listOf(
+            ActivityItem("food-main", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -10.0, "Κύριος", "Τρόφιμα",
+                rawDate = "2026-09-10", accountId = "main", categoryContributions = mapOf("Τρόφιμα" to 10.0)),
+            ActivityItem("food-old", "31 Αυγ", ActivityKind.EXPENSE, "Αγορά", "", -8.0, "Κύριος", "Τρόφιμα",
+                rawDate = "2026-08-31", accountId = "main", categoryContributions = mapOf("Τρόφιμα" to 8.0)),
+            ActivityItem("food-cash", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -4.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-09-10", accountId = "cash", categoryContributions = mapOf("Τρόφιμα" to 4.0)),
+            ActivityItem("transport-main", "10 Σεπ", ActivityKind.EXPENSE, "Εισιτήριο", "", -3.0, "Κύριος", "Μεταφορές",
+                rawDate = "2026-09-10", accountId = "main", categoryContributions = mapOf("Μεταφορές" to 3.0)),
+        )
+        val initial = ActivityUiState(
+            items = items,
+            accountOptions = listOf(ActivityAccountOption("main", "Κύριος"), ActivityAccountOption("cash", "Μετρητά")),
+        )
+
+        val filtered = reduceActivity(
+            initial,
+            ActivityAction.ApplyFilters(
+                type = ActivityFilter.EXPENSE,
+                accountId = "main",
+                category = "Τρόφιμα",
+                dateFrom = "2026-09-01",
+                dateTo = "2026-09-10",
+            ),
+        )
+
+        assertEquals(listOf("food-main"), filtered.visibleItems.map { it.id })
+        assertEquals(4, filtered.activeFilterCount)
+
+        val withoutDate = reduceActivity(filtered, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
+        assertEquals(listOf("food-main", "food-old"), withoutDate.visibleItems.map { it.id })
+
+        val cleared = reduceActivity(filtered.copy(query = "καφ"), ActivityAction.ClearFilters)
+        assertEquals("καφ", cleared.query)
+        assertEquals(0, cleared.activeFilterCount)
+    }
+'''
+pos = text.rfind("\n}")
+if pos < 0:
+    raise SystemExit("Could not append ActivityReducerTest")
+write(p, text[:pos] + insert + text[pos:])
+
+p = "app/src/test/java/app/myfinhub/android/app/CanonicalProductProjectionTest.kt"
+replace_once(
+    p,
+    "                filter = ActivityFilter.EXPENSE, accountFilterId = \"acc-main\",\n"
+    "                categoryFilter = \"Τρόφιμα\", dateFrom = \"2026-08-01\", dateTo = \"2026-08-23\"),",
+    "                filter = ActivityFilter.EXPENSE, accountFilterId = \"acc-main\",\n"
+    "                ledgerCategoryFilter = \"Τρόφιμα\", ledgerDateFrom = \"2026-08-02\", ledgerDateTo = \"2026-08-22\",\n"
+    "                categoryFilter = \"Τρόφιμα\", dateFrom = \"2026-08-01\", dateTo = \"2026-08-23\"),",
+)
+replace_once(
+    p,
+    "        assertEquals(\"acc-main\", refreshed.activityState.accountFilterId)\n"
+    "        assertEquals(\"Τρόφιμα\", refreshed.activityState.categoryFilter)",
+    "        assertEquals(\"acc-main\", refreshed.activityState.accountFilterId)\n"
+    "        assertEquals(\"Τρόφιμα\", refreshed.activityState.ledgerCategoryFilter)\n"
+    "        assertEquals(\"2026-08-02\", refreshed.activityState.ledgerDateFrom)\n"
+    "        assertEquals(\"2026-08-22\", refreshed.activityState.ledgerDateTo)\n"
+    "        assertEquals(\"Τρόφιμα\", refreshed.activityState.categoryFilter)",
+)
+
+p = "app/src/test/java/app/myfinhub/android/app/AppNavigationPolicyTest.kt"
+replace_once(
+    p,
+    "            AppRoute.ActivityDetail(\"event-1\"),\n"
+    "            AppRoute.CategoryActivity",
+    "            AppRoute.ActivityDetail(\"event-1\"),\n"
+    "            AppRoute.ActivityEdit(\"event-1\"),\n"
+    "            AppRoute.CategoryActivity",
+)
+
+# Focused S3 device contracts.
+Path("app/src/androidTest/java/app/myfinhub/android/ActivityS3NavigationTest.kt").write_text(r'''package app.myfinhub.android
+
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import org.junit.Rule
+import org.junit.Test
+
+class ActivityS3NavigationTest {
+    @get:Rule
+    val composeRule = createAndroidComposeRule<ProductTestActivity>()
+
+    @Test
+    fun activity_filterSheet_exposesExactScopeControls() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Φίλτρα").performClick()
+
+        composeRule.onNodeWithText("Φίλτρα κινήσεων").assertIsDisplayed()
+        composeRule.onNodeWithText("Τύπος κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Λογαριασμός").assertIsDisplayed()
+        composeRule.onNodeWithText("Κατηγορία").assertIsDisplayed()
+        composeRule.onNodeWithText("Από ημερομηνία").assertIsDisplayed()
+        composeRule.onNodeWithText("Έως ημερομηνία").assertIsDisplayed()
+        composeRule.onNodeWithText("Εφαρμογή").assertIsDisplayed()
+    }
+
+    @Test
+    fun activity_detailIsReadFirst_andEditorIsSeparateSecondaryRoute() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Σούπερ μάρκετ").performClick()
+
+        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
+        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+
+        composeRule.onNodeWithText("Επεξεργασία").performClick()
+        composeRule.onNodeWithText("Επεξεργασία κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση αλλαγών").assertIsDisplayed()
+        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
+    }
+
+    @Test
+    fun activity_deleteConfirmation_statesMyFinHubMeaning_notBankReversal() {
+        composeRule.onNodeWithText("Κινήσεις").performClick()
+        composeRule.onNodeWithText("Σούπερ μάρκετ").performClick()
+        composeRule.onNodeWithText("Περισσότερα").performClick()
+        composeRule.onNodeWithText("Διαγραφή κίνησης").performClick()
+
+        composeRule.onNodeWithText("Διαγραφή κίνησης;").assertIsDisplayed()
+        composeRule.onNodeWithText("Δεν ακυρώνει συναλλαγή στην τράπεζα.", substring = true).assertIsDisplayed()
+    }
+}
+''')
+
+# Real-render S3 Activity references.
+Path("app/src/screenshotTest/kotlin/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTest.kt").write_text(r'''package app.myfinhub.android.feature.activity
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import app.myfinhub.android.designsystem.MyFinHubTheme
+import com.android.tools.screenshot.PreviewTest
+
+@PreviewTest
+@Preview(name = "category_activity_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CategoryActivityLightScreenshot() { CategoryActivityFixture(false) }
+
+@PreviewTest
+@Preview(name = "category_activity_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CategoryActivityDarkScreenshot() { CategoryActivityFixture(true) }
+
+@PreviewTest
+@Preview(name = "category_activity_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun CategoryActivityLargeFontScreenshot() { CategoryActivityFixture(false) }
+
+@Composable
+private fun CategoryActivityFixture(darkTheme: Boolean) {
+    val state = ActivityUiState(items = listOf(
+        ActivityItem("refund", "10 Σεπ", ActivityKind.INCOME, "Επιστροφή αγοράς", "Μερική επιστροφή", 5.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-09-10", categoryContributions = mapOf("Τρόφιμα" to -5.0)),
+        ActivityItem("split", "1 Σεπ", ActivityKind.EXPENSE, "Εβδομαδιαίες αγορές", "Μοιρασμένη κίνηση", -100.0,
+            "Πειραιώς Μισθοδοσίας", null, rawDate = "2026-09-01", categoryContributions = mapOf("Τρόφιμα" to 20.0)),
+    )).forCategory("Τρόφιμα", "2026-09-01", "2026-09-10")
+    MyFinHubTheme(darkTheme = darkTheme) {
+        ActivityLedgerScreen(state, {}, {}, {}, onBack = {})
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_pending_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityPendingLightScreenshot() { ProductionActivityPendingFixture(false) }
+
+@PreviewTest
+@Preview(name = "production_activity_pending_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityPendingDarkScreenshot() { ProductionActivityPendingFixture(true) }
+
+@PreviewTest
+@Preview(name = "production_activity_pending_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun ProductionActivityPendingLargeFontScreenshot() { ProductionActivityPendingFixture(false) }
+
+@PreviewTest
+@Preview(name = "production_activity_account_filter_sheet", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityAccountFilterSheetScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        ActivityFilterSheetContent(
+            state = activityFixtureState(),
+            onApply = { _, _, _, _, _ -> },
+            onReset = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_pending_detail", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityPendingDetailScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        ActivityReadDetailScreen(
+            item = pendingActivityItems().first(),
+            accountOptions = activityAccountOptions(),
+            mutationBlocked = false,
+            onBack = {},
+            onEdit = {},
+            onDelete = {},
+            onDeleted = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_edit", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityEditScreenshot() {
+    val item = pendingActivityItems().first { !it.pendingSync && it.kind == ActivityKind.EXPENSE }
+    MyFinHubTheme(darkTheme = false) {
+        ActivityEditScreen(
+            item = item,
+            categoryOptions = listOf(
+                ActivityCategoryOption("Έξοδος", listOf("Καφές")),
+                ActivityCategoryOption("Μεταφορές", listOf("Εισιτήριο")),
+            ),
+            mutationInFlight = false,
+            mutationBlocked = false,
+            onBack = {},
+            onSave = { _, _, _, _ -> },
+            onSaved = {},
+        )
+    }
+}
+
+@Composable
+private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        ActivityLedgerScreen(
+            state = activityFixtureState(),
+            onAction = {},
+            onOpenDetail = {},
+            onOpenQuickEntry = {},
+        )
+    }
+}
+
+private fun activityFixtureState() = ActivityUiState(
+    items = pendingActivityItems(),
+    expenseCategories = listOf(
+        ActivityCategoryOption("Έξοδος", listOf("Καφές")),
+        ActivityCategoryOption("Τρόφιμα"),
+        ActivityCategoryOption("Μεταφορές", listOf("Εισιτήριο")),
+    ),
+    incomeCategories = listOf(ActivityCategoryOption("Μισθός")),
+    accountOptions = activityAccountOptions(),
+)
+
+private fun activityAccountOptions(): List<ActivityAccountOption> = listOf(
+    ActivityAccountOption("piraeus-payroll", "Πειραιώς Μισθοδοσίας"),
+    ActivityAccountOption("cash", "Μετρητά"),
+    ActivityAccountOption("piraeus-savings", "Πειραιώς Αποταμίευση"),
+)
+
+private fun pendingActivityItems(): List<ActivityItem> = listOf(
+    ActivityItem(
+        id = "evt-offline-coffee",
+        dateLabel = "Σήμερα, 08:45",
+        kind = ActivityKind.EXPENSE,
+        title = "Καφές",
+        subtitle = "Πρωινός καφές",
+        amount = -5.00,
+        accountLabel = "Πειραιώς Μισθοδοσίας",
+        category = "Έξοδος",
+        pendingSync = true,
+        rawDate = "2026-09-07",
+        accountId = "piraeus-payroll",
+    ),
+    ActivityItem(
+        id = "evt-offline-market",
+        dateLabel = "Σήμερα, 08:32",
+        kind = ActivityKind.EXPENSE,
+        title = "Σούπερ μάρκετ",
+        subtitle = "Μικρές αγορές",
+        amount = -18.40,
+        accountLabel = "Πειραιώς Μισθοδοσίας",
+        category = "Τρόφιμα",
+        pendingSync = true,
+        rawDate = "2026-09-07",
+        accountId = "piraeus-payroll",
+    ),
+    ActivityItem(
+        id = "evt-transfer",
+        dateLabel = "Σήμερα, 08:10",
+        kind = ActivityKind.TRANSFER,
+        title = "Μεταφορά στην αποταμίευση",
+        subtitle = "Εσωτερική μεταφορά",
+        amount = 250.00,
+        accountLabel = "Πειραιώς Μισθοδοσίας → Πειραιώς Αποταμίευση",
+        category = "Αποταμίευση",
+        rawDate = "2026-09-07",
+        fromAccountId = "piraeus-payroll",
+        toAccountId = "piraeus-savings",
+    ),
+    ActivityItem(
+        id = "evt-synced-expense",
+        dateLabel = "Χθες, 19:10",
+        kind = ActivityKind.EXPENSE,
+        title = "Μετακίνηση",
+        subtitle = "Εισιτήριο",
+        amount = -3.60,
+        accountLabel = "Μετρητά",
+        category = "Μεταφορές",
+        rawDate = "2026-09-06",
+        accountId = "cash",
+    ),
+    ActivityItem(
+        id = "evt-synced-income",
+        dateLabel = "2 Σεπ, 10:00",
+        kind = ActivityKind.INCOME,
+        title = "Μισθός",
+        subtitle = "Μηνιαία πίστωση",
+        amount = 1840.00,
+        accountLabel = "Πειραιώς Μισθοδοσίας",
+        category = "Μισθός",
+        rawDate = "2026-09-02",
+        accountId = "piraeus-payroll",
+    ),
+)
+''')
+
+# Canonical tracking: S3 is coherent but still pending hosted/render acceptance.
+p = Path("tracking/android-project-state.json")
+data = json.loads(p.read_text())
+data["active_workstream"]["status"] = "android_redesign_s3_activity_implementation"
+data["active_workstream"]["summary"] = (
+    "S1 and S2 are complete. S3 Activity is implemented as one coherent branch batch: flat searchable ledger, exact combined filters, isolated analytics drill-down, read-first transaction detail, supported date/note/category/subcategory editing, canonical delete semantics, dirty-editor Back protection and Activity-focused tests/renders. Hosted Android/UI validation and fresh render review remain pending; no backend or web/desktop changes."
+)
+data["active_workstream"]["next"] = [
+    "Open the S3 Activity PR and run one consolidated Android CI / UI Quality validation pass after the batched implementation.",
+    "Inspect fresh Activity light/dark/150% ledger, filter, detail and editor renders before accepting references or marking S3 complete.",
+]
+current = data["current_redesign_pass"]
+current["branch"] = "android/redesign-s3-activity"
+current["pr"] = None
+current["current_slice"] = "S3.1 / S3.2 / S3.3 / S3.4"
+current["checkpoint"] = "s3_batched_implementation_pre_validation"
+current["next_action"] = "Open the S3 PR, run consolidated hosted validation, inspect fresh Activity renders, then fix only concrete findings before completion."
+s3 = next(task for task in data["redesign_tasks"] if task["id"] == "S3")
+evidence = {
+    "S3.1": [
+        "Branch android/redesign-s3-activity implements a flat date-grouped ledger with search, one filter sheet, active-count/removable scope summary, exact account/type/category/date filters, distinct true-empty/no-match recovery and isolated analytics drill-down scope.",
+        "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope.",
+    ],
+    "S3.2": [
+        "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route.",
+    ],
+    "S3.3": [
+        "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
+        "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal.",
+    ],
+    "S3.4": [
+        "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending.",
+    ],
+}
+for subtask in s3["subtasks"]:
+    subtask["status"] = "in_progress"
+    subtask["evidence"] = evidence[subtask["id"]]
+p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
