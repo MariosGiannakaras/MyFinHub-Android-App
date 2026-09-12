@@ -1,11 +1,14 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -24,8 +27,14 @@ class ActivityS3NavigationTest {
         composeRule.onNodeWithText("Λογαριασμός").assertIsDisplayed()
         composeRule.onNodeWithText("Κατηγορία").assertIsDisplayed()
         composeRule.onNodeWithText("Από ημερομηνία").assertIsDisplayed()
-        composeRule.onNodeWithText("Έως ημερομηνία").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("Εφαρμογή").performScrollTo().assertIsDisplayed()
+
+        val sheetScroll = composeRule.onNode(
+            hasScrollAction() and hasAnyDescendant(hasText("Έως ημερομηνία")),
+        )
+        sheetScroll.performScrollToNode(hasText("Έως ημερομηνία"))
+        composeRule.onNodeWithText("Έως ημερομηνία").assertIsDisplayed()
+        sheetScroll.performScrollToNode(hasText("Εφαρμογή"))
+        composeRule.onNodeWithText("Εφαρμογή").assertIsDisplayed()
     }
 
     @Test
