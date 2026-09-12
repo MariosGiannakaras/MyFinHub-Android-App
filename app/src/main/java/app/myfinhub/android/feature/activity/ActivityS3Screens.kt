@@ -479,7 +479,7 @@ fun ActivityReadDetailScreen(
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(item, deleteRequested) {
-        if (deleteRequested && item == null) onDeleted()
+        if (deleteRequested && (item == null || item.pendingSync)) onDeleted()
     }
 
     Scaffold(
@@ -667,7 +667,9 @@ fun ActivityEditScreen(
         return
     }
 
-    if (item.pendingSync) {
+    var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }
+
+    if (item.pendingSync && !saveRequested) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             topBar = { MyFinHubScreenHeader(title = "Επεξεργασία κίνησης", navigation = { MyFinHubBackButton(onBack) }) },
@@ -688,7 +690,6 @@ fun ActivityEditScreen(
     var category by rememberSaveable(item.id) { mutableStateOf(item.category.orEmpty()) }
     var subcategory by rememberSaveable(item.id) { mutableStateOf(item.subcategory.orEmpty()) }
     var discardDialogOpen by rememberSaveable(item.id) { mutableStateOf(false) }
-    var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }
     var observedMutationInFlight by rememberSaveable(item.id) { mutableStateOf(false) }
     var requestedDate by rememberSaveable(item.id) { mutableStateOf("") }
     var requestedNote by rememberSaveable(item.id) { mutableStateOf("") }
@@ -712,7 +713,7 @@ fun ActivityEditScreen(
 
     val requestBack = {
         when {
-            mutationInFlight -> Unit
+            mutationInFlight || saveRequested -> Unit
             dirty -> discardDialogOpen = true
             else -> onBack()
         }
@@ -776,7 +777,7 @@ fun ActivityEditScreen(
                         .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.xs)
                         .navigationBarsPadding()
                         .imePadding(),
-                    enabled = dirty && valid && !mutationBlocked && !saveRequested,
+                    enabled = dirty && valid && !mutationBlocked && !saveRequested && !item.pendingSync,
                     icon = null,
                 )
             }
@@ -806,7 +807,7 @@ fun ActivityEditScreen(
             )
             DateEntryField(
                 value = date,
-                onValueChange = { if (!mutationInFlight && !saveRequested) date = it },
+                onValueChange = { if (!mutationInFlight && !saveRequested && !item.pendingSync) date = it },
                 label = "Ημερομηνία",
                 errorMessage = if (dateError) "Η ημερομηνία δεν είναι έγκυρη." else null,
             )
@@ -815,7 +816,7 @@ fun ActivityEditScreen(
                     label = "Κατηγορία",
                     selectedId = category,
                     choices = effectiveCategoryOptions.map { it.name to it.name },
-                    enabled = !mutationInFlight && !saveRequested,
+                    enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                     onSelected = { selected ->
                         category = selected
                         val allowed = effectiveCategoryOptions.firstOrNull { it.name == selected }?.subcategories.orEmpty()
@@ -827,7 +828,7 @@ fun ActivityEditScreen(
                         label = "Υποκατηγορία",
                         selectedId = subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") + subcategoryOptions.map { it to it },
-                        enabled = !mutationInFlight && !saveRequested,
+                        enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { subcategory = it },
                     )
                 }
@@ -837,7 +838,7 @@ fun ActivityEditScreen(
                 onValueChange = { note = it },
                 label = "Σημείωση",
                 singleLine = false,
-                enabled = !mutationInFlight && !saveRequested,
+                enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             )
         }

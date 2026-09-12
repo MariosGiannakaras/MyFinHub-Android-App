@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s3_activity_implementation`.
+- Workstream state: `android_redesign_s3_activity_validation`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1 and S2 are complete. S3 Activity is implemented as one coherent branch batch: flat searchable ledger, exact combined filters, isolated analytics drill-down, read-first transaction detail, supported date/note/category/subcategory editing, canonical delete semantics, dirty-editor Back protection and Activity-focused tests/renders. Hosted Android/UI validation and fresh render review remain pending; no backend or web/desktop changes.
+S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. The first hosted run produced 88 render candidates; the 11 intentional Activity/top-level Activity changes were personally reviewed in light/dark/150% and accepted for checkpointing. The same run exposed one androidTest-only assertion import error plus offline edit/delete route-close edge cases; these are fixed in one batch before the final hosted validation. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Open the S3 Activity PR and run one consolidated Android CI / UI Quality validation pass after the batched implementation.
-- Inspect fresh Activity light/dark/150% ledger, filter, detail and editor renders before accepting references or marking S3 complete.
+- Run one final consolidated PR #115 validation after the reviewed baseline and concrete fixes land.
+- Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1 and S2 are complete. S3 Activity is implemented as one coherent branch batch:
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s3-activity`. PR: not yet opened.
-Checkpoint: `s3_batched_implementation_pre_validation`.
+Working branch: `android/redesign-s3-activity`. PR: 115.
+Checkpoint: `s3_reviewed_baseline_and_concrete_fix_batch`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Open the S3 PR, run consolidated hosted validation, inspect fresh Activity renders, then fix only concrete findings before completion.
+Next action: Validate PR #115 after the reviewed baseline/semantic fix batch; if Android CI, screenshot regression, S24-target instrumentation and Project Tracking are green, record final evidence and complete S3.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

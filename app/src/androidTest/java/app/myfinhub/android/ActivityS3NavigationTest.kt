@@ -1,11 +1,11 @@
 package app.myfinhub.android
 
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,12 +35,12 @@ class ActivityS3NavigationTest {
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
         composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
-        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+        assertTrue(runCatching { composeRule.onNodeWithText("Πορτοφόλι").fetchSemanticsNode() }.isFailure)
 
         composeRule.onNodeWithText("Επεξεργασία").performClick()
         composeRule.onNodeWithText("Επεξεργασία κίνησης").assertIsDisplayed()
         composeRule.onNodeWithText("Αποθήκευση αλλαγών").assertIsDisplayed()
-        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+        assertTrue(runCatching { composeRule.onNodeWithText("Πορτοφόλι").fetchSemanticsNode() }.isFailure)
 
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
