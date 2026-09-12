@@ -1,8 +1,12 @@
 package app.myfinhub.android
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -17,7 +21,9 @@ class MoneyParityTest {
 
     @Test
     fun money_drillsIntoSavingsLoansAndLending() {
-        composeRule.onNodeWithText("Πορτοφόλι").performClick()
+        composeRule.onNode(
+            hasText("Πορτοφόλι") and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab),
+        ).performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
 
         composeRule.onNodeWithTag("money_list")
