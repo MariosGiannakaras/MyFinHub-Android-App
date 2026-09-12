@@ -13,114 +13,148 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
 
-/** Palette values are internal so unit tests can enforce contrast contracts without UI rendering. */
+/** Palette values are internal so unit tests can enforce the S2 contrast contract without rendering. */
 internal object MyFinHubPalette {
-    val brandPurple = Color(0xFF6547C7)
-    val brandPurpleDark = Color(0xFFCAB8FF)
-    val brandPurpleContainer = Color(0xFFEDE7FF)
+    val lightBackground = Color(0xFFF6F7FA)
+    val lightSurface = Color(0xFFFFFFFF)
+    val lightSecondarySurface = Color(0xFFEEF1F5)
+    val lightText = Color(0xFF151922)
+    val lightSecondaryText = Color(0xFF596273)
+    val lightAccent = Color(0xFF3659E3)
+    val lightOnAccent = Color(0xFFFFFFFF)
+    val lightPositive = Color(0xFF087443)
+    val lightNegative = Color(0xFFB42335)
+    val lightWarning = Color(0xFF895400)
+    val lightControlBorder = Color(0xFF7B8494)
+    val lightDivider = Color(0xFFE0E4EB)
 
-    val ink = Color(0xFF1C1922)
-    val mutedInk = Color(0xFF65606B)
-    val canvas = Color(0xFFFBF9FF)
-    val surface = Color(0xFFFFFBFF)
-    val softSurface = Color(0xFFF5F1F8)
+    val darkBackground = Color(0xFF101216)
+    val darkSurface = Color(0xFF191D24)
+    val darkSecondarySurface = Color(0xFF242A34)
+    val darkText = Color(0xFFF2F4F8)
+    val darkSecondaryText = Color(0xFFB6BECC)
+    val darkAccent = Color(0xFFA6B8FF)
+    val darkOnAccent = Color(0xFF14245E)
+    val darkPositive = Color(0xFF73D6A1)
+    val darkNegative = Color(0xFFFFADB8)
+    val darkWarning = Color(0xFFF4C56A)
+    val darkControlBorder = Color(0xFF8792A5)
+    val darkDivider = Color(0xFF343B48)
 
-    // Essential control boundaries must reach the Android 3:1 graphical contrast threshold.
-    val outline = Color(0xFF8A828E)
-    val outlineVariant = Color(0xFFE8E1EC)
+    // Compatibility aliases used by the retained semantic finance API and existing tests.
+    val canvas = lightBackground
+    val surface = lightSurface
+    val softSurface = lightSecondarySurface
+    val ink = lightText
+    val mutedInk = lightSecondaryText
+    val brandPurple = lightAccent
+    val brandPurpleDark = darkAccent
+    val brandPurpleContainer = lightSecondarySurface
+    val outline = lightControlBorder
+    val outlineVariant = lightDivider
+    val darkOnBackground = darkText
+    val darkOnSurface = darkText
+    val darkSurfaceVariant = darkSecondarySurface
+    val darkOnSurfaceVariant = darkSecondaryText
+    val darkOutline = darkControlBorder
+    val darkOutlineVariant = darkDivider
 
-    // Light semantic accents are chosen to keep normal-sized finance text >= 4.5:1 both on the
-    // base surface and on their semantic containers.
-    val lightIncome = Color(0xFF087247)
-    val lightIncomeContainer = Color(0xFFE0F6EB)
-    val lightExpense = Color(0xFFB72F3A)
-    val lightExpenseContainer = Color(0xFFFFE7E8)
-    val lightSavings = Color(0xFF6C4BC4)
-    val lightSavingsContainer = Color(0xFFEDE7FF)
-    val lightTransfer = Color(0xFF2E6BC4)
-    val lightTransferContainer = Color(0xFFE5EFFF)
-    val lightAttention = Color(0xFF8A5900)
-    val lightAttentionContainer = Color(0xFFFFEFC8)
-    val lightNeutral = Color(0xFF5B626C)
-    val lightNeutralContainer = Color(0xFFF0F2F5)
+    val lightIncome = lightPositive
+    val lightIncomeContainer = lightSecondarySurface
+    val lightExpense = lightNegative
+    val lightExpenseContainer = lightSecondarySurface
+    val lightSavings = lightAccent
+    val lightSavingsContainer = lightSecondarySurface
+    val lightTransfer = lightSecondaryText
+    val lightTransferContainer = lightSecondarySurface
+    val lightAttention = lightWarning
+    val lightAttentionContainer = lightSecondarySurface
+    val lightNeutral = lightSecondaryText
+    val lightNeutralContainer = lightSecondarySurface
 
-    val darkBackground = Color(0xFF111016)
-    val darkOnBackground = Color(0xFFE8E1EA)
-    val darkSurface = Color(0xFF151319)
-    val darkOnSurface = Color(0xFFE8E1EA)
-    val darkSurfaceVariant = Color(0xFF25222B)
-    val darkOnSurfaceVariant = Color(0xFFCAC3CE)
-    val darkOutline = Color(0xFF948E99)
-    val darkOutlineVariant = Color(0xFF48434D)
-
-    val darkIncome = Color(0xFF72DBA5)
-    val darkIncomeContainer = Color(0xFF123B2A)
-    val darkExpense = Color(0xFFFFB2B7)
-    val darkExpenseContainer = Color(0xFF532126)
-    val darkSavings = Color(0xFFD0BCFF)
-    val darkSavingsContainer = Color(0xFF3D2F65)
-    val darkTransfer = Color(0xFFA7C8FF)
-    val darkTransferContainer = Color(0xFF203B64)
-    val darkAttention = Color(0xFFFFCA6A)
-    val darkAttentionContainer = Color(0xFF4D3710)
-    val darkNeutral = Color(0xFFC5CBD3)
-    val darkNeutralContainer = Color(0xFF30343A)
+    val darkIncome = darkPositive
+    val darkIncomeContainer = darkSecondarySurface
+    val darkExpense = darkNegative
+    val darkExpenseContainer = darkSecondarySurface
+    val darkSavings = darkAccent
+    val darkSavingsContainer = darkSecondarySurface
+    val darkTransfer = darkSecondaryText
+    val darkTransferContainer = darkSecondarySurface
+    val darkAttention = darkWarning
+    val darkAttentionContainer = darkSecondarySurface
+    val darkNeutral = darkSecondaryText
+    val darkNeutralContainer = darkSecondarySurface
 }
 
 private val LightColors = lightColorScheme(
-    primary = MyFinHubPalette.brandPurple,
-    onPrimary = Color.White,
-    primaryContainer = MyFinHubPalette.brandPurpleContainer,
-    onPrimaryContainer = Color(0xFF25105F),
-    secondary = Color(0xFF5E5B73),
+    primary = MyFinHubPalette.lightAccent,
+    onPrimary = MyFinHubPalette.lightOnAccent,
+    primaryContainer = Color(0xFFE8EDFF),
+    onPrimaryContainer = Color(0xFF172B75),
+    secondary = MyFinHubPalette.lightSecondaryText,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFE6E2F5),
-    onSecondaryContainer = Color(0xFF1B1929),
-    tertiary = Color(0xFF44658B),
+    secondaryContainer = MyFinHubPalette.lightSecondarySurface,
+    onSecondaryContainer = MyFinHubPalette.lightText,
+    tertiary = MyFinHubPalette.lightPositive,
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFD7E7FF),
-    onTertiaryContainer = Color(0xFF071D35),
-    background = MyFinHubPalette.canvas,
-    onBackground = MyFinHubPalette.ink,
-    surface = MyFinHubPalette.surface,
-    onSurface = MyFinHubPalette.ink,
-    surfaceVariant = MyFinHubPalette.softSurface,
-    onSurfaceVariant = MyFinHubPalette.mutedInk,
-    outline = MyFinHubPalette.outline,
-    outlineVariant = MyFinHubPalette.outlineVariant,
-    error = Color(0xFFBA1A2A),
+    tertiaryContainer = MyFinHubPalette.lightSecondarySurface,
+    onTertiaryContainer = MyFinHubPalette.lightText,
+    background = MyFinHubPalette.lightBackground,
+    onBackground = MyFinHubPalette.lightText,
+    surface = MyFinHubPalette.lightSurface,
+    onSurface = MyFinHubPalette.lightText,
+    surfaceVariant = MyFinHubPalette.lightSecondarySurface,
+    onSurfaceVariant = MyFinHubPalette.lightSecondaryText,
+    outline = MyFinHubPalette.lightControlBorder,
+    outlineVariant = MyFinHubPalette.lightDivider,
+    error = MyFinHubPalette.lightNegative,
     onError = Color.White,
-    errorContainer = Color(0xFFFFDAD9),
-    onErrorContainer = Color(0xFF410008),
+    errorContainer = MyFinHubPalette.lightSecondarySurface,
+    onErrorContainer = MyFinHubPalette.lightNegative,
+    surfaceDim = MyFinHubPalette.lightSecondarySurface,
+    surfaceBright = MyFinHubPalette.lightSurface,
+    surfaceContainerLowest = MyFinHubPalette.lightSurface,
+    surfaceContainerLow = MyFinHubPalette.lightBackground,
+    surfaceContainer = MyFinHubPalette.lightSecondarySurface,
+    surfaceContainerHigh = MyFinHubPalette.lightSecondarySurface,
+    surfaceContainerHighest = MyFinHubPalette.lightDivider,
+    surfaceTint = MyFinHubPalette.lightAccent,
 )
 
 private val DarkColors = darkColorScheme(
-    primary = MyFinHubPalette.brandPurpleDark,
-    onPrimary = Color(0xFF34206E),
-    primaryContainer = Color(0xFF4C3594),
-    onPrimaryContainer = Color(0xFFEAE1FF),
-    secondary = Color(0xFFC9C4DC),
-    onSecondary = Color(0xFF302E3F),
-    secondaryContainer = Color(0xFF474657),
-    onSecondaryContainer = Color(0xFFE5E1F4),
-    tertiary = Color(0xFFAECBEF),
-    onTertiary = Color(0xFF163552),
-    tertiaryContainer = Color(0xFF2D4D6B),
-    onTertiaryContainer = Color(0xFFD3E6FF),
+    primary = MyFinHubPalette.darkAccent,
+    onPrimary = MyFinHubPalette.darkOnAccent,
+    primaryContainer = Color(0xFF27345F),
+    onPrimaryContainer = MyFinHubPalette.darkText,
+    secondary = MyFinHubPalette.darkSecondaryText,
+    onSecondary = MyFinHubPalette.darkBackground,
+    secondaryContainer = MyFinHubPalette.darkSecondarySurface,
+    onSecondaryContainer = MyFinHubPalette.darkText,
+    tertiary = MyFinHubPalette.darkPositive,
+    onTertiary = Color(0xFF0C3A25),
+    tertiaryContainer = MyFinHubPalette.darkSecondarySurface,
+    onTertiaryContainer = MyFinHubPalette.darkText,
     background = MyFinHubPalette.darkBackground,
-    onBackground = MyFinHubPalette.darkOnBackground,
+    onBackground = MyFinHubPalette.darkText,
     surface = MyFinHubPalette.darkSurface,
-    onSurface = MyFinHubPalette.darkOnSurface,
-    surfaceVariant = MyFinHubPalette.darkSurfaceVariant,
-    onSurfaceVariant = MyFinHubPalette.darkOnSurfaceVariant,
-    outline = MyFinHubPalette.darkOutline,
-    outlineVariant = MyFinHubPalette.darkOutlineVariant,
-    error = Color(0xFFFFB3B5),
-    onError = Color(0xFF680014),
-    errorContainer = Color(0xFF93001F),
-    onErrorContainer = Color(0xFFFFDAD9),
+    onSurface = MyFinHubPalette.darkText,
+    surfaceVariant = MyFinHubPalette.darkSecondarySurface,
+    onSurfaceVariant = MyFinHubPalette.darkSecondaryText,
+    outline = MyFinHubPalette.darkControlBorder,
+    outlineVariant = MyFinHubPalette.darkDivider,
+    error = MyFinHubPalette.darkNegative,
+    onError = Color(0xFF5E1220),
+    errorContainer = MyFinHubPalette.darkSecondarySurface,
+    onErrorContainer = MyFinHubPalette.darkNegative,
+    surfaceDim = MyFinHubPalette.darkBackground,
+    surfaceBright = MyFinHubPalette.darkSurface,
+    surfaceContainerLowest = MyFinHubPalette.darkBackground,
+    surfaceContainerLow = MyFinHubPalette.darkSurface,
+    surfaceContainer = MyFinHubPalette.darkSecondarySurface,
+    surfaceContainerHigh = MyFinHubPalette.darkSecondarySurface,
+    surfaceContainerHighest = MyFinHubPalette.darkDivider,
+    surfaceTint = MyFinHubPalette.darkAccent,
 )
 
 @Immutable
@@ -172,14 +206,14 @@ private val DarkFinanceColors = MyFinHubFinanceColors(
 private val LocalFinanceColors = staticCompositionLocalOf { LightFinanceColors }
 
 object MyFinHubSpacing {
-    val micro = 2.dp
-    val xxs = 4.dp
-    val xs = 8.dp
-    val sm = 12.dp
-    val md = 16.dp
-    val lg = 20.dp
-    val xl = 24.dp
-    val xxl = 32.dp
+    val micro = MyFinHubSpacingSpec.xxs
+    val xxs = MyFinHubSpacingSpec.xxs
+    val xs = MyFinHubSpacingSpec.xs
+    val sm = MyFinHubSpacingSpec.sm
+    val md = MyFinHubSpacingSpec.md
+    val lg = MyFinHubSpacingSpec.lg
+    val xl = MyFinHubSpacingSpec.xl
+    val xxl = MyFinHubSpacingSpec.xxl
 }
 
 object MyFinHubThemeTokens {
@@ -200,19 +234,16 @@ private val MyFinHubTypography = Typography(
         fontSize = MyFinHubTypographySpec.headlineLargeSize,
         lineHeight = MyFinHubTypographySpec.headlineLargeLineHeight,
         fontWeight = MyFinHubTypographySpec.headlineLargeWeight,
-        letterSpacing = MyFinHubTypographySpec.headlineLargeLetterSpacing,
     ),
     headlineMedium = TextStyle(
         fontSize = MyFinHubTypographySpec.headlineMediumSize,
         lineHeight = MyFinHubTypographySpec.headlineMediumLineHeight,
         fontWeight = MyFinHubTypographySpec.headlineMediumWeight,
-        letterSpacing = MyFinHubTypographySpec.headlineMediumLetterSpacing,
     ),
     headlineSmall = TextStyle(
         fontSize = MyFinHubTypographySpec.headlineSmallSize,
         lineHeight = MyFinHubTypographySpec.headlineSmallLineHeight,
         fontWeight = MyFinHubTypographySpec.headlineSmallWeight,
-        letterSpacing = MyFinHubTypographySpec.headlineSmallLetterSpacing,
     ),
     titleLarge = TextStyle(
         fontSize = MyFinHubTypographySpec.titleLargeSize,
@@ -238,6 +269,11 @@ private val MyFinHubTypography = Typography(
         fontSize = MyFinHubTypographySpec.labelLargeSize,
         lineHeight = MyFinHubTypographySpec.labelLargeLineHeight,
         fontWeight = MyFinHubTypographySpec.labelLargeWeight,
+    ),
+    labelMedium = TextStyle(
+        fontSize = MyFinHubTypographySpec.labelMediumSize,
+        lineHeight = MyFinHubTypographySpec.labelMediumLineHeight,
+        fontWeight = MyFinHubTypographySpec.labelMediumWeight,
     ),
 )
 
