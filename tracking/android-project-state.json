@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s3_activity_implementation",
-    "summary": "S1 and S2 are complete. S3 Activity is implemented as one coherent branch batch: flat searchable ledger, exact combined filters, isolated analytics drill-down, read-first transaction detail, supported date/note/category/subcategory editing, canonical delete semantics, dirty-editor Back protection and Activity-focused tests/renders. Hosted Android/UI validation and fresh render review remain pending; no backend or web/desktop changes.",
+    "status": "android_redesign_s3_activity_validation",
+    "summary": "S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. The first hosted run produced 88 render candidates; the 11 intentional Activity/top-level Activity changes were personally reviewed in light/dark/150% and accepted for checkpointing. The same run exposed one androidTest-only assertion import error plus offline edit/delete route-close edge cases; these are fixed in one batch before the final hosted validation. No backend or web/desktop changes.",
     "next": [
-      "Open the S3 Activity PR and run one consolidated Android CI / UI Quality validation pass after the batched implementation.",
-      "Inspect fresh Activity light/dark/150% ledger, filter, detail and editor renders before accepting references or marking S3 complete."
+      "Run one final consolidated PR #115 validation after the reviewed baseline and concrete fixes land.",
+      "Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head."
     ]
   },
   "latest_production_candidate": {
@@ -82,11 +82,11 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s3-activity",
-    "pr": null,
+    "pr": 115,
     "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
-    "checkpoint": "s3_batched_implementation_pre_validation",
+    "checkpoint": "s3_reviewed_baseline_and_concrete_fix_batch",
     "blockers": [],
-    "next_action": "Open the S3 PR, run consolidated hosted validation, inspect fresh Activity renders, then fix only concrete findings before completion.",
+    "next_action": "Validate PR #115 after the reviewed baseline/semantic fix batch; if Android CI, screenshot regression, S24-target instrumentation and Project Tracking are green, record final evidence and complete S3.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -248,7 +248,8 @@
           "status": "in_progress",
           "evidence": [
             "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
-            "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal."
+            "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal.",
+            "First hosted validation review found two durable-offline navigation edge cases: an accepted offline edit becomes pending before editor exit, and an accepted offline delete is represented by a pending tombstone. The fix lets only the initiating save/delete request observe that pending projection as durable local success and return to origin; pre-existing pending rows remain non-editable/non-deletable."
           ]
         },
         {
@@ -256,7 +257,9 @@
           "title": "Activity verification",
           "status": "in_progress",
           "evidence": [
-            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending."
+            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending.",
+            "Android UI Quality run 34710603625 rendered 88 candidates. Exactly 11 intentional Activity/top-level Activity references differed or were new; artifact 10303516408 (sha256 5806d169b8c0147665b8c561707089a5f17837343365a879dd38c0a544089006) was personally reviewed before baseline adoption. Light/dark and 150% ledger/category/detail/editor/filter states showed no clipping or hierarchy defect requiring redesign.",
+            "The same first run compiled production and screenshot Kotlin successfully. S24 prebuild stopped only at ActivityS3NavigationTest.kt's unavailable assertDoesNotExist import; the assertion is replaced with a version-compatible semantics lookup before the final rerun."
           ]
         }
       ]
