@@ -1,0 +1,98 @@
+name: S2 completion sync
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Record S2 completion and prepare S3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          state = json.loads(path.read_text(encoding='utf-8'))
+          state['updated_at'] = '2026-09-12'
+          state['active_workstream'] = {
+              'issue': 73,
+              'title': 'Post-Phase-6 full-app product audit and radical redesign',
+              'status': 'android_redesign_s3_activity_ready',
+              'summary': 'S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.',
+              'next': [
+                  'Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.',
+                  'Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.',
+              ],
+          }
+
+          redesign = state['current_redesign_pass']
+          redesign.update({
+              'branch': 'develop',
+              'pr': None,
+              'current_slice': 'S3.1 / S3.2 / S3.3 / S3.4',
+              'checkpoint': 's2_complete_s3_ready',
+              'blockers': [],
+              'next_action': 'Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.',
+          })
+
+          tasks = {task['id']: task for task in state['redesign_tasks']}
+          s2 = {sub['id']: sub for sub in tasks['S2']['subtasks']}
+          s2['S2.1']['status'] = 'completed'
+          s2['S2.1']['evidence'] = [
+              'PR #114 applies the documented semantic light/dark palette, typography and geometry contracts and replaces the shared finance card-row treatment with a flat 64dp-minimum row that stacks trailing amounts at large font scale.',
+              'Android UI Quality rendered all 87 production screenshot candidates after the global token change; artifact 10301658408 (sha256 6a133bcb2f7c635b5749e127f53b3bb3713156d0ad2ad7afa30f2796bc490354) was personally reviewed before the references were accepted.',
+              'Final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI run 34707117202, Project Tracking run 34707117240 and Android UI Quality run 34707117209, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638.',
+          ]
+          s2['S2.2']['status'] = 'completed'
+          s2['S2.2']['evidence'] = [
+              'Permanent navigation is reduced to four labelled roots: Αρχική, Κινήσεις, Πορτοφόλι and Πλάνο. Ανάλυση is a sibling of Ιστορικό inside the retained Κινήσεις stack, while secondary/detail/editor routes hide global navigation.',
+              'Top-level stack policy keeps each root back stack independently and returns an Insights category drill-down to the originating analysis surface.',
+              'Final-head S24-target instrumentation passed on Android UI Quality run 34707117209 after inherited root-label coverage was updated for Πορτοφόλι.',
+          ]
+          s2['S2.3']['status'] = 'completed'
+          s2['S2.3']['evidence'] = [
+              'Quick Entry system/predictive Back and canonical card creation route through dirty-draft confirmation rather than bypassing editor rules; root switching preserves nested state.',
+              'Hosted validation exposed and corrected the MovementRootSurface receiver-scope import, an unavailable Compose test assertion, and inherited MoneyParityTest navigation coverage.',
+              'Final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed unit tests, instrumentation compilation, lint/debug assembly, release/bundle policy checks and S24-target instrumentation.',
+          ]
+          s2['S2.4']['status'] = 'completed'
+          s2['S2.4']['evidence'] = [
+              'Focused design-system/navigation/accessibility contracts cover touch geometry, contrast, four-root semantics, hidden secondary navigation and Back/origin behavior.',
+              'Reviewed production Home/Activity/Money/Quick Entry/Plan/Insights/Settings/auth references in light, dark and 150% show the intended global foundation; Activity filter density remains explicitly owned by S3.',
+              'Android UI Quality run 34707117209 passed both screenshot regression and S24-target instrumentation on final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a; Android CI run 34707117202 and Project Tracking run 34707117240 also passed before merge.',
+          ]
+
+          path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          python3 scripts/render_project_tracking.py
+          python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
+          python3 scripts/render_project_tracking.py --check
+          git diff --check
+
+      - name: Publish tracking-only checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --quiet && { echo 'No tracking changes to publish.'; exit 1; }
+          git commit -m 'chore: record S2 completion and S3 handoff'
+          git push origin HEAD:develop
