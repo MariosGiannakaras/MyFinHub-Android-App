@@ -5,7 +5,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
@@ -21,6 +20,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,6 +37,13 @@ class TopLevelParityTest {
     private fun selectAnalysis() {
         selectDestination("Κινήσεις")
         composeRule.onNodeWithTag("activity_section_analysis").performClick()
+    }
+
+    private fun assertGlobalNavigationHidden() {
+        val globalDestinationMissing = runCatching {
+            composeRule.onNodeWithText("Πορτοφόλι").fetchSemanticsNode()
+        }.isFailure
+        assertTrue("Secondary routes must hide the global navigation suite", globalDestinationMissing)
     }
 
     @Test
@@ -94,7 +101,7 @@ class TopLevelParityTest {
             .performScrollTo()
             .performClick()
         composeRule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
-        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+        assertGlobalNavigationHidden()
 
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
@@ -111,7 +118,7 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction()).assertIsDisplayed()
-        composeRule.onNodeWithText("Πορτοφόλι").assertDoesNotExist()
+        assertGlobalNavigationHidden()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
 
