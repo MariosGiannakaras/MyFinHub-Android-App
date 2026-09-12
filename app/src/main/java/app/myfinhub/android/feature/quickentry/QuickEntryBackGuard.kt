@@ -11,25 +11,23 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 /**
- * Route-level guard shared by fast and complete Quick Entry editors. It catches system/predictive
- * Back as well as toolbar callbacks passed through [requestBack], and treats every state mutation
- * marked dirty by the reducer as draft content worth protecting.
+ * Route-level guard shared by fast and complete Quick Entry editors. System/predictive Back obeys
+ * reducer-level dirty state, including selector/date/category changes that are not text entry.
  */
 @Composable
 fun QuickEntryBackGuard(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
     onExit: () -> Unit,
-    content: @Composable (requestBack: () -> Unit) -> Unit,
+    content: @Composable () -> Unit,
 ) {
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
     val hasUnsavedDraft = state.dirty && !state.persisted && !state.pendingSync
-    val requestBack = {
+
+    BackHandler {
         if (hasUnsavedDraft) discardDialogOpen = true else onExit()
     }
-
-    BackHandler(onBack = requestBack)
-    content(requestBack)
+    content()
 
     if (discardDialogOpen) {
         AlertDialog(

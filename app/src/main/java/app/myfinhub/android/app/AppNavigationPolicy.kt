@@ -16,8 +16,7 @@ internal val AppRoute.showsGlobalNavigation: Boolean
         AppRoute.Activity,
         AppRoute.Insights,
         AppRoute.Money,
-        AppRoute.Plan,
-        -> true
+        AppRoute.Plan -> true
         else -> false
     }
 
@@ -26,8 +25,7 @@ internal val AppRoute.topLevelDestination: TopLevelDestination?
     get() = when (this) {
         AppRoute.Home -> TopLevelDestination.HOME
         AppRoute.Activity,
-        AppRoute.Insights,
-        -> TopLevelDestination.ACTIVITY
+        AppRoute.Insights -> TopLevelDestination.ACTIVITY
         AppRoute.Money -> TopLevelDestination.MONEY
         AppRoute.Plan -> TopLevelDestination.PLAN
         else -> null

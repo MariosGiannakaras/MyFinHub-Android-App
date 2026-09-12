@@ -66,6 +66,7 @@ import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
+import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
@@ -295,18 +296,24 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.QuickEntry> {
-                    if (canonicalProductMode) {
-                        ProductionQuickEntryScreen(
-                            state = quickEntryState,
-                            onAction = onQuickEntryAction,
-                            onBack = { activeBackStack.removeLastOrNull() },
-                        )
-                    } else {
-                        QuickEntryScreen(
-                            state = quickEntryState,
-                            onAction = onQuickEntryAction,
-                            onBack = { activeBackStack.removeLastOrNull() },
-                        )
+                    QuickEntryBackGuard(
+                        state = quickEntryState,
+                        onAction = onQuickEntryAction,
+                        onExit = { activeBackStack.removeLastOrNull() },
+                    ) {
+                        if (canonicalProductMode) {
+                            ProductionQuickEntryScreen(
+                                state = quickEntryState,
+                                onAction = onQuickEntryAction,
+                                onBack = { activeBackStack.removeLastOrNull() },
+                            )
+                        } else {
+                            QuickEntryScreen(
+                                state = quickEntryState,
+                                onAction = onQuickEntryAction,
+                                onBack = { activeBackStack.removeLastOrNull() },
+                            )
+                        }
                     }
                 }
                 entry<AppRoute.Money> {
