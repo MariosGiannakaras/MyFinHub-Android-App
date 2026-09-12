@@ -17,7 +17,7 @@ class MoneyParityTest {
 
     @Test
     fun money_drillsIntoSavingsLoansAndLending() {
-        composeRule.onNodeWithText("Περιουσία").performClick()
+        composeRule.onNodeWithText("Πορτοφόλι").performClick()
         composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
 
         composeRule.onNodeWithTag("money_list")
