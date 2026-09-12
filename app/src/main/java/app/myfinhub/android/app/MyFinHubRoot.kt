@@ -342,6 +342,8 @@ private fun FinanceProductSurface(
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
                     onActivityAction = onActivityAction,
+                    activityMutationInFlight = state.saving,
+                    activityMutationBlocked = state.saving || state.issue != null,
                     quickEntryState = projection.quickEntryState,
                     onQuickEntryAction = onQuickEntryAction,
                     moneyState = projection.moneyState,

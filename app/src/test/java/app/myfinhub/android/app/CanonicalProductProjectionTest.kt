@@ -108,6 +108,7 @@ class CanonicalProductProjectionTest {
             homeState = original.homeState.copy(amountsVisible = true),
             activityState = original.activityState.copy(query = "καφ", selectedId = "evt-exp",
                 filter = ActivityFilter.EXPENSE, accountFilterId = "acc-main",
+                ledgerCategoryFilter = "Τρόφιμα", ledgerDateFrom = "2026-08-02", ledgerDateTo = "2026-08-22",
                 categoryFilter = "Τρόφιμα", dateFrom = "2026-08-01", dateTo = "2026-08-23"),
         )
 
@@ -122,6 +123,9 @@ class CanonicalProductProjectionTest {
         assertEquals("evt-exp", refreshed.activityState.selectedId)
         assertEquals(ActivityFilter.EXPENSE, refreshed.activityState.filter)
         assertEquals("acc-main", refreshed.activityState.accountFilterId)
+        assertEquals("Τρόφιμα", refreshed.activityState.ledgerCategoryFilter)
+        assertEquals("2026-08-02", refreshed.activityState.ledgerDateFrom)
+        assertEquals("2026-08-22", refreshed.activityState.ledgerDateTo)
         assertEquals("Τρόφιμα", refreshed.activityState.categoryFilter)
         assertEquals("2026-08-01", refreshed.activityState.dateFrom)
         assertEquals("2026-08-23", refreshed.activityState.dateTo)

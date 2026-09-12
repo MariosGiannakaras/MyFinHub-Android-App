@@ -21,8 +21,9 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityAction
-import app.myfinhub.android.feature.activity.ActivityDetailScreen
-import app.myfinhub.android.feature.activity.ActivityScreen
+import app.myfinhub.android.feature.activity.ActivityEditScreen
+import app.myfinhub.android.feature.activity.ActivityLedgerScreen
+import app.myfinhub.android.feature.activity.ActivityReadDetailScreen
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.ActivityViewModel
 import app.myfinhub.android.feature.home.HomeAction
@@ -120,6 +121,8 @@ internal fun MyFinHubAppContent(
     onHomeAction: (HomeAction) -> Unit,
     activityState: ActivityUiState = ActivityUiState(),
     onActivityAction: (ActivityAction) -> Unit = {},
+    activityMutationInFlight: Boolean = false,
+    activityMutationBlocked: Boolean = false,
     quickEntryState: QuickEntryUiState = QuickEntryUiState(),
     onQuickEntryAction: (QuickEntryAction) -> Unit = {},
     moneyState: MoneyUiState = MoneyUiState(),
@@ -255,7 +258,7 @@ internal fun MyFinHubAppContent(
                         onHistory = {},
                         onAnalysis = { activityBackStack.pushIfNew(AppRoute.Insights) },
                     ) {
-                        ActivityScreen(
+                        ActivityLedgerScreen(
                             state = activityState,
                             onAction = onActivityAction,
                             onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
@@ -265,9 +268,23 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.ActivityDetail> { route ->
                     val item = activityState.items.firstOrNull { it.id == route.eventId }
-                    ActivityDetailScreen(
+                    ActivityReadDetailScreen(
+                        item = item,
+                        accountOptions = activityState.accountOptions,
+                        mutationBlocked = activityMutationBlocked,
+                        onBack = { activeBackStack.removeLastOrNull() },
+                        onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
+                        onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },
+                        onDeleted = { activeBackStack.removeLastOrNull() },
+                    )
+                }
+                entry<AppRoute.ActivityEdit> { route ->
+                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    ActivityEditScreen(
                         item = item,
                         categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
+                        mutationInFlight = activityMutationInFlight,
+                        mutationBlocked = activityMutationBlocked,
                         onBack = { activeBackStack.removeLastOrNull() },
                         onSave = { date, note, category, subcategory ->
                             onActivityAction(
@@ -280,14 +297,11 @@ internal fun MyFinHubAppContent(
                                 ),
                             )
                         },
-                        onDelete = {
-                            onActivityAction(ActivityAction.Delete(route.eventId))
-                            activeBackStack.removeLastOrNull()
-                        },
+                        onSaved = { activeBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.CategoryActivity> { route ->
-                    ActivityScreen(
+                    ActivityLedgerScreen(
                         state = activityState.forCategory(route.category, route.start, route.end),
                         onAction = onActivityAction,
                         onOpenDetail = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },

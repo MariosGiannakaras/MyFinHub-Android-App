@@ -140,4 +140,44 @@ class ActivityReducerTest {
         assertTrue(formatSignedEuro(12.5).startsWith("+"))
         assertTrue(formatSignedEuro(-12.5).startsWith("−"))
     }
+
+    @Test
+    fun ledgerFilters_areExactInclusiveAndIndependentlyRemovable() {
+        val items = listOf(
+            ActivityItem("food-main", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -10.0, "Κύριος", "Τρόφιμα",
+                rawDate = "2026-09-10", accountId = "main", categoryContributions = mapOf("Τρόφιμα" to 10.0)),
+            ActivityItem("food-old", "31 Αυγ", ActivityKind.EXPENSE, "Αγορά", "", -8.0, "Κύριος", "Τρόφιμα",
+                rawDate = "2026-08-31", accountId = "main", categoryContributions = mapOf("Τρόφιμα" to 8.0)),
+            ActivityItem("food-cash", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -4.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-09-10", accountId = "cash", categoryContributions = mapOf("Τρόφιμα" to 4.0)),
+            ActivityItem("transport-main", "10 Σεπ", ActivityKind.EXPENSE, "Εισιτήριο", "", -3.0, "Κύριος", "Μεταφορές",
+                rawDate = "2026-09-10", accountId = "main", categoryContributions = mapOf("Μεταφορές" to 3.0)),
+        )
+        val initial = ActivityUiState(
+            items = items,
+            accountOptions = listOf(ActivityAccountOption("main", "Κύριος"), ActivityAccountOption("cash", "Μετρητά")),
+        )
+
+        val filtered = reduceActivity(
+            initial,
+            ActivityAction.ApplyFilters(
+                type = ActivityFilter.EXPENSE,
+                accountId = "main",
+                category = "Τρόφιμα",
+                dateFrom = "2026-09-01",
+                dateTo = "2026-09-10",
+            ),
+        )
+
+        assertEquals(listOf("food-main"), filtered.visibleItems.map { it.id })
+        assertEquals(4, filtered.activeFilterCount)
+
+        val withoutDate = reduceActivity(filtered, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
+        assertEquals(listOf("food-main", "food-old"), withoutDate.visibleItems.map { it.id })
+
+        val cleared = reduceActivity(filtered.copy(query = "καφ"), ActivityAction.ClearFilters)
+        assertEquals("καφ", cleared.query)
+        assertEquals(0, cleared.activeFilterCount)
+    }
+
 }

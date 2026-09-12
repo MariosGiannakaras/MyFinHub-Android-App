@@ -5,7 +5,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
-// Canonical Slice C references cover light, dark, 150% font, account-filter sheet and detail states.
 @PreviewTest
 @Preview(name = "category_activity_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
@@ -30,46 +29,34 @@ private fun CategoryActivityFixture(darkTheme: Boolean) {
             "Πειραιώς Μισθοδοσίας", null, rawDate = "2026-09-01", categoryContributions = mapOf("Τρόφιμα" to 20.0)),
     )).forCategory("Τρόφιμα", "2026-09-01", "2026-09-10")
     MyFinHubTheme(darkTheme = darkTheme) {
-        ActivityScreen(state, {}, {}, {}, onBack = {})
+        ActivityLedgerScreen(state, {}, {}, {}, onBack = {})
     }
 }
 
 @PreviewTest
 @Preview(name = "production_activity_pending_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun ProductionActivityPendingLightScreenshot() {
-    ProductionActivityPendingFixture(darkTheme = false)
-}
+fun ProductionActivityPendingLightScreenshot() { ProductionActivityPendingFixture(false) }
 
 @PreviewTest
 @Preview(name = "production_activity_pending_dark", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun ProductionActivityPendingDarkScreenshot() {
-    ProductionActivityPendingFixture(darkTheme = true)
-}
+fun ProductionActivityPendingDarkScreenshot() { ProductionActivityPendingFixture(true) }
 
 @PreviewTest
-@Preview(
-    name = "production_activity_pending_large_font",
-    widthDp = 412,
-    heightDp = 915,
-    fontScale = 1.5f,
-    showBackground = true,
-)
+@Preview(name = "production_activity_pending_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
 @Composable
-fun ProductionActivityPendingLargeFontScreenshot() {
-    ProductionActivityPendingFixture(darkTheme = false)
-}
+fun ProductionActivityPendingLargeFontScreenshot() { ProductionActivityPendingFixture(false) }
 
 @PreviewTest
 @Preview(name = "production_activity_account_filter_sheet", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun ProductionActivityAccountFilterSheetScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        ActivityAccountFilterSheetContent(
-            selectedId = "piraeus-payroll",
-            options = activityAccountOptions(),
-            onSelected = {},
+        ActivityFilterSheetContent(
+            state = activityFixtureState(),
+            onApply = { _, _, _, _, _ -> },
+            onReset = {},
         )
     }
 }
@@ -79,15 +66,35 @@ fun ProductionActivityAccountFilterSheetScreenshot() {
 @Composable
 fun ProductionActivityPendingDetailScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        ActivityDetailScreen(
+        ActivityReadDetailScreen(
             item = pendingActivityItems().first(),
+            accountOptions = activityAccountOptions(),
+            mutationBlocked = false,
+            onBack = {},
+            onEdit = {},
+            onDelete = {},
+            onDeleted = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_edit", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityEditScreenshot() {
+    val item = pendingActivityItems().first { !it.pendingSync && it.kind == ActivityKind.EXPENSE }
+    MyFinHubTheme(darkTheme = false) {
+        ActivityEditScreen(
+            item = item,
             categoryOptions = listOf(
-                ActivityCategoryOption("Έξοδος", listOf("Καφές", "Τρόφιμα")),
-                ActivityCategoryOption("Μεταφορές"),
+                ActivityCategoryOption("Έξοδος", listOf("Καφές")),
+                ActivityCategoryOption("Μεταφορές", listOf("Εισιτήριο")),
             ),
+            mutationInFlight = false,
+            mutationBlocked = false,
             onBack = {},
             onSave = { _, _, _, _ -> },
-            onDelete = {},
+            onSaved = {},
         )
     }
 }
@@ -95,17 +102,25 @@ fun ProductionActivityPendingDetailScreenshot() {
 @Composable
 private fun ProductionActivityPendingFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
-        ActivityScreen(
-            state = ActivityUiState(
-                items = pendingActivityItems(),
-                accountOptions = activityAccountOptions(),
-            ),
+        ActivityLedgerScreen(
+            state = activityFixtureState(),
             onAction = {},
             onOpenDetail = {},
             onOpenQuickEntry = {},
         )
     }
 }
+
+private fun activityFixtureState() = ActivityUiState(
+    items = pendingActivityItems(),
+    expenseCategories = listOf(
+        ActivityCategoryOption("Έξοδος", listOf("Καφές")),
+        ActivityCategoryOption("Τρόφιμα"),
+        ActivityCategoryOption("Μεταφορές", listOf("Εισιτήριο")),
+    ),
+    incomeCategories = listOf(ActivityCategoryOption("Μισθός")),
+    accountOptions = activityAccountOptions(),
+)
 
 private fun activityAccountOptions(): List<ActivityAccountOption> = listOf(
     ActivityAccountOption("piraeus-payroll", "Πειραιώς Μισθοδοσίας"),
@@ -119,7 +134,7 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         dateLabel = "Σήμερα, 08:45",
         kind = ActivityKind.EXPENSE,
         title = "Καφές",
-        subtitle = "Εκκρεμεί διαγραφή · Πρωινός καφές",
+        subtitle = "Πρωινός καφές",
         amount = -5.00,
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Έξοδος",

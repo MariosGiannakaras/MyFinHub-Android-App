@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s3_activity_ready",
-    "summary": "S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.",
+    "status": "android_redesign_s3_activity_implementation",
+    "summary": "S1 and S2 are complete. S3 Activity is implemented as one coherent branch batch: flat searchable ledger, exact combined filters, isolated analytics drill-down, read-first transaction detail, supported date/note/category/subcategory editing, canonical delete semantics, dirty-editor Back protection and Activity-focused tests/renders. Hosted Android/UI validation and fresh render review remain pending; no backend or web/desktop changes.",
     "next": [
-      "Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.",
-      "Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent."
+      "Open the S3 Activity PR and run one consolidated Android CI / UI Quality validation pass after the batched implementation.",
+      "Inspect fresh Activity light/dark/150% ledger, filter, detail and editor renders before accepting references or marking S3 complete."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "develop",
+    "branch": "android/redesign-s3-activity",
     "pr": null,
     "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
-    "checkpoint": "s2_complete_s3_ready",
+    "checkpoint": "s3_batched_implementation_pre_validation",
     "blockers": [],
-    "next_action": "Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.",
+    "next_action": "Open the S3 PR, run consolidated hosted validation, inspect fresh Activity renders, then fix only concrete findings before completion.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -228,26 +228,36 @@
         {
           "id": "S3.1",
           "title": "Ledger, search and filter",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Branch android/redesign-s3-activity implements a flat date-grouped ledger with search, one filter sheet, active-count/removable scope summary, exact account/type/category/date filters, distinct true-empty/no-match recovery and isolated analytics drill-down scope.",
+            "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope."
+          ]
         },
         {
           "id": "S3.2",
           "title": "Read transaction detail",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route."
+          ]
         },
         {
           "id": "S3.3",
           "title": "Supported edit and delete",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
+            "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal."
+          ]
         },
         {
           "id": "S3.4",
           "title": "Activity verification",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending."
+          ]
         }
       ]
     },

@@ -24,6 +24,10 @@ data class ActivityItem(
     val toAccountId: String? = null,
     /** Signed expense amounts by exact canonical category; null only for legacy preview fixtures. */
     val categoryContributions: Map<String, Double>? = null,
+    /** Raw canonical note, separate from any presentation fallback text. */
+    val note: String = subtitle,
+    val cardId: String? = null,
+    val cardLabel: String? = null,
 )
 
 data class ActivityCategoryOption(
@@ -120,6 +124,7 @@ data class ActivityUiState(
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
                 item.subtitle.contains(needle, ignoreCase = true) ||
+                item.note.contains(needle, ignoreCase = true) ||
                 item.kind.label.contains(needle, ignoreCase = true) ||
                 item.category?.contains(needle, ignoreCase = true) == true ||
                 item.subcategory?.contains(needle, ignoreCase = true) == true ||
@@ -128,7 +133,7 @@ data class ActivityUiState(
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(needle, ignoreCase = true)
             val matchesCategory = exactCategory == null ||
-                (item.categoryContributions?.containsKey(exactCategory)
+                (item.categoryContributions?.takeIf { it.isNotEmpty() }?.containsKey(exactCategory)
                     ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") == exactCategory))
             val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&
@@ -248,6 +253,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
                     rawDate = action.date ?: item.rawDate,
                     dateLabel = action.date ?: item.dateLabel,
                     subtitle = action.note,
+                    note = action.note,
                     category = action.category.takeIf(String::isNotBlank),
                     subcategory = if (action.subcategory != null) {
                         action.subcategory.takeIf(String::isNotBlank)

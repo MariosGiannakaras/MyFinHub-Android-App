@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
-- [ ] Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
+- [ ] Open the S3 Activity PR and run one consolidated Android CI / UI Quality validation pass after the batched implementation.
+- [ ] Inspect fresh Activity light/dark/150% ledger, filter, detail and editor renders before accepting references or marking S3 complete.
 
 ## Completed foundations
 
@@ -50,16 +50,16 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `develop`. PR: not yet opened.
-Checkpoint: `s2_complete_s3_ready`.
+Working branch: `android/redesign-s3-activity`. PR: not yet opened.
+Checkpoint: `s3_batched_implementation_pre_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
+Next action: Open the S3 PR, run consolidated hosted validation, inspect fresh Activity renders, then fix only concrete findings before completion.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
 | S1 Financial truth and capability | 4/4 | Complete |
 | S2 Foundation and navigation | 4/4 | Complete |
-| S3 Activity | 0/4 | S3.1 Ledger, search and filter (pending); S3.2 Read transaction detail (pending); S3.3 Supported edit and delete (pending); S3.4 Activity verification (pending) |
+| S3 Activity | 0/4 | S3.1 Ledger, search and filter (in_progress); S3.2 Read transaction detail (in_progress); S3.3 Supported edit and delete (in_progress); S3.4 Activity verification (in_progress) |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
 | S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |

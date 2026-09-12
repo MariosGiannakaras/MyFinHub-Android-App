@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,6 +54,7 @@ import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
@@ -327,127 +329,29 @@ private fun ActivityFlatLedgerRow(
     accountOptions: List<ActivityAccountOption>,
     onClick: () -> Unit,
 ) {
-    val tone = when {
-        item.pendingSync -> FinanceTone.Neutral
-        item.kind == ActivityKind.TRANSFER -> FinanceTone.Neutral
-        item.kind == ActivityKind.EXPENSE -> FinanceTone.Expense
-        item.kind == ActivityKind.INCOME -> FinanceTone.Income
-        item.kind == ActivityKind.CARD_PAYMENT -> FinanceTone.Transfer
-        else -> FinanceTone.Neutral
-    }
-    val largeText = LocalDensity.current.fontScale >= 1.3f
+    val tone = item.s3Tone()
     val secondary = if (item.kind == ActivityKind.TRANSFER) {
         activityTransferRouteLabel(item, accountOptions)
     } else {
-        item.subtitle.ifBlank { item.accountLabel }
+        item.note
     }
-    val accountMeta = when {
+    val meta = when {
+        item.pendingSync -> "Εκκρεμεί συγχρονισμός"
         item.kind == ActivityKind.TRANSFER -> "Εσωτερική μεταφορά"
         item.kind == ActivityKind.CARD_PAYMENT -> "Πληρωμή πιστωτικής · ${item.accountLabel}"
         else -> item.accountLabel
     }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        if (largeText) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 64.dp)
-                    .padding(vertical = MyFinHubSpacing.sm),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    MyFinHubIconBadge(
-                        icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
-                        tone = tone,
-                        contentDescription = item.category ?: item.kind.label,
-                    )
-                    ActivityLedgerIdentity(
-                        item = item,
-                        secondary = secondary,
-                        accountMeta = accountMeta,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                MyFinHubAmountText(
-                    text = formatSignedEuro(item.amount),
-                    tone = tone,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.align(Alignment.End),
-                )
-            }
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 64.dp)
-                    .padding(vertical = MyFinHubSpacing.sm),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MyFinHubIconBadge(
-                    icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
-                    tone = tone,
-                    contentDescription = item.category ?: item.kind.label,
-                )
-                ActivityLedgerIdentity(
-                    item = item,
-                    secondary = secondary,
-                    accountMeta = accountMeta,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(modifier = Modifier.width(MyFinHubSpacing.xxs))
-                MyFinHubAmountText(
-                    text = formatSignedEuro(item.amount),
-                    tone = tone,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActivityLedgerIdentity(
-    item: ActivityItem,
-    secondary: String,
-    accountMeta: String,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-    ) {
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            maxLines = 2,
-        )
-        if (secondary.isNotBlank()) {
-            Text(
-                text = secondary,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-            )
-        }
-        Text(
-            text = if (item.pendingSync) "Εκκρεμεί συγχρονισμός" else accountMeta,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-        )
-    }
+    MyFinHubFinanceRow(
+        icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
+        iconDescription = null,
+        title = item.title,
+        subtitle = secondary,
+        meta = meta,
+        amountText = formatSignedEuro(item.amount),
+        tone = tone,
+        onClick = onClick,
+    )
 }
 
 @Composable
@@ -565,7 +469,7 @@ internal fun ActivityFilterSheetContent(
 fun ActivityReadDetailScreen(
     item: ActivityItem?,
     accountOptions: List<ActivityAccountOption>,
-    mutationInFlight: Boolean,
+    mutationBlocked: Boolean,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -635,9 +539,9 @@ fun ActivityReadDetailScreen(
                 }
                 item { ActivityReadField("Κατηγορία", item.category ?: "Χωρίς κατηγορία") }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
-                item { ActivityReadField("Σημείωση", item.subtitle.ifBlank { "Χωρίς σημείωση" }) }
-                if (item.kind == ActivityKind.CARD_PAYMENT && item.subtitle.isNotBlank()) {
-                    item { ActivityReadField("Συνδεδεμένη κάρτα", item.subtitle) }
+                item { ActivityReadField("Σημείωση", item.note.ifBlank { "Χωρίς σημείωση" }) }
+                item.cardLabel?.takeIf(String::isNotBlank)?.let { cardLabel ->
+                    item { ActivityReadField("Συνδεδεμένη κάρτα", cardLabel) }
                 }
                 item(key = "actions") {
                     Column(
@@ -653,13 +557,13 @@ fun ActivityReadDetailScreen(
                         } else {
                             Button(
                                 onClick = onEdit,
-                                enabled = !mutationInFlight,
+                                enabled = !mutationBlocked,
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
                             ) {
                                 Text("Επεξεργασία")
                             }
                             ActivityMoreActions(
-                                enabled = !mutationInFlight,
+                                enabled = !mutationBlocked,
                                 onDelete = { confirmDelete = true },
                             )
                         }
@@ -742,6 +646,7 @@ fun ActivityEditScreen(
     item: ActivityItem?,
     categoryOptions: List<ActivityCategoryOption>,
     mutationInFlight: Boolean,
+    mutationBlocked: Boolean,
     onBack: () -> Unit,
     onSave: (String, String, String, String) -> Unit,
     onSaved: () -> Unit,
@@ -779,11 +684,12 @@ fun ActivityEditScreen(
     }
 
     var date by rememberSaveable(item.id) { mutableStateOf(item.rawDate.take(10)) }
-    var note by rememberSaveable(item.id) { mutableStateOf(item.subtitle) }
+    var note by rememberSaveable(item.id) { mutableStateOf(item.note) }
     var category by rememberSaveable(item.id) { mutableStateOf(item.category.orEmpty()) }
     var subcategory by rememberSaveable(item.id) { mutableStateOf(item.subcategory.orEmpty()) }
     var discardDialogOpen by rememberSaveable(item.id) { mutableStateOf(false) }
     var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }
+    var observedMutationInFlight by rememberSaveable(item.id) { mutableStateOf(false) }
     var requestedDate by rememberSaveable(item.id) { mutableStateOf("") }
     var requestedNote by rememberSaveable(item.id) { mutableStateOf("") }
     var requestedCategory by rememberSaveable(item.id) { mutableStateOf("") }
@@ -799,36 +705,48 @@ fun ActivityEditScreen(
     val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull()
     val dateError = date.isNotBlank() && parsedDate == null
     val dirty = date != item.rawDate.take(10) ||
-        note != item.subtitle ||
+        note != item.note ||
         category != item.category.orEmpty() ||
         subcategory != item.subcategory.orEmpty()
     val valid = parsedDate != null && note.isNotBlank()
 
     val requestBack = {
-        if (dirty && !saveRequested) discardDialogOpen = true else onBack()
+        when {
+            mutationInFlight -> Unit
+            dirty -> discardDialogOpen = true
+            else -> onBack()
+        }
     }
     BackHandler(onBack = requestBack)
 
     LaunchedEffect(
         item.rawDate,
-        item.subtitle,
+        item.note,
         item.category,
         item.subcategory,
+        mutationInFlight,
         saveRequested,
         requestedDate,
         requestedNote,
         requestedCategory,
         requestedSubcategory,
     ) {
-        if (
-            saveRequested &&
+        val persisted = saveRequested &&
             item.rawDate.take(10) == requestedDate &&
-            item.subtitle == requestedNote &&
+            item.note == requestedNote &&
             item.category.orEmpty() == requestedCategory &&
             item.subcategory.orEmpty() == requestedSubcategory
-        ) {
-            saveRequested = false
-            onSaved()
+        when {
+            persisted -> {
+                saveRequested = false
+                observedMutationInFlight = false
+                onSaved()
+            }
+            saveRequested && mutationInFlight -> observedMutationInFlight = true
+            saveRequested && observedMutationInFlight && !mutationInFlight -> {
+                saveRequested = false
+                observedMutationInFlight = false
+            }
         }
     }
 
@@ -840,6 +758,28 @@ fun ActivityEditScreen(
                 subtitle = item.title,
                 navigation = { MyFinHubBackButton(requestBack) },
             )
+        },
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                MyFinHubPrimaryAction(
+                    label = if (mutationInFlight || saveRequested) "Αποθήκευση…" else "Αποθήκευση αλλαγών",
+                    onClick = {
+                        requestedDate = date
+                        requestedNote = note.trim()
+                        requestedCategory = category
+                        requestedSubcategory = subcategory
+                        saveRequested = true
+                        onSave(date, note.trim(), category, subcategory)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.xs)
+                        .navigationBarsPadding()
+                        .imePadding(),
+                    enabled = dirty && valid && !mutationBlocked && !saveRequested,
+                    icon = null,
+                )
+            }
         },
     ) { padding ->
         Column(
@@ -866,7 +806,7 @@ fun ActivityEditScreen(
             )
             DateEntryField(
                 value = date,
-                onValueChange = { date = it },
+                onValueChange = { if (!mutationInFlight && !saveRequested) date = it },
                 label = "Ημερομηνία",
                 errorMessage = if (dateError) "Η ημερομηνία δεν είναι έγκυρη." else null,
             )
@@ -875,7 +815,7 @@ fun ActivityEditScreen(
                     label = "Κατηγορία",
                     selectedId = category,
                     choices = effectiveCategoryOptions.map { it.name to it.name },
-                    enabled = !mutationInFlight,
+                    enabled = !mutationInFlight && !saveRequested,
                     onSelected = { selected ->
                         category = selected
                         val allowed = effectiveCategoryOptions.firstOrNull { it.name == selected }?.subcategories.orEmpty()
@@ -887,7 +827,7 @@ fun ActivityEditScreen(
                         label = "Υποκατηγορία",
                         selectedId = subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") + subcategoryOptions.map { it to it },
-                        enabled = !mutationInFlight,
+                        enabled = !mutationInFlight && !saveRequested,
                         onSelected = { subcategory = it },
                     )
                 }
@@ -897,22 +837,8 @@ fun ActivityEditScreen(
                 onValueChange = { note = it },
                 label = "Σημείωση",
                 singleLine = false,
-                enabled = !mutationInFlight,
+                enabled = !mutationInFlight && !saveRequested,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            )
-            MyFinHubPrimaryAction(
-                label = if (mutationInFlight) "Αποθήκευση…" else "Αποθήκευση αλλαγών",
-                onClick = {
-                    requestedDate = date
-                    requestedNote = note.trim()
-                    requestedCategory = category
-                    requestedSubcategory = subcategory
-                    saveRequested = true
-                    onSave(date, note.trim(), category, subcategory)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = dirty && valid && !mutationInFlight,
-                icon = null,
             )
         }
     }
