@@ -78,9 +78,13 @@ jobs:
               'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png': '3353e12e6d1f34c042dd0d676c012b340b82556991e2b7dd0ec055cb64af2ad4',
               'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png': '5dfe691ae1ff5b2cec4492322f7a7926d6c3452afbbc581adc4b07470c8c204c',
           }
-          changed = subprocess.check_output([
+          tracked = subprocess.check_output([
               'git', 'diff', '--name-only', '--', 'app/src/screenshotTestDebug/reference'
           ], text=True).splitlines()
+          untracked = subprocess.check_output([
+              'git', 'ls-files', '--others', '--exclude-standard', '--', 'app/src/screenshotTestDebug/reference'
+          ], text=True).splitlines()
+          changed = sorted(set(tracked + untracked))
           if set(changed) != set(expected):
               raise SystemExit(f'Unexpected screenshot reference diff. Expected {sorted(expected)}, got {sorted(changed)}')
           for raw, digest in expected.items():
