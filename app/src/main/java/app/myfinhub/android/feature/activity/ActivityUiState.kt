@@ -44,10 +44,17 @@ enum class ActivityKind(val label: String) {
 }
 
 enum class ActivityFilter(val label: String) {
-    ALL("Όλα"),
+    ALL("Όλοι οι τύποι"),
     EXPENSE("Έξοδα"),
     INCOME("Έσοδα"),
     TRANSFER("Μεταφορές"),
+}
+
+enum class ActivityFilterField {
+    TYPE,
+    ACCOUNT,
+    CATEGORY,
+    DATE,
 }
 
 data class ActivitySection(val date: String, val items: List<ActivityItem>)
@@ -61,14 +68,43 @@ data class ActivityUiState(
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
     val accountOptions: List<ActivityAccountOption> = emptyList(),
+    /** Exact category scope chosen from the main ledger filter sheet. */
+    val ledgerCategoryFilter: String? = null,
+    /** Inclusive canonical YYYY-MM-DD ledger range. */
+    val ledgerDateFrom: String? = null,
+    val ledgerDateTo: String? = null,
+    /** Isolated analytics drill-down scope. Never reuse this for the main ledger filters. */
     val categoryFilter: String? = null,
     val dateFrom: String? = null,
     val dateTo: String? = null,
 ) {
+    val isAnalyticsScope: Boolean = categoryFilter != null
+
+    val availableCategories: List<String> = buildList {
+        expenseCategories.forEach { add(it.name) }
+        incomeCategories.forEach { add(it.name) }
+        items.forEach { item ->
+            item.category?.takeIf(String::isNotBlank)?.let(::add)
+            item.categoryContributions?.keys?.filter(String::isNotBlank)?.forEach(::add)
+        }
+    }.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
+
+    val activeFilterCount: Int = if (isAnalyticsScope) 0 else listOf(
+        filter != ActivityFilter.ALL,
+        accountFilterId != null,
+        ledgerCategoryFilter != null,
+        ledgerDateFrom != null || ledgerDateTo != null,
+    ).count { it }
+
+    val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotBlank() || activeFilterCount > 0)
+
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
     val visibleItems: List<ActivityItem> = run {
         val needle = query.trim()
+        val exactCategory = if (isAnalyticsScope) categoryFilter else ledgerCategoryFilter
+        val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
+        val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
         items.filter { item ->
             val matchesFilter = when (filter) {
                 ActivityFilter.ALL -> true
@@ -91,13 +127,13 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(needle, ignoreCase = true)
-            val matchesCategory = categoryFilter == null ||
-                (item.categoryContributions?.containsKey(categoryFilter)
-                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") == categoryFilter))
-            val matchesDate = (dateFrom == null && dateTo == null) ||
+            val matchesCategory = exactCategory == null ||
+                (item.categoryContributions?.containsKey(exactCategory)
+                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") == exactCategory))
+            val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&
-                    (dateFrom == null || item.rawDate.take(10) >= dateFrom) &&
-                    (dateTo == null || item.rawDate.take(10) <= dateTo))
+                    (effectiveDateFrom == null || item.rawDate.take(10) >= effectiveDateFrom) &&
+                    (effectiveDateTo == null || item.rawDate.take(10) <= effectiveDateTo))
             matchesFilter && matchesAccount && matchesQuery && matchesCategory && matchesDate
         }
     }
@@ -143,6 +179,9 @@ data class ActivityUiState(
         filter = ActivityFilter.ALL,
         accountFilterId = null,
         selectedId = null,
+        ledgerCategoryFilter = null,
+        ledgerDateFrom = null,
+        ledgerDateTo = null,
         categoryFilter = category,
         dateFrom = start,
         dateTo = end,
@@ -157,6 +196,15 @@ sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class AccountFilterChanged(val accountId: String?) : ActivityAction
+    data class ApplyFilters(
+        val type: ActivityFilter,
+        val accountId: String?,
+        val category: String?,
+        val dateFrom: String?,
+        val dateTo: String?,
+    ) : ActivityAction
+    data object ClearFilters : ActivityAction
+    data class RemoveFilter(val field: ActivityFilterField) : ActivityAction
     data class Select(val id: String?) : ActivityAction
     data class SaveEdit(
         val id: String,
@@ -172,6 +220,26 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     is ActivityAction.FilterChanged -> state.copy(filter = action.value)
     is ActivityAction.AccountFilterChanged -> state.copy(accountFilterId = action.accountId)
+    is ActivityAction.ApplyFilters -> state.copy(
+        filter = action.type,
+        accountFilterId = action.accountId,
+        ledgerCategoryFilter = action.category?.trim()?.takeIf(String::isNotBlank),
+        ledgerDateFrom = action.dateFrom?.trim()?.takeIf(String::isNotBlank),
+        ledgerDateTo = action.dateTo?.trim()?.takeIf(String::isNotBlank),
+    )
+    ActivityAction.ClearFilters -> state.copy(
+        filter = ActivityFilter.ALL,
+        accountFilterId = null,
+        ledgerCategoryFilter = null,
+        ledgerDateFrom = null,
+        ledgerDateTo = null,
+    )
+    is ActivityAction.RemoveFilter -> when (action.field) {
+        ActivityFilterField.TYPE -> state.copy(filter = ActivityFilter.ALL)
+        ActivityFilterField.ACCOUNT -> state.copy(accountFilterId = null)
+        ActivityFilterField.CATEGORY -> state.copy(ledgerCategoryFilter = null)
+        ActivityFilterField.DATE -> state.copy(ledgerDateFrom = null, ledgerDateTo = null)
+    }
     is ActivityAction.Select -> state.copy(selectedId = action.id)
     is ActivityAction.SaveEdit -> state.copy(
         items = state.items.map { item ->
