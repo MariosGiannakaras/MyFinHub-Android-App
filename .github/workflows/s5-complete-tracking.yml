@@ -1,0 +1,96 @@
+name: S5 Complete Tracking
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+    paths:
+      - '.github/workflows/s5-complete-tracking.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  complete-s5-tracking:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact S5 branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s5-home-accounts
+          fetch-depth: 0
+
+      - name: Record S5 completion evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          data = json.loads(path.read_text())
+          data['updated_at'] = '2026-09-14'
+
+          work = data['active_workstream']
+          work['status'] = 'android_redesign_s5_complete_merge_ready'
+          work['summary'] = (
+              'S1–S5 are complete. PR #117 implements the coherent Android-only Home/accounts redesign: '
+              'compact Home and attention detail, canonical Wallet grouping/availability, account-scoped ledger '
+              'semantics, account-preselected Quick Entry and explicit net-position detail. The reviewed S5 '
+              'reference batch and final exact-head Project Tracking, Android UI Quality and Android CI gates '
+              'all pass on b5556baccc565604981e46e308933007fce4d264. No backend or web/desktop changes are authorized.'
+          )
+          work['next'] = [
+              'Merge validated PR #117 into develop without changing the accepted S5 product head.',
+              'Create the S6 Cards branch from updated develop, move canonical tracking to S6.1–S6.4, and implement the next coherent Android-only slice.'
+          ]
+
+          current = data['current_redesign_pass']
+          current['current_slice'] = 'S6.1 / S6.2 / S6.3 / S6.4'
+          current['checkpoint'] = 's5_complete_merge_ready'
+          current['blockers'] = []
+          current['next_action'] = (
+              'Merge validated PR #117 into develop, create android/redesign-s6-cards from the resulting develop head, '
+              'then implement S6.1–S6.4 as one coherent Android-only batch.'
+          )
+
+          s5 = next(task for task in data['redesign_tasks'] if task['id'] == 'S5')
+          evidence = {
+              'S5.1': [
+                  'Compact Home exposes one liquid-availability scope, one primary Quick Entry action, bounded attention/upcoming density and privacy-safe amount hiding; attention detail exposes canonical source/date/amount with an explicit dismiss-for-now action.',
+                  'Targeted hosted S5 validation run 34781108539 passed the corrected Home/settings/attention device contract before the final exact-head gate.'
+              ],
+              'S5.2': [
+                  'Wallet account groups are driven by stable canonical account metadata rather than localized labels; available-total exclusions and daily/savings grouping remain independent of display copy.',
+                  'Targeted hosted S5 validation run 34781108539 passed the corrected Wallet device contract and verified the accepted reviewed render hashes.'
+              ],
+              'S5.3': [
+                  'Account detail uses account-relative transfer signs, preserves account-scoped ledger context, opens Quick Entry with the selected account prefilled, and keeps aggregate credit debt visible through explicit net-position detail.',
+                  'Final exact-head Android CI run 34781624482 passed unit/instrumentation compilation, lint, debug/release/bundle assembly and release policy audits on b5556baccc565604981e46e308933007fce4d264.'
+              ],
+              'S5.4': [
+                  'The coherent 12-reference S5 Home/attention/Wallet/account-detail/net-position batch was regenerated and hash-verified only after personal inspection; the accepted baseline commit is c1221eb4449e9d3b992fa562ac3e20247231eda6.',
+                  'Final exact-head Project Tracking run 34781624481 passed. Android UI Quality run 34781624502 passed screenshot regression without candidate regeneration and S24-target instrumentation. Android CI run 34781624482 also passed on b5556baccc565604981e46e308933007fce4d264.'
+              ],
+          }
+          for subtask in s5['subtasks']:
+              subtask['status'] = 'completed'
+              subtask['evidence'] = evidence[subtask['id']]
+
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+          python3 scripts/render_project_tracking.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
+          git diff --check
+
+      - name: Commit tracking-only S5 completion checkpoint
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m "docs: mark S5 complete and stage S6"
+          git push origin HEAD:android/redesign-s5-home-accounts
