@@ -1,10 +1,12 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,6 +66,7 @@ fun CanonicalCardDetailScreen(
     onAddPurchase: () -> Unit = {},
     onPayCard: () -> Unit = {},
     onBack: () -> Unit,
+    onOpenActivity: (String) -> Unit = {},
 ) {
     val relevantState = when (secretState) {
         is CardSecretUiState.Hidden -> secretState.takeIf { it.cardId == null || it.cardId == card?.id }
@@ -208,7 +212,11 @@ fun CanonicalCardDetailScreen(
                         } else {
                             card.activity.take(20).forEachIndexed { index, item ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 52.dp)
+                                        .clickable { onOpenActivity(item.id) }
+                                        .testTag("card_activity_${item.id}"),
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {

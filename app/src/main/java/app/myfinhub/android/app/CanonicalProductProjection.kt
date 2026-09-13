@@ -31,6 +31,7 @@ import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
+import app.myfinhub.android.feature.activity.activityTypeLabel
 import app.myfinhub.android.feature.home.HomeAccount
 import app.myfinhub.android.feature.home.HomeAccountGroup
 import app.myfinhub.android.feature.home.HomeAttentionItem
@@ -98,7 +99,12 @@ fun projectCanonicalProduct(
 }.toMap()
 val contributionsById = document.categoryContributionsBetween("0001-01-01", "9999-12-31")
     .groupBy { it.transactionId }
-val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology).map { item ->
+val activityCardLabels = document.canonicalCards().associate { card ->
+    val base = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } }
+    val last4 = card.last4.orEmpty()
+    card.id to if (last4.isBlank()) base else "$base • $last4"
+}
+val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology, activityCardLabels).map { item ->
     item.copy(categoryContributions = contributionsById[item.id].orEmpty()
         .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } })
 }
@@ -195,6 +201,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
+        ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
+        ledgerDateFrom = oldActivity?.ledgerDateFrom,
+        ledgerDateTo = oldActivity?.ledgerDateTo,
+        typeFilterId = oldActivity?.typeFilterId,
         categoryFilter = oldActivity?.categoryFilter,
         dateFrom = oldActivity?.dateFrom,
         dateTo = oldActivity?.dateTo,
@@ -292,6 +302,7 @@ private fun buildActivityItems(
     events: List<CanonicalEvent>,
     accountNames: Map<String, String>,
     eventChronology: Map<String, String>,
+    cardLabels: Map<String, String>,
 ): List<ActivityItem> {
     val rows = buildList {
         legacy.forEachIndexed { index, tx ->
@@ -314,10 +325,13 @@ private fun buildActivityItems(
                     accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
                     category = tx.category,
                     subcategory = tx.subcategory,
+                    note = tx.note,
                     rawDate = tx.date,
                     accountId = tx.accountId,
                     fromAccountId = tx.fromAccountId,
                     toAccountId = tx.toAccountId,
+                    canonicalKind = tx.type,
+                    typeLabel = activityTypeLabel(tx.type),
                 ),
             ))
         }
@@ -336,10 +350,15 @@ private fun buildActivityItems(
                     accountLabel = accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames),
                     category = event.category,
                     subcategory = event.subcategory,
+                    note = event.note,
                     rawDate = event.date,
                     accountId = event.accountId,
                     fromAccountId = event.fromAccountId,
                     toAccountId = event.toAccountId,
+                    cardId = event.cardId,
+                    cardLabel = event.cardId?.let(cardLabels::get),
+                    canonicalKind = event.kind,
+                    typeLabel = activityTypeLabel(event.kind),
                 ),
             ))
         }
