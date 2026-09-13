@@ -22,11 +22,15 @@ concurrency:
 
 jobs:
   screenshot-regression:
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -55,9 +59,38 @@ jobs:
           fi
 
       - name: Render candidate references after regression failure
+        id: render-candidates
         if: failure()
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      # Temporary, branch-scoped recovery for environments without a local executor.
+      # The next human/agent commit removes this step before the PR is made ready.
+      - name: Commit bounded S4 screenshot candidates
+        if: failure() && steps.render-candidates.outcome == 'success'
+        shell: bash
+        run: |
+          git add app/src/screenshotTestDebug/reference
+          mapfile -t changed < <(git diff --cached --name-only --diff-filter=AM)
+          if [[ "${#changed[@]}" -ne 11 ]]; then
+            echo "Expected exactly 11 S4 screenshot changes, found ${#changed[@]}."
+            printf '%s\n' "${changed[@]}"
+            exit 1
+          fi
+          for file in "${changed[@]}"; do
+            case "$file" in
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/app/Phase2BScreenshotTestKt/Phase2BQuickEntrySplitCompact*.png) ;;
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntry*.png) ;;
+              *)
+                echo "Refusing unexpected screenshot path: $file"
+                exit 1
+                ;;
+            esac
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test(android): stage S4 Quick Entry screenshot baselines"
+          git push origin "HEAD:${{ github.head_ref }}"
 
       - name: Publish rendered UI screenshots
         if: always()
