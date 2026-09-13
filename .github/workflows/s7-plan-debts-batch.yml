@@ -1,0 +1,1196 @@
+name: S7 Plan and Debts Batch
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+    paths:
+      - '.github/workflows/s7-plan-debts-batch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout S7 branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s7-plan-debts
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Apply coherent S7 production batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "8d55e83df9dc2d6739c9c7b4e2e19cc23c78e865"
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}: {old[:80]!r}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'app/src/main/java/app/myfinhub/android/feature/plan/PlanUiState.kt',
+              '    val forecastHorizonDays: Int = 30,\n    val forecastStartBalance: Double = 0.0,',
+              '    val forecastHorizonDays: Int = 30,\n    val forecastStartDateIso: String = "",\n    val forecastEndDateIso: String = "",\n    val forecastStartBalance: Double = 0.0,',
+          )
+
+          replace_once(
+              'app/src/main/java/app/myfinhub/android/app/CanonicalPlanProjection.kt',
+              '    val horizonDays = previous?.forecastHorizonDays?.takeIf { it > 0 } ?: 30\n    val horizonEnd = today.plusDays(horizonDays.toLong())',
+              '    // Production H7 forecast is a fixed, explainable 30-day window. Legacy preview controls\n    // remain local-only and must not silently change the canonical production horizon.\n    val horizonDays = 30\n    val horizonEnd = today.plusDays(horizonDays.toLong())',
+          )
+          replace_once(
+              'app/src/main/java/app/myfinhub/android/app/CanonicalPlanProjection.kt',
+              '        forecastHorizonDays = horizonDays,\n        forecastStartBalance = startBalance,',
+              '        forecastHorizonDays = horizonDays,\n        forecastStartDateIso = today.toString(),\n        forecastEndDateIso = horizonEnd.toString(),\n        forecastStartBalance = startBalance,',
+          )
+
+          replace_once(
+              'app/src/main/java/app/myfinhub/android/app/AppRoute.kt',
+              '    @Serializable data object Plan : AppRoute\n    @Serializable data class PlanItem(val itemId: String) : AppRoute',
+              '    @Serializable data object Plan : AppRoute\n    @Serializable data object PlanForecast : AppRoute\n    @Serializable data class PlanItem(val itemId: String) : AppRoute',
+          )
+
+          app = Path('app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt')
+          text = app.read_text()
+          text = text.replace(
+              'import app.myfinhub.android.feature.plan.CanonicalBudgetScreen\nimport app.myfinhub.android.feature.plan.CanonicalPlanScreen',
+              'import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen\nimport app.myfinhub.android.feature.plan.CanonicalPlan2026Screen\nimport app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen',
+              1,
+          )
+          text = text.replace(
+              'import app.myfinhub.android.feature.plan.PlanUiState\nimport app.myfinhub.android.feature.plan.PlanViewModel',
+              'import app.myfinhub.android.feature.plan.PlanUiState\nimport app.myfinhub.android.feature.plan.PlanViewModel\nimport app.myfinhub.android.feature.plan.PlannedFlow',
+              1,
+          )
+          old_plan = '''                entry<AppRoute.Plan> {
+                    if (canonicalProductMode) {
+                        CanonicalPlanScreen(
+                            state = planState,
+                            onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    } else {
+                        Plan2026Screen(
+                            state = planState,
+                            onAction = onPlanAction,
+                            onOpenItem = { itemId -> planBackStack.pushIfNew(AppRoute.PlanItem(itemId)) },
+                            onOpenBudgets = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    }
+                }
+'''
+          new_plan = '''                entry<AppRoute.Plan> {
+                    if (canonicalProductMode) {
+                        CanonicalPlan2026Screen(
+                            state = planState,
+                            onOpenForecast = { planBackStack.pushIfNew(AppRoute.PlanForecast) },
+                            onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    } else {
+                        Plan2026Screen(
+                            state = planState,
+                            onAction = onPlanAction,
+                            onOpenItem = { itemId -> planBackStack.pushIfNew(AppRoute.PlanItem(itemId)) },
+                            onOpenBudgets = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        )
+                    }
+                }
+                entry<AppRoute.PlanForecast> {
+                    CanonicalPlanForecastScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onRecordItem = { item ->
+                            val kind = when (item.flow) {
+                                PlannedFlow.OBLIGATION -> QuickEntryKind.EXPENSE
+                                PlannedFlow.INCOME -> QuickEntryKind.INCOME
+                                PlannedFlow.TRANSFER -> null
+                            }
+                            if (kind != null) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(kind))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
+                                if (item.dueDateIso.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.DateChanged(item.dueDateIso))
+                                }
+                                if (item.category.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.CategoryChanged(item.category))
+                                }
+                                onQuickEntryAction(QuickEntryAction.NoteChanged(item.note.ifBlank { item.title }))
+                                planBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
+                    )
+                }
+'''
+          if text.count(old_plan) != 1:
+              raise SystemExit('MyFinHubApp: canonical Plan route block did not match exactly')
+          text = text.replace(old_plan, new_plan, 1)
+          text = text.replace('                        CanonicalBudgetScreen(\n', '                        CanonicalBudget2026Screen(\n', 1)
+          old_lending = '''                        CanonicalLendingScreen(
+                            state = moneyState,
+                            onBack = { moneyBackStack.removeLastOrNull() },
+                        )'''
+          new_lending = '''                        CanonicalLendingScreen(
+                            state = moneyState,
+                            onBack = { moneyBackStack.removeLastOrNull() },
+                            onRecordRepayment = { lending ->
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
+                                if (lending.note.isNotBlank()) onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            },
+                        )'''
+          if text.count(old_lending) != 1:
+              raise SystemExit('MyFinHubApp: canonical Lending block did not match exactly')
+          app.write_text(text.replace(old_lending, new_lending, 1))
+
+          wallet = Path('app/src/main/java/app/myfinhub/android/feature/money/WalletAccountsScreens.kt')
+          text = wallet.read_text()
+          text = text.replace(
+              '    initiallyShowCards: Boolean = false,\n    onOpenAccount:',
+              '    initiallyShowCards: Boolean = false,\n    initiallyShowDebts: Boolean = false,\n    onOpenAccount:',
+              1,
+          )
+          old_selection = '''    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards) {
+        mutableStateOf(if (initiallyShowCards) WalletSection.CARDS.name else WalletSection.ACCOUNTS.name)
+    }'''
+          new_selection = '''    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards, initiallyShowDebts) {
+        mutableStateOf(
+            when {
+                initiallyShowDebts -> WalletSection.DEBTS.name
+                initiallyShowCards -> WalletSection.CARDS.name
+                else -> WalletSection.ACCOUNTS.name
+            },
+        )
+    }'''
+          if text.count(old_selection) != 1:
+              raise SystemExit('Wallet: section selection block mismatch')
+          text = text.replace(old_selection, new_selection, 1)
+          text = text.replace(
+              'subtitle = if (state.aggregateCreditOutstanding != null) "Συνολικό canonical υπόλοιπο, μαζί με μη ενεργές κάρτες" else "Μερική εικόνα από τις διαθέσιμες κάρτες",',
+              'subtitle = if (state.aggregateCreditOutstanding != null) "Συνολικό υπόλοιπο · περιλαμβάνει και μη ενεργές κάρτες" else "Μερική εικόνα από διαθέσιμες πιστωτικές",',
+              1,
+          )
+          text = text.replace(
+              'subtitle = if (state.loans.isEmpty()) "Συνολικό υπόλοιπο" else "${state.loans.size} διαθέσιμες εγγραφές",',
+              'subtitle = if (state.loans.isEmpty()) "Συνολικό υπόλοιπο · χωρίς αναλυτικές εγγραφές" else "${state.loans.size} διαθέσιμες εγγραφές",',
+              1,
+          )
+          text = text.replace(
+              'subtitle = if (state.lendingItems.isEmpty()) "Ποσά που αναμένεις να επιστραφούν" else "${state.lendingItems.size} διαθέσιμες εγγραφές",',
+              'subtitle = if (state.lendingItems.isEmpty()) "Συνολικό ποσό · χωρίς αναλυτικές εγγραφές" else "${state.lendingItems.size} διαθέσιμες εγγραφές",',
+              1,
+          )
+          text = text.replace(
+              '"Τα συνολικά ποσά παραμένουν χρήσιμα ακόμη κι όταν η canonical πηγή δεν παρέχει επιμέρους εγγραφές.",',
+              '"Όπου δεν υπάρχουν αναλυτικές εγγραφές, εμφανίζεται το διαθέσιμο συνολικό ποσό χωρίς να υπονοείται μηδενική οφειλή ή απαίτηση.",',
+              1,
+          )
+          old_aggregate = '''@Composable
+private fun WalletAggregateRow(
+    title: String,
+    subtitle: String,
+    amount: Double,
+    amountsVisible: Boolean,
+    onClick: () -> Unit,
+    receivable: Boolean = false,
+) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
+        Row(
+            modifier = Modifier.padding(vertical = MyFinHubSpacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            MyFinHubAmountText(walletAmountText(amount, amountsVisible), FinanceTone.Neutral)
+        }
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+}'''
+          new_aggregate = '''@Composable
+private fun WalletAggregateRow(
+    title: String,
+    subtitle: String,
+    amount: Double,
+    amountsVisible: Boolean,
+    onClick: () -> Unit,
+    receivable: Boolean = false,
+) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
+        if (largeFont) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                MyFinHubAmountText(
+                    walletAmountText(amount, amountsVisible),
+                    FinanceTone.Neutral,
+                    modifier = Modifier.align(Alignment.End),
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.padding(vertical = MyFinHubSpacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                MyFinHubAmountText(walletAmountText(amount, amountsVisible), FinanceTone.Neutral)
+            }
+        }
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+}'''
+          if text.count(old_aggregate) != 1:
+              raise SystemExit('Wallet: aggregate row block mismatch')
+          wallet.write_text(text.replace(old_aggregate, new_aggregate, 1))
+
+          money = Path('app/src/main/java/app/myfinhub/android/feature/money/CanonicalMoneyScreens.kt')
+          text = money.read_text()
+          text = text.replace(
+              '''fun CanonicalLendingScreen(
+    state: MoneyUiState,
+    onBack: () -> Unit,
+) {''',
+              '''fun CanonicalLendingScreen(
+    state: MoneyUiState,
+    onBack: () -> Unit,
+    onRecordRepayment: (LendingItem) -> Unit = {},
+) {''',
+              1,
+          )
+          old_lending_card = '''                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.personLabel, style = MaterialTheme.typography.titleMedium)
+                                if (item.dueLabel.isNotBlank()) {
+                                    Text(
+                                        item.dueLabel,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            MyFinHubAmountText(formatCanonicalEuro(item.amount), FinanceTone.Income)
+                        }
+                    }'''
+          new_lending_card = '''                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.personLabel, style = MaterialTheme.typography.titleMedium)
+                                    if (item.dueLabel.isNotBlank()) {
+                                        Text(
+                                            item.dueLabel,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                                MyFinHubAmountText(formatCanonicalEuro(item.amount), FinanceTone.Income)
+                            }
+                            TextButton(onClick = { onRecordRepayment(item) }) {
+                                Text("Καταχώριση επιστροφής")
+                            }
+                        }
+                    }'''
+          if text.count(old_lending_card) != 1:
+              raise SystemExit('CanonicalMoneyScreens: lending item card mismatch')
+          money.write_text(text.replace(old_lending_card, new_lending_card, 1))
+          PY
+
+          cat > app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlan2026Screens.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.plan
+
+          import androidx.compose.foundation.layout.Arrangement
+          import androidx.compose.foundation.layout.Column
+          import androidx.compose.foundation.layout.PaddingValues
+          import androidx.compose.foundation.layout.Row
+          import androidx.compose.foundation.layout.fillMaxSize
+          import androidx.compose.foundation.layout.fillMaxWidth
+          import androidx.compose.foundation.layout.padding
+          import androidx.compose.foundation.lazy.LazyColumn
+          import androidx.compose.foundation.lazy.items
+          import androidx.compose.foundation.text.KeyboardOptions
+          import androidx.compose.material3.HorizontalDivider
+          import androidx.compose.material3.LinearProgressIndicator
+          import androidx.compose.material3.MaterialTheme
+          import androidx.compose.material3.Scaffold
+          import androidx.compose.material3.Text
+          import androidx.compose.material3.TextButton
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.Alignment
+          import androidx.compose.ui.Modifier
+          import androidx.compose.ui.platform.LocalDensity
+          import androidx.compose.ui.platform.testTag
+          import androidx.compose.ui.text.font.FontWeight
+          import androidx.compose.ui.text.input.ImeAction
+          import androidx.compose.ui.text.input.KeyboardType
+          import app.myfinhub.android.designsystem.FinanceTone
+          import app.myfinhub.android.designsystem.MyFinHubActionCard
+          import app.myfinhub.android.designsystem.MyFinHubAmountText
+          import app.myfinhub.android.designsystem.MyFinHubBackButton
+          import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+          import app.myfinhub.android.designsystem.MyFinHubIconBadge
+          import app.myfinhub.android.designsystem.MyFinHubIcons
+          import app.myfinhub.android.designsystem.MyFinHubOutlinedField
+          import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
+          import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+          import app.myfinhub.android.designsystem.MyFinHubSectionCard
+          import app.myfinhub.android.designsystem.MyFinHubSectionHeading
+          import app.myfinhub.android.designsystem.MyFinHubSpacing
+          import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+          import java.text.NumberFormat
+          import java.time.LocalDate
+          import java.time.format.DateTimeFormatter
+          import java.util.Locale
+          import kotlin.math.abs
+
+          internal fun planUrgentObligations(state: PlanUiState): List<PlannedItem> = state.items.filter {
+              it.flow == PlannedFlow.OBLIGATION &&
+                  (it.urgency == PlannedUrgency.OVERDUE || it.urgency == PlannedUrgency.THIS_WEEK)
+          }
+
+          internal fun planRemainingItems(state: PlanUiState): List<PlannedItem> {
+              val urgentIds = planUrgentObligations(state).mapTo(mutableSetOf(), PlannedItem::id)
+              return state.items.filterNot { it.id in urgentIds }
+          }
+
+          internal fun planForecastIncludedItems(state: PlanUiState): List<PlannedItem> {
+              val end = state.forecastEndDateIso.toPlanDateOrNull()
+              if (end == null) return state.items
+              return state.items.filter { item ->
+                  item.dueDateIso.toPlanDateOrNull()?.let { !it.isAfter(end) } == true
+              }
+          }
+
+          internal fun planForecastScopeLabel(state: PlanUiState): String {
+              val start = state.forecastStartDateIso.toPlanDateOrNull()
+              val end = state.forecastEndDateIso.toPlanDateOrNull()
+              if (start == null || end == null) return "Ορίζοντας ${state.forecastHorizonDays} ημερών"
+              val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR"))
+              return "${start.format(formatter)} – ${end.format(formatter)}"
+          }
+
+          /** S7 production Plan: urgent decisions first, then details-on-demand forecast and budget. */
+          @Composable
+          fun CanonicalPlan2026Screen(
+              state: PlanUiState,
+              onOpenForecast: () -> Unit,
+              onOpenBudget: () -> Unit,
+          ) {
+              val urgent = planUrgentObligations(state)
+              val remaining = planRemainingItems(state)
+              Scaffold(
+                  topBar = {
+                      MyFinHubScreenHeader(
+                          title = "Πλάνο",
+                          subtitle = "Τι χρειάζεται προσοχή και τι ακολουθεί",
+                      )
+                  },
+              ) { padding ->
+                  LazyColumn(
+                      modifier = Modifier.fillMaxSize().testTag("s7_plan_root"),
+                      contentPadding = PaddingValues(
+                          start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          top = padding.calculateTopPadding() + MyFinHubSpacing.xs,
+                          end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          bottom = MyFinHubDesignMetrics.productSnackbarBottomClearance,
+                      ),
+                      verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+                  ) {
+                      if (urgent.isNotEmpty()) {
+                          item("urgent-heading") {
+                              MyFinHubSectionHeading(
+                                  title = "Πρώτα",
+                                  subtitle = "Καθυστερημένες και κοντινές υποχρεώσεις",
+                                  icon = MyFinHubIcons.Attention,
+                                  tone = FinanceTone.Expense,
+                              )
+                          }
+                          items(urgent, key = { "urgent-${it.id}" }) { item ->
+                              PlanDecisionRow(item = item)
+                          }
+                      }
+
+                      item("forecast-link") {
+                          ForecastLinkCard(state = state, onClick = onOpenForecast)
+                      }
+                      item("budget-link") {
+                          BudgetLinkCard(state = state, onClick = onOpenBudget)
+                      }
+
+                      if (remaining.isNotEmpty()) {
+                          item("remaining-heading") {
+                              MyFinHubSectionHeading(
+                                  title = "Υπόλοιπο πλάνου",
+                                  subtitle = "Κάθε καταγεγραμμένη πηγή εμφανίζεται μία φορά",
+                                  icon = MyFinHubIcons.Plan,
+                                  tone = FinanceTone.Neutral,
+                              )
+                          }
+                          val groups = remaining.groupBy { item -> item.dueDateIso.ifBlank { item.dueLabel.ifBlank { "Χωρίς ημερομηνία" } } }
+                          groups.forEach { (_, group) ->
+                              item("date-${group.first().id}") {
+                                  Text(
+                                      group.first().dueLabel.ifBlank { "Χωρίς ημερομηνία" },
+                                      style = MaterialTheme.typography.labelLarge,
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                              }
+                              items(group, key = { "remaining-${it.id}" }) { item ->
+                                  PlanDecisionRow(item = item)
+                              }
+                          }
+                      } else if (urgent.isEmpty()) {
+                          item("plan-empty") {
+                              MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                                  Text(
+                                      "Δεν υπάρχουν καταγεγραμμένες επόμενες κινήσεις.",
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+
+          @Composable
+          private fun ForecastLinkCard(state: PlanUiState, onClick: () -> Unit) {
+              MyFinHubActionCard(
+                  onClick = onClick,
+                  modifier = Modifier.fillMaxWidth().testTag("s7_forecast_link"),
+              ) {
+                  MyFinHubSectionHeading(
+                      title = "Πρόβλεψη 30 ημερών",
+                      subtitle = planForecastScopeLabel(state),
+                      icon = MyFinHubIcons.Plan,
+                      tone = FinanceTone.Neutral,
+                  )
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.SpaceBetween,
+                      verticalAlignment = Alignment.CenterVertically,
+                  ) {
+                      Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
+                      MyFinHubAmountText(
+                          formatPlan2026Euro(state.forecastEndBalance),
+                          if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                          style = MaterialTheme.typography.titleLarge,
+                      )
+                  }
+                  Text(
+                      "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+              }
+          }
+
+          @Composable
+          private fun BudgetLinkCard(state: PlanUiState, onClick: () -> Unit) {
+              MyFinHubActionCard(
+                  onClick = onClick,
+                  modifier = Modifier.fillMaxWidth().testTag("s7_budget_link"),
+              ) {
+                  MyFinHubSectionHeading(
+                      title = "Μηνιαίος προϋπολογισμός",
+                      subtitle = state.budgetMonthLabel.ifBlank { "Τρέχων μήνας" },
+                      icon = MyFinHubIcons.Savings,
+                      tone = FinanceTone.Savings,
+                  )
+                  val progress = canonicalBudgetProgress(state)
+                  if (progress == null) {
+                      Text("Δεν έχει οριστεί συνολικό μηνιαίο όριο.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  } else {
+                      Row(
+                          modifier = Modifier.fillMaxWidth(),
+                          horizontalArrangement = Arrangement.SpaceBetween,
+                          verticalAlignment = Alignment.CenterVertically,
+                      ) {
+                          Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodyMedium)
+                          MyFinHubAmountText(
+                              formatPlan2026Euro(abs(progress.remaining)),
+                              if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
+                          )
+                      }
+                      LinearProgressIndicator(
+                          progress = { progress.progress },
+                          modifier = Modifier.fillMaxWidth(),
+                          color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                      )
+                      Text(
+                          if (progress.remaining >= 0.0) "Υπόλοιπο προϋπολογισμού" else "Υπέρβαση προϋπολογισμού",
+                          style = MaterialTheme.typography.bodySmall,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      )
+                  }
+              }
+          }
+
+          @Composable
+          private fun PlanDecisionRow(item: PlannedItem) {
+              val tone = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> FinanceTone.Expense
+                  PlannedFlow.INCOME -> FinanceTone.Income
+                  PlannedFlow.TRANSFER -> FinanceTone.Neutral
+              }
+              val fallback = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> MyFinHubIcons.Plan
+                  PlannedFlow.INCOME -> MyFinHubIcons.Income
+                  PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
+              }
+              val icon = if (item.flow == PlannedFlow.TRANSFER) fallback else myFinHubCategoryIcon(item.category.ifBlank { item.title }, fallback)
+              val amount = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> "−${formatPlan2026Euro(abs(item.amount))}"
+                  PlannedFlow.INCOME -> "+${formatPlan2026Euro(abs(item.amount))}"
+                  PlannedFlow.TRANSFER -> formatPlan2026Euro(abs(item.amount))
+              }
+              val largeFont = LocalDensity.current.fontScale >= 1.3f
+              MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s7_plan_item_${item.id}")) {
+                  if (largeFont) {
+                      Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                          Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.Top) {
+                              MyFinHubIconBadge(icon, tone, null)
+                              PlanItemIdentity(item, Modifier.weight(1f))
+                          }
+                          MyFinHubAmountText(amount, tone, modifier = Modifier.align(Alignment.End))
+                      }
+                  } else {
+                      Row(
+                          modifier = Modifier.fillMaxWidth(),
+                          horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                          verticalAlignment = Alignment.CenterVertically,
+                      ) {
+                          MyFinHubIconBadge(icon, tone, null)
+                          PlanItemIdentity(item, Modifier.weight(1f))
+                          MyFinHubAmountText(amount, tone)
+                      }
+                  }
+              }
+          }
+
+          @Composable
+          private fun PlanItemIdentity(item: PlannedItem, modifier: Modifier) {
+              Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
+                  Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                  Text(
+                      buildString {
+                          append(item.dueLabel.ifBlank { "Χωρίς ημερομηνία" })
+                          if (item.category.isNotBlank()) append(" · ${item.category}")
+                      },
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                  if (item.accountLabel.isNotBlank()) {
+                      Text(item.accountLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  }
+              }
+          }
+
+          /** Exact 30-day forecast detail. No presentation cap is applied to included canonical items. */
+          @Composable
+          fun CanonicalPlanForecastScreen(
+              state: PlanUiState,
+              onBack: () -> Unit,
+              onRecordItem: (PlannedItem) -> Unit = {},
+          ) {
+              val included = planForecastIncludedItems(state)
+              val overdueIncluded = included.any { it.flow == PlannedFlow.OBLIGATION && it.urgency == PlannedUrgency.OVERDUE }
+              Scaffold(
+                  topBar = {
+                      MyFinHubScreenHeader(
+                          title = "Πρόβλεψη 30 ημερών",
+                          subtitle = planForecastScopeLabel(state),
+                          navigation = { MyFinHubBackButton(onBack) },
+                      )
+                  },
+              ) { padding ->
+                  LazyColumn(
+                      modifier = Modifier.fillMaxSize().testTag("s7_forecast_root"),
+                      contentPadding = PaddingValues(
+                          start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          top = padding.calculateTopPadding() + MyFinHubSpacing.xs,
+                          end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
+                      ),
+                      verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+                  ) {
+                      item("forecast-summary") {
+                          MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                              Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                                  Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                  MyFinHubAmountText(
+                                      formatPlan2026Euro(state.forecastEndBalance),
+                                      if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
+                                      style = MaterialTheme.typography.headlineMedium,
+                                  )
+                                  ForecastMetric("Άνοιγμα", state.forecastStartBalance, FinanceTone.Neutral)
+                                  ForecastMetric("Προγραμματισμένα έσοδα", state.forecastExpectedIncome, FinanceTone.Income, positive = true)
+                                  ForecastMetric("Υποχρεώσεις", -state.forecastObligations, FinanceTone.Expense)
+                                  ForecastMetric("Επίδραση μεταφορών", state.forecastTransferImpact, FinanceTone.Neutral, positive = true)
+                                  HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                  Text(
+                                      "Άνοιγμα + έσοδα − υποχρεώσεις ± επίδραση μεταφορών = προβλεπόμενο διαθέσιμο.",
+                                      style = MaterialTheme.typography.bodySmall,
+                                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                  )
+                                  if (overdueIncluded) {
+                                      Text(
+                                          "Περιλαμβάνονται και καθυστερημένες εκκρεμείς υποχρεώσεις που παραμένουν απλήρωτες.",
+                                          style = MaterialTheme.typography.bodySmall,
+                                          color = MaterialTheme.colorScheme.tertiary,
+                                      )
+                                  }
+                              }
+                          }
+                      }
+
+                      item("forecast-items-heading") {
+                          MyFinHubSectionHeading(
+                              title = "Κινήσεις που υπολογίζονται",
+                              subtitle = "${included.size} καταγεγραμμένες πηγές · χωρίς περικοπή ή συγχώνευση όμοιων τίτλων",
+                              icon = MyFinHubIcons.Plan,
+                              tone = FinanceTone.Neutral,
+                          )
+                      }
+                      if (included.isEmpty()) {
+                          item("forecast-empty") {
+                              MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                                  Text("Δεν υπάρχουν καταγεγραμμένες κινήσεις μέσα στο εύρος.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                              }
+                          }
+                      } else {
+                          items(included, key = { "forecast-${it.id}" }) { item ->
+                              ForecastItemCard(item = item, onRecordItem = onRecordItem)
+                          }
+                      }
+                  }
+              }
+          }
+
+          @Composable
+          private fun ForecastMetric(label: String, amount: Double, tone: FinanceTone, positive: Boolean = false) {
+              Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                  Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                  val text = when {
+                      amount < -0.005 -> "−${formatPlan2026Euro(abs(amount))}"
+                      amount > 0.005 && positive -> "+${formatPlan2026Euro(amount)}"
+                      else -> formatPlan2026Euro(abs(amount))
+                  }
+                  MyFinHubAmountText(text, tone)
+              }
+          }
+
+          @Composable
+          private fun ForecastItemCard(item: PlannedItem, onRecordItem: (PlannedItem) -> Unit) {
+              MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                  Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                      PlanDecisionRowContent(item)
+                      if (item.flow != PlannedFlow.TRANSFER) {
+                          TextButton(
+                              onClick = { onRecordItem(item) },
+                              modifier = Modifier.testTag("s7_forecast_record_${item.id}"),
+                          ) {
+                              Text(if (item.flow == PlannedFlow.INCOME) "Καταχώριση εσόδου" else "Καταχώριση πληρωμής")
+                          }
+                      }
+                  }
+              }
+          }
+
+          @Composable
+          private fun PlanDecisionRowContent(item: PlannedItem) {
+              val tone = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> FinanceTone.Expense
+                  PlannedFlow.INCOME -> FinanceTone.Income
+                  PlannedFlow.TRANSFER -> FinanceTone.Neutral
+              }
+              val amount = when (item.flow) {
+                  PlannedFlow.OBLIGATION -> "−${formatPlan2026Euro(abs(item.amount))}"
+                  PlannedFlow.INCOME -> "+${formatPlan2026Euro(abs(item.amount))}"
+                  PlannedFlow.TRANSFER -> formatPlan2026Euro(abs(item.amount))
+              }
+              Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+                  MyFinHubIconBadge(
+                      when (item.flow) {
+                          PlannedFlow.OBLIGATION -> MyFinHubIcons.Plan
+                          PlannedFlow.INCOME -> MyFinHubIcons.Income
+                          PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
+                      },
+                      tone,
+                      null,
+                  )
+                  PlanItemIdentity(item, Modifier.weight(1f))
+                  MyFinHubAmountText(amount, tone)
+              }
+          }
+
+          /** Overall monthly budget only; category budgets remain unsupported production drafts. */
+          @Composable
+          fun CanonicalBudget2026Screen(
+              state: PlanUiState,
+              onAction: (PlanAction) -> Unit,
+              onBack: () -> Unit,
+          ) {
+              val limit = state.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+              val threshold = state.budget.alertThresholdText.toIntOrNull()
+              val limitError = state.message == "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν."
+              val thresholdError = state.message == "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%."
+              Scaffold(
+                  topBar = {
+                      MyFinHubScreenHeader(
+                          title = "Μηνιαίος προϋπολογισμός",
+                          subtitle = state.budgetMonthLabel.ifBlank { "Συνολικό όριο τρέχοντος μήνα" },
+                          navigation = { MyFinHubBackButton(onBack) },
+                      )
+                  },
+              ) { padding ->
+                  LazyColumn(
+                      modifier = Modifier.fillMaxSize().testTag("s7_budget_root"),
+                      contentPadding = PaddingValues(
+                          start = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          top = padding.calculateTopPadding() + MyFinHubSpacing.xs,
+                          end = MyFinHubDesignMetrics.screenHorizontalPadding,
+                          bottom = MyFinHubDesignMetrics.navigationContentBottomClearance,
+                      ),
+                      verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+                  ) {
+                      canonicalBudgetProgress(state)?.let { progress ->
+                          item("budget-progress") {
+                              MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                                  Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                                      MyFinHubSectionHeading(
+                                          title = "Πρόοδος μήνα",
+                                          subtitle = "${formatPlan2026Euro(progress.spent)} από ${formatPlan2026Euro(progress.limit)}",
+                                          icon = MyFinHubIcons.Savings,
+                                          tone = FinanceTone.Savings,
+                                      )
+                                      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                          Text(if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση")
+                                          MyFinHubAmountText(
+                                              formatPlan2026Euro(abs(progress.remaining)),
+                                              if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
+                                          )
+                                      }
+                                      LinearProgressIndicator(
+                                          progress = { progress.progress },
+                                          modifier = Modifier.fillMaxWidth(),
+                                          color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                                      )
+                                      Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                      if (progress.thresholdReached) {
+                                          Text(
+                                              "Έφτασες το όριο προειδοποίησης ${progress.threshold}%.",
+                                              style = MaterialTheme.typography.labelLarge,
+                                              color = MaterialTheme.colorScheme.tertiary,
+                                              modifier = Modifier.testTag("s7_budget_threshold_warning"),
+                                          )
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                      item("budget-editor") {
+                          MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                              Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                                  MyFinHubOutlinedField(
+                                      value = state.budget.monthlyLimitText,
+                                      onValueChange = { onAction(PlanAction.MonthlyLimitChanged(it)) },
+                                      label = "Μηνιαίο όριο",
+                                      suffix = { Text("€") },
+                                      errorMessage = state.message.takeIf { limitError },
+                                      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                                  )
+                                  MyFinHubOutlinedField(
+                                      value = state.budget.alertThresholdText,
+                                      onValueChange = { onAction(PlanAction.AlertThresholdChanged(it.filter(Char::isDigit).take(3))) },
+                                      label = "Όριο προειδοποίησης",
+                                      suffix = { Text("%") },
+                                      errorMessage = state.message.takeIf { thresholdError },
+                                      supportingText = if (thresholdError) null else "Από 1 έως 100% · χρησιμοποιείται για την ένδειξη προόδου στο MyFinHub",
+                                      keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                  )
+                                  if (limit != null && limit > 0.0 && threshold != null && threshold in 1..100) {
+                                      Text(
+                                          "Προειδοποίηση προόδου στο $threshold% των ${formatPlan2026Euro(limit)}.",
+                                          style = MaterialTheme.typography.bodySmall,
+                                          color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                      )
+                                  }
+                                  MyFinHubPrimaryAction(
+                                      label = "Αποθήκευση προϋπολογισμού",
+                                      onClick = { onAction(PlanAction.SaveBudget) },
+                                      modifier = Modifier.fillMaxWidth(),
+                                      icon = MyFinHubIcons.Savings,
+                                  )
+                                  state.message?.takeUnless { limitError || thresholdError }?.let { message ->
+                                      Text(
+                                          plan2026UserMessage(message),
+                                          style = MaterialTheme.typography.bodySmall,
+                                          color = MaterialTheme.colorScheme.primary,
+                                      )
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+
+          private fun plan2026UserMessage(message: String): String = when {
+              message.startsWith("Αλλαγή budget ·") && message.contains("Προς συγχρονισμό", ignoreCase = true) ->
+                  "Η αλλαγή αποθηκεύτηκε και θα συγχρονιστεί όταν υπάρχει σύνδεση."
+              message.startsWith("Αλλαγή budget ·") && message.contains("Αναμονή επιβεβαίωσης", ignoreCase = true) ->
+                  "Η αλλαγή αποθηκεύτηκε και αναμένει επιβεβαίωση."
+              else -> message.replace("budget", "προϋπολογισμός", ignoreCase = true)
+          }
+
+          private fun String?.toPlanDateOrNull(): LocalDate? = this
+              ?.takeIf(String::isNotBlank)
+              ?.let { raw -> runCatching { LocalDate.parse(raw.take(10)) }.getOrNull() }
+
+          private fun formatPlan2026Euro(value: Double): String =
+              NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+          KOTLIN
+
+          mkdir -p app/src/test/java/app/myfinhub/android/feature/plan
+          cat > app/src/test/java/app/myfinhub/android/feature/plan/S7PlanPresentationTest.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.plan
+
+          import org.junit.Assert.assertEquals
+          import org.junit.Assert.assertFalse
+          import org.junit.Assert.assertTrue
+          import org.junit.Test
+
+          class S7PlanPresentationTest {
+              private val state = PlanUiState(
+                  items = listOf(
+                      PlannedItem("late", "Ενοίκιο", "8 Σεπ", 680.0, PlannedKind.SCHEDULED, dueDateIso = "2026-09-08", urgency = PlannedUrgency.OVERDUE),
+                      PlannedItem("soon", "Internet", "12 Σεπ", 35.0, PlannedKind.RECURRING, dueDateIso = "2026-09-12", urgency = PlannedUrgency.THIS_WEEK),
+                      PlannedItem("later", "Ασφάλεια", "25 Σεπ", 120.0, PlannedKind.SCHEDULED, dueDateIso = "2026-09-25", urgency = PlannedUrgency.LATER),
+                      PlannedItem("income", "Μισθός", "15 Σεπ", 1_500.0, PlannedKind.SCHEDULED, flow = PlannedFlow.INCOME, dueDateIso = "2026-09-15", urgency = PlannedUrgency.THIS_WEEK),
+                      PlannedItem("outside", "Μελλοντικό", "20 Νοε", 40.0, PlannedKind.SCHEDULED, dueDateIso = "2026-11-20", urgency = PlannedUrgency.LATER),
+                  ),
+                  forecastHorizonDays = 30,
+                  forecastStartDateIso = "2026-09-10",
+                  forecastEndDateIso = "2026-10-10",
+              )
+
+              @Test
+              fun urgentAndRemaining_doNotDuplicateCanonicalRows() {
+                  val urgent = planUrgentObligations(state)
+                  val remaining = planRemainingItems(state)
+                  assertEquals(setOf("late", "soon"), urgent.map { it.id }.toSet())
+                  assertFalse(remaining.any { it.id in urgent.map(PlannedItem::id) })
+                  assertEquals(state.items.map { it.id }.toSet(), (urgent + remaining).map { it.id }.toSet())
+              }
+
+              @Test
+              fun forecast_keepsEveryEligibleStableId_withoutPresentationCap() {
+                  val many = (1..25).map { index ->
+                      PlannedItem("bill-$index", "Λογαριασμός", "12 Σεπ", 10.0, PlannedKind.SCHEDULED, dueDateIso = "2026-09-12")
+                  }
+                  val projected = state.copy(items = many + state.items.first { it.id == "outside" })
+                  val included = planForecastIncludedItems(projected)
+                  assertEquals(25, included.size)
+                  assertEquals(25, included.map { it.id }.distinct().size)
+                  assertTrue(included.none { it.id == "outside" })
+              }
+
+              @Test
+              fun forecastScope_isExactAndNotAnArbitrarySelectorLabel() {
+                  val label = planForecastScopeLabel(state)
+                  assertTrue(label.contains("10 Σεπ 2026"))
+                  assertTrue(label.contains("10 Οκτ 2026"))
+              }
+          }
+          KOTLIN
+
+          mkdir -p app/src/androidTest/java/app/myfinhub/android/feature/plan
+          cat > app/src/androidTest/java/app/myfinhub/android/feature/plan/S7PlanSurfaceTest.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.plan
+
+          import androidx.compose.ui.test.assertDoesNotExist
+          import androidx.compose.ui.test.assertIsDisplayed
+          import androidx.compose.ui.test.junit4.v2.createComposeRule
+          import androidx.compose.ui.test.onNodeWithTag
+          import androidx.compose.ui.test.onNodeWithText
+          import androidx.compose.ui.test.performClick
+          import androidx.compose.ui.test.performScrollTo
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import org.junit.Assert.assertEquals
+          import org.junit.Rule
+          import org.junit.Test
+
+          class S7PlanSurfaceTest {
+              @get:Rule val composeRule = createComposeRule()
+
+              private val obligation = PlannedItem(
+                  id = "rent",
+                  title = "Ενοίκιο",
+                  dueLabel = "8 Σεπ",
+                  amount = 680.0,
+                  kind = PlannedKind.SCHEDULED,
+                  flow = PlannedFlow.OBLIGATION,
+                  category = "Στέγαση",
+                  dueDateIso = "2026-09-08",
+                  urgency = PlannedUrgency.OVERDUE,
+              )
+              private val state = PlanUiState(
+                  items = listOf(obligation),
+                  budget = BudgetDraft("800", "80"),
+                  forecastHorizonDays = 30,
+                  forecastStartDateIso = "2026-09-10",
+                  forecastEndDateIso = "2026-10-10",
+                  forecastStartBalance = 1_200.0,
+                  forecastObligations = 680.0,
+                  forecastEndBalance = 520.0,
+                  budgetSpent = 700.0,
+                  budgetMonthLabel = "Σεπ 2026",
+              )
+
+              @Test
+              fun plan_exposesUrgencyForecastAndBudget_asDecisionHierarchy() {
+                  composeRule.setContent { MyFinHubTheme { CanonicalPlan2026Screen(state, {}, {}) } }
+                  composeRule.onNodeWithText("Πρώτα").assertIsDisplayed()
+                  composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().assertIsDisplayed()
+                  composeRule.onNodeWithTag("s7_budget_link").performScrollTo().assertIsDisplayed()
+              }
+
+              @Test
+              fun forecast_contextualRecording_returnsExactCanonicalItem() {
+                  var recorded: PlannedItem? = null
+                  composeRule.setContent {
+                      MyFinHubTheme { CanonicalPlanForecastScreen(state, onBack = {}, onRecordItem = { recorded = it }) }
+                  }
+                  composeRule.onNodeWithTag("s7_forecast_record_rent").performScrollTo().performClick()
+                  composeRule.runOnIdle { assertEquals("rent", recorded?.id) }
+              }
+
+              @Test
+              fun budget_usesProgressWarning_withoutPushNotificationPromise() {
+                  composeRule.setContent { MyFinHubTheme { CanonicalBudget2026Screen(state, {}, {}) } }
+                  composeRule.onNodeWithTag("s7_budget_threshold_warning").assertIsDisplayed()
+                  composeRule.onNodeWithText("Θα ειδοποιείσαι", substring = true).assertDoesNotExist()
+                  composeRule.onNodeWithText("Όριο προειδοποίησης").performScrollTo().assertIsDisplayed()
+              }
+          }
+          KOTLIN
+
+          mkdir -p app/src/androidTest/java/app/myfinhub/android/feature/money
+          cat > app/src/androidTest/java/app/myfinhub/android/feature/money/S7DebtSurfaceTest.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.money
+
+          import androidx.compose.ui.test.assertIsDisplayed
+          import androidx.compose.ui.test.junit4.v2.createComposeRule
+          import androidx.compose.ui.test.onNodeWithText
+          import androidx.compose.ui.test.performClick
+          import androidx.compose.ui.test.performScrollTo
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import org.junit.Assert.assertEquals
+          import org.junit.Rule
+          import org.junit.Test
+
+          class S7DebtSurfaceTest {
+              @get:Rule val composeRule = createComposeRule()
+
+              @Test
+              fun aggregateOnlyDebt_remainsVisibleWithoutInventingEmptyDetail() {
+                  composeRule.setContent {
+                      MyFinHubTheme {
+                          CanonicalWalletScreen(
+                              state = MoneyUiState(
+                                  loanOutstanding = 4_240.0,
+                                  lendingReceivable = 310.0,
+                                  aggregateCreditOutstanding = 875.0,
+                              ),
+                              initiallyShowDebts = true,
+                              onOpenAccount = {}, onOpenNetPosition = {}, onOpenCard = {}, onAddCard = {},
+                              onOpenLoans = {}, onOpenLending = {}, amountsVisibleOverride = true,
+                          )
+                      }
+                  }
+                  composeRule.onNodeWithText("Πιστωτικό χρέος").assertIsDisplayed()
+                  composeRule.onNodeWithText("Δάνεια").assertIsDisplayed()
+                  composeRule.onNodeWithText("Απαιτήσεις").assertIsDisplayed()
+                  composeRule.onNodeWithText("Συνολικό υπόλοιπο · χωρίς αναλυτικές εγγραφές").assertIsDisplayed()
+              }
+
+              @Test
+              fun availableLendingItem_recordsRepaymentThroughExplicitAction() {
+                  var recorded: LendingItem? = null
+                  val item = LendingItem("lend-1", "Νίκος", 80.0, "20 Σεπ", "Καφές")
+                  composeRule.setContent {
+                      MyFinHubTheme {
+                          CanonicalLendingScreen(
+                              state = MoneyUiState(lendingReceivable = 80.0, lendingItems = listOf(item)),
+                              onBack = {},
+                              onRecordRepayment = { recorded = it },
+                          )
+                      }
+                  }
+                  composeRule.onNodeWithText("Καταχώριση επιστροφής").performScrollTo().performClick()
+                  composeRule.runOnIdle { assertEquals("lend-1", recorded?.id) }
+              }
+          }
+          KOTLIN
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/feature/plan/S7PlanScreenshotTest.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.plan
+
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private fun s7PlanState() = PlanUiState(
+              items = listOf(
+                  PlannedItem("rent", "Ενοίκιο", "8 Σεπ", 680.0, PlannedKind.SCHEDULED, category = "Στέγαση", accountLabel = "Πειραιώς Μισθοδοσίας", dueDateIso = "2026-09-08", urgency = PlannedUrgency.OVERDUE),
+                  PlannedItem("internet", "Internet", "12 Σεπ", 34.90, PlannedKind.RECURRING, category = "Λογαριασμοί", accountLabel = "Πειραιώς Μισθοδοσίας", dueDateIso = "2026-09-12", urgency = PlannedUrgency.THIS_WEEK),
+                  PlannedItem("salary", "Μισθός", "15 Σεπ", 1_650.0, PlannedKind.SCHEDULED, flow = PlannedFlow.INCOME, category = "Μισθός", accountLabel = "Πειραιώς Μισθοδοσίας", dueDateIso = "2026-09-15", urgency = PlannedUrgency.THIS_WEEK),
+                  PlannedItem("transfer", "Μεταφορά στην αποταμίευση", "18 Σεπ", 200.0, PlannedKind.SCHEDULED, flow = PlannedFlow.TRANSFER, accountLabel = "Από Πειραιώς Μισθοδοσίας → Προς Πειραιώς Αποταμίευση", dueDateIso = "2026-09-18", urgency = PlannedUrgency.LATER),
+                  PlannedItem("loan", "Δόση δανείου", "25 Σεπ", 185.0, PlannedKind.SCHEDULED, category = "Δάνειο", accountLabel = "Πειραιώς Μισθοδοσίας", dueDateIso = "2026-09-25", urgency = PlannedUrgency.LATER),
+              ),
+              budget = BudgetDraft("800", "80"),
+              forecastHorizonDays = 30,
+              forecastStartDateIso = "2026-09-10",
+              forecastEndDateIso = "2026-10-10",
+              forecastStartBalance = 1_695.0,
+              forecastExpectedIncome = 1_650.0,
+              forecastObligations = 899.90,
+              forecastTransferImpact = 0.0,
+              forecastEndBalance = 2_445.10,
+              forecastEndDateLabel = "10 Οκτ 2026",
+              budgetSpent = 680.0,
+              budgetMonthLabel = "Σεπ 2026",
+          )
+
+          @PreviewTest @Preview(name = "s7_plan_light", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7PlanLight() { MyFinHubTheme(false) { CanonicalPlan2026Screen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_plan_dark", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7PlanDark() { MyFinHubTheme(true) { CanonicalPlan2026Screen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_plan_large", widthDp = 412, heightDp = 1200, fontScale = 1.5f, showBackground = true)
+          @Composable fun S7PlanLarge() { MyFinHubTheme(false) { CanonicalPlan2026Screen(s7PlanState(), {}, {}) } }
+
+          @PreviewTest @Preview(name = "s7_forecast_light", widthDp = 412, heightDp = 1100, showBackground = true)
+          @Composable fun S7ForecastLight() { MyFinHubTheme(false) { CanonicalPlanForecastScreen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_forecast_dark", widthDp = 412, heightDp = 1100, showBackground = true)
+          @Composable fun S7ForecastDark() { MyFinHubTheme(true) { CanonicalPlanForecastScreen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_forecast_large", widthDp = 412, heightDp = 1500, fontScale = 1.5f, showBackground = true)
+          @Composable fun S7ForecastLarge() { MyFinHubTheme(false) { CanonicalPlanForecastScreen(s7PlanState(), {}, {}) } }
+
+          @PreviewTest @Preview(name = "s7_budget_light", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7BudgetLight() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_budget_dark", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7BudgetDark() { MyFinHubTheme(true) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+          @PreviewTest @Preview(name = "s7_budget_large", widthDp = 412, heightDp = 1100, fontScale = 1.5f, showBackground = true)
+          @Composable fun S7BudgetLarge() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+          KOTLIN
+
+          cat > app/src/screenshotTest/kotlin/app/myfinhub/android/feature/money/S7DebtScreenshotTest.kt <<'KOTLIN'
+          package app.myfinhub.android.feature.money
+
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+          import app.myfinhub.android.designsystem.MyFinHubTheme
+          import com.android.tools.screenshot.PreviewTest
+
+          private fun s7DebtState() = MoneyUiState(
+              loanOutstanding = 4_240.0,
+              lendingReceivable = 310.0,
+              aggregateCreditOutstanding = 875.40,
+          )
+
+          @Composable private fun DebtFixture(dark: Boolean) {
+              MyFinHubTheme(dark) {
+                  CanonicalWalletScreen(
+                      state = s7DebtState(),
+                      initiallyShowDebts = true,
+                      onOpenAccount = {}, onOpenNetPosition = {}, onOpenCard = {}, onAddCard = {},
+                      onOpenLoans = {}, onOpenLending = {}, amountsVisibleOverride = true,
+                  )
+              }
+          }
+
+          @PreviewTest @Preview(name = "s7_debts_light", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7DebtsLight() = DebtFixture(false)
+          @PreviewTest @Preview(name = "s7_debts_dark", widthDp = 412, heightDp = 915, showBackground = true)
+          @Composable fun S7DebtsDark() = DebtFixture(true)
+          @PreviewTest @Preview(name = "s7_debts_large", widthDp = 412, heightDp = 1100, fontScale = 1.5f, showBackground = true)
+          @Composable fun S7DebtsLarge() = DebtFixture(false)
+          KOTLIN
+
+      - name: Targeted S7 compile and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew testDebugUnitTest compileDebugAndroidTestKotlin lintDebug compileDebugKotlin --stacktrace
+          git diff --check
+
+      - name: Commit coherent S7 batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main app/src/test app/src/androidTest app/src/screenshotTest
+          git commit -m 'feat(android): implement S7 plan forecast budget and debts'
+          git push origin HEAD:android/redesign-s7-plan-debts
