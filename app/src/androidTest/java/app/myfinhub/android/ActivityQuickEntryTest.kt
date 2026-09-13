@@ -1,5 +1,7 @@
 package app.myfinhub.android
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -10,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,7 +40,7 @@ class ActivityQuickEntryTest {
         }
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
-        composeRule.onNodeWithText("Πόσο έξοδο;").assertIsDisplayed()
+        composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
         composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
         composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
 
@@ -59,7 +62,14 @@ class ActivityQuickEntryTest {
             .performScrollToNode(hasText("Σύνθετη αγορά"))
         composeRule.onNodeWithText("Σύνθετη αγορά").performClick()
 
-        composeRule.onNodeWithText("Συνολικό ποσό").assertIsDisplayed()
+        val splitAmountHeadings = composeRule
+            .onAllNodes(hasText("Συνολικό ποσό"))
+            .fetchSemanticsNodes()
+        assertTrue(
+            splitAmountHeadings.any { node ->
+                node.config.getOrNull(SemanticsProperties.Heading) != null
+            },
+        )
         composeRule.onNodeWithText("Κατανομή ποσού").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό μέρους 1").assertIsDisplayed()
         composeRule.onNodeWithText("+ Προσθήκη μέρους")

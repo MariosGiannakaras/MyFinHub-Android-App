@@ -72,8 +72,8 @@ jobs:
         run: |
           git add app/src/screenshotTestDebug/reference
           mapfile -t changed < <(git diff --cached --name-only --diff-filter=AM)
-          if [[ "${#changed[@]}" -ne 8 ]]; then
-            echo "Expected exactly 8 corrected S4 production screenshots, found ${#changed[@]}."
+          if [[ "${#changed[@]}" -ne 7 ]]; then
+            echo "Expected exactly 7 corrected S4 production screenshots, found ${#changed[@]}."
             printf '%s\n' "${changed[@]}"
             exit 1
           fi

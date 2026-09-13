@@ -3,11 +3,15 @@ package app.myfinhub.android.feature.quickentry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,12 +61,19 @@ class ProductionQuickEntryScreenTest {
                     ).fetchSemanticsNode()
                 }
                 QuickEntryKind.SPLIT -> {
-                    composeRule.onNodeWithText("Συνολικό ποσό").fetchSemanticsNode()
                     composeRule.onNodeWithText("Κατανομή ποσού").fetchSemanticsNode()
                 }
                 else -> Unit
             }
-            composeRule.onNodeWithText(kind.amountHeading).fetchSemanticsNode()
+            val amountHeadingNodes = composeRule
+                .onAllNodes(hasText(kind.amountHeading))
+                .fetchSemanticsNodes()
+            assertTrue(
+                "${kind.name} should expose its semantic amount heading",
+                amountHeadingNodes.any { node ->
+                    node.config.getOrNull(SemanticsProperties.Heading) != null
+                },
+            )
         }
     }
 

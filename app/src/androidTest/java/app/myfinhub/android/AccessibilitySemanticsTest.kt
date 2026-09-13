@@ -76,7 +76,7 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Πόσο έξοδο;").assertIsDisplayed()
+        composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
     }
 
     private fun leaveDirtyQuickEntry() {
