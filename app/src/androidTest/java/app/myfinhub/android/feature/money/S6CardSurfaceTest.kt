@@ -1,0 +1,93 @@
+package app.myfinhub.android.feature.money
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import app.myfinhub.android.designsystem.MyFinHubTheme
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+
+class S6CardSurfaceTest {
+    @get:Rule
+    val composeRule = createComposeRule()
+
+    private val debit = MoneyCard(
+        id = "debit",
+        nickname = "Καθημερινή",
+        last4 = "4242",
+        kind = "Χρεωστική",
+        currentBalance = 0.0,
+        limit = null,
+        vaultState = VaultState.AVAILABLE,
+        network = "VISA",
+        bankId = "piraeus",
+        canonicalKind = "debit",
+    )
+
+    private val credit = MoneyCard(
+        id = "credit",
+        nickname = "Πιστωτική ταξιδιών",
+        last4 = "1881",
+        kind = "Πιστωτική",
+        currentBalance = 312.20,
+        limit = 2_000.0,
+        vaultState = VaultState.LOCKED,
+        network = "MASTERCARD",
+        bankId = "revolut",
+        canonicalKind = "credit",
+    )
+
+    @Test
+    fun walletCards_areFlatStableRows_andRouteByStableId() {
+        var opened: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalWalletScreen(
+                    state = MoneyUiState(cards = listOf(debit, credit)),
+                    onOpenAccount = {},
+                    onOpenNetPosition = {},
+                    onOpenCard = { opened = it },
+                    onAddCard = {},
+                    onOpenLoans = {},
+                    onOpenLending = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+
+        composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
+        composeRule.onNodeWithTag("wallet_card_debit").assertIsDisplayed()
+        composeRule.onNodeWithTag("wallet_card_credit").assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals("credit", opened) }
+    }
+
+    @Test
+    fun creditDetail_exposesCreditSemantics_primaryPay_andStableSwitcher() {
+        var selected: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardDetailScreen(
+                    card = credit,
+                    cards = listOf(credit, debit),
+                    onSelectCard = { selected = it },
+                    onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Τρέχουσα οφειλή").assertIsDisplayed()
+        composeRule.onNodeWithText("Πιστωτικό όριο").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμη πίστωση").assertIsDisplayed()
+        composeRule.onNodeWithText("Πληρωμή κάρτας").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση αγοράς").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_switcher").performScrollTo().performClick()
+        composeRule.onNodeWithTag("card_picker_debit").assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals("debit", selected) }
+    }
+}

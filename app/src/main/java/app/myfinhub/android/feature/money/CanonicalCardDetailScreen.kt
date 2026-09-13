@@ -14,6 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,9 +55,12 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.text.NumberFormat
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CanonicalCardDetailScreen(
     card: MoneyCard?,
+    cards: List<MoneyCard> = listOfNotNull(card),
+    onSelectCard: (String) -> Unit = {},
     secretState: CardSecretUiState = CardSecretUiState.Hidden(),
     onReveal: () -> Unit = {},
     onHideSecrets: () -> Unit = {},
@@ -82,8 +89,15 @@ fun CanonicalCardDetailScreen(
     var panDraft by remember(card?.id) { mutableStateOf("") }
     var expiryDraft by remember(card?.id) { mutableStateOf("") }
     var secretValidation by remember(card?.id) { mutableStateOf<String?>(null) }
+    var cardPickerOpen by remember(card?.id) { mutableStateOf(false) }
+    var showAllActivity by remember(card?.id) { mutableStateOf(false) }
     val provider = card?.let { financialProvider(it.bankId, it.nickname) }
     val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
+    val availableCredit = card?.let { activeCard ->
+        activeCard.limit?.takeIf { isCredit && it > 0.0 }?.let { limit ->
+            (limit - activeCard.currentBalance.coerceAtLeast(0.0)).coerceAtLeast(0.0)
+        }
+    }
 
     SecureWindowProtection(
         active = relevantState is CardSecretUiState.Revealed ||
@@ -156,17 +170,29 @@ fun CanonicalCardDetailScreen(
                         )
                     }
                     Text(card.kind, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (cards.size > 1) {
+                        OutlinedButton(
+                            onClick = { cardPickerOpen = true },
+                            modifier = Modifier.fillMaxWidth().testTag("card_switcher"),
+                        ) { Text("Αλλαγή κάρτας") }
+                    }
                     if (isCredit) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                MyFinHubAmountText(formatCardEuro(card.currentBalance), FinanceTone.Expense, style = MaterialTheme.typography.titleLarge)
-                            }
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            MyFinHubAmountText(formatCardEuro(card.currentBalance.coerceAtLeast(0.0)), FinanceTone.Expense, style = MaterialTheme.typography.titleLarge)
                             card.limit?.takeIf { it > 0.0 }?.let { limit ->
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text("Όριο", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text(formatCardEuro(limit), style = MaterialTheme.typography.titleMedium)
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Column {
+                                        Text("Πιστωτικό όριο", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(formatCardEuro(limit), style = MaterialTheme.typography.titleMedium)
+                                    }
+                                    availableCredit?.let { available ->
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text("Διαθέσιμη πίστωση", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(formatCardEuro(available), style = MaterialTheme.typography.titleMedium)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -184,18 +210,16 @@ fun CanonicalCardDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         MyFinHubPrimaryAction(
-                            label = "Καταχώριση αγοράς",
-                            onClick = onAddPurchase,
-                            modifier = Modifier.fillMaxWidth(),
-                            icon = null,
-                        )
-                        MyFinHubPrimaryAction(
-                            label = "Πληρωμή πιστωτικής",
+                            label = "Πληρωμή κάρτας",
                             onClick = onPayCard,
                             modifier = Modifier.fillMaxWidth(),
                             enabled = card.currentBalance > 0.005,
                             icon = null,
                         )
+                        OutlinedButton(
+                            onClick = onAddPurchase,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text("Καταχώριση αγοράς") }
                     }
                 }
 
@@ -210,7 +234,8 @@ fun CanonicalCardDetailScreen(
                         if (card.activity.isEmpty()) {
                             Text("Δεν υπάρχουν ακόμη συνδεδεμένες κινήσεις.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         } else {
-                            card.activity.take(20).forEachIndexed { index, item ->
+                            val visibleActivity = if (showAllActivity) card.activity else card.activity.take(5)
+                            visibleActivity.forEachIndexed { index, item ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -234,7 +259,12 @@ fun CanonicalCardDetailScreen(
                                         tone = if (item.kind == MoneyCardActivityKind.PAYMENT) FinanceTone.Income else FinanceTone.Expense,
                                     )
                                 }
-                                if (index != card.activity.take(20).lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                if (index != visibleActivity.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            }
+                            if (card.activity.size > 5) {
+                                TextButton(onClick = { showAllActivity = !showAllActivity }) {
+                                    Text(if (showAllActivity) "Λιγότερες κινήσεις" else "Δες όλες τις κινήσεις (${card.activity.size})")
+                                }
                             }
                         }
                     }
@@ -383,6 +413,53 @@ fun CanonicalCardDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+        }
+    }
+
+    if (cardPickerOpen) {
+        ModalBottomSheet(onDismissRequest = { cardPickerOpen = false }) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(
+                    start = MyFinHubSpacing.lg,
+                    end = MyFinHubSpacing.lg,
+                    bottom = MyFinHubSpacing.xl,
+                ),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                Text("Επίλεξε κάρτα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                cards.forEach { option ->
+                    Surface(
+                        onClick = {
+                            cardPickerOpen = false
+                            if (option.id != card?.id) onSelectCard(option.id)
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("card_picker_${option.id}"),
+                        shape = MaterialTheme.shapes.small,
+                        color = if (option.id == card?.id) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(MyFinHubSpacing.md),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val optionProvider = financialProvider(option.bankId, option.nickname)
+                            if (optionProvider != null) {
+                                MyFinHubProviderMark(optionProvider, modifier = Modifier.size(40.dp), contentDescription = null)
+                            } else {
+                                MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Neutral, null)
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(option.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "•••• ${option.last4.ifBlank { "—" }} · ${option.kind}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

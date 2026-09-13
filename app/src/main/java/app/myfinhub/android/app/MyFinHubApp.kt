@@ -414,6 +414,14 @@ internal fun MyFinHubAppContent(
                     if (canonicalProductMode) {
                         CanonicalCardDetailScreen(
                             card = card,
+                            cards = moneyState.cards,
+                            onSelectCard = { selectedCardId ->
+                                if (selectedCardId != route.cardId) {
+                                    onHideCardSecrets()
+                                    moneyBackStack.removeLastOrNull()
+                                    moneyBackStack.pushIfNew(AppRoute.CardDetail(selectedCardId))
+                                }
+                            },
                             secretState = cardSecretState,
                             onReveal = onRevealCardSecrets,
                             onHideSecrets = onHideCardSecrets,
