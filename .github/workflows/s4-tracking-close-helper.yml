@@ -1,0 +1,101 @@
+name: S4 tracking close helper
+
+on:
+  push:
+    branches:
+      - automation/s4-tracking-close-20260913
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout S4 target branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s4-quick-entry
+          fetch-depth: 0
+
+      - name: Record validated S4 completion
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          state = json.loads(path.read_text(encoding='utf-8'))
+
+          workstream = state['active_workstream']
+          workstream['status'] = 'android_redesign_s4_complete_pending_merge'
+          workstream['summary'] = (
+              'S1–S3 are complete and merged. PR #116 now has a fully validated Android-only S4 Quick Entry implementation: '
+              'one production editor for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, '
+              'sticky duplicate-safe Save, unified dirty Back, exact-cent split allocation and reviewed production screenshot references. '
+              'Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, '
+              'Project Tracking run 34751696393 and Android UI Quality run 34751696408, including 53/53 S24-target tests and screenshot regression. '
+              'S4.1–S4.4 are evidence-complete; merge is the only remaining S4 action. No backend or web/desktop changes.'
+          )
+          workstream['next'] = [
+              'Merge PR #116 at validated head 3217a48022132ec9aac82cfd039c6c09b78c031f into develop.',
+              'After merge, create the S5 Android branch from the new develop head and start S5.1 Compact Home and attention as the next coherent implementation batch.'
+          ]
+
+          current = state['current_redesign_pass']
+          current['checkpoint'] = 's4_complete_pending_merge'
+          current['next_action'] = (
+              'Merge PR #116 at validated head 3217a48022132ec9aac82cfd039c6c09b78c031f, then create the S5 branch from updated develop and begin S5.1.'
+          )
+          current['blockers'] = []
+
+          s4 = next(task for task in state['redesign_tasks'] if task['id'] == 'S4')
+          evidence = {
+              'S4.1': [
+                  'PR #116 replaces the runtime fast/complete fork with one production Quick Entry editor and shared searchable account, category, subcategory and card picker sheets; card choices retain provider/last-four identity and operation-specific account roles.',
+                  'Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/AAB assembly and distribution-policy audits.'
+              ],
+              'S4.2': [
+                  'The unified editor renders the verified operation-specific field set for all twelve canonical finance kinds, with natural semantic amount headings and exact destination constraints for transfer, withdrawal and saving flows.',
+                  'Split entry uses a declared total and categorized parts with exact currency-cent allocation; device coverage verifies the split accounting UI rather than the obsolete people-count model.',
+                  'Android UI Quality run 34751696408 passed all 53 S24-target tests on final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f.'
+              ],
+              'S4.3': [
+                  'Kind changes preserve only compatible draft fields and reset incompatible account/card/person/reconciliation/split state; toolbar/system Back share explicit dirty-draft discard behavior.',
+                  'Save is sticky and duplicate-safe while a mutation is in flight; connected saves close only after durable server acknowledgement, while offline saves close after encrypted local enqueue and retain pending-sync semantics.',
+                  'Final S24-target instrumentation in Android UI Quality run 34751696408 completed 53/53 tests with zero failures.'
+              ],
+              'S4.4': [
+                  'The S4 batch includes reducer, canonical projection, Compose UI, navigation, accessibility and production screenshot coverage. Hosted validation exposed stale/ambiguous instrumentation assertions, which were corrected before final acceptance.',
+                  'Seven intentional ProductionQuickEntry light/dark/150%-font screenshot changes were personally inspected before baseline adoption; no clipping or hierarchy blocker was found. Final screenshot artifact 10316605934 has digest sha256:3c8cad1a576930d9dbe4a003ca3ec42a111a0afaaa9dc7f29d3e8af0a81b45c1.',
+                  'Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed screenshot regression and S24-target instrumentation in Android UI Quality run 34751696408, Android CI run 34751696379 and Project Tracking run 34751696393.'
+              ],
+          }
+          for subtask in s4['subtasks']:
+              subtask['status'] = 'completed'
+              subtask['evidence'] = evidence[subtask['id']]
+
+          path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+          python3 scripts/render_project_tracking.py
+
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          mapfile -t changed < <(git diff --cached --name-only)
+          printf 'Staged files:\n%s\n' "${changed[*]}"
+          if [[ "${#changed[@]}" -ne 4 ]]; then
+            echo "Expected exactly four canonical/generated tracking files."
+            exit 1
+          fi
+          for expected in STATUS.md TODO.md docs/CURRENT_HANDOFF.md tracking/android-project-state.json; do
+            if ! printf '%s\n' "${changed[@]}" | grep -Fxq "$expected"; then
+              echo "Missing expected tracking file: $expected"
+              exit 1
+            fi
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: record validated S4 completion"
+          git push origin HEAD:android/redesign-s4-quick-entry
