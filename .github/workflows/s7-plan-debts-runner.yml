@@ -45,6 +45,25 @@ jobs:
             | sed -n '/^      - name: Apply coherent S7 production batch$/,/^      - name: Targeted S7 compile and tests$/p' \
             | sed '1,3d;$d;s/^          //' > /tmp/apply-s7.sh
           test -s /tmp/apply-s7.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/apply-s7.sh')
+          text = path.read_text()
+          old = """if text.count(old_plan) != 1:
+              raise SystemExit('MyFinHubApp: canonical Plan route block did not match exactly')
+          text = text.replace(old_plan, new_plan, 1)"""
+          new = """if text.count(old_plan) == 1:
+              text = text.replace(old_plan, new_plan, 1)
+          else:
+              start_marker = '                entry<AppRoute.Plan> {'
+              end_marker = '                entry<AppRoute.PlanItem> {'
+              start = text.index(start_marker)
+              end = text.index(end_marker, start)
+              text = text[:start] + new_plan + text[end:]"""
+          if old not in text:
+              raise SystemExit('route transform guard not found in extracted payload')
+          path.write_text(text.replace(old, new, 1))
+          PY
           bash /tmp/apply-s7.sh
 
       - name: Targeted S7 compile and tests
