@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s5_home_accounts_implementation",
-    "summary": "S1–S4 are complete and merged. S5 Home and accounts is now active on android/redesign-s5-home-accounts from develop merge fda679687865346cde9a2b6a21ac9464c74b7ba8. The coherent Android-only S5 batch owns compact Home/attention, Wallet account grouping, account detail/ledger and net-position entry. No backend or web/desktop changes are authorized.",
+    "status": "android_redesign_s5_home_accounts_validation",
+    "summary": "S1–S4 are complete and merged. The coherent Android-only S5 Home/accounts implementation is published in draft PR #117 from develop merge fda679687865346cde9a2b6a21ac9464c74b7ba8. Compact Home/attention, canonical Wallet grouping and availability, account-relative ledger signs, account-preselected Quick Entry and net-position detail are implemented with focused coverage. No backend or web/desktop changes are authorized.",
     "next": [
-      "Implement S5.1–S5.3 as one coherent Home/accounts batch: compact Home hierarchy, actionable attention, flat Wallet account groups, account-scoped ledger and explicit net-position detail without unsupported account administration.",
-      "Add focused S5 regression/navigation/accessibility and real-render light/dark/150% coverage, then run one consolidated hosted validation and personally inspect only intentional screenshot differences before completing S5.4."
+      "Run the single consolidated hosted validation for draft PR #117 after confirming its exact head includes the S5 projection, navigation, privacy and instrumentation coverage.",
+      "Download and personally inspect the intentional real Compose screenshot candidates together; accept one baseline batch only after fixing any visual defects, then rerun exact-head gates before completing S5.1–S5.4."
     ]
   },
   "latest_production_candidate": {
@@ -82,11 +82,11 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s5-home-accounts",
-    "pr": null,
+    "pr": 117,
     "current_slice": "S5.1 / S5.2 / S5.3 / S5.4",
-    "checkpoint": "s5_batch_implementation",
+    "checkpoint": "s5_hosted_validation",
     "blockers": [],
-    "next_action": "Implement the coherent S5 Home/accounts batch on android/redesign-s5-home-accounts, then open one PR and run consolidated validation after focused coverage is ready.",
+    "next_action": "Validate draft PR #117 as one hosted batch, inspect all intentional S5 screenshot candidates, commit accepted references together, then require clean exact-head tracking, Android CI, screenshot regression and S24-target instrumentation.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {

@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Implement S5.1–S5.3 as one coherent Home/accounts batch: compact Home hierarchy, actionable attention, flat Wallet account groups, account-scoped ledger and explicit net-position detail without unsupported account administration.
-- [ ] Add focused S5 regression/navigation/accessibility and real-render light/dark/150% coverage, then run one consolidated hosted validation and personally inspect only intentional screenshot differences before completing S5.4.
+- [ ] Run the single consolidated hosted validation for draft PR #117 after confirming its exact head includes the S5 projection, navigation, privacy and instrumentation coverage.
+- [ ] Download and personally inspect the intentional real Compose screenshot candidates together; accept one baseline batch only after fixing any visual defects, then rerun exact-head gates before completing S5.1–S5.4.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s5-home-accounts`. PR: not yet opened.
-Checkpoint: `s5_batch_implementation`.
+Working branch: `android/redesign-s5-home-accounts`. PR: 117.
+Checkpoint: `s5_hosted_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Implement the coherent S5 Home/accounts batch on android/redesign-s5-home-accounts, then open one PR and run consolidated validation after focused coverage is ready.
+Next action: Validate draft PR #117 as one hosted batch, inspect all intentional S5 screenshot candidates, commit accepted references together, then require clean exact-head tracking, Android CI, screenshot regression and S24-target instrumentation.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
