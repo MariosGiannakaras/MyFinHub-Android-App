@@ -97,14 +97,16 @@ fun ProductionQuickEntryScreen(
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
     val savedLocally = state.awaitingSync
+    val declaredAmount = state.amount
     val splitAllocationReady = state.kind != QuickEntryKind.SPLIT || (
-        state.amount != null &&
-            state.amount > 0.0 &&
+        declaredAmount != null &&
+            declaredAmount > 0.0 &&
             state.splitRemaining == 0.0 &&
             state.splitParts.size >= 2 &&
             state.splitParts.all { part ->
-                part.amount != null &&
-                    part.amount > 0.0 &&
+                val partAmount = part.amount
+                partAmount != null &&
+                    partAmount > 0.0 &&
                     state.expenseCategories.any { category ->
                         category.name == part.category &&
                             (part.subcategory.isBlank() || part.subcategory in category.subcategories)
