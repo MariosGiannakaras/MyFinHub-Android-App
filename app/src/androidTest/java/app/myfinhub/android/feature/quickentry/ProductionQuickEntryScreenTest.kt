@@ -60,8 +60,9 @@ class ProductionQuickEntryScreenTest {
                     composeRule.onNodeWithText("Συνολικό ποσό").fetchSemanticsNode()
                     composeRule.onNodeWithText("Κατανομή ποσού").fetchSemanticsNode()
                 }
-                else -> composeRule.onNodeWithText("Πόσο ${kind.label.lowercase()};").fetchSemanticsNode()
+                else -> Unit
             }
+            composeRule.onNodeWithText(kind.amountHeading).fetchSemanticsNode()
         }
     }
 
