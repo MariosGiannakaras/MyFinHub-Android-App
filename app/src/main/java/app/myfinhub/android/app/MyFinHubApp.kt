@@ -147,6 +147,7 @@ internal fun MyFinHubAppContent(
     canonicalProductMode: Boolean = false,
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }
     var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
     var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
 
@@ -193,8 +194,9 @@ internal fun MyFinHubAppContent(
                             onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                             onOpenAllAccounts = {
                                 homeBackStack.popToRoot()
-                                currentDestination = TopLevelDestination.MONEY
                                 moneyBackStack.popToRoot()
+                                walletAccountsRequest += 1
+                                currentDestination = TopLevelDestination.MONEY
                             },
                             onOpenRecent = { eventId -> homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         )
@@ -347,6 +349,7 @@ internal fun MyFinHubAppContent(
                     if (canonicalProductMode) {
                         CanonicalWalletScreen(
                             state = moneyState,
+                            accountsRequest = walletAccountsRequest,
                             onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                             onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                             onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },

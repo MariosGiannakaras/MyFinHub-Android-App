@@ -141,10 +141,11 @@ class CanonicalProductProjectionTest {
 
         assertEquals("Καθημερινός", attention.sourceLabel)
         assertEquals("13 Σεπ", attention.dueDateLabel)
-        assertEquals(86.4, attention.amount!!, 0.001)
+        assertEquals(-86.4, attention.amount!!, 0.001)
         assertFalse(accounts.first { it.id == "daily" }.excludeFromAvailable)
         assertTrue(accounts.first { it.id == "reserve" }.excludeFromAvailable)
         assertEquals("bank", accounts.first { it.id == "reserve" }.canonicalKind)
+        assertEquals("2026-09-13", projection.moneyState.asOfDate)
     }
 
     @Test

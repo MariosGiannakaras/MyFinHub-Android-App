@@ -78,8 +78,7 @@ fun ProductionHomeScreen(
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    val explicitlyPrimary = state.accounts.filter(HomeAccount::isPrimary)
-    val primaryAccounts = (if (explicitlyPrimary.isNotEmpty()) explicitlyPrimary else state.accounts).take(3)
+    val primaryAccounts = homePrimaryAccounts(state.accounts)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -149,6 +148,12 @@ fun ProductionHomeScreen(
             }
         }
     }
+}
+
+internal fun homePrimaryAccounts(accounts: List<HomeAccount>): List<HomeAccount> {
+    val explicitlyPrimary = accounts.filter(HomeAccount::isPrimary)
+    val primaryIds = explicitlyPrimary.mapTo(mutableSetOf(), HomeAccount::id)
+    return (explicitlyPrimary + accounts.filterNot { it.id in primaryIds }).take(3)
 }
 
 @Composable

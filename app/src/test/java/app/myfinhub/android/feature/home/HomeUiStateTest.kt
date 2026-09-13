@@ -44,4 +44,17 @@ class HomeUiStateTest {
         assertTrue(state.upcomingItems.isNotEmpty())
         assertTrue(state.monthFlow.budgetProgress in 0f..1f)
     }
+
+    @Test
+    fun primaryAccounts_fillRemainingSlotsWithoutDuplicatingExplicitChoices() {
+        val accounts = syntheticHomeUiState().accounts.mapIndexed { index, account ->
+            account.copy(isPrimary = index == 1)
+        }
+
+        val primary = homePrimaryAccounts(accounts)
+
+        assertEquals(3, primary.size)
+        assertEquals(accounts[1].id, primary.first().id)
+        assertEquals(3, primary.map(HomeAccount::id).distinct().size)
+    }
 }

@@ -64,6 +64,10 @@ fun WalletAccountsLargeFontScreenshot() {
 @Composable
 fun NetPositionLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        CanonicalNetPositionScreen(state = syntheticMoneyUiState(), onBack = {}, amountsVisibleOverride = true)
+        CanonicalNetPositionScreen(
+            state = syntheticMoneyUiState().copy(asOfDate = "2026-09-13"),
+            onBack = {},
+            amountsVisibleOverride = true,
+        )
     }
 }

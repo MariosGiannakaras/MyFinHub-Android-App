@@ -16,9 +16,9 @@ class WalletAccountsScreensTest {
             ),
         )
 
-        assertEquals(listOf("cash", "bank", "reserve"), walletAccountsInGroup(state, WalletAccountGroup.DAILY).map { it.id })
+        assertEquals(listOf("cash", "bank"), walletAccountsInGroup(state, WalletAccountGroup.DAILY).map { it.id })
         assertEquals(listOf("save"), walletAccountsInGroup(state, WalletAccountGroup.SAVINGS).map { it.id })
-        assertEquals(listOf("other"), walletAccountsInGroup(state, WalletAccountGroup.OTHER).map { it.id })
+        assertEquals(listOf("reserve", "other"), walletAccountsInGroup(state, WalletAccountGroup.OTHER).map { it.id })
         assertEquals(1000.0, walletAvailableTotal(state), 0.001)
     }
 

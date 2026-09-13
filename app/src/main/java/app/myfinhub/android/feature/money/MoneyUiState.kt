@@ -92,6 +92,8 @@ data class MoneyUiState(
     val frontendMessage: String? = null,
     /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
     val aggregateCreditOutstanding: Double? = null,
+    /** Date of the balance projection; null only for synthetic or legacy fixtures. */
+    val asOfDate: String? = null,
 )
 
 sealed interface MoneyAction {

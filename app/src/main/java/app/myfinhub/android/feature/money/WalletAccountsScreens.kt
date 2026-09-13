@@ -56,6 +56,8 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 internal enum class WalletAccountGroup(val label: String) {
@@ -72,6 +74,7 @@ private enum class WalletSection(val label: String) {
 
 internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {
     account.canonicalKind == "savings" || account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS
+    account.excludeFromAvailable -> WalletAccountGroup.OTHER
     account.canonicalKind in setOf("bank", "cash") ||
         account.kind.contains("Τράπεζ", ignoreCase = true) ||
         account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY
@@ -90,6 +93,7 @@ internal fun walletAvailableTotal(state: MoneyUiState): Double =
 @Composable
 fun CanonicalWalletScreen(
     state: MoneyUiState,
+    accountsRequest: Int = 0,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -112,7 +116,7 @@ fun CanonicalWalletScreen(
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    var selectedName by rememberSaveable { mutableStateOf(WalletSection.ACCOUNTS.name) }
+    var selectedName by rememberSaveable(accountsRequest) { mutableStateOf(WalletSection.ACCOUNTS.name) }
     val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
 
@@ -571,7 +575,8 @@ fun CanonicalNetPositionScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Καθαρή θέση",
-                subtitle = "Τελευταία διαθέσιμη canonical εικόνα",
+                subtitle = state.asOfDate?.let { "Εικόνα έως ${formatWalletDate(it)}" }
+                    ?: "Τελευταία διαθέσιμη canonical εικόνα",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -680,3 +685,8 @@ private fun NetPositionRow(
 
 private fun walletAmountText(value: Double, visible: Boolean): String =
     if (visible) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value) else "•••• €"
+
+private fun formatWalletDate(raw: String): String = runCatching {
+    LocalDate.parse(raw.take(10))
+        .format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR")))
+}.getOrDefault(raw)

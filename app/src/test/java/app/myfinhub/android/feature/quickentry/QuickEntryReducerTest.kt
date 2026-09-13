@@ -8,6 +8,21 @@ import org.junit.Test
 
 class QuickEntryReducerTest {
     @Test
+    fun contextualPrimaryAccount_becomesSourceWhenChangingToTransferOrCardPayment() {
+        val state = QuickEntryUiState().copy(
+            kind = QuickEntryKind.EXPENSE,
+            accountId = "acc-cash",
+            fromAccountId = "acc-main",
+        )
+
+        val transfer = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.TRANSFER))
+        val cardPayment = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+
+        assertEquals("acc-cash", transfer.fromAccountId)
+        assertEquals("acc-cash", cardPayment.fromAccountId)
+    }
+
+    @Test
     fun ordinaryEntry_rejectsMissingAmountButAllowsBlankDescription() {
         val invalid = reduceQuickEntry(
             QuickEntryUiState(note = ""),

@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -10,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
+import androidx.compose.runtime.mutableStateOf
 import app.myfinhub.android.ProductTestActivity
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
@@ -96,6 +96,48 @@ class S5HomeWalletTest {
         composeRule.onNodeWithText("Καθημερινά").assertIsDisplayed()
         composeRule.onNodeWithText("Κύριος λογαριασμός").assertIsDisplayed().performClick()
         assertTrue(openedAccount.get())
+    }
+
+    @Test
+    fun allAccountsRequestReturnsAnExistingWalletToAccountsSection() {
+        val accountsRequest = mutableStateOf(0)
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalWalletScreen(
+                    state = syntheticMoneyUiState(),
+                    accountsRequest = accountsRequest.value,
+                    onOpenAccount = {},
+                    onOpenNetPosition = {},
+                    onOpenCard = {},
+                    onAddCard = {},
+                    onOpenLoans = {},
+                    onOpenLending = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Κάρτες").performClick()
+        composeRule.onNodeWithText("Νέα κάρτα").assertIsDisplayed()
+        composeRule.runOnIdle { accountsRequest.value += 1 }
+        composeRule.onNodeWithText("Διαθέσιμα για καθημερινή χρήση").assertIsDisplayed()
+    }
+
+    @Test
+    fun netPositionShowsCanonicalAsOfDate() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalNetPositionScreen(
+                    state = syntheticMoneyUiState().copy(asOfDate = "2026-09-13"),
+                    onBack = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Εικόνα έως", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Περιουσιακά στοιχεία").assertIsDisplayed()
+        composeRule.onNodeWithText("Υποχρεώσεις").assertIsDisplayed()
     }
 
     @Test

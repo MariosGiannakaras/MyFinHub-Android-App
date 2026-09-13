@@ -166,7 +166,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                     tone = HomeAttentionTone.URGENT,
                     sourceLabel = item.accountId?.let { accountNames[it] ?: it },
                     dueDateLabel = formatDate(item.dueDate),
-                    amount = item.amount,
+                    amount = -abs(item.amount),
                 )
             },
         upcomingItems = pendingScheduled
@@ -271,6 +271,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         loanOutstanding = document.loanOutstanding(),
         lendingReceivable = document.receivableOutstanding(),
         aggregateCreditOutstanding = globalCreditOutstanding,
+        asOfDate = asOf,
     )
 
     val plan = projectCanonicalPlanState(
