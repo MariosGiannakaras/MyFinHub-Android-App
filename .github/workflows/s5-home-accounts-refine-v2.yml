@@ -1,4 +1,4 @@
-name: S5 Home Accounts Refine V2
+name: S5 Consolidated Hosted Validation
 
 on:
   push:
@@ -8,18 +8,21 @@ on:
       - '.github/workflows/s5-home-accounts-refine-v2.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  refine-verify-render:
+  verify-and-render:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
-      - name: Checkout S5 branch
+      - name: Checkout exact S5 head
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: android/redesign-s5-home-accounts
-          fetch-depth: 0
+          ref: 9b8aeb004a67991423de44a91c5f437c9ec94911
+
+      - name: Confirm exact source
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "9b8aeb004a67991423de44a91c5f437c9ec94911"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -36,445 +39,19 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Refine canonical S5 semantics
+      - name: Focused and broad Android validation
         shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
+        run: >-
+          ./gradlew
+          :app:testDebugUnitTest
+          :app:compileDebugAndroidTestKotlin
+          :app:lintDebug
+          :app:assembleDebug
+          :app:assembleRelease
+          validateProjectTracking
+          --stacktrace
 
-          def replace_once(path, old, new):
-              p = Path(path)
-              text = p.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{path}: replacement mismatch count={count}: {old[:90]!r}")
-              p.write_text(text.replace(old, new, 1))
-
-          replace_once(
-              'app/src/main/java/app/myfinhub/android/feature/home/HomeUiState.kt',
-              '''data class HomeAttentionItem(\n    val id: String,\n    val title: String,\n    val reason: String,\n    val dueLabel: String,\n    val tone: HomeAttentionTone,\n)\n''',
-              '''data class HomeAttentionItem(\n    val id: String,\n    val title: String,\n    val reason: String,\n    val dueLabel: String,\n    val tone: HomeAttentionTone,\n    val sourceLabel: String? = null,\n    val rawDueDate: String? = null,\n    val amount: Double? = null,\n)\n''',
-          )
-
-          replace_once(
-              'app/src/main/java/app/myfinhub/android/feature/money/MoneyUiState.kt',
-              '''data class MoneyAccount(\n    val id: String,\n    val name: String,\n    val balance: Double,\n    val kind: String,\n    val institution: String? = null,\n)\n''',
-              '''data class MoneyAccount(\n    val id: String,\n    val name: String,\n    val balance: Double,\n    val kind: String,\n    val institution: String? = null,\n    val excludeFromAvailable: Boolean = false,\n)\n''',
-          )
-          replace_once(
-              'app/src/main/java/app/myfinhub/android/feature/money/MoneyUiState.kt',
-              '''    /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */\n    val aggregateCreditOutstanding: Double? = null,\n)\n''',
-              '''    /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */\n    val aggregateCreditOutstanding: Double? = null,\n    /** Date used for the canonical balance projection; null only for synthetic/legacy fixtures. */\n    val asOfDate: String? = null,\n)\n''',
-          )
-
-          projection = 'app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt'
-          replace_once(
-              projection,
-              '''                kind = accountKindLabel(account.kind),\n                institution = provider?.institutionLabel,\n            )\n''',
-              '''                kind = accountKindLabel(account.kind),\n                institution = provider?.institutionLabel,\n                excludeFromAvailable = account.excludeFromAvailable,\n            )\n''',
-          )
-          replace_once(
-              projection,
-              '''        aggregateCreditOutstanding = globalCreditOutstanding,\n    )\n''',
-              '''        aggregateCreditOutstanding = globalCreditOutstanding,\n        asOfDate = asOf,\n    )\n''',
-          )
-          replace_once(
-              projection,
-              '''                    dueLabel = if (item.dueDate == asOf) "Σήμερα" else "Καθυστερημένη",\n                    tone = HomeAttentionTone.URGENT,\n                )\n''',
-              '''                    dueLabel = if (item.dueDate == asOf) "Σήμερα" else "Καθυστερημένη",\n                    tone = HomeAttentionTone.URGENT,\n                    sourceLabel = accountLabel(item.accountId, item.fromAccountId, item.toAccountId, accountNames)\n                        .takeUnless { it == "—" },\n                    rawDueDate = item.dueDate,\n                    amount = -abs(item.amount),\n                )\n''',
-          )
-
-          wallet = 'app/src/main/java/app/myfinhub/android/feature/money/WalletAccountsScreens.kt'
-          replace_once(
-              wallet,
-              '''internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {\n    account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS\n    account.kind.contains("Τράπεζ", ignoreCase = true) ||\n        account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY\n    else -> WalletAccountGroup.OTHER\n}\n''',
-              '''internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {\n    account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS\n    account.excludeFromAvailable -> WalletAccountGroup.OTHER\n    account.kind.contains("Τράπεζ", ignoreCase = true) ||\n        account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY\n    else -> WalletAccountGroup.OTHER\n}\n''',
-          )
-          replace_once(
-              wallet,
-              'import java.text.NumberFormat\nimport java.util.Locale\n',
-              'import java.text.NumberFormat\nimport java.time.LocalDate\nimport java.time.format.DateTimeFormatter\nimport java.util.Locale\n',
-          )
-          replace_once(
-              wallet,
-              '''                title = "Καθαρή θέση",\n                subtitle = "Τελευταία διαθέσιμη canonical εικόνα",\n                navigation = { MyFinHubBackButton(onBack) },\n''',
-              '''                title = "Καθαρή θέση",\n                subtitle = state.asOfDate?.let { "Εικόνα έως ${formatWalletDate(it)}" }\n                    ?: "Τελευταία διαθέσιμη canonical εικόνα",\n                navigation = { MyFinHubBackButton(onBack) },\n''',
-          )
-          replace_once(
-              wallet,
-              '''private fun walletAmountText(value: Double, visible: Boolean): String =\n    if (visible) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value) else "•••• €"\n''',
-              '''private fun walletAmountText(value: Double, visible: Boolean): String =\n    if (visible) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value) else "•••• €"\n\nprivate fun formatWalletDate(raw: String): String = runCatching {\n    LocalDate.parse(raw.take(10)).format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR")))\n}.getOrDefault(raw)\n''',
-          )
-          replace_once(
-              wallet,
-              '''fun CanonicalWalletScreen(\n    state: MoneyUiState,\n    onOpenAccount: (String) -> Unit,\n''',
-              '''fun CanonicalWalletScreen(\n    state: MoneyUiState,\n    accountsRequest: Int = 0,\n    onOpenAccount: (String) -> Unit,\n''',
-          )
-          replace_once(
-              wallet,
-              '    var selectedName by rememberSaveable { mutableStateOf(WalletSection.ACCOUNTS.name) }\n',
-              '    var selectedName by rememberSaveable(accountsRequest) { mutableStateOf(WalletSection.ACCOUNTS.name) }\n',
-          )
-
-          quick = 'app/src/main/java/app/myfinhub/android/feature/quickentry/QuickEntryUiState.kt'
-          replace_once(
-              quick,
-              '''    val fromId = state.fromAccountId.takeIf {\n        previousUsesSource && newUsesSource && idExists(state, it)\n    } ?: defaultSourceId\n''',
-              '''    val contextualSourceId = state.accountId.takeIf {\n        previousKind.needsPrimaryAccount && newUsesSource && idExists(state, it)\n    }\n    val fromId = state.fromAccountId.takeIf {\n        previousUsesSource && newUsesSource && idExists(state, it)\n    } ?: contextualSourceId ?: defaultSourceId\n''',
-          )
-
-          app = 'app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt'
-          replace_once(
-              app,
-              '''    var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }\n    var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }\n''',
-              '''    var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }\n    var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }\n    var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }\n''',
-          )
-          replace_once(
-              app,
-              '''                            onOpenAllAccounts = {\n                                homeBackStack.popToRoot()\n                                currentDestination = TopLevelDestination.MONEY\n                                moneyBackStack.popToRoot()\n                            },\n''',
-              '''                            onOpenAllAccounts = {\n                                homeBackStack.popToRoot()\n                                moneyBackStack.popToRoot()\n                                walletAccountsRequest += 1\n                                currentDestination = TopLevelDestination.MONEY\n                            },\n''',
-          )
-          replace_once(
-              app,
-              '''                        CanonicalWalletScreen(\n                            state = moneyState,\n                            onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },\n''',
-              '''                        CanonicalWalletScreen(\n                            state = moneyState,\n                            accountsRequest = walletAccountsRequest,\n                            onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },\n''',
-          )
-          PY
-
-      - name: Replace attention detail with canonical facts
-        shell: bash
-        run: |
-          cat > app/src/main/java/app/myfinhub/android/feature/home/HomeAttentionDetailScreen.kt <<'KOTLIN'
-          package app.myfinhub.android.feature.home
-
-          import android.content.Context
-          import androidx.compose.foundation.layout.Arrangement
-          import androidx.compose.foundation.layout.Column
-          import androidx.compose.foundation.layout.Row
-          import androidx.compose.foundation.layout.fillMaxSize
-          import androidx.compose.foundation.layout.fillMaxWidth
-          import androidx.compose.foundation.layout.padding
-          import androidx.compose.foundation.rememberScrollState
-          import androidx.compose.foundation.verticalScroll
-          import androidx.compose.material3.MaterialTheme
-          import androidx.compose.material3.Scaffold
-          import androidx.compose.material3.Text
-          import androidx.compose.runtime.Composable
-          import androidx.compose.runtime.DisposableEffect
-          import androidx.compose.runtime.getValue
-          import androidx.compose.runtime.mutableStateOf
-          import androidx.compose.runtime.remember
-          import androidx.compose.runtime.setValue
-          import androidx.compose.ui.Alignment
-          import androidx.compose.ui.Modifier
-          import androidx.compose.ui.platform.LocalContext
-          import androidx.compose.ui.semantics.heading
-          import androidx.compose.ui.semantics.semantics
-          import androidx.compose.ui.text.font.FontWeight
-          import app.myfinhub.android.designsystem.FinanceTone
-          import app.myfinhub.android.designsystem.MyFinHubBackButton
-          import app.myfinhub.android.designsystem.MyFinHubIconBadge
-          import app.myfinhub.android.designsystem.MyFinHubIcons
-          import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
-          import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
-          import app.myfinhub.android.designsystem.MyFinHubScreenHeader
-          import app.myfinhub.android.designsystem.MyFinHubSectionCard
-          import app.myfinhub.android.designsystem.MyFinHubSpacing
-          import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
-          import app.myfinhub.android.feature.utilities.AppAppearancePreference
-          import java.text.NumberFormat
-          import java.time.LocalDate
-          import java.time.format.DateTimeFormatter
-          import java.util.Locale
-
-          @Composable
-          fun HomeAttentionDetailScreen(
-              item: HomeAttentionItem?,
-              onMarkReviewed: () -> Unit,
-              onBack: () -> Unit,
-              onOpenAction: () -> Unit = {},
-          ) {
-              val context = LocalContext.current
-              val preferences = remember(context) {
-                  context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
-              }
-              var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
-              DisposableEffect(preferences) {
-                  val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-                      if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
-                  }
-                  preferences.registerOnSharedPreferenceChangeListener(listener)
-                  onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
-              }
-
-              Scaffold(
-                  containerColor = MaterialTheme.colorScheme.background,
-                  topBar = {
-                      MyFinHubScreenHeader(
-                          title = "Χρειάζεται προσοχή",
-                          navigation = { MyFinHubBackButton(onBack) },
-                      )
-                  },
-              ) { padding ->
-                  Column(
-                      modifier = Modifier
-                          .fillMaxSize()
-                          .padding(padding)
-                          .verticalScroll(rememberScrollState())
-                          .padding(MyFinHubSpacing.lg),
-                      verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
-                  ) {
-                      if (item == null) {
-                          MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                              Text("Αυτό το στοιχείο δεν είναι πλέον διαθέσιμο.")
-                          }
-                          return@Column
-                      }
-
-                      val urgent = item.tone == HomeAttentionTone.URGENT
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                          verticalAlignment = Alignment.Top,
-                      ) {
-                          MyFinHubIconBadge(
-                              icon = MyFinHubIcons.Attention,
-                              tone = if (urgent) FinanceTone.Attention else FinanceTone.Neutral,
-                              contentDescription = null,
-                          )
-                          Column(
-                              modifier = Modifier.weight(1f),
-                              verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-                          ) {
-                              Text(
-                                  text = item.title,
-                                  style = MaterialTheme.typography.headlineSmall,
-                                  fontWeight = FontWeight.Bold,
-                                  modifier = Modifier.semantics { heading() },
-                              )
-                              Text(
-                                  text = if (urgent) "Άμεσος έλεγχος" else "Για έλεγχο",
-                                  style = MaterialTheme.typography.labelLarge,
-                                  color = if (urgent) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                              )
-                          }
-                      }
-
-                      MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                          Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                              Text("Στοιχεία", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                              item.sourceLabel?.takeIf(String::isNotBlank)?.let { AttentionFact("Πηγή", it) }
-                              AttentionFact(
-                                  label = "Ημερομηνία",
-                                  value = item.rawDueDate?.takeIf(String::isNotBlank)?.let(::formatAttentionDate) ?: item.dueLabel,
-                              )
-                              item.amount?.let { amount ->
-                                  AttentionFact("Ποσό", if (amountsVisible) formatAttentionEuro(amount) else "•••• €")
-                              }
-                              Text(
-                                  item.reason,
-                                  style = MaterialTheme.typography.bodyMedium,
-                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                              )
-                          }
-                      }
-
-                      val actionLabel = if (item.id == "transaction-review") "Άνοιγμα κινήσεων" else "Άνοιγμα πλάνου"
-                      MyFinHubPrimaryAction(
-                          label = actionLabel,
-                          onClick = onOpenAction,
-                          modifier = Modifier.fillMaxWidth(),
-                          icon = if (item.id == "transaction-review") MyFinHubIcons.Activity else MyFinHubIcons.Plan,
-                      )
-                      Text(
-                          "Το άνοιγμα της σχετικής ενότητας δεν καταχωρίζει πληρωμή και δεν αλλάζει οικονομικά δεδομένα από μόνο του.",
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                      )
-                      MyFinHubOutlinedAction(
-                          label = "Απόκρυψη για τώρα",
-                          onClick = onMarkReviewed,
-                          modifier = Modifier.fillMaxWidth(),
-                          icon = null,
-                      )
-                      Text(
-                          "Η απόκρυψη αφορά την τρέχουσα προβολή. Δεν σημαίνει ότι η υποχρέωση πληρώθηκε ή ολοκληρώθηκε.",
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                      )
-                  }
-              }
-          }
-
-          @Composable
-          private fun AttentionFact(label: String, value: String) {
-              Column(
-                  modifier = Modifier.fillMaxWidth(),
-                  verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
-              ) {
-                  Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                  Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-              }
-          }
-
-          private fun formatAttentionDate(raw: String): String = runCatching {
-              LocalDate.parse(raw.take(10)).format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR")))
-          }.getOrDefault(raw)
-
-          private fun formatAttentionEuro(value: Double): String =
-              NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
-          KOTLIN
-
-      - name: Add focused unit coverage
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path('app/src/test/java/app/myfinhub/android/feature/money/WalletAccountsScreensTest.kt')
-          s = p.read_text()
-          old = '                          MoneyAccount("other", "Broker", 300.0, "Επένδυση"),\n'
-          new = '                          MoneyAccount("excluded", "Δεσμευμένος", 400.0, "Τράπεζα", excludeFromAvailable = true),\n                          MoneyAccount("other", "Broker", 300.0, "Επένδυση"),\n'
-          if s.count(old) != 1:
-              raise SystemExit('wallet test fixture mismatch')
-          s = s.replace(old, new, 1)
-          old = '                  assertEquals(listOf("other"), walletAccountsInGroup(state, WalletAccountGroup.OTHER).map { it.id })\n'
-          new = '                  assertEquals(listOf("excluded", "other"), walletAccountsInGroup(state, WalletAccountGroup.OTHER).map { it.id })\n'
-          if s.count(old) != 1:
-              raise SystemExit('wallet test assertion mismatch')
-          p.write_text(s.replace(old, new, 1))
-
-          q = Path('app/src/test/java/app/myfinhub/android/feature/quickentry/QuickEntryReducerTest.kt')
-          qs = q.read_text()
-          marker = '    @Test\n    fun allTwelveKinds_haveAValidCanonicalDraft() {\n'
-          addition = '''    @Test\n    fun contextualPrimaryAccount_becomesSourceWhenChangingToTransfer() {\n        val state = QuickEntryUiState(\n            kind = QuickEntryKind.EXPENSE,\n            accountId = "acc-cash",\n            fromAccountId = "acc-main",\n        )\n\n        val transfer = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.TRANSFER))\n        val cardPayment = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))\n\n        assertEquals("acc-cash", transfer.fromAccountId)\n        assertEquals("acc-cash", cardPayment.fromAccountId)\n    }\n\n'''
-          if qs.count(marker) != 1:
-              raise SystemExit('quick entry test marker mismatch')
-          q.write_text(qs.replace(marker, addition + marker, 1))
-          PY
-
-      - name: Add production Compose contract coverage
-        shell: bash
-        run: |
-          cat > app/src/androidTest/java/app/myfinhub/android/feature/money/ProductionHomeWalletTest.kt <<'KOTLIN'
-          package app.myfinhub.android.feature.money
-
-          import androidx.compose.ui.test.assertIsDisplayed
-          import androidx.compose.ui.test.junit4.v2.createComposeRule
-          import androidx.compose.ui.test.onNodeWithText
-          import androidx.compose.ui.test.performClick
-          import androidx.test.ext.junit.runners.AndroidJUnit4
-          import app.myfinhub.android.designsystem.MyFinHubTheme
-          import app.myfinhub.android.feature.home.ProductionHomeScreen
-          import app.myfinhub.android.feature.home.syntheticHomeUiState
-          import org.junit.Assert.assertTrue
-          import org.junit.Rule
-          import org.junit.Test
-          import org.junit.runner.RunWith
-
-          @RunWith(AndroidJUnit4::class)
-          class ProductionHomeWalletTest {
-              @get:Rule
-              val composeRule = createComposeRule()
-
-              @Test
-              fun home_isCompactAndDoesNotRepeatSecondarySummaries() {
-                  composeRule.setContent {
-                      MyFinHubTheme {
-                          ProductionHomeScreen(
-                              state = syntheticHomeUiState(),
-                              onAction = {},
-                              onOpenAttention = {},
-                              onOpenSettings = {},
-                              onOpenQuickEntry = {},
-                              onOpenAccount = {},
-                              onOpenAllAccounts = {},
-                          )
-                      }
-                  }
-
-                  composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
-                  composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
-                  composeRule.onNodeWithText("Όλοι οι λογαριασμοί").assertIsDisplayed()
-                  composeRule.onNodeWithText("Έσοδα μήνα").assertDoesNotExist()
-                  composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertDoesNotExist()
-              }
-
-              @Test
-              fun wallet_exposesAccountsCardsDebtsAndNetPositionWithoutOverviewDeletion() {
-                  composeRule.setContent {
-                      MyFinHubTheme {
-                          CanonicalWalletScreen(
-                              state = syntheticMoneyUiState(),
-                              onOpenAccount = {},
-                              onOpenNetPosition = {},
-                              onOpenCard = {},
-                              onAddCard = {},
-                              onOpenLoans = {},
-                              onOpenLending = {},
-                          )
-                      }
-                  }
-
-                  composeRule.onNodeWithText("Καθημερινά").assertIsDisplayed()
-                  composeRule.onNodeWithText("Αποταμίευση").assertIsDisplayed()
-                  composeRule.onNodeWithText("Καθαρή θέση").assertIsDisplayed()
-                  composeRule.onNodeWithText("Κάρτες").performClick()
-                  composeRule.onNodeWithText("Νέα κάρτα").assertIsDisplayed()
-                  composeRule.onNodeWithText("Διαγραφή ενεργής κάρτας").assertDoesNotExist()
-                  composeRule.onNodeWithText("Οφειλές").performClick()
-                  composeRule.onNodeWithText("Πιστωτικό χρέος").assertIsDisplayed()
-                  composeRule.onNodeWithText("Δάνεια").assertIsDisplayed()
-                  composeRule.onNodeWithText("Απαιτήσεις").assertIsDisplayed()
-              }
-
-              @Test
-              fun accountDetail_exposesContextualNewTransaction() {
-                  var requested = false
-                  val account = syntheticMoneyAccounts().first()
-                  composeRule.setContent {
-                      MyFinHubTheme {
-                          CanonicalAccountDetailScreen(
-                              account = account,
-                              activityItems = emptyList(),
-                              onBack = {},
-                              onOpenActivity = {},
-                              onNewTransaction = { requested = true },
-                          )
-                      }
-                  }
-
-                  composeRule.onNodeWithText("Νέα κίνηση από αυτόν τον λογαριασμό")
-                      .assertIsDisplayed()
-                      .performClick()
-                  composeRule.runOnIdle { assertTrue(requested) }
-                  composeRule.onNodeWithText("Κινήσεις λογαριασμού").assertIsDisplayed()
-              }
-
-              @Test
-              fun netPosition_explainsAssetsLiabilitiesAndCalculation() {
-                  composeRule.setContent {
-                      MyFinHubTheme {
-                          CanonicalNetPositionScreen(
-                              state = syntheticMoneyUiState().copy(asOfDate = "2026-09-13"),
-                              onBack = {},
-                          )
-                      }
-                  }
-
-                  composeRule.onNodeWithText("Περιουσιακά στοιχεία").assertIsDisplayed()
-                  composeRule.onNodeWithText("Υποχρεώσεις").assertIsDisplayed()
-                  composeRule.onNodeWithText("Προβολή υπολογισμού").performClick()
-                  composeRule.onNodeWithText("Υπολογισμός").assertIsDisplayed()
-              }
-          }
-          KOTLIN
-
-      - name: Focused compile and unit validation
-        shell: bash
-        run: ./gradlew :app:compileDebugKotlin :app:testDebugUnitTest :app:compileDebugAndroidTestKotlin --stacktrace
-
-      - name: Render screenshot candidates
+      - name: Render real Compose candidates
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
@@ -482,30 +59,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: s5-home-wallet-candidates-${{ github.run_id }}
+          name: s5-consolidated-candidates-${{ github.run_id }}
           path: |
             app/src/screenshotTestDebug/reference/**/*.png
             app/build/reports/screenshotTest/**/*.png
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Commit verified S5 refinements
-        if: success()
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            app/src/main/java/app/myfinhub/android/app/CanonicalProductProjection.kt \
-            app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt \
-            app/src/main/java/app/myfinhub/android/feature/home/HomeUiState.kt \
-            app/src/main/java/app/myfinhub/android/feature/home/HomeAttentionDetailScreen.kt \
-            app/src/main/java/app/myfinhub/android/feature/money/MoneyUiState.kt \
-            app/src/main/java/app/myfinhub/android/feature/money/WalletAccountsScreens.kt \
-            app/src/main/java/app/myfinhub/android/feature/quickentry/QuickEntryUiState.kt \
-            app/src/test/java/app/myfinhub/android/feature/money/WalletAccountsScreensTest.kt \
-            app/src/test/java/app/myfinhub/android/feature/quickentry/QuickEntryReducerTest.kt \
-            app/src/androidTest/java/app/myfinhub/android/feature/money/ProductionHomeWalletTest.kt
-          git diff --cached --check
-          git commit -m "test: harden S5 account semantics"
-          git push origin HEAD:android/redesign-s5-home-accounts
