@@ -18,11 +18,11 @@ jobs:
       - name: Checkout exact S5 head
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 9b8aeb004a67991423de44a91c5f437c9ec94911
+          ref: c149915d9eac87af68e80f1d30a602d658e828d0
 
       - name: Confirm exact source
         shell: bash
-        run: test "$(git rev-parse HEAD)" = "9b8aeb004a67991423de44a91c5f437c9ec94911"
+        run: test "$(git rev-parse HEAD)" = "c149915d9eac87af68e80f1d30a602d658e828d0"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
