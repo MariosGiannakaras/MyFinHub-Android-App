@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import org.junit.Rule
 import org.junit.Test
@@ -23,18 +24,17 @@ class FrontendUtilitiesParityTest {
     fun homeReviewAndSettingsFlow_areReachableWithoutUtilityCardsInFinancialFeed() {
         scrollHomeTagIntoView("attention-scheduled-review")
         composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
-        waitForText("Γιατί εμφανίζεται")
-        assertTextIntoView("Γιατί εμφανίζεται")
-        clickTextIntoView("Σήμανση ως ελεγμένο")
-        scrollHomeTextIntoView("Η οικονομική σου εικόνα")
+        waitForText("Στοιχεία υποχρέωσης")
+        assertTextIntoView("Στοιχεία υποχρέωσης")
+        clickTextIntoView("Απόκρυψη για τώρα")
+        returnHomeListToTop()
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
 
-        // Settings remains reachable from the Home header, but no longer occupies a financial
-        // content card alongside balances, attention and upcoming obligations.
         clickTextIntoView("Ρυθμίσεις")
         waitForText("Προτιμήσεις εφαρμογής")
         assertTextIntoView("Προτιμήσεις εφαρμογής")
         composeRule.onNodeWithContentDescription("Πίσω").assertIsDisplayed().performClick()
+        returnHomeListToTop()
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
     }
 
@@ -67,12 +67,10 @@ class FrontendUtilitiesParityTest {
         }
     }
 
-    private fun scrollHomeTextIntoView(text: String) {
-        val composedNodes = composeRule.onAllNodesWithText(text).fetchSemanticsNodes()
-        if (composedNodes.isNotEmpty()) {
-            runCatching { composeRule.onAllNodesWithText(text)[0].performScrollTo() }
-        } else {
-            composeRule.onNodeWithTag("home_list").performScrollToNode(hasText(text))
+    private fun returnHomeListToTop() {
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            runCatching { composeRule.onNodeWithTag("home_list").fetchSemanticsNode() }.isSuccess
         }
+        composeRule.onNodeWithTag("home_list").performScrollToIndex(0)
     }
 }

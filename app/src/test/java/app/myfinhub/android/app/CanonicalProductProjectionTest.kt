@@ -113,6 +113,42 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun homeAttentionAndWalletAvailability_keepCanonicalSourceFacts() {
+        val document = CanonicalFinanceDocument(
+            Json.parseToJsonElement(
+                """
+                {
+                  "seed": {
+                    "accounts": [
+                      {"id":"daily","name":"Καθημερινός","kind":"bank"},
+                      {"id":"reserve","name":"Αποθεματικό","kind":"bank","excludeFromAvailable":true}
+                    ],
+                    "snapshots": [{"date":"2026-09-01","balances":{"daily":900,"reserve":500}}]
+                  },
+                  "state": {
+                    "scheduled": [
+                      {"id":"bill","dueDate":"2026-09-13","kind":"expense","amount":86.4,"note":"Ρεύμα","accountId":"daily","status":"pending"}
+                    ]
+                  }
+                }
+                """.trimIndent(),
+            ).jsonObject,
+        )
+
+        val projection = projectCanonicalProduct(document, LocalDate.of(2026, 9, 13))
+        val attention = projection.homeState.attentionItems.single()
+        val accounts = projection.moneyState.accounts
+
+        assertEquals("Καθημερινός", attention.sourceLabel)
+        assertEquals("13 Σεπ", attention.dueDateLabel)
+        assertEquals(-86.4, attention.amount!!, 0.001)
+        assertFalse(accounts.first { it.id == "daily" }.excludeFromAvailable)
+        assertTrue(accounts.first { it.id == "reserve" }.excludeFromAvailable)
+        assertEquals("bank", accounts.first { it.id == "reserve" }.canonicalKind)
+        assertEquals("2026-09-13", projection.moneyState.asOfDate)
+    }
+
+    @Test
     fun reprojection_preservesEphemeralUiChoicesButReplacesFinanceData() {
         val original = projectCanonicalProduct(canonicalFixture(), LocalDate.of(2026, 8, 23))
         val previous = original.copy(

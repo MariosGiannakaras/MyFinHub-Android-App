@@ -12,6 +12,10 @@ data class MoneyAccount(
     val balance: Double,
     val kind: String,
     val institution: String? = null,
+    /** Stable canonical kind; [kind] remains the localized display label. */
+    val canonicalKind: String = "",
+    /** Canonical availability rule, independent of the localized account label. */
+    val excludeFromAvailable: Boolean = false,
 )
 
 enum class MoneyCardActivityKind { PURCHASE, PAYMENT }
@@ -88,6 +92,8 @@ data class MoneyUiState(
     val frontendMessage: String? = null,
     /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
     val aggregateCreditOutstanding: Double? = null,
+    /** Date of the balance projection; null only for synthetic or legacy fixtures. */
+    val asOfDate: String? = null,
 )
 
 sealed interface MoneyAction {
@@ -212,9 +218,9 @@ fun syntheticMoneyUiState(): MoneyUiState = MoneyUiState(
 )
 
 fun syntheticMoneyAccounts() = listOf(
-    MoneyAccount("acc-main", "Κύριος λογαριασμός", 2_148.37, "Τράπεζα"),
-    MoneyAccount("acc-save", "Αποταμίευση", 2_850.00, "Αποταμίευση"),
-    MoneyAccount("acc-cash", "Μετρητά", 145.20, "Μετρητά"),
+    MoneyAccount("acc-main", "Κύριος λογαριασμός", 2_148.37, "Τράπεζα", canonicalKind = "bank"),
+    MoneyAccount("acc-save", "Αποταμίευση", 2_850.00, "Αποταμίευση", canonicalKind = "savings", excludeFromAvailable = true),
+    MoneyAccount("acc-cash", "Μετρητά", 145.20, "Μετρητά", canonicalKind = "cash"),
 )
 
 fun syntheticMoneyCards() = listOf(

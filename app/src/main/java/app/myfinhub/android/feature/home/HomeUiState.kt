@@ -53,7 +53,16 @@ data class HomeAttentionItem(
     val reason: String,
     val dueLabel: String,
     val tone: HomeAttentionTone,
+    val sourceLabel: String? = null,
+    val dueDateLabel: String? = null,
+    val amount: Double? = null,
+    val action: HomeAttentionAction = HomeAttentionAction.PLAN,
 )
+
+enum class HomeAttentionAction {
+    PLAN,
+    ACTIVITY,
+}
 
 enum class HomeAttentionTone {
     URGENT,
@@ -155,6 +164,9 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             reason = "Η πληρωμή ρεύματος χρειάζεται επιβεβαίωση.",
             dueLabel = "Σήμερα",
             tone = HomeAttentionTone.URGENT,
+            sourceLabel = "Λογαριασμός μισθοδοσίας",
+            dueDateLabel = "23 Αυγ 2026",
+            amount = 86.40,
         ),
         HomeAttentionItem(
             id = "transaction-review",
@@ -162,6 +174,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             reason = "Ολοκλήρωσε το Smart Review όταν έχεις χρόνο.",
             dueLabel = "Όποτε θέλεις",
             tone = HomeAttentionTone.INFO,
+            action = HomeAttentionAction.ACTIVITY,
         ),
     ),
     upcomingItems = listOf(

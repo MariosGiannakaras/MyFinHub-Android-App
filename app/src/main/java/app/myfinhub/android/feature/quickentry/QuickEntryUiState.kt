@@ -208,9 +208,12 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     val newUsesSource = kind.needsTransferAccounts || kind == QuickEntryKind.CARD_PAYMENT
     val defaultSourceId = state.defaultExpenseAccountId.takeIf { id -> state.accounts.any { it.id == id } }
         ?: state.accounts.firstOrNull()?.id.orEmpty()
+    val contextualSourceId = state.accountId.takeIf {
+        previousKind.needsPrimaryAccount && newUsesSource && idExists(state, it)
+    }
     val fromId = state.fromAccountId.takeIf {
         previousUsesSource && newUsesSource && idExists(state, it)
-    } ?: defaultSourceId
+    } ?: contextualSourceId ?: defaultSourceId
 
     val currentDestination = state.accounts.firstOrNull { it.id == state.toAccountId && it.id != fromId }
         ?.takeIf { account ->

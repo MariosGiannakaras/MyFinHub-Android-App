@@ -1,15 +1,13 @@
 package app.myfinhub.android.feature.money
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,18 +17,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubIconBadge
+import app.myfinhub.android.designsystem.MyFinHubFinanceRow
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -50,16 +45,19 @@ fun CanonicalAccountDetailScreen(
     activityItems: List<ActivityItem>,
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
+    onNewTransaction: () -> Unit = {},
     referenceDate: LocalDate = LocalDate.now(),
+    amountsVisibleOverride: Boolean? = null,
 ) {
-    val context = LocalContext.current
+    val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
-    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+            if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -75,7 +73,7 @@ fun CanonicalAccountDetailScreen(
             )
         },
     ) { padding ->
-        androidx.compose.foundation.lazy.LazyColumn(
+        LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = MyFinHubDesignMetrics.screenHorizontalPadding,
@@ -104,29 +102,28 @@ fun CanonicalAccountDetailScreen(
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         Text(
-                            "Οι κινήσεις παρακάτω επηρεάζουν μόνο αυτόν τον λογαριασμό.",
+                            "Οι κινήσεις παρακάτω είναι φιλτραρισμένες σε αυτόν τον λογαριασμό.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
-
             item {
-                Text(
-                    "Κινήσεις λογαριασμού",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                MyFinHubPrimaryAction(
+                    label = "Νέα κίνηση από αυτόν τον λογαριασμό",
+                    onClick = onNewTransaction,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+            }
+            item {
+                Text("Κινήσεις λογαριασμού", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
 
             if (activityItems.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text("Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -140,19 +137,13 @@ fun CanonicalAccountDetailScreen(
                             modifier = Modifier.padding(top = MyFinHubSpacing.xxs),
                         )
                     }
-                    sectionItems.forEachIndexed { index, item ->
+                    sectionItems.forEach { item ->
                         item(key = item.id) {
                             AccountLedgerRow(
                                 item = item,
                                 amountsVisible = amountsVisible,
                                 onClick = { onOpenActivity(item.id) },
                             )
-                            if (index != sectionItems.lastIndex) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(start = 48.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant,
-                                )
-                            }
                         }
                     }
                 }
@@ -169,77 +160,19 @@ private fun AccountLedgerRow(
 ) {
     val transfer = item.kind == ActivityKind.TRANSFER
     val transferRoute = if (transfer) accountTransferRouteParts(item) else null
-    val meta = when {
-        item.pendingSync -> "Εκκρεμεί επιβεβαίωση"
-        transfer -> ""
-        else -> item.accountLabel
-    }
+    val subtitle = transferRoute?.let { "Από ${it.first} → Προς ${it.second}" } ?: item.subtitle
+    val meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else if (transfer) "" else item.accountLabel
     val tone = if (item.pendingSync || transfer) FinanceTone.Neutral else accountActivityTone(item.kind)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MyFinHubIconBadge(
-            icon = myFinHubCategoryIcon(item.category, accountActivityIcon(item.kind)),
-            tone = tone,
-            contentDescription = item.category ?: item.kind.label,
-        )
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (transferRoute != null) {
-                Text(
-                    text = "Από ${transferRoute.first}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "→ Προς ${transferRoute.second}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            } else {
-                Text(
-                    text = item.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = if (transfer) 2 else 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            if (meta.isNotBlank()) {
-                Text(
-                    text = meta,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        MyFinHubAmountText(
-            text = if (amountsVisible) formatSignedAccountEuro(item.amount) else "•••• €",
-            tone = tone,
-            style = MaterialTheme.typography.titleSmall,
-        )
-    }
+    MyFinHubFinanceRow(
+        icon = myFinHubCategoryIcon(item.category, accountActivityIcon(item.kind)),
+        iconDescription = item.category ?: item.kind.label,
+        title = item.title,
+        subtitle = subtitle,
+        meta = meta,
+        amountText = if (amountsVisible) formatSignedAccountEuro(item.amount) else "•••• €",
+        tone = tone,
+        onClick = onClick,
+    )
 }
 
 internal fun accountTransferRouteParts(item: ActivityItem): Pair<String, String>? {
