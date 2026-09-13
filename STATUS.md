@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_s6_cards_in_progress`
+State: `android_redesign_s6_complete_merge_ready`
 
-S1–S5 are complete and merged. Draft PR #118 now contains the coherent Android-only S6 Cards implementation candidate: stable Wallet card rows/detail/switching, selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Targeted unit, instrumentation compilation and lint validation passed; standard PR gates remain before S6 completion.
+S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
 
 ## Current production candidate
 
@@ -21,9 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Publish the single consolidated S6 implementation/reference/tracking update to PR #118.
-2. Run the standard Android CI, Android UI Quality/S24-target instrumentation and Project Tracking gates on the exact PR head.
-3. Record the passing exact-head evidence, complete S6.1–S6.4 and move the durable handoff to S7.
+1. Merge validated PR #118 into develop without changing the accepted S6 product head.
+2. Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.
 
 ## Non-negotiable constraints
 
@@ -48,14 +47,14 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 ## Android redesign progress
 
-**Tasks: 5/10 · Subtasks: 20/40 · Preparation: 4/4**
+**Tasks: 6/10 · Subtasks: 24/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s6-cards`. PR: 118.
-Checkpoint: `s6_candidate_targeted_validation_complete_pr_gates_pending`.
+Checkpoint: `s6_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Publish the one coherent S6 candidate to PR #118, then require standard exact-head Project Tracking, Android CI and Android UI Quality/S24-target gates before completion.
+Next action: Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -64,7 +63,7 @@ Next action: Publish the one coherent S6 candidate to PR #118, then require stan
 | S3 Activity | 4/4 | Complete |
 | S4 Quick Entry | 4/4 | Complete |
 | S5 Home and accounts | 4/4 | Complete |
-| S6 Cards | 0/4 | S6.1 List, detail and stable switching (in_progress); S6.2 Creation and supported metadata editing (in_progress); S6.3 Secure details and removal recovery (in_progress); S6.4 Card verification (in_progress) |
+| S6 Cards | 4/4 | Complete |
 | S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
 | S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
 | S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
