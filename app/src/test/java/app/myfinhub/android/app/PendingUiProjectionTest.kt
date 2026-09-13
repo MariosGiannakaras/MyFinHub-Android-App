@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
+import app.myfinhub.android.core.data.EditCanonicalActivity
 import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
 import app.myfinhub.android.core.data.PendingMutationSyncState
 import app.myfinhub.android.core.data.UpsertOverallBudget
@@ -34,6 +35,7 @@ class PendingUiProjectionTest {
         val tombstone = result.activityState.items.first { it.id == "tx-exp" }
 
         assertTrue(tombstone.pendingSync)
+        assertEquals("Εκκρεμεί διαγραφή", tombstone.pendingLabel)
         assertTrue(tombstone.subtitle.contains("Εκκρεμεί διαγραφή"))
     }
 
@@ -50,8 +52,24 @@ class PendingUiProjectionTest {
         val tombstone = result.activityState.items.first { it.id == "tx-exp" }
 
         assertTrue(tombstone.pendingSync)
+        assertEquals("Αναμονή επιβεβαίωσης διαγραφής από τον server", tombstone.pendingLabel)
         assertTrue(tombstone.subtitle.contains("Αναμονή επιβεβαίωσης διαγραφής από τον server"))
         assertFalse(tombstone.subtitle.contains("Ακύρωση"))
+    }
+
+    @Test
+    fun pendingEdit_exposesItsExactOperationInsteadOfGenericSyncCopy() {
+        val server = canonicalFixture()
+        val intent = PendingCanonicalMutationIntent.fromMutation(
+            EditCanonicalActivity("tx-exp", "Διορθωμένη σημείωση", "Τρόφιμα", now),
+            intentId = "intent-edit",
+        )
+
+        val result = projectWithPending(server, listOf(intent))
+        val edited = result.activityState.items.first { it.id == "tx-exp" }
+
+        assertTrue(edited.pendingSync)
+        assertEquals("Εκκρεμεί επεξεργασία", edited.pendingLabel)
     }
 
     @Test

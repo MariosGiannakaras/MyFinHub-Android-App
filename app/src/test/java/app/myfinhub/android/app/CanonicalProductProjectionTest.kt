@@ -22,7 +22,8 @@ class CanonicalProductProjectionTest {
         val document = creditFixture()
         val before = projectCanonicalProduct(document, LocalDate.of(2026, 9, 10)).moneyState
         val removed = DeactivateCanonicalCard("old", "2026-09-10T12:00:00Z").apply(document)
-        val after = projectCanonicalProduct(removed, LocalDate.of(2026, 9, 10)).moneyState
+        val afterProjection = projectCanonicalProduct(removed, LocalDate.of(2026, 9, 10))
+        val after = afterProjection.moneyState
 
         assertEquals(250.0, canonicalCreditOutstanding(before), 0.001)
         assertEquals(canonicalCreditOutstanding(before), canonicalCreditOutstanding(after), 0.001)
@@ -30,6 +31,11 @@ class CanonicalProductProjectionTest {
         assertEquals("remaining", after.cards.single().id)
         assertEquals(50.0, after.cards.single().currentBalance, 0.001)
         assertEquals(document.state["events"], removed.state["events"])
+        val retainedPurchase = afterProjection.activityState.items.first { it.id == "old-purchase" }
+        assertEquals("card_purchase", retainedPurchase.canonicalKind)
+        assertEquals("Αγορά με κάρτα", retainedPurchase.typeLabel)
+        assertEquals("old", retainedPurchase.cardId)
+        assertEquals("Κάρτα", retainedPurchase.cardLabel)
     }
 
     @Test
@@ -69,7 +75,12 @@ class CanonicalProductProjectionTest {
         assertEquals(800.0, projection.homeState.monthFlow.budget, 0.001)
 
         assertTrue(projection.activityState.items.any { it.id == "tx-exp" && it.amount == -120.0 })
-        assertTrue(projection.activityState.items.any { it.id == "evt-transfer" && it.kind == ActivityKind.TRANSFER })
+        assertTrue(projection.activityState.items.any {
+            it.id == "evt-transfer" &&
+                it.kind == ActivityKind.TRANSFER &&
+                it.canonicalKind == "transfer" &&
+                it.typeLabel == "Μεταφορά"
+        })
         assertFalse(projection.activityState.items.any { it.id == "tx-deleted" })
 
         assertEquals(1_155.0, projection.moneyState.accounts.first { it.id == "acc-main" }.balance, 0.001)
@@ -109,6 +120,7 @@ class CanonicalProductProjectionTest {
             activityState = original.activityState.copy(query = "καφ", selectedId = "evt-exp",
                 filter = ActivityFilter.EXPENSE, accountFilterId = "acc-main",
                 ledgerCategoryFilter = "Τρόφιμα", ledgerDateFrom = "2026-08-02", ledgerDateTo = "2026-08-22",
+                typeFilterId = "card_purchase",
                 categoryFilter = "Τρόφιμα", dateFrom = "2026-08-01", dateTo = "2026-08-23"),
         )
 
@@ -126,6 +138,7 @@ class CanonicalProductProjectionTest {
         assertEquals("Τρόφιμα", refreshed.activityState.ledgerCategoryFilter)
         assertEquals("2026-08-02", refreshed.activityState.ledgerDateFrom)
         assertEquals("2026-08-22", refreshed.activityState.ledgerDateTo)
+        assertEquals("card_purchase", refreshed.activityState.typeFilterId)
         assertEquals("Τρόφιμα", refreshed.activityState.categoryFilter)
         assertEquals("2026-08-01", refreshed.activityState.dateFrom)
         assertEquals("2026-08-23", refreshed.activityState.dateTo)

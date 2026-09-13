@@ -31,6 +31,7 @@ import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
+import app.myfinhub.android.feature.activity.activityTypeLabel
 import app.myfinhub.android.feature.home.HomeAccount
 import app.myfinhub.android.feature.home.HomeAccountGroup
 import app.myfinhub.android.feature.home.HomeAttentionItem
@@ -203,6 +204,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
         ledgerDateFrom = oldActivity?.ledgerDateFrom,
         ledgerDateTo = oldActivity?.ledgerDateTo,
+        typeFilterId = oldActivity?.typeFilterId,
         categoryFilter = oldActivity?.categoryFilter,
         dateFrom = oldActivity?.dateFrom,
         dateTo = oldActivity?.dateTo,
@@ -328,6 +330,8 @@ private fun buildActivityItems(
                     accountId = tx.accountId,
                     fromAccountId = tx.fromAccountId,
                     toAccountId = tx.toAccountId,
+                    canonicalKind = tx.type,
+                    typeLabel = activityTypeLabel(tx.type),
                 ),
             ))
         }
@@ -353,6 +357,8 @@ private fun buildActivityItems(
                     toAccountId = event.toAccountId,
                     cardId = event.cardId,
                     cardLabel = event.cardId?.let(cardLabels::get),
+                    canonicalKind = event.kind,
+                    typeLabel = activityTypeLabel(event.kind),
                 ),
             ))
         }

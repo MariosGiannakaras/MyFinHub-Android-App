@@ -30,12 +30,18 @@ internal fun projectPendingUi(
         }
     }
 
-    val pendingTransactionIds = pending
-        .mapNotNull(PendingCanonicalMutationIntent::affectedTransactionId)
-        .filter(String::isNotBlank)
-        .toSet()
+    val pendingByTransactionId = pending.mapNotNull { intent ->
+        intent.affectedTransactionId
+            ?.takeIf(String::isNotBlank)
+            ?.let { transactionId -> transactionId to intent }
+    }.toMap()
     val markedActivity = projection.activityState.items.map { item ->
-        if (item.id in pendingTransactionIds) item.copy(pendingSync = true) else item
+        pendingByTransactionId[item.id]?.let { intent ->
+            item.copy(
+                pendingSync = true,
+                pendingLabel = intent.activityPendingLabel(),
+            )
+        } ?: item
     }
     val tombstones = serverDocument
         ?.let { pendingDeletionTombstones(it, pending, today) }
@@ -77,16 +83,14 @@ private fun pendingDeletionTombstones(
                     .firstOrNull { it.id == transactionId }
             }.getOrNull()
             if (source != null) {
-                val deletionStatus = when (intent.syncState) {
-                    PendingMutationSyncState.NEVER_SENT -> "Εκκρεμεί διαγραφή"
-                    PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης διαγραφής από τον server"
-                }
+                val deletionStatus = intent.activityPendingLabel() ?: "Εκκρεμεί διαγραφή"
                 tombstones.removeAll { it.id == transactionId }
                 tombstones += source.copy(
                     subtitle = listOf(deletionStatus, source.subtitle)
                         .filter(String::isNotBlank)
                         .joinToString(" · "),
                     pendingSync = true,
+                    pendingLabel = deletionStatus,
                 )
             }
         }
@@ -96,6 +100,19 @@ private fun pendingDeletionTombstones(
     }
 
     return tombstones
+}
+
+private fun PendingCanonicalMutationIntent.activityPendingLabel(): String? {
+    val operation = when (kind) {
+        PendingMutationKind.APPEND_EVENT -> "προσθήκη"
+        PendingMutationKind.EDIT_ACTIVITY -> "επεξεργασία"
+        PendingMutationKind.DELETE_ACTIVITY -> "διαγραφή"
+        else -> return null
+    }
+    return when (syncState) {
+        PendingMutationSyncState.NEVER_SENT -> "Εκκρεμεί $operation"
+        PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης $operation από τον server"
+    }
 }
 
 private fun pendingCardChangeMessage(

@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.activity
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -178,6 +179,63 @@ class ActivityReducerTest {
         val cleared = reduceActivity(filtered.copy(query = "καφ"), ActivityAction.ClearFilters)
         assertEquals("καφ", cleared.query)
         assertEquals(0, cleared.activeFilterCount)
+    }
+
+    @Test
+    fun canonicalTypeFilter_distinguishesCardPurchaseFromCardPayment() {
+        val state = ActivityUiState(
+            items = listOf(
+                ActivityItem(
+                    "purchase", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -25.0, "Κάρτα", "Τρόφιμα",
+                    canonicalKind = "card_purchase", typeLabel = "Αγορά με κάρτα",
+                ),
+                ActivityItem(
+                    "payment", "10 Σεπ", ActivityKind.CARD_PAYMENT, "Εξόφληση", "", -25.0, "Κύριος", "Κάρτες",
+                    canonicalKind = "card_payment", typeLabel = "Πληρωμή κάρτας",
+                ),
+            ),
+        )
+
+        val filtered = reduceActivity(
+            state,
+            ActivityAction.ApplyFilters(
+                type = ActivityFilter.ALL,
+                accountId = null,
+                category = null,
+                dateFrom = null,
+                dateTo = null,
+                typeId = "card_payment",
+            ),
+        )
+
+        assertEquals(listOf("payment"), filtered.visibleItems.map { it.id })
+        assertEquals("Πληρωμή κάρτας", filtered.typeOptions.first { it.id == "card_payment" }.label)
+    }
+
+    @Test
+    fun search_acceptsGreekDecimalSeparator() {
+        val state = reduceActivity(ActivityUiState(), ActivityAction.QueryChanged("63,48"))
+
+        assertEquals(listOf("evt-1"), state.visibleItems.map { it.id })
+    }
+
+    @Test
+    fun categoryEditing_isLimitedToKindsWithCompatibleTaxonomy() {
+        val expense = ActivityItem("expense", "", ActivityKind.EXPENSE, "", "", -1.0, "", null)
+        val refund = ActivityItem(
+            "refund", "", ActivityKind.INCOME, "", "", 1.0, "", null,
+            canonicalKind = "refund", typeLabel = "Επιστροφή",
+        )
+        val transfer = ActivityItem("transfer", "", ActivityKind.TRANSFER, "", "", 1.0, "", null)
+        val split = ActivityItem(
+            "split", "", ActivityKind.EXPENSE, "", "", -1.0, "", null,
+            canonicalKind = "split", typeLabel = "Σύνθετη αγορά",
+        )
+
+        assertTrue(expense.supportsCategoryEdit())
+        assertTrue(refund.supportsCategoryEdit())
+        assertFalse(transfer.supportsCategoryEdit())
+        assertFalse(split.supportsCategoryEdit())
     }
 
 }

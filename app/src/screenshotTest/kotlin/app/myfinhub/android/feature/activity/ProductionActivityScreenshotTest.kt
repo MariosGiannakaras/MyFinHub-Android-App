@@ -54,7 +54,7 @@ fun ProductionActivityPendingLargeFontScreenshot() { ProductionActivityPendingFi
 fun ProductionActivityAccountFilterSheetScreenshot() {
     MyFinHubTheme(darkTheme = false) {
         ActivityFilterSheetContent(
-            state = activityFixtureState(),
+            state = activityFixtureState().copy(typeFilterId = "card_purchase"),
             onApply = { _, _, _, _, _ -> },
             onReset = {},
         )
@@ -64,8 +64,21 @@ fun ProductionActivityAccountFilterSheetScreenshot() {
 @PreviewTest
 @Preview(name = "production_activity_pending_detail", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun ProductionActivityPendingDetailScreenshot() {
-    MyFinHubTheme(darkTheme = false) {
+fun ProductionActivityPendingDetailScreenshot() { ProductionActivityPendingDetailFixture(false) }
+
+@PreviewTest
+@Preview(name = "production_activity_pending_detail_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityPendingDetailDarkScreenshot() { ProductionActivityPendingDetailFixture(true) }
+
+@PreviewTest
+@Preview(name = "production_activity_pending_detail_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun ProductionActivityPendingDetailLargeFontScreenshot() { ProductionActivityPendingDetailFixture(false) }
+
+@Composable
+private fun ProductionActivityPendingDetailFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
         ActivityReadDetailScreen(
             item = pendingActivityItems().first(),
             accountOptions = activityAccountOptions(),
@@ -81,9 +94,22 @@ fun ProductionActivityPendingDetailScreenshot() {
 @PreviewTest
 @Preview(name = "production_activity_edit", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun ProductionActivityEditScreenshot() {
+fun ProductionActivityEditScreenshot() { ProductionActivityEditFixture(false) }
+
+@PreviewTest
+@Preview(name = "production_activity_edit_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityEditDarkScreenshot() { ProductionActivityEditFixture(true) }
+
+@PreviewTest
+@Preview(name = "production_activity_edit_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun ProductionActivityEditLargeFontScreenshot() { ProductionActivityEditFixture(false) }
+
+@Composable
+private fun ProductionActivityEditFixture(darkTheme: Boolean) {
     val item = pendingActivityItems().first { !it.pendingSync && it.kind == ActivityKind.EXPENSE }
-    MyFinHubTheme(darkTheme = false) {
+    MyFinHubTheme(darkTheme = darkTheme) {
         ActivityEditScreen(
             item = item,
             categoryOptions = listOf(
@@ -95,6 +121,34 @@ fun ProductionActivityEditScreenshot() {
             onBack = {},
             onSave = { _, _, _, _ -> },
             onSaved = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_no_match_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun ProductionActivityNoMatchLargeFontScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        ActivityLedgerScreen(
+            state = activityFixtureState().copy(query = "ανύπαρκτη κίνηση"),
+            onAction = {},
+            onOpenDetail = {},
+            onOpenQuickEntry = {},
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "production_activity_true_empty", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun ProductionActivityTrueEmptyScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        ActivityLedgerScreen(
+            state = activityFixtureState().copy(items = emptyList()),
+            onAction = {},
+            onOpenDetail = {},
+            onOpenQuickEntry = {},
         )
     }
 }
@@ -139,6 +193,7 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Έξοδος",
         pendingSync = true,
+        pendingLabel = "Εκκρεμεί διαγραφή",
         rawDate = "2026-09-07",
         accountId = "piraeus-payroll",
     ),
@@ -152,6 +207,7 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         accountLabel = "Πειραιώς Μισθοδοσίας",
         category = "Τρόφιμα",
         pendingSync = true,
+        pendingLabel = "Εκκρεμεί επεξεργασία",
         rawDate = "2026-09-07",
         accountId = "piraeus-payroll",
     ),
@@ -179,6 +235,10 @@ private fun pendingActivityItems(): List<ActivityItem> = listOf(
         category = "Μεταφορές",
         rawDate = "2026-09-06",
         accountId = "cash",
+        cardId = "card-credit",
+        cardLabel = "Πιστωτική • 1881",
+        canonicalKind = "card_purchase",
+        typeLabel = "Αγορά με κάρτα",
     ),
     ActivityItem(
         id = "evt-synced-income",

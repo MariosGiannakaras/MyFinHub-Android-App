@@ -5,7 +5,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run one final consolidated PR #115 validation after the reviewed baseline and concrete fixes land.
+- [ ] Publish the final S3 hardening batch once, render and personally inspect its Activity references, then make one consolidated reference/correction update if required.
 - [ ] Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head.
 
 ## Completed foundations
@@ -51,9 +51,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s3-activity`. PR: 115.
-Checkpoint: `s3_reviewed_baseline_and_concrete_fix_batch`.
+Checkpoint: `s3_hardening_batch_ready_for_hosted_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate PR #115 after the reviewed baseline/semantic fix batch; if Android CI, screenshot regression, S24-target instrumentation and Project Tracking are green, record final evidence and complete S3.
+Next action: Publish the coherent exact-type/pending/card-detail/expanded-render S3 hardening batch, inspect all hosted findings together, then complete S3 only on a single fully green current head.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

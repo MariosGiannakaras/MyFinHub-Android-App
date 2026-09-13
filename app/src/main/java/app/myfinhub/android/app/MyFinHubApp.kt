@@ -411,6 +411,7 @@ internal fun MyFinHubAppContent(
                                 moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                             },
                             onBack = { moneyBackStack.removeLastOrNull() },
+                            onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         )
                     } else {
                         CardDetail2026Screen(

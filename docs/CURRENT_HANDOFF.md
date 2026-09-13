@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. The first hosted run produced 88 render candidates; the 11 intentional Activity/top-level Activity changes were personally reviewed in light/dark/150% and accepted for checkpointing. The same run exposed one androidTest-only assertion import error plus offline edit/delete route-close edge cases; these are fixed in one batch before the final hosted validation. No backend or web/desktop changes.
+S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. Intermediate head 21bef515 passed Android CI, Project Tracking, screenshot regression and all 50 S24-target tests. A final coherent hardening batch closes the remaining specification gaps for exact canonical type identity/filtering, operation-aware pending states, card-ledger detail navigation and expanded dark/150%/empty-state verification. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Run one final consolidated PR #115 validation after the reviewed baseline and concrete fixes land.
+- Publish the final S3 hardening batch once, render and personally inspect its Activity references, then make one consolidated reference/correction update if required.
 - Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head.
 
 ## Constraints
@@ -56,9 +56,9 @@ S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/ed
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s3-activity`. PR: 115.
-Checkpoint: `s3_reviewed_baseline_and_concrete_fix_batch`.
+Checkpoint: `s3_hardening_batch_ready_for_hosted_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate PR #115 after the reviewed baseline/semantic fix batch; if Android CI, screenshot regression, S24-target instrumentation and Project Tracking are green, record final evidence and complete S3.
+Next action: Publish the coherent exact-type/pending/card-detail/expanded-render S3 hardening batch, inspect all hosted findings together, then complete S3 only on a single fully green current head.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

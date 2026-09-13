@@ -184,7 +184,7 @@ fun ActivityLedgerScreen(
                     item(key = "empty-filtered") {
                         ActivityEmptyState(
                             title = "Δεν βρέθηκαν κινήσεις με αυτή την αναζήτηση ή τα φίλτρα.",
-                            actionLabel = if (analyticsScope) null else "Καθαρισμός φίλτρων",
+                            actionLabel = if (analyticsScope) null else "Καθαρισμός αναζήτησης και φίλτρων",
                             onAction = if (analyticsScope) null else {
                                 {
                                     onAction(ActivityAction.QueryChanged(""))
@@ -220,14 +220,15 @@ fun ActivityLedgerScreen(
         ModalBottomSheet(onDismissRequest = { filterSheetOpen = false }) {
             ActivityFilterSheetContent(
                 state = state,
-                onApply = { type, accountId, category, dateFrom, dateTo ->
+                onApply = { typeId, accountId, category, dateFrom, dateTo ->
                     onAction(
                         ActivityAction.ApplyFilters(
-                            type = type,
+                            type = ActivityFilter.ALL,
                             accountId = accountId,
                             category = category,
                             dateFrom = dateFrom,
                             dateTo = dateTo,
+                            typeId = typeId,
                         ),
                     )
                     filterSheetOpen = false
@@ -257,7 +258,14 @@ private fun ActivityScopeSummary(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(vertical = MyFinHubSpacing.xxs),
         )
-        if (state.filter != ActivityFilter.ALL) {
+        val exactTypeId = state.typeFilterId
+        if (exactTypeId != null) {
+            val label = state.typeOptions.firstOrNull { it.id == exactTypeId }?.label
+                ?: activityTypeLabel(exactTypeId)
+            ActivityScopeLine("Τύπος: $label") {
+                onAction(ActivityAction.RemoveFilter(ActivityFilterField.TYPE))
+            }
+        } else if (state.filter != ActivityFilter.ALL) {
             ActivityScopeLine("Τύπος: ${state.filter.label}") {
                 onAction(ActivityAction.RemoveFilter(ActivityFilterField.TYPE))
             }
@@ -336,9 +344,10 @@ private fun ActivityFlatLedgerRow(
         item.note
     }
     val meta = when {
-        item.pendingSync -> "Εκκρεμεί συγχρονισμός"
+        item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
         item.kind == ActivityKind.TRANSFER -> "Εσωτερική μεταφορά"
-        item.kind == ActivityKind.CARD_PAYMENT -> "Πληρωμή πιστωτικής · ${item.accountLabel}"
+        item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
+            "${item.typeLabel} · ${item.accountLabel}"
         else -> item.accountLabel
     }
 
@@ -357,10 +366,10 @@ private fun ActivityFlatLedgerRow(
 @Composable
 internal fun ActivityFilterSheetContent(
     state: ActivityUiState,
-    onApply: (ActivityFilter, String?, String?, String?, String?) -> Unit,
+    onApply: (String?, String?, String?, String?, String?) -> Unit,
     onReset: () -> Unit,
 ) {
-    var type by rememberSaveable(state.filter) { mutableStateOf(state.filter) }
+    var typeId by rememberSaveable(state.typeFilterId) { mutableStateOf(state.typeFilterId.orEmpty()) }
     var accountId by rememberSaveable(state.accountFilterId) { mutableStateOf(state.accountFilterId.orEmpty()) }
     var category by rememberSaveable(state.ledgerCategoryFilter) { mutableStateOf(state.ledgerCategoryFilter.orEmpty()) }
     var dateFrom by rememberSaveable(state.ledgerDateFrom) { mutableStateOf(state.ledgerDateFrom.orEmpty()) }
@@ -392,9 +401,9 @@ internal fun ActivityFilterSheetContent(
         )
         S3ChoiceField(
             label = "Τύπος κίνησης",
-            selectedId = type.name,
-            choices = ActivityFilter.entries.map { it.name to it.label },
-            onSelected = { raw -> ActivityFilter.entries.firstOrNull { it.name == raw }?.let { type = it } },
+            selectedId = typeId,
+            choices = listOf("" to "Όλοι οι τύποι") + state.typeOptions.map { it.id to it.label },
+            onSelected = { typeId = it },
         )
         S3ChoiceField(
             label = "Λογαριασμός",
@@ -449,7 +458,7 @@ internal fun ActivityFilterSheetContent(
             Button(
                 onClick = {
                     onApply(
-                        type,
+                        typeId.takeIf(String::isNotBlank),
                         accountId.takeIf(String::isNotBlank),
                         category.takeIf(String::isNotBlank),
                         dateFrom.takeIf(String::isNotBlank),
@@ -518,12 +527,12 @@ fun ActivityReadDetailScreen(
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         Text(
-                            text = item.kind.label,
+                            text = item.typeLabel,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = if (item.pendingSync) "Εκκρεμεί συγχρονισμός" else "Καταχωρισμένη",
+                            text = if (item.pendingSync) item.pendingLabel ?: "Εκκρεμεί συγχρονισμός" else "Καταχωρισμένη",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -795,7 +804,7 @@ fun ActivityEditScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             ActivityReadField("Ποσό", formatSignedEuro(item.amount))
-            ActivityReadField("Τύπος", item.kind.label)
+            ActivityReadField("Τύπος", item.typeLabel)
             ActivityReadField(
                 if (item.kind == ActivityKind.TRANSFER) "Προέλευση / προορισμός" else "Λογαριασμός",
                 item.accountLabel,
@@ -811,7 +820,7 @@ fun ActivityEditScreen(
                 label = "Ημερομηνία",
                 errorMessage = if (dateError) "Η ημερομηνία δεν είναι έγκυρη." else null,
             )
-            if (effectiveCategoryOptions.isNotEmpty()) {
+            if (item.supportsCategoryEdit() && effectiveCategoryOptions.isNotEmpty()) {
                 S3ChoiceField(
                     label = "Κατηγορία",
                     selectedId = category,

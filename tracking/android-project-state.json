@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-12",
+  "updated_at": "2026-09-13",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
     "status": "android_redesign_s3_activity_validation",
-    "summary": "S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. The first hosted run produced 88 render candidates; the 11 intentional Activity/top-level Activity changes were personally reviewed in light/dark/150% and accepted for checkpointing. The same run exposed one androidTest-only assertion import error plus offline edit/delete route-close edge cases; these are fixed in one batch before the final hosted validation. No backend or web/desktop changes.",
+    "summary": "S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. Intermediate head 21bef515 passed Android CI, Project Tracking, screenshot regression and all 50 S24-target tests. A final coherent hardening batch closes the remaining specification gaps for exact canonical type identity/filtering, operation-aware pending states, card-ledger detail navigation and expanded dark/150%/empty-state verification. No backend or web/desktop changes.",
     "next": [
-      "Run one final consolidated PR #115 validation after the reviewed baseline and concrete fixes land.",
+      "Publish the final S3 hardening batch once, render and personally inspect its Activity references, then make one consolidated reference/correction update if required.",
       "Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head."
     ]
   },
@@ -84,9 +84,9 @@
     "branch": "android/redesign-s3-activity",
     "pr": 115,
     "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
-    "checkpoint": "s3_reviewed_baseline_and_concrete_fix_batch",
+    "checkpoint": "s3_hardening_batch_ready_for_hosted_validation",
     "blockers": [],
-    "next_action": "Validate PR #115 after the reviewed baseline/semantic fix batch; if Android CI, screenshot regression, S24-target instrumentation and Project Tracking are green, record final evidence and complete S3.",
+    "next_action": "Publish the coherent exact-type/pending/card-detail/expanded-render S3 hardening batch, inspect all hosted findings together, then complete S3 only on a single fully green current head.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -231,7 +231,8 @@
           "status": "in_progress",
           "evidence": [
             "Branch android/redesign-s3-activity implements a flat date-grouped ledger with search, one filter sheet, active-count/removable scope summary, exact account/type/category/date filters, distinct true-empty/no-match recovery and isolated analytics drill-down scope.",
-            "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope."
+            "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope.",
+            "Final local hardening models the exact shared-schema kind separately from broad finance tone, exposes each available canonical type in the filter sheet, distinguishes card purchase/payment, and normalizes Greek comma-decimal searches."
           ]
         },
         {
@@ -239,7 +240,8 @@
           "title": "Read transaction detail",
           "status": "in_progress",
           "evidence": [
-            "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route."
+            "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route.",
+            "Account rows already opened the common detail; the final hardening batch also makes canonical card-ledger rows clickable by stable transaction ID and routes them into the same detail stack."
           ]
         },
         {
@@ -249,7 +251,8 @@
           "evidence": [
             "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
             "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal.",
-            "First hosted validation review found two durable-offline navigation edge cases: an accepted offline edit becomes pending before editor exit, and an accepted offline delete is represented by a pending tombstone. The fix lets only the initiating save/delete request observe that pending projection as durable local success and return to origin; pre-existing pending rows remain non-editable/non-deletable."
+            "First hosted validation review found two durable-offline navigation edge cases: an accepted offline edit becomes pending before editor exit, and an accepted offline delete is represented by a pending tombstone. The fix lets only the initiating save/delete request observe that pending projection as durable local success and return to origin; pre-existing pending rows remain non-editable/non-deletable.",
+            "The final hardening batch differentiates pending addition/edit/deletion and limits category/subcategory controls to canonical kinds with a compatible verified taxonomy; split/transfer/payment-style rows keep unsupported fields read-only."
           ]
         },
         {
@@ -259,7 +262,8 @@
           "evidence": [
             "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending.",
             "Android UI Quality run 34710603625 rendered 88 candidates. Exactly 11 intentional Activity/top-level Activity references differed or were new; artifact 10303516408 (sha256 5806d169b8c0147665b8c561707089a5f17837343365a879dd38c0a544089006) was personally reviewed before baseline adoption. Light/dark and 150% ledger/category/detail/editor/filter states showed no clipping or hierarchy defect requiring redesign.",
-            "The same first run compiled production and screenshot Kotlin successfully. S24 prebuild stopped only at ActivityS3NavigationTest.kt's unavailable assertDoesNotExist import; the assertion is replaced with a version-compatible semantics lookup before the final rerun."
+            "The same first run compiled production and screenshot Kotlin successfully. S24 prebuild stopped only at ActivityS3NavigationTest.kt's unavailable assertDoesNotExist import; the assertion was replaced with a version-compatible semantics lookup.",
+            "PR #115 intermediate head 21bef5155783a3e0b15f17068a6f9c69c3c2e88b passed Android CI run 34731056564, Project Tracking run 34731056556 and Android UI Quality run 34731056578, including screenshot regression and 50/50 S24-target tests. Additional exact-type/card-detail contracts and dark/150%/true-empty/no-match renders are locally prepared and remain pending hosted validation."
           ]
         }
       ]
