@@ -1,0 +1,103 @@
+name: S6 completion tracking
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+    paths:
+      - '.github/workflows/s6-complete-tracking.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout S6 branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s6-cards
+          fetch-depth: 1
+
+      - name: Record S6 exact-head completion evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "eb7df3709a7445b6a3d39ead10495f1b3443b180"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          state = json.loads(path.read_text())
+
+          work = state['active_workstream']
+          work['status'] = 'android_redesign_s6_complete_merge_ready'
+          work['summary'] = (
+              'S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: '
+              'stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected '
+              'secure-details destination, explicit removal recovery and twelve personally inspected Compose '
+              'references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, '
+              'Android CI, screenshot regression and S24-target instrumentation.'
+          )
+          work['next'] = [
+              'Merge validated PR #118 into develop without changing the accepted S6 product head.',
+              'Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.',
+          ]
+
+          current = state['current_redesign_pass']
+          current['current_slice'] = 'S7.1 / S7.2 / S7.3 / S7.4'
+          current['checkpoint'] = 's6_complete_merge_ready'
+          current['next_action'] = (
+              'Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, '
+              'then implement S7.1–S7.4 as one coherent Android-only batch.'
+          )
+
+          task = next(item for item in state['redesign_tasks'] if item['id'] == 'S6')
+          evidence_by_id = {
+              'S6.1': [
+                  'Exact PR #118 product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Android CI run 34786455322, including unit tests, instrumentation compilation, lint, debug assembly, optimized release/Play bundle assembly and release policy audits.',
+                  'Android UI Quality run 34786455331 passed both screenshot regression and S24-target instrumentation on the same exact product head.',
+              ],
+              'S6.2': [
+                  'Exact product-head Android CI run 34786455322 passed after selector-sheet creation and its instrumentation contract were published; no unsupported card-metadata editor or shared-backend change was introduced.',
+                  'Accepted light/dark/150% card-creation references remained byte-stable under the passing screenshot-regression job in Android UI Quality run 34786455331.',
+              ],
+              'S6.3': [
+                  'Exact product-head Android CI run 34786455322 passed with the separate protected secure-details destination and independent partial secret-cleanup recovery logic.',
+                  'S24-target instrumentation in Android UI Quality run 34786455331 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180, covering the published secure/removal contracts without replaying the canonical finance mutation.',
+              ],
+              'S6.4': [
+                  'Final exact product-head Project Tracking run 34786455328 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180.',
+                  'Final exact product-head Android UI Quality run 34786455331 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34786455322 also passed.',
+              ],
+          }
+          for subtask in task['subtasks']:
+              subtask['status'] = 'completed'
+              for item in evidence_by_id[subtask['id']]:
+                  if item not in subtask['evidence']:
+                      subtask['evidence'].append(item)
+
+          path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+      - name: Render and verify tracking
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/render_project_tracking.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p test_project_tracking.py
+          git diff --check
+
+      - name: Commit completion checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git commit -m 'docs: complete S6 and hand off to S7'
+          git push origin HEAD:android/redesign-s6-cards
