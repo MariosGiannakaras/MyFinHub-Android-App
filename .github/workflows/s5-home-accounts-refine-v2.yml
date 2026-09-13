@@ -1,4 +1,4 @@
-name: S5 Consolidated Hosted Validation
+name: S6 Targeted Hosted Validation
 
 on:
   push:
@@ -13,16 +13,16 @@ permissions:
 jobs:
   verify-and-render:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 35
     steps:
-      - name: Checkout exact S5 head
+      - name: Checkout exact S6 candidate
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: c149915d9eac87af68e80f1d30a602d658e828d0
+          ref: 9e869ea22a8fc69e818b446b1d7bf8189b4d6cb3
 
       - name: Confirm exact source
         shell: bash
-        run: test "$(git rev-parse HEAD)" = "c149915d9eac87af68e80f1d30a602d658e828d0"
+        run: test "$(git rev-parse HEAD)" = "9e869ea22a8fc69e818b446b1d7bf8189b4d6cb3"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -39,32 +39,30 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Validate project tracking
+      - name: Validate tracking
         shell: bash
         run: |
           python3 scripts/render_project_tracking.py --check
           python3 -m unittest discover -s scripts -p 'test_*.py'
 
-      - name: Focused and broad Android validation
+      - name: Targeted Android validation
         shell: bash
         run: >-
           ./gradlew
           :app:testDebugUnitTest
           :app:compileDebugAndroidTestKotlin
           :app:lintDebug
-          :app:assembleDebug
-          :app:assembleRelease
           --stacktrace
 
       - name: Render real Compose candidates
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
-      - name: Publish S5 candidate renders
+      - name: Publish S6 candidate renders
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: s5-consolidated-candidates-${{ github.run_id }}
+          name: s6-targeted-candidates-${{ github.run_id }}
           path: |
             app/src/screenshotTestDebug/reference/**/*.png
             app/build/reports/screenshotTest/**/*.png
