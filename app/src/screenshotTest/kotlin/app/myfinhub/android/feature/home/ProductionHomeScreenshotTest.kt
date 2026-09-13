@@ -41,6 +41,21 @@ private fun ProductionHomeFixture(darkTheme: Boolean) {
             onOpenAttention = {},
             onOpenSettings = {},
             onOpenQuickEntry = {},
+            amountsVisibleOverride = true,
+        )
+    }
+}
+
+@PreviewTest
+@Preview(name = "home_attention_detail_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun HomeAttentionDetailLightScreenshot() {
+    MyFinHubTheme(darkTheme = false) {
+        HomeAttentionDetailScreen(
+            item = syntheticHomeUiState().attentionItems.first(),
+            onMarkReviewed = {},
+            onBack = {},
+            amountsVisibleOverride = true,
         )
     }
 }

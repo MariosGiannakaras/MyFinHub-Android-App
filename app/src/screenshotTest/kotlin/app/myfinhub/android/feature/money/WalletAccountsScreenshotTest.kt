@@ -18,6 +18,7 @@ fun WalletAccountsLightScreenshot() {
             onAddCard = {},
             onOpenLoans = {},
             onOpenLending = {},
+            amountsVisibleOverride = true,
         )
     }
 }
@@ -35,6 +36,7 @@ fun WalletAccountsDarkScreenshot() {
             onAddCard = {},
             onOpenLoans = {},
             onOpenLending = {},
+            amountsVisibleOverride = true,
         )
     }
 }
@@ -52,6 +54,7 @@ fun WalletAccountsLargeFontScreenshot() {
             onAddCard = {},
             onOpenLoans = {},
             onOpenLending = {},
+            amountsVisibleOverride = true,
         )
     }
 }
@@ -61,6 +64,6 @@ fun WalletAccountsLargeFontScreenshot() {
 @Composable
 fun NetPositionLightScreenshot() {
     MyFinHubTheme(darkTheme = false) {
-        CanonicalNetPositionScreen(state = syntheticMoneyUiState(), onBack = {})
+        CanonicalNetPositionScreen(state = syntheticMoneyUiState(), onBack = {}, amountsVisibleOverride = true)
     }
 }

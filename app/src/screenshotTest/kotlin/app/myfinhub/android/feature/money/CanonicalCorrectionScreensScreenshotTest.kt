@@ -81,6 +81,7 @@ private fun AccountDetailFixture(darkTheme: Boolean) {
             onBack = {},
             onOpenActivity = {},
             referenceDate = LocalDate.of(2026, 9, 4),
+            amountsVisibleOverride = true,
         )
     }
 }

@@ -47,15 +47,17 @@ fun CanonicalAccountDetailScreen(
     onOpenActivity: (String) -> Unit,
     onNewTransaction: () -> Unit = {},
     referenceDate: LocalDate = LocalDate.now(),
+    amountsVisibleOverride: Boolean? = null,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
-    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+            if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }

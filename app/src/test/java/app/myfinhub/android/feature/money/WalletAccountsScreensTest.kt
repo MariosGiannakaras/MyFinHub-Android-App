@@ -8,14 +8,15 @@ class WalletAccountsScreensTest {
     fun accountGrouping_keepsSavingsSeparateAndCashDaily() {
         val state = MoneyUiState(
             accounts = listOf(
-                MoneyAccount("cash", "Μετρητά", 100.0, "Μετρητά"),
-                MoneyAccount("bank", "Μισθοδοσία", 900.0, "Τράπεζα", "Τράπεζα Πειραιώς"),
-                MoneyAccount("save", "Αποταμίευση", 2000.0, "Αποταμίευση"),
-                MoneyAccount("other", "Broker", 300.0, "Επένδυση"),
+                MoneyAccount("cash", "Μετρητά", 100.0, "Μετρητά", canonicalKind = "cash"),
+                MoneyAccount("bank", "Μισθοδοσία", 900.0, "Τράπεζα", "Τράπεζα Πειραιώς", canonicalKind = "bank"),
+                MoneyAccount("reserve", "Αποθεματικό", 500.0, "Τράπεζα", canonicalKind = "bank", excludeFromAvailable = true),
+                MoneyAccount("save", "Αποταμίευση", 2000.0, "Αποταμίευση", canonicalKind = "savings", excludeFromAvailable = true),
+                MoneyAccount("other", "Broker", 300.0, "Επένδυση", canonicalKind = "investment"),
             ),
         )
 
-        assertEquals(listOf("cash", "bank"), walletAccountsInGroup(state, WalletAccountGroup.DAILY).map { it.id })
+        assertEquals(listOf("cash", "bank", "reserve"), walletAccountsInGroup(state, WalletAccountGroup.DAILY).map { it.id })
         assertEquals(listOf("save"), walletAccountsInGroup(state, WalletAccountGroup.SAVINGS).map { it.id })
         assertEquals(listOf("other"), walletAccountsInGroup(state, WalletAccountGroup.OTHER).map { it.id })
         assertEquals(1000.0, walletAvailableTotal(state), 0.001)

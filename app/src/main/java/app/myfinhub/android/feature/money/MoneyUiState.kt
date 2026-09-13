@@ -12,6 +12,10 @@ data class MoneyAccount(
     val balance: Double,
     val kind: String,
     val institution: String? = null,
+    /** Stable canonical kind; [kind] remains the localized display label. */
+    val canonicalKind: String = "",
+    /** Canonical availability rule, independent of the localized account label. */
+    val excludeFromAvailable: Boolean = false,
 )
 
 enum class MoneyCardActivityKind { PURCHASE, PAYMENT }
@@ -212,9 +216,9 @@ fun syntheticMoneyUiState(): MoneyUiState = MoneyUiState(
 )
 
 fun syntheticMoneyAccounts() = listOf(
-    MoneyAccount("acc-main", "Κύριος λογαριασμός", 2_148.37, "Τράπεζα"),
-    MoneyAccount("acc-save", "Αποταμίευση", 2_850.00, "Αποταμίευση"),
-    MoneyAccount("acc-cash", "Μετρητά", 145.20, "Μετρητά"),
+    MoneyAccount("acc-main", "Κύριος λογαριασμός", 2_148.37, "Τράπεζα", canonicalKind = "bank"),
+    MoneyAccount("acc-save", "Αποταμίευση", 2_850.00, "Αποταμίευση", canonicalKind = "savings", excludeFromAvailable = true),
+    MoneyAccount("acc-cash", "Μετρητά", 145.20, "Μετρητά", canonicalKind = "cash"),
 )
 
 fun syntheticMoneyCards() = listOf(

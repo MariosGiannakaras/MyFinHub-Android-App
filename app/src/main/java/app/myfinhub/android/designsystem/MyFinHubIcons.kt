@@ -35,6 +35,16 @@ object MyFinHubIcons {
             moveTo(18f, 15.5f); curveTo(14f, 18f, 7f, 17.2f, 3f, 12f)
         } }
     }
+    val Settings by lazy {
+        icon("MyFinHubSettings") { strokePath {
+            circle(12f, 12f, 3f)
+            circle(12f, 12f, 8f)
+            moveTo(12f, 2f); lineTo(12f, 4f)
+            moveTo(12f, 20f); lineTo(12f, 22f)
+            moveTo(2f, 12f); lineTo(4f, 12f)
+            moveTo(20f, 12f); lineTo(22f, 12f)
+        } }
+    }
 
     val Home by lazy {
         icon("MyFinHubHome") { strokePath {

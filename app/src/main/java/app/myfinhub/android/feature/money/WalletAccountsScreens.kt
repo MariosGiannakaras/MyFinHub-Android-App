@@ -71,8 +71,9 @@ private enum class WalletSection(val label: String) {
 }
 
 internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {
-    account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS
-    account.kind.contains("Τράπεζ", ignoreCase = true) ||
+    account.canonicalKind == "savings" || account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS
+    account.canonicalKind in setOf("bank", "cash") ||
+        account.kind.contains("Τράπεζ", ignoreCase = true) ||
         account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY
     else -> WalletAccountGroup.OTHER
 }
@@ -81,7 +82,9 @@ internal fun walletAccountsInGroup(state: MoneyUiState, group: WalletAccountGrou
     state.accounts.filter { walletAccountGroup(it) == group }
 
 internal fun walletAvailableTotal(state: MoneyUiState): Double =
-    walletAccountsInGroup(state, WalletAccountGroup.DAILY).sumOf(MoneyAccount::balance)
+    walletAccountsInGroup(state, WalletAccountGroup.DAILY)
+        .filterNot(MoneyAccount::excludeFromAvailable)
+        .sumOf(MoneyAccount::balance)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,15 +96,17 @@ fun CanonicalWalletScreen(
     onAddCard: () -> Unit,
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
+    amountsVisibleOverride: Boolean? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
-    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+            if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -540,16 +545,18 @@ private fun WalletAggregateRow(
 fun CanonicalNetPositionScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
+    amountsVisibleOverride: Boolean? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
-    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     var calculationExpanded by rememberSaveable { mutableStateOf(false) }
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+            if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }

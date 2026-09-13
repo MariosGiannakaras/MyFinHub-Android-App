@@ -62,15 +62,17 @@ fun ProductionHomeScreen(
     onOpenAccount: (String) -> Unit = {},
     onOpenAllAccounts: () -> Unit = {},
     @Suppress("UNUSED_PARAMETER") onOpenRecent: (String) -> Unit = {},
+    amountsVisibleOverride: Boolean? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
         context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
     }
-    var amountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == AmountVisibilityPreference.KEY) amountsVisible = AmountVisibilityPreference.read(context)
+            if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -101,7 +103,7 @@ fun ProductionHomeScreen(
                         modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
                     ) {
                         Icon(
-                            imageVector = MyFinHubIcons.Filter,
+                            imageVector = MyFinHubIcons.Settings,
                             contentDescription = "Ρυθμίσεις",
                             modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
                         )

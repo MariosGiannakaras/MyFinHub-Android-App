@@ -27,6 +27,7 @@ import app.myfinhub.android.feature.activity.ActivityReadDetailScreen
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.ActivityViewModel
 import app.myfinhub.android.feature.home.HomeAction
+import app.myfinhub.android.feature.home.HomeAttentionAction
 import app.myfinhub.android.feature.home.HomeAttentionDetailScreen
 import app.myfinhub.android.feature.home.HomeQuickEntryType
 import app.myfinhub.android.feature.home.HomeScreen
@@ -224,7 +225,10 @@ internal fun MyFinHubAppContent(
                         onBack = { homeBackStack.removeLastOrNull() },
                         onOpenAction = {
                             homeBackStack.popToRoot()
-                            if (route.attentionId == "transaction-review") {
+                            val action = homeState.attentionItems
+                                .firstOrNull { it.id == route.attentionId }
+                                ?.action
+                            if (action == HomeAttentionAction.ACTIVITY) {
                                 currentDestination = TopLevelDestination.ACTIVITY
                                 activityBackStack.popToRoot()
                             } else {

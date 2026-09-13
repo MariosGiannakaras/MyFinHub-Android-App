@@ -164,6 +164,9 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                     reason = "Προγραμματισμένη υποχρέωση σε εκκρεμότητα.",
                     dueLabel = if (item.dueDate == asOf) "Σήμερα" else "Καθυστερημένη",
                     tone = HomeAttentionTone.URGENT,
+                    sourceLabel = item.accountId?.let { accountNames[it] ?: it },
+                    dueDateLabel = formatDate(item.dueDate),
+                    amount = item.amount,
                 )
             },
         upcomingItems = pendingScheduled
@@ -230,6 +233,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 balance = balances[account.id] ?: 0.0,
                 kind = accountKindLabel(account.kind),
                 institution = provider?.institutionLabel,
+                canonicalKind = account.kind,
+                excludeFromAvailable = account.excludeFromAvailable,
             )
         },
         cards = activeCards.map { card ->
