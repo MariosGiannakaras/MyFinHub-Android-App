@@ -1,7 +1,7 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -10,7 +10,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
 import androidx.compose.runtime.mutableStateOf
-import app.myfinhub.android.ProductTestActivity
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
@@ -26,7 +25,7 @@ import org.junit.Test
 
 class S5HomeWalletTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<ProductTestActivity>()
+    val composeRule = createComposeRule()
 
     @Test
     fun compactHome_limitsAttentionAndKeepsPrimaryRoutesReachable() {
@@ -92,7 +91,7 @@ class S5HomeWalletTest {
             }
         }
 
-        composeRule.onNodeWithText("Διαθέσιμα για καθημερινή χρήση").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα καθημερινά").assertIsDisplayed()
         composeRule.onNodeWithText("Καθημερινά").assertIsDisplayed()
         composeRule.onNodeWithText("Κύριος λογαριασμός").assertIsDisplayed().performClick()
         assertTrue(openedAccount.get())
@@ -120,7 +119,7 @@ class S5HomeWalletTest {
         composeRule.onNodeWithText("Κάρτες").performClick()
         composeRule.onNodeWithText("Νέα κάρτα").assertIsDisplayed()
         composeRule.runOnIdle { accountsRequest.value += 1 }
-        composeRule.onNodeWithText("Διαθέσιμα για καθημερινή χρήση").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα καθημερινά").assertIsDisplayed()
     }
 
     @Test
