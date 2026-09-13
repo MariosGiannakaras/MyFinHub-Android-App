@@ -43,7 +43,7 @@ jobs:
         run: bash scripts/install-android-sdk.sh
 
       - name: Apply coherent S6 batch
-        run: python3 _automation/scripts/s6_batch1_apply_relaxed.py
+        run: python3 _automation/scripts/s6_batch1_apply_compilefix.py
 
       - name: Check diff and compile affected sources
         run: |
