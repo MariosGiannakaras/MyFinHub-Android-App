@@ -1,0 +1,180 @@
+name: S5 Finalize Reviewed Batch
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+    paths:
+      - '.github/workflows/s5-finalize-reviewed-batch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-reviewed-s5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact S5 branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s5-home-accounts
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Fix concrete S5 instrumented regressions
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one replacement, found {count}: {old!r}")
+              p.write_text(text.replace(old, new, 1))
+
+          s5 = 'app/src/androidTest/java/app/myfinhub/android/feature/money/S5HomeWalletTest.kt'
+          replace_once(
+              s5,
+              'import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule\n',
+              'import androidx.compose.ui.test.junit4.v2.createComposeRule\n',
+          )
+          replace_once(s5, 'import app.myfinhub.android.ProductTestActivity\n', '')
+          replace_once(
+              s5,
+              '    val composeRule = createAndroidComposeRule<ProductTestActivity>()\n',
+              '    val composeRule = createComposeRule()\n',
+          )
+
+          parity = 'app/src/androidTest/java/app/myfinhub/android/FrontendUtilitiesParityTest.kt'
+          replace_once(
+              parity,
+              '        waitForText("Γιατί εμφανίζεται")\n        assertTextIntoView("Γιατί εμφανίζεται")\n        clickTextIntoView("Σήμανση ως ελεγμένο")\n        scrollHomeTextIntoView("Η οικονομική σου εικόνα")\n        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()\n',
+              '        waitForText("Στοιχεία υποχρέωσης")\n        assertTextIntoView("Στοιχεία υποχρέωσης")\n        clickTextIntoView("Απόκρυψη για τώρα")\n        waitForText("Διαθέσιμα τώρα")\n        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()\n',
+          )
+          replace_once(
+              parity,
+              '        clickTextIntoView("Ρυθμίσεις")\n',
+              '        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed().performClick()\n',
+          )
+          replace_once(
+              parity,
+              '        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()\n',
+              '        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()\n',
+          )
+          PY
+
+      - name: Compile affected instrumentation tests
+        shell: bash
+        run: ./gradlew :app:compileDebugAndroidTestKotlin --stacktrace
+
+      - name: Regenerate reviewed S5 screenshot references
+        shell: bash
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Verify only reviewed references changed and hashes match
+        shell: bash
+        run: |
+          git add -N app/src/screenshotTestDebug/reference
+          python3 - <<'PY'
+          import hashlib
+          import subprocess
+          from pathlib import Path
+
+          root = 'app/src/screenshotTestDebug/reference/'
+          expected = {
+              root + 'app/myfinhub/android/feature/home/HomeAttentionScreenshotTestKt/HomeAttentionDetailCompactScreenshot_home_attention_detail_compact_773398f6_0.png': 'ef05565881a0a475874338a62e692d1dbe1828c73a791b95078856c4b4fb197e',
+              root + 'app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/HomeAttentionDetailLightScreenshot_home_attention_detail_light_892f9ad3_0.png': 'b6ec17df295ea93a58118c82cf063c361fefaec3a46ed9de49d6173ac7f18080',
+              root + 'app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png': '87dfebc3816f09f7b19eb1af6e490fe0c30509ac8b878a5560c7198f9582a849',
+              root + 'app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png': '19f700d64b50f3091655a45e217a4f1269d850cbf3ea9bf3e541b3738e5ad913',
+              root + 'app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png': '02616d2cd9414514ff50a9657c919a1eaaf22e9943fe0eb20d6acad9e208163d',
+              root + 'app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png': 'f276aeff62a42eeeec06c7fa34f074a65d5af3e9b9b9925b67a49c43d1554fcc',
+              root + 'app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png': '9beaad623542a78be6d85cf4564322db8ae48c47ae56ebd29214800d6c6a3546',
+              root + 'app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png': '7fa73ccca903f077ca98f4de3833708e49d829724b44c0a2b7a3197c182740f1',
+              root + 'app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsLargeFontScreenshot_wallet_accounts_large_font_d6c72fdc_0.png': '95089efcb252971668293611abe2673a8f7ef73e3021c44f439660f4e01cf5bc',
+              root + 'app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/NetPositionLightScreenshot_net_position_light_baa93392_0.png': 'b5b43d8ab7666cd7c68b06ccbc82926af1c104b2cb80cbe7ef40981c4ce51e56',
+              root + 'app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsLightScreenshot_wallet_accounts_light_f2be2460_0.png': '89d5c124311994a684753b6280c54c9440b3cfff1411ac8f21e492ba5bec149e',
+              root + 'app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsDarkScreenshot_wallet_accounts_dark_5691a955_0.png': 'f5c3e206d08a5354776f0173f78cd3ce4933e0f537e63c8dd92949cc02217aea',
+          }
+          changed = set(subprocess.check_output(
+              ['git', 'diff', '--name-only', '--', 'app/src/screenshotTestDebug/reference'],
+              text=True,
+          ).splitlines())
+          if changed != set(expected):
+              raise SystemExit(f'Unexpected screenshot diff. expected={sorted(expected)} actual={sorted(changed)}')
+          for path, digest in expected.items():
+              actual = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f'{path}: expected {digest}, got {actual}')
+          print('Reviewed S5 screenshot set and hashes verified:', len(expected))
+          PY
+
+      - name: Validate reviewed screenshot baseline
+        shell: bash
+        run: ./gradlew validateDebugScreenshotTest --stacktrace
+
+      - name: Assemble instrumentation APKs
+        shell: bash
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run affected S5 instrumented tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: -no-window -no-audio -no-boot-anim -no-snapshot-load -no-snapshot-save -gpu swiftshader_indirect -camera-back none -camera-front none
+          script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.money.S5HomeWalletTest,app.myfinhub.android.FrontendUtilitiesParityTest --stacktrace
+
+      - name: Commit one coherent reviewed fix batch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            app/src/androidTest/java/app/myfinhub/android/feature/money/S5HomeWalletTest.kt \
+            app/src/androidTest/java/app/myfinhub/android/FrontendUtilitiesParityTest.kt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/HomeAttentionScreenshotTestKt/HomeAttentionDetailCompactScreenshot_home_attention_detail_compact_773398f6_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/HomeAttentionDetailLightScreenshot_home_attention_detail_light_892f9ad3_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLightScreenshot_canonical_account_detail_light_e9ea3dbd_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailLargeFontScreenshot_canonical_account_detail_large_font_1f406a8c_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCorrectionScreensScreenshotTestKt/CanonicalAccountDetailDarkScreenshot_canonical_account_detail_dark_6ec6a842_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsLargeFontScreenshot_wallet_accounts_large_font_d6c72fdc_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/NetPositionLightScreenshot_net_position_light_baa93392_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsLightScreenshot_wallet_accounts_light_f2be2460_0.png \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletAccountsDarkScreenshot_wallet_accounts_dark_5691a955_0.png
+          git diff --cached --check
+          git commit -m "test: accept reviewed S5 renders and fix device contracts"
+          git push origin HEAD:android/redesign-s5-home-accounts
