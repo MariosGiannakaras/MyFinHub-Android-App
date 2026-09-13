@@ -1,0 +1,85 @@
+name: S6 Tracking Start
+
+on:
+  push:
+    branches:
+      - automation/s2-checkpoint-sync
+    paths:
+      - '.github/workflows/s6-tracking-start.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout S6 branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s6-cards
+          fetch-depth: 0
+
+      - name: Move canonical tracking to S6
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          data = json.loads(path.read_text())
+          data['updated_at'] = '2026-09-14'
+
+          work = data['active_workstream']
+          work['status'] = 'android_redesign_s6_cards_in_progress'
+          work['summary'] = (
+              'S1–S5 are complete and merged. Draft PR #118 is the active Android-only S6 Cards slice. '
+              'Its first coherent batch establishes stable Wallet card rows, precise credit detail semantics, '
+              'ID-based card switching, a single primary payment action and bounded card-scoped activity. '
+              'Creation selector sheets, the separate protected secure-details surface, removal UX/recovery '
+              'and consolidated visual/device verification remain in progress.'
+          )
+          work['next'] = [
+              'Complete S6.2 card creation using compact selector sheets without inventing unsupported canonical metadata editing.',
+              'Complete S6.3 protected secure-details and explicit MyFinHub removal recovery while preserving canonical deactivation before independent server/local secret purge.',
+              'Complete S6.4 with fresh personally inspected Compose references and consolidated hosted Android CI, Project Tracking and S24-target validation.'
+          ]
+
+          current = data['current_redesign_pass']
+          current['branch'] = 'android/redesign-s6-cards'
+          current['pr'] = 118
+          current['current_slice'] = 'S6.1 / S6.2 / S6.3 / S6.4'
+          current['checkpoint'] = 's6_batch_in_progress'
+          current['blockers'] = []
+          current['next_action'] = (
+              'Continue PR #118 as one coherent Android-only Cards batch: selector-sheet creation, protected secure details, '
+              'explicit removal/recovery, then fresh visual and S24-target verification.'
+          )
+
+          s6 = next(task for task in data['redesign_tasks'] if task['id'] == 'S6')
+          for subtask in s6['subtasks']:
+              subtask['status'] = 'in_progress'
+          s61 = next(x for x in s6['subtasks'] if x['id'] == 'S6.1')
+          s61['evidence'] = [
+              'Implementation head 1fb9703cf7f7ec70acfc878144d6c77575f0c06a adds stable card-ID Wallet rows, explicit credit debt labels, precise credit-detail debt/limit/available-credit semantics, stable card switching without cyclic route stacking, one primary Pay action plus secondary purchase, and bounded recent card activity.',
+              'Hosted focused compile run 34783314496 passed :app:compileDebugKotlin and :app:compileDebugAndroidTestKotlin for the coherent first S6 batch. S6.1 remains in progress until the final S6 visual/device checkpoint.'
+          ]
+
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+          python3 scripts/render_project_tracking.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
+          git diff --check
+
+      - name: Commit S6 tracking checkpoint
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m "docs: move redesign tracking to S6 cards"
+          git push origin HEAD:android/redesign-s6-cards
