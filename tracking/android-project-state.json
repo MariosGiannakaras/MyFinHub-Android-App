@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s4_ready_to_merge",
-    "summary": "S1–S3 are complete and merged. PR #116 now has an evidence-backed S4 Quick Entry implementation: one production editor for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, exact-cent split allocation and natural operation-specific amount headings. Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, Project Tracking run 34751696393 and Android UI Quality run 34751696408; screenshot regression and all 53 S24-target tests passed. No backend or web/desktop changes.",
+    "status": "android_redesign_s5_home_accounts_implementation",
+    "summary": "S1–S4 are complete and merged. S5 Home and accounts is now active on android/redesign-s5-home-accounts from develop merge fda679687865346cde9a2b6a21ac9464c74b7ba8. The coherent Android-only S5 batch owns compact Home/attention, Wallet account grouping, account detail/ledger and net-position entry. No backend or web/desktop changes are authorized.",
     "next": [
-      "Merge validated PR #116 into develop with its exact completion-tracking head.",
-      "Create the S5 Home and accounts branch from the resulting develop head and begin S5.1 without reopening completed S4 work."
+      "Implement S5.1–S5.3 as one coherent Home/accounts batch: compact Home hierarchy, actionable attention, flat Wallet account groups, account-scoped ledger and explicit net-position detail without unsupported account administration.",
+      "Add focused S5 regression/navigation/accessibility and real-render light/dark/150% coverage, then run one consolidated hosted validation and personally inspect only intentional screenshot differences before completing S5.4."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s4-quick-entry",
-    "pr": 116,
-    "current_slice": "S4.1 / S4.2 / S4.3 / S4.4",
-    "checkpoint": "s4_complete_pending_merge",
+    "branch": "android/redesign-s5-home-accounts",
+    "pr": null,
+    "current_slice": "S5.1 / S5.2 / S5.3 / S5.4",
+    "checkpoint": "s5_batch_implementation",
     "blockers": [],
-    "next_action": "Merge PR #116 after the completion-tracking check passes, then create the S5 Home/accounts branch from the new develop head and start S5.1.",
+    "next_action": "Implement the coherent S5 Home/accounts batch on android/redesign-s5-home-accounts, then open one PR and run consolidated validation after focused coverage is ready.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -327,25 +327,25 @@
         {
           "id": "S5.1",
           "title": "Compact Home and attention",
-          "status": "pending",
+          "status": "in_progress",
           "evidence": []
         },
         {
           "id": "S5.2",
           "title": "Wallet account groups",
-          "status": "pending",
+          "status": "in_progress",
           "evidence": []
         },
         {
           "id": "S5.3",
           "title": "Account ledger and net-position entry",
-          "status": "pending",
+          "status": "in_progress",
           "evidence": []
         },
         {
           "id": "S5.4",
           "title": "Home/account verification",
-          "status": "pending",
+          "status": "in_progress",
           "evidence": []
         }
       ]
