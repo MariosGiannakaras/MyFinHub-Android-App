@@ -39,6 +39,12 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
+      - name: Validate project tracking
+        shell: bash
+        run: |
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+
       - name: Focused and broad Android validation
         shell: bash
         run: >-
@@ -48,7 +54,6 @@ jobs:
           :app:lintDebug
           :app:assembleDebug
           :app:assembleRelease
-          validateProjectTracking
           --stacktrace
 
       - name: Render real Compose candidates
