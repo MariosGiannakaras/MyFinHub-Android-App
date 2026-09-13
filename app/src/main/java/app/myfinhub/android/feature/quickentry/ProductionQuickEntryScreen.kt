@@ -52,13 +52,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubMotion
 import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
@@ -191,19 +192,34 @@ fun ProductionQuickEntryScreen(
                 Text("Περισσότερα")
             }
 
-            MyFinHubHeroHeading(
-                eyebrow = "Ποσό",
-                title = if (state.kind == QuickEntryKind.RECONCILIATION) {
-                    "Πραγματικό υπόλοιπο"
-                } else {
-                    "Πόσο ${state.kind.label.lowercase()};"
-                },
-                supporting = if (state.kind == QuickEntryKind.SPLIT) {
-                    "Δήλωσε το σύνολο και μοίρασέ το ακριβώς στα επιμέρους μέρη."
-                } else {
-                    "Τα υποχρεωτικά στοιχεία αλλάζουν ανάλογα με τον τύπο."
-                },
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                Text(
+                    text = "ΠΟΣΟ",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = if (state.kind == QuickEntryKind.RECONCILIATION) {
+                        "Πραγματικό υπόλοιπο"
+                    } else {
+                        "Πόσο ${state.kind.label.lowercase()};"
+                    },
+                    modifier = Modifier.semantics { heading() },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = if (state.kind == QuickEntryKind.SPLIT) {
+                        "Δήλωσε το σύνολο και μοίρασέ το ακριβώς στα επιμέρους μέρη."
+                    } else {
+                        "Τα υποχρεωτικά στοιχεία αλλάζουν ανάλογα με τον τύπο."
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (state.kind == QuickEntryKind.RECONCILIATION) {
                 MyFinHubOutlinedField(
                     value = state.actualBalanceText,
