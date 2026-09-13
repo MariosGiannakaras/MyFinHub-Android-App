@@ -69,7 +69,6 @@ import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
-import app.myfinhub.android.feature.quickentry.QuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
@@ -125,6 +124,7 @@ internal fun MyFinHubAppContent(
     activityMutationBlocked: Boolean = false,
     quickEntryState: QuickEntryUiState = QuickEntryUiState(),
     onQuickEntryAction: (QuickEntryAction) -> Unit = {},
+    quickEntryMutationInFlight: Boolean = false,
     moneyState: MoneyUiState = MoneyUiState(),
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
     onCardDetailOpened: (String) -> Unit = {},
@@ -315,19 +315,12 @@ internal fun MyFinHubAppContent(
                         onAction = onQuickEntryAction,
                         onExit = { activeBackStack.removeLastOrNull() },
                     ) {
-                        if (canonicalProductMode) {
-                            ProductionQuickEntryScreen(
-                                state = quickEntryState,
-                                onAction = onQuickEntryAction,
-                                onBack = { activeBackStack.removeLastOrNull() },
-                            )
-                        } else {
-                            QuickEntryScreen(
-                                state = quickEntryState,
-                                onAction = onQuickEntryAction,
-                                onBack = { activeBackStack.removeLastOrNull() },
-                            )
-                        }
+                        ProductionQuickEntryScreen(
+                            state = quickEntryState,
+                            onAction = onQuickEntryAction,
+                            onBack = { activeBackStack.removeLastOrNull() },
+                            mutationInFlight = quickEntryMutationInFlight,
+                        )
                     }
                 }
                 entry<AppRoute.Money> {

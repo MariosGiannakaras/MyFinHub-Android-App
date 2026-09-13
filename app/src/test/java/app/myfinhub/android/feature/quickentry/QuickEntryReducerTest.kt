@@ -141,7 +141,7 @@ class QuickEntryReducerTest {
         val result = reduceQuickEntry(
             QuickEntryUiState(
                 kind = QuickEntryKind.SPLIT,
-                amountText = "999",
+                amountText = "15,00",
                 splitParts = listOf(
                     QuickEntrySplitPartDraft("p1", category = "Τρόφιμα", amountText = "10,10"),
                     QuickEntrySplitPartDraft("p2", category = "Μετακίνηση", amountText = "4,90"),
@@ -161,6 +161,7 @@ class QuickEntryReducerTest {
         val result = reduceQuickEntry(
             QuickEntryUiState(
                 kind = QuickEntryKind.SPLIT,
+                amountText = "10,00",
                 splitParts = listOf(
                     QuickEntrySplitPartDraft("p1", category = "Τρόφιμα", amountText = "10"),
                     QuickEntrySplitPartDraft("p2", category = "Μετακίνηση", amountText = "0"),
@@ -189,7 +190,7 @@ class QuickEntryReducerTest {
     }
 
     @Test
-    fun selectingIncomeUsesIncomeDefaultAndTaxonomy() {
+    fun selectingIncomePreservesCompatibleAccountAndUsesIncomeTaxonomy() {
         val state = QuickEntryUiState(
             accountId = "acc-cash",
             category = "Τρόφιμα",
@@ -197,8 +198,159 @@ class QuickEntryReducerTest {
         )
         val result = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.INCOME))
 
-        assertEquals("acc-main", result.accountId)
+        assertEquals("acc-cash", result.accountId)
         assertEquals("Μισθός", result.category)
         assertTrue(result.dirty)
     }
+
+    @Test
+    fun allTwelveKinds_haveAValidCanonicalDraft() {
+        QuickEntryKind.entries.forEach { kind ->
+            val destination = when (kind) {
+                QuickEntryKind.WITHDRAWAL -> "acc-cash"
+                QuickEntryKind.SAVING -> "acc-save"
+                else -> "acc-save"
+            }
+            val category = if (kind == QuickEntryKind.INCOME) "Μισθός" else "Τρόφιμα"
+            val draft = QuickEntryUiState(
+                kind = kind,
+                amountText = if (kind == QuickEntryKind.RECONCILIATION) "" else "15,00",
+                category = category,
+                fromAccountId = "acc-main",
+                toAccountId = destination,
+                person = "Άννα",
+                actualBalanceText = "1250,40",
+                splitParts = listOf(
+                    QuickEntrySplitPartDraft("p1", category = "Τρόφιμα", amountText = "10,10"),
+                    QuickEntrySplitPartDraft("p2", category = "Μετακίνηση", amountText = "4,90"),
+                ),
+            )
+
+            val result = reduceQuickEntry(draft, QuickEntryAction.Save)
+
+            assertNull("${kind.name}: ${result.validationMessage}", result.validationMessage)
+            assertTrue("${kind.name} did not create a preview", result.savedSummary != null)
+        }
+    }
+
+    @Test
+    fun kindSwitch_preservesCompatibleValuesAndClearsIncompatibleDraftFields() {
+        val lending = QuickEntryUiState(
+            kind = QuickEntryKind.LENDING,
+            amountText = "42,50",
+            dateText = "2026-09-13",
+            note = "Κοινό δείπνο",
+            accountId = "acc-cash",
+            category = "Τρόφιμα",
+            subcategory = "Καφές",
+            person = "Άννα",
+            expectedReturnDateText = "2026-09-20",
+        )
+
+        val repayment = reduceQuickEntry(lending, QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
+        assertEquals("42,50", repayment.amountText)
+        assertEquals("2026-09-13", repayment.dateText)
+        assertEquals("Κοινό δείπνο", repayment.note)
+        assertEquals("acc-cash", repayment.accountId)
+        assertEquals("Τρόφιμα", repayment.category)
+        assertEquals("Καφές", repayment.subcategory)
+        assertEquals("Άννα", repayment.person)
+        assertEquals("", repayment.expectedReturnDateText)
+
+        val reconciliation = reduceQuickEntry(
+            repayment.copy(actualBalanceText = "stale"),
+            QuickEntryAction.SelectKind(QuickEntryKind.RECONCILIATION),
+        )
+        assertEquals("", reconciliation.amountText)
+        assertEquals("", reconciliation.person)
+        assertEquals("", reconciliation.expectedReturnDateText)
+        assertEquals("", reconciliation.actualBalanceText)
+
+        val expense = reduceQuickEntry(
+            reconciliation.copy(actualBalanceText = "1000"),
+            QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE),
+        )
+        assertEquals("", expense.actualBalanceText)
+    }
+
+    @Test
+    fun transferKindSwitch_keepsCompatibleRouteAndRepairsRestrictedDestination() {
+        val transfer = QuickEntryUiState(
+            kind = QuickEntryKind.TRANSFER,
+            amountText = "20",
+            fromAccountId = "acc-main",
+            toAccountId = "acc-save",
+        )
+
+        val saving = reduceQuickEntry(transfer, QuickEntryAction.SelectKind(QuickEntryKind.SAVING))
+        assertEquals("acc-main", saving.fromAccountId)
+        assertEquals("acc-save", saving.toAccountId)
+        assertEquals("20", saving.amountText)
+
+        val withdrawal = reduceQuickEntry(saving, QuickEntryAction.SelectKind(QuickEntryKind.WITHDRAWAL))
+        assertEquals("acc-main", withdrawal.fromAccountId)
+        assertEquals("acc-cash", withdrawal.toAccountId)
+        assertEquals("20", withdrawal.amountText)
+    }
+
+    @Test
+    fun split_requiresDeclaredTotalToMatchPartsInExactCurrencyCents() {
+        val base = QuickEntryUiState(
+            kind = QuickEntryKind.SPLIT,
+            amountText = "15,00",
+            splitParts = listOf(
+                QuickEntrySplitPartDraft("p1", category = "Τρόφιμα", amountText = "10,10"),
+                QuickEntrySplitPartDraft("p2", category = "Μετακίνηση", amountText = "4,90"),
+            ),
+        )
+
+        val valid = reduceQuickEntry(base, QuickEntryAction.Save)
+        assertNull(valid.validationMessage)
+        assertEquals(0.0, valid.splitRemaining ?: Double.NaN, 0.0)
+
+        val mismatched = reduceQuickEntry(base.copy(amountText = "15,01"), QuickEntryAction.Save)
+        assertEquals("Τα μέρη πρέπει να ισούνται ακριβώς με το συνολικό ποσό.", mismatched.validationMessage)
+
+        val tooPrecise = reduceQuickEntry(base.copy(amountText = "15,001"), QuickEntryAction.Save)
+        assertEquals("Βάλε ποσό μεγαλύτερο από μηδέν.", tooPrecise.validationMessage)
+    }
+
+    @Test
+    fun selectingSplit_startsFreshAllocationButKeepsSharedDateAndNote() {
+        val state = QuickEntryUiState(
+            kind = QuickEntryKind.EXPENSE,
+            amountText = "22",
+            dateText = "2026-09-13",
+            note = "Απόδειξη",
+            splitParts = listOf(
+                QuickEntrySplitPartDraft("stale-1", category = "Τρόφιμα", amountText = "22"),
+                QuickEntrySplitPartDraft("stale-2", category = "Τρόφιμα", amountText = "1"),
+            ),
+        )
+
+        val split = reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.SPLIT))
+
+        assertEquals("", split.amountText)
+        assertEquals("2026-09-13", split.dateText)
+        assertEquals("Απόδειξη", split.note)
+        assertEquals(listOf("part-1", "part-2"), split.splitParts.map { it.id })
+        assertTrue(split.splitParts.all { it.amountText.isBlank() })
+    }
+
+
+    @Test
+    fun selectingTheCurrentKind_doesNotCreateOrDestroyDraftState() {
+        val state = QuickEntryUiState(
+            kind = QuickEntryKind.SPLIT,
+            amountText = "15,00",
+            splitParts = listOf(
+                QuickEntrySplitPartDraft("p1", category = "Τρόφιμα", amountText = "10,10"),
+                QuickEntrySplitPartDraft("p2", category = "Μετακίνηση", amountText = "4,90"),
+            ),
+            dirty = false,
+        )
+
+        assertEquals(state, reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.SPLIT)))
+    }
+
 }

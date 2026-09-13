@@ -113,8 +113,8 @@ fun QuickEntryScreen(
 
     // The encrypted local enqueue is the successful form-submit boundary. Sync and safe
     // Undo are surfaced centrally, so the editor should not become a pending dead end.
-    LaunchedEffect(savedLocally) {
-        if (savedLocally) onBack()
+    LaunchedEffect(state.persisted, savedLocally) {
+        if (state.persisted || savedLocally) onBack()
     }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -161,11 +161,11 @@ fun QuickEntryScreen(
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    if (state.kind != QuickEntryKind.RECONCILIATION && state.kind != QuickEntryKind.SPLIT) {
+                    if (state.kind != QuickEntryKind.RECONCILIATION) {
                         MyFinHubOutlinedField(
                             value = state.amountText,
                             onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                            label = "Ποσό",
+                            label = if (state.kind == QuickEntryKind.SPLIT) "Συνολικό ποσό" else "Ποσό",
                             suffix = { Text("€") },
                             errorMessage = validationMessage.takeIf { amountError },
                             keyboardOptions = KeyboardOptions(
@@ -384,8 +384,8 @@ fun QuickEntryScreen(
     if (discardDialogOpen) {
         AlertDialog(
             onDismissRequest = { discardDialogOpen = false },
-            title = { Text("Απόρριψη αλλαγών;") },
-            text = { Text("Έχεις μη αποθηκευμένα στοιχεία στη νέα κίνηση.") },
+            title = { Text("Απόρριψη νέας κίνησης;") },
+            text = { Text("Τα στοιχεία που συμπλήρωσες δεν έχουν αποθηκευτεί.") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -399,7 +399,7 @@ fun QuickEntryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { discardDialogOpen = false }) {
-                    Text("Συνέχεια επεξεργασίας")
+                    Text("Συνέχεια")
                 }
             },
         )
@@ -491,7 +491,7 @@ private fun SplitEditor(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Text("Μέρη σύνθετης αγοράς", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Το συνολικό ποσό προκύπτει από τα επιμέρους ποσά και κάθε μέρος έχει τη δική του κατηγορία.",
+                "Δήλωσε πώς κατανέμεται το συνολικό ποσό. Η αποθήκευση ενεργοποιείται μόνο όταν το υπόλοιπο είναι ακριβώς μηδέν.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -565,9 +565,24 @@ private fun SplitEditor(
                     .fillMaxWidth()
                     .semantics { contentDescription = "Προσθήκη μέρους σύνθετης αγοράς" },
             )
+            val remaining = state.splitRemaining
             Text(
-                "Σύνολο: ${formatSplitTotal(state.splitTotal)} €",
+                "Κατανομή: ${formatSplitTotal(state.splitTotal)} €",
                 style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = when {
+                    remaining == null -> "Συμπλήρωσε πρώτα το συνολικό ποσό."
+                    remaining == 0.0 -> "Η κατανομή είναι πλήρης."
+                    remaining > 0.0 -> "Απομένουν ${formatSplitTotal(remaining)} €."
+                    else -> "Η κατανομή υπερβαίνει το σύνολο κατά ${formatSplitTotal(-remaining)} €."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (remaining == 0.0) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                },
             )
         }
     }

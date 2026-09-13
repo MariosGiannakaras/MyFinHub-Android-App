@@ -56,10 +56,8 @@ class HomeScreenTest {
         // Selecting a type must enter the real canonical transaction form instead of stopping on
         // a selected-state marker inside the Home sheet.
         composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
-        composeRule.onNodeWithText("Πλήρης καταχώριση").assertIsDisplayed()
+        composeRule.onNodeWithText("Πόσο έξοδο;").assertIsDisplayed()
         composeRule.onNodeWithText("Πλήρωσα για κάτι").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση κίνησης")
-            .performScrollTo()
-            .assertIsDisplayed()
+        composeRule.onNodeWithText("Αποθήκευση έξοδο").assertIsDisplayed()
     }
 }

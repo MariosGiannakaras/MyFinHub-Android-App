@@ -5,9 +5,11 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,16 +37,15 @@ class ActivityQuickEntryTest {
         }
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
-        composeRule.onNodeWithText("Τι θέλεις να καταχωρίσεις;").assertIsDisplayed()
-        composeRule.onNodeWithText("Τύπος κίνησης").assertIsDisplayed()
+        composeRule.onNodeWithText("Πόσο έξοδο;").assertIsDisplayed()
+        composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
         composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.onNodeWithText("Μεταφορά").performClick()
         composeRule.onNodeWithText("Από λογαριασμό").assertIsDisplayed()
         composeRule.onNodeWithText("Προς λογαριασμό").assertIsDisplayed()
         composeRule.onNodeWithText(
-            "Η εσωτερική μεταφορά αλλάζει υπόλοιπα αλλά δεν μετρά ως έσοδο ή έξοδο.",
+            "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα.",
         ).assertIsDisplayed()
     }
 
@@ -53,12 +54,15 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
 
-        composeRule.onNodeWithText("Έξοδο").performClick()
+        composeRule.onNodeWithText("Περισσότερα").performClick()
+        composeRule.onNodeWithTag("quick_entry_kind_list")
+            .performScrollToNode(hasText("Σύνθετη αγορά"))
         composeRule.onNodeWithText("Σύνθετη αγορά").performClick()
 
-        composeRule.onNodeWithText("Μέρη σύνθετης αγοράς").assertIsDisplayed()
+        composeRule.onNodeWithText("Συνολικό ποσό").assertIsDisplayed()
+        composeRule.onNodeWithText("Κατανομή ποσού").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό μέρους 1").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Προσθήκη μέρους σύνθετης αγοράς")
+        composeRule.onNodeWithText("+ Προσθήκη μέρους")
             .performScrollTo()
             .assertIsDisplayed()
     }
@@ -68,12 +72,11 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
 
-        composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.onNodeWithText("Έσοδο").performClick()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
-        composeRule.onNodeWithText("Απόρριψη αλλαγών;").assertIsDisplayed()
-        composeRule.onNodeWithText("Συνέχεια επεξεργασίας").assertIsDisplayed()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
+        composeRule.onNodeWithText("Συνέχεια").assertIsDisplayed()
         composeRule.onNodeWithText("Απόρριψη").assertIsDisplayed()
     }
 }

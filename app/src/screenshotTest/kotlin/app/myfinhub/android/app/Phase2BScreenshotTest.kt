@@ -131,6 +131,7 @@ private fun QuickEntrySplitScreenshotFixture(darkTheme: Boolean) {
         QuickEntryScreen(
             state = QuickEntryUiState(
                 kind = QuickEntryKind.SPLIT,
+                amountText = "72,70",
                 dateText = "2026-09-02",
                 note = "Ψώνια και parking",
                 accountId = "acc-main",

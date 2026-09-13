@@ -76,12 +76,13 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Πλήρης καταχώριση").assertIsDisplayed()
+        composeRule.onNodeWithText("Πόσο έξοδο;").assertIsDisplayed()
     }
 
     private fun leaveDirtyQuickEntry() {
+        composeRule.onNodeWithText("Έσοδο").performClick()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
-        composeRule.onNodeWithText("Απόρριψη αλλαγών;").assertIsDisplayed()
+        composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
         composeRule.onNodeWithText("Απόρριψη").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()

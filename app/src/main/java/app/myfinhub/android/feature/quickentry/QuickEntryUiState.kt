@@ -1,6 +1,8 @@
 package app.myfinhub.android.feature.quickentry
 
 import androidx.lifecycle.ViewModel
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,6 +56,7 @@ data class QuickEntryAccountOption(
 data class QuickEntryCardOption(
     val id: String,
     val label: String,
+    val provider: String = "",
 )
 
 data class QuickEntryCategoryOption(
@@ -69,7 +72,7 @@ data class QuickEntrySplitPartDraft(
     val amountText: String = "",
 ) {
     val amount: Double?
-        get() = amountText.replace(',', '.').toDoubleOrNull()
+        get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
 }
 
 data class QuickEntryUiState(
@@ -107,14 +110,7 @@ data class QuickEntryUiState(
     val dirty: Boolean = false,
 ) {
     val amount: Double?
-        get() {
-            if (kind == QuickEntryKind.SPLIT) {
-                val values = splitParts.mapNotNull(QuickEntrySplitPartDraft::amount)
-                if (values.size != splitParts.size || values.any { it <= 0.0 || !it.isFinite() }) return null
-                return values.sum()
-            }
-            return amountText.replace(',', '.').toDoubleOrNull()
-        }
+        get() = amountText.toCurrencyCentsOrNull()?.div(100.0)
 
     val activeCategoryOptions: List<QuickEntryCategoryOption>
         get() = if (kind == QuickEntryKind.INCOME) incomeCategories else expenseCategories
@@ -123,9 +119,13 @@ data class QuickEntryUiState(
         get() = activeCategoryOptions.firstOrNull { it.name == category }?.subcategories.orEmpty()
 
     val splitTotal: Double
-        get() = splitParts.mapNotNull(QuickEntrySplitPartDraft::amount)
-            .filter { it.isFinite() && it > 0.0 }
-            .sum()
+        get() = splitAllocatedCents.div(100.0)
+
+    val splitRemaining: Double?
+        get() = amountText.toCurrencyCentsOrNull()?.let { total -> (total - splitAllocatedCents).div(100.0) }
+
+    private val splitAllocatedCents: Long
+        get() = splitParts.mapNotNull { it.amountText.toCurrencyCentsOrNull() }.sum()
 }
 
 sealed interface QuickEntryAction {
@@ -183,36 +183,82 @@ fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickE
 }
 
 private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEntryUiState {
+    if (state.kind == kind) return state
+    val previousKind = state.kind
     val categoryOptions = if (kind == QuickEntryKind.INCOME) state.incomeCategories else state.expenseCategories
-    val category = state.category.takeIf { current -> categoryOptions.any { it.name == current } }
+    val canKeepCategory = previousKind.usesCategory &&
+        kind.usesCategory &&
+        categoryOptions.any { it.name == state.category }
+    val category = state.category.takeIf { canKeepCategory }
         ?: categoryOptions.firstOrNull()?.name.orEmpty()
-    val accountId = when (kind) {
-        QuickEntryKind.INCOME -> state.defaultIncomeAccountId.takeIf { id -> state.accounts.any { it.id == id } }
-        else -> state.defaultExpenseAccountId.takeIf { id -> state.accounts.any { it.id == id } }
-    } ?: state.accounts.firstOrNull()?.id.orEmpty()
-    val fromId = state.defaultExpenseAccountId.takeIf { id -> state.accounts.any { it.id == id } }
+    val subcategory = state.subcategory.takeIf {
+        canKeepCategory &&
+            categoryOptions.firstOrNull { option -> option.name == category }?.subcategories?.contains(it) == true
+    }.orEmpty()
+
+    val defaultPrimaryId = when (kind) {
+        QuickEntryKind.INCOME -> state.defaultIncomeAccountId
+        else -> state.defaultExpenseAccountId
+    }.takeIf { id -> state.accounts.any { it.id == id } } ?: state.accounts.firstOrNull()?.id.orEmpty()
+    val accountId = state.accountId.takeIf {
+        previousKind.needsPrimaryAccount && kind.needsPrimaryAccount && idExists(state, it)
+    } ?: defaultPrimaryId
+
+    val previousUsesSource = previousKind.needsTransferAccounts || previousKind == QuickEntryKind.CARD_PAYMENT
+    val newUsesSource = kind.needsTransferAccounts || kind == QuickEntryKind.CARD_PAYMENT
+    val defaultSourceId = state.defaultExpenseAccountId.takeIf { id -> state.accounts.any { it.id == id } }
         ?: state.accounts.firstOrNull()?.id.orEmpty()
-    val preferredTo = when (kind) {
+    val fromId = state.fromAccountId.takeIf {
+        previousUsesSource && newUsesSource && idExists(state, it)
+    } ?: defaultSourceId
+
+    val currentDestination = state.accounts.firstOrNull { it.id == state.toAccountId && it.id != fromId }
+        ?.takeIf { account ->
+            when (kind) {
+                QuickEntryKind.WITHDRAWAL -> account.kind == "cash"
+                QuickEntryKind.SAVING -> account.kind == "savings"
+                else -> true
+            }
+        }
+        ?.takeIf { previousKind.needsTransferAccounts && kind.needsTransferAccounts }
+    val preferredTo = currentDestination ?: when (kind) {
         QuickEntryKind.WITHDRAWAL -> state.accounts.firstOrNull { it.kind == "cash" && it.id != fromId }
         QuickEntryKind.SAVING -> state.accounts.firstOrNull { it.kind == "savings" && it.id != fromId }
         else -> state.accounts.firstOrNull { it.kind == "savings" && it.id != fromId }
             ?: state.accounts.firstOrNull { it.id != fromId }
     }
+
+    val previousUsesAmount = previousKind != QuickEntryKind.RECONCILIATION &&
+        previousKind != QuickEntryKind.SPLIT
+    val newUsesAmount = kind != QuickEntryKind.RECONCILIATION && kind != QuickEntryKind.SPLIT
+    val previousUsesPerson = previousKind == QuickEntryKind.LENDING || previousKind == QuickEntryKind.REPAYMENT
+    val newUsesPerson = kind == QuickEntryKind.LENDING || kind == QuickEntryKind.REPAYMENT
     val partCategory = state.expenseCategories.firstOrNull()?.name ?: "Άλλο"
 
     return state.copy(
         kind = kind,
+        amountText = state.amountText.takeIf { previousUsesAmount && newUsesAmount }.orEmpty(),
         category = category,
-        subcategory = "",
+        subcategory = subcategory,
         accountId = accountId,
         fromAccountId = fromId,
-        toAccountId = preferredTo?.id ?: state.toAccountId,
-        cardId = state.cardId.takeIf { id -> state.creditCards.any { it.id == id } }
-            ?: state.creditCards.firstOrNull()?.id.orEmpty(),
-        splitParts = if (kind == QuickEntryKind.SPLIT && state.splitParts.any { it.category.isBlank() }) {
-            state.splitParts.map { part -> if (part.category.isBlank()) part.copy(category = partCategory) else part }
+        toAccountId = preferredTo?.id.orEmpty(),
+        cardId = state.cardId.takeIf {
+            previousKind.needsCard && kind.needsCard && state.creditCards.any { card -> card.id == it }
+        } ?: state.creditCards.firstOrNull()?.id.orEmpty(),
+        person = state.person.takeIf { previousUsesPerson && newUsesPerson }.orEmpty(),
+        expectedReturnDateText = state.expectedReturnDateText.takeIf {
+            previousKind == QuickEntryKind.LENDING && kind == QuickEntryKind.LENDING
+        }.orEmpty(),
+        actualBalanceText = state.actualBalanceText.takeIf {
+            previousKind == QuickEntryKind.RECONCILIATION && kind == QuickEntryKind.RECONCILIATION
+        }.orEmpty(),
+        splitParts = if (previousKind == QuickEntryKind.SPLIT && kind == QuickEntryKind.SPLIT) {
+            state.splitParts.map { part ->
+                if (part.category.isBlank()) part.copy(category = partCategory) else part
+            }
         } else {
-            state.splitParts
+            defaultSplitParts(partCategory)
         },
         validationMessage = null,
         savedSummary = null,
@@ -221,6 +267,8 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         dirty = true,
     )
 }
+
+private fun idExists(state: QuickEntryUiState, id: String): Boolean = state.accounts.any { it.id == id }
 
 private fun QuickEntryUiState.changed(
     amountText: String = this.amountText,
@@ -320,7 +368,7 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     val date = runCatching { LocalDate.parse(state.dateText) }.getOrNull()
         ?: return state.invalid("Συμπλήρωσε έγκυρη ημερομηνία.")
 
-    if (state.kind != QuickEntryKind.RECONCILIATION && state.kind != QuickEntryKind.SPLIT) {
+    if (state.kind != QuickEntryKind.RECONCILIATION) {
         val amount = state.amount
         if (amount == null || amount <= 0.0 || !amount.isFinite()) {
             return state.invalid("Βάλε ποσό μεγαλύτερο από μηδέν.")
@@ -374,8 +422,8 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     }
 
     if (state.kind == QuickEntryKind.RECONCILIATION) {
-        val actual = state.actualBalanceText.replace(',', '.').toDoubleOrNull()
-        if (actual == null || !actual.isFinite()) {
+        val actual = state.actualBalanceText.toCurrencyCentsOrNull()
+        if (actual == null) {
             return state.invalid("Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο.")
         }
     }
@@ -392,6 +440,12 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
             if (part.subcategory.isNotBlank() && part.subcategory !in category.subcategories) {
                 return state.invalid("Διάλεξε διαθέσιμη υποκατηγορία για το μέρος ${index + 1}.")
             }
+        }
+        val declaredCents = state.amountText.toCurrencyCentsOrNull()
+            ?: return state.invalid("Βάλε ποσό μεγαλύτερο από μηδέν.")
+        val allocatedCents = state.splitParts.sumOf { it.amountText.toCurrencyCentsOrNull() ?: 0L }
+        if (declaredCents != allocatedCents) {
+            return state.invalid("Τα μέρη πρέπει να ισούνται ακριβώς με το συνολικό ποσό.")
         }
     }
 
@@ -414,6 +468,15 @@ private fun QuickEntryUiState.invalid(message: String): QuickEntryUiState = copy
     persisted = false,
     pendingSync = false,
 )
+
+internal fun String.toCurrencyCentsOrNull(): Long? = runCatching {
+    val normalized = trim().replace(',', '.')
+    if (!normalized.matches(Regex("""-?\d+(\.\d{1,2})?"""))) return null
+    BigDecimal(normalized)
+        .setScale(2, RoundingMode.UNNECESSARY)
+        .movePointRight(2)
+        .longValueExact()
+}.getOrNull()
 
 private fun formatMoney(value: Double): String = if (value % 1.0 == 0.0) {
     value.toLong().toString()
