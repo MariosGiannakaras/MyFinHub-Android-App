@@ -48,21 +48,25 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           path = Path('/tmp/apply-s7.sh')
-          text = path.read_text()
-          old = """if text.count(old_plan) != 1:
-              raise SystemExit('MyFinHubApp: canonical Plan route block did not match exactly')
-          text = text.replace(old_plan, new_plan, 1)"""
-          new = """if text.count(old_plan) == 1:
-              text = text.replace(old_plan, new_plan, 1)
-          else:
-              start_marker = '                entry<AppRoute.Plan> {'
-              end_marker = '                entry<AppRoute.PlanItem> {'
-              start = text.index(start_marker)
-              end = text.index(end_marker, start)
-              text = text[:start] + new_plan + text[end:]"""
-          if old not in text:
-              raise SystemExit('route transform guard not found in extracted payload')
-          path.write_text(text.replace(old, new, 1))
+          lines = path.read_text().splitlines(keepends=True)
+          fixed = []
+          in_embedded = False
+          for line in lines:
+              if not in_embedded and " = '''" in line:
+                  in_embedded = True
+                  fixed.append(line)
+                  continue
+              if in_embedded and line.lstrip().startswith("'''"):
+                  in_embedded = False
+                  fixed.append(line)
+                  continue
+              if in_embedded:
+                  fixed.append('          ' + line)
+              else:
+                  fixed.append(line)
+          if in_embedded:
+              raise SystemExit('unterminated embedded transform string')
+          path.write_text(''.join(fixed))
           PY
           bash /tmp/apply-s7.sh
 
