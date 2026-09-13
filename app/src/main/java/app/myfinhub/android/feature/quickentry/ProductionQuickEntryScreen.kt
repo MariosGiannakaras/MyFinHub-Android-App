@@ -82,6 +82,22 @@ private val FastKinds = listOf(
 
 private val GreekDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR"))
 
+internal val QuickEntryKind.amountHeading: String
+    get() = when (this) {
+        QuickEntryKind.EXPENSE -> "Ποσό εξόδου"
+        QuickEntryKind.INCOME -> "Ποσό εσόδου"
+        QuickEntryKind.TRANSFER -> "Ποσό μεταφοράς"
+        QuickEntryKind.WITHDRAWAL -> "Ποσό ανάληψης"
+        QuickEntryKind.SAVING -> "Ποσό αποταμίευσης"
+        QuickEntryKind.REFUND -> "Ποσό επιστροφής"
+        QuickEntryKind.LENDING -> "Ποσό που έδωσες"
+        QuickEntryKind.REPAYMENT -> "Ποσό που επέστρεψαν"
+        QuickEntryKind.CARD_PURCHASE -> "Ποσό αγοράς"
+        QuickEntryKind.CARD_PAYMENT -> "Ποσό εξόφλησης"
+        QuickEntryKind.RECONCILIATION -> "Πραγματικό υπόλοιπο"
+        QuickEntryKind.SPLIT -> "Συνολικό ποσό"
+    }
+
 /**
  * One production editor for all canonical finance kinds. The three everyday kinds stay visible,
  * while More exposes the same form with only the fields required by the selected operation.
@@ -201,11 +217,7 @@ fun ProductionQuickEntryScreen(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = if (state.kind == QuickEntryKind.RECONCILIATION) {
-                        "Πραγματικό υπόλοιπο"
-                    } else {
-                        "Πόσο ${state.kind.label.lowercase()};"
-                    },
+                    text = state.kind.amountHeading,
                     modifier = Modifier.semantics { heading() },
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground,
