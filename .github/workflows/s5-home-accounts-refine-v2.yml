@@ -18,11 +18,11 @@ jobs:
       - name: Checkout exact S6 candidate
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 9e869ea22a8fc69e818b446b1d7bf8189b4d6cb3
+          ref: dca5286fab86c3306c2879ddd9531799511708cb
 
       - name: Confirm exact source
         shell: bash
-        run: test "$(git rev-parse HEAD)" = "9e869ea22a8fc69e818b446b1d7bf8189b4d6cb3"
+        run: test "$(git rev-parse HEAD)" = "dca5286fab86c3306c2879ddd9531799511708cb"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
