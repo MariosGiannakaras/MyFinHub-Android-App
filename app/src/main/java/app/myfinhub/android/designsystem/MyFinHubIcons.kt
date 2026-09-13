@@ -21,6 +21,20 @@ object MyFinHubIcons {
     val Add by lazy { icon("MyFinHubAdd") { strokePath { moveTo(12f, 5f); lineTo(12f, 19f); moveTo(5f, 12f); lineTo(19f, 12f) } } }
     val Back by lazy { icon("MyFinHubBack", autoMirror = true) { strokePath { moveTo(19f, 12f); lineTo(5f, 12f); moveTo(11f, 6f); lineTo(5f, 12f); lineTo(11f, 18f) } } }
     val Search by lazy { icon("MyFinHubSearch") { strokePath { circle(10.5f, 10.5f, 5.5f); moveTo(14.5f, 14.5f); lineTo(20f, 20f) } } }
+    val Visibility by lazy {
+        icon("MyFinHubVisibility") { strokePath {
+            moveTo(3f, 12f); curveTo(6.5f, 6.8f, 17.5f, 6.8f, 21f, 12f)
+            curveTo(17.5f, 17.2f, 6.5f, 17.2f, 3f, 12f); close(); circle(12f, 12f, 2.5f)
+        } }
+    }
+    val VisibilityOff by lazy {
+        icon("MyFinHubVisibilityOff") { strokePath {
+            moveTo(4f, 5f); lineTo(20f, 19f)
+            moveTo(3f, 12f); curveTo(5f, 9f, 7.5f, 7.5f, 10f, 7f)
+            moveTo(14f, 7.2f); curveTo(17f, 7.8f, 19.5f, 9.5f, 21f, 12f)
+            moveTo(18f, 15.5f); curveTo(14f, 18f, 7f, 17.2f, 3f, 12f)
+        } }
+    }
 
     val Home by lazy {
         icon("MyFinHubHome") { strokePath {

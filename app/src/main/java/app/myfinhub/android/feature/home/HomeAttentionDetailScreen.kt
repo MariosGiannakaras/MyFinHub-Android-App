@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,8 +18,11 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.designsystem.FinanceTone
+import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
+import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -32,17 +32,14 @@ fun HomeAttentionDetailScreen(
     item: HomeAttentionItem?,
     onMarkReviewed: () -> Unit,
     onBack: () -> Unit,
+    onOpenAction: () -> Unit = {},
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
                 title = "Χρειάζεται προσοχή",
-                navigation = {
-                    IconButton(onClick = onBack) {
-                        Icon(MyFinHubIcons.Back, contentDescription = "Πίσω")
-                    }
-                },
+                navigation = { MyFinHubBackButton(onBack) },
             )
         },
     ) { padding ->
@@ -61,7 +58,7 @@ fun HomeAttentionDetailScreen(
                 return@Column
             }
 
-            val tone = if (item.tone == HomeAttentionTone.URGENT) FinanceTone.Expense else FinanceTone.Attention
+            val urgent = item.tone == HomeAttentionTone.URGENT
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
@@ -69,8 +66,8 @@ fun HomeAttentionDetailScreen(
             ) {
                 MyFinHubIconBadge(
                     icon = MyFinHubIcons.Attention,
-                    tone = tone,
-                    contentDescription = "Χρειάζεται προσοχή",
+                    tone = if (urgent) FinanceTone.Attention else FinanceTone.Neutral,
+                    contentDescription = null,
                 )
                 Column(
                     modifier = Modifier.weight(1f),
@@ -83,13 +80,9 @@ fun HomeAttentionDetailScreen(
                         modifier = Modifier.semantics { heading() },
                     )
                     Text(
-                        text = item.dueLabel,
+                        text = if (urgent) "Άμεσος έλεγχος · ${item.dueLabel}" else item.dueLabel,
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (item.tone == HomeAttentionTone.URGENT) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
+                        color = if (urgent) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -97,32 +90,37 @@ fun HomeAttentionDetailScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text("Γιατί εμφανίζεται", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(item.reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    Text("Προτεινόμενο βήμα", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text(
-                        if (item.id == "transaction-review") {
-                            "Έλεγξε τις κινήσεις που δεν έχουν κατηγορία και επιβεβαίωσε μόνο όσα αναγνωρίζεις."
-                        } else {
-                            "Έλεγξε τα στοιχεία της επόμενης πληρωμής και επιβεβαίωσε ότι παραμένει σωστά προγραμματισμένη."
-                        },
+                        item.reason,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
-            Button(
+            val actionLabel = if (item.id == "transaction-review") "Άνοιγμα κινήσεων" else "Άνοιγμα πλάνου"
+            MyFinHubPrimaryAction(
+                label = actionLabel,
+                onClick = onOpenAction,
+                modifier = Modifier.fillMaxWidth(),
+                icon = if (item.id == "transaction-review") MyFinHubIcons.Activity else MyFinHubIcons.Plan,
+            )
+            Text(
+                "Το άνοιγμα της σχετικής ενότητας δεν καταχωρίζει πληρωμή και δεν αλλάζει οικονομικά δεδομένα από μόνο του.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            MyFinHubOutlinedAction(
+                label = "Απόκρυψη για τώρα",
                 onClick = onMarkReviewed,
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text("Σήμανση ως ελεγμένο")
-            }
+                icon = null,
+            )
+            Text(
+                "Η απόκρυψη αφορά την τρέχουσα προβολή. Δεν σημαίνει ότι η υποχρέωση πληρώθηκε ή ολοκληρώθηκε.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

@@ -43,7 +43,8 @@ import app.myfinhub.android.feature.money.CardCreateRequest
 import app.myfinhub.android.feature.money.accountActivityItems
 import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
-import app.myfinhub.android.feature.money.CanonicalMoneyScreen
+import app.myfinhub.android.feature.money.CanonicalNetPositionScreen
+import app.myfinhub.android.feature.money.CanonicalWalletScreen
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardDetail2026Screen
 import app.myfinhub.android.feature.money.CardSecretUiState
@@ -189,6 +190,11 @@ internal fun MyFinHubAppContent(
                             onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                             onOpenQuickEntry = { openFastExpense(homeBackStack) },
                             onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                            onOpenAllAccounts = {
+                                homeBackStack.popToRoot()
+                                currentDestination = TopLevelDestination.MONEY
+                                moneyBackStack.popToRoot()
+                            },
                             onOpenRecent = { eventId -> homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         )
                     } else {
@@ -216,6 +222,16 @@ internal fun MyFinHubAppContent(
                             homeBackStack.removeLastOrNull()
                         },
                         onBack = { homeBackStack.removeLastOrNull() },
+                        onOpenAction = {
+                            homeBackStack.popToRoot()
+                            if (route.attentionId == "transaction-review") {
+                                currentDestination = TopLevelDestination.ACTIVITY
+                                activityBackStack.popToRoot()
+                            } else {
+                                currentDestination = TopLevelDestination.PLAN
+                                planBackStack.popToRoot()
+                            }
+                        },
                     )
                 }
                 entry<AppRoute.Settings> {
@@ -325,18 +341,12 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Money> {
                     if (canonicalProductMode) {
-                        CanonicalMoneyScreen(
+                        CanonicalWalletScreen(
                             state = moneyState,
-                            secretState = cardSecretState,
-                            onCardActivated = onCardDetailOpened,
-                            onCardDeactivated = onCardDetailClosed,
-                            onRevealCardSecrets = onRevealCardSecrets,
-                            onHideCardSecrets = onHideCardSecrets,
-                            onDeleteCard = onDeleteCard,
+                            onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                            onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                             onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
                             onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
-                            onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
-                            onOpenSavings = { moneyBackStack.pushIfNew(AppRoute.Savings) },
                             onOpenLoans = { moneyBackStack.pushIfNew(AppRoute.Loans) },
                             onOpenLending = { moneyBackStack.pushIfNew(AppRoute.Lending) },
                         )
@@ -363,6 +373,18 @@ internal fun MyFinHubAppContent(
                         activityItems = accountActivityItems(route.accountId, activityState.items),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onNewTransaction = {
+                            onQuickEntryAction(QuickEntryAction.Reset)
+                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+                            onQuickEntryAction(QuickEntryAction.AccountChanged(route.accountId))
+                            activeBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                    )
+                }
+                entry<AppRoute.NetPosition> {
+                    CanonicalNetPositionScreen(
+                        state = moneyState,
+                        onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.CardCreate> {
