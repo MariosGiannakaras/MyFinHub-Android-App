@@ -11,7 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 /**
- * Route-level guard shared by fast and complete Quick Entry editors. System/predictive Back obeys
+ * Route-level guard shared by every Quick Entry entry point. System/predictive Back obeys
  * reducer-level dirty state, including selector/date/category changes that are not text entry.
  */
 @Composable
@@ -32,8 +32,8 @@ fun QuickEntryBackGuard(
     if (discardDialogOpen) {
         AlertDialog(
             onDismissRequest = { discardDialogOpen = false },
-            title = { Text("Απόρριψη αλλαγών;") },
-            text = { Text("Οι αλλαγές αυτής της καταχώρισης δεν έχουν αποθηκευτεί.") },
+            title = { Text("Απόρριψη νέας κίνησης;") },
+            text = { Text("Τα στοιχεία που συμπλήρωσες δεν έχουν αποθηκευτεί.") },
             confirmButton = {
                 TextButton(
                     onClick = {

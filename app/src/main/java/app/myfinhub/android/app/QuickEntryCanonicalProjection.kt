@@ -47,7 +47,11 @@ internal fun projectQuickEntryState(
         .map { card ->
             val baseLabel = card.nickname.ifBlank { card.network.ifBlank { "Πιστωτική" } }
             val label = card.last4?.takeIf(String::isNotBlank)?.let { "$baseLabel • $it" } ?: baseLabel
-            QuickEntryCardOption(card.id, label)
+            QuickEntryCardOption(
+                id = card.id,
+                label = label,
+                provider = cardProviderLabel(card.network),
+            )
         }
     val cardIds = cards.map { it.id }.toSet()
 
@@ -113,6 +117,13 @@ internal fun projectQuickEntryState(
         defaultExpenseAccountId = defaultExpenseId,
         defaultIncomeAccountId = defaultIncomeId,
     )
+}
+
+private fun cardProviderLabel(raw: String): String = when (raw.trim().lowercase()) {
+    "visa" -> "Visa"
+    "mastercard" -> "Mastercard"
+    "amex", "american_express" -> "American Express"
+    else -> raw.trim()
 }
 
 private fun categoryOptions(

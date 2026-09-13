@@ -51,16 +51,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubHeroCard
-import app.myfinhub.android.designsystem.MyFinHubHeroHeading
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubMotion
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -80,34 +82,60 @@ private val FastKinds = listOf(
 
 private val GreekDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("el-GR"))
 
+internal val QuickEntryKind.amountHeading: String
+    get() = when (this) {
+        QuickEntryKind.EXPENSE -> "Ποσό εξόδου"
+        QuickEntryKind.INCOME -> "Ποσό εσόδου"
+        QuickEntryKind.TRANSFER -> "Ποσό μεταφοράς"
+        QuickEntryKind.WITHDRAWAL -> "Ποσό ανάληψης"
+        QuickEntryKind.SAVING -> "Ποσό αποταμίευσης"
+        QuickEntryKind.REFUND -> "Ποσό επιστροφής"
+        QuickEntryKind.LENDING -> "Ποσό που έδωσες"
+        QuickEntryKind.REPAYMENT -> "Ποσό που επέστρεψαν"
+        QuickEntryKind.CARD_PURCHASE -> "Ποσό αγοράς"
+        QuickEntryKind.CARD_PAYMENT -> "Ποσό εξόφλησης"
+        QuickEntryKind.RECONCILIATION -> "Πραγματικό υπόλοιπο"
+        QuickEntryKind.SPLIT -> "Συνολικό ποσό"
+    }
+
 /**
- * Production fast path for the three everyday cash-flow types. Account/category/subcategory choices
- * are the canonical choices projected from the synchronized finance document. Less-frequent finance
- * semantics remain available through the complete editor.
+ * One production editor for all canonical finance kinds. The three everyday kinds stay visible,
+ * while More exposes the same form with only the fields required by the selected operation.
  */
 @Composable
 fun ProductionQuickEntryScreen(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
     onBack: () -> Unit,
+    mutationInFlight: Boolean = false,
 ) {
-    if (state.kind !in FastKinds) {
-        QuickEntryScreen(state = state, onAction = onAction, onBack = onBack)
-        return
-    }
-
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
     var discardDialogOpen by remember { mutableStateOf(false) }
     val amountFocus = remember { FocusRequester() }
-    val hasEnteredDraft = state.amountText.isNotBlank() || state.note.isNotBlank()
     val savedLocally = state.awaitingSync
+    val declaredAmount = state.amount
+    val splitAllocationReady = state.kind != QuickEntryKind.SPLIT || (
+        declaredAmount != null &&
+            declaredAmount > 0.0 &&
+            state.splitRemaining == 0.0 &&
+            state.splitParts.size >= 2 &&
+            state.splitParts.all { part ->
+                val partAmount = part.amount
+                partAmount != null &&
+                    partAmount > 0.0 &&
+                    state.expenseCategories.any { category ->
+                        category.name == part.category &&
+                            (part.subcategory.isBlank() || part.subcategory in category.subcategories)
+                    }
+            }
+        )
     val requestBack = {
-        if (!state.persisted && !savedLocally && hasEnteredDraft) discardDialogOpen = true else onBack()
+        if (state.dirty && !state.persisted && !savedLocally) discardDialogOpen = true else onBack()
     }
 
-    LaunchedEffect(Unit) {
-        amountFocus.requestFocus()
+    LaunchedEffect(state.kind) {
+        if (state.kind != QuickEntryKind.RECONCILIATION) amountFocus.requestFocus()
     }
     // Connected saves close only after server acknowledgement. Offline saves close after the durable
     // encrypted local enqueue; only that offline path owns pending-sync/Undo semantics.
@@ -120,7 +148,7 @@ fun ProductionQuickEntryScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Νέα κίνηση",
-                subtitle = "${state.kind.label} · γρήγορη καταχώριση",
+                subtitle = state.kind.description,
                 navigation = { MyFinHubBackButton(requestBack) },
             )
         },
@@ -132,12 +160,15 @@ fun ProductionQuickEntryScreen(
             ) {
                 MyFinHubPrimaryAction(
                     label = when {
+                        mutationInFlight -> "Αποθήκευση…"
                         state.persisted -> "Αποθηκεύτηκε"
                         savedLocally -> "Αποθηκεύτηκε στη συσκευή"
                         else -> "Αποθήκευση ${state.kind.label.lowercase()}"
                     },
-                    enabled = !state.persisted && !savedLocally,
-                    onClick = { onAction(QuickEntryAction.Save) },
+                    enabled = splitAllocationReady && !mutationInFlight && !state.persisted && !savedLocally,
+                    onClick = {
+                        if (!mutationInFlight) onAction(QuickEntryAction.Save)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -159,46 +190,6 @@ fun ProductionQuickEntryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            MyFinHubHeroCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize(
-                        animationSpec = tween(durationMillis = MyFinHubMotion.StandardDurationMillis),
-                    ),
-                contentPadding = PaddingValues(
-                    horizontal = MyFinHubDesignMetrics.cardContentPadding,
-                    vertical = MyFinHubSpacing.sm,
-                ),
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    MyFinHubHeroHeading(
-                        eyebrow = "Γρήγορη καταχώριση",
-                        title = "Πόσο ${state.kind.label.lowercase()};",
-                        supporting = "Συμπλήρωσε το ποσό και έλεγξε τα βασικά στοιχεία πριν την αποθήκευση.",
-                    )
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Box(modifier = Modifier.padding(MyFinHubSpacing.xs)) {
-                            MyFinHubOutlinedField(
-                                value = state.amountText,
-                                onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                                label = "Ποσό",
-                                suffix = { Text("€") },
-                                errorMessage = state.validationMessage.takeIf { it == "Βάλε ποσό μεγαλύτερο από μηδέν." },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Decimal,
-                                    imeAction = ImeAction.Next,
-                                ),
-                                focusRequester = amountFocus,
-                            )
-                        }
-                    }
-                }
-            }
-
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -213,36 +204,117 @@ fun ProductionQuickEntryScreen(
                 }
             }
 
-            when {
-                state.kind.needsPrimaryAccount -> {
-                    CompactChoice(
-                        label = if (state.kind == QuickEntryKind.INCOME) "Σε λογαριασμό" else "Από λογαριασμό",
-                        selectedId = state.accountId,
-                        choices = state.accounts.map { it.id to it.label },
-                        subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
-                        onSelected = { onAction(QuickEntryAction.AccountChanged(it)) },
-                    )
-                }
-                state.kind == QuickEntryKind.TRANSFER -> {
-                    CompactChoice(
-                        label = "Από λογαριασμό",
-                        selectedId = state.fromAccountId,
-                        choices = state.accounts.map { it.id to it.label },
-                        subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
-                        onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
-                    )
-                }
+            TextButton(onClick = { advancedMenuOpen = true }) {
+                Text("Περισσότερα")
             }
 
-            if (state.kind == QuickEntryKind.TRANSFER) {
-                val destinationAccounts = state.accounts.filter { it.id != state.fromAccountId }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                Text(
+                    text = "ΠΟΣΟ",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = state.kind.amountHeading,
+                    modifier = Modifier.semantics { heading() },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = if (state.kind == QuickEntryKind.SPLIT) {
+                        "Δήλωσε το σύνολο και μοίρασέ το ακριβώς στα επιμέρους μέρη."
+                    } else {
+                        "Τα υποχρεωτικά στοιχεία αλλάζουν ανάλογα με τον τύπο."
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (state.kind == QuickEntryKind.RECONCILIATION) {
+                MyFinHubOutlinedField(
+                    value = state.actualBalanceText,
+                    onValueChange = { onAction(QuickEntryAction.ActualBalanceChanged(it)) },
+                    label = "Πραγματικό υπόλοιπο",
+                    suffix = { Text("€") },
+                    errorMessage = state.validationMessage.takeIf {
+                        it == "Συμπλήρωσε έγκυρο πραγματικό υπόλοιπο."
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next,
+                    ),
+                )
+            } else {
+                MyFinHubOutlinedField(
+                    value = state.amountText,
+                    onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
+                    label = if (state.kind == QuickEntryKind.SPLIT) "Συνολικό ποσό" else "Ποσό",
+                    suffix = { Text("€") },
+                    errorMessage = state.validationMessage.takeIf {
+                        it == "Βάλε ποσό μεγαλύτερο από μηδέν."
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next,
+                    ),
+                    focusRequester = amountFocus,
+                )
+            }
+
+            if (state.kind.needsPrimaryAccount) {
+                CompactChoice(
+                    label = productionPrimaryAccountLabel(state.kind),
+                    selectedId = state.accountId,
+                    choices = state.accounts.map { it.id to it.label },
+                    subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
+                    onSelected = { onAction(QuickEntryAction.AccountChanged(it)) },
+                    searchable = true,
+                )
+            }
+
+            if (state.kind.needsTransferAccounts || state.kind == QuickEntryKind.CARD_PAYMENT) {
+                CompactChoice(
+                    label = "Από λογαριασμό",
+                    selectedId = state.fromAccountId,
+                    choices = state.accounts.map { it.id to it.label },
+                    subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
+                    onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
+                    searchable = true,
+                )
+            }
+
+            if (state.kind.needsTransferAccounts) {
+                val destinations = productionDestinationOptions(state)
                 CompactChoice(
                     label = "Προς λογαριασμό",
                     selectedId = state.toAccountId,
-                    choices = destinationAccounts.map { it.id to it.label },
-                    subtitles = destinationAccounts.associate { it.id to accountKindLabel(it.kind) },
+                    choices = destinations.map { it.id to it.label },
+                    subtitles = destinations.associate { it.id to accountKindLabel(it.kind) },
                     onSelected = { onAction(QuickEntryAction.ToAccountChanged(it)) },
+                    searchable = true,
                 )
+            }
+
+            if (state.kind.needsCard) {
+                CompactChoice(
+                    label = "Πιστωτική κάρτα",
+                    selectedId = state.cardId,
+                    choices = state.creditCards.map { it.id to it.label },
+                    subtitles = state.creditCards
+                        .filter { it.provider.isNotBlank() }
+                        .associate { it.id to it.provider },
+                    onSelected = { onAction(QuickEntryAction.CardChanged(it)) },
+                    searchable = true,
+                )
+                if (state.creditCards.isEmpty()) {
+                    Text(
+                        "Δεν υπάρχει ενεργή πιστωτική κάρτα.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
 
             if (state.kind.usesCategory) {
@@ -251,7 +323,7 @@ fun ProductionQuickEntryScreen(
                     selectedId = state.category,
                     choices = state.activeCategoryOptions.map { it.name to it.name },
                     onSelected = { onAction(QuickEntryAction.CategoryChanged(it)) },
-                    searchable = state.activeCategoryOptions.size > 6,
+                    searchable = true,
                 )
                 if (state.activeSubcategoryOptions.isNotEmpty()) {
                     CompactChoice(
@@ -269,6 +341,40 @@ fun ProductionQuickEntryScreen(
                 onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },
                 errorMessage = state.validationMessage.takeIf { it == "Συμπλήρωσε έγκυρη ημερομηνία." },
             )
+
+            if (state.kind == QuickEntryKind.LENDING || state.kind == QuickEntryKind.REPAYMENT) {
+                MyFinHubOutlinedField(
+                    value = state.person,
+                    onValueChange = { onAction(QuickEntryAction.PersonChanged(it)) },
+                    label = "Πρόσωπο",
+                    errorMessage = state.validationMessage.takeIf {
+                        it == "Συμπλήρωσε το πρόσωπο για τα δανεικά."
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next,
+                    ),
+                )
+            }
+
+            if (state.kind == QuickEntryKind.LENDING) {
+                ProductionDateChoice(
+                    value = state.expectedReturnDateText,
+                    onValueChange = { onAction(QuickEntryAction.ExpectedReturnDateChanged(it)) },
+                    errorMessage = state.validationMessage.takeIf {
+                        it == "Η αναμενόμενη επιστροφή δεν είναι έγκυρη." ||
+                            it == "Η αναμενόμενη επιστροφή δεν μπορεί να είναι πριν από την ημερομηνία κίνησης."
+                    },
+                    label = "Αναμενόμενη επιστροφή · προαιρετική",
+                    optional = true,
+                )
+            }
+
+            ProductionTransactionSemanticsHint(state.kind)
+
+            if (state.kind == QuickEntryKind.SPLIT) {
+                ProductionSplitEditor(state = state, onAction = onAction)
+            }
 
             if (state.validationMessage != null &&
                 state.validationMessage != "Βάλε ποσό μεγαλύτερο από μηδέν." &&
@@ -302,14 +408,12 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
-            TextButton(onClick = { advancedMenuOpen = true }) {
-                Text("Περισσότεροι τύποι κίνησης")
-            }
         }
     }
 
     if (advancedMenuOpen) {
         AdvancedKindSheet(
+            selectedKind = state.kind,
             onDismiss = { advancedMenuOpen = false },
             onSelected = { kind ->
                 advancedMenuOpen = false
@@ -321,7 +425,7 @@ fun ProductionQuickEntryScreen(
     if (discardDialogOpen) {
         AlertDialog(
             onDismissRequest = { discardDialogOpen = false },
-            title = { Text("Απόρριψη καταχώρισης;") },
+            title = { Text("Απόρριψη νέας κίνησης;") },
             text = { Text("Τα στοιχεία που συμπλήρωσες δεν έχουν αποθηκευτεί.") },
             confirmButton = {
                 TextButton(
@@ -367,7 +471,10 @@ private fun CompactChoice(
         val filteredChoices = if (normalizedQuery.isBlank()) {
             choices
         } else {
-            choices.filter { (_, text) -> text.contains(normalizedQuery, ignoreCase = true) }
+            choices.filter { (id, text) ->
+                text.contains(normalizedQuery, ignoreCase = true) ||
+                    subtitles[id]?.contains(normalizedQuery, ignoreCase = true) == true
+            }
         }
 
         ModalBottomSheet(
@@ -433,10 +540,11 @@ private fun CompactChoice(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AdvancedKindSheet(
+    selectedKind: QuickEntryKind,
     onDismiss: () -> Unit,
     onSelected: (QuickEntryKind) -> Unit,
 ) {
-    val kinds = QuickEntryKind.entries.filterNot(FastKinds::contains)
+    val kinds = QuickEntryKind.entries
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -453,13 +561,19 @@ private fun AdvancedKindSheet(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 460.dp),
+                    .heightIn(max = 460.dp)
+                    .testTag("quick_entry_kind_list"),
                 contentPadding = PaddingValues(bottom = MyFinHubSpacing.sm),
             ) {
                 items(kinds, key = { it.name }) { kind ->
                     ListItem(
                         headlineContent = { Text(kind.label) },
                         supportingContent = { Text(kind.description) },
+                        trailingContent = if (kind == selectedKind) {
+                            { Text("Επιλεγμένο", color = MaterialTheme.colorScheme.primary) }
+                        } else {
+                            null
+                        },
                         modifier = Modifier.clickable { onSelected(kind) },
                     )
                     HorizontalDivider()
@@ -469,18 +583,163 @@ private fun AdvancedKindSheet(
     }
 }
 
+@Composable
+private fun ProductionSplitEditor(
+    state: QuickEntryUiState,
+    onAction: (QuickEntryAction) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+    ) {
+        Text("Κατανομή ποσού", style = MaterialTheme.typography.titleMedium)
+        state.splitParts.forEachIndexed { index, part ->
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Μέρος ${index + 1}", style = MaterialTheme.typography.labelLarge)
+                    if (state.splitParts.size > 2) {
+                        TextButton(onClick = { onAction(QuickEntryAction.RemoveSplitPart(part.id)) }) {
+                            Text("Αφαίρεση")
+                        }
+                    }
+                }
+                MyFinHubOutlinedField(
+                    value = part.amountText,
+                    onValueChange = {
+                        onAction(QuickEntryAction.SplitPartAmountChanged(part.id, it))
+                    },
+                    label = "Ποσό μέρους ${index + 1}",
+                    suffix = { Text("€") },
+                    errorMessage = state.validationMessage.takeIf {
+                        it == "Το ποσό στο μέρος ${index + 1} πρέπει να είναι θετικό."
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next,
+                    ),
+                )
+                CompactChoice(
+                    label = "Κατηγορία μέρους ${index + 1}",
+                    selectedId = part.category,
+                    choices = state.expenseCategories.map { it.name to it.name },
+                    onSelected = {
+                        onAction(QuickEntryAction.SplitPartCategoryChanged(part.id, it))
+                    },
+                    searchable = true,
+                )
+                val subcategories = state.expenseCategories.firstOrNull {
+                    it.name == part.category
+                }?.subcategories.orEmpty()
+                if (subcategories.isNotEmpty()) {
+                    CompactChoice(
+                        label = "Υποκατηγορία μέρους ${index + 1}",
+                        selectedId = part.subcategory,
+                        choices = listOf("" to "Χωρίς υποκατηγορία") + subcategories.map { it to it },
+                        onSelected = {
+                            onAction(QuickEntryAction.SplitPartSubcategoryChanged(part.id, it))
+                        },
+                    )
+                }
+                MyFinHubOutlinedField(
+                    value = part.label,
+                    onValueChange = {
+                        onAction(QuickEntryAction.SplitPartLabelChanged(part.id, it))
+                    },
+                    label = "Ετικέτα μέρους · προαιρετική",
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next,
+                    ),
+                )
+            }
+        }
+        MyFinHubOutlinedAction(
+            label = "+ Προσθήκη μέρους",
+            onClick = { onAction(QuickEntryAction.AddSplitPart) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        val remaining = state.splitRemaining
+        Text(
+            "Κατανομή: ${formatProductionMoney(state.splitTotal)} €",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = when {
+                remaining == null -> "Συμπλήρωσε το συνολικό ποσό."
+                remaining == 0.0 -> "Η κατανομή είναι πλήρης."
+                remaining > 0.0 -> "Απομένουν ${formatProductionMoney(remaining)} €."
+                else -> "Υπέρβαση κατά ${formatProductionMoney(-remaining)} €."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = if (remaining == 0.0) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.error
+            },
+        )
+    }
+}
+
+@Composable
+private fun ProductionTransactionSemanticsHint(kind: QuickEntryKind) {
+    val text = when (kind) {
+        QuickEntryKind.TRANSFER -> "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα."
+        QuickEntryKind.WITHDRAWAL -> "Η ανάληψη μετακινεί χρήματα από τράπεζα σε μετρητά."
+        QuickEntryKind.SAVING -> "Η αποταμίευση μεταφέρει πραγματικά χρήματα στον λογαριασμό αποταμίευσης."
+        QuickEntryKind.CARD_PURCHASE -> "Η αγορά αυξάνει την οφειλή της συγκεκριμένης κάρτας."
+        QuickEntryKind.CARD_PAYMENT -> "Η πληρωμή μειώνει την οφειλή της κάρτας από τον λογαριασμό πληρωμής."
+        QuickEntryKind.RECONCILIATION -> "Καταχωρίζεται η διαφορά από το υπολογισμένο υπόλοιπο, όχι νέο έσοδο ή έξοδο."
+        else -> return
+    }
+    Text(
+        text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+private fun productionDestinationOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> {
+    val filtered = when (state.kind) {
+        QuickEntryKind.WITHDRAWAL -> state.accounts.filter { it.kind == "cash" }
+        QuickEntryKind.SAVING -> state.accounts.filter { it.kind == "savings" }
+        else -> state.accounts
+    }.filter { it.id != state.fromAccountId }
+    return filtered.ifEmpty { state.accounts.filter { it.id != state.fromAccountId } }
+}
+
+private fun productionPrimaryAccountLabel(kind: QuickEntryKind): String = when (kind) {
+    QuickEntryKind.INCOME, QuickEntryKind.REFUND, QuickEntryKind.REPAYMENT -> "Προς λογαριασμό"
+    QuickEntryKind.RECONCILIATION -> "Λογαριασμός διόρθωσης"
+    QuickEntryKind.SPLIT -> "Λογαριασμός πληρωμής"
+    else -> "Από λογαριασμό"
+}
+
+private fun formatProductionMoney(value: Double): String = if (value % 1.0 == 0.0) {
+    value.toLong().toString()
+} else {
+    String.format(Locale.US, "%.2f", value)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductionDateChoice(
     value: String,
     onValueChange: (String) -> Unit,
     errorMessage: String?,
+    label: String = "Ημερομηνία",
+    optional: Boolean = false,
 ) {
     var pickerOpen by remember { mutableStateOf(false) }
-    val displayValue = value.toGreekDateLabel()
+    val displayValue = when {
+        value.isBlank() && optional -> "Δεν έχει οριστεί"
+        else -> value.toGreekDateLabel()
+    }
 
     MyFinHubSelectorButton(
-        label = "Ημερομηνία",
+        label = label,
         onClick = { pickerOpen = true },
         errorMessage = errorMessage,
     ) {

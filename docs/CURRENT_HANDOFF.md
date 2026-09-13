@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s3_activity_ready_to_merge`.
+- Workstream state: `android_redesign_s4_ready_to_merge`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S3 are implementation-complete. PR #115 final implementation head 52cb9f5 passed Android CI, Project Tracking and Android UI Quality, including 94/94 screenshot references and all 51 S24-target tests. The S3 Activity ledger, exact filters, read detail, supported edit/delete, pending semantics and account/card-ledger navigation are verified. No backend or web/desktop changes.
+S1–S3 are complete and merged. PR #116 now has an evidence-backed S4 Quick Entry implementation: one production editor for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, exact-cent split allocation and natural operation-specific amount headings. Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, Project Tracking run 34751696393 and Android UI Quality run 34751696408; screenshot regression and all 53 S24-target tests passed. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Publish this S3 completion evidence, verify its tracking gate and merge PR #115 into develop.
-- Create one S4 Quick Entry branch from the merged develop head and implement the unified form/picker/all-twelve-kind/dirty-persistence verification batch.
+- Merge validated PR #116 into develop with its exact completion-tracking head.
+- Create the S5 Home and accounts branch from the resulting develop head and begin S5.1 without reopening completed S4 work.
 
 ## Constraints
 
@@ -51,21 +51,21 @@ S1–S3 are implementation-complete. PR #115 final implementation head 52cb9f5 p
 
 ## Android redesign progress
 
-**Tasks: 3/10 · Subtasks: 12/40 · Preparation: 4/4**
+**Tasks: 4/10 · Subtasks: 16/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s3-activity`. PR: 115.
-Checkpoint: `s3_all_gates_green_ready_to_merge`.
+Working branch: `android/redesign-s4-quick-entry`. PR: 116.
+Checkpoint: `s4_complete_pending_merge`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Publish this completion-only tracking update, merge the fully green PR #115, then branch once for the complete S4 Quick Entry batch.
+Next action: Merge PR #116 after the completion-tracking check passes, then create the S5 Home/accounts branch from the new develop head and start S5.1.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
 | S1 Financial truth and capability | 4/4 | Complete |
 | S2 Foundation and navigation | 4/4 | Complete |
 | S3 Activity | 4/4 | Complete |
-| S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
+| S4 Quick Entry | 4/4 | Complete |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
 | S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
 | S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |

@@ -27,6 +27,7 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("save-main", projected.toAccountId)
         assertEquals(listOf("credit-one"), projected.creditCards.map { it.id })
         assertTrue(projected.creditCards.single().label.contains("9012"))
+        assertEquals("Mastercard", projected.creditCards.single().provider)
         assertEquals(listOf("Τρόφιμα", "Μετακίνηση"), projected.expenseCategories.map { it.name })
         assertEquals(listOf("Σούπερ μάρκετ", "Καφές"), projected.expenseCategories.first().subcategories)
         assertEquals(listOf("Μισθός"), projected.incomeCategories.map { it.name })
