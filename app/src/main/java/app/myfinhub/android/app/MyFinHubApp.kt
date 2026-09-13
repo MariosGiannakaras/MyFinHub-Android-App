@@ -40,7 +40,9 @@ import app.myfinhub.android.feature.insights.InsightsViewModel
 import app.myfinhub.android.feature.money.CanonicalAccountDetailScreen
 import app.myfinhub.android.feature.money.CanonicalCardCreateScreen
 import app.myfinhub.android.feature.money.CanonicalCardDetailScreen
+import app.myfinhub.android.feature.money.CanonicalCardSecureDetailsScreen
 import app.myfinhub.android.feature.money.CardCreateRequest
+import app.myfinhub.android.feature.money.CardSecretCleanupUiState
 import app.myfinhub.android.feature.money.accountActivityItems
 import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
@@ -129,6 +131,7 @@ internal fun MyFinHubAppContent(
     quickEntryMutationInFlight: Boolean = false,
     moneyState: MoneyUiState = MoneyUiState(),
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    cardSecretCleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onCardDetailOpened: (String) -> Unit = {},
     onCardDetailClosed: (String) -> Unit = {},
     onRevealCardSecrets: () -> Unit = {},
@@ -136,6 +139,7 @@ internal fun MyFinHubAppContent(
     onSaveServerCardSecrets: (CharArray, CharArray) -> Unit = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onDeleteLocalCvv: () -> Unit = {},
+    onRetryCardSecretCleanup: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
     onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
@@ -402,9 +406,11 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.CardDetail> { route ->
-                    DisposableEffect(route.cardId) {
-                        onCardDetailOpened(route.cardId)
-                        onDispose { onCardDetailClosed(route.cardId) }
+                    if (!canonicalProductMode) {
+                        DisposableEffect(route.cardId) {
+                            onCardDetailOpened(route.cardId)
+                            onDispose { onCardDetailClosed(route.cardId) }
+                        }
                     }
                     val card = if (canonicalProductMode) {
                         moneyState.cards.firstOrNull { it.id == route.cardId }
@@ -413,13 +419,20 @@ internal fun MyFinHubAppContent(
                     }
                     if (canonicalProductMode) {
                         CanonicalCardDetailScreen(
+                            cardId = route.cardId,
                             card = card,
-                            secretState = cardSecretState,
-                            onReveal = onRevealCardSecrets,
-                            onHideSecrets = onHideCardSecrets,
-                            onSaveServerSecrets = onSaveServerCardSecrets,
-                            onSaveCvv = onSaveLocalCvv,
-                            onDeleteCvv = onDeleteLocalCvv,
+                            cards = moneyState.cards,
+                            onSelectCard = { selectedCardId ->
+                                if (selectedCardId != route.cardId) {
+                                    onHideCardSecrets()
+                                    moneyBackStack.removeLastOrNull()
+                                    moneyBackStack.pushIfNew(AppRoute.CardDetail(selectedCardId))
+                                }
+                            },
+                            cleanupState = cardSecretCleanupState,
+                            onRetryCleanup = onRetryCardSecretCleanup,
+                            onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },
+                            onRemoveCard = onDeleteCard,
                             onAddPurchase = {
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
@@ -446,6 +459,26 @@ internal fun MyFinHubAppContent(
                             onBack = { moneyBackStack.removeLastOrNull() },
                         )
                     }
+                }
+                entry<AppRoute.CardSecureDetails> { route ->
+                    DisposableEffect(route.cardId) {
+                        onCardDetailOpened(route.cardId)
+                        onDispose {
+                            onHideCardSecrets()
+                            onCardDetailClosed(route.cardId)
+                        }
+                    }
+                    CanonicalCardSecureDetailsScreen(
+                        cardId = route.cardId,
+                        card = moneyState.cards.firstOrNull { it.id == route.cardId },
+                        secretState = cardSecretState,
+                        onReveal = onRevealCardSecrets,
+                        onHideSecrets = onHideCardSecrets,
+                        onSaveServerSecrets = onSaveServerCardSecrets,
+                        onSaveCvv = onSaveLocalCvv,
+                        onDeleteCvv = onDeleteLocalCvv,
+                        onBack = { moneyBackStack.removeLastOrNull() },
+                    )
                 }
                 entry<AppRoute.Savings> {
                     if (canonicalProductMode) {

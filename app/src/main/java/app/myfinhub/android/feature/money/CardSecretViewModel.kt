@@ -53,10 +53,27 @@ sealed interface CardSecretUiState {
     data object AuthRejected : CardSecretUiState
 }
 
+sealed interface CardSecretCleanupUiState {
+    data object Idle : CardSecretCleanupUiState
+    data class Cleaning(val cardId: String) : CardSecretCleanupUiState
+    data class Complete(val cardId: String) : CardSecretCleanupUiState
+    data class Failure(
+        val cardId: String,
+        val serverCleanupPending: Boolean,
+        val localCleanupPending: Boolean,
+    ) : CardSecretCleanupUiState
+}
+
+private data class PendingCardSecretCleanup(
+    val cardId: String,
+    val serverCleanupPending: Boolean,
+    val localCleanupPending: Boolean,
+)
+
 /**
  * Production card-secret controller. PAN/expiry come only from the owner+AAL2 server vault; CVV is
  * read/written only through the device-local encrypted vault. Sensitive values are held only while
- * the card detail explicitly reveals them and are dropped when that surface closes or auth changes.
+ * the protected secure-details surface explicitly reveals them and are dropped when it closes.
  */
 class CardSecretViewModel internal constructor(
     application: Application,
@@ -78,25 +95,36 @@ class CardSecretViewModel internal constructor(
     private val mutableState = MutableStateFlow<CardSecretUiState>(CardSecretUiState.Hidden())
     val state: StateFlow<CardSecretUiState> = mutableState.asStateFlow()
 
+    private val mutableCleanupState = MutableStateFlow<CardSecretCleanupUiState>(CardSecretCleanupUiState.Idle)
+    val cleanupState: StateFlow<CardSecretCleanupUiState> = mutableCleanupState.asStateFlow()
+
     private val mutableNotices = MutableSharedFlow<UserNotice>(extraBufferCapacity = 8)
     val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
 
     private var currentSession: AuthSession? = null
     private var currentCardId: String? = null
+    private var pendingCleanup: PendingCardSecretCleanup? = null
+    private var cleanupGeneration = 0L
 
     fun attachSession(session: AuthSession) {
         val previousUserId = currentSession?.userId
         currentSession = session
         if (previousUserId != null && previousUserId != session.userId) {
             currentCardId = null
+            cleanupGeneration += 1
+            pendingCleanup = null
             mutableState.value = CardSecretUiState.Hidden()
+            mutableCleanupState.value = CardSecretCleanupUiState.Idle
         }
     }
 
     fun clear() {
         currentSession = null
         currentCardId = null
+        cleanupGeneration += 1
+        pendingCleanup = null
         mutableState.value = CardSecretUiState.Hidden()
+        mutableCleanupState.value = CardSecretCleanupUiState.Idle
     }
 
     fun openCard(cardId: String) {
@@ -131,32 +159,72 @@ class CardSecretViewModel internal constructor(
             emitInvalidCardNotice("Καθαρισμός ασφαλών στοιχείων κάρτας")
             return
         }
-        val session = currentSession
         if (currentCardId == normalized) {
             currentCardId = null
             mutableState.value = CardSecretUiState.Hidden()
         }
+        val request = PendingCardSecretCleanup(
+            cardId = normalized,
+            serverCleanupPending = true,
+            localCleanupPending = true,
+        )
+        pendingCleanup = request
+        cleanupGeneration += 1
+        launchCleanup(request, cleanupGeneration)
+    }
+
+    /** Retries only the secret stores that failed after canonical card deactivation. */
+    fun retryPurgeCard(cardId: String) {
+        val normalized = cardId.trim()
+        val request = pendingCleanup?.takeIf { it.cardId == normalized } ?: return
+        if (mutableCleanupState.value is CardSecretCleanupUiState.Cleaning) return
+        cleanupGeneration += 1
+        launchCleanup(request, cleanupGeneration)
+    }
+
+    private fun launchCleanup(request: PendingCardSecretCleanup, generation: Long) {
+        mutableCleanupState.value = CardSecretCleanupUiState.Cleaning(request.cardId)
         viewModelScope.launch {
             var serverFailure: ApiResult.Failure? = null
-            if (session == null) {
-                serverFailure = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
-            } else {
-                when (val result = safeApiCall { api.deleteCardSecrets(session, normalized) }) {
-                    is ApiResult.Success -> Unit
-                    is ApiResult.Failure -> serverFailure = result
+            if (request.serverCleanupPending) {
+                val session = currentSession
+                if (session == null) {
+                    serverFailure = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
+                } else {
+                    when (val result = safeApiCall { api.deleteCardSecrets(session, request.cardId) }) {
+                        is ApiResult.Success -> Unit
+                        is ApiResult.Failure -> serverFailure = result
+                    }
                 }
             }
 
             var localFailure: Exception? = null
-            try {
-                cvvVault.delete(normalized)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                localFailure = error
+            if (request.localCleanupPending) {
+                try {
+                    cvvVault.delete(request.cardId)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    localFailure = error
+                }
             }
 
-            if (serverFailure != null || localFailure != null) {
+            val nextRequest = PendingCardSecretCleanup(
+                cardId = request.cardId,
+                serverCleanupPending = serverFailure != null,
+                localCleanupPending = localFailure != null,
+            )
+            if (generation != cleanupGeneration) return@launch
+            if (!nextRequest.serverCleanupPending && !nextRequest.localCleanupPending) {
+                pendingCleanup = null
+                mutableCleanupState.value = CardSecretCleanupUiState.Complete(request.cardId)
+            } else {
+                pendingCleanup = nextRequest
+                mutableCleanupState.value = CardSecretCleanupUiState.Failure(
+                    cardId = request.cardId,
+                    serverCleanupPending = nextRequest.serverCleanupPending,
+                    localCleanupPending = nextRequest.localCleanupPending,
+                )
                 val failedParts = buildList {
                     if (serverFailure != null) add("server PAN/λήξη")
                     if (localFailure != null) add("τοπικό CVV")

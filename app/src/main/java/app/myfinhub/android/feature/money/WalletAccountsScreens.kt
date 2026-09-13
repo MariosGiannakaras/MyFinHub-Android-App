@@ -94,6 +94,7 @@ internal fun walletAvailableTotal(state: MoneyUiState): Double =
 fun CanonicalWalletScreen(
     state: MoneyUiState,
     accountsRequest: Int = 0,
+    initiallyShowCards: Boolean = false,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -116,7 +117,9 @@ fun CanonicalWalletScreen(
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    var selectedName by rememberSaveable(accountsRequest) { mutableStateOf(WalletSection.ACCOUNTS.name) }
+    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards) {
+        mutableStateOf(if (initiallyShowCards) WalletSection.CARDS.name else WalletSection.ACCOUNTS.name)
+    }
     val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
 
@@ -441,7 +444,20 @@ private fun WalletCardRow(card: MoneyCard, amountsVisible: Boolean, onClick: () 
     val provider = financialProvider(card.bankId, card.nickname)
     val identity = listOf(card.kind, card.network).filter(String::isNotBlank).distinct().joinToString(" · ")
     val debtText = if (isCredit) walletAmountText(card.currentBalance, amountsVisible) else null
-    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
+    val spokenIdentity = buildString {
+        append(card.nickname)
+        if (card.last4.isNotBlank()) append(", τελευταία ψηφία ${card.last4}")
+        if (identity.isNotBlank()) append(", $identity")
+        if (debtText != null) append(", οφειλή $debtText")
+    }
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("wallet_card_${card.id}")
+            .semantics(mergeDescendants = true) { contentDescription = spokenIdentity },
+        color = MaterialTheme.colorScheme.background,
+    ) {
         if (largeFont) {
             Column(modifier = Modifier.padding(vertical = MyFinHubSpacing.xs), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.Top) {
@@ -455,7 +471,12 @@ private fun WalletCardRow(card: MoneyCard, amountsVisible: Boolean, onClick: () 
                         Text("•••• ${card.last4.ifBlank { "—" }} · $identity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                debtText?.let { MyFinHubAmountText(it, FinanceTone.Neutral, modifier = Modifier.align(Alignment.End)) }
+                debtText?.let {
+                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.align(Alignment.End)) {
+                        Text("Οφειλή", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        MyFinHubAmountText(it, FinanceTone.Neutral)
+                    }
+                }
             }
         } else {
             Row(modifier = Modifier.padding(vertical = MyFinHubSpacing.xs), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
@@ -468,7 +489,12 @@ private fun WalletCardRow(card: MoneyCard, amountsVisible: Boolean, onClick: () 
                     Text(card.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     Text("•••• ${card.last4.ifBlank { "—" }} · $identity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                debtText?.let { MyFinHubAmountText(it, FinanceTone.Neutral) }
+                debtText?.let {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("Οφειλή", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        MyFinHubAmountText(it, FinanceTone.Neutral)
+                    }
+                }
             }
         }
     }

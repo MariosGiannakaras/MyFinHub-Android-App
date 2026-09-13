@@ -9,74 +9,78 @@ private const val CARD_DETAIL_PREVIEW_ID = "card-preview"
 
 private val canonicalCardDetailPreviewCard = MoneyCard(
     id = CARD_DETAIL_PREVIEW_ID,
-    nickname = "Κύρια πιστωτική",
+    nickname = "Κύρια πιστωτική ταξιδιών",
     last4 = "0000",
     kind = "Πιστωτική",
     currentBalance = 420.0,
     limit = 2_000.0,
     vaultState = VaultState.AVAILABLE,
+    network = "Mastercard",
+    bankId = "revolut",
+    canonicalKind = "credit",
 )
 
 @PreviewTest
-@Preview(
-    name = "canonical_card_detail_hidden_light",
-    widthDp = 412,
-    heightDp = 915,
-    showBackground = true,
-)
+@Preview(name = "canonical_card_detail_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun CanonicalCardDetailHiddenLightScreenshot() {
-    CanonicalCardDetailScreenshotFixture(
-        darkTheme = false,
-        secretState = CardSecretUiState.Hidden(CARD_DETAIL_PREVIEW_ID),
-    )
-}
+fun CanonicalCardDetailLightScreenshot() = CardDetailFixture(darkTheme = false)
 
 @PreviewTest
-@Preview(
-    name = "canonical_card_detail_hidden_dark",
-    widthDp = 412,
-    heightDp = 915,
-    showBackground = true,
-)
+@Preview(name = "canonical_card_detail_dark", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun CanonicalCardDetailHiddenDarkScreenshot() {
-    CanonicalCardDetailScreenshotFixture(
-        darkTheme = true,
-        secretState = CardSecretUiState.Hidden(CARD_DETAIL_PREVIEW_ID),
-    )
-}
+fun CanonicalCardDetailDarkScreenshot() = CardDetailFixture(darkTheme = true)
 
 @PreviewTest
 @Preview(
-    name = "canonical_card_detail_revealed_sanitized_large_font",
+    name = "canonical_card_detail_large_font",
     widthDp = 412,
     heightDp = 915,
     fontScale = 1.5f,
     showBackground = true,
 )
 @Composable
-fun CanonicalCardDetailRevealedSanitizedLargeFontScreenshot() {
-    CanonicalCardDetailScreenshotFixture(
-        darkTheme = false,
-        secretState = CardSecretUiState.Revealed(
-            cardId = CARD_DETAIL_PREVIEW_ID,
-            pan = null,
-            expiry = null,
-            cvv = "•••",
-        ),
-    )
+fun CanonicalCardDetailLargeFontScreenshot() = CardDetailFixture(darkTheme = false)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_hidden_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CanonicalCardSecureHiddenLightScreenshot() = CardSecureFixture(darkTheme = false)
+
+@PreviewTest
+@Preview(name = "canonical_card_secure_hidden_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun CanonicalCardSecureHiddenDarkScreenshot() = CardSecureFixture(darkTheme = true)
+
+@PreviewTest
+@Preview(
+    name = "canonical_card_secure_hidden_large_font",
+    widthDp = 412,
+    heightDp = 915,
+    fontScale = 1.5f,
+    showBackground = true,
+)
+@Composable
+fun CanonicalCardSecureHiddenLargeFontScreenshot() = CardSecureFixture(darkTheme = false)
+
+@Composable
+private fun CardDetailFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        CanonicalCardDetailScreen(card = canonicalCardDetailPreviewCard, onBack = {})
+    }
 }
 
 @Composable
-private fun CanonicalCardDetailScreenshotFixture(
-    darkTheme: Boolean,
-    secretState: CardSecretUiState,
-) {
+private fun CardSecureFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
-        CanonicalCardDetailScreen(
+        CanonicalCardSecureDetailsScreen(
+            cardId = CARD_DETAIL_PREVIEW_ID,
             card = canonicalCardDetailPreviewCard,
-            secretState = secretState,
+            secretState = CardSecretUiState.Hidden(CARD_DETAIL_PREVIEW_ID),
+            onReveal = {},
+            onHideSecrets = {},
+            onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
+            onSaveCvv = { it.fill('\u0000') },
+            onDeleteCvv = {},
             onBack = {},
         )
     }

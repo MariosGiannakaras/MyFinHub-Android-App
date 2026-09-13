@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-12",
+  "updated_at": "2026-09-14",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s3_activity_ready",
-    "summary": "S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.",
+    "status": "android_redesign_s6_complete_merge_ready",
+    "summary": "S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.",
     "next": [
-      "Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.",
-      "Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent."
+      "Merge validated PR #118 into develop without changing the accepted S6 product head.",
+      "Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "develop",
-    "pr": null,
-    "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
-    "checkpoint": "s2_complete_s3_ready",
+    "branch": "android/redesign-s6-cards",
+    "pr": 118,
+    "current_slice": "S7.1 / S7.2 / S7.3 / S7.4",
+    "checkpoint": "s6_complete_merge_ready",
     "blockers": [],
-    "next_action": "Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.",
+    "next_action": "Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -370,26 +370,50 @@
         {
           "id": "S6.1",
           "title": "List, detail and stable switching",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Implementation head 1fb9703cf7f7ec70acfc878144d6c77575f0c06a adds stable card-ID Wallet rows, explicit credit debt labels, precise credit-detail debt/limit/available-credit semantics, stable card switching without cyclic route stacking, one primary Pay action plus secondary purchase, and bounded recent card activity.",
+            "Hosted focused compile run 34783314496 passed :app:compileDebugKotlin and :app:compileDebugAndroidTestKotlin for the coherent first S6 batch.",
+            "Targeted exact-candidate run 34785976969 passed unit tests, instrumentation-test compilation and lint on cf5f27127a7523270ca8c29060bf52e057363bdd. S6.1 remains in progress until the standard exact-PR-head gates pass.",
+            "Exact PR #118 product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Android CI run 34786455322, including unit tests, instrumentation compilation, lint, debug assembly, optimized release/Play bundle assembly and release policy audits.",
+            "Android UI Quality run 34786455331 passed both screenshot regression and S24-target instrumentation on the same exact product head."
+          ]
         },
         {
           "id": "S6.2",
           "title": "Creation and supported metadata editing",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Implementation head 70145e7fa45e9b1871d3bef8b90cec92487ed827 replaces provider/kind/network chip walls with labelled selector sheets while preserving the existing full-screen draft, conditional credit limit and one-save creation contract.",
+            "The S1.3 production capability map confirms there is no supported canonical card-metadata update builder/handler, so S6 intentionally exposes no fake local metadata editor and leaves the missing shared capability recorded rather than changing backend contracts.",
+            "Targeted exact-candidate run 34785976969 compiled the selector-sheet instrumentation contract and produced accepted light/dark/150% creation references. S6.2 remains in progress until standard exact-PR-head gates pass.",
+            "Exact product-head Android CI run 34786455322 passed after selector-sheet creation and its instrumentation contract were published; no unsupported card-metadata editor or shared-backend change was introduced.",
+            "Accepted light/dark/150% card-creation references remained byte-stable under the passing screenshot-regression job in Android UI Quality run 34786455331."
+          ]
         },
         {
           "id": "S6.3",
           "title": "Secure details and removal recovery",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Candidate cf5f27127a7523270ca8c29060bf52e057363bdd moves PAN/expiry/device-local CVV to a separate FLAG_SECURE destination that is hidden by default, explicitly revealed, hidden on stop/navigation/back and after 30 seconds, and marks per-field clipboard copies sensitive without clearing unrelated replacement content.",
+            "Removal copy distinguishes MyFinHub deactivation from bank cancellation and retained debt/history. Secret cleanup begins only after canonical deactivation, tracks server PAN/expiry and local CVV independently, and retries only failed stores without replaying the finance mutation.",
+            "Targeted run 34785976969 passed CardSecretViewModel partial-cleanup recovery and Compose secure/removal contracts. S6.3 remains in progress until standard exact-PR-head gates pass.",
+            "Exact product-head Android CI run 34786455322 passed with the separate protected secure-details destination and independent partial secret-cleanup recovery logic.",
+            "S24-target instrumentation in Android UI Quality run 34786455331 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180, covering the published secure/removal contracts without replaying the canonical finance mutation."
+          ]
         },
         {
           "id": "S6.4",
           "title": "Card verification",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Targeted exact-candidate run 34785976969 passed tracking, unit tests, instrumentation-test compilation, lint and real Compose rendering for cf5f27127a7523270ca8c29060bf52e057363bdd.",
+            "Twelve S6 references were personally inspected before acceptance: Wallet Cards overview, card detail, protected hidden secure details and creation in light, dark and 150% font. No clipping, overlap or exposed secret value was observed; the 150% Wallet section selector and credit-debt wrapping remain readable.",
+            "S6.4 remains in progress until screenshot regression, S24-target instrumentation, Android CI and Project Tracking pass on the exact published PR head.",
+            "Final exact product-head Project Tracking run 34786455328 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180.",
+            "Final exact product-head Android UI Quality run 34786455331 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34786455322 also passed."
+          ]
         }
       ]
     },
