@@ -42,6 +42,7 @@ class AppNavigationPolicyTest {
             AppRoute.QuickEntry,
             AppRoute.CardCreate,
             AppRoute.CardDetail("card-1"),
+            AppRoute.CardSecureDetails("card-1"),
             AppRoute.ActivityDetail("event-1"),
             AppRoute.ActivityEdit("event-1"),
             AppRoute.CategoryActivity("food", "2026-09-01", "2026-09-12"),

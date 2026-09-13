@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Complete S6.2 card creation using compact selector sheets without inventing unsupported canonical metadata editing.
-- [ ] Complete S6.3 protected secure-details and explicit MyFinHub removal recovery while preserving canonical deactivation before independent server/local secret purge.
-- [ ] Complete S6.4 with fresh personally inspected Compose references and consolidated hosted Android CI, Project Tracking and S24-target validation.
+- [ ] Publish the single consolidated S6 implementation/reference/tracking update to PR #118.
+- [ ] Run the standard Android CI, Android UI Quality/S24-target instrumentation and Project Tracking gates on the exact PR head.
+- [ ] Record the passing exact-head evidence, complete S6.1–S6.4 and move the durable handoff to S7.
 
 ## Completed foundations
 
@@ -52,9 +52,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s6-cards`. PR: 118.
-Checkpoint: `s6_batch_in_progress`.
+Checkpoint: `s6_candidate_targeted_validation_complete_pr_gates_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Continue PR #118 as one coherent Android-only Cards batch: selector-sheet creation, protected secure details, explicit removal/recovery, then fresh visual and S24-target verification.
+Next action: Publish the one coherent S6 candidate to PR #118, then require standard exact-head Project Tracking, Android CI and Android UI Quality/S24-target gates before completion.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

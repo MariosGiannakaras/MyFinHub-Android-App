@@ -11,7 +11,7 @@
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
 State: `android_redesign_s6_cards_in_progress`
 
-S1–S5 are complete and merged. Draft PR #118 is the active Android-only S6 Cards slice. Its first coherent batch establishes stable Wallet card rows, precise credit detail semantics, ID-based card switching, a single primary payment action and bounded card-scoped activity. Creation selector sheets, the separate protected secure-details surface, removal UX/recovery and consolidated visual/device verification remain in progress.
+S1–S5 are complete and merged. Draft PR #118 now contains the coherent Android-only S6 Cards implementation candidate: stable Wallet card rows/detail/switching, selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Targeted unit, instrumentation compilation and lint validation passed; standard PR gates remain before S6 completion.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Complete S6.2 card creation using compact selector sheets without inventing unsupported canonical metadata editing.
-2. Complete S6.3 protected secure-details and explicit MyFinHub removal recovery while preserving canonical deactivation before independent server/local secret purge.
-3. Complete S6.4 with fresh personally inspected Compose references and consolidated hosted Android CI, Project Tracking and S24-target validation.
+1. Publish the single consolidated S6 implementation/reference/tracking update to PR #118.
+2. Run the standard Android CI, Android UI Quality/S24-target instrumentation and Project Tracking gates on the exact PR head.
+3. Record the passing exact-head evidence, complete S6.1–S6.4 and move the durable handoff to S7.
 
 ## Non-negotiable constraints
 
@@ -53,9 +53,9 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s6-cards`. PR: 118.
-Checkpoint: `s6_batch_in_progress`.
+Checkpoint: `s6_candidate_targeted_validation_complete_pr_gates_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Continue PR #118 as one coherent Android-only Cards batch: selector-sheet creation, protected secure details, explicit removal/recovery, then fresh visual and S24-target verification.
+Next action: Publish the one coherent S6 candidate to PR #118, then require standard exact-head Project Tracking, Android CI and Android UI Quality/S24-target gates before completion.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

@@ -108,8 +108,32 @@ class CardSecretViewModelTest {
         waitUntil { vault.deletedCardId == "card-1" }
 
         assertTrue(viewModel.state.value is CardSecretUiState.Hidden)
+        assertEquals(CardSecretCleanupUiState.Complete("card-1"), viewModel.cleanupState.value)
         assertNull(vault.load("card-1"))
         assertEquals(0, api.serverSecretWriteCalls)
+    }
+
+    @Test
+    fun partialPurgeRetry_retriesOnlyFailedStore_withoutRepeatingServerDelete() = runBlocking {
+        val api = FakeCardApi(ApiResult.Success(CardSecrets(null, null)))
+        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'), deleteFailuresRemaining = 1)
+        val viewModel = CardSecretViewModel(application, api, vault)
+
+        viewModel.attachSession(session)
+        viewModel.purgeCard("card-1")
+        waitUntil { viewModel.cleanupState.value is CardSecretCleanupUiState.Failure }
+
+        val failure = viewModel.cleanupState.value as CardSecretCleanupUiState.Failure
+        assertFalse(failure.serverCleanupPending)
+        assertTrue(failure.localCleanupPending)
+        assertEquals(1, api.serverSecretDeleteCalls)
+
+        viewModel.retryPurgeCard("card-1")
+        waitUntil { viewModel.cleanupState.value is CardSecretCleanupUiState.Complete }
+
+        assertEquals(1, api.serverSecretDeleteCalls)
+        assertEquals(2, vault.deleteCalls)
+        assertNull(vault.load("card-1"))
     }
 
     @Test
@@ -181,11 +205,15 @@ private class FakeCvvVault(
     initial: CharArray? = null,
     private val failDelete: Boolean = false,
     private val failLoad: Boolean = false,
+    deleteFailuresRemaining: Int = 0,
 ) : CvvVault {
     private var stored: CharArray? = initial?.copyOf()
+    private var remainingDeleteFailures = deleteFailuresRemaining
     var saved: CharArray? = null
         private set
     var deletedCardId: String? = null
+        private set
+    var deleteCalls: Int = 0
         private set
 
     override suspend fun load(cardId: String): CharArray? {
@@ -200,7 +228,8 @@ private class FakeCvvVault(
     }
 
     override suspend fun delete(cardId: String) {
-        if (failDelete) error("synthetic delete failure")
+        deleteCalls += 1
+        if (failDelete || remainingDeleteFailures-- > 0) error("synthetic delete failure")
         deletedCardId = cardId
         stored?.fill('\u0000')
         stored = null
@@ -211,6 +240,8 @@ private class FakeCardApi(
     private val revealResult: ApiResult<CardSecrets>,
 ) : MyFinHubApi {
     var serverSecretWriteCalls: Int = 0
+        private set
+    var serverSecretDeleteCalls: Int = 0
         private set
 
     override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> =
@@ -236,5 +267,8 @@ private class FakeCardApi(
     override suspend fun deleteCardSecrets(
         session: AuthSession,
         cardId: String,
-    ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Success(CardSecretDeleteReceipt(deleted = true))
+    ): ApiResult<CardSecretDeleteReceipt> {
+        serverSecretDeleteCalls += 1
+        return ApiResult.Success(CardSecretDeleteReceipt(deleted = true))
+    }
 }

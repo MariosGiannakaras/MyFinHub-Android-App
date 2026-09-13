@@ -58,6 +58,7 @@ import app.myfinhub.android.feature.auth.AuthShellScreen
 import app.myfinhub.android.feature.auth.AuthShellUiState
 import app.myfinhub.android.feature.auth.AuthShellViewModel
 import app.myfinhub.android.feature.money.CardCreateRequest
+import app.myfinhub.android.feature.money.CardSecretCleanupUiState
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.CardSecretViewModel
 import app.myfinhub.android.feature.utilities.AppAppearance
@@ -117,6 +118,7 @@ fun MyFinHubRoot(
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
+    val cardSecretCleanupState by cardSecretViewModel.cleanupState.collectAsStateWithLifecycle()
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
     val networkStatus by financeViewModel.networkStatus.collectAsStateWithLifecycle()
     val lastSuccessfulSync by financeViewModel.lastSuccessfulSync.collectAsStateWithLifecycle()
@@ -232,6 +234,7 @@ fun MyFinHubRoot(
                         FinanceProductSurface(
                             state = financeState,
                             cardSecretState = cardSecretState,
+                            cardSecretCleanupState = cardSecretCleanupState,
                             onRetryLoad = financeViewModel::retryLoad,
                             onRetryMutation = financeViewModel::retryPendingMutation,
                             onUndoPendingChange = financeViewModel::undoLatestPendingMutation,
@@ -247,6 +250,7 @@ fun MyFinHubRoot(
                             onSaveServerCardSecrets = cardSecretViewModel::saveServerSecrets,
                             onSaveLocalCvv = cardSecretViewModel::saveCvv,
                             onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
+                            onRetryCardSecretCleanup = cardSecretViewModel::retryPurgeCard,
                             onDeleteCard = financeViewModel::deleteCard,
                             onCreateCard = financeViewModel::createCard,
                             diagnostics = diagnostics,
@@ -302,6 +306,7 @@ internal fun UserNoticeDetailsDialog(
 private fun FinanceProductSurface(
     state: FinanceProductState,
     cardSecretState: CardSecretUiState,
+    cardSecretCleanupState: CardSecretCleanupUiState,
     onRetryLoad: () -> Unit,
     onRetryMutation: () -> Unit,
     onUndoPendingChange: () -> Unit,
@@ -317,6 +322,7 @@ private fun FinanceProductSurface(
     onSaveServerCardSecrets: (CharArray, CharArray) -> Unit,
     onSaveLocalCvv: (CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
+    onRetryCardSecretCleanup: (String) -> Unit,
     onDeleteCard: (String) -> Unit,
     onCreateCard: (CardCreateRequest) -> Unit,
     diagnostics: AppDiagnosticsSnapshot,
@@ -349,6 +355,7 @@ private fun FinanceProductSurface(
                     quickEntryMutationInFlight = state.saving,
                     moneyState = projection.moneyState,
                     cardSecretState = cardSecretState,
+                    cardSecretCleanupState = cardSecretCleanupState,
                     onCardDetailOpened = onCardDetailOpened,
                     onCardDetailClosed = onCardDetailClosed,
                     onRevealCardSecrets = onRevealCardSecrets,
@@ -356,6 +363,7 @@ private fun FinanceProductSurface(
                     onSaveServerCardSecrets = onSaveServerCardSecrets,
                     onSaveLocalCvv = onSaveLocalCvv,
                     onDeleteLocalCvv = onDeleteLocalCvv,
+                    onRetryCardSecretCleanup = onRetryCardSecretCleanup,
                     onDeleteCard = onDeleteCard,
                     onCreateCard = onCreateCard,
                     planState = projection.planState,

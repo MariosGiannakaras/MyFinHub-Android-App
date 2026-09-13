@@ -94,6 +94,7 @@ internal fun walletAvailableTotal(state: MoneyUiState): Double =
 fun CanonicalWalletScreen(
     state: MoneyUiState,
     accountsRequest: Int = 0,
+    initiallyShowCards: Boolean = false,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -116,7 +117,9 @@ fun CanonicalWalletScreen(
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    var selectedName by rememberSaveable(accountsRequest) { mutableStateOf(WalletSection.ACCOUNTS.name) }
+    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards) {
+        mutableStateOf(if (initiallyShowCards) WalletSection.CARDS.name else WalletSection.ACCOUNTS.name)
+    }
     val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
 

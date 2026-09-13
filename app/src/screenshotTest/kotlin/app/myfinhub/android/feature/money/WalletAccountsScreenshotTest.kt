@@ -60,6 +60,38 @@ fun WalletAccountsLargeFontScreenshot() {
 }
 
 @PreviewTest
+@Preview(name = "wallet_cards_light", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun WalletCardsLightScreenshot() = WalletCardsFixture(darkTheme = false)
+
+@PreviewTest
+@Preview(name = "wallet_cards_dark", widthDp = 412, heightDp = 915, showBackground = true)
+@Composable
+fun WalletCardsDarkScreenshot() = WalletCardsFixture(darkTheme = true)
+
+@PreviewTest
+@Preview(name = "wallet_cards_large_font", widthDp = 412, heightDp = 915, fontScale = 1.5f, showBackground = true)
+@Composable
+fun WalletCardsLargeFontScreenshot() = WalletCardsFixture(darkTheme = false)
+
+@Composable
+private fun WalletCardsFixture(darkTheme: Boolean) {
+    MyFinHubTheme(darkTheme = darkTheme) {
+        CanonicalWalletScreen(
+            state = syntheticMoneyUiState(),
+            initiallyShowCards = true,
+            onOpenAccount = {},
+            onOpenNetPosition = {},
+            onOpenCard = {},
+            onAddCard = {},
+            onOpenLoans = {},
+            onOpenLending = {},
+            amountsVisibleOverride = true,
+        )
+    }
+}
+
+@PreviewTest
 @Preview(name = "net_position_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun NetPositionLightScreenshot() {
