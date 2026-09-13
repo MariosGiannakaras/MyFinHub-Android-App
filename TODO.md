@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Run the single consolidated hosted validation for draft PR #117 after confirming its exact head includes the S5 projection, navigation, privacy and instrumentation coverage.
-- [ ] Download and personally inspect the intentional real Compose screenshot candidates together; accept one baseline batch only after fixing any visual defects, then rerun exact-head gates before completing S5.1–S5.4.
+- [ ] Merge validated PR #117 into develop without changing the accepted S5 product head.
+- [ ] Create the S6 Cards branch from updated develop, move canonical tracking to S6.1–S6.4, and implement the next coherent Android-only slice.
 
 ## Completed foundations
 
@@ -46,14 +46,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 4/10 · Subtasks: 16/40 · Preparation: 4/4**
+**Tasks: 5/10 · Subtasks: 20/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s5-home-accounts`. PR: 117.
-Checkpoint: `s5_hosted_validation`.
+Checkpoint: `s5_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate draft PR #117 as one hosted batch, inspect all intentional S5 screenshot candidates, commit accepted references together, then require clean exact-head tracking, Android CI, screenshot regression and S24-target instrumentation.
+Next action: Merge validated PR #117 into develop, create android/redesign-s6-cards from the resulting develop head, then implement S6.1–S6.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -61,7 +61,7 @@ Next action: Validate draft PR #117 as one hosted batch, inspect all intentional
 | S2 Foundation and navigation | 4/4 | Complete |
 | S3 Activity | 4/4 | Complete |
 | S4 Quick Entry | 4/4 | Complete |
-| S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (in_progress); S5.2 Wallet account groups (in_progress); S5.3 Account ledger and net-position entry (in_progress); S5.4 Home/account verification (in_progress) |
+| S5 Home and accounts | 4/4 | Complete |
 | S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
 | S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
 | S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |

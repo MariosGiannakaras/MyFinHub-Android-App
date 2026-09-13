@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-13",
+  "updated_at": "2026-09-14",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s5_home_accounts_validation",
-    "summary": "S1–S4 are complete and merged. The coherent Android-only S5 Home/accounts implementation is published in draft PR #117 from develop merge fda679687865346cde9a2b6a21ac9464c74b7ba8. Compact Home/attention, canonical Wallet grouping and availability, account-relative ledger signs, account-preselected Quick Entry and net-position detail are implemented with focused coverage. No backend or web/desktop changes are authorized.",
+    "status": "android_redesign_s5_complete_merge_ready",
+    "summary": "S1–S5 are complete. PR #117 implements the coherent Android-only Home/accounts redesign: compact Home and attention detail, canonical Wallet grouping/availability, account-scoped ledger semantics, account-preselected Quick Entry and explicit net-position detail. The reviewed S5 reference batch and final exact-head Project Tracking, Android UI Quality and Android CI gates all pass on b5556baccc565604981e46e308933007fce4d264. No backend or web/desktop changes are authorized.",
     "next": [
-      "Run the single consolidated hosted validation for draft PR #117 after confirming its exact head includes the S5 projection, navigation, privacy and instrumentation coverage.",
-      "Download and personally inspect the intentional real Compose screenshot candidates together; accept one baseline batch only after fixing any visual defects, then rerun exact-head gates before completing S5.1–S5.4."
+      "Merge validated PR #117 into develop without changing the accepted S5 product head.",
+      "Create the S6 Cards branch from updated develop, move canonical tracking to S6.1–S6.4, and implement the next coherent Android-only slice."
     ]
   },
   "latest_production_candidate": {
@@ -83,10 +83,10 @@
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s5-home-accounts",
     "pr": 117,
-    "current_slice": "S5.1 / S5.2 / S5.3 / S5.4",
-    "checkpoint": "s5_hosted_validation",
+    "current_slice": "S6.1 / S6.2 / S6.3 / S6.4",
+    "checkpoint": "s5_complete_merge_ready",
     "blockers": [],
-    "next_action": "Validate draft PR #117 as one hosted batch, inspect all intentional S5 screenshot candidates, commit accepted references together, then require clean exact-head tracking, Android CI, screenshot regression and S24-target instrumentation.",
+    "next_action": "Merge validated PR #117 into develop, create android/redesign-s6-cards from the resulting develop head, then implement S6.1–S6.4 as one coherent Android-only batch.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -327,26 +327,38 @@
         {
           "id": "S5.1",
           "title": "Compact Home and attention",
-          "status": "in_progress",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Compact Home exposes one liquid-availability scope, one primary Quick Entry action, bounded attention/upcoming density and privacy-safe amount hiding; attention detail exposes canonical source/date/amount with an explicit dismiss-for-now action.",
+            "Targeted hosted S5 validation run 34781108539 passed the corrected Home/settings/attention device contract before the final exact-head gate."
+          ]
         },
         {
           "id": "S5.2",
           "title": "Wallet account groups",
-          "status": "in_progress",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Wallet account groups are driven by stable canonical account metadata rather than localized labels; available-total exclusions and daily/savings grouping remain independent of display copy.",
+            "Targeted hosted S5 validation run 34781108539 passed the corrected Wallet device contract and verified the accepted reviewed render hashes."
+          ]
         },
         {
           "id": "S5.3",
           "title": "Account ledger and net-position entry",
-          "status": "in_progress",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Account detail uses account-relative transfer signs, preserves account-scoped ledger context, opens Quick Entry with the selected account prefilled, and keeps aggregate credit debt visible through explicit net-position detail.",
+            "Final exact-head Android CI run 34781624482 passed unit/instrumentation compilation, lint, debug/release/bundle assembly and release policy audits on b5556baccc565604981e46e308933007fce4d264."
+          ]
         },
         {
           "id": "S5.4",
           "title": "Home/account verification",
-          "status": "in_progress",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "The coherent 12-reference S5 Home/attention/Wallet/account-detail/net-position batch was regenerated and hash-verified only after personal inspection; the accepted baseline commit is c1221eb4449e9d3b992fa562ac3e20247231eda6.",
+            "Final exact-head Project Tracking run 34781624481 passed. Android UI Quality run 34781624502 passed screenshot regression without candidate regeneration and S24-target instrumentation. Android CI run 34781624482 also passed on b5556baccc565604981e46e308933007fce4d264."
+          ]
         }
       ]
     },

@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s5_home_accounts_validation`.
+- Workstream state: `android_redesign_s5_complete_merge_ready`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S4 are complete and merged. The coherent Android-only S5 Home/accounts implementation is published in draft PR #117 from develop merge fda679687865346cde9a2b6a21ac9464c74b7ba8. Compact Home/attention, canonical Wallet grouping and availability, account-relative ledger signs, account-preselected Quick Entry and net-position detail are implemented with focused coverage. No backend or web/desktop changes are authorized.
+S1–S5 are complete. PR #117 implements the coherent Android-only Home/accounts redesign: compact Home and attention detail, canonical Wallet grouping/availability, account-scoped ledger semantics, account-preselected Quick Entry and explicit net-position detail. The reviewed S5 reference batch and final exact-head Project Tracking, Android UI Quality and Android CI gates all pass on b5556baccc565604981e46e308933007fce4d264. No backend or web/desktop changes are authorized.
 
 ## Immediate work
 
-- Run the single consolidated hosted validation for draft PR #117 after confirming its exact head includes the S5 projection, navigation, privacy and instrumentation coverage.
-- Download and personally inspect the intentional real Compose screenshot candidates together; accept one baseline batch only after fixing any visual defects, then rerun exact-head gates before completing S5.1–S5.4.
+- Merge validated PR #117 into develop without changing the accepted S5 product head.
+- Create the S6 Cards branch from updated develop, move canonical tracking to S6.1–S6.4, and implement the next coherent Android-only slice.
 
 ## Constraints
 
@@ -51,14 +51,14 @@ S1–S4 are complete and merged. The coherent Android-only S5 Home/accounts impl
 
 ## Android redesign progress
 
-**Tasks: 4/10 · Subtasks: 16/40 · Preparation: 4/4**
+**Tasks: 5/10 · Subtasks: 20/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s5-home-accounts`. PR: 117.
-Checkpoint: `s5_hosted_validation`.
+Checkpoint: `s5_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate draft PR #117 as one hosted batch, inspect all intentional S5 screenshot candidates, commit accepted references together, then require clean exact-head tracking, Android CI, screenshot regression and S24-target instrumentation.
+Next action: Merge validated PR #117 into develop, create android/redesign-s6-cards from the resulting develop head, then implement S6.1–S6.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -66,7 +66,7 @@ Next action: Validate draft PR #117 as one hosted batch, inspect all intentional
 | S2 Foundation and navigation | 4/4 | Complete |
 | S3 Activity | 4/4 | Complete |
 | S4 Quick Entry | 4/4 | Complete |
-| S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (in_progress); S5.2 Wallet account groups (in_progress); S5.3 Account ledger and net-position entry (in_progress); S5.4 Home/account verification (in_progress) |
+| S5 Home and accounts | 4/4 | Complete |
 | S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
 | S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
 | S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
