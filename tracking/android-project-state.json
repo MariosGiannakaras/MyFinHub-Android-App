@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s4_quick_entry_validation",
-    "summary": "S1–S3 are complete and merged. PR #116 implements the coherent Android-only S4 Quick Entry batch: one production form for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, and exact-cent split allocation. Implementation head 7f4844e is under consolidated Android CI, Project Tracking and Android UI Quality validation. No backend or web/desktop changes.",
+    "status": "android_redesign_s4_ready_to_merge",
+    "summary": "S1–S3 are complete and merged. PR #116 now has an evidence-backed S4 Quick Entry implementation: one production editor for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, exact-cent split allocation and natural operation-specific amount headings. Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, Project Tracking run 34751696393 and Android UI Quality run 34751696408; screenshot regression and all 53 S24-target tests passed. No backend or web/desktop changes.",
     "next": [
-      "Resolve all findings from the first consolidated PR #116 validation as one correction batch; review only the intentional Quick Entry screenshot differences before accepting references.",
-      "After the corrected implementation head passes Android CI, Project Tracking, screenshot regression and S24-target instrumentation, record evidence for S4.1–S4.4 and merge S4."
+      "Merge validated PR #116 into develop with its exact completion-tracking head.",
+      "Create the S5 Home and accounts branch from the resulting develop head and begin S5.1 without reopening completed S4 work."
     ]
   },
   "latest_production_candidate": {
@@ -84,9 +84,9 @@
     "branch": "android/redesign-s4-quick-entry",
     "pr": 116,
     "current_slice": "S4.1 / S4.2 / S4.3 / S4.4",
-    "checkpoint": "s4_batch_in_validation",
+    "checkpoint": "s4_complete_pending_merge",
     "blockers": [],
-    "next_action": "Resolve the first consolidated validation findings on PR #116 together, review the intentional Quick Entry screenshot artifact, and run final gates once on the corrected S4 head.",
+    "next_action": "Merge PR #116 after the completion-tracking check passes, then create the S5 Home/accounts branch from the new develop head and start S5.1.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -283,33 +283,38 @@
         {
           "id": "S4.1",
           "title": "Unified form and pickers",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Implementation head 7f4844e replaces the runtime fast/complete fork with one production editor and shared searchable account, category, subcategory and card picker sheets."
+            "PR #116 replaces the runtime fast/complete fork with one production Quick Entry editor for all canonical transaction kinds and shared searchable account, category, subcategory and credit-card picker sheets with stable identity context.",
+            "Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/AAB assembly and distribution policy checks."
           ]
         },
         {
           "id": "S4.2",
           "title": "All twelve kinds and split",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Implementation head 7f4844e renders operation-specific fields for all twelve canonical kinds and requires a declared split total to match categorized parts exactly in currency cents."
+            "The unified editor renders operation-specific fields for all twelve canonical kinds, including transfer routes, card purchase/payment identity, lending/repayment person fields, reconciliation actual balance and split accounting parts.",
+            "Split entry requires a declared total and categorized positive parts whose currency-cent allocation matches exactly; final instrumentation coverage also verifies natural semantic amount headings for every canonical kind."
           ]
         },
         {
           "id": "S4.3",
           "title": "Dirty draft and persistence behavior",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Implementation head 7f4844e preserves only compatible fields on kind changes, clears incompatible draft state, aligns toolbar/system discard behavior, exits on durable online/offline completion and disables Save while a mutation is in flight."
+            "Kind changes preserve only compatible draft fields and reset incompatible account/card/person/reconciliation/split state; toolbar/system Back share the same explicit dirty-draft discard contract.",
+            "Save is disabled while a mutation is in flight, online completion waits for persisted acknowledgement, and durable offline enqueue owns pending-sync completion. Android UI Quality run 34751696408 passed all 53 S24-target tests on final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f."
           ]
         },
         {
           "id": "S4.4",
           "title": "Quick Entry verification",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "PR #116 groups reducer, canonical projection, Compose UI, navigation, accessibility and eight Quick Entry screenshot fixtures; hosted validation is in progress and no completion is claimed yet."
+            "The affected Quick Entry light/dark/large-font candidates from Android UI Quality artifact 10315399104 (sha256 d821a705e5c8e8553514f0d275ad6ea38ea934149f29567ca65dc9c3b3d37fbe) were personally inspected before baseline acceptance; no clipping or hierarchy blocker was found.",
+            "After the natural amount-heading correction, exactly seven ProductionQuickEntry references were refreshed by the bounded recovery step. The temporary recovery was then removed.",
+            "Final Android UI Quality run 34751696408 passed screenshot regression without regeneration and S24-target instrumentation 53/53 on head 3217a48022132ec9aac82cfd039c6c09b78c031f. Final artifact 10316605934 has sha256 3c8cad1a576930d9dbe4a003ca3ec42a111a0afaaa9dc7f29d3e8af0a81b45c1."
           ]
         }
       ]
