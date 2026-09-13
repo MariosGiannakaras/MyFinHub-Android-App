@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s3_activity_ready_to_merge",
-    "summary": "S1–S3 are implementation-complete. PR #115 final implementation head 52cb9f5 passed Android CI, Project Tracking and Android UI Quality, including 94/94 screenshot references and all 51 S24-target tests. The S3 Activity ledger, exact filters, read detail, supported edit/delete, pending semantics and account/card-ledger navigation are verified. No backend or web/desktop changes.",
+    "status": "android_redesign_s4_quick_entry_validation",
+    "summary": "S1–S3 are complete and merged. PR #116 implements the coherent Android-only S4 Quick Entry batch: one production form for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, and exact-cent split allocation. Implementation head 7f4844e is under consolidated Android CI, Project Tracking and Android UI Quality validation. No backend or web/desktop changes.",
     "next": [
-      "Publish this S3 completion evidence, verify its tracking gate and merge PR #115 into develop.",
-      "Create one S4 Quick Entry branch from the merged develop head and implement the unified form/picker/all-twelve-kind/dirty-persistence verification batch."
+      "Resolve all findings from the first consolidated PR #116 validation as one correction batch; review only the intentional Quick Entry screenshot differences before accepting references.",
+      "After the corrected implementation head passes Android CI, Project Tracking, screenshot regression and S24-target instrumentation, record evidence for S4.1–S4.4 and merge S4."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s3-activity",
-    "pr": 115,
-    "current_slice": "S3 completion / S4 handoff",
-    "checkpoint": "s3_all_gates_green_ready_to_merge",
+    "branch": "android/redesign-s4-quick-entry",
+    "pr": 116,
+    "current_slice": "S4.1 / S4.2 / S4.3 / S4.4",
+    "checkpoint": "s4_batch_in_validation",
     "blockers": [],
-    "next_action": "Publish this completion-only tracking update, merge the fully green PR #115, then branch once for the complete S4 Quick Entry batch.",
+    "next_action": "Resolve the first consolidated validation findings on PR #116 together, review the intentional Quick Entry screenshot artifact, and run final gates once on the corrected S4 head.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -283,26 +283,34 @@
         {
           "id": "S4.1",
           "title": "Unified form and pickers",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Implementation head 7f4844e replaces the runtime fast/complete fork with one production editor and shared searchable account, category, subcategory and card picker sheets."
+          ]
         },
         {
           "id": "S4.2",
           "title": "All twelve kinds and split",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Implementation head 7f4844e renders operation-specific fields for all twelve canonical kinds and requires a declared split total to match categorized parts exactly in currency cents."
+          ]
         },
         {
           "id": "S4.3",
           "title": "Dirty draft and persistence behavior",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Implementation head 7f4844e preserves only compatible fields on kind changes, clears incompatible draft state, aligns toolbar/system discard behavior, exits on durable online/offline completion and disables Save while a mutation is in flight."
+          ]
         },
         {
           "id": "S4.4",
           "title": "Quick Entry verification",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "PR #116 groups reducer, canonical projection, Compose UI, navigation, accessibility and eight Quick Entry screenshot fixtures; hosted validation is in progress and no completion is claimed yet."
+          ]
         }
       ]
     },
