@@ -5,8 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #117 into develop without changing the accepted S5 product head.
-- [ ] Create the S6 Cards branch from updated develop, move canonical tracking to S6.1–S6.4, and implement the next coherent Android-only slice.
+- [ ] Complete S6.2 card creation using compact selector sheets without inventing unsupported canonical metadata editing.
+- [ ] Complete S6.3 protected secure-details and explicit MyFinHub removal recovery while preserving canonical deactivation before independent server/local secret purge.
+- [ ] Complete S6.4 with fresh personally inspected Compose references and consolidated hosted Android CI, Project Tracking and S24-target validation.
 
 ## Completed foundations
 
@@ -50,10 +51,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s5-home-accounts`. PR: 117.
-Checkpoint: `s5_complete_merge_ready`.
+Working branch: `android/redesign-s6-cards`. PR: 118.
+Checkpoint: `s6_batch_in_progress`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #117 into develop, create android/redesign-s6-cards from the resulting develop head, then implement S6.1–S6.4 as one coherent Android-only batch.
+Next action: Continue PR #118 as one coherent Android-only Cards batch: selector-sheet creation, protected secure details, explicit removal/recovery, then fresh visual and S24-target verification.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -62,7 +63,7 @@ Next action: Merge validated PR #117 into develop, create android/redesign-s6-ca
 | S3 Activity | 4/4 | Complete |
 | S4 Quick Entry | 4/4 | Complete |
 | S5 Home and accounts | 4/4 | Complete |
-| S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
+| S6 Cards | 0/4 | S6.1 List, detail and stable switching (in_progress); S6.2 Creation and supported metadata editing (in_progress); S6.3 Secure details and removal recovery (in_progress); S6.4 Card verification (in_progress) |
 | S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
 | S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
 | S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
