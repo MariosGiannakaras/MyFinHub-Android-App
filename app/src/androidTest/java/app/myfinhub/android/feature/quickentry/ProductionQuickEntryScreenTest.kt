@@ -3,7 +3,6 @@ package app.myfinhub.android.feature.quickentry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -35,33 +34,33 @@ class ProductionQuickEntryScreenTest {
             composeRule.runOnIdle { state = validState(kind) }
             composeRule.waitForIdle()
 
-            composeRule.onNodeWithText(kind.description).assertExists()
+            composeRule.onNodeWithText(kind.description).fetchSemanticsNode()
             when (kind) {
                 QuickEntryKind.TRANSFER,
                 QuickEntryKind.WITHDRAWAL,
                 QuickEntryKind.SAVING -> {
-                    composeRule.onNodeWithText("Από λογαριασμό").assertExists()
-                    composeRule.onNodeWithText("Προς λογαριασμό").assertExists()
+                    composeRule.onNodeWithText("Από λογαριασμό").fetchSemanticsNode()
+                    composeRule.onNodeWithText("Προς λογαριασμό").fetchSemanticsNode()
                 }
                 QuickEntryKind.CARD_PURCHASE -> {
-                    composeRule.onNodeWithText("Πιστωτική κάρτα").assertExists()
+                    composeRule.onNodeWithText("Πιστωτική κάρτα").fetchSemanticsNode()
                 }
                 QuickEntryKind.CARD_PAYMENT -> {
-                    composeRule.onNodeWithText("Από λογαριασμό").assertExists()
-                    composeRule.onNodeWithText("Πιστωτική κάρτα").assertExists()
+                    composeRule.onNodeWithText("Από λογαριασμό").fetchSemanticsNode()
+                    composeRule.onNodeWithText("Πιστωτική κάρτα").fetchSemanticsNode()
                 }
                 QuickEntryKind.LENDING,
-                QuickEntryKind.REPAYMENT -> composeRule.onNodeWithText("Πρόσωπο").assertExists()
+                QuickEntryKind.REPAYMENT -> composeRule.onNodeWithText("Πρόσωπο").fetchSemanticsNode()
                 QuickEntryKind.RECONCILIATION -> {
                     composeRule.onNodeWithText(
                         "Καταχωρίζεται η διαφορά από το υπολογισμένο υπόλοιπο, όχι νέο έσοδο ή έξοδο.",
-                    ).assertExists()
+                    ).fetchSemanticsNode()
                 }
                 QuickEntryKind.SPLIT -> {
-                    composeRule.onNodeWithText("Συνολικό ποσό").assertExists()
-                    composeRule.onNodeWithText("Κατανομή ποσού").assertExists()
+                    composeRule.onNodeWithText("Συνολικό ποσό").fetchSemanticsNode()
+                    composeRule.onNodeWithText("Κατανομή ποσού").fetchSemanticsNode()
                 }
-                else -> composeRule.onNodeWithText("Πόσο ${kind.label.lowercase()};").assertExists()
+                else -> composeRule.onNodeWithText("Πόσο ${kind.label.lowercase()};").fetchSemanticsNode()
             }
         }
     }
@@ -79,9 +78,7 @@ class ProductionQuickEntryScreenTest {
             }
         }
 
-        composeRule.onNodeWithText("Αποθήκευση…")
-            .assertExists()
-            .assertIsNotEnabled()
+        composeRule.onNodeWithText("Αποθήκευση…").assertIsNotEnabled()
     }
 
     private fun validState(kind: QuickEntryKind): QuickEntryUiState = QuickEntryUiState(
