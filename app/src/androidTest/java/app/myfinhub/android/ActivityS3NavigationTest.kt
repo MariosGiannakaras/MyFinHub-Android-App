@@ -8,7 +8,8 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -31,9 +32,11 @@ class ActivityS3NavigationTest {
         val sheetScroll = composeRule.onNode(
             hasScrollAction() and hasAnyDescendant(hasText("Έως ημερομηνία")),
         )
-        sheetScroll.performScrollToNode(hasText("Έως ημερομηνία"))
+        sheetScroll.performTouchInput { swipeUp(durationMillis = 400L) }
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Έως ημερομηνία").assertIsDisplayed()
-        sheetScroll.performScrollToNode(hasText("Εφαρμογή"))
+        sheetScroll.performTouchInput { swipeUp(durationMillis = 400L) }
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Εφαρμογή").assertIsDisplayed()
     }
 
