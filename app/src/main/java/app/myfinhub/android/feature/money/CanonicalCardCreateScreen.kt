@@ -3,19 +3,20 @@ package app.myfinhub.android.feature.money
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,13 +26,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
-import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -48,6 +50,11 @@ data class CardCreateRequest(
     val creditLimit: Double?,
 )
 
+private data class CardCreateOption(
+    val value: String,
+    val label: String,
+)
+
 private val cardProviders = listOf(
     FinancialProvider.PIRAEUS,
     FinancialProvider.ALPHA,
@@ -56,6 +63,24 @@ private val cardProviders = listOf(
     FinancialProvider.VIVA,
 )
 
+private val cardKindOptions = listOf(
+    CardCreateOption("debit", "Χρεωστική"),
+    CardCreateOption("prepaid", "Προπληρωμένη"),
+    CardCreateOption("credit", "Πιστωτική"),
+)
+
+private val cardNetworkOptions = listOf(
+    CardCreateOption("visa", "Visa"),
+    CardCreateOption("mastercard", "Mastercard"),
+    CardCreateOption("other", "Άλλο"),
+)
+
+private val cardFormFactorOptions = listOf(
+    CardCreateOption("physical", "Φυσική"),
+    CardCreateOption("virtual", "Εικονική"),
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CanonicalCardCreateScreen(
     cards: List<MoneyCard>,
@@ -73,6 +98,7 @@ fun CanonicalCardCreateScreen(
     var validation by remember { mutableStateOf<String?>(null) }
     var submittedId by remember { mutableStateOf<String?>(null) }
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var activePicker by rememberSaveable { mutableStateOf<String?>(null) }
 
     val dirty = nickname.isNotBlank() ||
         selectedProvider != FinancialProvider.PIRAEUS ||
@@ -81,7 +107,7 @@ fun CanonicalCardCreateScreen(
         network != "visa" ||
         formFactor != "physical" ||
         last4.isNotBlank() ||
-        creditLimit.isNotBlank()
+        (kind == "credit" && creditLimit.isNotBlank())
     val requestBack = {
         when {
             submittedId != null -> Unit
@@ -97,19 +123,16 @@ fun CanonicalCardCreateScreen(
         if (cards.any { it.id == id }) onBack()
     }
 
-    Scaffold(
-        topBar = {
-            MyFinHubScreenHeader(
-                title = "Νέα κάρτα",
-                subtitle = "Χρεωστική, προπληρωμένη ή πιστωτική",
-                navigation = { MyFinHubBackButton(requestBack) },
-            )
-        },
-    ) { padding ->
+    val providerOptions = cardProviders.map { CardCreateOption(it.key, it.institutionLabel) } +
+        CardCreateOption("custom", "Άλλος εκδότης")
+    val selectedProviderValue = selectedProvider?.key ?: "custom"
+    val selectedProviderLabel = selectedProvider?.institutionLabel ?: "Άλλος εκδότης"
+
+    ScaffoldCardCreate(
+        requestBack = requestBack,
+    ) { contentModifier ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = contentModifier
                 .verticalScroll(rememberScrollState())
                 .padding(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
@@ -121,6 +144,7 @@ fun CanonicalCardCreateScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
             OutlinedTextField(
                 value = nickname,
                 onValueChange = { nickname = it; validation = null },
@@ -130,30 +154,13 @@ fun CanonicalCardCreateScreen(
                 enabled = submittedId == null,
             )
 
-            Text("Τράπεζα / εκδότης", style = MaterialTheme.typography.labelLarge)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-            ) {
-                cardProviders.forEach { provider ->
-                    FilterChip(
-                        selected = selectedProvider == provider,
-                        onClick = { selectedProvider = provider; validation = null },
-                        label = { Text(provider.institutionLabel) },
-                        leadingIcon = {
-                            MyFinHubProviderMark(provider, modifier = Modifier.size(20.dp), contentDescription = null)
-                        },
-                        enabled = submittedId == null,
-                    )
-                }
-                FilterChip(
-                    selected = selectedProvider == null,
-                    onClick = { selectedProvider = null; validation = null },
-                    label = { Text("Άλλος εκδότης") },
-                    enabled = submittedId == null,
-                )
-            }
+            CardCreateSelectionField(
+                label = "Τράπεζα / εκδότης",
+                value = selectedProviderLabel,
+                testTag = "card_create_provider",
+                enabled = submittedId == null,
+                onClick = { activePicker = "provider" },
+            )
             if (selectedProvider == null) {
                 OutlinedTextField(
                     value = customBank,
@@ -165,51 +172,28 @@ fun CanonicalCardCreateScreen(
                 )
             }
 
-            Text("Τύπος", style = MaterialTheme.typography.labelLarge)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-            ) {
-                listOf("debit" to "Χρεωστική", "prepaid" to "Προπληρωμένη", "credit" to "Πιστωτική").forEach { (value, label) ->
-                    FilterChip(
-                        selected = kind == value,
-                        onClick = { kind = value; validation = null },
-                        label = { Text(label) },
-                        enabled = submittedId == null,
-                    )
-                }
-            }
-            Text("Δίκτυο", style = MaterialTheme.typography.labelLarge)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-            ) {
-                listOf("visa" to "Visa", "mastercard" to "Mastercard", "other" to "Άλλο").forEach { (value, label) ->
-                    FilterChip(
-                        selected = network == value,
-                        onClick = { network = value },
-                        label = { Text(label) },
-                        enabled = submittedId == null,
-                    )
-                }
-            }
-            Text("Μορφή", style = MaterialTheme.typography.labelLarge)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
-            ) {
-                listOf("physical" to "Φυσική", "virtual" to "Εικονική").forEach { (value, label) ->
-                    FilterChip(
-                        selected = formFactor == value,
-                        onClick = { formFactor = value },
-                        label = { Text(label) },
-                        enabled = submittedId == null,
-                    )
-                }
-            }
+            CardCreateSelectionField(
+                label = "Τύπος",
+                value = cardKindOptions.labelFor(kind),
+                testTag = "card_create_kind",
+                enabled = submittedId == null,
+                onClick = { activePicker = "kind" },
+            )
+            CardCreateSelectionField(
+                label = "Δίκτυο",
+                value = cardNetworkOptions.labelFor(network),
+                testTag = "card_create_network",
+                enabled = submittedId == null,
+                onClick = { activePicker = "network" },
+            )
+            CardCreateSelectionField(
+                label = "Μορφή",
+                value = cardFormFactorOptions.labelFor(formFactor),
+                testTag = "card_create_form_factor",
+                enabled = submittedId == null,
+                onClick = { activePicker = "form_factor" },
+            )
+
             OutlinedTextField(
                 value = last4,
                 onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) last4 = it; validation = null },
@@ -231,6 +215,7 @@ fun CanonicalCardCreateScreen(
                     enabled = submittedId == null,
                 )
             }
+
             validation?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             MyFinHubPrimaryAction(
                 label = if (submittedId == null) "Δημιουργία κάρτας" else "Αποθήκευση…",
@@ -288,4 +273,146 @@ fun CanonicalCardCreateScreen(
             },
         )
     }
+
+    activePicker?.let { picker ->
+        val title: String
+        val options: List<CardCreateOption>
+        val selected: String
+        when (picker) {
+            "provider" -> {
+                title = "Τράπεζα / εκδότης"
+                options = providerOptions
+                selected = selectedProviderValue
+            }
+            "kind" -> {
+                title = "Τύπος κάρτας"
+                options = cardKindOptions
+                selected = kind
+            }
+            "network" -> {
+                title = "Δίκτυο κάρτας"
+                options = cardNetworkOptions
+                selected = network
+            }
+            else -> {
+                title = "Μορφή κάρτας"
+                options = cardFormFactorOptions
+                selected = formFactor
+            }
+        }
+
+        CardCreatePickerSheet(
+            title = title,
+            picker = picker,
+            options = options,
+            selectedValue = selected,
+            onDismiss = { activePicker = null },
+            onSelect = { value ->
+                when (picker) {
+                    "provider" -> selectedProvider = cardProviders.firstOrNull { it.key == value }
+                    "kind" -> kind = value
+                    "network" -> network = value
+                    "form_factor" -> formFactor = value
+                }
+                validation = null
+                activePicker = null
+            },
+        )
+    }
 }
+
+@Composable
+private fun ScaffoldCardCreate(
+    requestBack: () -> Unit,
+    content: @Composable (Modifier) -> Unit,
+) {
+    androidx.compose.material3.Scaffold(
+        topBar = {
+            MyFinHubScreenHeader(
+                title = "Νέα κάρτα",
+                subtitle = "Χρεωστική, προπληρωμένη ή πιστωτική",
+                navigation = { MyFinHubBackButton(requestBack) },
+            )
+        },
+    ) { padding ->
+        content(
+            Modifier
+                .fillMaxSize()
+                .padding(padding),
+        )
+    }
+}
+
+@Composable
+private fun CardCreateSelectionField(
+    label: String,
+    value: String,
+    testTag: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().testTag(testTag),
+        enabled = enabled,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            }
+            Text("Αλλαγή", style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CardCreatePickerSheet(
+    title: String,
+    picker: String,
+    options: List<CardCreateOption>,
+    selectedValue: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                start = MyFinHubSpacing.lg,
+                end = MyFinHubSpacing.lg,
+                bottom = MyFinHubSpacing.xl,
+            ),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            options.forEach { option ->
+                val selected = option.value == selectedValue
+                Surface(
+                    onClick = { onSelect(option.value) },
+                    modifier = Modifier.fillMaxWidth().testTag("card_create_${picker}_${option.value}"),
+                    shape = MaterialTheme.shapes.small,
+                    color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(MyFinHubSpacing.md),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(option.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        if (selected) {
+                            Text("Επιλεγμένο", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun List<CardCreateOption>.labelFor(value: String): String =
+    firstOrNull { it.value == value }?.label ?: value

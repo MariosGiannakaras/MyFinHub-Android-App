@@ -90,4 +90,29 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("card_picker_debit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("debit", selected) }
     }
+
+    @Test
+    fun cardCreation_usesSelectorSheets_andCreditFieldsRemainConditional() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardCreateScreen(
+                    cards = emptyList(),
+                    onCreate = {},
+                    onBack = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("card_create_provider").performScrollTo().performClick()
+        composeRule.onNodeWithTag("card_create_provider_revolut").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Revolut").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("card_create_kind").performScrollTo().performClick()
+        composeRule.onNodeWithTag("card_create_kind_credit").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Πιστωτικό όριο (προαιρετικό)").performScrollTo().assertIsDisplayed()
+
+        composeRule.onNodeWithTag("card_create_network").performScrollTo().performClick()
+        composeRule.onNodeWithTag("card_create_network_mastercard").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Mastercard").assertIsDisplayed()
+    }
 }
