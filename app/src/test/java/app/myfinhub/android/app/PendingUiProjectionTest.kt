@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.CanonicalEventDraft
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
@@ -9,6 +10,7 @@ import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
 import app.myfinhub.android.core.data.PendingMutationSyncState
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.canonicalFixture
+import app.myfinhub.android.core.data.createCanonicalEventMutation
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -70,6 +72,44 @@ class PendingUiProjectionTest {
 
         assertTrue(edited.pendingSync)
         assertEquals("Εκκρεμεί επεξεργασία", edited.pendingLabel)
+    }
+
+    @Test
+    fun ambiguousAddAndEdit_useOperationSpecificConfirmationLanguage() {
+        val server = canonicalFixture()
+        val add = PendingCanonicalMutationIntent.fromMutation(
+            createCanonicalEventMutation(
+                document = server,
+                draft = CanonicalEventDraft(
+                    kind = "expense",
+                    date = "2026-08-23",
+                    amount = 4.5,
+                    note = "Νέα κίνηση",
+                    category = "Τρόφιμα",
+                    accountId = "acc-main",
+                ),
+                eventId = "evt-pending-add",
+                nowIso = now,
+            ),
+            intentId = "intent-add-review",
+            syncState = PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val edit = PendingCanonicalMutationIntent.fromMutation(
+            EditCanonicalActivity("tx-exp", "Διορθωμένη σημείωση", "Τρόφιμα", now),
+            intentId = "intent-edit-review",
+            syncState = PendingMutationSyncState.NEEDS_REVIEW,
+        )
+
+        val result = projectWithPending(server, listOf(add, edit))
+
+        assertEquals(
+            "Αναμονή επιβεβαίωσης προσθήκης από τον server",
+            result.activityState.items.first { it.id == "evt-pending-add" }.pendingLabel,
+        )
+        assertEquals(
+            "Αναμονή επιβεβαίωσης επεξεργασίας από τον server",
+            result.activityState.items.first { it.id == "tx-exp" }.pendingLabel,
+        )
     }
 
     @Test

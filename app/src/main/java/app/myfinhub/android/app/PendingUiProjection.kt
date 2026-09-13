@@ -103,15 +103,15 @@ private fun pendingDeletionTombstones(
 }
 
 private fun PendingCanonicalMutationIntent.activityPendingLabel(): String? {
-    val operation = when (kind) {
-        PendingMutationKind.APPEND_EVENT -> "προσθήκη"
-        PendingMutationKind.EDIT_ACTIVITY -> "επεξεργασία"
-        PendingMutationKind.DELETE_ACTIVITY -> "διαγραφή"
+    val (operation, confirmationOperation) = when (kind) {
+        PendingMutationKind.APPEND_EVENT -> "προσθήκη" to "προσθήκης"
+        PendingMutationKind.EDIT_ACTIVITY -> "επεξεργασία" to "επεξεργασίας"
+        PendingMutationKind.DELETE_ACTIVITY -> "διαγραφή" to "διαγραφής"
         else -> return null
     }
     return when (syncState) {
         PendingMutationSyncState.NEVER_SENT -> "Εκκρεμεί $operation"
-        PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης $operation από τον server"
+        PendingMutationSyncState.NEEDS_REVIEW -> "Αναμονή επιβεβαίωσης $confirmationOperation από τον server"
     }
 }
 

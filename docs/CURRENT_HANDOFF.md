@@ -23,12 +23,12 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. Intermediate head 21bef515 passed Android CI, Project Tracking, screenshot regression and all 50 S24-target tests. A final coherent hardening batch closes the remaining specification gaps for exact canonical type identity/filtering, operation-aware pending states, card-ledger detail navigation and expanded dark/150%/empty-state verification. No backend or web/desktop changes.
+S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. Hardening head a11a75a passed Project Tracking and all 51 S24-target tests. Android CI compiled the affected sources but one existing unit assertion exposed an operation-label grammatical mismatch; the exact three-operation fix, added regression coverage and 12 personally reviewed Activity references are grouped into one final validation update. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Publish the final S3 hardening batch once, render and personally inspect its Activity references, then make one consolidated reference/correction update if required.
-- Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same current head.
+- Publish the operation-label correction, its focused regression coverage, the 12 personally reviewed Activity references and audit evidence as one consolidated update.
+- Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same final current head.
 
 ## Constraints
 
@@ -56,9 +56,9 @@ S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/ed
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s3-activity`. PR: 115.
-Checkpoint: `s3_hardening_batch_ready_for_hosted_validation`.
+Checkpoint: `s3_consolidated_ci_correction_ready_for_final_validation`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Publish the coherent exact-type/pending/card-detail/expanded-render S3 hardening batch, inspect all hosted findings together, then complete S3 only on a single fully green current head.
+Next action: Publish the consolidated operation-label correction, regression coverage, 12 reviewed Activity references and audit evidence once, then complete S3 only on a single fully green final head.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
