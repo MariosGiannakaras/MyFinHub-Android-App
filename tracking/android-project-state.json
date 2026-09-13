@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s3_activity_validation",
-    "summary": "S1 and S2 are complete. PR #115 implements the S3 Activity ledger/read-detail/editor batch. Hardening head a11a75a passed Project Tracking and all 51 S24-target tests. Android CI compiled the affected sources but one existing unit assertion exposed an operation-label grammatical mismatch; the exact three-operation fix, added regression coverage and 12 personally reviewed Activity references are grouped into one final validation update. No backend or web/desktop changes.",
+    "status": "android_redesign_s3_activity_ready_to_merge",
+    "summary": "S1–S3 are implementation-complete. PR #115 final implementation head 52cb9f5 passed Android CI, Project Tracking and Android UI Quality, including 94/94 screenshot references and all 51 S24-target tests. The S3 Activity ledger, exact filters, read detail, supported edit/delete, pending semantics and account/card-ledger navigation are verified. No backend or web/desktop changes.",
     "next": [
-      "Publish the operation-label correction, its focused regression coverage, the 12 personally reviewed Activity references and audit evidence as one consolidated update.",
-      "Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same final current head."
+      "Publish this S3 completion evidence, verify its tracking gate and merge PR #115 into develop.",
+      "Create one S4 Quick Entry branch from the merged develop head and implement the unified form/picker/all-twelve-kind/dirty-persistence verification batch."
     ]
   },
   "latest_production_candidate": {
@@ -83,10 +83,10 @@
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s3-activity",
     "pr": 115,
-    "current_slice": "S3.1 / S3.2 / S3.3 / S3.4",
-    "checkpoint": "s3_consolidated_ci_correction_ready_for_final_validation",
+    "current_slice": "S3 completion / S4 handoff",
+    "checkpoint": "s3_all_gates_green_ready_to_merge",
     "blockers": [],
-    "next_action": "Publish the consolidated operation-label correction, regression coverage, 12 reviewed Activity references and audit evidence once, then complete S3 only on a single fully green final head.",
+    "next_action": "Publish this completion-only tracking update, merge the fully green PR #115, then branch once for the complete S4 Quick Entry batch.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -228,45 +228,49 @@
         {
           "id": "S3.1",
           "title": "Ledger, search and filter",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "Branch android/redesign-s3-activity implements a flat date-grouped ledger with search, one filter sheet, active-count/removable scope summary, exact account/type/category/date filters, distinct true-empty/no-match recovery and isolated analytics drill-down scope.",
             "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope.",
-            "Final local hardening models the exact shared-schema kind separately from broad finance tone, exposes each available canonical type in the filter sheet, distinguishes card purchase/payment, and normalizes Greek comma-decimal searches."
+            "Final hardening models the exact shared-schema kind separately from broad finance tone, exposes each available canonical type in the filter sheet, distinguishes card purchase/payment, and normalizes Greek comma-decimal searches.",
+            "PR #115 implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f passed Android CI run 34732483567, Project Tracking run 34732483559 and Android UI Quality run 34732483554."
           ]
         },
         {
           "id": "S3.2",
           "title": "Read transaction detail",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route.",
-            "Account rows already opened the common detail; the final hardening batch also makes canonical card-ledger rows clickable by stable transaction ID and routes them into the same detail stack."
+            "Account rows already opened the common detail; the final hardening batch also makes canonical card-ledger rows clickable by stable transaction ID and routes them into the same detail stack.",
+            "Android UI Quality run 34732483554 passed all 51 S24-target tests, including the canonical-card-ledger stable-ID detail navigation contract, on implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f."
           ]
         },
         {
           "id": "S3.3",
           "title": "Supported edit and delete",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
             "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal.",
             "First hosted validation review found two durable-offline navigation edge cases: an accepted offline edit becomes pending before editor exit, and an accepted offline delete is represented by a pending tombstone. The fix lets only the initiating save/delete request observe that pending projection as durable local success and return to origin; pre-existing pending rows remain non-editable/non-deletable.",
-            "The final hardening batch differentiates pending addition/edit/deletion and limits category/subcategory controls to canonical kinds with a compatible verified taxonomy; split/transfer/payment-style rows keep unsupported fields read-only."
+            "The final hardening batch differentiates pending addition/edit/deletion and limits category/subcategory controls to canonical kinds with a compatible verified taxonomy; split/transfer/payment-style rows keep unsupported fields read-only.",
+            "Android CI run 34732483567 passed unit tests, instrumentation compilation, lint, debug assembly, optimized release/AAB assembly and distribution policy checks on implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f."
           ]
         },
         {
           "id": "S3.4",
           "title": "Activity verification",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states. Hosted validation and reference review are pending.",
+            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states.",
             "Android UI Quality run 34710603625 rendered 88 candidates. Exactly 11 intentional Activity/top-level Activity references differed or were new; artifact 10303516408 (sha256 5806d169b8c0147665b8c561707089a5f17837343365a879dd38c0a544089006) was personally reviewed before baseline adoption. Light/dark and 150% ledger/category/detail/editor/filter states showed no clipping or hierarchy defect requiring redesign.",
             "The same first run compiled production and screenshot Kotlin successfully. S24 prebuild stopped only at ActivityS3NavigationTest.kt's unavailable assertDoesNotExist import; the assertion was replaced with a version-compatible semantics lookup.",
             "PR #115 intermediate head 21bef5155783a3e0b15f17068a6f9c69c3c2e88b passed Android CI run 34731056564, Project Tracking run 34731056556 and Android UI Quality run 34731056578, including screenshot regression and 50/50 S24-target tests.",
             "Hardening head a11a75a4fb9763facc05b2f44b4b20b66e3f913b passed Project Tracking run 34731825824 and all 51 S24-target tests in Android UI Quality run 34731825871, including the new canonical-card-ledger stable-ID detail navigation contract.",
             "Android UI Quality run 34731825871 rendered 94 candidates. Exactly 12 expected Activity references were changed or new; artifact 10310275940 (sha256 ae1a2dec893904325d6fde8ae6e8eca9208b1d47e1915e3bfff4bd86aa5bc337) was personally reviewed in light, dark and 150% states before baseline adoption. Pending addition/edit/deletion copy, exact type filtering, read detail, sticky editor, true-empty and no-match recovery showed no clipping or hierarchy defect; the other 82 references remained byte-identical.",
-            "Android CI run 34731825819 compiled production/instrumentation sources and continued lint analysis, then stopped at 198/199 passing unit tests because the new exact pending-operation mapping used a nominative noun after «επιβεβαίωσης». The consolidated correction maps all three affected operations to grammatical genitive labels and adds add/edit regression coverage while retaining the existing deletion assertion."
+            "Android CI run 34731825819 compiled production/instrumentation sources and continued lint analysis, then stopped at 198/199 passing unit tests because the new exact pending-operation mapping used a nominative noun after «επιβεβαίωσης». The consolidated correction maps all three affected operations to grammatical genitive labels and adds add/edit regression coverage while retaining the existing deletion assertion.",
+            "Final PR #115 implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f passed Android CI run 34732483567, Project Tracking run 34732483559 and Android UI Quality run 34732483554; the latter passed screenshot regression against all 94 accepted references and all 51 S24-target tests."
           ]
         }
       ]

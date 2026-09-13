@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Publish the operation-label correction, its focused regression coverage, the 12 personally reviewed Activity references and audit evidence as one consolidated update.
-- [ ] Complete S3 only after Android CI, Project Tracking, screenshot regression and S24-target instrumentation all pass on the same final current head.
+- [ ] Publish this S3 completion evidence, verify its tracking gate and merge PR #115 into develop.
+- [ ] Create one S4 Quick Entry branch from the merged develop head and implement the unified form/picker/all-twelve-kind/dirty-persistence verification batch.
 
 ## Completed foundations
 
@@ -46,20 +46,20 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 2/10 · Subtasks: 8/40 · Preparation: 4/4**
+**Tasks: 3/10 · Subtasks: 12/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s3-activity`. PR: 115.
-Checkpoint: `s3_consolidated_ci_correction_ready_for_final_validation`.
+Checkpoint: `s3_all_gates_green_ready_to_merge`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Publish the consolidated operation-label correction, regression coverage, 12 reviewed Activity references and audit evidence once, then complete S3 only on a single fully green final head.
+Next action: Publish this completion-only tracking update, merge the fully green PR #115, then branch once for the complete S4 Quick Entry batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
 | S1 Financial truth and capability | 4/4 | Complete |
 | S2 Foundation and navigation | 4/4 | Complete |
-| S3 Activity | 0/4 | S3.1 Ledger, search and filter (in_progress); S3.2 Read transaction detail (in_progress); S3.3 Supported edit and delete (in_progress); S3.4 Activity verification (in_progress) |
+| S3 Activity | 4/4 | Complete |
 | S4 Quick Entry | 0/4 | S4.1 Unified form and pickers (pending); S4.2 All twelve kinds and split (pending); S4.3 Dirty draft and persistence behavior (pending); S4.4 Quick Entry verification (pending) |
 | S5 Home and accounts | 0/4 | S5.1 Compact Home and attention (pending); S5.2 Wallet account groups (pending); S5.3 Account ledger and net-position entry (pending); S5.4 Home/account verification (pending) |
 | S6 Cards | 0/4 | S6.1 List, detail and stable switching (pending); S6.2 Creation and supported metadata editing (pending); S6.3 Secure details and removal recovery (pending); S6.4 Card verification (pending) |
