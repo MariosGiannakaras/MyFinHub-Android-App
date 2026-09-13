@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s4_ready_to_merge`.
+- Workstream state: `android_redesign_s3_activity_ready`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S3 are complete and merged. PR #116 now has an evidence-backed S4 Quick Entry implementation: one production editor for all twelve canonical kinds, searchable identity-safe pickers, compatible draft transitions, sticky duplicate-safe Save, unified dirty Back, exact-cent split allocation and natural operation-specific amount headings. Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, Project Tracking run 34751696393 and Android UI Quality run 34751696408; screenshot regression and all 53 S24-target tests passed. No backend or web/desktop changes.
+S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.
 
 ## Immediate work
 
-- Merge validated PR #116 into develop with its exact completion-tracking head.
-- Create the S5 Home and accounts branch from the resulting develop head and begin S5.1 without reopening completed S4 work.
+- Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
+- Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1–S3 are complete and merged. PR #116 now has an evidence-backed S4 Quick Ent
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s4-quick-entry`. PR: 116.
-Checkpoint: `s4_complete_pending_merge`.
+Working branch: `develop`. PR: not yet opened.
+Checkpoint: `s2_complete_s3_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge PR #116 after the completion-tracking check passes, then create the S5 Home/accounts branch from the new develop head and start S5.1.
+Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

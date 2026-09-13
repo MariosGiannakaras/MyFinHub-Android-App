@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #116 into develop with its exact completion-tracking head.
-- [ ] Create the S5 Home and accounts branch from the resulting develop head and begin S5.1 without reopening completed S4 work.
+- [ ] Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
+- [ ] Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s4-quick-entry`. PR: 116.
-Checkpoint: `s4_complete_pending_merge`.
+Working branch: `develop`. PR: not yet opened.
+Checkpoint: `s2_complete_s3_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge PR #116 after the completion-tracking check passes, then create the S5 Home/accounts branch from the new develop head and start S5.1.
+Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
