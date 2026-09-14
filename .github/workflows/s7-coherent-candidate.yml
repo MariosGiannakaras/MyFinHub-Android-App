@@ -132,45 +132,6 @@ jobs:
               raise SystemExit('ForecastS7LinkCard exact block mismatch')
           text = text.replace(old, new, 1)
 
-          old = '''            Row(
-                      modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.SpaceBetween,
-                      verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                      Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodyMedium)
-                      MyFinHubAmountText(
-                          formatPlanS7Euro(abs(progress.remaining)),
-                          if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
-                      )
-                  }'''
-          new = '''            val largeFont = LocalDensity.current.fontScale >= 1.3f
-                  val remainingTone = if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense
-                  if (largeFont) {
-                      Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                          Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodyMedium)
-                          MyFinHubAmountText(
-                              formatPlanS7Euro(abs(progress.remaining)),
-                              remainingTone,
-                              modifier = Modifier.align(Alignment.End),
-                          )
-                      }
-                  } else {
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.SpaceBetween,
-                          verticalAlignment = Alignment.CenterVertically,
-                      ) {
-                          Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodyMedium)
-                          MyFinHubAmountText(
-                              formatPlanS7Euro(abs(progress.remaining)),
-                              remainingTone,
-                          )
-                      }
-                  }'''
-          if text.count(old) != 1:
-              raise SystemExit('BudgetS7LinkCard amount row mismatch')
-          text = text.replace(old, new, 1)
-
           old = '''@Composable
           private fun ForecastS7Metric(
               label: String,
@@ -216,7 +177,7 @@ jobs:
               } else {
                   Row(
                       modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.SpaceBetween,
+                      horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                       verticalAlignment = Alignment.CenterVertically,
                   ) {
                       Text(
@@ -257,7 +218,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Commit reviewed refinement source only
+      - name: Commit refinement source only
         shell: bash
         run: |
           set -euo pipefail
@@ -265,5 +226,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt
           git diff --cached --check
-          git commit -m 'fix(android): make S7 financial rows large-font safe'
+          git commit -m 'fix(android): make S7 forecast rows large-font safe'
           git push origin HEAD:android/redesign-s7-plan-debts
