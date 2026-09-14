@@ -48,7 +48,9 @@ jobs:
           set -euo pipefail
           git fetch origin automation/s7-plan-debts-20260914
           git show origin/automation/s7-plan-debts-20260914:scripts/apply_s7_semantic_hardening.py > /tmp/apply_s7_semantic_hardening.py
+          git show origin/automation/s7-plan-debts-20260914:scripts/apply_s7_screenshot_signature_fix.py > /tmp/apply_s7_screenshot_signature_fix.py
           python3 /tmp/apply_s7_semantic_hardening.py
+          python3 /tmp/apply_s7_screenshot_signature_fix.py
           python3 scripts/render_project_tracking.py --check
           git diff --check
 
@@ -87,6 +89,7 @@ jobs:
             app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt \
             app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt \
             app/src/androidTest/java/app/myfinhub/android/feature/plan/S7PlanSurfaceTest.kt \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/feature/plan/S7PlanScreenshotTest.kt \
             app/src/test/java/app/myfinhub/android/app/S7CanonicalPlanProjectionContractTest.kt \
             app/src/test/java/app/myfinhub/android/app/S7PlanQuickEntryPrefillTest.kt
           git diff --cached --check
