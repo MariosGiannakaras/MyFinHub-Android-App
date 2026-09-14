@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s3_activity_ready`.
+- Workstream state: `android_redesign_s6_complete_merge_ready`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638. The S2 batch established the semantic visual foundation, four-root navigation, Κινήσεις/Ανάλυση sibling routing, shared flat finance rows and dirty-form Back/state rules. Android CI now skips generated tracking-only updates. No backend or web/desktop changes.
+S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
 
 ## Immediate work
 
-- Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
-- Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
+- Merge validated PR #118 into develop without changing the accepted S6 product head.
+- Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1 and S2 are complete. PR #114 final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `develop`. PR: not yet opened.
-Checkpoint: `s2_complete_s3_ready`.
+Working branch: `android/redesign-s6-cards`. PR: 118.
+Checkpoint: `s6_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
+Next action: Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

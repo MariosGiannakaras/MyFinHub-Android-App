@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Create one S3 Activity branch from current develop and implement S3.1-S3.4 as a coherent ledger/detail/edit-delete batch.
-- [ ] Use narrow Activity/unit/instrumentation checks first; run consolidated hosted Android CI and UI Quality only after the S3 batch is coherent.
+- [ ] Merge validated PR #118 into develop without changing the accepted S6 product head.
+- [ ] Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `develop`. PR: not yet opened.
-Checkpoint: `s2_complete_s3_ready`.
+Working branch: `android/redesign-s6-cards`. PR: 118.
+Checkpoint: `s6_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Create one S3 Activity branch from current develop and implement S3.1-S3.4 together: dense searchable/filterable ledger, read detail, only verified edit/delete operations, and Activity-focused regression/accessibility verification.
+Next action: Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
