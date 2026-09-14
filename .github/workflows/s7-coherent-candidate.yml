@@ -11,21 +11,21 @@ permissions:
   contents: write
 
 jobs:
-  refine-validate-render:
+  semantic-hardening:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
-      - name: Checkout current S7 product branch
+      - name: Checkout exact S7 product head
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: android/redesign-s7-plan-debts
           fetch-depth: 1
 
-      - name: Assert reviewed candidate head
+      - name: Assert visual-refinement head
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "b8ae349c068db70445694f2a840a448c88687af6"
+          test "$(git rev-parse HEAD)" = "aa7a504789b8ad5c33e77c1064b1d621d9622b03"
 
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
@@ -42,159 +42,14 @@ jobs:
         shell: bash
         run: bash scripts/install-android-sdk.sh
 
-      - name: Apply bounded S7 large-font refinement
+      - name: Apply coherent semantic hardening
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt')
-          text = path.read_text()
-
-          old = '''@Composable
-          private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
-              MyFinHubActionCard(
-                  onClick = onClick,
-                  modifier = Modifier.fillMaxWidth().testTag("s7_forecast_link"),
-              ) {
-                  MyFinHubSectionHeading(
-                      title = "Πρόβλεψη 30 ημερών",
-                      subtitle = planForecastScopeLabel(state),
-                      icon = MyFinHubIcons.Plan,
-                      tone = FinanceTone.Neutral,
-                  )
-                  Row(
-                      modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.SpaceBetween,
-                      verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                      Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
-                      MyFinHubAmountText(
-                          formatPlanS7Euro(state.forecastEndBalance),
-                          if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                          style = MaterialTheme.typography.titleLarge,
-                      )
-                  }
-                  Text(
-                      "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-              }
-          }'''
-          new = '''@Composable
-          private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
-              val largeFont = LocalDensity.current.fontScale >= 1.3f
-              val tone = if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense
-              MyFinHubActionCard(
-                  onClick = onClick,
-                  modifier = Modifier.fillMaxWidth().testTag("s7_forecast_link"),
-              ) {
-                  MyFinHubSectionHeading(
-                      title = "Πρόβλεψη 30 ημερών",
-                      subtitle = planForecastScopeLabel(state),
-                      icon = MyFinHubIcons.Plan,
-                      tone = FinanceTone.Neutral,
-                  )
-                  if (largeFont) {
-                      Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                          Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
-                          MyFinHubAmountText(
-                              formatPlanS7Euro(state.forecastEndBalance),
-                              tone,
-                              modifier = Modifier.align(Alignment.End),
-                              style = MaterialTheme.typography.titleLarge,
-                          )
-                      }
-                  } else {
-                      Row(
-                          modifier = Modifier.fillMaxWidth(),
-                          horizontalArrangement = Arrangement.SpaceBetween,
-                          verticalAlignment = Alignment.CenterVertically,
-                      ) {
-                          Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
-                          MyFinHubAmountText(
-                              formatPlanS7Euro(state.forecastEndBalance),
-                              tone,
-                              style = MaterialTheme.typography.titleLarge,
-                          )
-                      }
-                  }
-                  Text(
-                      "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-              }
-          }'''
-          if text.count(old) != 1:
-              raise SystemExit('ForecastS7LinkCard exact block mismatch')
-          text = text.replace(old, new, 1)
-
-          old = '''@Composable
-          private fun ForecastS7Metric(
-              label: String,
-              amount: Double,
-              tone: FinanceTone,
-              showPositive: Boolean = false,
-          ) {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                  Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                  val text = when {
-                      amount < -0.005 -> "−${formatPlanS7Euro(abs(amount))}"
-                      amount > 0.005 && showPositive -> "+${formatPlanS7Euro(amount)}"
-                      else -> formatPlanS7Euro(abs(amount))
-                  }
-                  MyFinHubAmountText(text, tone)
-              }
-          }'''
-          new = '''@Composable
-          private fun ForecastS7Metric(
-              label: String,
-              amount: Double,
-              tone: FinanceTone,
-              showPositive: Boolean = false,
-          ) {
-              val amountText = when {
-                  amount < -0.005 -> "−${formatPlanS7Euro(abs(amount))}"
-                  amount > 0.005 && showPositive -> "+${formatPlanS7Euro(amount)}"
-                  else -> formatPlanS7Euro(abs(amount))
-              }
-              val largeFont = LocalDensity.current.fontScale >= 1.3f
-              if (largeFont) {
-                  Column(
-                      modifier = Modifier.fillMaxWidth(),
-                      verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
-                  ) {
-                      Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                      MyFinHubAmountText(amountText, tone, modifier = Modifier.align(Alignment.End))
-                  }
-              } else {
-                  Row(
-                      modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                      verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                      Text(
-                          label,
-                          modifier = Modifier.weight(1f),
-                          style = MaterialTheme.typography.bodyMedium,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                      )
-                      MyFinHubAmountText(amountText, tone)
-                  }
-              }
-          }'''
-          if text.count(old) != 1:
-              raise SystemExit('ForecastS7Metric exact block mismatch')
-          text = text.replace(old, new, 1)
-          path.write_text(text)
-          PY
+          git fetch origin automation/s7-plan-debts-20260914
+          git show origin/automation/s7-plan-debts-20260914:scripts/apply_s7_semantic_hardening.py > /tmp/apply_s7_semantic_hardening.py
+          python3 /tmp/apply_s7_semantic_hardening.py
+          python3 scripts/render_project_tracking.py --check
           git diff --check
 
       - name: Targeted S7 validation
@@ -202,29 +57,38 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew testDebugUnitTest compileDebugAndroidTestKotlin lintDebug compileDebugKotlin --stacktrace
+          git diff --check
 
-      - name: Render refined S7 candidates
+      - name: Render final S7 candidates
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
-      - name: Publish refined renders
+      - name: Publish final candidate renders
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: s7-refined-renders-${{ github.run_id }}
+          name: s7-final-candidates-${{ github.run_id }}
           path: |
             app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/*.png
             app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt/*.png
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Commit refinement source only
+      - name: Commit semantic hardening source only
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt
+          git add \
+            app/src/main/java/app/myfinhub/android/app/CanonicalPlanProjection.kt \
+            app/src/main/java/app/myfinhub/android/app/FinanceProductViewModel.kt \
+            app/src/main/java/app/myfinhub/android/app/MyFinHubApp.kt \
+            app/src/main/java/app/myfinhub/android/app/MyFinHubRoot.kt \
+            app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt \
+            app/src/androidTest/java/app/myfinhub/android/feature/plan/S7PlanSurfaceTest.kt \
+            app/src/test/java/app/myfinhub/android/app/S7CanonicalPlanProjectionContractTest.kt \
+            app/src/test/java/app/myfinhub/android/app/S7PlanQuickEntryPrefillTest.kt
           git diff --cached --check
-          git commit -m 'fix(android): make S7 forecast rows large-font safe'
+          git commit -m 'fix(android): harden S7 recording and budget persistence'
           git push origin HEAD:android/redesign-s7-plan-debts
