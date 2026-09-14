@@ -1,11 +1,14 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -60,9 +63,46 @@ class S7PlanSurfaceTest {
 
     @Test
     fun budget_usesProgressWarning_withoutPushNotificationPromise() {
-        composeRule.setContent { MyFinHubTheme { CanonicalBudget2026Screen(state, {}, {}) } }
+        composeRule.setContent { MyFinHubTheme { CanonicalBudget2026Screen(state, { _, _ -> }, {}) } }
         composeRule.onNodeWithTag("s7_budget_threshold_warning").assertIsDisplayed()
         composeRule.onNodeWithText("Θα ειδοποιείσαι", substring = true).assertDoesNotExist()
         composeRule.onNodeWithText("Όριο προειδοποίησης").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun budget_saveIsChangeDriven_andBlocksDuplicateSubmitWhileInFlight() {
+        var saveCalls = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalBudget2026Screen(
+                    state = state,
+                    onSaveBudget = { _, _ -> saveCalls += 1 },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("s7_budget_save").assertIsNotEnabled()
+        composeRule.onNodeWithTag("s7_budget_limit").performTextReplacement("850")
+        composeRule.onNodeWithTag("s7_budget_save").assertIsEnabled().performClick()
+        composeRule.runOnIdle { assertEquals(1, saveCalls) }
+        composeRule.onNodeWithTag("s7_budget_save").assertIsNotEnabled()
+    }
+
+    @Test
+    fun budget_inFlightState_disablesFieldsAndShowsProgressCopy() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalBudget2026Screen(
+                    state = state,
+                    onSaveBudget = { _, _ -> },
+                    onBack = {},
+                    mutationInFlight = true,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("s7_budget_save").assertIsNotEnabled()
+        composeRule.onNodeWithText("Αποθήκευση…").assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_limit").assertIsNotEnabled()
+        composeRule.onNodeWithTag("s7_budget_threshold").assertIsNotEnabled()
     }
 }

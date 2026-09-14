@@ -60,14 +60,14 @@ fun S7ForecastLarge() { MyFinHubTheme(false) { CanonicalPlanForecastScreen(s7Pla
 @PreviewTest
 @Preview(name = "s7_budget_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun S7BudgetLight() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+fun S7BudgetLight() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), { _, _ -> }, {}) } }
 
 @PreviewTest
 @Preview(name = "s7_budget_dark", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
-fun S7BudgetDark() { MyFinHubTheme(true) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+fun S7BudgetDark() { MyFinHubTheme(true) { CanonicalBudget2026Screen(s7PlanState(), { _, _ -> }, {}) } }
 
 @PreviewTest
 @Preview(name = "s7_budget_large", widthDp = 412, heightDp = 1100, fontScale = 1.5f, showBackground = true)
 @Composable
-fun S7BudgetLarge() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), {}, {}) } }
+fun S7BudgetLarge() { MyFinHubTheme(false) { CanonicalBudget2026Screen(s7PlanState(), { _, _ -> }, {}) } }

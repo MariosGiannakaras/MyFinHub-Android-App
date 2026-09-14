@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.PlanUiState
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
@@ -31,6 +32,32 @@ class S7CanonicalPlanProjectionContractTest {
             previous = null,
         )
         assertEquals(2, state.items.count { it.id == "same" })
+    }
+
+    @Test
+    fun canonicalBudget_replacesStalePreviousDraft() {
+        val document = CanonicalFinanceDocument(
+            Json.parseToJsonElement(
+                """
+                {
+                  "schemaVersion":3,
+                  "seed":{"accounts":[],"snapshots":[],"transactions":[],"recurring":[],"loans":[],"lending":[]},
+                  "state":{
+                    "settings":{"excludedFromAvailable":[],"accountNames":{}},
+                    "events":[],"scheduled":[],"cards":[],
+                    "budgets":[{"id":"budget-sep","month":"2026-09","scope":"overall","amount":950.0,"alertThreshold":85}]
+                  }
+                }
+                """.trimIndent(),
+            ).jsonObject,
+        )
+        val state = projectCanonicalPlanState(
+            document = document,
+            today = LocalDate.of(2026, 9, 14),
+            previous = PlanUiState(budget = BudgetDraft("700", "75")),
+        )
+        assertEquals("950", state.budget.monthlyLimitText)
+        assertEquals("85", state.budget.alertThresholdText)
     }
 
     private fun fixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(

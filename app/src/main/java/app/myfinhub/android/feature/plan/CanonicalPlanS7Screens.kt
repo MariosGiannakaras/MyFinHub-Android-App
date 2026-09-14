@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -511,25 +512,63 @@ private fun ForecastS7ItemCard(item: PlannedItem, onRecordItem: (PlannedItem) ->
 @Composable
 fun CanonicalBudget2026Screen(
     state: PlanUiState,
-    onAction: (PlanAction) -> Unit,
+    onSaveBudget: (String, String) -> Unit,
     onBack: () -> Unit,
+    mutationInFlight: Boolean = false,
+    mutationBlocked: Boolean = false,
 ) {
-    var savedLimit by rememberSaveable(state.budget.monthlyLimitText) { mutableStateOf(state.budget.monthlyLimitText) }
-    var savedThreshold by rememberSaveable(state.budget.alertThresholdText) { mutableStateOf(state.budget.alertThresholdText) }
-    var limitDraft by rememberSaveable(state.budget.monthlyLimitText) { mutableStateOf(state.budget.monthlyLimitText) }
-    var thresholdDraft by rememberSaveable(state.budget.alertThresholdText) { mutableStateOf(state.budget.alertThresholdText) }
+    var savedLimit by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
+    var savedThreshold by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
+    var limitDraft by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
+    var thresholdDraft by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
     var localError by rememberSaveable { mutableStateOf<String?>(null) }
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
+    var saveRequested by rememberSaveable { mutableStateOf(false) }
 
-    val dirty = limitDraft != savedLimit || thresholdDraft != savedThreshold
-    val previewState = state.copy(budget = BudgetDraft(limitDraft, thresholdDraft))
+    val savedBudget = BudgetDraft(savedLimit, savedThreshold)
+    val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
+    val dirty = !budgetDraftEquivalent(savedBudget, draftBudget)
+    val previewState = state.copy(budget = draftBudget)
     val progress = canonicalBudgetProgress(previewState)
+    val canonicalMatchesDraft = budgetDraftEquivalent(state.budget, draftBudget)
+    val canonicalChangedFromSaved = !budgetDraftEquivalent(state.budget, savedBudget)
 
-    fun requestBack() {
-        if (dirty) discardDialogOpen = true else onBack()
+    LaunchedEffect(
+        state.budget.monthlyLimitText,
+        state.budget.alertThresholdText,
+        mutationInFlight,
+        mutationBlocked,
+        saveRequested,
+        dirty,
+    ) {
+        if (!saveRequested && !dirty) {
+            savedLimit = state.budget.monthlyLimitText
+            savedThreshold = state.budget.alertThresholdText
+            limitDraft = state.budget.monthlyLimitText
+            thresholdDraft = state.budget.alertThresholdText
+        }
+        if (
+            saveRequested &&
+            !mutationInFlight &&
+            !mutationBlocked &&
+            canonicalMatchesDraft &&
+            canonicalChangedFromSaved
+        ) {
+            onBack()
+        }
     }
 
-    BackHandler(enabled = dirty) { discardDialogOpen = true }
+    fun requestBack() {
+        when {
+            mutationInFlight -> Unit
+            saveRequested && !mutationBlocked -> Unit
+            saveRequested && mutationBlocked -> onBack()
+            dirty -> discardDialogOpen = true
+            else -> onBack()
+        }
+    }
+
+    BackHandler(enabled = dirty || mutationInFlight || saveRequested) { requestBack() }
 
     if (discardDialogOpen) {
         AlertDialog(
@@ -561,7 +600,13 @@ fun CanonicalBudget2026Screen(
         bottomBar = {
             Surface {
                 MyFinHubPrimaryAction(
-                    label = "Αποθήκευση προϋπολογισμού",
+                    label = when {
+                        mutationInFlight -> "Αποθήκευση…"
+                        saveRequested -> "Αναμονή επιβεβαίωσης…"
+                        mutationBlocked -> "Χρειάζεται συγχρονισμός"
+                        else -> "Αποθήκευση προϋπολογισμού"
+                    },
+                    enabled = dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
                     onClick = {
                         val limit = limitDraft.replace(',', '.').toDoubleOrNull()
                         val threshold = thresholdDraft.toIntOrNull()
@@ -571,15 +616,13 @@ fun CanonicalBudget2026Screen(
                             else -> null
                         }
                         if (localError == null) {
-                            onAction(PlanAction.MonthlyLimitChanged(limitDraft))
-                            onAction(PlanAction.AlertThresholdChanged(thresholdDraft))
-                            onAction(PlanAction.SaveBudget)
-                            savedLimit = limitDraft
-                            savedThreshold = thresholdDraft
+                            saveRequested = true
+                            onSaveBudget(limitDraft, thresholdDraft)
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("s7_budget_save")
                         .navigationBarsPadding()
                         .imePadding()
                         .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.sm),
@@ -648,9 +691,11 @@ fun CanonicalBudget2026Screen(
                                 localError = null
                             },
                             label = "Μηνιαίο όριο",
+                            modifier = Modifier.testTag("s7_budget_limit"),
                             suffix = { Text("€") },
                             errorMessage = localError.takeIf { it?.contains("μηνιαίο όριο") == true },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
+                            enabled = !mutationInFlight && !saveRequested,
                         )
                         MyFinHubOutlinedField(
                             value = thresholdDraft,
@@ -659,24 +704,19 @@ fun CanonicalBudget2026Screen(
                                 localError = null
                             },
                             label = "Όριο προειδοποίησης",
+                            modifier = Modifier.testTag("s7_budget_threshold"),
                             suffix = { Text("%") },
                             errorMessage = localError.takeIf { it?.contains("προειδοποίησης") == true },
                             supportingText = if (localError?.contains("προειδοποίησης") == true) null else
                                 "Από 1 έως 100% · επισημαίνει την πρόοδο μέσα στο MyFinHub",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            enabled = !mutationInFlight && !saveRequested,
                         )
                         progress?.threshold?.let { threshold ->
                             Text(
                                 "Η ένδειξη προόδου επισημαίνεται στο $threshold% του συνολικού ορίου.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        state.message?.let { message ->
-                            Text(
-                                planS7UserMessage(message),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -686,12 +726,14 @@ fun CanonicalBudget2026Screen(
     }
 }
 
-private fun planS7UserMessage(message: String): String = when {
-    message.startsWith("Αλλαγή budget ·") && message.contains("Προς συγχρονισμό", ignoreCase = true) ->
-        "Η αλλαγή αποθηκεύτηκε και θα συγχρονιστεί όταν υπάρχει σύνδεση."
-    message.startsWith("Αλλαγή budget ·") && message.contains("Αναμονή επιβεβαίωσης", ignoreCase = true) ->
-        "Η αλλαγή αποθηκεύτηκε και αναμένει επιβεβαίωση."
-    else -> message.replace("budget", "προϋπολογισμός", ignoreCase = true)
+internal fun budgetDraftEquivalent(first: BudgetDraft, second: BudgetDraft): Boolean {
+    val firstLimit = first.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+    val secondLimit = second.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+    val sameLimit = when {
+        firstLimit == null || secondLimit == null -> first.monthlyLimitText.trim() == second.monthlyLimitText.trim()
+        else -> abs(firstLimit - secondLimit) < 0.005
+    }
+    return sameLimit && first.alertThresholdText.toIntOrNull() == second.alertThresholdText.toIntOrNull()
 }
 
 private fun planS7Tone(flow: PlannedFlow): FinanceTone = when (flow) {

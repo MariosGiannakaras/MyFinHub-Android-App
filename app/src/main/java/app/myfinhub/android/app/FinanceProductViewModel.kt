@@ -380,6 +380,24 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(mutation)
     }
 
+    fun saveOverallBudget(monthlyLimitText: String, alertThresholdText: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val amount = monthlyLimitText.replace(',', '.').toDoubleOrNull()
+        val threshold = alertThresholdText.toIntOrNull()
+        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 1..100) return
+
+        applyMutation(
+            UpsertOverallBudget(
+                month = YearMonth.now().toString(),
+                amount = amount,
+                alertThreshold = threshold,
+                budgetId = "budget-android-${UUID.randomUUID()}",
+                nowIso = Instant.now().toString(),
+            ),
+        )
+    }
+
     fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return

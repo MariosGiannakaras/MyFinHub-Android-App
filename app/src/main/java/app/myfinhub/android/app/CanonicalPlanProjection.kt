@@ -74,7 +74,7 @@ internal fun projectCanonicalPlanState(
 
     return PlanUiState(
         items = items,
-        budget = previous?.budget ?: BudgetDraft(
+        budget = BudgetDraft(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
         ),

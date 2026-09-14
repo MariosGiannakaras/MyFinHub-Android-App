@@ -71,6 +71,7 @@ import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
+import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
@@ -146,6 +147,9 @@ internal fun MyFinHubAppContent(
     onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onPlanAction: (PlanAction) -> Unit = {},
+    onSaveBudget: (String, String) -> Unit = { _, _ -> },
+    planMutationInFlight: Boolean = false,
+    planMutationBlocked: Boolean = false,
     insightsState: InsightsUiState = InsightsUiState(),
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
@@ -569,26 +573,9 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
                         onRecordItem = { item ->
-                            val kind = when (item.flow) {
-                                PlannedFlow.OBLIGATION -> QuickEntryKind.EXPENSE
-                                PlannedFlow.INCOME -> QuickEntryKind.INCOME
-                                PlannedFlow.TRANSFER -> null
-                            }
-                            if (kind != null) {
-                                onQuickEntryAction(QuickEntryAction.Reset)
-                                onQuickEntryAction(QuickEntryAction.SelectKind(kind))
-                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
-                                if (item.dueDateIso.isNotBlank()) {
-                                    onQuickEntryAction(QuickEntryAction.DateChanged(item.dueDateIso))
-                                }
-                                val categoryExists = when (kind) {
-                                    QuickEntryKind.INCOME -> quickEntryState.incomeCategories
-                                    else -> quickEntryState.expenseCategories
-                                }.any { option -> option.name == item.category }
-                                if (item.category.isNotBlank() && categoryExists) {
-                                    onQuickEntryAction(QuickEntryAction.CategoryChanged(item.category))
-                                }
-                                onQuickEntryAction(QuickEntryAction.NoteChanged(item.note.ifBlank { item.title }))
+                            val actions = plannedItemQuickEntryPrefillActions(item, quickEntryState)
+                            if (actions.isNotEmpty()) {
+                                actions.forEach(onQuickEntryAction)
                                 planBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
@@ -605,7 +592,9 @@ internal fun MyFinHubAppContent(
                     if (canonicalProductMode) {
                         CanonicalBudget2026Screen(
                             state = planState,
-                            onAction = onPlanAction,
+                            onSaveBudget = onSaveBudget,
+                            mutationInFlight = planMutationInFlight,
+                            mutationBlocked = planMutationBlocked,
                             onBack = { planBackStack.removeLastOrNull() },
                         )
                     } else {
@@ -677,6 +666,30 @@ internal fun MyFinHubAppContent(
         }
     } else {
         navigationContent()
+    }
+}
+
+internal fun plannedItemQuickEntryPrefillActions(
+    item: PlannedItem,
+    quickEntryState: QuickEntryUiState,
+): List<QuickEntryAction> {
+    val kind = when (item.flow) {
+        PlannedFlow.OBLIGATION -> QuickEntryKind.EXPENSE
+        PlannedFlow.INCOME -> QuickEntryKind.INCOME
+        PlannedFlow.TRANSFER -> return emptyList()
+    }
+    val categoryOptions = when (kind) {
+        QuickEntryKind.INCOME -> quickEntryState.incomeCategories
+        else -> quickEntryState.expenseCategories
+    }
+    return buildList {
+        add(QuickEntryAction.Reset)
+        add(QuickEntryAction.SelectKind(kind))
+        add(QuickEntryAction.AmountChanged(item.amount.toString()))
+        if (item.category.isNotBlank() && categoryOptions.any { option -> option.name == item.category }) {
+            add(QuickEntryAction.CategoryChanged(item.category))
+        }
+        add(QuickEntryAction.NoteChanged(item.note.ifBlank { item.title }))
     }
 }
 
