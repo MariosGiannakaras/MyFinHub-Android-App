@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #119 into develop without changing the accepted S7 product head.
-- [ ] Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice.
+- [ ] Validate the coherent S8 Analysis candidate with focused projection/UI tests and inspect fresh light/dark/150% Compose renders.
+- [ ] After render acceptance, open the S8 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality/S24-target instrumentation.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s7-plan-debts`. PR: 119.
-Checkpoint: `s7_complete_merge_ready`.
+Working branch: `android/redesign-s8-analysis`. PR: not yet opened.
+Checkpoint: `s8_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.
+Next action: Validate the coherent S8 Analysis candidate, personally inspect the fresh Analysis light/dark/150% renders, then publish a draft PR and complete S8 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

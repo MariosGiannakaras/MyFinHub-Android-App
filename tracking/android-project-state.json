@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s7_complete_merge_ready",
-    "summary": "S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, contextual recording and large-font-safe financial rows. Final exact product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation after the twelve reviewed S7 references were accepted.",
+    "status": "android_redesign_s8_analysis_implementation",
+    "summary": "S1–S7 are complete and merged. S8 Analysis is the active Android-only slice, implementing explicit period selection, equivalent comparison windows, complete category denominator/remainder, exact scoped drill-down and secondary expandable income/net/trend detail. No S8 subtask is accepted until fresh renders and hosted gates pass.",
     "next": [
-      "Merge validated PR #119 into develop without changing the accepted S7 product head.",
-      "Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice."
+      "Validate the coherent S8 Analysis candidate with focused projection/UI tests and inspect fresh light/dark/150% Compose renders.",
+      "After render acceptance, open the S8 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality/S24-target instrumentation."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s7-plan-debts",
-    "pr": 119,
-    "current_slice": "S7.1 / S7.2 / S7.3 / S7.4",
-    "checkpoint": "s7_complete_merge_ready",
+    "branch": "android/redesign-s8-analysis",
+    "pr": null,
+    "current_slice": "S8.1 / S8.2 / S8.3 / S8.4",
+    "checkpoint": "s8_implementation_candidate",
     "blockers": [],
-    "next_action": "Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.",
+    "next_action": "Validate the coherent S8 Analysis candidate, personally inspect the fresh Analysis light/dark/150% renders, then publish a draft PR and complete S8 only from exact-head hosted evidence.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {

@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_s7_complete_merge_ready`
+State: `android_redesign_s8_analysis_implementation`
 
-S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, contextual recording and large-font-safe financial rows. Final exact product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation after the twelve reviewed S7 references were accepted.
+S1–S7 are complete and merged. S8 Analysis is the active Android-only slice, implementing explicit period selection, equivalent comparison windows, complete category denominator/remainder, exact scoped drill-down and secondary expandable income/net/trend detail. No S8 subtask is accepted until fresh renders and hosted gates pass.
 
 ## Current production candidate
 
@@ -21,8 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Merge validated PR #119 into develop without changing the accepted S7 product head.
-2. Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice.
+1. Validate the coherent S8 Analysis candidate with focused projection/UI tests and inspect fresh light/dark/150% Compose renders.
+2. After render acceptance, open the S8 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality/S24-target instrumentation.
 
 ## Non-negotiable constraints
 
@@ -51,10 +51,10 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s7-plan-debts`. PR: 119.
-Checkpoint: `s7_complete_merge_ready`.
+Working branch: `android/redesign-s8-analysis`. PR: not yet opened.
+Checkpoint: `s8_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.
+Next action: Validate the coherent S8 Analysis candidate, personally inspect the fresh Analysis light/dark/150% renders, then publish a draft PR and complete S8 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

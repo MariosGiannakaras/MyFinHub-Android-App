@@ -11,7 +11,12 @@ sealed interface AppRoute : NavKey {
     @Serializable data object ChangeHistory : AppRoute
     @Serializable data object NoticeHistory : AppRoute
     @Serializable data object Activity : AppRoute
-    @Serializable data class CategoryActivity(val category: String, val start: String, val end: String) : AppRoute
+    @Serializable data class CategoryActivity(
+        val category: String,
+        val start: String,
+        val end: String,
+        val categories: List<String> = emptyList(),
+    ) : AppRoute
     @Serializable data class ActivityDetail(val eventId: String) : AppRoute
     @Serializable data class ActivityEdit(val eventId: String) : AppRoute
     @Serializable data object QuickEntry : AppRoute
