@@ -1,0 +1,114 @@
+name: S7 Completion Sync
+
+on:
+  push:
+    branches:
+      - automation/s7-completion-sync-20260914
+    paths:
+      - '.github/workflows/s7-completion-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact validated S7 product head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s7-plan-debts
+          fetch-depth: 1
+
+      - name: Assert validated product head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "b2799c3e4ad6d4d488fec04725d4d6a83f241ba8"
+
+      - name: Mark S7 evidence-backed completion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          data = json.loads(path.read_text())
+
+          data['updated_at'] = '2026-09-14'
+          work = data['active_workstream']
+          work['status'] = 'android_redesign_s7_complete_merge_ready'
+          work['summary'] = (
+              'S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, '
+              'fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, '
+              'contextual recording and large-font-safe financial rows. Final exact product head '
+              'b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and '
+              'S24-target instrumentation after the twelve reviewed S7 references were accepted.'
+          )
+          work['next'] = [
+              'Merge validated PR #119 into develop without changing the accepted S7 product head.',
+              'Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice.',
+          ]
+
+          current = data['current_redesign_pass']
+          current['branch'] = 'android/redesign-s7-plan-debts'
+          current['pr'] = 119
+          current['current_slice'] = 'S7.1 / S7.2 / S7.3 / S7.4'
+          current['checkpoint'] = 's7_complete_merge_ready'
+          current['blockers'] = []
+          current['next_action'] = (
+              'Merge validated PR #119 into develop without changing accepted product head '
+              'b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.'
+          )
+
+          task = next(item for item in data['redesign_tasks'] if item['id'] == 'S7')
+          evidence = {
+              'S7.1': [
+                  'Coherent S7 implementation plus semantic hardening through 0d3956d51064c2fec91cfb4617b5ff2119c99ede establishes urgency-first Plan hierarchy, a fixed 30-day production horizon, stable scheduled/recurring source identity and complete eligible forecast rows before presentation.',
+                  'Contextual obligation/income recording routes into Quick Entry without backdating the actual transaction to the planned due date; planned transfers intentionally expose no fake completion action.',
+                  'Reviewed-render acceptance run 34839310748 passed exact SHA-256 verification of all twelve inspected S7 light/dark/150% renders, screenshot validation, APK assembly and focused API 35 device contracts; artifact 10345732569 digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.',
+                  'Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367 and Android UI Quality run 34840197433.',
+              ],
+              'S7.2': [
+                  'The production monthly-budget editor is canonical-data-backed, change-driven and dirty-form protected, validates positive limits plus 1–100% warning thresholds, blocks duplicate submit while a mutation is active, and waits for confirmed/durable persistence rather than treating a local UI update as success.',
+                  'Canonical projection replaces stale editor drafts with the current server-backed overall budget; unsupported category-budget editing remains intentionally absent rather than inventing local-only product behavior.',
+                  'Focused hardening validation in run 34838247621 passed unit tests, Android-test compilation, lint and Kotlin compilation before final render acceptance.',
+                  'Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367, screenshot regression and S24-target instrumentation in Android UI Quality run 34840197433.',
+              ],
+              'S7.3': [
+                  'Wallet Debts consolidates canonical aggregate credit debt, loans owed and receivables while explicitly preserving aggregate-only semantics when itemized production rows are unavailable; it does not infer zero debt or invent missing item detail.',
+                  'Real receivable rows expose the existing Quick Entry repayment path contextually; aggregate-only rows remain informational and do not fabricate unsupported per-item repayment operations.',
+                  'The accepted Wallet Debts light/dark/150% references are part of reviewed artifact 10345732569 from run 34839310748.',
+                  'Exact product-head Android UI Quality run 34840197433 passed screenshot regression and S24-target instrumentation on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8.',
+              ],
+              'S7.4': [
+                  'Twelve S7 references were personally inspected before acceptance: Plan, 30-day Forecast, Monthly Budget and Wallet Debts in light, dark and 150% font. Large-font amount collisions/truncation found during candidate review were corrected before baseline acceptance.',
+                  'Reviewed-render acceptance run 34839310748 passed exact hash verification, screenshot validation and focused API 35 device contracts; accepted artifact 10345732569 has digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.',
+                  'Final exact-head Project Tracking run 34840197393 passed on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8.',
+                  'Final exact-head Android UI Quality run 34840197433 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34840197367 also passed.',
+              ],
+          }
+          for subtask in task['subtasks']:
+              subtask['status'] = 'completed'
+              subtask['evidence'] = evidence[subtask['id']]
+
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          PY
+          python3 scripts/render_project_tracking.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p test_project_tracking.py
+          git diff --check
+
+      - name: Commit S7 completion tracking
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m 'chore: record validated S7 completion'
+          git push origin HEAD:android/redesign-s7-plan-debts
