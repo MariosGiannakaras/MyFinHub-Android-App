@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_s7_implementation_candidate`
+State: `android_redesign_s7_complete_merge_ready`
 
-S1–S6 are complete. S7 now has one coherent Android-only implementation candidate for Plan urgency, the fixed 30-day forecast, overall monthly budget, Wallet debt/receivable consolidation and contextual repayment. S7 remains unaccepted until targeted tests, fresh Compose render inspection and the standard exact-PR-head gates pass.
+S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, contextual recording and large-font-safe financial rows. Final exact product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation after the twelve reviewed S7 references were accepted.
 
 ## Current production candidate
 
@@ -21,8 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Run targeted unit/instrumentation/lint/compile checks and render the twelve S7 light/dark/150% candidates.
-2. Open the S7 draft PR only after the coherent candidate compiles, personally inspect all new renders, then run exact-head Android CI, Project Tracking and Android UI Quality/S24 gates.
+1. Merge validated PR #119 into develop without changing the accepted S7 product head.
+2. Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice.
 
 ## Non-negotiable constraints
 
@@ -47,14 +47,14 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 ## Android redesign progress
 
-**Tasks: 6/10 · Subtasks: 24/40 · Preparation: 4/4**
+**Tasks: 7/10 · Subtasks: 28/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s7-plan-debts`. PR: not yet opened.
-Checkpoint: `s7_implementation_candidate`.
+Working branch: `android/redesign-s7-plan-debts`. PR: 119.
+Checkpoint: `s7_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the coherent S7 candidate, inspect all twelve fresh Plan/forecast/budget/debt renders, then publish a draft PR and complete S7 only from exact-head hosted evidence.
+Next action: Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -64,7 +64,7 @@ Next action: Validate the coherent S7 candidate, inspect all twelve fresh Plan/f
 | S4 Quick Entry | 4/4 | Complete |
 | S5 Home and accounts | 4/4 | Complete |
 | S6 Cards | 4/4 | Complete |
-| S7 Plan and debts | 0/4 | S7.1 Urgency and complete forecast (pending); S7.2 Monthly budget (pending); S7.3 Savings, debts and claims consolidation (pending); S7.4 Plan/debt verification (pending) |
+| S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
 | S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
 | S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
