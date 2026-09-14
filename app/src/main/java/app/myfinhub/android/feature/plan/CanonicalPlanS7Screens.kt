@@ -172,6 +172,8 @@ fun CanonicalPlan2026Screen(
 
 @Composable
 private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val tone = if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense
     MyFinHubActionCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().testTag("s7_forecast_link"),
@@ -182,17 +184,29 @@ private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
             icon = MyFinHubIcons.Plan,
             tone = FinanceTone.Neutral,
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
-            MyFinHubAmountText(
-                formatPlanS7Euro(state.forecastEndBalance),
-                if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                style = MaterialTheme.typography.titleLarge,
-            )
+        if (largeFont) {
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
+                MyFinHubAmountText(
+                    formatPlanS7Euro(state.forecastEndBalance),
+                    tone,
+                    modifier = Modifier.align(Alignment.End),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
+                MyFinHubAmountText(
+                    formatPlanS7Euro(state.forecastEndBalance),
+                    tone,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
         }
         Text(
             "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
@@ -421,18 +435,34 @@ private fun ForecastS7Metric(
     tone: FinanceTone,
     showPositive: Boolean = false,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        val text = when {
-            amount < -0.005 -> "−${formatPlanS7Euro(abs(amount))}"
-            amount > 0.005 && showPositive -> "+${formatPlanS7Euro(amount)}"
-            else -> formatPlanS7Euro(abs(amount))
+    val amountText = when {
+        amount < -0.005 -> "−${formatPlanS7Euro(abs(amount))}"
+        amount > 0.005 && showPositive -> "+${formatPlanS7Euro(amount)}"
+        else -> formatPlanS7Euro(abs(amount))
+    }
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    if (largeFont) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro),
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            MyFinHubAmountText(amountText, tone, modifier = Modifier.align(Alignment.End))
         }
-        MyFinHubAmountText(text, tone)
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            MyFinHubAmountText(amountText, tone)
+        }
     }
 }
 
