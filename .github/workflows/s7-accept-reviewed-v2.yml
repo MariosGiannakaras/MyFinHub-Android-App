@@ -1,0 +1,171 @@
+name: S7 Accept Reviewed Renders V2
+
+on:
+  push:
+    branches:
+      - automation/s7-plan-debts-20260914
+    paths:
+      - '.github/workflows/s7-accept-reviewed-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  accept-reviewed-s7:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact reviewed S7 product head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s7-plan-debts
+          fetch-depth: 1
+
+      - name: Assert reviewed source head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "0d3956d51064c2fec91cfb4617b5ff2119c99ede"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Finalize blocked-save recovery copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt')
+          lines = path.read_text().splitlines()
+          matches = [i for i, line in enumerate(lines) if 'saveRequested -> "Αναμονή επιβεβαίωσης…"' in line]
+          if len(matches) != 1:
+              raise SystemExit(f'expected one saveRequested status line, got {len(matches)}')
+          i = matches[0]
+          if i + 1 >= len(lines) or 'mutationBlocked -> "Χρειάζεται συγχρονισμός"' not in lines[i + 1]:
+              raise SystemExit('blocked status line is not adjacent to saveRequested status line')
+          lines[i], lines[i + 1] = lines[i + 1], lines[i]
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+          git diff --check
+
+      - name: Focused compile and unit verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew testDebugUnitTest compileDebugAndroidTestKotlin compileDebugScreenshotTestKotlin --stacktrace
+          git diff --check
+
+      - name: Render reviewed S7 references
+        shell: bash
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Verify exact reviewed S7 render set and hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          expected = {
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt/S7DebtsDark_s7_debts_dark_3f387c3a_0.png': '9b56433fe5cb31a9d8b1caf60a29a71fad9b37e4b9c51bd637d1fad2fb1fea19',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt/S7DebtsLarge_s7_debts_large_5128a582_0.png': 'bc58499977a42fecbfb688f554a7eee113afa073b026a9ce8c18e8759e57a668',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt/S7DebtsLight_s7_debts_light_b67e81b1_0.png': 'a7b0f188503fb2297367f14d872a565626059d35407c91c03abdfabc11153f8a',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetDark_s7_budget_dark_25640f28_0.png': '80b530773c96422abc632c7d8d304e4c75cbdb87c217eeed336767d0747d6694',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLarge_s7_budget_large_acbd1ba0_0.png': 'a9c8ed39708676a6f6b2f959e1778205e7f74122cb91855b7713e3f2a5f124cf',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLight_s7_budget_light_73b79d53_0.png': '6cbda976ed470f09a9312b9a9c18f6cce96e36adee21fa74f17f9904920f2147',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7ForecastDark_s7_forecast_dark_36a2d808_0.png': 'a89fd9c02ce066d3706d784cdc5786f29023e1a785be43232d200f7fbd85e531',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7ForecastLarge_s7_forecast_large_55c5807c_0.png': '9d1aaa89530f7f61b9cb126cf79b244088471dd05f80b07f11bce7927349ebfc',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7ForecastLight_s7_forecast_light_180cdc7d_0.png': 'a00aa707cf0ca89de2bf2681fc9cb2522198b6f463f4058cb2b1d5b2ab744123',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanDark_s7_plan_dark_8ab7588e_0.png': '66f979a06a665acb0eef24a371ff256741199ac322c19351b588958482c5f566',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanLarge_s7_plan_large_18fa4087_0.png': '66c3cea1146d16a5503d85688e059b124c1c46ffb144cfc81dd6b1eb7407be94',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanLight_s7_plan_light_0b794e8d_0.png': '11f1ecc5370fa76a3fa6897bd8bb93872d4d810ca00b09156194d6f69f5cba64',
+          }
+          actual = set()
+          for directory in (
+              Path('app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt'),
+              Path('app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt'),
+          ):
+              actual.update(str(p) for p in directory.glob('*.png'))
+          if actual != set(expected):
+              raise SystemExit(f'render set mismatch: missing={set(expected)-actual}, extra={actual-set(expected)}')
+          for path, digest in expected.items():
+              got = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+              if got != digest:
+                  raise SystemExit(f'hash mismatch for {path}: {got}')
+          print(f'Verified {len(expected)} personally reviewed S7 renders.')
+          PY
+          git diff --check
+
+      - name: Validate accepted screenshot baselines
+        shell: bash
+        run: ./gradlew validateDebugScreenshotTest --stacktrace
+
+      - name: Prebuild focused instrumentation APKs
+        shell: bash
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Focused S7 device contracts
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: >-
+            ./gradlew connectedDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.plan.S7PlanSurfaceTest,app.myfinhub.android.feature.money.S7DebtSurfaceTest
+            --stacktrace
+
+      - name: Publish accepted S7 renders
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: s7-accepted-renders-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/*.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Commit accepted S7 baseline batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            app/src/main/java/app/myfinhub/android/feature/plan/CanonicalPlanS7Screens.kt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt \
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/S7DebtScreenshotTestKt
+          git diff --cached --check
+          git commit -m 'test(android): accept reviewed S7 renders'
+          git push origin HEAD:android/redesign-s7-plan-debts
