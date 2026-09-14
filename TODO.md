@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #118 into develop without changing the accepted S6 product head.
-- [ ] Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.
+- [ ] Run targeted unit/instrumentation/lint/compile checks and render the twelve S7 light/dark/150% candidates.
+- [ ] Open the S7 draft PR only after the coherent candidate compiles, personally inspect all new renders, then run exact-head Android CI, Project Tracking and Android UI Quality/S24 gates.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s6-cards`. PR: 118.
-Checkpoint: `s6_complete_merge_ready`.
+Working branch: `android/redesign-s7-plan-debts`. PR: not yet opened.
+Checkpoint: `s7_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.
+Next action: Validate the coherent S7 candidate, inspect all twelve fresh Plan/forecast/budget/debt renders, then publish a draft PR and complete S7 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

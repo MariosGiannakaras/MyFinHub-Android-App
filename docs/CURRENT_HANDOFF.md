@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s6_complete_merge_ready`.
+- Workstream state: `android_redesign_s7_implementation_candidate`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
+S1–S6 are complete. S7 now has one coherent Android-only implementation candidate for Plan urgency, the fixed 30-day forecast, overall monthly budget, Wallet debt/receivable consolidation and contextual repayment. S7 remains unaccepted until targeted tests, fresh Compose render inspection and the standard exact-PR-head gates pass.
 
 ## Immediate work
 
-- Merge validated PR #118 into develop without changing the accepted S6 product head.
-- Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice.
+- Run targeted unit/instrumentation/lint/compile checks and render the twelve S7 light/dark/150% candidates.
+- Open the S7 draft PR only after the coherent candidate compiles, personally inspect all new renders, then run exact-head Android CI, Project Tracking and Android UI Quality/S24 gates.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards r
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s6-cards`. PR: 118.
-Checkpoint: `s6_complete_merge_ready`.
+Working branch: `android/redesign-s7-plan-debts`. PR: not yet opened.
+Checkpoint: `s7_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.
+Next action: Validate the coherent S7 candidate, inspect all twelve fresh Plan/forecast/budget/debt renders, then publish a draft PR and complete S7 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

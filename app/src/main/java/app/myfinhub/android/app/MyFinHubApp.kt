@@ -61,14 +61,16 @@ import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.money.Savings2026Screen
 import app.myfinhub.android.feature.money.reduceMoney
-import app.myfinhub.android.feature.plan.CanonicalBudgetScreen
-import app.myfinhub.android.feature.plan.CanonicalPlanScreen
+import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
+import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
+import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
 import app.myfinhub.android.feature.plan.Plan2026Screen
 import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanBudgets2026Screen
 import app.myfinhub.android.feature.plan.PlanItemEditor2026Screen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
+import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
@@ -520,6 +522,16 @@ internal fun MyFinHubAppContent(
                         CanonicalLendingScreen(
                             state = moneyState,
                             onBack = { moneyBackStack.removeLastOrNull() },
+                            onRecordRepayment = { lending ->
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
+                                if (lending.note.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                                }
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            },
                         )
                     } else {
                         Lending2026Screen(
@@ -538,8 +550,9 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Plan> {
                     if (canonicalProductMode) {
-                        CanonicalPlanScreen(
+                        CanonicalPlan2026Screen(
                             state = planState,
+                            onOpenForecast = { planBackStack.pushIfNew(AppRoute.PlanForecast) },
                             onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
                         )
                     } else {
@@ -551,6 +564,36 @@ internal fun MyFinHubAppContent(
                         )
                     }
                 }
+                entry<AppRoute.PlanForecast> {
+                    CanonicalPlanForecastScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onRecordItem = { item ->
+                            val kind = when (item.flow) {
+                                PlannedFlow.OBLIGATION -> QuickEntryKind.EXPENSE
+                                PlannedFlow.INCOME -> QuickEntryKind.INCOME
+                                PlannedFlow.TRANSFER -> null
+                            }
+                            if (kind != null) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(kind))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
+                                if (item.dueDateIso.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.DateChanged(item.dueDateIso))
+                                }
+                                val categoryExists = when (kind) {
+                                    QuickEntryKind.INCOME -> quickEntryState.incomeCategories
+                                    else -> quickEntryState.expenseCategories
+                                }.any { option -> option.name == item.category }
+                                if (item.category.isNotBlank() && categoryExists) {
+                                    onQuickEntryAction(QuickEntryAction.CategoryChanged(item.category))
+                                }
+                                onQuickEntryAction(QuickEntryAction.NoteChanged(item.note.ifBlank { item.title }))
+                                planBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
+                    )
+                }
                 entry<AppRoute.PlanItem> { route ->
                     PlanItemEditor2026Screen(
                         item = planState.items.firstOrNull { it.id == route.itemId },
@@ -560,7 +603,7 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.PlanBudgets> {
                     if (canonicalProductMode) {
-                        CanonicalBudgetScreen(
+                        CanonicalBudget2026Screen(
                             state = planState,
                             onAction = onPlanAction,
                             onBack = { planBackStack.removeLastOrNull() },

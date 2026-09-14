@@ -64,6 +64,8 @@ data class PlanUiState(
     val rules: List<PlanningRule> = emptyList(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
+    val forecastStartDateIso: String = "",
+    val forecastEndDateIso: String = "",
     val forecastStartBalance: Double = 0.0,
     val forecastExpectedIncome: Double = 0.0,
     val forecastObligations: Double = 0.0,

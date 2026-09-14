@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s6_complete_merge_ready",
-    "summary": "S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.",
+    "status": "android_redesign_s7_implementation_candidate",
+    "summary": "S1–S6 are complete. S7 now has one coherent Android-only implementation candidate for Plan urgency, the fixed 30-day forecast, overall monthly budget, Wallet debt/receivable consolidation and contextual repayment. S7 remains unaccepted until targeted tests, fresh Compose render inspection and the standard exact-PR-head gates pass.",
     "next": [
-      "Merge validated PR #118 into develop without changing the accepted S6 product head.",
-      "Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice."
+      "Run targeted unit/instrumentation/lint/compile checks and render the twelve S7 light/dark/150% candidates.",
+      "Open the S7 draft PR only after the coherent candidate compiles, personally inspect all new renders, then run exact-head Android CI, Project Tracking and Android UI Quality/S24 gates."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s6-cards",
-    "pr": 118,
+    "branch": "android/redesign-s7-plan-debts",
+    "pr": null,
     "current_slice": "S7.1 / S7.2 / S7.3 / S7.4",
-    "checkpoint": "s6_complete_merge_ready",
+    "checkpoint": "s7_implementation_candidate",
     "blockers": [],
-    "next_action": "Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.",
+    "next_action": "Validate the coherent S7 candidate, inspect all twelve fresh Plan/forecast/budget/debt renders, then publish a draft PR and complete S7 only from exact-head hosted evidence.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
