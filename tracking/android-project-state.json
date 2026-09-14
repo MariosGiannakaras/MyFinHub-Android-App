@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s6_complete_merge_ready",
-    "summary": "S1–S6 are complete. Draft PR #118 implements the coherent Android-only Cards redesign: stable Wallet card rows/detail/switching, compact selector-sheet creation, a separate protected secure-details destination, explicit removal recovery and twelve personally inspected Compose references. Exact product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.",
+    "status": "android_redesign_s7_complete_merge_ready",
+    "summary": "S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, contextual recording and large-font-safe financial rows. Final exact product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation after the twelve reviewed S7 references were accepted.",
     "next": [
-      "Merge validated PR #118 into develop without changing the accepted S6 product head.",
-      "Create the S7 Plan/debts branch from updated develop and implement S7.1–S7.4 as the next coherent Android-only slice."
+      "Merge validated PR #119 into develop without changing the accepted S7 product head.",
+      "Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s6-cards",
-    "pr": 118,
+    "branch": "android/redesign-s7-plan-debts",
+    "pr": 119,
     "current_slice": "S7.1 / S7.2 / S7.3 / S7.4",
-    "checkpoint": "s6_complete_merge_ready",
+    "checkpoint": "s7_complete_merge_ready",
     "blockers": [],
-    "next_action": "Merge validated PR #118 into develop, create the S7 Plan/debts branch from the resulting develop head, then implement S7.1–S7.4 as one coherent Android-only batch.",
+    "next_action": "Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -425,26 +425,46 @@
         {
           "id": "S7.1",
           "title": "Urgency and complete forecast",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Coherent S7 implementation plus semantic hardening through 0d3956d51064c2fec91cfb4617b5ff2119c99ede establishes urgency-first Plan hierarchy, a fixed 30-day production horizon, stable scheduled/recurring source identity and complete eligible forecast rows before presentation.",
+            "Contextual obligation/income recording routes into Quick Entry without backdating the actual transaction to the planned due date; planned transfers intentionally expose no fake completion action.",
+            "Reviewed-render acceptance run 34839310748 passed exact SHA-256 verification of all twelve inspected S7 light/dark/150% renders, screenshot validation, APK assembly and focused API 35 device contracts; artifact 10345732569 digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.",
+            "Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367 and Android UI Quality run 34840197433."
+          ]
         },
         {
           "id": "S7.2",
           "title": "Monthly budget",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "The production monthly-budget editor is canonical-data-backed, change-driven and dirty-form protected, validates positive limits plus 1–100% warning thresholds, blocks duplicate submit while a mutation is active, and waits for confirmed/durable persistence rather than treating a local UI update as success.",
+            "Canonical projection replaces stale editor drafts with the current server-backed overall budget; unsupported category-budget editing remains intentionally absent rather than inventing local-only product behavior.",
+            "Focused hardening validation in run 34838247621 passed unit tests, Android-test compilation, lint and Kotlin compilation before final render acceptance.",
+            "Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367, screenshot regression and S24-target instrumentation in Android UI Quality run 34840197433."
+          ]
         },
         {
           "id": "S7.3",
           "title": "Savings, debts and claims consolidation",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Wallet Debts consolidates canonical aggregate credit debt, loans owed and receivables while explicitly preserving aggregate-only semantics when itemized production rows are unavailable; it does not infer zero debt or invent missing item detail.",
+            "Real receivable rows expose the existing Quick Entry repayment path contextually; aggregate-only rows remain informational and do not fabricate unsupported per-item repayment operations.",
+            "The accepted Wallet Debts light/dark/150% references are part of reviewed artifact 10345732569 from run 34839310748.",
+            "Exact product-head Android UI Quality run 34840197433 passed screenshot regression and S24-target instrumentation on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8."
+          ]
         },
         {
           "id": "S7.4",
           "title": "Plan/debt verification",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Twelve S7 references were personally inspected before acceptance: Plan, 30-day Forecast, Monthly Budget and Wallet Debts in light, dark and 150% font. Large-font amount collisions/truncation found during candidate review were corrected before baseline acceptance.",
+            "Reviewed-render acceptance run 34839310748 passed exact hash verification, screenshot validation and focused API 35 device contracts; accepted artifact 10345732569 has digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.",
+            "Final exact-head Project Tracking run 34840197393 passed on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8.",
+            "Final exact-head Android UI Quality run 34840197433 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34840197367 also passed."
+          ]
         }
       ]
     },

@@ -571,6 +571,7 @@ fun CanonicalLoansScreen(
 fun CanonicalLendingScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
+    onRecordRepayment: (LendingItem) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -618,23 +619,28 @@ fun CanonicalLendingScreen(
             } else {
                 items(state.lendingItems, key = LendingItem::id) { item ->
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(item.personLabel, style = MaterialTheme.typography.titleMedium)
-                                if (item.dueLabel.isNotBlank()) {
-                                    Text(
-                                        item.dueLabel,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.personLabel, style = MaterialTheme.typography.titleMedium)
+                                    if (item.dueLabel.isNotBlank()) {
+                                        Text(
+                                            item.dueLabel,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
+                                MyFinHubAmountText(formatCanonicalEuro(item.amount), FinanceTone.Income)
                             }
-                            MyFinHubAmountText(formatCanonicalEuro(item.amount), FinanceTone.Income)
+                            TextButton(onClick = { onRecordRepayment(item) }) {
+                                Text("Καταχώριση επιστροφής")
+                            }
                         }
                     }
                 }

@@ -40,7 +40,9 @@ internal fun projectCanonicalPlanState(
 ): PlanUiState {
     val month = YearMonth.from(today)
     val canonicalBudget = document.overallBudget(month.toString())
-    val horizonDays = previous?.forecastHorizonDays?.takeIf { it > 0 } ?: 30
+    // H7 production forecast is a fixed, explainable 30-day window. Legacy preview-only
+    // horizon controls must never change canonical production semantics.
+    val horizonDays = 30
     val horizonEnd = today.plusDays(horizonDays.toLong())
     val items = canonicalPlannedItems(document, today)
     val forecastItems = items.filter { item ->
@@ -72,11 +74,13 @@ internal fun projectCanonicalPlanState(
 
     return PlanUiState(
         items = items,
-        budget = previous?.budget ?: BudgetDraft(
+        budget = BudgetDraft(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
         ),
         forecastHorizonDays = horizonDays,
+        forecastStartDateIso = today.toString(),
+        forecastEndDateIso = horizonEnd.toString(),
         forecastStartBalance = startBalance,
         forecastExpectedIncome = forecastIncome,
         forecastObligations = forecastObligations,

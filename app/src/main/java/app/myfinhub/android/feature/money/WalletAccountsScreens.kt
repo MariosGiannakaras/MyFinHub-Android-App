@@ -95,6 +95,7 @@ fun CanonicalWalletScreen(
     state: MoneyUiState,
     accountsRequest: Int = 0,
     initiallyShowCards: Boolean = false,
+    initiallyShowDebts: Boolean = false,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -117,8 +118,14 @@ fun CanonicalWalletScreen(
         onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards) {
-        mutableStateOf(if (initiallyShowCards) WalletSection.CARDS.name else WalletSection.ACCOUNTS.name)
+    var selectedName by rememberSaveable(accountsRequest, initiallyShowCards, initiallyShowDebts) {
+        mutableStateOf(
+            when {
+                initiallyShowDebts -> WalletSection.DEBTS.name
+                initiallyShowCards -> WalletSection.CARDS.name
+                else -> WalletSection.ACCOUNTS.name
+            },
+        )
     }
     val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -511,7 +518,7 @@ private fun LazyListScope.walletDebtsContent(
     item("debt-credit") {
         WalletAggregateRow(
             title = "Πιστωτικό χρέος",
-            subtitle = if (state.aggregateCreditOutstanding != null) "Συνολικό canonical υπόλοιπο, μαζί με μη ενεργές κάρτες" else "Μερική εικόνα από τις διαθέσιμες κάρτες",
+            subtitle = if (state.aggregateCreditOutstanding != null) "Συνολικό υπόλοιπο · περιλαμβάνει και μη ενεργές κάρτες" else "Μερική εικόνα από διαθέσιμες πιστωτικές",
             amount = canonicalCreditOutstanding(state),
             amountsVisible = amountsVisible,
             onClick = onOpenCards,
@@ -520,7 +527,7 @@ private fun LazyListScope.walletDebtsContent(
     item("debt-loans") {
         WalletAggregateRow(
             title = "Δάνεια",
-            subtitle = if (state.loans.isEmpty()) "Συνολικό υπόλοιπο" else "${state.loans.size} διαθέσιμες εγγραφές",
+            subtitle = if (state.loans.isEmpty()) "Συνολικό υπόλοιπο · χωρίς αναλυτικές εγγραφές" else "${state.loans.size} διαθέσιμες εγγραφές",
             amount = state.loanOutstanding,
             amountsVisible = amountsVisible,
             onClick = onOpenLoans,
@@ -529,7 +536,7 @@ private fun LazyListScope.walletDebtsContent(
     item("debt-receivables") {
         WalletAggregateRow(
             title = "Απαιτήσεις",
-            subtitle = if (state.lendingItems.isEmpty()) "Ποσά που αναμένεις να επιστραφούν" else "${state.lendingItems.size} διαθέσιμες εγγραφές",
+            subtitle = if (state.lendingItems.isEmpty()) "Συνολικό ποσό · χωρίς αναλυτικές εγγραφές" else "${state.lendingItems.size} διαθέσιμες εγγραφές",
             amount = state.lendingReceivable,
             amountsVisible = amountsVisible,
             onClick = onOpenLending,
@@ -538,7 +545,7 @@ private fun LazyListScope.walletDebtsContent(
     }
     item("debt-note") {
         Text(
-            "Τα συνολικά ποσά παραμένουν χρήσιμα ακόμη κι όταν η canonical πηγή δεν παρέχει επιμέρους εγγραφές.",
+            "Όπου δεν υπάρχουν αναλυτικές εγγραφές, εμφανίζεται το διαθέσιμο συνολικό ποσό χωρίς να υπονοείται μηδενική οφειλή ή απαίτηση.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -554,18 +561,43 @@ private fun WalletAggregateRow(
     onClick: () -> Unit,
     receivable: Boolean = false,
 ) {
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
-        Row(
-            modifier = Modifier.padding(vertical = MyFinHubSpacing.sm),
-            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (largeFont) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                MyFinHubAmountText(
+                    walletAmountText(amount, amountsVisible),
+                    FinanceTone.Neutral,
+                    modifier = Modifier.align(Alignment.End),
+                )
             }
-            MyFinHubAmountText(walletAmountText(amount, amountsVisible), FinanceTone.Neutral)
+        } else {
+            Row(
+                modifier = Modifier.padding(vertical = MyFinHubSpacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MyFinHubIconBadge(if (receivable) MyFinHubIcons.Income else MyFinHubIcons.Plan, FinanceTone.Neutral, null)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                MyFinHubAmountText(walletAmountText(amount, amountsVisible), FinanceTone.Neutral)
+            }
         }
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
