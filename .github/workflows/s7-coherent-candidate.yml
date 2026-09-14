@@ -1,0 +1,95 @@
+name: S7 Coherent Candidate
+
+on:
+  push:
+    branches:
+      - automation/s7-plan-debts-20260914
+    paths:
+      - '.github/workflows/s7-coherent-candidate.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-validate-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact S7 product branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s7-plan-debts
+          fetch-depth: 1
+
+      - name: Assert untouched S7 base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "8d55e83df9dc2d6739c9c7b4e2e19cc23c78e865"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Apply coherent S7 batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin automation/s7-plan-debts-20260914
+          git show origin/automation/s7-plan-debts-20260914:scripts/apply_s7_plan_debts.py > /tmp/apply_s7_plan_debts.py
+          python3 /tmp/apply_s7_plan_debts.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p test_project_tracking.py
+          git diff --check
+
+      - name: Targeted S7 compile and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew testDebugUnitTest compileDebugAndroidTestKotlin lintDebug compileDebugKotlin --stacktrace
+          git diff --check
+
+      - name: Render fresh S7 candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Publish candidate renders for personal inspection
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: s7-candidate-renders-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/**/*.png
+            app/build/reports/screenshotTest/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Commit coherent S7 source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            app/src/main \
+            app/src/test \
+            app/src/androidTest \
+            app/src/screenshotTest \
+            tracking/android-project-state.json \
+            STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m 'feat(android): implement coherent S7 plan and debts candidate'
+          git push origin HEAD:android/redesign-s7-plan-debts
