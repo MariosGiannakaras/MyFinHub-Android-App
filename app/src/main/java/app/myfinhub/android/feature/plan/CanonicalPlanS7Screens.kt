@@ -602,8 +602,8 @@ fun CanonicalBudget2026Screen(
                 MyFinHubPrimaryAction(
                     label = when {
                         mutationInFlight -> "Αποθήκευση…"
-                        saveRequested -> "Αναμονή επιβεβαίωσης…"
                         mutationBlocked -> "Χρειάζεται συγχρονισμός"
+                        saveRequested -> "Αναμονή επιβεβαίωσης…"
                         else -> "Αποθήκευση προϋπολογισμού"
                     },
                     enabled = dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
