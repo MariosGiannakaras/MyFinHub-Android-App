@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Validate the coherent S8 Analysis candidate with focused projection/UI tests and inspect fresh light/dark/150% Compose renders.
-- [ ] After render acceptance, open the S8 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality/S24-target instrumentation.
+- [ ] Merge validated PR #120 into develop without changing the accepted S8 product/test head.
+- [ ] Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice.
 
 ## Completed foundations
 
@@ -46,14 +46,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 7/10 · Subtasks: 28/40 · Preparation: 4/4**
+**Tasks: 8/10 · Subtasks: 32/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s8-analysis`. PR: not yet opened.
-Checkpoint: `s8_implementation_candidate`.
+Working branch: `android/redesign-s8-analysis`. PR: 120.
+Checkpoint: `s8_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the coherent S8 Analysis candidate, personally inspect the fresh Analysis light/dark/150% renders, then publish a draft PR and complete S8 only from exact-head hosted evidence.
+Next action: Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -64,7 +64,7 @@ Next action: Validate the coherent S8 Analysis candidate, personally inspect the
 | S5 Home and accounts | 4/4 | Complete |
 | S6 Cards | 4/4 | Complete |
 | S7 Plan and debts | 4/4 | Complete |
-| S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
+| S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
 | S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
 

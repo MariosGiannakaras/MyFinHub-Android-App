@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-14",
+  "updated_at": "2026-09-15",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s8_analysis_implementation",
-    "summary": "S1–S7 are complete and merged. S8 Analysis is the active Android-only slice, implementing explicit period selection, equivalent comparison windows, complete category denominator/remainder, exact scoped drill-down and secondary expandable income/net/trend detail. No S8 subtask is accepted until fresh renders and hosted gates pass.",
+    "status": "android_redesign_s8_complete_merge_ready",
+    "summary": "S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis redesign: explicit equivalent period comparisons, complete category denominator with remainder, exact scoped Activity drill-down, partial-period semantics and secondary expandable income/net/trend detail. Exact PR head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.",
     "next": [
-      "Validate the coherent S8 Analysis candidate with focused projection/UI tests and inspect fresh light/dark/150% Compose renders.",
-      "After render acceptance, open the S8 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality/S24-target instrumentation."
+      "Merge validated PR #120 into develop without changing the accepted S8 product/test head.",
+      "Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice."
     ]
   },
   "latest_production_candidate": {
@@ -82,11 +82,11 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s8-analysis",
-    "pr": null,
-    "current_slice": "S8.1 / S8.2 / S8.3 / S8.4",
-    "checkpoint": "s8_implementation_candidate",
+    "pr": 120,
+    "current_slice": "S9.1 / S9.2 / S9.3 / S9.4",
+    "checkpoint": "s8_complete_merge_ready",
     "blockers": [],
-    "next_action": "Validate the coherent S8 Analysis candidate, personally inspect the fresh Analysis light/dark/150% renders, then publish a draft PR and complete S8 only from exact-head hosted evidence.",
+    "next_action": "Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -476,26 +476,40 @@
         {
           "id": "S8.1",
           "title": "Equivalent interval comparisons",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Canonical Analysis exposes explicit month/30-day/90-day scopes with exactly equal-length preceding comparison intervals and exact current/previous date labels; month-to-date hardening in 734d0c9ed86289b44c4a50de299f89a616d22f5b safely crosses a shorter previous-month boundary rather than changing the denominator.",
+            "Exact PR #120 head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Android CI run 35000957812, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/Play bundle assembly and policy audits."
+          ]
         },
         {
           "id": "S8.2",
           "title": "Categories and remainder",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Category composition uses all positive categorized expense as the denominator, renders the five largest exact categories plus an explicit Λοιπά remainder, and carries exact source-category membership into drill-down rather than dropping the remainder.",
+            "Reviewed-render acceptance run 34954887992 passed exact reviewed render hash verification, screenshot validation, APK assembly and focused API 35 Analysis contracts; artifact 10391550060 has digest sha256:9f2d8e072156db36a76660426a86131578f1567ab3be2b022993a6097f5b4911.",
+            "Exact-head Android UI Quality run 35000957802 passed screenshot regression and the full 76-test S24-target instrumentation suite after the inherited top-level Analysis contracts were aligned to the S8 hierarchy."
+          ]
         },
         {
           "id": "S8.3",
           "title": "Scoped drill-down and trends",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Category drill-down preserves the selected period start/end and exact source-category set inside the retained Κινήσεις stack, while income/net/monthly trend stays secondary and expandable with explicit partial-month semantics and a textual chart alternative.",
+            "Inherited TopLevelParityTest contracts were updated in 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a to use stable S8 test tags/hierarchy instead of removed pre-S8 copy; exact-head S24-target instrumentation then passed in Android UI Quality run 35000957802."
+          ]
         },
         {
           "id": "S8.4",
           "title": "Analysis verification",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Fresh Analysis references covering light, dark and 150% font, including expanded trend state, were personally inspected before acceptance; reviewed-render acceptance run 34954887992 pinned their exact hashes before committing baselines.",
+            "Final exact product/test head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking run 35000957778, Android CI run 35000957812 and Android UI Quality run 35000957802.",
+            "Exact-head Android UI Quality screenshot artifact 10409458897 has digest sha256:c714f8de579ded491f5d3ff8c38954d16767823695b539144c90196514931103; screenshot regression passed without candidate regeneration and S24-target instrumentation passed."
+          ]
         }
       ]
     },
