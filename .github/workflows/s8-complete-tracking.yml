@@ -1,0 +1,112 @@
+name: S8 Completion Tracking
+
+on:
+  push:
+    branches:
+      - automation/s8-analysis-20260915
+    paths:
+      - '.github/workflows/s8-complete-tracking.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  complete-tracking:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact validated S8 head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s8-analysis
+          fetch-depth: 1
+
+      - name: Assert validated product head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a"
+
+      - name: Record S8 completion evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('tracking/android-project-state.json')
+          state = json.loads(path.read_text())
+          state['updated_at'] = '2026-09-15'
+
+          work = state['active_workstream']
+          work['status'] = 'android_redesign_s8_complete_merge_ready'
+          work['summary'] = (
+              'S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis redesign: '
+              'explicit equivalent period comparisons, complete category denominator with remainder, exact scoped '
+              'Activity drill-down, partial-period semantics and secondary expandable income/net/trend detail. '
+              'Exact PR head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking, Android CI, '
+              'screenshot regression and S24-target instrumentation.'
+          )
+          work['next'] = [
+              'Merge validated PR #120 into develop without changing the accepted S8 product/test head.',
+              'Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice.',
+          ]
+
+          current = state['current_redesign_pass']
+          current['branch'] = 'android/redesign-s8-analysis'
+          current['pr'] = 120
+          current['current_slice'] = 'S9.1 / S9.2 / S9.3 / S9.4'
+          current['checkpoint'] = 's8_complete_merge_ready'
+          current['next_action'] = (
+              'Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting '
+              'develop head, then implement S9.1–S9.4 as one coherent Android-only batch.'
+          )
+
+          task = next(item for item in state['redesign_tasks'] if item['id'] == 'S8')
+          evidence = {
+              'S8.1': [
+                  'Canonical Analysis exposes explicit month/30-day/90-day scopes with exactly equal-length preceding comparison intervals and exact current/previous date labels; month-to-date hardening in 734d0c9ed86289b44c4a50de299f89a616d22f5b safely crosses a shorter previous-month boundary rather than changing the denominator.',
+                  'Exact PR #120 head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Android CI run 35000957812, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/Play bundle assembly and policy audits.',
+              ],
+              'S8.2': [
+                  'Category composition uses all positive categorized expense as the denominator, renders the five largest exact categories plus an explicit Λοιπά remainder, and carries exact source-category membership into drill-down rather than dropping the remainder.',
+                  'Reviewed-render acceptance run 34954887992 passed exact reviewed render hash verification, screenshot validation, APK assembly and focused API 35 Analysis contracts; artifact 10391550060 has digest sha256:9f2d8e072156db36a76660426a86131578f1567ab3be2b022993a6097f5b4911.',
+                  'Exact-head Android UI Quality run 35000957802 passed screenshot regression and the full 76-test S24-target instrumentation suite after the inherited top-level Analysis contracts were aligned to the S8 hierarchy.',
+              ],
+              'S8.3': [
+                  'Category drill-down preserves the selected period start/end and exact source-category set inside the retained Κινήσεις stack, while income/net/monthly trend stays secondary and expandable with explicit partial-month semantics and a textual chart alternative.',
+                  'Inherited TopLevelParityTest contracts were updated in 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a to use stable S8 test tags/hierarchy instead of removed pre-S8 copy; exact-head S24-target instrumentation then passed in Android UI Quality run 35000957802.',
+              ],
+              'S8.4': [
+                  'Fresh Analysis references covering light, dark and 150% font, including expanded trend state, were personally inspected before acceptance; reviewed-render acceptance run 34954887992 pinned their exact hashes before committing baselines.',
+                  'Final exact product/test head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking run 35000957778, Android CI run 35000957812 and Android UI Quality run 35000957802.',
+                  'Exact-head Android UI Quality screenshot artifact 10409458897 has digest sha256:c714f8de579ded491f5d3ff8c38954d16767823695b539144c90196514931103; screenshot regression passed without candidate regeneration and S24-target instrumentation passed.',
+              ],
+          }
+          for subtask in task['subtasks']:
+              subtask['status'] = 'completed'
+              subtask['evidence'] = evidence[subtask['id']]
+
+          path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n')
+          PY
+
+      - name: Render and verify canonical tracking
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/render_project_tracking.py
+          python3 scripts/render_project_tracking.py --check
+          python3 -m unittest discover -s scripts -p test_project_tracking.py
+          git diff --check
+
+      - name: Commit S8 completion checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tracking/android-project-state.json STATUS.md TODO.md docs/CURRENT_HANDOFF.md
+          git diff --cached --check
+          git commit -m 'docs: complete S8 and hand off to S9'
+          git push origin HEAD:android/redesign-s8-analysis
