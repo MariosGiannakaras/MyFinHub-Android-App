@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s7_complete_merge_ready`.
+- Workstream state: `android_redesign_s8_complete_merge_ready`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redesign: urgency-first Plan, fixed explainable 30-day forecast, canonical monthly budget persistence, aggregate-safe debts/claims, contextual recording and large-font-safe financial rows. Final exact product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation after the twelve reviewed S7 references were accepted.
+S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis redesign: explicit equivalent period comparisons, complete category denominator with remainder, exact scoped Activity drill-down, partial-period semantics and secondary expandable income/net/trend detail. Exact PR head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
 
 ## Immediate work
 
-- Merge validated PR #119 into develop without changing the accepted S7 product head.
-- Create the S8 Analysis branch from updated develop and implement S8.1–S8.4 as one coherent Android-only slice.
+- Merge validated PR #120 into develop without changing the accepted S8 product/test head.
+- Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice.
 
 ## Constraints
 
@@ -51,14 +51,14 @@ S1–S7 are complete. Draft PR #119 implements the Android-only Plan/debts redes
 
 ## Android redesign progress
 
-**Tasks: 7/10 · Subtasks: 28/40 · Preparation: 4/4**
+**Tasks: 8/10 · Subtasks: 32/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s7-plan-debts`. PR: 119.
-Checkpoint: `s7_complete_merge_ready`.
+Working branch: `android/redesign-s8-analysis`. PR: 120.
+Checkpoint: `s8_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #119 into develop without changing accepted product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8, then create the S8 Analysis branch and implement S8.1–S8.4 coherently.
+Next action: Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -69,7 +69,7 @@ Next action: Merge validated PR #119 into develop without changing accepted prod
 | S5 Home and accounts | 4/4 | Complete |
 | S6 Cards | 4/4 | Complete |
 | S7 Plan and debts | 4/4 | Complete |
-| S8 Analysis | 0/4 | S8.1 Equivalent interval comparisons (pending); S8.2 Categories and remainder (pending); S8.3 Scoped drill-down and trends (pending); S8.4 Analysis verification (pending) |
+| S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
 | S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
 

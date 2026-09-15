@@ -92,10 +92,12 @@ data class ActivityUiState(
     val typeFilterId: String? = null,
     /** Isolated analytics drill-down scope. Never reuse this for the main ledger filters. */
     val categoryFilter: String? = null,
+    /** Exact canonical category identities represented by an analytics row such as "Λοιπά". */
+    val categoryFilterIds: Set<String>? = null,
     val dateFrom: String? = null,
     val dateTo: String? = null,
 ) {
-    val isAnalyticsScope: Boolean = categoryFilter != null
+    val isAnalyticsScope: Boolean = categoryFilter != null || !categoryFilterIds.isNullOrEmpty()
 
     val availableCategories: List<String> = buildList {
         expenseCategories.forEach { add(it.name) }
@@ -132,6 +134,7 @@ data class ActivityUiState(
         val needle = query.trim()
         val normalizedNumericNeedle = needle.replace(',', '.')
         val exactCategory = if (isAnalyticsScope) categoryFilter else ledgerCategoryFilter
+        val exactCategoryIds = if (isAnalyticsScope) categoryFilterIds else exactCategory?.let(::setOf)
         val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
         val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
         items.filter { item ->
@@ -158,9 +161,9 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
-            val matchesCategory = exactCategory == null ||
-                (item.categoryContributions?.takeIf { it.isNotEmpty() }?.containsKey(exactCategory)
-                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") == exactCategory))
+            val matchesCategory = exactCategoryIds.isNullOrEmpty() ||
+                (item.categoryContributions?.takeIf { it.isNotEmpty() }?.keys?.any(exactCategoryIds::contains)
+                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in exactCategoryIds))
             val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&
                     (effectiveDateFrom == null || item.rawDate.take(10) >= effectiveDateFrom) &&
@@ -208,23 +211,35 @@ data class ActivityUiState(
     }
 
     /** Isolated read view: opening analysis never replaces the user's global ledger filters. */
-    fun forCategory(category: String, start: String, end: String): ActivityUiState = copy(
-        query = "",
-        filter = ActivityFilter.ALL,
-        accountFilterId = null,
-        selectedId = null,
-        ledgerCategoryFilter = null,
-        ledgerDateFrom = null,
-        ledgerDateTo = null,
-        typeFilterId = null,
-        categoryFilter = category,
-        dateFrom = start,
-        dateTo = end,
-        items = items.map { item ->
-            val contribution = item.categoryContributions?.get(category)
-            if (contribution == null) item else item.copy(amount = -contribution)
-        },
-    )
+    fun forCategory(category: String, start: String, end: String): ActivityUiState =
+        forCategories(listOf(category), category, start, end)
+
+    fun forCategories(categories: List<String>, label: String, start: String, end: String): ActivityUiState {
+        val exact = categories.filter(String::isNotBlank).toSet()
+        return copy(
+            query = "",
+            filter = ActivityFilter.ALL,
+            accountFilterId = null,
+            selectedId = null,
+            ledgerCategoryFilter = null,
+            ledgerDateFrom = null,
+            ledgerDateTo = null,
+            typeFilterId = null,
+            categoryFilter = label,
+            categoryFilterIds = exact,
+            dateFrom = start,
+            dateTo = end,
+            items = items.map { item ->
+                val contributions = item.categoryContributions
+                if (contributions.isNullOrEmpty()) {
+                    item
+                } else {
+                    val contribution = exact.sumOf { category -> contributions[category] ?: 0.0 }
+                    if (kotlin.math.abs(contribution) <= 0.005) item else item.copy(amount = -contribution)
+                }
+            },
+        )
+    }
 }
 
 sealed interface ActivityAction {

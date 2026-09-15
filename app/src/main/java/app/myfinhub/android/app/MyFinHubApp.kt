@@ -158,6 +158,7 @@ internal fun MyFinHubAppContent(
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }
+    var insightsPeriodId by rememberSaveable { mutableStateOf(insightsState.defaultPeriodId) }
     var frontendMoneyState by remember(moneyState) { mutableStateOf(moneyState) }
     var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
 
@@ -334,7 +335,12 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.CategoryActivity> { route ->
                     ActivityLedgerScreen(
-                        state = activityState.forCategory(route.category, route.start, route.end),
+                        state = activityState.forCategories(
+                            categories = route.categories.ifEmpty { listOf(route.category) },
+                            label = route.category,
+                            start = route.start,
+                            end = route.end,
+                        ),
                         onAction = onActivityAction,
                         onOpenDetail = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         onOpenQuickEntry = { openFastExpense(activeBackStack) },
@@ -613,13 +619,16 @@ internal fun MyFinHubAppContent(
                     ) {
                         InsightsScreen(
                             state = insightsState,
+                            selectedPeriodId = insightsPeriodId,
+                            onPeriodSelected = { insightsPeriodId = it },
                             onOpenSupportingActivity = { activityBackStack.popToRoot() },
-                            onOpenCategoryActivity = { category ->
+                            onOpenCategoryActivity = { category, start, end ->
                                 activityBackStack.pushIfNew(
                                     AppRoute.CategoryActivity(
-                                        category = category,
-                                        start = insightsState.categoryStartDate,
-                                        end = insightsState.categoryEndDate,
+                                        category = category.name,
+                                        start = start,
+                                        end = end,
+                                        categories = category.sourceCategories,
                                     ),
                                 )
                             },
