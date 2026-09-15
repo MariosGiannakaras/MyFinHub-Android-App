@@ -27,9 +27,7 @@ internal fun projectCanonicalInsightsState(
     val currentStart = currentMonth.atDay(1)
     val currentEnd = today
     val previousMonth = currentMonth.minusMonths(1)
-    val comparisonDay = min(today.dayOfMonth, previousMonth.lengthOfMonth())
-    val previousMonthStart = previousMonth.atDay(1)
-    val previousMonthEnd = previousMonth.atDay(comparisonDay)
+    val (previousMonthStart, previousMonthEnd) = equivalentPreviousMonthWindow(today)
 
     val monthScope = buildInsightsScope(
         document = document,
@@ -159,6 +157,21 @@ internal fun insightCategories(
         )
     }
     return visible
+}
+
+/**
+ * Previous comparison interval for month-to-date. The baseline keeps exactly the same
+ * inclusive day count as the current month interval. When the previous calendar month
+ * is shorter (for example 1–31 May versus April), the baseline extends backward across
+ * the prior month boundary instead of silently using a shorter denominator or crashing.
+ */
+internal fun equivalentPreviousMonthWindow(today: LocalDate): Pair<LocalDate, LocalDate> {
+    val currentStart = YearMonth.from(today).atDay(1)
+    val inclusiveSpanMinusOne = ChronoUnit.DAYS.between(currentStart, today)
+    val previousMonth = YearMonth.from(today).minusMonths(1)
+    val previousEnd = previousMonth.atDay(min(today.dayOfMonth, previousMonth.lengthOfMonth()))
+    val previousStart = previousEnd.minusDays(inclusiveSpanMinusOne)
+    return previousStart to previousEnd
 }
 
 private fun insightsMonthLabel(month: YearMonth): String = month.atDay(1)

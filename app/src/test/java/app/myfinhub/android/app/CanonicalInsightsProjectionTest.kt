@@ -33,6 +33,19 @@ class CanonicalInsightsProjectionTest {
     }
 
     @Test
+    fun monthEndAfterShorterPreviousMonth_keepsEquivalentInclusiveLength() {
+        val (start, end) = equivalentPreviousMonthWindow(LocalDate.of(2026, 5, 31))
+        assertEquals(LocalDate.of(2026, 3, 31), start)
+        assertEquals(LocalDate.of(2026, 4, 30), end)
+
+        val state = projectCanonicalInsightsState(categoryFixture(), LocalDate.of(2026, 5, 31))
+        val scope = state.periodScope(INSIGHTS_PERIOD_MONTH)
+        assertTrue(scope.contextLabel.contains("Πλήρης μήνας"))
+        assertTrue(scope.comparison.previousLabel.contains("31"))
+        assertTrue(scope.comparison.previousLabel.contains("30"))
+    }
+
+    @Test
     fun thirtyDayComparison_hasExactlyEqualAdjacentWindowLength() {
         val state = projectCanonicalInsightsState(comparisonFixture(), LocalDate.of(2026, 9, 10))
         val scope = state.periodScope(INSIGHTS_PERIOD_30_DAYS)
