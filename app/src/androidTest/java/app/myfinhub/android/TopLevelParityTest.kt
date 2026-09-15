@@ -70,7 +70,9 @@ class TopLevelParityTest {
             .assertIsDisplayed()
 
         selectAnalysis()
-        composeRule.onNodeWithText("Πορεία 4 μηνών").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights_list")
+            .performScrollToNode(hasTestTag("insights_details"))
+        composeRule.onNodeWithText("Έσοδα, καθαρό & πορεία").assertIsDisplayed()
         composeRule.onNodeWithTag("insights_list")
             .performScrollToNode(hasText("Πού πηγαίνουν τα έξοδα"))
         composeRule.onNodeWithText("Πού πηγαίνουν τα έξοδα").assertIsDisplayed()
@@ -112,8 +114,8 @@ class TopLevelParityTest {
     fun analysis_categoryDeepLink_preservesOrigin_andSiblingAcrossTabSwitches() {
         selectAnalysis()
         composeRule.onNodeWithTag("insights_list")
-            .performScrollToNode(hasText("Τρόφιμα"))
-        composeRule.onNodeWithContentDescription("Προβολή κινήσεων κατηγορίας Τρόφιμα")
+            .performScrollToNode(hasTestTag("insights_category_Τρόφιμα"))
+        composeRule.onNodeWithTag("insights_category_Τρόφιμα")
             .performClick()
 
         composeRule.onNodeWithText("Τρόφιμα").assertIsDisplayed()
