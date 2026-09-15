@@ -1,0 +1,131 @@
+name: S8 Accept Reviewed Analysis
+
+on:
+  push:
+    branches:
+      - automation/s8-analysis-20260915
+    paths:
+      - '.github/workflows/s8-accept-reviewed.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  accept-reviewed-s8:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact reviewed S8 product head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s8-analysis
+          fetch-depth: 1
+
+      - name: Assert reviewed S8 source head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "e93d6b8518ea2a33fcfdd53c3a6434ea108d6baa"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Re-render only current Analysis references
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt
+          ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Verify exact personally reviewed S8 render set and hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          expected = {
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png': 'bf706a978f19115595220fd4b98e9838ddc4186ff531e73d5b79ea52a4a22f64',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png': '8faca66e57ce447e55741504a1f2748621a431e2a41c3e754cf6738744abf76a',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png': 'e9c474a4ea97c1a900821360d2841c63e40a313e8ce7bb5f5ef07fc657c4d9cb',
+            'app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png': '6111862b6b9726668aa2200892a67475707346fdacdb4744dc4ea562f21a8bdf',
+          }
+          directory = Path('app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt')
+          actual = {str(path) for path in directory.glob('*.png')}
+          if actual != set(expected):
+              raise SystemExit(f'render set mismatch: missing={set(expected)-actual}, extra={actual-set(expected)}')
+          for path, digest in expected.items():
+              got = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+              if got != digest:
+                  raise SystemExit(f'hash mismatch for {path}: {got}')
+          print(f'Verified {len(expected)} personally reviewed S8 renders.')
+          PY
+          git diff --check
+
+      - name: Validate accepted screenshot baselines
+        shell: bash
+        run: ./gradlew validateDebugScreenshotTest --stacktrace
+
+      - name: Prebuild focused instrumentation APKs
+        shell: bash
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Focused S8 device contracts
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: >-
+            ./gradlew connectedDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=app.myfinhub.android.feature.insights.S8InsightsSurfaceTest
+            --stacktrace
+
+      - name: Publish accepted S8 renders
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: s8-accepted-analysis-${{ github.run_id }}
+          path: app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/*.png
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit accepted S8 baseline batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt
+          git diff --cached --check
+          git commit -m 'test(android): accept reviewed S8 Analysis renders'
+          git push origin HEAD:android/redesign-s8-analysis
