@@ -58,10 +58,11 @@ fun InsightsScreen(
     onPeriodSelected: (String) -> Unit = {},
     onOpenSupportingActivity: () -> Unit,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
+    initialDetailsExpanded: Boolean = false,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val scope = state.periodScope(selectedPeriodId)
-    var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    var detailsExpanded by rememberSaveable { mutableStateOf(initialDetailsExpanded) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

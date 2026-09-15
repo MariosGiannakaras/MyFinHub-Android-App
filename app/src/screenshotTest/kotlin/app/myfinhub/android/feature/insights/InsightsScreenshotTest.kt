@@ -58,14 +58,18 @@ fun InsightsCompactLargeFontScreenshot() = InsightsFixture(false)
 @PreviewTest
 @Preview(name = "insights_full_large_font", widthDp = 412, heightDp = 1900, fontScale = 1.5f, showBackground = true)
 @Composable
-fun InsightsFullLargeFontScreenshot() = InsightsFixture(false)
+fun InsightsFullLargeFontScreenshot() = InsightsFixture(false, initialDetailsExpanded = true)
 
 @Composable
-private fun InsightsFixture(darkTheme: Boolean) {
+private fun InsightsFixture(
+    darkTheme: Boolean,
+    initialDetailsExpanded: Boolean = false,
+) {
     MyFinHubTheme(darkTheme = darkTheme) {
         InsightsScreen(
             state = ownerInsightsScreenshotState(),
             onOpenSupportingActivity = {},
+            initialDetailsExpanded = initialDetailsExpanded,
         )
     }
 }
