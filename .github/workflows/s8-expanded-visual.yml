@@ -1,0 +1,139 @@
+name: S8 Expanded Trend Visual
+
+on:
+  push:
+    branches:
+      - automation/s8-analysis-20260915
+    paths:
+      - '.github/workflows/s8-expanded-visual.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-expanded-visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout current S8 product head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/redesign-s8-analysis
+          fetch-depth: 1
+
+      - name: Assert hardened S8 head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "734d0c9ed86289b44c4a50de299f89a616d22f5b"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Add deterministic expanded-trend preview state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          screen = Path('app/src/main/java/app/myfinhub/android/feature/insights/InsightsScreen.kt')
+          text = screen.read_text()
+          old = '''    onPeriodSelected: (String) -> Unit = {},
+              onOpenSupportingActivity: () -> Unit,
+              onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
+          ) {
+              val largeFont = LocalDensity.current.fontScale >= 1.3f
+              val scope = state.periodScope(selectedPeriodId)
+              var detailsExpanded by rememberSaveable { mutableStateOf(false) }'''
+          new = '''    onPeriodSelected: (String) -> Unit = {},
+              onOpenSupportingActivity: () -> Unit,
+              onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
+              initialDetailsExpanded: Boolean = false,
+          ) {
+              val largeFont = LocalDensity.current.fontScale >= 1.3f
+              val scope = state.periodScope(selectedPeriodId)
+              var detailsExpanded by rememberSaveable { mutableStateOf(initialDetailsExpanded) }'''
+          if text.count(old) != 1:
+              raise SystemExit('InsightsScreen signature/state block mismatch')
+          screen.write_text(text.replace(old, new, 1))
+
+          shots = Path('app/src/screenshotTest/kotlin/app/myfinhub/android/feature/insights/InsightsScreenshotTest.kt')
+          text = shots.read_text()
+          old = '''fun InsightsFullLargeFontScreenshot() = InsightsFixture(false)
+
+          @Composable
+          private fun InsightsFixture(darkTheme: Boolean) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  InsightsScreen(
+                      state = ownerInsightsScreenshotState(),
+                      onOpenSupportingActivity = {},
+                  )
+              }
+          }'''
+          new = '''fun InsightsFullLargeFontScreenshot() = InsightsFixture(false, initialDetailsExpanded = true)
+
+          @Composable
+          private fun InsightsFixture(
+              darkTheme: Boolean,
+              initialDetailsExpanded: Boolean = false,
+          ) {
+              MyFinHubTheme(darkTheme = darkTheme) {
+                  InsightsScreen(
+                      state = ownerInsightsScreenshotState(),
+                      onOpenSupportingActivity = {},
+                      initialDetailsExpanded = initialDetailsExpanded,
+                  )
+              }
+          }'''
+          if text.count(old) != 1:
+              raise SystemExit('Insights screenshot fixture block mismatch')
+          shots.write_text(text.replace(old, new, 1))
+          PY
+          git diff --check
+
+      - name: Focused compile and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew testDebugUnitTest compileDebugAndroidTestKotlin compileDebugScreenshotTestKotlin --stacktrace
+
+      - name: Render expanded Analysis candidates
+        shell: bash
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Publish expanded Analysis candidates
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: s8-expanded-analysis-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/*.png
+            app/build/reports/screenshotTest/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Commit expanded visual contract source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            app/src/main/java/app/myfinhub/android/feature/insights/InsightsScreen.kt \
+            app/src/screenshotTest/kotlin/app/myfinhub/android/feature/insights/InsightsScreenshotTest.kt
+          git diff --cached --check
+          git commit -m 'test(android): render expanded S8 trend at large font'
+          git push origin HEAD:android/redesign-s8-analysis
