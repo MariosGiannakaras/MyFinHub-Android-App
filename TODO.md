@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #120 into develop without changing the accepted S8 product/test head.
-- [ ] Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice.
+- [ ] Run focused S9 unit/instrumentation-compile/lint/Kotlin checks and inspect fresh Settings/Diagnostics light/dark/150% renders.
+- [ ] Then validate auth/root/update device contracts, open the S9 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality before completion.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s8-analysis`. PR: 120.
-Checkpoint: `s8_complete_merge_ready`.
+Working branch: `android/redesign-s9-settings-auth`. PR: not yet opened.
+Checkpoint: `s9_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.
+Next action: Validate the coherent S9 Settings/auth/root candidate, inspect fresh renders, then open a draft PR and complete S9 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

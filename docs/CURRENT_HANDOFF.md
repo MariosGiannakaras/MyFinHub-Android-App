@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s8_complete_merge_ready`.
+- Workstream state: `android_redesign_s9_implementation_candidate`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis redesign: explicit equivalent period comparisons, complete category denominator with remainder, exact scoped Activity drill-down, partial-period semantics and secondary expandable income/net/trend detail. Exact PR head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
+S1–S8 are complete and merged. S9 now has a coherent Android-only implementation candidate for consumer-first Settings, dedicated sanitized diagnostics, deterministic updater recovery and focused auth/lockout presentation. S9 remains unaccepted until focused validation, fresh Compose render inspection and exact-PR-head gates pass.
 
 ## Immediate work
 
-- Merge validated PR #120 into develop without changing the accepted S8 product/test head.
-- Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice.
+- Run focused S9 unit/instrumentation-compile/lint/Kotlin checks and inspect fresh Settings/Diagnostics light/dark/150% renders.
+- Then validate auth/root/update device contracts, open the S9 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality before completion.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s8-analysis`. PR: 120.
-Checkpoint: `s8_complete_merge_ready`.
+Working branch: `android/redesign-s9-settings-auth`. PR: not yet opened.
+Checkpoint: `s9_implementation_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.
+Next action: Validate the coherent S9 Settings/auth/root candidate, inspect fresh renders, then open a draft PR and complete S9 only from exact-head hosted evidence.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

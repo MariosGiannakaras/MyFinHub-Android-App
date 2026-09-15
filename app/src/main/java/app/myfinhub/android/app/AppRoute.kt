@@ -8,6 +8,7 @@ sealed interface AppRoute : NavKey {
     @Serializable data object Home : AppRoute
     @Serializable data class HomeAttention(val attentionId: String) : AppRoute
     @Serializable data object Settings : AppRoute
+    @Serializable data object Diagnostics : AppRoute
     @Serializable data object ChangeHistory : AppRoute
     @Serializable data object NoticeHistory : AppRoute
     @Serializable data object Activity : AppRoute

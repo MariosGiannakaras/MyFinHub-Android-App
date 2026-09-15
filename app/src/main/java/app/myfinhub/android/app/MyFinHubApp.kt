@@ -84,6 +84,7 @@ import app.myfinhub.android.feature.utilities.FrontendUtilitiesAction
 import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
 import app.myfinhub.android.feature.utilities.NoticeHistoryScreen
 import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
+import app.myfinhub.android.feature.utilities.ProductionDiagnosticsScreen
 import app.myfinhub.android.feature.utilities.ProductionSettingsScreen
 import app.myfinhub.android.feature.utilities.SettingsScreen
 import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
@@ -260,6 +261,7 @@ internal fun MyFinHubAppContent(
                             diagnostics = diagnostics,
                             noticeHistoryCount = noticeHistory.size,
                             onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },
+                            onOpenDiagnostics = { homeBackStack.pushIfNew(AppRoute.Diagnostics) },
                             onLogout = onLogout,
                         )
                     } else {
@@ -277,6 +279,16 @@ internal fun MyFinHubAppContent(
                         entries = noticeHistory,
                         onBack = { homeBackStack.removeLastOrNull() },
                     )
+                }
+                entry<AppRoute.Diagnostics> {
+                    diagnostics?.let { snapshot ->
+                        ProductionDiagnosticsScreen(
+                            diagnostics = snapshot,
+                            onBack = { homeBackStack.removeLastOrNull() },
+                        )
+                    } ?: run {
+                        homeBackStack.removeLastOrNull()
+                    }
                 }
                 entry<AppRoute.ChangeHistory> {
                     ChangeHistoryScreen(

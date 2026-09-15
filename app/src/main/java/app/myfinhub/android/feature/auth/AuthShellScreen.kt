@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +43,7 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import kotlinx.coroutines.delay
 
 @Composable
 fun AuthShellScreen(
@@ -76,8 +79,10 @@ fun AuthShellScreen(
 
 @Composable
 private fun LoadingScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+    AuthSurface {
+        Text("MyFinHub", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        Text("Έλεγχος ασφαλούς συνεδρίας…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
@@ -145,12 +150,12 @@ private fun MfaScreen(
     var code by remember { mutableStateOf("") }
 
     AuthSurface {
-        Text("Επαλήθευση δύο παραγόντων", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Text("Άνοιξε την εφαρμογή authenticator και πληκτρολόγησε τον τρέχοντα κωδικό TOTP.")
+        Text("Επαλήθευση λογαριασμού", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+        Text("Άνοιξε την εφαρμογή επαλήθευσης και πληκτρολόγησε τον εξαψήφιο κωδικό.")
         MyFinHubOutlinedField(
             value = code,
             onValueChange = { value -> code = value.filter(Char::isDigit).take(6) },
-            label = "Κωδικός TOTP",
+            label = "Εξαψήφιος κωδικός",
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.NumberPassword,
                 imeAction = ImeAction.Done,
@@ -183,7 +188,7 @@ private fun PinEnrollmentScreen(
     AuthSurface {
         Text("Τοπικό PIN", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         Text(
-            "Διάλεξε 4–12 ψηφία για fallback όταν δεν είναι διαθέσιμα τα βιομετρικά. Το PIN ξεκλειδώνει μόνο την εφαρμογή και δεν αντικαθιστά το TOTP.",
+            "Διάλεξε 4–12 ψηφία. Το PIN ξεκλειδώνει μόνο αυτή την εφαρμογή και χρησιμοποιείται όταν δεν είναι διαθέσιμα τα βιομετρικά.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         PinField("PIN", pin, ImeAction.Next) { pin = it }
@@ -241,10 +246,21 @@ private fun LockedScreen(
     }
 
     var pin by remember { mutableStateOf("") }
+    var retryRemainingMillis by remember(state.pinStatus.retryAfterMillis) {
+        mutableStateOf(state.pinStatus.retryAfterMillis)
+    }
+    LaunchedEffect(state.pinStatus.retryAfterMillis) {
+        retryRemainingMillis = state.pinStatus.retryAfterMillis
+        while (retryRemainingMillis > 0L) {
+            delay(minOf(1_000L, retryRemainingMillis))
+            retryRemainingMillis = (retryRemainingMillis - 1_000L).coerceAtLeast(0L)
+        }
+    }
+    val pinAllowedNow = state.pinStatus.allowed || retryRemainingMillis <= 0L
     AuthSurface {
         Text("Το MyFinHub είναι κλειδωμένο", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         Text(
-            "Η αποθηκευμένη συνεδρία θα ελεγχθεί ξανά στον server μετά το τοπικό ξεκλείδωμα.",
+            "Ξεκλείδωσε την εφαρμογή με βιομετρικά ή με το τοπικό PIN.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (capability == BiometricCapability.AVAILABLE) {
@@ -258,9 +274,9 @@ private fun LockedScreen(
         if (capability != BiometricCapability.AVAILABLE || state.showPin) {
             PinField("PIN εφαρμογής", pin, ImeAction.Done) { pin = it }
             state.message?.let { ErrorMessage(it) }
-            if (!state.pinStatus.allowed) {
+            if (!pinAllowedNow) {
                 Text(
-                    "Το PIN fallback είναι προσωρινά κλειδωμένο.",
+                    "Πολλές αποτυχημένες προσπάθειες. Δοκίμασε ξανά σε ${formatRetrySeconds(retryRemainingMillis)}.",
                     color = MaterialTheme.colorScheme.error,
                 )
             }
@@ -272,7 +288,7 @@ private fun LockedScreen(
                     onVerifyPin(chars)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = pin.length >= 4 && state.pinStatus.allowed,
+                enabled = pin.length >= 4 && pinAllowedNow,
                 icon = null,
             )
         } else {
@@ -323,6 +339,8 @@ private fun AuthSurface(content: @Composable ColumnScope.() -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .widthIn(max = MyFinHubDesignMetrics.authContentMaxWidth)
+                    .imePadding()
+                    .navigationBarsPadding()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
             ) {
@@ -335,4 +353,9 @@ private fun AuthSurface(content: @Composable ColumnScope.() -> Unit) {
             }
         }
     }
+}
+
+internal fun formatRetrySeconds(retryAfterMillis: Long): String {
+    val seconds = ((retryAfterMillis.coerceAtLeast(0L) + 999L) / 1_000L).coerceAtLeast(1L)
+    return if (seconds == 1L) "1 δευτερόλεπτο" else "$seconds δευτερόλεπτα"
 }
