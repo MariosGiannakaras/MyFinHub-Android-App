@@ -46,6 +46,8 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.financeToneColors
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
@@ -60,6 +62,7 @@ fun InsightsScreen(
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
     initialDetailsExpanded: Boolean = false,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val scope = state.periodScope(selectedPeriodId)
     var detailsExpanded by rememberSaveable { mutableStateOf(initialDetailsExpanded) }
@@ -91,12 +94,13 @@ fun InsightsScreen(
                 )
             }
             item("spending-comparison") {
-                SpendingComparisonCard(scope = scope, largeFont = largeFont)
+                SpendingComparisonCard(scope = scope, largeFont = largeFont, amountsVisible = amountsVisible)
             }
             item("categories") {
                 CategoryCompositionCard(
                     scope = scope,
                     onOpenCategoryActivity = onOpenCategoryActivity,
+                    amountsVisible = amountsVisible,
                 )
             }
             item("details") {
@@ -106,6 +110,7 @@ fun InsightsScreen(
                     averageMonthlySpend = state.averageMonthlySpend,
                     expanded = detailsExpanded,
                     onToggle = { detailsExpanded = !detailsExpanded },
+                    amountsVisible = amountsVisible,
                 )
             }
         }
@@ -137,7 +142,7 @@ private fun PeriodSelector(
 }
 
 @Composable
-private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean) {
+private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean, amountsVisible: Boolean) {
     val comparison = scope.comparison
     val expenseChange = comparison.expenseChangePercent
     val headline = when {
@@ -151,7 +156,7 @@ private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Text("Έξοδα περιόδου", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             MyFinHubAmountText(
-                formatEuro(comparison.currentExpense),
+                amountVisibilityText(formatEuro(comparison.currentExpense), amountsVisible),
                 FinanceTone.Expense,
                 style = MaterialTheme.typography.headlineMedium,
             )
@@ -170,18 +175,18 @@ private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             if (largeFont) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    ComparisonFact("Προηγούμενα έξοδα", formatEuro(comparison.previousExpense))
-                    ComparisonFact("Έσοδα περιόδου", formatEuro(comparison.currentIncome))
-                    ComparisonFact("Καθαρό αποτέλεσμα", formatSignedEuro(comparison.currentNet))
+                    ComparisonFact("Προηγούμενα έξοδα", amountVisibilityText(formatEuro(comparison.previousExpense), amountsVisible))
+                    ComparisonFact("Έσοδα περιόδου", amountVisibilityText(formatEuro(comparison.currentIncome), amountsVisible))
+                    ComparisonFact("Καθαρό αποτέλεσμα", amountVisibilityText(formatSignedEuro(comparison.currentNet), amountsVisible))
                 }
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                 ) {
-                    ComparisonFact("Προηγούμενα", formatEuro(comparison.previousExpense), Modifier.weight(1f))
-                    ComparisonFact("Έσοδα", formatEuro(comparison.currentIncome), Modifier.weight(1f))
-                    ComparisonFact("Καθαρό", formatSignedEuro(comparison.currentNet), Modifier.weight(1f))
+                    ComparisonFact("Προηγούμενα", amountVisibilityText(formatEuro(comparison.previousExpense), amountsVisible), Modifier.weight(1f))
+                    ComparisonFact("Έσοδα", amountVisibilityText(formatEuro(comparison.currentIncome), amountsVisible), Modifier.weight(1f))
+                    ComparisonFact("Καθαρό", amountVisibilityText(formatSignedEuro(comparison.currentNet), amountsVisible), Modifier.weight(1f))
                 }
             }
         }
@@ -200,6 +205,7 @@ private fun ComparisonFact(label: String, value: String, modifier: Modifier = Mo
 private fun CategoryCompositionCard(
     scope: InsightPeriodScope,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit,
+    amountsVisible: Boolean,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_categories")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -219,6 +225,7 @@ private fun CategoryCompositionCard(
                     CategoryRow(
                         category = category,
                         onOpen = { onOpenCategoryActivity(category, scope.startDate, scope.endDate) },
+                        amountsVisible = amountsVisible,
                     )
                 }
             }
@@ -227,9 +234,9 @@ private fun CategoryCompositionCard(
 }
 
 @Composable
-private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit) {
+private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVisible: Boolean) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
-    val description = "${category.name}, ${formatEuro(category.amount)}, ${(category.share * 100).roundToInt()}% των εξόδων"
+    val description = "${category.name}, ${amountVisibilityText(formatEuro(category.amount), amountsVisible)}, ${(category.share * 100).roundToInt()}% των εξόδων"
     Surface(
         onClick = onOpen,
         modifier = Modifier
@@ -256,7 +263,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit) {
                     Text(category.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
+                    MyFinHubAmountText(amountVisibilityText(formatEuro(category.amount), amountsVisible), FinanceTone.Expense)
                     Text(
                         "${(category.share * 100).roundToInt()}%",
                         style = MaterialTheme.typography.labelLarge,
@@ -281,7 +288,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit) {
                     CategoryShareBar(category.share)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    MyFinHubAmountText(formatEuro(category.amount), FinanceTone.Expense)
+                    MyFinHubAmountText(amountVisibilityText(formatEuro(category.amount), amountsVisible), FinanceTone.Expense)
                     Text(
                         "${(category.share * 100).roundToInt()}%",
                         style = MaterialTheme.typography.labelLarge,
@@ -311,6 +318,7 @@ private fun AnalysisDetailsCard(
     averageMonthlySpend: Double,
     expanded: Boolean,
     onToggle: () -> Unit,
+    amountsVisible: Boolean,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_details")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -328,10 +336,10 @@ private fun AnalysisDetailsCard(
                 }
             }
             if (expanded) {
-                ComparisonFact("Έσοδα περιόδου", formatEuro(scope.comparison.currentIncome))
-                ComparisonFact("Καθαρό αποτέλεσμα", formatSignedEuro(scope.comparison.currentNet))
+                ComparisonFact("Έσοδα περιόδου", amountVisibilityText(formatEuro(scope.comparison.currentIncome), amountsVisible))
+                ComparisonFact("Καθαρό αποτέλεσμα", amountVisibilityText(formatSignedEuro(scope.comparison.currentNet), amountsVisible))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                MonthlyFlowChart(points = points)
+                MonthlyFlowChart(points = points, amountsVisible = amountsVisible)
                 val partial = points.lastOrNull { it.isPartial }
                 partial?.periodDetail?.let { detail ->
                     Text(
@@ -341,13 +349,13 @@ private fun AnalysisDetailsCard(
                     )
                 }
                 Text(
-                    "Μέσο έξοδο πλήρων μηνών ${formatEuro(averageMonthlySpend)}",
+                    "Μέσο έξοδο πλήρων μηνών ${amountVisibilityText(formatEuro(averageMonthlySpend), amountsVisible)}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     points.joinToString(" · ") { point ->
-                        "${point.label}: έσοδα ${formatEuro(point.income)}, έξοδα ${formatEuro(point.expense)}"
+                        "${point.label}: έσοδα ${amountVisibilityText(formatEuro(point.income), amountsVisible)}, έξοδα ${amountVisibilityText(formatEuro(point.expense), amountsVisible)}"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -359,7 +367,7 @@ private fun AnalysisDetailsCard(
 }
 
 @Composable
-private fun MonthlyFlowChart(points: List<TrendPoint>) {
+private fun MonthlyFlowChart(points: List<TrendPoint>, amountsVisible: Boolean) {
     if (points.isEmpty()) {
         Text("Δεν υπάρχουν αρκετές κινήσεις για μηνιαία πορεία.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
@@ -369,7 +377,7 @@ private fun MonthlyFlowChart(points: List<TrendPoint>) {
     val expenseColor = financeToneColors(FinanceTone.Expense).accent
     val description = points.joinToString(". ") { point ->
         val period = point.periodDetail?.let { ", $it" }.orEmpty()
-        "${point.label}$period: έσοδα ${formatEuro(point.income)}, έξοδα ${formatEuro(point.expense)}"
+        "${point.label}$period: έσοδα ${amountVisibilityText(formatEuro(point.income), amountsVisible)}, έξοδα ${amountVisibilityText(formatEuro(point.expense), amountsVisible)}"
     }
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
         Row(
@@ -407,7 +415,7 @@ private fun MonthlyFlowChart(points: List<TrendPoint>) {
                         maxLines = 1,
                     )
                     MyFinHubAmountText(
-                        text = formatSignedEuro(point.income - point.expense),
+                        text = amountVisibilityText(formatSignedEuro(point.income - point.expense), amountsVisible),
                         tone = if (point.income >= point.expense) FinanceTone.Income else FinanceTone.Expense,
                         style = MaterialTheme.typography.labelSmall,
                     )

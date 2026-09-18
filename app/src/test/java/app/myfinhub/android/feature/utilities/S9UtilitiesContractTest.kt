@@ -18,6 +18,12 @@ class S9UtilitiesContractTest {
     }
 
     @Test
+    fun amountVisibility_masksExactValuesWithoutChangingVisibleValues() {
+        assertEquals("•••• €", amountVisibilityText("1.234,56 €", false))
+        assertEquals("1.234,56 €", amountVisibilityText("1.234,56 €", true))
+    }
+
+    @Test
     fun diagnosticsCopy_isSanitizedSupportMetadataOnly() {
         val text = diagnosticsSupportText(
             AppDiagnosticsSnapshot(

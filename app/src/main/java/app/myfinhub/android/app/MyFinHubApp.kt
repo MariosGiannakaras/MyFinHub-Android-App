@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -281,13 +282,14 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Diagnostics> {
-                    diagnostics?.let { snapshot ->
+                    val snapshot = diagnostics
+                    if (snapshot != null) {
                         ProductionDiagnosticsScreen(
                             diagnostics = snapshot,
                             onBack = { homeBackStack.removeLastOrNull() },
                         )
-                    } ?: run {
-                        homeBackStack.removeLastOrNull()
+                    } else {
+                        LaunchedEffect(Unit) { homeBackStack.removeLastOrNull() }
                     }
                 }
                 entry<AppRoute.ChangeHistory> {

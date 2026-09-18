@@ -48,6 +48,9 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+import app.myfinhub.android.feature.utilities.HIDDEN_AMOUNT_TEXT
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -91,6 +94,7 @@ fun CanonicalPlan2026Screen(
     onOpenForecast: () -> Unit,
     onOpenBudget: () -> Unit,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     val urgent = planUrgentObligations(state)
     val remaining = planRemainingItems(state)
 
@@ -122,15 +126,15 @@ fun CanonicalPlan2026Screen(
                     )
                 }
                 items(urgent, key = { "urgent-${plannedItemSourceKey(it)}" }) { item ->
-                    PlanS7Row(item = item)
+                    PlanS7Row(item = item, amountsVisible = amountsVisible)
                 }
             }
 
             item("forecast-link") {
-                ForecastS7LinkCard(state = state, onClick = onOpenForecast)
+                ForecastS7LinkCard(state = state, amountsVisible = amountsVisible, onClick = onOpenForecast)
             }
             item("budget-link") {
-                BudgetS7LinkCard(state = state, onClick = onOpenBudget)
+                BudgetS7LinkCard(state = state, amountsVisible = amountsVisible, onClick = onOpenBudget)
             }
 
             if (remaining.isNotEmpty()) {
@@ -154,7 +158,7 @@ fun CanonicalPlan2026Screen(
                         )
                     }
                     items(group, key = { "remaining-${plannedItemSourceKey(it)}" }) { item ->
-                        PlanS7Row(item = item)
+                        PlanS7Row(item = item, amountsVisible = amountsVisible)
                     }
                 }
             } else if (urgent.isEmpty()) {
@@ -172,7 +176,7 @@ fun CanonicalPlan2026Screen(
 }
 
 @Composable
-private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
+private fun ForecastS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClick: () -> Unit) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val tone = if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense
     MyFinHubActionCard(
@@ -189,7 +193,7 @@ private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                 Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
                 MyFinHubAmountText(
-                    formatPlanS7Euro(state.forecastEndBalance),
+                    amountVisibilityText(formatPlanS7Euro(state.forecastEndBalance), amountsVisible),
                     tone,
                     modifier = Modifier.align(Alignment.End),
                     style = MaterialTheme.typography.titleLarge,
@@ -203,7 +207,7 @@ private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
             ) {
                 Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.bodyMedium)
                 MyFinHubAmountText(
-                    formatPlanS7Euro(state.forecastEndBalance),
+                    amountVisibilityText(formatPlanS7Euro(state.forecastEndBalance), amountsVisible),
                     tone,
                     style = MaterialTheme.typography.titleLarge,
                 )
@@ -218,7 +222,7 @@ private fun ForecastS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun BudgetS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
+private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClick: () -> Unit) {
     MyFinHubActionCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().testTag("s7_budget_link"),
@@ -240,7 +244,7 @@ private fun BudgetS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
             ) {
                 Text("${progress.percent}% του ορίου", style = MaterialTheme.typography.bodyMedium)
                 MyFinHubAmountText(
-                    formatPlanS7Euro(abs(progress.remaining)),
+                    amountVisibilityText(formatPlanS7Euro(abs(progress.remaining)), amountsVisible),
                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                 )
             }
@@ -259,10 +263,10 @@ private fun BudgetS7LinkCard(state: PlanUiState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun PlanS7Row(item: PlannedItem) {
+private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean) {
     val tone = planS7Tone(item.flow)
     val icon = planS7Icon(item)
-    val amountText = planS7Amount(item)
+    val amountText = planS7Amount(item, amountsVisible)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
 
     MyFinHubSectionCard(
@@ -328,6 +332,7 @@ fun CanonicalPlanForecastScreen(
     onBack: () -> Unit,
     onRecordItem: (PlannedItem) -> Unit = {},
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     val included = planForecastIncludedItems(state)
     val undatedCount = state.items.count { it.dueDateIso.isBlank() }
     val overdueIncluded = included.any {
@@ -359,14 +364,14 @@ fun CanonicalPlanForecastScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                         Text("Προβλεπόμενο διαθέσιμο", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         MyFinHubAmountText(
-                            formatPlanS7Euro(state.forecastEndBalance),
+                            amountVisibilityText(formatPlanS7Euro(state.forecastEndBalance), amountsVisible),
                             if (state.forecastEndBalance >= 0.0) FinanceTone.Income else FinanceTone.Expense,
                             style = MaterialTheme.typography.headlineMedium,
                         )
-                        ForecastS7Metric("Άνοιγμα", state.forecastStartBalance, FinanceTone.Neutral)
-                        ForecastS7Metric("Προγραμματισμένα έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true)
-                        ForecastS7Metric("Υποχρεώσεις", -state.forecastObligations, FinanceTone.Expense)
-                        ForecastS7Metric("Επίδραση μεταφορών", state.forecastTransferImpact, FinanceTone.Neutral, showPositive = true)
+                        ForecastS7Metric("Άνοιγμα", state.forecastStartBalance, FinanceTone.Neutral, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Προγραμματισμένα έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Υποχρεώσεις", -state.forecastObligations, FinanceTone.Expense, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Επίδραση μεταφορών", state.forecastTransferImpact, FinanceTone.Neutral, showPositive = true, amountsVisible = amountsVisible)
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
                             "Άνοιγμα + έσοδα − υποχρεώσεις ± επίδραση μεταφορών = προβλεπόμενο διαθέσιμο.",
@@ -421,7 +426,7 @@ fun CanonicalPlanForecastScreen(
                     }
                 } else {
                     items(included, key = { "forecast-${plannedItemSourceKey(it)}" }) { item ->
-                        ForecastS7ItemCard(item = item, onRecordItem = onRecordItem)
+                        ForecastS7ItemCard(item = item, amountsVisible = amountsVisible, onRecordItem = onRecordItem)
                     }
                 }
             }
@@ -435,8 +440,9 @@ private fun ForecastS7Metric(
     amount: Double,
     tone: FinanceTone,
     showPositive: Boolean = false,
+    amountsVisible: Boolean,
 ) {
-    val amountText = when {
+    val amountText = if (!amountsVisible) HIDDEN_AMOUNT_TEXT else when {
         amount < -0.005 -> "−${formatPlanS7Euro(abs(amount))}"
         amount > 0.005 && showPositive -> "+${formatPlanS7Euro(amount)}"
         else -> formatPlanS7Euro(abs(amount))
@@ -468,7 +474,7 @@ private fun ForecastS7Metric(
 }
 
 @Composable
-private fun ForecastS7ItemCard(item: PlannedItem, onRecordItem: (PlannedItem) -> Unit) {
+private fun ForecastS7ItemCard(item: PlannedItem, amountsVisible: Boolean, onRecordItem: (PlannedItem) -> Unit) {
     val tone = planS7Tone(item.flow)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -483,7 +489,7 @@ private fun ForecastS7ItemCard(item: PlannedItem, onRecordItem: (PlannedItem) ->
                         MyFinHubIconBadge(planS7Icon(item), tone, null)
                         PlanS7Identity(item, Modifier.weight(1f))
                     }
-                    MyFinHubAmountText(planS7Amount(item), tone, modifier = Modifier.align(Alignment.End))
+                    MyFinHubAmountText(planS7Amount(item, amountsVisible), tone, modifier = Modifier.align(Alignment.End))
                 }
             } else {
                 Row(
@@ -493,7 +499,7 @@ private fun ForecastS7ItemCard(item: PlannedItem, onRecordItem: (PlannedItem) ->
                 ) {
                     MyFinHubIconBadge(planS7Icon(item), tone, null)
                     PlanS7Identity(item, Modifier.weight(1f))
-                    MyFinHubAmountText(planS7Amount(item), tone)
+                    MyFinHubAmountText(planS7Amount(item, amountsVisible), tone)
                 }
             }
             if (item.flow != PlannedFlow.TRANSFER) {
@@ -517,6 +523,7 @@ fun CanonicalBudget2026Screen(
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     var savedLimit by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
     var savedThreshold by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
     var limitDraft by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
@@ -647,14 +654,18 @@ fun CanonicalBudget2026Screen(
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                             MyFinHubSectionHeading(
                                 title = "Πρόοδος μήνα",
-                                subtitle = "${formatPlanS7Euro(progress.spent)} από ${formatPlanS7Euro(progress.limit)}",
+                                subtitle = if (amountsVisible) {
+                                    "${formatPlanS7Euro(progress.spent)} από ${formatPlanS7Euro(progress.limit)}"
+                                } else {
+                                    "$HIDDEN_AMOUNT_TEXT από $HIDDEN_AMOUNT_TEXT"
+                                },
                                 icon = MyFinHubIcons.Savings,
                                 tone = FinanceTone.Savings,
                             )
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(if (progress.remaining >= 0.0) "Υπόλοιπο" else "Υπέρβαση")
                                 MyFinHubAmountText(
-                                    formatPlanS7Euro(abs(progress.remaining)),
+                                    amountVisibilityText(formatPlanS7Euro(abs(progress.remaining)), amountsVisible),
                                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                                 )
                             }
@@ -748,7 +759,9 @@ private fun planS7Icon(item: PlannedItem) = when (item.flow) {
     PlannedFlow.OBLIGATION -> myFinHubCategoryIcon(item.category.ifBlank { item.title }, MyFinHubIcons.Plan)
 }
 
-private fun planS7Amount(item: PlannedItem): String = when (item.flow) {
+private fun planS7Amount(item: PlannedItem, amountsVisible: Boolean): String = if (!amountsVisible) {
+    HIDDEN_AMOUNT_TEXT
+} else when (item.flow) {
     PlannedFlow.OBLIGATION -> "−${formatPlanS7Euro(abs(item.amount))}"
     PlannedFlow.INCOME -> "+${formatPlanS7Euro(abs(item.amount))}"
     PlannedFlow.TRANSFER -> formatPlanS7Euro(abs(item.amount))
