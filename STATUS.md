@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_s9_validation`
+State: `android_redesign_s9_complete_merge_ready`
 
-S1–S8 are complete and merged. S9 is implemented in draft PR #121. Exact-head Android CI passes; 46 changed/new real Compose references have been personally inspected. Android UI Quality is blocked only by reviewed-baseline acceptance plus three stale instrumentation assertions that still expect the pre-S9 auth/update copy.
+S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings/authentication redesign: consumer-first Settings, live global amount privacy, sanitized diagnostics, deterministic updater recovery and hardened login/MFA/PIN/biometric presentation. The accepted S9 product/test head passed Project Tracking, Android CI, screenshot regression and the full 76-test S24-target instrumentation suite.
 
 ## Current production candidate
 
@@ -21,8 +21,8 @@ Protected same-signer rc8 was built and published from the exact validated Slice
 
 ## Next
 
-1. Align the three stale S24 UI assertions with the accepted S9 consumer-facing auth/update contract and accept only the 46 personally reviewed rendered references with exact hash verification.
-2. Re-run exact-head Project Tracking, Android CI and Android UI Quality. If all are green, record S9.1–S9.4 complete, merge PR #121 to develop, then hand off to S10.
+1. Merge validated PR #121 into develop without changing the accepted S9 product/test tree.
+2. Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion.
 
 ## Non-negotiable constraints
 
@@ -45,16 +45,17 @@ Canonical source: `tracking/android-project-state.json`.
 
 Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks.
 
+
 ## Android redesign progress
 
-**Tasks: 8/10 · Subtasks: 32/40 · Preparation: 4/4**
+**Tasks: 9/10 · Subtasks: 36/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s9-settings-auth`. PR: 121.
-Checkpoint: `s9_reviewed_render_acceptance_pending`.
+Checkpoint: `s9_complete_merge_ready`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Align the three stale S24 assertions and commit only the 46 hash-pinned reviewed S9/privacy references, then require exact-head Android CI, Project Tracking and Android UI Quality before S9 completion.
+Next action: Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -66,7 +67,7 @@ Next action: Align the three stale S24 assertions and commit only the 46 hash-pi
 | S6 Cards | 4/4 | Complete |
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
-| S9 Settings and authentication | 0/4 | S9.1 Settings, privacy and notices (pending); S9.2 Diagnostics and updater recovery (pending); S9.3 Authentication and root states (pending); S9.4 Settings/auth verification (pending) |
+| S9 Settings and authentication | 4/4 | Complete |
 | S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
 
 ### Preparation
