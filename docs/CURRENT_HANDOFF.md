@@ -49,7 +49,6 @@ S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
 
-
 ## Android redesign progress
 
 **Tasks: 9/10 · Subtasks: 36/40 · Preparation: 4/4**

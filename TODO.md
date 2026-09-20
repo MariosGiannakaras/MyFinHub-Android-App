@@ -44,7 +44,6 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 Do not append historical TODO sections here. Git history and closed issues/PRs are the history. Update `tracking/android-project-state.json` and regenerate this file instead.
 
-
 ## Android redesign progress
 
 **Tasks: 9/10 · Subtasks: 36/40 · Preparation: 4/4**
