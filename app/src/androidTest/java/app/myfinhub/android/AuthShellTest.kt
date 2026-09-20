@@ -51,8 +51,8 @@ class AuthShellTest {
             )
         }
 
-        composeRule.onNodeWithText("Επαλήθευση δύο παραγόντων").assertIsDisplayed()
-        composeRule.onNodeWithText("Κωδικός TOTP").assertIsDisplayed()
+        composeRule.onNodeWithText("Επαλήθευση λογαριασμού").assertIsDisplayed()
+        composeRule.onNodeWithText("Εξαψήφιος κωδικός").assertIsDisplayed()
     }
 
     @Test

@@ -44,6 +44,8 @@ import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -63,6 +65,7 @@ fun CanonicalCardDetailScreen(
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit = {},
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
@@ -133,14 +136,16 @@ fun CanonicalCardDetailScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         MyFinHubAmountText(
-                            formatCardEuro(card.currentBalance.coerceAtLeast(0.0)),
+                            amountVisibilityText(formatCardEuro(card.currentBalance.coerceAtLeast(0.0)), amountsVisible),
                             FinanceTone.Expense,
                             style = MaterialTheme.typography.titleLarge,
                         )
                         card.limit?.takeIf { it > 0.0 }?.let { limit ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                CardMetric("Πιστωτικό όριο", formatCardEuro(limit))
-                                availableCredit?.let { CardMetric("Διαθέσιμη πίστωση", formatCardEuro(it), Alignment.End) }
+                                CardMetric("Πιστωτικό όριο", amountVisibilityText(formatCardEuro(limit), amountsVisible))
+                                availableCredit?.let {
+                                    CardMetric("Διαθέσιμη πίστωση", amountVisibilityText(formatCardEuro(it), amountsVisible), Alignment.End)
+                                }
                             }
                         }
                     }
@@ -166,6 +171,7 @@ fun CanonicalCardDetailScreen(
 
                 CardActivitySection(
                     card = card,
+                    amountsVisible = amountsVisible,
                     showAll = showAllActivity,
                     onToggleAll = { showAllActivity = !showAllActivity },
                     onOpenActivity = onOpenActivity,
@@ -282,6 +288,7 @@ private fun CardMetric(label: String, value: String, alignment: Alignment.Horizo
 @Composable
 private fun CardActivitySection(
     card: MoneyCard,
+    amountsVisible: Boolean,
     showAll: Boolean,
     onToggleAll: () -> Unit,
     onOpenActivity: (String) -> Unit,
@@ -313,7 +320,7 @@ private fun CardActivitySection(
                             Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         MyFinHubAmountText(
-                            text = formatSignedCardEuro(item.amount),
+                            text = amountVisibilityText(formatSignedCardEuro(item.amount), amountsVisible),
                             tone = if (item.kind == MoneyCardActivityKind.PAYMENT) FinanceTone.Income else FinanceTone.Expense,
                         )
                     }

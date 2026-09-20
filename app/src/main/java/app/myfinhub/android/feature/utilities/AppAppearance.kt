@@ -1,6 +1,14 @@
 package app.myfinhub.android.feature.utilities
 
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
 enum class AppAppearance(val storageValue: String, val label: String) {
     SYSTEM("system", "Σύστημα"),
@@ -43,4 +51,28 @@ object AmountVisibilityPreference {
             .putBoolean(KEY, visible)
             .apply()
     }
+}
+
+
+internal const val HIDDEN_AMOUNT_TEXT = "•••• €"
+
+internal fun amountVisibilityText(text: String, visible: Boolean): String =
+    if (visible) text else HIDDEN_AMOUNT_TEXT
+
+/** Observes the device-local amount-visibility preference so every active read surface updates live. */
+@Composable
+fun rememberAmountVisibilityPreference(): Boolean {
+    val context = LocalContext.current
+    val preferences = remember(context) {
+        context.applicationContext.getSharedPreferences(AppAppearancePreference.PREFERENCES_NAME, Context.MODE_PRIVATE)
+    }
+    var visible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    DisposableEffect(preferences) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == AmountVisibilityPreference.KEY) visible = AmountVisibilityPreference.read(context)
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+    return visible
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-15",
+  "updated_at": "2026-09-20",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s8_complete_merge_ready",
-    "summary": "S1–S8 are complete. Draft PR #120 contains the validated Android-only Analysis redesign: explicit equivalent period comparisons, complete category denominator with remainder, exact scoped Activity drill-down, partial-period semantics and secondary expandable income/net/trend detail. Exact PR head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation.",
+    "status": "android_redesign_s9_complete_merge_ready",
+    "summary": "S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings/authentication redesign: consumer-first Settings, live global amount privacy, sanitized diagnostics, deterministic updater recovery and hardened login/MFA/PIN/biometric presentation. The accepted S9 product/test head passed Project Tracking, Android CI, screenshot regression and the full 76-test S24-target instrumentation suite.",
     "next": [
-      "Merge validated PR #120 into develop without changing the accepted S8 product/test head.",
-      "Create the S9 Settings/authentication branch from updated develop and implement S9.1–S9.4 as the next coherent Android-only slice."
+      "Merge validated PR #121 into develop without changing the accepted S9 product/test tree.",
+      "Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s8-analysis",
-    "pr": 120,
-    "current_slice": "S9.1 / S9.2 / S9.3 / S9.4",
-    "checkpoint": "s8_complete_merge_ready",
+    "branch": "android/redesign-s9-settings-auth",
+    "pr": 121,
+    "current_slice": "S10.1 / S10.2 / S10.3 / S10.4",
+    "checkpoint": "s9_complete_merge_ready",
     "blockers": [],
-    "next_action": "Merge validated PR #120 into develop, create the S9 Settings/authentication branch from the resulting develop head, then implement S9.1–S9.4 as one coherent Android-only batch.",
+    "next_action": "Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -521,26 +521,42 @@
         {
           "id": "S9.1",
           "title": "Settings, privacy and notices",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Production Settings uses a consumer-first hierarchy for appearance, device-local global amount visibility, privacy/notices, updates, About/diagnostics and sign-out. The amount-visibility preference updates live across Home, Wallet/accounts, Activity, cards, canonical Money/Savings/Loans/Lending, Plan and Analysis read surfaces while explicit editor inputs remain usable.",
+            "Notice history remains privacy-safe support metadata. All changed/new Settings, notice and privacy-affected references were included in the 46-image reviewed acceptance set.",
+            "One-shot reviewed-render acceptance run 35527883014 regenerated the references, verified every accepted PNG byte-for-byte against its personally inspected SHA-256, passed clean screenshot validation and committed only the approved baseline scope."
+          ]
         },
         {
           "id": "S9.2",
           "title": "Diagnostics and updater recovery",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Diagnostics is a dedicated sanitized support destination; null diagnostic navigation exits through a Compose effect rather than mutating the Navigation3 back stack during composition.",
+            "Updater failures map to one deterministic recovery action by failure family. Install-permission state exposes only the Android permission handoff; authentication failures use consumer-facing re-authentication copy without raw security-level terminology.",
+            "Final exact-head Android CI run 35528226574 passed unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and release-policy audits."
+          ]
         },
         {
           "id": "S9.3",
           "title": "Authentication and root states",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Authentication presentation uses consumer-facing login/account-verification/local-PIN/biometric copy, persistent PIN retry countdown state and IME/navigation-bar-safe scrolling without changing canonical auth/session security contracts.",
+            "The three pre-acceptance S24 failures were confirmed as stale UI assertions for removed pre-S9 copy/actions and were aligned to the accepted S9 contract without weakening behavioral assertions.",
+            "Final exact-head Android UI Quality run 35528226588 passed the full 76-test S24-target instrumentation suite with zero failures."
+          ]
         },
         {
           "id": "S9.4",
           "title": "Settings/auth verification",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Forty-six changed/new real Compose references across auth, notices, Settings/Diagnostics, Activity, Analysis, card/money and Plan were personally inspected in their rendered light/dark/150% states before acceptance; no new clipping, overlap, unintended rearrangement or editor-value masking remained.",
+            "Reviewed-render acceptance run 35527883014 required exact SHA-256 matches for every approved PNG and passed screenshot validation before committing baselines; the temporary acceptance workflow removed itself in the same commit.",
+            "Final exact product/test head a2b7b55c9257b049223370e748f7cc877a09a034 passed Project Tracking run 35528226577, Android CI run 35528226574 and Android UI Quality run 35528226588. Final UI artifact 10610158197 has digest sha256:14afb7be3547cc111ca42fea72fd4445534f9a1dd9fe3ea5612e8d3395b65048; screenshot regression passed without candidate regeneration and S24-target instrumentation passed 76/76."
+          ]
         }
       ]
     },

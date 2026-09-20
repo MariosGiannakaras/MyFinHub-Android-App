@@ -524,13 +524,13 @@ private fun authDiagnosticStatus(state: AuthShellUiState): String = when (state)
     AuthShellUiState.Loading -> "Έλεγχος"
     is AuthShellUiState.Unconfigured -> "Μη ρυθμισμένο"
     is AuthShellUiState.Login -> "Απαιτεί σύνδεση"
-    is AuthShellUiState.Mfa -> "Απαιτεί AAL2"
+    is AuthShellUiState.Mfa -> "Απαιτεί επαλήθευση λογαριασμού"
     is AuthShellUiState.PinEnrollment -> "Ρύθμιση τοπικού PIN"
-    is AuthShellUiState.Locked -> "Τοπικά κλειδωμένη"
+    is AuthShellUiState.Locked -> "Η εφαρμογή είναι κλειδωμένη"
     is AuthShellUiState.Ready -> if (state.offline) {
-        "Τοπικά ξεκλειδωμένη · αναμονή server ελέγχου"
+        "Τοπικά διαθέσιμη · αναμονή επαλήθευσης σύνδεσης"
     } else {
-        "Ενεργή · ${state.session.assuranceLevel.name}"
+        "Ενεργή και επαληθευμένη"
     }
 }
 

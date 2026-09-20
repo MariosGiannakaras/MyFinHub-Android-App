@@ -2,7 +2,7 @@ package app.myfinhub.android.feature.utilities
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -49,15 +49,14 @@ class UpdateSettingsCardTest {
     }
 
     @Test
-    fun permissionRequired_exposesOnlyPlatformPermissionHandoffActions() {
+    fun permissionRequired_exposesOnlyPlatformPermissionHandoffAction() {
         var permissionOpens = 0
-        var installs = 0
         composeRule.setContent {
             MyFinHubTheme {
                 CompositionLocalProvider(
                     LocalUpdateController provides UpdateController(
                         state = UpdateUiState.PermissionRequired(release(), File("/tmp/verified.apk")),
-                        install = { installs += 1 },
+                        install = {},
                         openInstallPermission = { permissionOpens += 1 },
                     ),
                 ) {
@@ -74,9 +73,8 @@ class UpdateSettingsCardTest {
         }
 
         composeRule.onNodeWithText("Άνοιγμα ρύθμισης εγκατάστασης").assertIsDisplayed().performClick()
-        composeRule.onNodeWithText("Έλεγχος άδειας και εγκατάσταση").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Έλεγχος άδειας και εγκατάσταση").assertDoesNotExist()
         assertEquals(1, permissionOpens)
-        assertEquals(1, installs)
     }
 
     @Test
@@ -97,8 +95,9 @@ class UpdateSettingsCardTest {
             }
         }
 
-        composeRule.onNodeWithText("Χρειάζεται επιπλέον επαλήθευση ταυτότητας για τις ιδιωτικές ενημερώσεις.")
+        composeRule.onNodeWithText("Χρειάζεται επαλήθευση λογαριασμού πριν τον έλεγχο ενημέρωσης.")
             .assertIsDisplayed()
+        composeRule.onNodeWithText("Σύνδεση ξανά").assertIsDisplayed()
         assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
     }
 

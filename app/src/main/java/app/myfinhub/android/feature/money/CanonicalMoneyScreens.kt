@@ -46,6 +46,8 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSectionHeading
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -72,6 +74,7 @@ fun CanonicalMoneyScreen(
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     var activeCardId by remember(state.cards) { mutableStateOf(state.cards.firstOrNull()?.id) }
     var cardDeleteConfirmationId by remember(state.cards) { mutableStateOf<String?>(null) }
     val revealedCardId = (secretState as? CardSecretUiState.Revealed)?.cardId
@@ -114,19 +117,19 @@ fun CanonicalMoneyScreen(
                             title = "Η συνολική σου θέση",
                             supporting = "Λογαριασμοί + απαιτήσεις − δάνεια − οφειλές πιστωτικών",
                         )
-                        MyFinHubHeroValue(formatCanonicalEuro(netPosition))
+                        MyFinHubHeroValue(amountVisibilityText(formatCanonicalEuro(netPosition), amountsVisible))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         ) {
                             MyFinHubHeroMetric(
                                 label = "Λογαριασμοί",
-                                value = formatCanonicalEuro(accountTotal),
+                                value = amountVisibilityText(formatCanonicalEuro(accountTotal), amountsVisible),
                                 modifier = Modifier.weight(1f),
                             )
                             MyFinHubHeroMetric(
                                 label = "Απαιτήσεις",
-                                value = formatCanonicalEuro(state.lendingReceivable),
+                                value = amountVisibilityText(formatCanonicalEuro(state.lendingReceivable), amountsVisible),
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -136,12 +139,12 @@ fun CanonicalMoneyScreen(
                         ) {
                             MyFinHubHeroMetric(
                                 label = "Δάνεια",
-                                value = formatCanonicalEuro(-state.loanOutstanding),
+                                value = amountVisibilityText(formatCanonicalEuro(-state.loanOutstanding), amountsVisible),
                                 modifier = Modifier.weight(1f),
                             )
                             MyFinHubHeroMetric(
                                 label = "Πιστωτικές",
-                                value = formatCanonicalEuro(-creditOutstanding),
+                                value = amountVisibilityText(formatCanonicalEuro(-creditOutstanding), amountsVisible),
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -186,7 +189,7 @@ fun CanonicalMoneyScreen(
                                         )
                                     }
                                     MyFinHubAmountText(
-                                        text = formatCanonicalEuro(account.balance),
+                                        text = amountVisibilityText(formatCanonicalEuro(account.balance), amountsVisible),
                                         tone = if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
                                     )
                                 }
@@ -214,13 +217,13 @@ fun CanonicalMoneyScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.savingsCurrent),
+                            text = amountVisibilityText(formatCanonicalEuro(state.savingsCurrent), amountsVisible),
                             tone = FinanceTone.Savings,
                             style = MaterialTheme.typography.titleLarge,
                         )
                         if (goal != null && goal > 0.0) {
                             Text(
-                                "από ${formatCanonicalEuro(goal)}",
+                                "από ${amountVisibilityText(formatCanonicalEuro(goal), amountsVisible)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -326,7 +329,7 @@ fun CanonicalMoneyScreen(
                             )
                         }
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.loanOutstanding),
+                            text = amountVisibilityText(formatCanonicalEuro(state.loanOutstanding), amountsVisible),
                             tone = FinanceTone.Expense,
                             style = MaterialTheme.typography.titleMedium,
                         )
@@ -351,7 +354,7 @@ fun CanonicalMoneyScreen(
                             )
                         }
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.lendingReceivable),
+                            text = amountVisibilityText(formatCanonicalEuro(state.lendingReceivable), amountsVisible),
                             tone = FinanceTone.Income,
                             style = MaterialTheme.typography.titleMedium,
                         )
@@ -417,6 +420,7 @@ fun CanonicalSavingsScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -437,7 +441,7 @@ fun CanonicalSavingsScreen(
                         MyFinHubIconBadge(MyFinHubIcons.Savings, FinanceTone.Savings, null)
                         Text("Συνολική αποταμίευση", style = MaterialTheme.typography.titleMedium)
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.savingsCurrent),
+                            text = amountVisibilityText(formatCanonicalEuro(state.savingsCurrent), amountsVisible),
                             tone = FinanceTone.Savings,
                             style = MaterialTheme.typography.headlineMedium,
                         )
@@ -453,7 +457,7 @@ fun CanonicalSavingsScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                "Στόχος ${formatCanonicalEuro(goal)}",
+                                "Στόχος ${amountVisibilityText(formatCanonicalEuro(goal), amountsVisible)}",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
@@ -487,6 +491,7 @@ fun CanonicalLoansScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -506,7 +511,7 @@ fun CanonicalLoansScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Συνολικό υπόλοιπο", style = MaterialTheme.typography.labelLarge)
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.loanOutstanding),
+                            text = amountVisibilityText(formatCanonicalEuro(state.loanOutstanding), amountsVisible),
                             tone = FinanceTone.Expense,
                             style = MaterialTheme.typography.headlineMedium,
                         )
@@ -550,7 +555,7 @@ fun CanonicalLoansScreen(
                                         )
                                     }
                                 }
-                                MyFinHubAmountText(formatCanonicalEuro(loan.remaining), FinanceTone.Expense)
+                                MyFinHubAmountText(amountVisibilityText(formatCanonicalEuro(loan.remaining), amountsVisible), FinanceTone.Expense)
                             }
                             if (loan.nextPaymentLabel.isNotBlank()) {
                                 Text(
@@ -573,6 +578,7 @@ fun CanonicalLendingScreen(
     onBack: () -> Unit,
     onRecordRepayment: (LendingItem) -> Unit = {},
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -592,7 +598,7 @@ fun CanonicalLendingScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Αναμενόμενες επιστροφές", style = MaterialTheme.typography.labelLarge)
                         MyFinHubAmountText(
-                            text = formatCanonicalEuro(state.lendingReceivable),
+                            text = amountVisibilityText(formatCanonicalEuro(state.lendingReceivable), amountsVisible),
                             tone = FinanceTone.Income,
                             style = MaterialTheme.typography.headlineMedium,
                         )
@@ -636,7 +642,7 @@ fun CanonicalLendingScreen(
                                         )
                                     }
                                 }
-                                MyFinHubAmountText(formatCanonicalEuro(item.amount), FinanceTone.Income)
+                                MyFinHubAmountText(amountVisibilityText(formatCanonicalEuro(item.amount), amountsVisible), FinanceTone.Income)
                             }
                             TextButton(onClick = { onRecordRepayment(item) }) {
                                 Text("Καταχώριση επιστροφής")

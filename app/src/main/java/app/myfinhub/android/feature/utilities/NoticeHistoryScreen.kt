@@ -39,7 +39,7 @@ fun NoticeHistoryScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Ιστορικό ειδοποιήσεων",
-                subtitle = "Ασφαλές ιστορικό κατάστασης εφαρμογής",
+                subtitle = "Συμβάντα εφαρμογής για ενημέρωση και υποστήριξη",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },

@@ -17,6 +17,22 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.util.Locale
 
+internal enum class UpdateRecoveryAction { CHECK, DOWNLOAD, INSTALL, INSTALL_PERMISSION, AUTH }
+
+internal fun updateRecoveryAction(kind: UpdateFailureKind, releaseAvailable: Boolean): UpdateRecoveryAction = when (kind) {
+    UpdateFailureKind.AUTH_REQUIRED,
+    UpdateFailureKind.MFA_REQUIRED -> UpdateRecoveryAction.AUTH
+
+    UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
+    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> if (releaseAvailable) UpdateRecoveryAction.DOWNLOAD else UpdateRecoveryAction.CHECK
+
+    UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> UpdateRecoveryAction.INSTALL_PERMISSION
+    UpdateFailureKind.INSTALL_BLOCKED,
+    UpdateFailureKind.INSTALL_FAILED -> if (releaseAvailable) UpdateRecoveryAction.INSTALL else UpdateRecoveryAction.CHECK
+
+    else -> UpdateRecoveryAction.CHECK
+}
+
 @Composable
 internal fun UpdateSettingsCard(
     currentVersionName: String,
@@ -25,6 +41,7 @@ internal fun UpdateSettingsCard(
     onDownload: () -> Unit,
     onInstall: () -> Unit,
     onOpenInstallPermission: () -> Unit,
+    onAuthRecovery: () -> Unit = {},
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -36,7 +53,7 @@ internal fun UpdateSettingsCard(
             )
             when (state) {
                 UpdateUiState.Idle -> {
-                    StatusText("Ο αυτόματος έλεγχος γίνεται όταν η σύνδεση του λογαριασμού είναι έτοιμη.")
+                    StatusText("Έλεγξε αν υπάρχει νεότερη εγκεκριμένη έκδοση.")
                     MyFinHubOutlinedAction("Έλεγχος για ενημερώσεις", onCheck, Modifier.fillMaxWidth())
                 }
                 UpdateUiState.Checking -> {
@@ -66,25 +83,26 @@ internal fun UpdateSettingsCard(
                 }
                 is UpdateUiState.PermissionRequired -> {
                     ReleaseCopy(state.release.versionName, state.release.sizeBytes, state.release.notes, state.release.mandatory)
-                    StatusText("Το Android χρειάζεται να επιτρέψει στο MyFinHub να εγκαθιστά τις ιδιωτικές ενημερώσεις του.")
+                    StatusText("Το Android χρειάζεται άδεια για εγκατάσταση αυτής της ιδιωτικής ενημέρωσης.")
                     MyFinHubPrimaryAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth(), icon = null)
-                    MyFinHubOutlinedAction("Έλεγχος άδειας και εγκατάσταση", onInstall, Modifier.fillMaxWidth())
                 }
                 is UpdateUiState.Installing -> {
                     StatusText("Η εγκατάσταση της έκδοσης ${state.release.versionName} ξεκίνησε. Το Android μπορεί να ζητήσει επιβεβαίωση.")
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 is UpdateUiState.Failure -> {
-                    StatusText(failureMessage(state.kind))
-                    if (state.release != null) {
-                        MyFinHubOutlinedAction("Λήψη ξανά", onDownload, Modifier.fillMaxWidth())
-                    } else {
-                        MyFinHubOutlinedAction("Δοκιμή ξανά", onCheck, Modifier.fillMaxWidth())
+                    StatusText(updateFailureMessage(state.kind))
+                    when (updateRecoveryAction(state.kind, state.release != null)) {
+                        UpdateRecoveryAction.AUTH -> MyFinHubOutlinedAction("Σύνδεση ξανά", onAuthRecovery, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.DOWNLOAD -> MyFinHubOutlinedAction("Λήψη ξανά", onDownload, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.INSTALL -> MyFinHubOutlinedAction("Εγκατάσταση ξανά", onInstall, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.INSTALL_PERMISSION -> MyFinHubOutlinedAction("Άνοιγμα ρύθμισης εγκατάστασης", onOpenInstallPermission, Modifier.fillMaxWidth())
+                        UpdateRecoveryAction.CHECK -> MyFinHubOutlinedAction("Έλεγχος ξανά", onCheck, Modifier.fillMaxWidth())
                     }
                 }
             }
             Text(
-                "Η ενημέρωση δεν αποσυνδέει τον λογαριασμό. Μετά την επανεκκίνηση συνεχίζει η κανονική τοπική επαλήθευση PIN/βιομετρικού και ο έλεγχος της υπάρχουσας ασφαλούς συνεδρίας.",
+                "Πριν από εγκατάσταση ελέγχονται πηγή, ακεραιότητα, πακέτο, νεότερη έκδοση και υπογραφή.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -118,21 +136,19 @@ private fun formatBytes(bytes: Long): String = when {
 
 internal fun updateFailureMessage(kind: UpdateFailureKind): String = when (kind) {
     UpdateFailureKind.BUILD_NOT_CONFIGURED -> "Η υπηρεσία ενημερώσεων δεν είναι διαθέσιμη σε αυτή την έκδοση."
-    UpdateFailureKind.AUTH_REQUIRED -> "Χρειάζεται ενεργή σύνδεση λογαριασμού για έλεγχο ενημέρωσης."
-    UpdateFailureKind.MFA_REQUIRED -> "Χρειάζεται επιπλέον επαλήθευση ταυτότητας για τις ιδιωτικές ενημερώσεις."
+    UpdateFailureKind.AUTH_REQUIRED -> "Χρειάζεται νέα σύνδεση λογαριασμού πριν τον έλεγχο ενημέρωσης."
+    UpdateFailureKind.MFA_REQUIRED -> "Χρειάζεται επαλήθευση λογαριασμού πριν τον έλεγχο ενημέρωσης."
     UpdateFailureKind.NETWORK -> "Δεν ήταν δυνατή η σύνδεση με την υπηρεσία ενημερώσεων."
     UpdateFailureKind.SERVER -> "Η υπηρεσία ενημερώσεων δεν είναι προσωρινά διαθέσιμη."
     UpdateFailureKind.MALFORMED_METADATA -> "Τα στοιχεία της διαθέσιμης ενημέρωσης δεν είναι έγκυρα."
     UpdateFailureKind.INSECURE_DOWNLOAD -> "Η πηγή λήψης της ενημέρωσης απορρίφθηκε για λόγους ασφαλείας."
     UpdateFailureKind.DOWNLOAD_SIZE_MISMATCH,
-    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το αρχείο ενημέρωσης δεν πέρασε τον έλεγχο ακεραιότητας και διαγράφηκε."
+    UpdateFailureKind.DOWNLOAD_DIGEST_MISMATCH -> "Το αρχείο δεν πέρασε τον έλεγχο ακεραιότητας και δεν μπορεί να εγκατασταθεί."
     UpdateFailureKind.WRONG_PACKAGE,
     UpdateFailureKind.WRONG_VERSION,
     UpdateFailureKind.WRONG_SIGNER,
-    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το αρχείο ενημέρωσης δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και διαγράφηκε."
+    UpdateFailureKind.PACKAGE_UNREADABLE -> "Το αρχείο δεν αναγνωρίστηκε ως έγκυρη νεότερη έκδοση του MyFinHub και δεν μπορεί να εγκατασταθεί."
     UpdateFailureKind.INSTALL_PERMISSION_REQUIRED -> "Απαιτείται άδεια εγκατάστασης ιδιωτικών ενημερώσεων."
     UpdateFailureKind.INSTALL_BLOCKED -> "Το Android εμπόδισε την έναρξη της εγκατάστασης."
     UpdateFailureKind.INSTALL_FAILED -> "Η εγκατάσταση δεν ολοκληρώθηκε. Το υπάρχον MyFinHub παραμένει εγκατεστημένο."
 }
-
-private fun failureMessage(kind: UpdateFailureKind): String = updateFailureMessage(kind)

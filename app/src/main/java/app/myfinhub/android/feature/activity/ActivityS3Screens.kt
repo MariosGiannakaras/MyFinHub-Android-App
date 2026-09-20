@@ -65,6 +65,8 @@ import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.quickentry.DateEntryField
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -79,6 +81,7 @@ fun ActivityLedgerScreen(
     onOpenQuickEntry: () -> Unit,
     onBack: (() -> Unit)? = null,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
     val analyticsScope = state.isAnalyticsScope
 
@@ -206,6 +209,7 @@ fun ActivityLedgerScreen(
                             ActivityFlatLedgerRow(
                                 item = item,
                                 accountOptions = state.accountOptions,
+                                amountsVisible = amountsVisible,
                                 onClick = { onOpenDetail(item.id) },
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -335,6 +339,7 @@ private fun ActivityEmptyState(
 private fun ActivityFlatLedgerRow(
     item: ActivityItem,
     accountOptions: List<ActivityAccountOption>,
+    amountsVisible: Boolean,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -357,7 +362,7 @@ private fun ActivityFlatLedgerRow(
         title = item.title,
         subtitle = secondary,
         meta = meta,
-        amountText = formatSignedEuro(item.amount),
+        amountText = amountVisibilityText(formatSignedEuro(item.amount), amountsVisible),
         tone = tone,
         onClick = onClick,
     )
@@ -484,6 +489,7 @@ fun ActivityReadDetailScreen(
     onDelete: () -> Unit,
     onDeleted: () -> Unit,
 ) {
+    val amountsVisible = rememberAmountVisibilityPreference()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
 
@@ -522,7 +528,7 @@ fun ActivityReadDetailScreen(
                 item(key = "amount") {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         MyFinHubAmountText(
-                            text = formatSignedEuro(item.amount),
+                            text = amountVisibilityText(formatSignedEuro(item.amount), amountsVisible),
                             tone = item.s3Tone(),
                             style = MaterialTheme.typography.headlineLarge,
                         )
