@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-15",
+  "updated_at": "2026-09-20",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s9_implementation_candidate",
-    "summary": "S1–S8 are complete and merged. S9 now has a coherent Android-only implementation candidate for consumer-first Settings, dedicated sanitized diagnostics, deterministic updater recovery and focused auth/lockout presentation. S9 remains unaccepted until focused validation, fresh Compose render inspection and exact-PR-head gates pass.",
+    "status": "android_redesign_s9_validation",
+    "summary": "S1–S8 are complete and merged. S9 is implemented in draft PR #121. Exact-head Android CI passes; 46 changed/new real Compose references have been personally inspected. Android UI Quality is blocked only by reviewed-baseline acceptance plus three stale instrumentation assertions that still expect the pre-S9 auth/update copy.",
     "next": [
-      "Run focused S9 unit/instrumentation-compile/lint/Kotlin checks and inspect fresh Settings/Diagnostics light/dark/150% renders.",
-      "Then validate auth/root/update device contracts, open the S9 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality before completion."
+      "Align the three stale S24 UI assertions with the accepted S9 consumer-facing auth/update contract and accept only the 46 personally reviewed rendered references with exact hash verification.",
+      "Re-run exact-head Project Tracking, Android CI and Android UI Quality. If all are green, record S9.1–S9.4 complete, merge PR #121 to develop, then hand off to S10."
     ]
   },
   "latest_production_candidate": {
@@ -82,11 +82,11 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s9-settings-auth",
-    "pr": null,
+    "pr": 121,
     "current_slice": "S9.1 / S9.2 / S9.3 / S9.4",
-    "checkpoint": "s9_implementation_candidate",
+    "checkpoint": "s9_reviewed_render_acceptance_pending",
     "blockers": [],
-    "next_action": "Validate the coherent S9 Settings/auth/root candidate, inspect fresh renders, then open a draft PR and complete S9 only from exact-head hosted evidence.",
+    "next_action": "Align the three stale S24 assertions and commit only the 46 hash-pinned reviewed S9/privacy references, then require exact-head Android CI, Project Tracking and Android UI Quality before S9 completion.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -522,25 +522,40 @@
           "id": "S9.1",
           "title": "Settings, privacy and notices",
           "status": "pending",
-          "evidence": []
+          "evidence": [
+            "The S9 Settings candidate uses a consumer-first hierarchy for appearance, device-local global amount visibility, privacy/notices, updates, About/diagnostics and account sign-out. Amount masking was hardened to update live across production read surfaces including Home, Wallet/accounts, Activity, cards, canonical Money/Savings/Loans/Lending, Plan and Analysis while leaving explicit editor inputs usable.",
+            "Notice history remains privacy-safe support metadata and the reviewed light/dark/150% Notice/Settings candidates expose no finance/account/card secrets.",
+            "Final candidate artifact 10556753374 from Android UI Quality run 35367383181 contains the reviewed S9/privacy render set; all 46 changed/new references were inspected before acceptance."
+          ]
         },
         {
           "id": "S9.2",
           "title": "Diagnostics and updater recovery",
           "status": "pending",
-          "evidence": []
+          "evidence": [
+            "Diagnostics moved to a dedicated sanitized support destination; null diagnostic navigation no longer mutates the Navigation3 back stack during composition.",
+            "Updater failures map to one deterministic recovery action by failure family; install-permission state now exposes only the Android permission handoff, while auth/MFA failures expose consumer-facing re-authentication copy.",
+            "Exact-head Android CI run 35367383187 passed unit tests, instrumentation compilation, lint/debug assembly, optimized release/Play bundle assembly and policy audits on b305a19fa427790718642a45b0bde8e4c7af7744."
+          ]
         },
         {
           "id": "S9.3",
           "title": "Authentication and root states",
           "status": "pending",
-          "evidence": []
+          "evidence": [
+            "Authentication presentation uses consumer-facing account-verification/local-PIN/biometric copy, real persistent PIN retry countdown state and IME/navigation-bar-safe scrolling without changing auth/session security contracts.",
+            "S24-target instrumentation on b305a19 built both APKs and executed all 76 tests; 73 passed. The three failures were stale text/action assertions for the pre-S9 MFA title, removed second permission-install action and old updater verification copy, not product crashes or runtime contract failures."
+          ]
         },
         {
           "id": "S9.4",
           "title": "Settings/auth verification",
           "status": "pending",
-          "evidence": []
+          "evidence": [
+            "Project Tracking and Android CI passed on b305a19. Android UI Quality produced the final candidate artifact and failed only because the reviewed references were not yet committed and three instrumentation expectations still described the old presentation contract.",
+            "The 46 changed/new candidate references across auth, notices, Settings/Diagnostics, Activity, Analysis, card/money and Plan were personally inspected in their rendered light/dark/150% states; no new clipping, overlap or unintended editor masking was found.",
+            "S9 remains pending until those exact reviewed bytes are hash-verified into the baseline, the stale assertions are aligned, and all exact-head required gates pass without candidate regeneration."
+          ]
         }
       ]
     },
