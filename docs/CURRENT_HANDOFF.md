@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s9_implementation_candidate`.
+- Workstream state: `android_redesign_s9_validation`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S8 are complete and merged. S9 now has a coherent Android-only implementation candidate for consumer-first Settings, dedicated sanitized diagnostics, deterministic updater recovery and focused auth/lockout presentation. S9 remains unaccepted until focused validation, fresh Compose render inspection and exact-PR-head gates pass.
+S1–S8 are complete and merged. S9 is implemented in draft PR #121. Exact-head Android CI passes; 46 changed/new real Compose references have been personally inspected. Android UI Quality is blocked only by reviewed-baseline acceptance plus three stale instrumentation assertions that still expect the pre-S9 auth/update copy.
 
 ## Immediate work
 
-- Run focused S9 unit/instrumentation-compile/lint/Kotlin checks and inspect fresh Settings/Diagnostics light/dark/150% renders.
-- Then validate auth/root/update device contracts, open the S9 draft PR and require exact-head Android CI, Project Tracking and Android UI Quality before completion.
+- Align the three stale S24 UI assertions with the accepted S9 consumer-facing auth/update contract and accept only the 46 personally reviewed rendered references with exact hash verification.
+- Re-run exact-head Project Tracking, Android CI and Android UI Quality. If all are green, record S9.1–S9.4 complete, merge PR #121 to develop, then hand off to S10.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1–S8 are complete and merged. S9 now has a coherent Android-only implementati
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s9-settings-auth`. PR: not yet opened.
-Checkpoint: `s9_implementation_candidate`.
+Working branch: `android/redesign-s9-settings-auth`. PR: 121.
+Checkpoint: `s9_reviewed_render_acceptance_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Validate the coherent S9 Settings/auth/root candidate, inspect fresh renders, then open a draft PR and complete S9 only from exact-head hosted evidence.
+Next action: Align the three stale S24 assertions and commit only the 46 hash-pinned reviewed S9/privacy references, then require exact-head Android CI, Project Tracking and Android UI Quality before S9 completion.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
