@@ -17,18 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s9_complete_merge_ready`.
+- Workstream state: `android_redesign_s10_cleanup_candidate`.
 - Latest private production candidate: `1.0.0-rc8` / `10007` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings/authentication redesign: consumer-first Settings, live global amount privacy, sanitized diagnostics, deterministic updater recovery and hardened login/MFA/PIN/biometric presentation. The accepted S9 product/test head passed Project Tracking, Android CI, screenshot regression and the full 76-test S24-target instrumentation suite.
+S1–S9 are complete and merged. S10 is active on android/redesign-s10-integration-acceptance. The first integration batch removes only the proven non-production fallback UI stack retained behind canonicalProductMode=false, preserves shared helpers in active production files, and aligns the debug product host/integration tests with the canonical S1–S9 routes.
 
 ## Immediate work
 
-- Merge validated PR #121 into develop without changing the accepted S9 product/test tree.
-- Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion.
+- Validate the S10.1 obsolete-path cleanup with focused compilation/tests and one draft PR; fix only concrete reference or behavior regressions.
+- Then run the full affected hosted gates, inspect any changed real Compose renders, and keep S10.4 pending until explicit physical Galaxy S24 Ultra acceptance.
 
 ## Constraints
 
@@ -55,10 +55,10 @@ S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s9-settings-auth`. PR: 121.
-Checkpoint: `s9_complete_merge_ready`.
+Working branch: `android/redesign-s10-integration-acceptance`. PR: not yet opened.
+Checkpoint: `s10_obsolete_path_cleanup_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.
+Next action: Validate the coherent S10.1 cleanup, open one draft PR, then use exact-head hosted and rendered evidence for S10.2/S10.3. Do not complete S10.4 without explicit physical S24 owner acceptance.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -71,7 +71,7 @@ Next action: Merge validated PR #121 into develop, create the S10 integration/ac
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
+| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (in_progress); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
 
 ### Preparation
 

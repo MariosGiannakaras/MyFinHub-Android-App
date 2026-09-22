@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-20",
+  "updated_at": "2026-09-22",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s9_complete_merge_ready",
-    "summary": "S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings/authentication redesign: consumer-first Settings, live global amount privacy, sanitized diagnostics, deterministic updater recovery and hardened login/MFA/PIN/biometric presentation. The accepted S9 product/test head passed Project Tracking, Android CI, screenshot regression and the full 76-test S24-target instrumentation suite.",
+    "status": "android_redesign_s10_cleanup_candidate",
+    "summary": "S1–S9 are complete and merged. S10 is active on android/redesign-s10-integration-acceptance. The first integration batch removes only the proven non-production fallback UI stack retained behind canonicalProductMode=false, preserves shared helpers in active production files, and aligns the debug product host/integration tests with the canonical S1–S9 routes.",
     "next": [
-      "Merge validated PR #121 into develop without changing the accepted S9 product/test tree.",
-      "Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion."
+      "Validate the S10.1 obsolete-path cleanup with focused compilation/tests and one draft PR; fix only concrete reference or behavior regressions.",
+      "Then run the full affected hosted gates, inspect any changed real Compose renders, and keep S10.4 pending until explicit physical Galaxy S24 Ultra acceptance."
     ]
   },
   "latest_production_candidate": {
@@ -81,12 +81,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s9-settings-auth",
-    "pr": 121,
+    "branch": "android/redesign-s10-integration-acceptance",
+    "pr": null,
     "current_slice": "S10.1 / S10.2 / S10.3 / S10.4",
-    "checkpoint": "s9_complete_merge_ready",
+    "checkpoint": "s10_obsolete_path_cleanup_candidate",
     "blockers": [],
-    "next_action": "Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.",
+    "next_action": "Validate the coherent S10.1 cleanup, open one draft PR, then use exact-head hosted and rendered evidence for S10.2/S10.3. Do not complete S10.4 without explicit physical S24 owner acceptance.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -568,8 +568,12 @@
         {
           "id": "S10.1",
           "title": "Remove proven obsolete paths",
-          "status": "pending",
-          "evidence": []
+          "status": "in_progress",
+          "evidence": [
+            "Production entry remains MainActivity → MyFinHubRoot → MyFinHubAppContent canonical routes; before cleanup MyFinHubRoot always supplied canonicalProductMode=true, while the alternate Home/Money/Plan/Settings stack was reachable only through the debug MyFinHubApp/ProductTestActivity fallback.",
+            "The cleanup candidate removes obsolete fallback route branches/editors and their historical screenshot suites while relocating activity amount/transfer formatting, the shared Greek DateEntryField and canonical budget-progress calculation into active S3/S4/S7 production files.",
+            "Top-level Plan integration coverage is retained by replacing legacy Plan-item-editor assertions with the canonical S7 forecast and monthly-budget routes; newer focused S3–S9 tests remain intact."
+          ]
         },
         {
           "id": "S10.2",

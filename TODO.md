@@ -5,8 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #121 into develop without changing the accepted S9 product/test tree.
-- [ ] Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion.
+- [ ] Validate the S10.1 obsolete-path cleanup with focused compilation/tests and one draft PR; fix only concrete reference or behavior regressions.
+- [ ] Then run the full affected hosted gates, inspect any changed real Compose renders, and keep S10.4 pending until explicit physical Galaxy S24 Ultra acceptance.
 
 ## Completed foundations
 
@@ -50,10 +50,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s9-settings-auth`. PR: 121.
-Checkpoint: `s9_complete_merge_ready`.
+Working branch: `android/redesign-s10-integration-acceptance`. PR: not yet opened.
+Checkpoint: `s10_obsolete_path_cleanup_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.
+Next action: Validate the coherent S10.1 cleanup, open one draft PR, then use exact-head hosted and rendered evidence for S10.2/S10.3. Do not complete S10.4 without explicit physical S24 owner acceptance.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -66,7 +66,7 @@ Next action: Merge validated PR #121 into develop, create the S10 integration/ac
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
+| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (in_progress); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
 
 ### Preparation
 
