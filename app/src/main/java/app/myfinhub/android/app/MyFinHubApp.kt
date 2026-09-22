@@ -556,3 +556,11 @@ internal fun plannedItemQuickEntryPrefillActions(
         add(QuickEntryAction.NoteChanged(item.note.ifBlank { item.title }))
     }
 }
+
+private fun NavBackStack<NavKey>.pushIfNew(route: NavKey) {
+    if (lastOrNull() != route) add(route)
+}
+
+private fun NavBackStack<NavKey>.popToRoot() {
+    while (size > 1) removeLastOrNull()
+}

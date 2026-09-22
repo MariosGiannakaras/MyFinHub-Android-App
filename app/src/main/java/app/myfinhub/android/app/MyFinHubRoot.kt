@@ -374,7 +374,6 @@ private fun FinanceProductSurface(
                     diagnostics = diagnostics,
                     noticeHistory = noticeHistory,
                     onLogout = onLogout,
-                    canonicalProductMode = true,
                 )
                 if (state.saving) {
                     LinearProgressIndicator(
