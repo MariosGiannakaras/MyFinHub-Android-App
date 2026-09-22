@@ -56,6 +56,34 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.roundToInt
+
+internal data class CanonicalBudgetProgress(
+    val limit: Double,
+    val spent: Double,
+    val remaining: Double,
+    val percent: Int,
+    val progress: Float,
+    val threshold: Int?,
+    val thresholdReached: Boolean,
+)
+
+internal fun canonicalBudgetProgress(state: PlanUiState): CanonicalBudgetProgress? {
+    val limit = state.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 } ?: return null
+    val spent = state.budgetSpent.coerceAtLeast(0.0)
+    val ratio = spent / limit
+    val percent = (ratio * 100.0).roundToInt().coerceAtLeast(0)
+    val threshold = state.budget.alertThresholdText.toIntOrNull()?.takeIf { it in 1..100 }
+    return CanonicalBudgetProgress(
+        limit = limit,
+        spent = spent,
+        remaining = limit - spent,
+        percent = percent,
+        progress = ratio.toFloat().coerceIn(0f, 1f),
+        threshold = threshold,
+        thresholdReached = threshold != null && percent >= threshold,
+    )
+}
 
 internal fun plannedItemSourceKey(item: PlannedItem): String = "${item.kind.name}:${item.id}"
 
