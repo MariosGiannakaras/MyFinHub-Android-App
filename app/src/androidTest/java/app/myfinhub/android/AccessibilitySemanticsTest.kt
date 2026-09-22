@@ -40,7 +40,7 @@ class AccessibilitySemanticsTest {
         assertClickableNodesHaveSpokenLabels("Quick Entry")
         leaveDirtyQuickEntry()
 
-        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
         composeRule.waitForIdle()
         assertClickableNodesHaveSpokenLabels("Settings")
     }
@@ -66,7 +66,7 @@ class AccessibilitySemanticsTest {
         checkCurrentSurface()
         leaveDirtyQuickEntry()
 
-        composeRule.onNodeWithText("Ρυθμίσεις").performClick()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
         composeRule.waitForIdle()
         checkCurrentSurface()
     }
@@ -74,7 +74,6 @@ class AccessibilitySemanticsTest {
     private fun openQuickEntryFromHome() {
         composeRule.onNodeWithText("Αρχική").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
-        composeRule.onNodeWithText("Έξοδο").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
     }
@@ -85,7 +84,8 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
         composeRule.onNodeWithText("Απόρριψη").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
     }
 
     private fun checkCurrentSurface() {

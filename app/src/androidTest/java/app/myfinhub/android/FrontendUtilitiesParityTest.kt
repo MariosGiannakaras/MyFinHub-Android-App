@@ -22,48 +22,30 @@ class FrontendUtilitiesParityTest {
 
     @Test
     fun homeReviewAndSettingsFlow_areReachableWithoutUtilityCardsInFinancialFeed() {
-        scrollHomeTagIntoView("attention-scheduled-review")
-        composeRule.onNodeWithTag("attention-scheduled-review").assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasText("Έλεγχος προγραμματισμένης πληρωμής"))
+        composeRule.onNode(hasText("Έλεγχος προγραμματισμένης πληρωμής") and hasClickAction())
+            .assertIsDisplayed()
+            .performClick()
         waitForText("Στοιχεία υποχρέωσης")
         assertTextIntoView("Στοιχεία υποχρέωσης")
         clickTextIntoView("Απόκρυψη για τώρα")
         returnHomeListToTop()
-        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
 
-        clickTextIntoView("Ρυθμίσεις")
-        waitForText("Προτιμήσεις εφαρμογής")
-        assertTextIntoView("Προτιμήσεις εφαρμογής")
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed().performClick()
+        waitForText("Ρυθμίσεις")
+        composeRule.onNodeWithTag("s9_settings_preferences").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").assertIsDisplayed().performClick()
         returnHomeListToTop()
-        composeRule.onNodeWithText("Η οικονομική σου εικόνα").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
     }
 
     private fun waitForText(text: String) {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
-        }
-    }
-
-    private fun assertTextIntoView(text: String) {
-        val node = composeRule.onNodeWithText(text)
-        runCatching { node.performScrollTo() }
-        node.assertIsDisplayed()
-    }
-
-    private fun clickTextIntoView(text: String) {
-        val node = composeRule.onNode(hasText(text) and hasClickAction())
-        runCatching { node.performScrollTo() }
-        node.assertIsDisplayed().performClick()
-    }
-
-    private fun scrollHomeTagIntoView(tag: String) {
-        val targetAlreadyComposed = runCatching {
-            composeRule.onNodeWithTag(tag).fetchSemanticsNode()
-        }.isSuccess
-        if (targetAlreadyComposed) {
-            composeRule.onNodeWithTag(tag).performScrollTo()
-        } else {
-            composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag(tag))
         }
     }
 
@@ -73,4 +55,5 @@ class FrontendUtilitiesParityTest {
         }
         composeRule.onNodeWithTag("home_list").performScrollToIndex(0)
     }
+
 }

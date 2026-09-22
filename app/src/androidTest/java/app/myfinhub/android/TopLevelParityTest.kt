@@ -49,7 +49,8 @@ class TopLevelParityTest {
     @Test
     fun fourRoots_walletPlanAndAnalysis_haveRealMobileContent() {
         selectDestination("Πορτοφόλι")
-        composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
+        composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
+        composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_stack")
