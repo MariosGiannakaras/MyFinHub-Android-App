@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-22",
+  "updated_at": "2026-09-23",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,11 +11,11 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s10_cleanup_candidate",
-    "summary": "S1–S9 are complete and merged. S10 is active on android/redesign-s10-integration-acceptance. The first integration batch removes only the proven non-production fallback UI stack retained behind canonicalProductMode=false, preserves shared helpers in active production files, and aligns the debug product host/integration tests with the canonical S1–S9 routes.",
+    "status": "android_redesign_s10_physical_acceptance_pending",
+    "summary": "S1–S9 are complete and merged. S10.1–S10.3 are complete in draft PR #122: proven-obsolete fallback UI paths are removed, all affected hosted gates are green on the exact integration head, and the only changed canonical render was personally inspected and hash-pinned into the screenshot baseline. S10.4 remains pending because automated S24-target instrumentation does not substitute for explicit owner acceptance on a physical Galaxy S24 Ultra.",
     "next": [
-      "Validate the S10.1 obsolete-path cleanup with focused compilation/tests and one draft PR; fix only concrete reference or behavior regressions.",
-      "Then run the full affected hosted gates, inspect any changed real Compose renders, and keep S10.4 pending until explicit physical Galaxy S24 Ultra acceptance."
+      "Perform explicit owner acceptance on a physical Galaxy S24 Ultra against the validated PR #122 candidate, covering core S1–S9 navigation, upgrade/session continuity, CVV/vault behavior and offline/recovery behavior relevant to the existing contracts.",
+      "If physical acceptance passes, record S10.4 evidence, complete 10/10 redesign tasks and 40/40 subtasks, revalidate tracking, merge PR #122 into develop, and keep stable/main promotion as a separate deliberate release checkpoint."
     ]
   },
   "latest_production_candidate": {
@@ -82,11 +82,13 @@
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s10-integration-acceptance",
-    "pr": null,
-    "current_slice": "S10.1 / S10.2 / S10.3 / S10.4",
-    "checkpoint": "s10_obsolete_path_cleanup_candidate",
-    "blockers": [],
-    "next_action": "Validate the coherent S10.1 cleanup, open one draft PR, then use exact-head hosted and rendered evidence for S10.2/S10.3. Do not complete S10.4 without explicit physical S24 owner acceptance.",
+    "pr": 122,
+    "current_slice": "S10.4",
+    "checkpoint": "s10_automated_acceptance_complete_physical_pending",
+    "blockers": [
+      "S10.4 requires explicit owner acceptance on a physical Galaxy S24 Ultra; emulator/S24-target automation is evidence for S10.2 but does not satisfy the physical acceptance subtask."
+    ],
+    "next_action": "Run explicit owner acceptance on a physical Galaxy S24 Ultra using the validated PR #122 candidate. Do not mark S10.4 complete or merge the redesign slice until that acceptance is recorded.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -568,24 +570,32 @@
         {
           "id": "S10.1",
           "title": "Remove proven obsolete paths",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
-            "Production entry remains MainActivity → MyFinHubRoot → MyFinHubAppContent canonical routes; before cleanup MyFinHubRoot always supplied canonicalProductMode=true, while the alternate Home/Money/Plan/Settings stack was reachable only through the debug MyFinHubApp/ProductTestActivity fallback.",
-            "The cleanup candidate removes obsolete fallback route branches/editors and their historical screenshot suites while relocating activity amount/transfer formatting, the shared Greek DateEntryField and canonical budget-progress calculation into active S3/S4/S7 production files.",
-            "Top-level Plan integration coverage is retained by replacing legacy Plan-item-editor assertions with the canonical S7 forecast and monthly-budget routes; newer focused S3–S9 tests remain intact."
+            "PR #122 removes the proven non-production pre-redesign fallback UI stack that was previously reachable only through canonicalProductMode=false/debug ProductTestActivity, while production remains MainActivity → MyFinHubRoot → canonical MyFinHubAppContent routes.",
+            "Obsolete Home/Money/Plan/Settings editors/routes, historical parity tests and their obsolete golden references were removed; shared Activity formatting/transfer helpers, the Greek DateEntryField and canonical budget-progress calculation were relocated into active S3/S4/S7 production files rather than deleted.",
+            "Integration tests were aligned to canonical Home, Wallet/Card, Plan, Settings and attention flows without restoring obsolete UI solely for tests. Exact-head compilation and device validation confirm no hidden source dependency remains."
           ]
         },
         {
           "id": "S10.2",
           "title": "Full affected hosted gates",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Exact-head Project Tracking run 35890299222 passed on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android CI run 35890299299 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and both release-policy audits on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android UI Quality run 35890299223 passed screenshot regression and S24-target instrumentation; the device suite completed 75/75 tests with zero failures."
+          ]
         },
         {
           "id": "S10.3",
           "title": "Inspect and replace actual screenshot evidence",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "The cleanup changed exactly one surviving canonical render: UserNoticeSnackbar over the canonical Production Home. It was personally inspected for layout, amount privacy, snackbar/action/dismiss behavior and bottom-navigation overlap before acceptance.",
+            "One-shot reviewed-render acceptance run 35797193835 regenerated that exact reference, verified the reviewed byte and screenshot scope, passed screenshot validation, committed only the approved PNG, and removed its temporary helper in the same acceptance commit ce12cfcd6b2a6af9b265bf766f757ca34013c755.",
+            "Final exact-head screenshot regression in Android UI Quality run 35890299223 passed with candidate regeneration skipped. Artifact 10765400098 has digest sha256:b563f54276a4ece81e94ae919c2a52ce5f2273206abe215ee361a59b1c7f5cc8."
+          ]
         },
         {
           "id": "S10.4",
