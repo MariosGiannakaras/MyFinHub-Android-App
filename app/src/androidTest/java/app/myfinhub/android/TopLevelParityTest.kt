@@ -64,6 +64,9 @@ class TopLevelParityTest {
         ).assertIsDisplayed()
         composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("card_secure_details").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
 
         selectDestination("Πλάνο")
         composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
