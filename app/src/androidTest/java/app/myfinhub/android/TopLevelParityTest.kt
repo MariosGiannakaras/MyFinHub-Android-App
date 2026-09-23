@@ -52,16 +52,17 @@ class TopLevelParityTest {
         composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
         composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasTestTag("credit_card_stack"))
-        composeRule.onNodeWithTag("credit_card_stack")
+            .performScrollToNode(hasTestTag("wallet_card_card-1"))
+        composeRule.onNodeWithTag("wallet_card_card-1")
             .assertIsDisplayed()
-            .performSemanticsAction(SemanticsActions.RequestFocus)
-        composeRule.onNodeWithTag("credit_card_stack")
-            .performKeyInput { pressKey(Key.Enter) }
+            .performClick()
+        composeRule.onNodeWithTag("card_secure_details")
+            .assertIsDisplayed()
+            .performClick()
         composeRule.onNodeWithText(
-            "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
+            "Ο αριθμός και η λήξη προστατεύονται στον λογαριασμό σου. Το CVV μένει κρυπτογραφημένο μόνο σε αυτή τη συσκευή.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithText("Αποκάλυψη ασφαλών στοιχείων").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         selectDestination("Πλάνο")
