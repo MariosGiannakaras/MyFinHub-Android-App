@@ -76,7 +76,6 @@ fun CanonicalMoneyScreen(
     val amountsVisible = rememberAmountVisibilityPreference()
     var activeCardId by remember(state.cards) { mutableStateOf(state.cards.firstOrNull()?.id) }
     var cardDeleteConfirmationId by remember(state.cards) { mutableStateOf<String?>(null) }
-    val revealedCardId = (secretState as? CardSecretUiState.Revealed)?.cardId
     val accountTotal = state.accounts.sumOf(MoneyAccount::balance)
     val creditOutstanding = canonicalCreditOutstanding(state)
     val netPosition = canonicalNetPosition(state)
@@ -284,8 +283,6 @@ fun CanonicalMoneyScreen(
                             cards = state.cards,
                             secretState = secretState,
                             onActiveCardChanged = { activeCardId = it },
-                            onRevealSecrets = onRevealCardSecrets,
-                            onHideSecrets = onHideCardSecrets,
                             onOpenCard = onOpenCard,
                             onDeleteCard = onDeleteCard,
                             modifier = Modifier.fillMaxWidth(),
@@ -369,7 +366,6 @@ fun CanonicalMoneyScreen(
                 card = card,
                 onDismiss = { cardDeleteConfirmationId = null },
                 onConfirm = {
-                    onHideCardSecrets()
                     cardDeleteConfirmationId = null
                     onDeleteCard(cardId)
                 },
