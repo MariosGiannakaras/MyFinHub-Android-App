@@ -184,9 +184,9 @@ fun CanonicalCardDetailScreen(
                     OutlinedButton(
                         onClick = { onOpenSecureDetails(card.id) },
                         modifier = Modifier.fillMaxWidth().testTag("card_secure_details"),
-                    ) { Text("Ασφαλή στοιχεία") }
+                    ) { Text("Στοιχεία κάρτας") }
                     Text(
-                        "Η αλλαγή ασφαλών στοιχείων γίνεται σε ξεχωριστή προστατευμένη οθόνη.",
+                        "Ο αριθμός, η λήξη και το CVV εμφανίζονται πλήρως στην οθόνη στοιχείων κάρτας.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

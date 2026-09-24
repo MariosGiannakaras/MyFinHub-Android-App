@@ -125,6 +125,9 @@ internal fun MyFinHubAppContent(
     onHideCardSecrets: () -> Unit = {},
     onSaveServerCardSecrets: (CharArray, CharArray) -> Unit = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
     onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
+    onSaveCardDetails: (String, CharArray, CharArray, CharArray) -> Unit = { _, pan, expiry, cvv ->
+        pan.fill('\u0000'); expiry.fill('\u0000'); cvv.fill('\u0000')
+    },
     onDeleteLocalCvv: () -> Unit = {},
     onRetryCardSecretCleanup: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
@@ -324,6 +327,9 @@ internal fun MyFinHubAppContent(
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
+                        cardSecretState = cardSecretState,
+                        onCardActiveChanged = onCardDetailOpened,
+                        onDeleteCard = onDeleteCard,
                         onOpenLoans = { moneyBackStack.pushIfNew(AppRoute.Loans) },
                         onOpenLending = { moneyBackStack.pushIfNew(AppRoute.Lending) },
                     )
@@ -353,6 +359,7 @@ internal fun MyFinHubAppContent(
                     CanonicalCardCreateScreen(
                         cards = moneyState.cards,
                         onCreate = onCreateCard,
+                        onSaveCardDetails = onSaveCardDetails,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
@@ -364,7 +371,6 @@ internal fun MyFinHubAppContent(
                         cards = moneyState.cards,
                         onSelectCard = { selectedCardId ->
                             if (selectedCardId != route.cardId) {
-                                onHideCardSecrets()
                                 moneyBackStack.removeLastOrNull()
                                 moneyBackStack.pushIfNew(AppRoute.CardDetail(selectedCardId))
                             }
@@ -393,7 +399,6 @@ internal fun MyFinHubAppContent(
                     DisposableEffect(route.cardId) {
                         onCardDetailOpened(route.cardId)
                         onDispose {
-                            onHideCardSecrets()
                             onCardDetailClosed(route.cardId)
                         }
                     }
@@ -402,7 +407,6 @@ internal fun MyFinHubAppContent(
                         card = moneyState.cards.firstOrNull { it.id == route.cardId },
                         secretState = cardSecretState,
                         onReveal = onRevealCardSecrets,
-                        onHideSecrets = onHideCardSecrets,
                         onSaveServerSecrets = onSaveServerCardSecrets,
                         onSaveCvv = onSaveLocalCvv,
                         onDeleteCvv = onDeleteLocalCvv,

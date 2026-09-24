@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -191,8 +190,6 @@ fun CreditCardStack(
     cards: List<MoneyCard>,
     secretState: CardSecretUiState,
     onActiveCardChanged: (String?) -> Unit,
-    onRevealSecrets: () -> Unit,
-    onHideSecrets: () -> Unit,
     onOpenCard: (String) -> Unit,
     onDeleteCard: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -239,11 +236,9 @@ fun CreditCardStack(
     }
 
     val revealed = (secretState as? CardSecretUiState.Revealed)?.takeIf { it.cardId == activeId }
-    val loading = (secretState as? CardSecretUiState.Loading)?.cardId == activeId
 
     fun restack(direction: Int) {
         if (order.size < 2 || deletingId != null || deleteArmedId != null) return
-        onHideSecrets()
         val start = dragOffset
         dragOffset = 0f
         dragging = false
@@ -287,7 +282,6 @@ fun CreditCardStack(
     fun selectCard(cardId: String) {
         val index = order.indexOf(cardId)
         if (index <= 0 || deletingId != null || deleteArmedId != null) return
-        onHideSecrets()
         scope.launch {
             if (!reducedMotion) {
                 settleOffset.snapTo(0f)
@@ -302,7 +296,6 @@ fun CreditCardStack(
         if (deletingId != null) return
         deleteArmedId = null
         deleteProgress = 0f
-        onHideSecrets()
         statusMessage = "Η διαγραφή της κάρτας ξεκίνησε"
         deletingId = cardId
         scope.launch {
@@ -456,15 +449,11 @@ fun CreditCardStack(
                         card = card,
                         visual = remember(card.id, card.bankId, card.nickname) { visualForReferenceCard(card) },
                         revealed = revealed?.takeIf { isTop },
-                        loading = loading && isTop,
                         isTop = isTop,
                         deleteArmed = deleteArmedId == card.id,
                         deleteProgress = deleteProgress,
                         deleting = deletingId == card.id,
                         reducedMotion = reducedMotion,
-                        onReveal = {
-                            if (revealed == null) onRevealSecrets() else onHideSecrets()
-                        },
                         onCopyNumber = { copySecret("Ο αριθμός", revealed?.pan) },
                         onCopyExpiry = { copySecret("Η λήξη", revealed?.expiry) },
                         onCopyCvv = { copySecret("Το CVV", revealed?.cvv) },
@@ -546,13 +535,11 @@ private fun ReferenceCardFace(
     card: MoneyCard,
     visual: ReferenceCardVisual,
     revealed: CardSecretUiState.Revealed?,
-    loading: Boolean,
     isTop: Boolean,
     deleteArmed: Boolean,
     deleteProgress: Float,
     deleting: Boolean,
     reducedMotion: Boolean,
-    onReveal: () -> Unit,
     onCopyNumber: () -> Unit,
     onCopyExpiry: () -> Unit,
     onCopyCvv: () -> Unit,
@@ -618,21 +605,10 @@ private fun ReferenceCardFace(
                 }
                 if (isTop) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        ReferenceActionButton(
-                            label = if (revealed == null) "Εμφάνιση στοιχείων" else "Απόκρυψη στοιχείων",
-                            enabled = !loading,
-                            onClick = onReveal,
-                        ) {
-                            if (loading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp,
-                                    color = visual.text,
-                                )
-                            } else {
-                                ReferenceEyeGlyph(hidden = revealed == null, color = visual.text)
-                            }
+                        ReferenceActionButton(label = "Διαγραφή κάρτας", onClick = onDeleteRequested) {
+                            ReferenceTrashGlyph(visual.text)
                         }
+                    }
                         ReferenceActionButton(label = "Διαγραφή κάρτας", onClick = onDeleteRequested) {
                             ReferenceTrashGlyph(visual.text)
                         }
@@ -642,7 +618,7 @@ private fun ReferenceCardFace(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ReferenceSecretLine(
-                    text = revealed?.pan ?: referenceMaskedPan(card.last4),
+                    text = revealed?.pan?.let(::referenceFormatPan) ?: "—",
                     color = visual.text,
                     copyLabel = "Αντιγραφή αριθμού",
                     copyEnabled = revealed?.pan != null,
@@ -655,7 +631,7 @@ private fun ReferenceCardFace(
                 ) {
                     ReferenceSecretField(
                         label = "VALID THRU",
-                        value = revealed?.expiry ?: "••/••",
+                        value = revealed?.expiry ?: "—",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή λήξης",
@@ -665,7 +641,7 @@ private fun ReferenceCardFace(
                     )
                     ReferenceSecretField(
                         label = "CVV",
-                        value = revealed?.cvv ?: "•••",
+                        value = revealed?.cvv ?: "—",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή CVV",
@@ -1097,10 +1073,8 @@ private fun ReferenceCloseGlyph(color: Color) {
     }
 }
 
-private fun referenceMaskedPan(last4: String): String {
-    val digits = last4.filter(Char::isDigit).takeLast(4).padStart(4, '•')
-    return "•••• •••• •••• $digits"
-}
+private fun referenceFormatPan(value: String): String =
+    value.filter(Char::isDigit).chunked(4).joinToString(" ")
 
 private fun visualForReferenceCard(card: MoneyCard): ReferenceCardVisual {
     val bank = card.bankId.trim().lowercase()

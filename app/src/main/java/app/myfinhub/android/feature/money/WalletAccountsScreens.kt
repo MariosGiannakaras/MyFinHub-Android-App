@@ -100,6 +100,9 @@ fun CanonicalWalletScreen(
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
+    cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
+    onCardActiveChanged: (String) -> Unit = {},
+    onDeleteCard: (String) -> Unit = {},
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
     amountsVisibleOverride: Boolean? = null,
@@ -165,9 +168,11 @@ fun CanonicalWalletScreen(
                 )
                 WalletSection.CARDS -> walletCardsContent(
                     state = state,
-                    amountsVisible = amountsVisible,
+                    cardSecretState = cardSecretState,
+                    onCardActiveChanged = onCardActiveChanged,
                     onOpenCard = onOpenCard,
                     onAddCard = onAddCard,
+                    onDeleteCard = onDeleteCard,
                 )
                 WalletSection.DEBTS -> walletDebtsContent(
                     state = state,
@@ -420,9 +425,11 @@ private fun WalletAccountMark(account: MoneyAccount) {
 
 private fun LazyListScope.walletCardsContent(
     state: MoneyUiState,
-    amountsVisible: Boolean,
+    cardSecretState: CardSecretUiState,
+    onCardActiveChanged: (String) -> Unit,
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
+    onDeleteCard: (String) -> Unit,
 ) {
     item("cards-action") {
         MyFinHubPrimaryAction(
@@ -438,74 +445,17 @@ private fun LazyListScope.walletCardsContent(
             }
         }
     } else {
-        items(state.cards, key = MoneyCard::id) { card ->
-            WalletCardRow(card = card, amountsVisible = amountsVisible, onClick = { onOpenCard(card.id) })
+        item("cards-stack") {
+            CreditCardStack(
+                cards = state.cards,
+                secretState = cardSecretState,
+                onActiveCardChanged = { cardId -> cardId?.let(onCardActiveChanged) },
+                onOpenCard = onOpenCard,
+                onDeleteCard = onDeleteCard,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
-}
-
-@Composable
-private fun WalletCardRow(card: MoneyCard, amountsVisible: Boolean, onClick: () -> Unit) {
-    val largeFont = LocalDensity.current.fontScale >= 1.3f
-    val isCredit = card.canonicalKind == "credit" || card.kind.contains("Πιστω", ignoreCase = true)
-    val provider = financialProvider(card.bankId, card.nickname)
-    val identity = listOf(card.kind, card.network).filter(String::isNotBlank).distinct().joinToString(" · ")
-    val debtText = if (isCredit) walletAmountText(card.currentBalance, amountsVisible) else null
-    val spokenIdentity = buildString {
-        append(card.nickname)
-        if (card.last4.isNotBlank()) append(", τελευταία ψηφία ${card.last4}")
-        if (identity.isNotBlank()) append(", $identity")
-        if (debtText != null) append(", οφειλή $debtText")
-    }
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("wallet_card_${card.id}")
-            .semantics(mergeDescendants = true) { contentDescription = spokenIdentity },
-        color = MaterialTheme.colorScheme.background,
-    ) {
-        if (largeFont) {
-            Column(modifier = Modifier.padding(vertical = MyFinHubSpacing.xs), verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.Top) {
-                    if (provider != null) {
-                        MyFinHubProviderMark(provider, modifier = Modifier.size(40.dp), contentDescription = provider.institutionLabel)
-                    } else {
-                        MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Neutral, null)
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(card.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text("•••• ${card.last4.ifBlank { "—" }} · $identity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                debtText?.let {
-                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.align(Alignment.End)) {
-                        Text("Οφειλή", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        MyFinHubAmountText(it, FinanceTone.Neutral)
-                    }
-                }
-            }
-        } else {
-            Row(modifier = Modifier.padding(vertical = MyFinHubSpacing.xs), horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                if (provider != null) {
-                    MyFinHubProviderMark(provider, modifier = Modifier.size(40.dp), contentDescription = provider.institutionLabel)
-                } else {
-                    MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Neutral, null)
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(card.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("•••• ${card.last4.ifBlank { "—" }} · $identity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                debtText?.let {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("Οφειλή", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        MyFinHubAmountText(it, FinanceTone.Neutral)
-                    }
-                }
-            }
-        }
-    }
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 private fun LazyListScope.walletDebtsContent(

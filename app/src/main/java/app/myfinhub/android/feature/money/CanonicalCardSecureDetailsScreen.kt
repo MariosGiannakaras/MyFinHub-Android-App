@@ -23,7 +23,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,11 +37,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import app.myfinhub.android.core.security.SecureWindowProtection
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
@@ -54,7 +48,6 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val SECRET_REVEAL_MILLIS = 30_000L
 private const val SENSITIVE_CLIPBOARD_MILLIS = 30_000L
 
 @Composable
@@ -63,14 +56,12 @@ fun CanonicalCardSecureDetailsScreen(
     card: MoneyCard?,
     secretState: CardSecretUiState,
     onReveal: () -> Unit,
-    onHideSecrets: () -> Unit,
     onSaveServerSecrets: (CharArray, CharArray) -> Unit,
     onSaveCvv: (CharArray) -> Unit,
     onDeleteCvv: () -> Unit,
     onBack: () -> Unit,
 ) {
     val relevantState = secretState.forCard(cardId)
-    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var cvvDraft by remember(cardId) { mutableStateOf("") }
@@ -80,38 +71,15 @@ fun CanonicalCardSecureDetailsScreen(
     var validation by remember(cardId) { mutableStateOf<String?>(null) }
     var clipboardMessage by remember(cardId) { mutableStateOf<String?>(null) }
 
-    SecureWindowProtection(active = true)
+    LaunchedEffect(cardId) {
+        onReveal()
+    }
 
-    fun closeSecureSurface() {
-        onHideSecrets()
+    fun closeDetailsSurface() {
         onBack()
     }
 
-    BackHandler(onBack = ::closeSecureSurface)
-
-    DisposableEffect(lifecycleOwner, onHideSecrets) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) onHideSecrets()
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            onHideSecrets()
-        }
-    }
-
-    LaunchedEffect(relevantState) {
-        if (editorOpen && relevantState is CardSecretUiState.Revealed) {
-            editorOpen = false
-            panDraft = ""
-            expiryDraft = ""
-            validation = null
-        }
-        if (relevantState is CardSecretUiState.Revealed) {
-            delay(SECRET_REVEAL_MILLIS)
-            onHideSecrets()
-        }
-    }
+    BackHandler(onBack = ::closeDetailsSurface)
 
     fun openEditor() {
         val revealed = relevantState as? CardSecretUiState.Revealed
@@ -138,9 +106,9 @@ fun CanonicalCardSecureDetailsScreen(
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
-                title = "Ασφαλή στοιχεία",
+                title = "Στοιχεία κάρτας",
                 subtitle = card?.nickname ?: "Κάρτα",
-                navigation = { MyFinHubBackButton(::closeSecureSurface) },
+                navigation = { MyFinHubBackButton(::closeDetailsSurface) },
             )
         },
     ) { padding ->
@@ -155,15 +123,9 @@ fun CanonicalCardSecureDetailsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text(
-                        "Ο αριθμός και η λήξη προστατεύονται στον λογαριασμό σου. Το CVV μένει κρυπτογραφημένο μόνο σε αυτή τη συσκευή.",
+                        "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Text(
-                        "Τα στοιχεία κρύβονται αυτόματα σε 30 δευτερόλεπτα ή όταν φύγεις από την εφαρμογή.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
                     if (editorOpen) {
                         MyFinHubOutlinedField(
                             value = panDraft,
@@ -172,8 +134,7 @@ fun CanonicalCardSecureDetailsScreen(
                                 validation = null
                             },
                             label = "Αριθμός κάρτας",
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next),
-                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                         )
                         MyFinHubOutlinedField(
                             value = expiryDraft,
@@ -220,12 +181,10 @@ fun CanonicalCardSecureDetailsScreen(
                     }
 
                     when (relevantState) {
-                        is CardSecretUiState.Hidden -> MyFinHubPrimaryAction(
-                            label = "Αποκάλυψη στοιχείων",
-                            onClick = onReveal,
-                            modifier = Modifier.fillMaxWidth(),
-                            icon = null,
-                        )
+                        is CardSecretUiState.Hidden -> {
+                            CircularProgressIndicator()
+                            Text("Φόρτωση στοιχείων κάρτας…")
+                        }
                         is CardSecretUiState.Saving -> {
                             CircularProgressIndicator()
                             Text("Αποθήκευση ασφαλών στοιχείων…")
@@ -262,13 +221,11 @@ fun CanonicalCardSecureDetailsScreen(
                             clipboardMessage?.let {
                                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             }
-                            TextButton(onClick = onHideSecrets) { Text("Απόκρυψη τώρα") }
                             MyFinHubOutlinedField(
                                 value = cvvDraft,
                                 onValueChange = { input -> cvvDraft = input.filter { it in '0'..'9' }.take(4) },
                                 label = "Νέο CVV για αυτή τη συσκευή",
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Done),
-                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             )
                             MyFinHubPrimaryAction(
                                 label = if (relevantState.cvvSaving) "Αποθήκευση…" else "Αποθήκευση CVV στη συσκευή",
