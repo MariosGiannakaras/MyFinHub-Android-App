@@ -170,7 +170,7 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("Εκκρεμεί: CVV σε αυτή τη συσκευή.").assertIsDisplayed()
+        composeRule.onNodeWithText("Εκκρεμεί: τοπικά στοιχεία κάρτας.").assertIsDisplayed()
         composeRule.onNodeWithText("Δοκιμή καθαρισμού ξανά").performClick()
         composeRule.runOnIdle { assertEquals("credit", retryCardId) }
     }

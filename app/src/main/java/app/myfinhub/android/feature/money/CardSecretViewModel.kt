@@ -16,8 +16,6 @@ import app.myfinhub.android.core.security.DataStoreEncryptedCardDetailsVault
 import app.myfinhub.android.core.security.CvvVault
 import app.myfinhub.android.core.security.DataStoreEncryptedCvvVault
 import app.myfinhub.android.core.ui.UserNotice
-import app.myfinhub.android.core.ui.apiFailureMessage
-import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -161,8 +159,8 @@ class CardSecretViewModel internal constructor(
 
     /**
      * Runs only after the canonical card deactivation has committed. At that point the card is no
-     * longer active in finance state, so cleanup removes both server PAN/expiry and the device-local
-     * encrypted CVV. A partial cleanup never restores the canonical card and is reported once.
+     * longer active in finance state, so cleanup removes the local encrypted PAN/expiry/CVV and any
+     * legacy server-vault residue. A partial cleanup never restores the canonical card and is reported once.
      */
     fun purgeCard(cardId: String) {
         val normalized = cardId.trim()
@@ -251,7 +249,7 @@ class CardSecretViewModel internal constructor(
                                 append("\nΚατηγορία server: ${failure.kind}")
                                 failure.statusCode?.let { append("\nHTTP: $it") }
                             }
-                            if (localFailure != null) append("\nΚατηγορία συσκευής: LOCAL_CVV_CLEANUP_FAILED")
+                            if (localFailure != null) append("\nΚατηγορία συσκευής: LOCAL_CARD_DETAILS_CLEANUP_FAILED")
                             append("\nΔεν εμφανίζονται ευαίσθητα δεδομένα.")
                         },
                         diagnosticCode = when {
@@ -569,7 +567,7 @@ class CardSecretViewModel internal constructor(
         }
     }
 
-    private suspend fun <T> safeApiCall    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
+    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
         block()
     } catch (cancelled: CancellationException) {
         throw cancelled

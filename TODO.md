@@ -5,8 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Perform explicit owner acceptance on a physical Galaxy S24 Ultra against the validated PR #122 candidate, covering core S1–S9 navigation, upgrade/session continuity, CVV/vault behavior and offline/recovery behavior relevant to the existing contracts.
-- [ ] If physical acceptance passes, record S10.4 evidence, complete 10/10 redesign tasks and 40/40 subtasks, revalidate tracking, merge PR #122 into develop, and keep stable/main promotion as a separate deliberate release checkpoint.
+- [ ] Validate the coherent card-extension batch on PR #122: device-local Keystore PAN/expiry + CVV, full unmasked stacked cards, screenshot-permitted card details, complete card creation, and no Android dependency on the unavailable server card-vault for normal read/write.
+- [ ] Run exact-head Project Tracking, Android CI and Android UI Quality/S24 gates; inspect every changed real Compose reference before accepting any new screenshot baseline.
+- [ ] After exact-head automation and visual evidence pass, publish a same-signer rc10 from PR #122 and repeat physical Galaxy S24 Ultra acceptance for card creation, full stacked details, screenshots and offline/recovery before completing S10.4 and merging.
 
 ## Completed foundations
 
@@ -46,14 +47,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 9/10 · Subtasks: 39/40 · Preparation: 4/4**
+**Tasks: 9/10 · Subtasks: 37/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_automated_acceptance_complete_physical_pending`.
+Checkpoint: `s10_card_full_details_candidate`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Run explicit owner acceptance on a physical Galaxy S24 Ultra using the validated PR #122 candidate. Do not mark S10.4 complete or merge the redesign slice until that acceptance is recorded.
+Next action: Validate the owner-requested full-card extension as one coherent PR #122 batch. Do not mark S10.2/S10.3 complete until the new exact-head gates and rendered references pass; do not mark S10.4 complete until the resulting same-signer candidate passes physical S24 card/offline acceptance.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -66,7 +67,7 @@ Next action: Run explicit owner acceptance on a physical Galaxy S24 Ultra using 
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 3/4 | S10.4 Physical S24 acceptance (pending) |
+| S10 Integration and acceptance | 1/4 | S10.2 Full affected hosted gates (in_progress); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (in_progress) |
 
 ### Preparation
 
@@ -77,4 +78,4 @@ Next action: Run explicit owner acceptance on a physical Galaxy S24 Ultra using 
 
 ### Blockers
 
-- S10.4 requires explicit owner acceptance on a physical Galaxy S24 Ultra; emulator/S24-target automation is evidence for S10.2 but does not satisfy the physical acceptance subtask.
+- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.
