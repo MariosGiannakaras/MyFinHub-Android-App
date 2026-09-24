@@ -103,10 +103,13 @@ private fun ReferenceCardStackScreenshotSurface() {
         ) {
             CreditCardStack(
                 cards = referenceScreenshotCards,
-                secretState = CardSecretUiState.Hidden("reference-piraeus"),
+                secretState = CardSecretUiState.Revealed(
+                    cardId = "reference-piraeus",
+                    pan = "4242424242421234",
+                    expiry = "12/30",
+                    cvv = "418",
+                ),
                 onActiveCardChanged = {},
-                onRevealSecrets = {},
-                onHideSecrets = {},
                 onOpenCard = {},
                 onDeleteCard = {},
             )

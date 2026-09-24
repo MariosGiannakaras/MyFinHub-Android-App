@@ -75,9 +75,13 @@ private fun CardSecureFixture(darkTheme: Boolean) {
         CanonicalCardSecureDetailsScreen(
             cardId = CARD_DETAIL_PREVIEW_ID,
             card = canonicalCardDetailPreviewCard,
-            secretState = CardSecretUiState.Hidden(CARD_DETAIL_PREVIEW_ID),
+            secretState = CardSecretUiState.Revealed(
+                cardId = CARD_DETAIL_PREVIEW_ID,
+                pan = "5555444433330000",
+                expiry = "09/31",
+                cvv = "731",
+            ),
             onReveal = {},
-            onHideSecrets = {},
             onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
             onSaveCvv = { it.fill('\u0000') },
             onDeleteCvv = {},

@@ -5,6 +5,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollAction
@@ -52,17 +53,17 @@ class TopLevelParityTest {
         composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
         composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNode(hasScrollAction())
-            .performScrollToNode(hasTestTag("wallet_card_card-1"))
-        composeRule.onNodeWithTag("wallet_card_card-1")
+            .performScrollToNode(hasTestTag("credit_card_stack"))
+        composeRule.onNodeWithTag("credit_card_card-1")
             .assertIsDisplayed()
             .performClick()
         composeRule.onNodeWithTag("card_secure_details")
             .assertIsDisplayed()
             .performClick()
         composeRule.onNodeWithText(
-            "Ο αριθμός και η λήξη προστατεύονται στον λογαριασμό σου. Το CVV μένει κρυπτογραφημένο μόνο σε αυτή τη συσκευή.",
+            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertDoesNotExist()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("card_secure_details").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()

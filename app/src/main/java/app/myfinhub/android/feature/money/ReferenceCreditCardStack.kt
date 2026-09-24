@@ -609,10 +609,6 @@ private fun ReferenceCardFace(
                             ReferenceTrashGlyph(visual.text)
                         }
                     }
-                        ReferenceActionButton(label = "Διαγραφή κάρτας", onClick = onDeleteRequested) {
-                            ReferenceTrashGlyph(visual.text)
-                        }
-                    }
                 }
             }
 

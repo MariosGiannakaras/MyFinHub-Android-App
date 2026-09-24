@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -44,7 +45,7 @@ class S6CardSurfaceTest {
     )
 
     @Test
-    fun walletCards_areFlatStableRows_andRouteByStableId() {
+    fun walletCards_useStackedPresentation_andRouteByStableId() {
         var opened: String? = null
         composeRule.setContent {
             MyFinHubTheme {
@@ -54,6 +55,12 @@ class S6CardSurfaceTest {
                     onOpenNetPosition = {},
                     onOpenCard = { opened = it },
                     onAddCard = {},
+                    cardSecretState = CardSecretUiState.Revealed(
+                        cardId = "debit",
+                        pan = "4242424242424242",
+                        expiry = "12/30",
+                        cvv = "123",
+                    ),
                     onOpenLoans = {},
                     onOpenLending = {},
                     amountsVisibleOverride = true,
@@ -62,8 +69,10 @@ class S6CardSurfaceTest {
         }
 
         composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
-        composeRule.onNodeWithTag("wallet_card_debit").assertIsDisplayed()
-        composeRule.onNodeWithTag("wallet_card_credit").assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag("credit_card_stack").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_debit").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
+        composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }
     }
 
@@ -114,6 +123,9 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("card_create_network").performScrollTo().performClick()
         composeRule.onNodeWithTag("card_create_network_mastercard").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Mastercard").assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_pan").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_expiry").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_cvv").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -164,16 +176,20 @@ class S6CardSurfaceTest {
     }
 
     @Test
-    fun secureDetails_areHiddenByDefault_andRevealIsExplicit() {
-        var revealCalls = 0
+    fun cardDetails_showFullValues_withoutRevealGate() {
+        var loadCalls = 0
         composeRule.setContent {
             MyFinHubTheme {
                 CanonicalCardSecureDetailsScreen(
                     cardId = "credit",
                     card = credit,
-                    secretState = CardSecretUiState.Hidden("credit"),
-                    onReveal = { revealCalls += 1 },
-                    onHideSecrets = {},
+                    secretState = CardSecretUiState.Revealed(
+                        cardId = "credit",
+                        pan = "5555444433331881",
+                        expiry = "09/31",
+                        cvv = "731",
+                    ),
+                    onReveal = { loadCalls += 1 },
                     onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
                     onSaveCvv = { it.fill('\u0000') },
                     onDeleteCvv = {},
@@ -182,7 +198,10 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").performClick()
-        composeRule.runOnIdle { assertEquals(1, revealCalls) }
+        composeRule.onNodeWithText("5555444433331881").assertIsDisplayed()
+        composeRule.onNodeWithText("09/31").assertIsDisplayed()
+        composeRule.onNodeWithText("731").assertIsDisplayed()
+        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(1, loadCalls) }
     }
 }

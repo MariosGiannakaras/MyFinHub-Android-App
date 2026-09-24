@@ -80,6 +80,12 @@ private fun WalletCardsFixture(darkTheme: Boolean) {
         CanonicalWalletScreen(
             state = syntheticMoneyUiState(),
             initiallyShowCards = true,
+            cardSecretState = CardSecretUiState.Revealed(
+                cardId = "card-1",
+                pan = "4242424242424242",
+                expiry = "12/30",
+                cvv = "418",
+            ),
             onOpenAccount = {},
             onOpenNetPosition = {},
             onOpenCard = {},
