@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import app.myfinhub.android.core.security.SecureWindowProtection
 import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
@@ -82,7 +81,6 @@ fun CanonicalMoneyScreen(
     val creditOutstanding = canonicalCreditOutstanding(state)
     val netPosition = canonicalNetPosition(state)
 
-    SecureWindowProtection(active = revealedCardId != null && revealedCardId == activeCardId)
     DisposableEffect(activeCardId) {
         activeCardId?.let(onCardActivated)
         onDispose { activeCardId?.let(onCardDeactivated) }
