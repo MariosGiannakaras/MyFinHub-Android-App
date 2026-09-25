@@ -5,9 +5,8 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
-- [ ] Merge PR #122 into develop after the final exact-head checks are green.
-- [ ] After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
+- [ ] Keep develop as the authoritative implementation branch and preserve the completed 10/10 redesign evidence.
+- [ ] Treat any stable/main promotion or later production release as a separate deliberate release workflow; do not infer it from redesign completion.
 
 ## Completed foundations
 
@@ -52,10 +51,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_complete_final_merge_pending`.
+Working branch: `develop`. PR: 122.
+Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
+Next action: Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

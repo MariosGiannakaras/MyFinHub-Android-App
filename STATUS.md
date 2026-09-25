@@ -9,21 +9,20 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_complete_merge_pending`
+State: `android_redesign_complete`
 
-All ten Android redesign slices are complete. S10 physical owner acceptance passed on the production-signed rc10 candidate on the supported Galaxy S24 Ultra, including same-signer continuity, full-card creation/persistence and stacked presentation with screenshots permitted, plus offline local unlock, durable pending mutation and successful recovery/synchronization. PR #122 now requires only final exact-head metadata validation and merge into develop; stable/main promotion remains a separate deliberate release checkpoint.
+The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work.
 
 ## Current production candidate
 
 `1.0.0-rc10` / versionCode `10009` — **protected_published_physical_acceptance_passed**.
 
-Production-signed rc10 / versionCode 10009 was published from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611 and installed in place on the physical Galaxy S24 Ultra. Owner physical acceptance passed: session/data continuity survived the update; a card could be created and its full values persisted locally without the earlier card-vault 503 dependency; Wallet/Cards used the accepted stacked presentation with full details visible and screenshots permitted; offline local unlock and an offline finance mutation entered durable pending state, remained visible in Activity, and synchronized after connectivity returned. No PAN/CVV values are persisted in repository acceptance evidence.
+Production-signed rc10 / versionCode 10009 was published from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611 and installed in place on the physical Galaxy S24 Ultra. Owner physical acceptance passed: session/data continuity survived the update; a card could be created and its full values persisted locally without the earlier card-vault 503 dependency; Wallet/Cards used the accepted stacked presentation with full details visible and screenshots permitted; offline local unlock and an offline finance mutation entered durable pending state, remained visible in Activity, and synchronized after connectivity returned. No PAN/CVV values are persisted in repository acceptance evidence. PR #122 was subsequently merged into develop as a43a37a54b5bff2db3a3ce7b2ded786d39b636a0 after final exact-head Project Tracking, Android UI Quality and Android CI all passed.
 
 ## Next
 
-1. Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
-2. Merge PR #122 into develop after the final exact-head checks are green.
-3. After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
+1. Keep develop as the authoritative implementation branch and preserve the completed 10/10 redesign evidence.
+2. Treat any stable/main promotion or later production release as a separate deliberate release workflow; do not infer it from redesign completion.
 
 ## Non-negotiable constraints
 
@@ -52,10 +51,10 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_complete_final_merge_pending`.
+Working branch: `develop`. PR: 122.
+Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
+Next action: Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

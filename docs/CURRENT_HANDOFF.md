@@ -17,19 +17,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_complete_merge_pending`.
+- Workstream state: `android_redesign_complete`.
 - Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_passed`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-All ten Android redesign slices are complete. S10 physical owner acceptance passed on the production-signed rc10 candidate on the supported Galaxy S24 Ultra, including same-signer continuity, full-card creation/persistence and stacked presentation with screenshots permitted, plus offline local unlock, durable pending mutation and successful recovery/synchronization. PR #122 now requires only final exact-head metadata validation and merge into develop; stable/main promotion remains a separate deliberate release checkpoint.
+The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work.
 
 ## Immediate work
 
-- Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
-- Merge PR #122 into develop after the final exact-head checks are green.
-- After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
+- Keep develop as the authoritative implementation branch and preserve the completed 10/10 redesign evidence.
+- Treat any stable/main promotion or later production release as a separate deliberate release workflow; do not infer it from redesign completion.
 
 ## Constraints
 
@@ -56,10 +55,10 @@ All ten Android redesign slices are complete. S10 physical owner acceptance pass
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_complete_final_merge_pending`.
+Working branch: `develop`. PR: 122.
+Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
+Next action: Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
