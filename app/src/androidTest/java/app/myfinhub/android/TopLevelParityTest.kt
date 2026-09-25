@@ -62,7 +62,10 @@ class TopLevelParityTest {
         composeRule.onNodeWithText(
             "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertDoesNotExist()
+        assertTrue(
+            "Card details must not expose a reveal gate",
+            runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("card_secure_details").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()

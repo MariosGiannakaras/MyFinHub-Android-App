@@ -21,6 +21,7 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,8 +74,12 @@ class CreditCardStackTest {
         composeRule.onNodeWithText("4242 4242 4242 1111").assertIsDisplayed()
         composeRule.onNodeWithText("06/30").assertIsDisplayed()
         composeRule.onNodeWithText("418").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Εμφάνιση στοιχείων").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Απόκρυψη στοιχείων").assertDoesNotExist()
+        assertTrue(
+            runCatching { composeRule.onNodeWithContentDescription("Εμφάνιση στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
+        assertTrue(
+            runCatching { composeRule.onNodeWithContentDescription("Απόκρυψη στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
 
         composeRule.onNodeWithTag("credit_card_card-a").performTouchInput {
             val verticalInset = (bottom - top) * .18f
@@ -126,7 +131,9 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ακύρωση").performClick()
-        composeRule.onNodeWithTag("card_delete_slider").assertDoesNotExist()
+        assertTrue(
+            runCatching { composeRule.onNodeWithTag("card_delete_slider").fetchSemanticsNode() }.isFailure,
+        )
         composeRule.onNodeWithTag("credit_card_card-a").assertIsDisplayed()
     }
 

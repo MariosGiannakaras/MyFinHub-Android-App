@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -200,7 +201,9 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithText("5555444433331881").assertIsDisplayed()
         composeRule.onNodeWithText("09/31").assertIsDisplayed()
         composeRule.onNodeWithText("731").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").assertDoesNotExist()
+        assertTrue(
+            runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
         composeRule.runOnIdle { assertEquals(1, loadCalls) }
     }
 }
