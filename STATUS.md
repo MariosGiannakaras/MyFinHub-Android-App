@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #129 — **Publish post-card-vault rc11 and promote stable baseline**
-State: `rc11_published_physical_acceptance_pending`
+State: `rc11_published_repo_clean_physical_acceptance_pending`
 
-The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130. Protected Production Release run 36140901059 then published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 to the private update channel and GitHub prerelease. Stable/main promotion is intentionally pending physical Galaxy S24 Ultra acceptance of this new candidate. The initial safe cleanup removed fully merged branch tips; a final PR-aware pass is staged to also remove existing heads of actually merged PRs, including squash merges, while preserving permanent branches, open-PR heads, branches without merged-PR evidence and divergent/unmerged work.
+The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130, and protected run 36140901059 published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup is complete to the safe destructive boundary: the original fully-merged-tip pass succeeded, then PR-aware cleanup run 36149961571 removed 62 additional historical merged-PR branches, leaving 33 remote branches consisting of permanent branches or branches without merged-PR evidence. Stable/main promotion remains intentionally blocked only on physical Galaxy S24 Ultra acceptance of rc11.
 
 ## Current production candidate
 
@@ -23,8 +23,7 @@ Production-signed rc11 / versionCode 10010 was published from exact validated PR
 
 1. Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
 2. Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
-3. Run the final PR-aware repository cleanup that removes fully merged tips and existing heads of merged PRs while preserving permanent branches, open-PR heads, branches without merged-PR evidence and divergent/unmerged work.
-4. After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish any remaining non-destructive repository cleanup.
+3. After physical acceptance, reconcile the final acceptance evidence, promote the accepted develop baseline through draft PR #135 to main, and close issue #129.
 
 ## Non-negotiable constraints
 
