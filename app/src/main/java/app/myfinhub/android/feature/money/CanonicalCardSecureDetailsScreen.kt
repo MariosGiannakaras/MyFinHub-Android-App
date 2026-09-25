@@ -278,7 +278,7 @@ private fun SecureValueRow(
         Text(
             value ?: emptyLabel,
             modifier = Modifier.weight(1f).clearAndSetSemantics {
-                contentDescription = if (value == null) "$label. $emptyLabel" else "$label. Προστατευμένη τιμή αποκαλύφθηκε."
+                contentDescription = if (value == null) "$label. $emptyLabel" else "$label. Πλήρης τιμή εμφανίζεται."
             },
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,

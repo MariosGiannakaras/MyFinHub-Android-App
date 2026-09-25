@@ -199,9 +199,9 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Αριθμός. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Λήξη. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("CVV. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Αριθμός. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Λήξη. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("CVV. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
         assertTrue(
             runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
         )
