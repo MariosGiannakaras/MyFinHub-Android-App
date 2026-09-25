@@ -60,7 +60,7 @@ class TopLevelParityTest {
             .assertIsDisplayed()
             .performClick()
         composeRule.onNodeWithText(
-            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
+            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
         ).assertIsDisplayed()
         assertTrue(
             "Card details must not expose a reveal gate",
