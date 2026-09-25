@@ -44,39 +44,40 @@ jobs:
             return 1
           }
 
-          readarray -t allowlist <<'BRANCHES'
-android/owner-ui-home-slice-b
-android/phase6-test-build-6010
-android/rc3-redesign-release-source
-android/rc4-redesign-pass2-release-source
-android/rc5-redesign-pass3-release-source
-android/rc6-full-reaudit-release-source
-android/rc6-owner-feedback-fixes
-android/rc6-post-publication-tracking
-android/rc7-corrected-release-source
-android/rc7-owner-home-ui-correction
-android/rc7-owner-ui-ux-home
-android/uiux-phase6-test-6011
-automation/s2-checkpoint-sync
-automation/s3-fix-review-batch
-automation/s4-tracking-close-20260913
-automation/s4-tracking-sync
-automation/s7-completion-sync-20260914
-automation/s7-plan-debts-20260914
-automation/s8-analysis-20260914
-automation/s8-analysis-20260915
-automation/s9-settings-auth-20260915
-checkpoint/phase1-trackers
-feat/124-synced-card-details
-feature/canonical-data-sync
-feature/frontend-utilities-parity
-feature/mobile-core-flows
-feature/performance-release-hardening
-__invalid_unused
-__noop_invalid
-chore/final-obsolete-branch-prune
-chore/remove-final-cleanup-workflow
-BRANCHES
+          allowlist=(
+            "android/owner-ui-home-slice-b"
+            "android/phase6-test-build-6010"
+            "android/rc3-redesign-release-source"
+            "android/rc4-redesign-pass2-release-source"
+            "android/rc5-redesign-pass3-release-source"
+            "android/rc6-full-reaudit-release-source"
+            "android/rc6-owner-feedback-fixes"
+            "android/rc6-post-publication-tracking"
+            "android/rc7-corrected-release-source"
+            "android/rc7-owner-home-ui-correction"
+            "android/rc7-owner-ui-ux-home"
+            "android/uiux-phase6-test-6011"
+            "automation/s2-checkpoint-sync"
+            "automation/s3-fix-review-batch"
+            "automation/s4-tracking-close-20260913"
+            "automation/s4-tracking-sync"
+            "automation/s7-completion-sync-20260914"
+            "automation/s7-plan-debts-20260914"
+            "automation/s8-analysis-20260914"
+            "automation/s8-analysis-20260915"
+            "automation/s9-settings-auth-20260915"
+            "checkpoint/phase1-trackers"
+            "feat/124-synced-card-details"
+            "feature/canonical-data-sync"
+            "feature/frontend-utilities-parity"
+            "feature/mobile-core-flows"
+            "feature/performance-release-hardening"
+            "__invalid_unused"
+            "__noop_invalid"
+            "chore/final-obsolete-branch-prune"
+            "chore/fix-final-obsolete-prune"
+            "chore/remove-final-cleanup-workflow"
+          )
 
           deleted=0
           missing=0
@@ -84,8 +85,6 @@ BRANCHES
           failed=0
 
           for branch in "${allowlist[@]}"; do
-            [[ -z "$branch" ]] && continue
-
             case "$branch" in
               main|develop|extensions|android/protected-release-develop-trigger)
                 echo "::error::Permanent branch appeared in deletion allowlist: $branch"
