@@ -84,7 +84,6 @@ private fun CardSecureFixture(darkTheme: Boolean) {
             onReveal = {},
             onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
             onSaveCvv = { it.fill('\u0000') },
-            onDeleteCvv = {},
             onBack = {},
         )
     }
