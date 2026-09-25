@@ -7,7 +7,7 @@ Active tracker: issue #129 — **Publish post-card-vault rc11 and promote stable
 
 - [ ] Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
 - [ ] Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
-- [ ] Run the one-time repository cleanup that deletes only branches fully merged into develop while preserving permanent, open-PR and divergent/unmerged branches.
+- [ ] Run the final PR-aware repository cleanup that removes fully merged tips and existing heads of merged PRs while preserving permanent branches, open-PR heads, branches without merged-PR evidence and divergent/unmerged work.
 - [ ] After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish any remaining non-destructive repository cleanup.
 
 ## Completed foundations
