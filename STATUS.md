@@ -8,10 +8,10 @@
 
 ## Active workstream
 
-Issue #126 — **Use shared server card vault for PAN/expiry/CVV**
-State: `completed_merged`
+Issue #129 — **Publish post-card-vault rc11 and promote stable baseline**
+State: `release_source_validation`
 
-The synchronized card-secret workstream is complete and merged into develop. Android now uses the same owner+AAL2 encrypted server card vault as web and Windows for PAN, expiry and CVV; legacy Android Keystore card-secret stores remain migration-only and are cleared only after successful server synchronization. Central backend support merged through MyFinHub PR #408 and Android support merged through PR #127 after Project Tracking, Android CI and Android UI Quality passed on the exact final head. No stable/main promotion or production APK publication was performed.
+The synchronized card-secret implementation is complete on develop and its backend dependency is merged. This checkpoint creates a no-product-behavior-change Android release source for 1.0.0-rc11 so the exact post-card-vault source can pass Project Tracking, Android CI and Android UI Quality before protected production publication. main promotion remains blocked on physical Galaxy S24 Ultra acceptance of the new signed candidate.
 
 ## Current production candidate
 
@@ -21,8 +21,9 @@ Production-signed rc10 / versionCode 10009 was published from validated PR #122 
 
 ## Next
 
-1. Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.
-2. Keep stable/main promotion and production APK publication as a separate explicit release decision.
+1. Require exact-head Project Tracking, Android CI and Android UI Quality on the rc11 release-source PR.
+2. Publish production-signed 1.0.0-rc11 from the still-open validated Android release-source PR through the guarded production workflow.
+3. After physical Galaxy S24 Ultra acceptance, reconcile tracking, promote the accepted baseline to main, then clean obsolete merged/superseded branches.
 
 ## Non-negotiable constraints
 
@@ -44,6 +45,7 @@ Production-signed rc10 / versionCode 10009 was published from validated PR #122 
 Canonical source: `tracking/android-project-state.json`.
 
 Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks.
+
 
 ## Android redesign progress
 
