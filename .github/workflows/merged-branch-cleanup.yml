@@ -1,0 +1,88 @@
+name: One-time merged branch cleanup
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - '.github/workflows/merged-branch-cleanup.yml'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: merged-branch-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all remote branches
+        run: git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
+
+      - name: Delete only fully merged historical branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t open_heads < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" --jq '.[].head.ref'
+          )
+
+          is_open_pr_head() {
+            local candidate="$1"
+            local head
+            for head in "${open_heads[@]}"; do
+              [[ "$candidate" == "$head" ]] && return 0
+            done
+            return 1
+          }
+
+          deleted=0
+          skipped=0
+          failed=0
+
+          while IFS= read -r remote_ref; do
+            branch="${remote_ref#origin/}"
+            [[ -z "$branch" || "$branch" == *" -> "* ]] && continue
+
+            case "$branch" in
+              main|develop|extensions|android/protected-release-develop-trigger)
+                echo "Preserve permanent branch: $branch"
+                ((skipped+=1))
+                continue
+                ;;
+            esac
+
+            if is_open_pr_head "$branch"; then
+              echo "Preserve open-PR branch: $branch"
+              ((skipped+=1))
+              continue
+            fi
+
+            echo "Delete fully merged branch: $branch"
+            if git push origin --delete "$branch"; then
+              ((deleted+=1))
+            else
+              echo "::warning::Could not delete $branch; leaving it in place."
+              ((failed+=1))
+            fi
+          done < <(git branch -r --merged origin/develop --format='%(refname:short)' | sort)
+
+          {
+            echo "## Merged branch cleanup"
+            echo "- deleted: $deleted"
+            echo "- preserved/skipped: $skipped"
+            echo "- deletion failures: $failed"
+            echo
+            echo "Only branches whose remote tip was fully merged into develop were eligible."
+          } >> "$GITHUB_STEP_SUMMARY"
