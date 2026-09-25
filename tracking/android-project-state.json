@@ -11,13 +11,12 @@
   "active_workstream": {
     "issue": 129,
     "title": "Publish post-card-vault rc11 and promote stable baseline",
-    "status": "rc11_published_physical_acceptance_pending",
-    "summary": "The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130. Protected Production Release run 36140901059 then published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 to the private update channel and GitHub prerelease. Stable/main promotion is intentionally pending physical Galaxy S24 Ultra acceptance of this new candidate. The initial safe cleanup removed fully merged branch tips; a final PR-aware pass is staged to also remove existing heads of actually merged PRs, including squash merges, while preserving permanent branches, open-PR heads, branches without merged-PR evidence and divergent/unmerged work.",
+    "status": "rc11_published_repo_clean_physical_acceptance_pending",
+    "summary": "The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130, and protected run 36140901059 published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup is complete to the safe destructive boundary: the original fully-merged-tip pass succeeded, then PR-aware cleanup run 36149961571 removed 62 additional historical merged-PR branches, leaving 33 remote branches consisting of permanent branches or branches without merged-PR evidence. Stable/main promotion remains intentionally blocked only on physical Galaxy S24 Ultra acceptance of rc11.",
     "next": [
       "Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.",
       "Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.",
-      "Run the final PR-aware repository cleanup that removes fully merged tips and existing heads of merged PRs while preserving permanent branches, open-PR heads, branches without merged-PR evidence and divergent/unmerged work.",
-      "After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish any remaining non-destructive repository cleanup."
+      "After physical acceptance, reconcile the final acceptance evidence, promote the accepted develop baseline through draft PR #135 to main, and close issue #129."
     ]
   },
   "latest_production_candidate": {
@@ -59,7 +58,8 @@
     "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease",
     "Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance",
     "Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #407/#408)",
-    "Protected production-signed rc11 / versionCode 10010 publication from exact validated PR #130 source"
+    "Protected production-signed rc11 / versionCode 10010 publication from exact validated PR #130 source",
+    "Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved"
   ],
   "constraints": [
     "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",
