@@ -1,0 +1,201 @@
+package app.myfinhub.android.feature.utilities
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import app.myfinhub.android.BuildConfig
+import app.myfinhub.android.core.update.LocalUpdateController
+import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
+import app.myfinhub.android.designsystem.MyFinHubIcons
+import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
+import app.myfinhub.android.designsystem.MyFinHubScreenHeader
+import app.myfinhub.android.designsystem.MyFinHubSectionCard
+import app.myfinhub.android.designsystem.MyFinHubSpacing
+
+/** Production settings expose only controls that change real application behavior. */
+@Composable
+fun ProductionSettingsScreen(
+    @Suppress("UNUSED_PARAMETER") state: FrontendUtilitiesUiState,
+    @Suppress("UNUSED_PARAMETER") onAction: (FrontendUtilitiesAction) -> Unit,
+    onBack: () -> Unit,
+    diagnostics: AppDiagnosticsSnapshot? = null,
+    noticeHistoryCount: Int = 0,
+    onOpenNoticeHistory: () -> Unit = {},
+    onOpenDiagnostics: () -> Unit = {},
+    onLogout: (() -> Unit)? = null,
+    @Suppress("UNUSED_PARAMETER") diagnosticsInitiallyExpanded: Boolean = false,
+) {
+    val context = LocalContext.current
+    val updateController = LocalUpdateController.current
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
+    var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            MyFinHubScreenHeader(
+                title = "Ρυθμίσεις",
+                subtitle = "Εμφάνιση, απόρρητο και λογαριασμός",
+                navigation = { MyFinHubBackButton(onBack) },
+            )
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
+        ) {
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_preferences")) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text("Εμφάνιση", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    val appearanceOption: @Composable (AppAppearance, Modifier) -> Unit = { option, modifier ->
+                        FilterChip(
+                            selected = appearance == option,
+                            onClick = {
+                                appearance = option
+                                AppAppearancePreference.write(context, option)
+                            },
+                            label = { Text(option.label) },
+                            modifier = modifier,
+                        )
+                    }
+                    if (largeFont) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            AppAppearance.entries.forEach { appearanceOption(it, Modifier.fillMaxWidth()) }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        ) {
+                            AppAppearance.entries.forEach { appearanceOption(it, Modifier.weight(1f)) }
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Εμφάνιση ποσών", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                if (amountsVisible) {
+                                    "Τα οικονομικά ποσά εμφανίζονται σε όλες τις βασικές οθόνες."
+                                } else {
+                                    "Τα οικονομικά ποσά καλύπτονται όπου υποστηρίζεται η καθολική απόκρυψη."
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = amountsVisible,
+                            onCheckedChange = { visible ->
+                                amountsVisible = visible
+                                AmountVisibilityPreference.write(context, visible)
+                            },
+                            modifier = Modifier.semantics { contentDescription = "Εμφάνιση ποσών" },
+                        )
+                    }
+                }
+            }
+
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_privacy")) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    Text("Απόρρητο και ασφάλεια", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Τα ευαίσθητα στοιχεία κάρτας παραμένουν κρυμμένα μέχρι να τα ζητήσεις και προστατεύονται από την υπάρχουσα ασφαλή συνεδρία της εφαρμογής.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    MyFinHubOutlinedAction(
+                        label = if (noticeHistoryCount == 0) "Ιστορικό ειδοποιήσεων" else "Ιστορικό ειδοποιήσεων · $noticeHistoryCount",
+                        onClick = onOpenNoticeHistory,
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = MyFinHubIcons.Activity,
+                    )
+                }
+            }
+
+            if (BuildConfig.SELF_UPDATE_ENABLED) {
+                UpdateSettingsCard(
+                    currentVersionName = BuildConfig.VERSION_NAME,
+                    state = updateController.state,
+                    onCheck = updateController.check,
+                    onDownload = updateController.download,
+                    onInstall = updateController.install,
+                    onOpenInstallPermission = updateController.openInstallPermission,
+                    onAuthRecovery = onLogout ?: {},
+                )
+            }
+
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_about")) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    Text("Σχετικά", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "MyFinHub ${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    diagnostics?.let {
+                        MyFinHubOutlinedAction(
+                            label = "Διαγνωστικά και υποστήριξη",
+                            onClick = onOpenDiagnostics,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+
+            onLogout?.let { logout ->
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_account")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text("Λογαριασμός", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Η αποσύνδεση κλείνει την ασφαλή συνεδρία σε αυτή τη συσκευή. Τα συγχρονισμένα δεδομένα του λογαριασμού δεν διαγράφονται.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        MyFinHubOutlinedAction(
+                            label = "Αποσύνδεση",
+                            onClick = logout,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,119 @@
+# MyFinHub Android repository instructions
+
+> **Mandatory start:** Read permanent issue #27, this file, `tracking/android-project-state.json`, and generated `docs/CURRENT_HANDOFF.md`. Inspect live `develop`, the active Issue/PR and relevant checks. Read only the documents and direct dependencies needed by the active workstream. Do not repeat the completed full-product audit/redesign without new evidence.
+
+## Active Android workstream boundary and continuity
+
+- The owner authorized repository cleanup and implementation of the September 2026 Android redesign. Earlier audit-only restrictions and old minimum-polish/final-completion claims do not govern this workstream.
+- The completed September redesign was Android-only. Post-redesign cross-repository backend/API work is allowed only when the owner explicitly requests it in the current conversation; the 2026-09-25 synchronized card-secret task is an explicit owner-approved exception. Keep any shared change minimal and isolated.
+- `docs/UI_2026_REDESIGN_HANDOFF.md` is the current design specification. Older design documents and rc7 correction plans are historical evidence, not competing visual acceptance contracts. Preserve security, canonical data and release invariants.
+- Edit current progress only in `tracking/android-project-state.json`; generate STATUS.md, TODO.md and CURRENT_HANDOFF.md with `python3 scripts/render_project_tracking.py`. Keep task IDs stable and attach validation evidence to completed subtasks.
+- Report redesign tasks x/10 and subtasks x/40 separately from historical overall project progress 4/6. Preparation is a separate 4-step checkpoint; do not count documents as implemented Android screens. Identify unmerged, untested and physical-acceptance-pending work explicitly.
+- Finish one coherent slice at a time. Batch related component, screen, regression and tracking changes into a reviewable checkpoint. Run appropriate local/targeted checks first; use broader validation/full CI once the batch is ready. Collect findings from the current run before publishing the next correction batch. Avoid individual-file pushes and metadata-only commits that unnecessarily restart Android pipelines. Never weaken assertions, bypass required gates or report unexecuted checks as passed. Publish each coherent checkpoint with current tracking and an exact next action in its PR to develop.
+- A new chat resumes the recorded branch/PR and first unfinished subtask, not a fresh audit. Update the specification only for a concrete implementation discovery or owner decision, recording the reason.
+- Preserve unrelated changes. Remove a legacy component only when its production route has a tested replacement and remaining references/previews are accounted for. Keep screenshot evidence until a replacement has been rendered and visually reviewed.
+- Existing signing authorization is not an instruction to publish during routine redesign slices. Keep package/signing identity and installed-data compatibility; main promotion still requires explicit physical owner acceptance.
+
+## Mission
+
+Build a native Android client for MyFinHub that preserves the product's finance semantics and security boundaries while providing a mobile-first Android experience. The app must not be a WebView, PWA shell, browser launcher, or thin wrapper around the web UI.
+
+This repository is the primary home of the Android workstream. The Android workstream owns end-to-end Android architecture, app implementation, mobile UI/UX, authentication/session persistence, biometric/PIN unlock, API/backend integration required by Android, Android-specific security, Android tests/CI, synchronization with the shared backend, and final APK build/signing/distribution when release work is explicitly in scope.
+
+## Source of truth
+
+The existing `MariosGiannakaras/MyFinHub` repository owns the canonical backend, Supabase schema/migrations, finance domain semantics, authorization model, validation rules, optimistic revision behavior, backups/audit behavior, and server-side card-secret vault. Do not duplicate or silently reinterpret these contracts in Android.
+
+Another workstream owns general web/desktop implementation. Android work must not take over that scope.
+
+When Android work depends on a backend change, inspect the current MyFinHub implementation and documentation first. Make only the minimum Android-required change and keep it isolated from unrelated web/desktop work.
+
+## Cross-repository boundary for `MariosGiannakaras/MyFinHub`
+
+Any Android-required change in the main MyFinHub repository must follow all of these rules:
+
+- Never commit Android integration changes directly to `main`, `develop`, or a branch owned by another workstream.
+- Create and use an Android-owned branch with an explicit prefix such as `android/integration-*`, `android/auth-*`, `android/api-*`, or another equally clear Android-specific name.
+- Do not refactor, clean up, reorganize, rename, or modernize unrelated web/desktop code, workflows, releases, documentation, architecture, or dependencies.
+- Do not close, rewrite, or repurpose Issues/PRs owned by other workstreams unless it is strictly required for Android integration and the reason is documented.
+- Keep every main-repo delta to the minimum necessary for the Android feature being implemented.
+- Commits, Issues, PR titles/bodies, and relevant documentation must identify the change as originating from the Android workstream.
+- Any cross-repo PR must target the repository's normal integration path but must remain an isolated Android-owned PR until the owning web/desktop workstream decides how/when to integrate it.
+
+Every Android-originated main-repo change must explicitly record:
+
+1. **Why required** — why Android cannot implement the feature correctly without this main-repo change.
+2. **Exact change** — the minimal backend/shared contract delta.
+3. **Android feature served** — the concrete Android screen/flow/capability that depends on it.
+4. **Web/desktop impact** — whether behavior changes for web/desktop; expected default is no behavior change unless unavoidable and documented.
+5. **Handoff note** — what the web/desktop workstream must know before integration/promotion.
+
+If an Android requirement can be satisfied entirely inside `MyFinHub-Android-App`, do not modify `MyFinHub`.
+
+## Android baseline
+
+- Kotlin and Jetpack Compose.
+- Material 3 and Material 3 Adaptive.
+- Compose-first, single-activity navigation unless a documented Android platform requirement justifies otherwise.
+- Navigation must support Android predictive back and preserve top-level destination state.
+- Layout decisions use window size/posture, not hard-coded phone/tablet device labels.
+- Do not lock orientation or assume one aspect ratio.
+- UI state follows unidirectional data flow with lifecycle-aware ViewModels/StateFlow.
+- Prefer platform/Jetpack components over custom substitutes when they provide equivalent behavior and accessibility semantics.
+
+## Mobile design rules
+
+- Do not port desktop layout geometry. Port user goals, information hierarchy, finance semantics, and workflows.
+- Compact layouts use progressive disclosure, list/detail navigation, bottom sheets, dedicated edit screens, and contextual actions instead of desktop tables, multi-column forms, hover affordances, or dense toolbars.
+- Primary compact navigation must remain within Material guidance (normally 3-5 stable top-level destinations).
+- One primary quick action may use a FAB when contextually justified; avoid competing global FABs.
+- Never make a destructive or essential operation gesture-only. Gestures may accelerate an action but must have a visible/accessibility equivalent.
+- Interactive touch targets are at least 48dp.
+- Support system font scaling, TalkBack semantics/traversal, sufficient contrast, reduced motion where applicable, keyboard/focus behavior, and non-touch input on larger devices.
+- Sensitive values must not be exposed through screenshots, logs, accessibility labels, analytics, test fixtures, or preview/golden data.
+
+## UI review/output rule
+
+- Internal bootstrap shells, test harnesses, placeholder screens, infrastructure renders, and synthetic proof-of-render screenshots are validation evidence, not user-facing UI review material.
+- Show the user screenshots only after a real application screen or coherent user flow has been implemented to a reviewable state.
+- When a real UI checkpoint is ready, publish/render the actual Compose UI and present those images for review before treating the visual direction as settled.
+- Screenshot tests may still use synthetic data, but the layout/component hierarchy must be the real application UI rather than a temporary bootstrap placeholder.
+
+## Security invariants
+
+- No service-role/secret Supabase key in the APK.
+- No `CARD_VAULT_KEY` in the APK or repository.
+- Finance mutations continue through the canonical MyFinHub API/security boundary unless an explicit architecture decision replaces that boundary with equivalent or stronger enforcement.
+- Native bearer-session support must preserve valid Supabase session + configured owner UID + AAL2 + RLS/RPC + revision/validation requirements.
+- Web/desktop cookie and same-origin protection must not be weakened to support Android.
+- Durable FinanceData remains server-side by default; do not introduce a second canonical Room/SQLite finance database.
+- PAN/expiry/CVV use the shared owner+AAL2 server-side encrypted card vault. Legacy Android Keystore card-detail/CVV stores are migration-only and must be cleared after a successful server sync; they are not the product source of truth.
+- Never commit real finance data, credentials, JWTs, refresh tokens, PAN/expiry/CVV, vault keys, signing keystores/passwords, or APK/AAB binaries to Git history. Approved signed release binaries belong only in the explicitly authorized release/distribution channels.
+
+## GitHub workflow
+
+- Work is tracked by Issues.
+- Use short-lived branches from `develop` and PR back into `develop` for Android-repository implementation/research batches.
+- Production/release promotion is deliberate and traceable from `develop` to `main`.
+- Keep durable decisions in `docs/`; keep changing progress in `STATUS.md`, `TODO.md`, Issues, PRs, and commits.
+- Public source is intentional. At an explicit owner-authorized release checkpoint, protected workflows may publish approved production-signed APK/AAB/checksum artifacts to GitHub Releases and the documented private update channel. Signing keys, passwords, tokens and other secrets must never be exposed as artifacts, release assets, logs or repository content.
+- Routine development does not need signed APK production. Final APK/build/signing/distribution work happens only at an explicit release checkpoint.
+- Google Play-distributed builds must use Google Play's update mechanism and must not request MyFinHub's direct package-install/self-update permissions.
+- Pin third-party GitHub Actions by immutable commit SHA where practical. Prefer first-party GitHub/Gradle/Android tooling and least-privilege `GITHUB_TOKEN` permissions.
+
+## Validation order
+
+Run the narrowest relevant validation first, then broaden only as needed:
+
+1. Kotlin/unit tests for changed domain/client logic.
+2. Compose component/feature tests and screenshot validation.
+3. Android Lint/static checks.
+4. Instrumented Compose tests on build-managed devices for affected screen classes.
+5. Full debug/release assembly as appropriate.
+6. Release-path checks when explicitly requested: signing certificate fingerprint, APK verification, SHA-256, install/upgrade smoke, critical user journeys, and distribution.
+
+Performance conclusions must come from release/benchmark builds. Use Macrobenchmark/Baseline Profiles for critical journeys rather than debug timings.
+
+## Scope discipline
+
+Do not invent new finance semantics while adapting the UI. Preserve unrelated user changes. Avoid broad cleanup, speculative features, whole-repository rewrites, or premature abstraction. Stop when the acceptance criteria for the tracked Issue/PR pass.

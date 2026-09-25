@@ -1,0 +1,629 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-09-25",
+  "overall_progress": {
+    "completed": 4,
+    "total": 6
+  },
+  "supported_device": "Samsung Galaxy S24 Ultra",
+  "authoritative_branch": "develop",
+  "release_branch": "main",
+  "active_workstream": {
+    "issue": 129,
+    "title": "Publish post-card-vault rc11 and promote stable baseline",
+    "status": "rc11_published_repo_clean_physical_acceptance_pending",
+    "summary": "The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130, and protected run 36140901059 published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup is complete to the safe destructive boundary: the original fully-merged-tip pass succeeded, then PR-aware cleanup run 36149961571 removed 62 additional historical merged-PR branches, leaving 33 remote branches consisting of permanent branches or branches without merged-PR evidence. Stable/main promotion remains intentionally blocked only on physical Galaxy S24 Ultra acceptance of rc11.",
+    "next": [
+      "Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.",
+      "Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.",
+      "After physical acceptance, reconcile the final acceptance evidence, promote the accepted develop baseline through draft PR #135 to main, and close issue #129."
+    ]
+  },
+  "latest_production_candidate": {
+    "version_name": "1.0.0-rc11",
+    "version_code": 10010,
+    "status": "protected_published_physical_acceptance_pending",
+    "source_pr": 130,
+    "notes": "Production-signed rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 through protected run 36140901059. Request gate, source gate, publisher tests, exact-source production-channel tests, direct APK and Play AAB build, enrolled-signer verification, signing, upload byte re-read, checksums and immutable GitHub prerelease publication all passed. GitHub release v1.0.0-rc11 contains the signed direct APK, Play AAB, release metadata and SHA-256 checksums. Physical Galaxy S24 Ultra install/acceptance is still required before stable/main promotion."
+  },
+  "completed": [
+    "Phase 6 physical acceptance and production signing enrollment",
+    "Production same-signer rc1 -> rc2 continuity",
+    "General offline-first canonical mutation queue (#56/#57)",
+    "Post-Phase-6 redesign pass 1 (#74)",
+    "Post-Phase-6 Activity/navigation pass 2 (#75)",
+    "Protected private rc4 publication",
+    "Memory-independent, CI-enforced repository tracking (#79/#80)",
+    "Post-Phase-6 production redesign pass 3 hosted validation and merge (#81)",
+    "Exact post-pass3 rc5 release-source validation and protected private publication (#82)",
+    "Full-product re-audit information architecture and personal real-render visual validation (#83)",
+    "Exact full-re-audit rc6 release-source validation and protected same-signer private publication (#84)",
+    "Owner-rejected rc6 correction implementation, visual validation, hosted gates and merge (#88)",
+    "Final S24/signing handoff documentation refresh (#90)",
+    "Protected public production signer fingerprint utility (#91)",
+    "Android Developer Console Limited distribution package/signer/device authorization (owner-reported)",
+    "Final protected release preparation and exact-head hosted validation (#95)",
+    "Exact corrected rc7 release-source hosted validation (#97)",
+    "Protected rc7 AAB signer-verification correction and hosted validation (#98)",
+    "Protected same-signer rc7 publication to private update channel and GitHub prerelease",
+    "rc7 in-place S24 installation with same-signer update continuity and existing session continuity",
+    "Owner correction Slice A — Quick Entry/mobile pickers, immediate-online delivery, offline-only pending/Undo and motion foundations (#100)",
+    "Owner correction Slice B — Home compact snapshot, attention hierarchy, provider-aware accounts, interpretable 7-day trends and hosted validation (#103)",
+    "Owner correction Slice C — Activity ledger density, provider-aware account filtering, explicit transfer routing/signs and owner-audited screenshot validation (#104)",
+    "Owner correction Slice D — trustworthy Money/net-worth composition, dense account transfers, compact card stack, accessible explicit card deletion and owner-audited screenshot validation (#105)",
+    "Owner correction Slice E — explainable 30-day Plan forecast, urgency-grouped obligations, conservative duplicate reconciliation, Greek dates, neutral transfer reconciliation, useful monthly-budget progress and owner-audited screenshot validation (#106)",
+    "Owner correction Slice F — equivalent-period Insights comparisons, explicit finance metrics, partial-month semantics, category percentages/drill-down, `Ανάλυση` navigation and owner-audited screenshot/S24 validation (#107)",
+    "Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)",
+    "Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)",
+    "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease",
+    "Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance",
+    "Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #407/#408)",
+    "Protected production-signed rc11 / versionCode 10010 publication from exact validated PR #130 source",
+    "Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved"
+  ],
+  "constraints": [
+    "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",
+    "main is release-only; promotion from develop remains deliberate and must follow the validated release path.",
+    "Use only the enrolled long-lived production signer; never create, rotate, expose or commit production signing material.",
+    "Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI/reference environment.",
+    "For UI changes use fresh real rendered Compose screenshots, personally inspect them, and replace stale canonical references only after validation.",
+    "Do not infer final product acceptance from hosted gates when owner physical feedback has rejected the currently installed candidate.",
+    "Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.",
+    "The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.",
+    "A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.",
+    "docs/UI_2026_REDESIGN_HANDOFF.md is the active redesign specification. Earlier design and rc7 correction plans are historical context, not competing visual acceptance contracts.",
+    "Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.",
+    "Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation."
+  ],
+  "repo_tracking": {
+    "source_of_truth": "tracking/android-project-state.json",
+    "generated_files": [
+      "STATUS.md",
+      "TODO.md",
+      "docs/CURRENT_HANDOFF.md"
+    ],
+    "policy": "Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks."
+  },
+  "current_redesign_pass": {
+    "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
+    "branch": "develop",
+    "pr": 122,
+    "current_slice": "Complete",
+    "checkpoint": "s10_complete_merged_to_develop",
+    "blockers": [],
+    "next_action": "Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.",
+    "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
+    "preparation": [
+      {
+        "id": "P1",
+        "title": "Inspect live repository, instructions and existing tracking",
+        "status": "completed",
+        "evidence": [
+          "develop 449ccb7adc3add2812c89f5bd868760b9c900641; no open PRs; active issues #27/#73; latest PR #110 merged; tracking renderer and workflow inspected."
+        ]
+      },
+      {
+        "id": "P2",
+        "title": "Reconcile durable instructions and old design authority",
+        "status": "completed",
+        "evidence": [
+          "AGENTS.md now scopes Android-only work and minimal resume reads; old documents retained as historical references through the master specification."
+        ]
+      },
+      {
+        "id": "P3",
+        "title": "Persist design decisions and ten-slice implementation specification",
+        "status": "completed",
+        "evidence": [
+          "docs/UI_2026_REDESIGN_HANDOFF.md replaces obsolete completion claims with screen specs, tokens, dependencies and acceptance criteria."
+        ]
+      },
+      {
+        "id": "P4",
+        "title": "Validate counters and generated tracking",
+        "status": "completed",
+        "evidence": [
+          "python3 -m unittest discover -s scripts -p test_project_tracking.py: 7/7 passed",
+          "python3 scripts/render_project_tracking.py --check: passed",
+          "git diff --check: passed; no Android app or shared-backend files changed",
+          "Preparation published in PR #111; permanent #27 and active #73 updated to resume from canonical state.",
+          "GitHub Project Tracking verify passed on 70ba9574b171eb71ade5644e3c2e85746fa6e184; published Git tree exactly matched locally validated tree ff857d98e7da6a71b6ed8176af96024c7f43523f. Later metadata updates must pass their own current-head check."
+        ]
+      }
+    ]
+  },
+  "redesign_tasks": [
+    {
+      "id": "S1",
+      "title": "Financial truth and capability",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S1.1",
+          "title": "Projection completeness and retained debt",
+          "status": "completed",
+          "evidence": [
+            "PR #112 implementation head a18d805924d5024b4b83c810a5ae37cbee832c43: Android CI unit/instrumentation-compile/lint/debug-assembly step passed; screenshot regression and S24-target instrumentation passed.",
+            "Regression fixtures verify >20 pending records, horizon/paid filtering, independent same-title obligations, card deactivation, retained history, partial repayment, future entries and snapshot debt without visible cards.",
+            "Local Gradle could not download its distribution; Kotlin validation was performed by hosted CI, not locally.",
+            "All four implementation-head checks completed successfully: Android CI (including optimized release and bundle policy audits), Project Tracking, screenshot regression, S24-target instrumentation. Head a18d805924d5024b4b83c810a5ae37cbee832c43."
+          ]
+        },
+        {
+          "id": "S1.2",
+          "title": "Exact filter and drill-down scope",
+          "status": "completed",
+          "evidence": [
+            "PR #113 final head f598b0e7d23239bdd2477f94d9f60e5a98bf17b4 passed Android CI, Project Tracking and Android UI Quality, then merged to develop as fb1d638ddb1ee6fc512b5b6743a8478ec464ac55.",
+            "Exact category/date scope uses canonical signed contributions for split/refund parity while Activity global filters survive refresh and the isolated Insights drill-down preserves its origin stack."
+          ]
+        },
+        {
+          "id": "S1.3",
+          "title": "Verified production capability map",
+          "status": "completed",
+          "evidence": [
+            "Read production MyFinHubRoot/MyFinHubApp branches and FinanceProductViewModel mutation handlers plus CardSecretViewModel secure operations.",
+            "Persisted supported/absent client operation mapping and per-slice handling in docs/UI_2026_REDESIGN_HANDOFF.md (S1.3). No server capability or implementation claims inferred from dormant editors."
+          ]
+        },
+        {
+          "id": "S1.4",
+          "title": "Regression verification",
+          "status": "completed",
+          "evidence": [
+            "PR #113 reviewed the three new production category references in light, dark and 150% font before committing them; 84 pre-existing references remained byte-identical in the initial render.",
+            "Android UI Quality run 34643039915 passed both screenshot regression and S24-target instrumentation on final PR #113 head f598b0e7d23239bdd2477f94d9f60e5a98bf17b4."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "Foundation and navigation",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S2.1",
+          "title": "Semantic tokens and shared rows",
+          "status": "completed",
+          "evidence": [
+            "PR #114 applies the documented semantic light/dark palette, typography and geometry contracts and replaces the shared finance card-row treatment with a flat 64dp-minimum row that stacks trailing amounts at large font scale.",
+            "Android UI Quality rendered all 87 production screenshot candidates after the global token change; artifact 10301658408 (sha256 6a133bcb2f7c635b5749e127f53b3bb3713156d0ad2ad7afa30f2796bc490354) was personally reviewed before the references were accepted.",
+            "Final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed Android CI run 34707117202, Project Tracking run 34707117240 and Android UI Quality run 34707117209, then merged to develop as c85106146e0ca3eb60415d4338ba3e8ca0a5d638."
+          ]
+        },
+        {
+          "id": "S2.2",
+          "title": "Four top-level destinations",
+          "status": "completed",
+          "evidence": [
+            "Permanent navigation is reduced to four labelled roots: Αρχική, Κινήσεις, Πορτοφόλι and Πλάνο. Ανάλυση is a sibling of Ιστορικό inside the retained Κινήσεις stack, while secondary/detail/editor routes hide global navigation.",
+            "Top-level stack policy keeps each root back stack independently and returns an Insights category drill-down to the originating analysis surface.",
+            "Final-head S24-target instrumentation passed on Android UI Quality run 34707117209 after inherited root-label coverage was updated for Πορτοφόλι."
+          ]
+        },
+        {
+          "id": "S2.3",
+          "title": "Editor Back and state preservation",
+          "status": "completed",
+          "evidence": [
+            "Quick Entry system/predictive Back and canonical card creation route through dirty-draft confirmation rather than bypassing editor rules; root switching preserves nested state.",
+            "Hosted validation exposed and corrected the MovementRootSurface receiver-scope import, an unavailable Compose test assertion, and inherited MoneyParityTest navigation coverage.",
+            "Final head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a passed unit tests, instrumentation compilation, lint/debug assembly, release/bundle policy checks and S24-target instrumentation."
+          ]
+        },
+        {
+          "id": "S2.4",
+          "title": "Accessibility and real-render verification",
+          "status": "completed",
+          "evidence": [
+            "Focused design-system/navigation/accessibility contracts cover touch geometry, contrast, four-root semantics, hidden secondary navigation and Back/origin behavior.",
+            "Reviewed production Home/Activity/Money/Quick Entry/Plan/Insights/Settings/auth references in light, dark and 150% show the intended global foundation; Activity filter density remains explicitly owned by S3.",
+            "Android UI Quality run 34707117209 passed both screenshot regression and S24-target instrumentation on final PR #114 head a66f5ebf7e89f0df2750ddf19c7623d6b8f03a2a; Android CI run 34707117202 and Project Tracking run 34707117240 also passed before merge."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "Activity",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S3.1",
+          "title": "Ledger, search and filter",
+          "status": "completed",
+          "evidence": [
+            "Branch android/redesign-s3-activity implements a flat date-grouped ledger with search, one filter sheet, active-count/removable scope summary, exact account/type/category/date filters, distinct true-empty/no-match recovery and isolated analytics drill-down scope.",
+            "Canonical reprojection retains query, account/type/category/date ledger filters across refresh instead of silently dropping S3 scope.",
+            "Final hardening models the exact shared-schema kind separately from broad finance tone, exposes each available canonical type in the filter sheet, distinguishes card purchase/payment, and normalizes Greek comma-decimal searches.",
+            "PR #115 implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f passed Android CI run 34732483567, Project Tracking run 34732483559 and Android UI Quality run 34732483554."
+          ]
+        },
+        {
+          "id": "S3.2",
+          "title": "Read transaction detail",
+          "status": "completed",
+          "evidence": [
+            "Transaction selection opens a read-first detail ordered by amount/type/status/date/account-or-route/category/subcategory/note, with linked card identity only when canonically available; global navigation stays hidden on the secondary route.",
+            "Account rows already opened the common detail; the final hardening batch also makes canonical card-ledger rows clickable by stable transaction ID and routes them into the same detail stack.",
+            "Android UI Quality run 34732483554 passed all 51 S24-target tests, including the canonical-card-ledger stable-ID detail navigation contract, on implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f."
+          ]
+        },
+        {
+          "id": "S3.3",
+          "title": "Supported edit and delete",
+          "status": "completed",
+          "evidence": [
+            "Editing is a dedicated full-screen route limited to verified date/note/category/subcategory mutation; amount/type/account remain read-only, pending rows cannot edit/delete, Save is sticky and exits only after observed durable/local projection success, and dirty Back confirms discard.",
+            "Delete is explicit under More, names the item, states that MyFinHub data/balances change and explicitly does not claim a bank reversal.",
+            "First hosted validation review found two durable-offline navigation edge cases: an accepted offline edit becomes pending before editor exit, and an accepted offline delete is represented by a pending tombstone. The fix lets only the initiating save/delete request observe that pending projection as durable local success and return to origin; pre-existing pending rows remain non-editable/non-deletable.",
+            "The final hardening batch differentiates pending addition/edit/deletion and limits category/subcategory controls to canonical kinds with a compatible verified taxonomy; split/transfer/payment-style rows keep unsupported fields read-only.",
+            "Android CI run 34732483567 passed unit tests, instrumentation compilation, lint, debug assembly, optimized release/AAB assembly and distribution policy checks on implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f."
+          ]
+        },
+        {
+          "id": "S3.4",
+          "title": "Activity verification",
+          "status": "completed",
+          "evidence": [
+            "Focused reducer/projection/navigation/device contracts and real-render previews cover filter scope, refresh preservation, read/detail/editor separation, hidden secondary navigation, delete wording, light/dark and 150% Activity states.",
+            "Android UI Quality run 34710603625 rendered 88 candidates. Exactly 11 intentional Activity/top-level Activity references differed or were new; artifact 10303516408 (sha256 5806d169b8c0147665b8c561707089a5f17837343365a879dd38c0a544089006) was personally reviewed before baseline adoption. Light/dark and 150% ledger/category/detail/editor/filter states showed no clipping or hierarchy defect requiring redesign.",
+            "The same first run compiled production and screenshot Kotlin successfully. S24 prebuild stopped only at ActivityS3NavigationTest.kt's unavailable assertDoesNotExist import; the assertion was replaced with a version-compatible semantics lookup.",
+            "PR #115 intermediate head 21bef5155783a3e0b15f17068a6f9c69c3c2e88b passed Android CI run 34731056564, Project Tracking run 34731056556 and Android UI Quality run 34731056578, including screenshot regression and 50/50 S24-target tests.",
+            "Hardening head a11a75a4fb9763facc05b2f44b4b20b66e3f913b passed Project Tracking run 34731825824 and all 51 S24-target tests in Android UI Quality run 34731825871, including the new canonical-card-ledger stable-ID detail navigation contract.",
+            "Android UI Quality run 34731825871 rendered 94 candidates. Exactly 12 expected Activity references were changed or new; artifact 10310275940 (sha256 ae1a2dec893904325d6fde8ae6e8eca9208b1d47e1915e3bfff4bd86aa5bc337) was personally reviewed in light, dark and 150% states before baseline adoption. Pending addition/edit/deletion copy, exact type filtering, read detail, sticky editor, true-empty and no-match recovery showed no clipping or hierarchy defect; the other 82 references remained byte-identical.",
+            "Android CI run 34731825819 compiled production/instrumentation sources and continued lint analysis, then stopped at 198/199 passing unit tests because the new exact pending-operation mapping used a nominative noun after «επιβεβαίωσης». The consolidated correction maps all three affected operations to grammatical genitive labels and adds add/edit regression coverage while retaining the existing deletion assertion.",
+            "Final PR #115 implementation head 52cb9f5905a8a52d1f22c36eb2e65742f944243f passed Android CI run 34732483567, Project Tracking run 34732483559 and Android UI Quality run 34732483554; the latter passed screenshot regression against all 94 accepted references and all 51 S24-target tests."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "Quick Entry",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S4.1",
+          "title": "Unified form and pickers",
+          "status": "completed",
+          "evidence": [
+            "PR #116 replaces the runtime fast/complete fork with one production Quick Entry editor for all canonical transaction kinds and shared searchable account, category, subcategory and credit-card picker sheets with stable identity context.",
+            "Final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f passed Android CI run 34751696379, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/AAB assembly and distribution policy checks."
+          ]
+        },
+        {
+          "id": "S4.2",
+          "title": "All twelve kinds and split",
+          "status": "completed",
+          "evidence": [
+            "The unified editor renders operation-specific fields for all twelve canonical kinds, including transfer routes, card purchase/payment identity, lending/repayment person fields, reconciliation actual balance and split accounting parts.",
+            "Split entry requires a declared total and categorized positive parts whose currency-cent allocation matches exactly; final instrumentation coverage also verifies natural semantic amount headings for every canonical kind."
+          ]
+        },
+        {
+          "id": "S4.3",
+          "title": "Dirty draft and persistence behavior",
+          "status": "completed",
+          "evidence": [
+            "Kind changes preserve only compatible draft fields and reset incompatible account/card/person/reconciliation/split state; toolbar/system Back share the same explicit dirty-draft discard contract.",
+            "Save is disabled while a mutation is in flight, online completion waits for persisted acknowledgement, and durable offline enqueue owns pending-sync completion. Android UI Quality run 34751696408 passed all 53 S24-target tests on final implementation head 3217a48022132ec9aac82cfd039c6c09b78c031f."
+          ]
+        },
+        {
+          "id": "S4.4",
+          "title": "Quick Entry verification",
+          "status": "completed",
+          "evidence": [
+            "The affected Quick Entry light/dark/large-font candidates from Android UI Quality artifact 10315399104 (sha256 d821a705e5c8e8553514f0d275ad6ea38ea934149f29567ca65dc9c3b3d37fbe) were personally inspected before baseline acceptance; no clipping or hierarchy blocker was found.",
+            "After the natural amount-heading correction, exactly seven ProductionQuickEntry references were refreshed by the bounded recovery step. The temporary recovery was then removed.",
+            "Final Android UI Quality run 34751696408 passed screenshot regression without regeneration and S24-target instrumentation 53/53 on head 3217a48022132ec9aac82cfd039c6c09b78c031f. Final artifact 10316605934 has sha256 3c8cad1a576930d9dbe4a003ca3ec42a111a0afaaa9dc7f29d3e8af0a81b45c1."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "Home and accounts",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S5.1",
+          "title": "Compact Home and attention",
+          "status": "completed",
+          "evidence": [
+            "Compact Home exposes one liquid-availability scope, one primary Quick Entry action, bounded attention/upcoming density and privacy-safe amount hiding; attention detail exposes canonical source/date/amount with an explicit dismiss-for-now action.",
+            "Targeted hosted S5 validation run 34781108539 passed the corrected Home/settings/attention device contract before the final exact-head gate."
+          ]
+        },
+        {
+          "id": "S5.2",
+          "title": "Wallet account groups",
+          "status": "completed",
+          "evidence": [
+            "Wallet account groups are driven by stable canonical account metadata rather than localized labels; available-total exclusions and daily/savings grouping remain independent of display copy.",
+            "Targeted hosted S5 validation run 34781108539 passed the corrected Wallet device contract and verified the accepted reviewed render hashes."
+          ]
+        },
+        {
+          "id": "S5.3",
+          "title": "Account ledger and net-position entry",
+          "status": "completed",
+          "evidence": [
+            "Account detail uses account-relative transfer signs, preserves account-scoped ledger context, opens Quick Entry with the selected account prefilled, and keeps aggregate credit debt visible through explicit net-position detail.",
+            "Final exact-head Android CI run 34781624482 passed unit/instrumentation compilation, lint, debug/release/bundle assembly and release policy audits on b5556baccc565604981e46e308933007fce4d264."
+          ]
+        },
+        {
+          "id": "S5.4",
+          "title": "Home/account verification",
+          "status": "completed",
+          "evidence": [
+            "The coherent 12-reference S5 Home/attention/Wallet/account-detail/net-position batch was regenerated and hash-verified only after personal inspection; the accepted baseline commit is c1221eb4449e9d3b992fa562ac3e20247231eda6.",
+            "Final exact-head Project Tracking run 34781624481 passed. Android UI Quality run 34781624502 passed screenshot regression without candidate regeneration and S24-target instrumentation. Android CI run 34781624482 also passed on b5556baccc565604981e46e308933007fce4d264."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "Cards",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S6.1",
+          "title": "List, detail and stable switching",
+          "status": "completed",
+          "evidence": [
+            "Implementation head 1fb9703cf7f7ec70acfc878144d6c77575f0c06a adds stable card-ID Wallet rows, explicit credit debt labels, precise credit-detail debt/limit/available-credit semantics, stable card switching without cyclic route stacking, one primary Pay action plus secondary purchase, and bounded recent card activity.",
+            "Hosted focused compile run 34783314496 passed :app:compileDebugKotlin and :app:compileDebugAndroidTestKotlin for the coherent first S6 batch.",
+            "Targeted exact-candidate run 34785976969 passed unit tests, instrumentation-test compilation and lint on cf5f27127a7523270ca8c29060bf52e057363bdd. S6.1 remains in progress until the standard exact-PR-head gates pass.",
+            "Exact PR #118 product head eb7df3709a7445b6a3d39ead10495f1b3443b180 passed Android CI run 34786455322, including unit tests, instrumentation compilation, lint, debug assembly, optimized release/Play bundle assembly and release policy audits.",
+            "Android UI Quality run 34786455331 passed both screenshot regression and S24-target instrumentation on the same exact product head."
+          ]
+        },
+        {
+          "id": "S6.2",
+          "title": "Creation and supported metadata editing",
+          "status": "completed",
+          "evidence": [
+            "Implementation head 70145e7fa45e9b1871d3bef8b90cec92487ed827 replaces provider/kind/network chip walls with labelled selector sheets while preserving the existing full-screen draft, conditional credit limit and one-save creation contract.",
+            "The S1.3 production capability map confirms there is no supported canonical card-metadata update builder/handler, so S6 intentionally exposes no fake local metadata editor and leaves the missing shared capability recorded rather than changing backend contracts.",
+            "Targeted exact-candidate run 34785976969 compiled the selector-sheet instrumentation contract and produced accepted light/dark/150% creation references. S6.2 remains in progress until standard exact-PR-head gates pass.",
+            "Exact product-head Android CI run 34786455322 passed after selector-sheet creation and its instrumentation contract were published; no unsupported card-metadata editor or shared-backend change was introduced.",
+            "Accepted light/dark/150% card-creation references remained byte-stable under the passing screenshot-regression job in Android UI Quality run 34786455331."
+          ]
+        },
+        {
+          "id": "S6.3",
+          "title": "Secure details and removal recovery",
+          "status": "completed",
+          "evidence": [
+            "Candidate cf5f27127a7523270ca8c29060bf52e057363bdd moves PAN/expiry/device-local CVV to a separate FLAG_SECURE destination that is hidden by default, explicitly revealed, hidden on stop/navigation/back and after 30 seconds, and marks per-field clipboard copies sensitive without clearing unrelated replacement content.",
+            "Removal copy distinguishes MyFinHub deactivation from bank cancellation and retained debt/history. Secret cleanup begins only after canonical deactivation, tracks server PAN/expiry and local CVV independently, and retries only failed stores without replaying the finance mutation.",
+            "Targeted run 34785976969 passed CardSecretViewModel partial-cleanup recovery and Compose secure/removal contracts. S6.3 remains in progress until standard exact-PR-head gates pass.",
+            "Exact product-head Android CI run 34786455322 passed with the separate protected secure-details destination and independent partial secret-cleanup recovery logic.",
+            "S24-target instrumentation in Android UI Quality run 34786455331 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180, covering the published secure/removal contracts without replaying the canonical finance mutation."
+          ]
+        },
+        {
+          "id": "S6.4",
+          "title": "Card verification",
+          "status": "completed",
+          "evidence": [
+            "Targeted exact-candidate run 34785976969 passed tracking, unit tests, instrumentation-test compilation, lint and real Compose rendering for cf5f27127a7523270ca8c29060bf52e057363bdd.",
+            "Twelve S6 references were personally inspected before acceptance: Wallet Cards overview, card detail, protected hidden secure details and creation in light, dark and 150% font. No clipping, overlap or exposed secret value was observed; the 150% Wallet section selector and credit-debt wrapping remain readable.",
+            "S6.4 remains in progress until screenshot regression, S24-target instrumentation, Android CI and Project Tracking pass on the exact published PR head.",
+            "Final exact product-head Project Tracking run 34786455328 passed on eb7df3709a7445b6a3d39ead10495f1b3443b180.",
+            "Final exact product-head Android UI Quality run 34786455331 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34786455322 also passed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "Plan and debts",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S7.1",
+          "title": "Urgency and complete forecast",
+          "status": "completed",
+          "evidence": [
+            "Coherent S7 implementation plus semantic hardening through 0d3956d51064c2fec91cfb4617b5ff2119c99ede establishes urgency-first Plan hierarchy, a fixed 30-day production horizon, stable scheduled/recurring source identity and complete eligible forecast rows before presentation.",
+            "Contextual obligation/income recording routes into Quick Entry without backdating the actual transaction to the planned due date; planned transfers intentionally expose no fake completion action.",
+            "Reviewed-render acceptance run 34839310748 passed exact SHA-256 verification of all twelve inspected S7 light/dark/150% renders, screenshot validation, APK assembly and focused API 35 device contracts; artifact 10345732569 digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.",
+            "Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367 and Android UI Quality run 34840197433."
+          ]
+        },
+        {
+          "id": "S7.2",
+          "title": "Monthly budget",
+          "status": "completed",
+          "evidence": [
+            "The production monthly-budget editor is canonical-data-backed, change-driven and dirty-form protected, validates positive limits plus 1–100% warning thresholds, blocks duplicate submit while a mutation is active, and waits for confirmed/durable persistence rather than treating a local UI update as success.",
+            "Canonical projection replaces stale editor drafts with the current server-backed overall budget; unsupported category-budget editing remains intentionally absent rather than inventing local-only product behavior.",
+            "Focused hardening validation in run 34838247621 passed unit tests, Android-test compilation, lint and Kotlin compilation before final render acceptance.",
+            "Exact PR #119 product head b2799c3e4ad6d4d488fec04725d4d6a83f241ba8 passed Android CI run 34840197367, screenshot regression and S24-target instrumentation in Android UI Quality run 34840197433."
+          ]
+        },
+        {
+          "id": "S7.3",
+          "title": "Savings, debts and claims consolidation",
+          "status": "completed",
+          "evidence": [
+            "Wallet Debts consolidates canonical aggregate credit debt, loans owed and receivables while explicitly preserving aggregate-only semantics when itemized production rows are unavailable; it does not infer zero debt or invent missing item detail.",
+            "Real receivable rows expose the existing Quick Entry repayment path contextually; aggregate-only rows remain informational and do not fabricate unsupported per-item repayment operations.",
+            "The accepted Wallet Debts light/dark/150% references are part of reviewed artifact 10345732569 from run 34839310748.",
+            "Exact product-head Android UI Quality run 34840197433 passed screenshot regression and S24-target instrumentation on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8."
+          ]
+        },
+        {
+          "id": "S7.4",
+          "title": "Plan/debt verification",
+          "status": "completed",
+          "evidence": [
+            "Twelve S7 references were personally inspected before acceptance: Plan, 30-day Forecast, Monthly Budget and Wallet Debts in light, dark and 150% font. Large-font amount collisions/truncation found during candidate review were corrected before baseline acceptance.",
+            "Reviewed-render acceptance run 34839310748 passed exact hash verification, screenshot validation and focused API 35 device contracts; accepted artifact 10345732569 has digest sha256:135b10a77195b4a93f766bdc92ac007f34cb6905299366fb136a0158e9cdf966.",
+            "Final exact-head Project Tracking run 34840197393 passed on b2799c3e4ad6d4d488fec04725d4d6a83f241ba8.",
+            "Final exact-head Android UI Quality run 34840197433 passed screenshot regression without candidate regeneration and S24-target instrumentation; Android CI run 34840197367 also passed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "Analysis",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S8.1",
+          "title": "Equivalent interval comparisons",
+          "status": "completed",
+          "evidence": [
+            "Canonical Analysis exposes explicit month/30-day/90-day scopes with exactly equal-length preceding comparison intervals and exact current/previous date labels; month-to-date hardening in 734d0c9ed86289b44c4a50de299f89a616d22f5b safely crosses a shorter previous-month boundary rather than changing the denominator.",
+            "Exact PR #120 head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Android CI run 35000957812, including unit tests, instrumentation compilation, lint/debug assembly, optimized release/Play bundle assembly and policy audits."
+          ]
+        },
+        {
+          "id": "S8.2",
+          "title": "Categories and remainder",
+          "status": "completed",
+          "evidence": [
+            "Category composition uses all positive categorized expense as the denominator, renders the five largest exact categories plus an explicit Λοιπά remainder, and carries exact source-category membership into drill-down rather than dropping the remainder.",
+            "Reviewed-render acceptance run 34954887992 passed exact reviewed render hash verification, screenshot validation, APK assembly and focused API 35 Analysis contracts; artifact 10391550060 has digest sha256:9f2d8e072156db36a76660426a86131578f1567ab3be2b022993a6097f5b4911.",
+            "Exact-head Android UI Quality run 35000957802 passed screenshot regression and the full 76-test S24-target instrumentation suite after the inherited top-level Analysis contracts were aligned to the S8 hierarchy."
+          ]
+        },
+        {
+          "id": "S8.3",
+          "title": "Scoped drill-down and trends",
+          "status": "completed",
+          "evidence": [
+            "Category drill-down preserves the selected period start/end and exact source-category set inside the retained Κινήσεις stack, while income/net/monthly trend stays secondary and expandable with explicit partial-month semantics and a textual chart alternative.",
+            "Inherited TopLevelParityTest contracts were updated in 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a to use stable S8 test tags/hierarchy instead of removed pre-S8 copy; exact-head S24-target instrumentation then passed in Android UI Quality run 35000957802."
+          ]
+        },
+        {
+          "id": "S8.4",
+          "title": "Analysis verification",
+          "status": "completed",
+          "evidence": [
+            "Fresh Analysis references covering light, dark and 150% font, including expanded trend state, were personally inspected before acceptance; reviewed-render acceptance run 34954887992 pinned their exact hashes before committing baselines.",
+            "Final exact product/test head 3d4faf14ba4b81c6d509bc51e8da8e3066db7e9a passed Project Tracking run 35000957778, Android CI run 35000957812 and Android UI Quality run 35000957802.",
+            "Exact-head Android UI Quality screenshot artifact 10409458897 has digest sha256:c714f8de579ded491f5d3ff8c38954d16767823695b539144c90196514931103; screenshot regression passed without candidate regeneration and S24-target instrumentation passed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "title": "Settings and authentication",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S9.1",
+          "title": "Settings, privacy and notices",
+          "status": "completed",
+          "evidence": [
+            "Production Settings uses a consumer-first hierarchy for appearance, device-local global amount visibility, privacy/notices, updates, About/diagnostics and sign-out. The amount-visibility preference updates live across Home, Wallet/accounts, Activity, cards, canonical Money/Savings/Loans/Lending, Plan and Analysis read surfaces while explicit editor inputs remain usable.",
+            "Notice history remains privacy-safe support metadata. All changed/new Settings, notice and privacy-affected references were included in the 46-image reviewed acceptance set.",
+            "One-shot reviewed-render acceptance run 35527883014 regenerated the references, verified every accepted PNG byte-for-byte against its personally inspected SHA-256, passed clean screenshot validation and committed only the approved baseline scope."
+          ]
+        },
+        {
+          "id": "S9.2",
+          "title": "Diagnostics and updater recovery",
+          "status": "completed",
+          "evidence": [
+            "Diagnostics is a dedicated sanitized support destination; null diagnostic navigation exits through a Compose effect rather than mutating the Navigation3 back stack during composition.",
+            "Updater failures map to one deterministic recovery action by failure family. Install-permission state exposes only the Android permission handoff; authentication failures use consumer-facing re-authentication copy without raw security-level terminology.",
+            "Final exact-head Android CI run 35528226574 passed unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and release-policy audits."
+          ]
+        },
+        {
+          "id": "S9.3",
+          "title": "Authentication and root states",
+          "status": "completed",
+          "evidence": [
+            "Authentication presentation uses consumer-facing login/account-verification/local-PIN/biometric copy, persistent PIN retry countdown state and IME/navigation-bar-safe scrolling without changing canonical auth/session security contracts.",
+            "The three pre-acceptance S24 failures were confirmed as stale UI assertions for removed pre-S9 copy/actions and were aligned to the accepted S9 contract without weakening behavioral assertions.",
+            "Final exact-head Android UI Quality run 35528226588 passed the full 76-test S24-target instrumentation suite with zero failures."
+          ]
+        },
+        {
+          "id": "S9.4",
+          "title": "Settings/auth verification",
+          "status": "completed",
+          "evidence": [
+            "Forty-six changed/new real Compose references across auth, notices, Settings/Diagnostics, Activity, Analysis, card/money and Plan were personally inspected in their rendered light/dark/150% states before acceptance; no new clipping, overlap, unintended rearrangement or editor-value masking remained.",
+            "Reviewed-render acceptance run 35527883014 required exact SHA-256 matches for every approved PNG and passed screenshot validation before committing baselines; the temporary acceptance workflow removed itself in the same commit.",
+            "Final exact product/test head a2b7b55c9257b049223370e748f7cc877a09a034 passed Project Tracking run 35528226577, Android CI run 35528226574 and Android UI Quality run 35528226588. Final UI artifact 10610158197 has digest sha256:14afb7be3547cc111ca42fea72fd4445534f9a1dd9fe3ea5612e8d3395b65048; screenshot regression passed without candidate regeneration and S24-target instrumentation passed 76/76."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Integration and acceptance",
+      "spec": "docs/UI_2026_REDESIGN_HANDOFF.md#ten-implementation-slices",
+      "subtasks": [
+        {
+          "id": "S10.1",
+          "title": "Remove proven obsolete paths",
+          "status": "completed",
+          "evidence": [
+            "PR #122 removes the proven non-production pre-redesign fallback UI stack that was previously reachable only through canonicalProductMode=false/debug ProductTestActivity, while production remains MainActivity → MyFinHubRoot → canonical MyFinHubAppContent routes.",
+            "Obsolete Home/Money/Plan/Settings editors/routes, historical parity tests and their obsolete golden references were removed; shared Activity formatting/transfer helpers, the Greek DateEntryField and canonical budget-progress calculation were relocated into active S3/S4/S7 production files rather than deleted.",
+            "Integration tests were aligned to canonical Home, Wallet/Card, Plan, Settings and attention flows without restoring obsolete UI solely for tests. Exact-head compilation and device validation confirm no hidden source dependency remains."
+          ]
+        },
+        {
+          "id": "S10.2",
+          "title": "Full affected hosted gates",
+          "status": "completed",
+          "evidence": [
+            "Exact-head Project Tracking run 35890299222 passed on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android CI run 35890299299 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and both release-policy audits on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android UI Quality run 35890299223 passed screenshot regression and S24-target instrumentation; the device suite completed 75/75 tests with zero failures.",
+            "The previous exact-head automated acceptance is superseded for final S10 completion by the owner-requested card extension; fresh hosted gates are required on the new card implementation head.",
+            "Card-extension exact-head Project Tracking run 36115578943 passed on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android CI run 36115578924 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and release/Play policy audits on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android UI Quality run 36115578941 passed both screenshot regression and the S24-target instrumented job. The device runner executed a 70-test suite with zero failures reported throughout progress and completed successfully."
+          ]
+        },
+        {
+          "id": "S10.3",
+          "title": "Inspect and replace actual screenshot evidence",
+          "status": "completed",
+          "evidence": [
+            "The cleanup changed exactly one surviving canonical render: UserNoticeSnackbar over the canonical Production Home. It was personally inspected for layout, amount privacy, snackbar/action/dismiss behavior and bottom-navigation overlap before acceptance.",
+            "One-shot reviewed-render acceptance run 35797193835 regenerated that exact reference, verified the reviewed byte and screenshot scope, passed screenshot validation, committed only the approved PNG, and removed its temporary helper in the same acceptance commit ce12cfcd6b2a6af9b265bf766f757ca34013c755.",
+            "Final exact-head screenshot regression in Android UI Quality run 35890299223 passed with candidate regeneration skipped. Artifact 10765400098 has digest sha256:b563f54276a4ece81e94ae919c2a52ce5f2273206abe215ee361a59b1c7f5cc8.",
+            "The previous accepted references remain historical evidence, but Wallet/Cards and card-details presentation now intentionally change and require fresh real-render inspection before S10.3 can complete again.",
+            "Fourteen intentional card renders were personally inspected after the full-card extension: canonical card detail/full-details light-dark-large-font, card creation light-dark-large-font, standalone stacked-card light/150%-font, and Wallet/Cards light-dark-large-font. Full PAN/expiry/CVV visibility, stacked geometry, create fields, dark mode and large-font layout were verified without clipping or reveal controls.",
+            "One-shot reviewed-render acceptance run 36112817621 regenerated only the reviewed card references, verified the exact 14 SHA-256 bytes and exact screenshot path scope, then removed its helper and committed the accepted evidence as b3596b9f8724ed51e8c748a9cb4370ef2a400538.",
+            "Final exact-head screenshot regression in Android UI Quality run 36115578941 passed with candidate regeneration skipped. Artifact 10854614111 has digest sha256:a9e6a42baa7fca960bf68b91982f95ca618a3a1bd35a77fae6dbf6278eae94ab."
+          ]
+        },
+        {
+          "id": "S10.4",
+          "title": "Physical S24 acceptance",
+          "status": "completed",
+          "evidence": [
+            "Physical Galaxy S24 Ultra testing successfully installed production-signed rc9 (1.0.0-rc9 / 10008) in place over rc8 through the private updater/Play Protect flow without logout or data loss.",
+            "Post-upgrade diagnostics showed connected, synchronized, active-and-verified session state on the production public client; Home, Settings, diagnostics/notices, Quick Entry, Activity, Analysis, Wallet and Plan were physically exercised in light/dark surfaces.",
+            "The owner then identified remaining card acceptance gaps: no usable stored full card details because PUT /api/card-secrets returned CARD_VAULT_UNAVAILABLE, screenshot blocking on card details, flat Wallet card rows instead of stacked cards, and masked/reveal-gated details. These are now explicit S10.4 acceptance requirements rather than accepted behavior.",
+            "Protected production release run 36117566611 published 1.0.0-rc10 / versionCode 10009 from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6. GitHub prerelease v1.0.0-rc10 and the private production row/storage were published successfully; direct APK SHA-256 is 148d4c0bb17393c0270179704b5138b8862b6fcaf96e0158cda125a8c424375a.",
+            "Owner physical acceptance on the Galaxy S24 Ultra confirmed rc10 installed in place with existing session and finance data intact. The owner explicitly confirmed the final checklist after exercising the candidate.",
+            "Physical card evidence showed successful local full-card save/edit, full PAN/expiry/CVV presentation without a reveal gate, the accepted stacked Wallet card surface, and screenshots functioning on the card-details surface. Sensitive numeric values were intentionally not copied into repository evidence.",
+            "Physical offline evidence showed MFH-AUTH-OFFLINE-LOCAL-UNLOCK, creation of an offline finance mutation with MFH-OFFLINE-PENDING-SYNC and the pending item visible in Activity, followed by a recovered state with the pending banner cleared while the transaction remained present.",
+            "Production runtime logs corroborated the recovery path with GET /api/data 200 followed by PUT /api/data 200 after connectivity returned, confirming the pending mutation reached the server."
+          ]
+        }
+      ]
+    }
+  ]
+}

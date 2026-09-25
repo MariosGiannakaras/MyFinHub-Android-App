@@ -1,0 +1,90 @@
+name: Public Production Signer Fingerprint
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/workflows/production-signer-fingerprint.yml
+
+permissions:
+  contents: read
+
+jobs:
+  fingerprint:
+    name: production-signer-fingerprint
+    runs-on: ubuntu-24.04
+    environment: android-production-release
+    env:
+      ANDROID_PRODUCTION_KEYSTORE_B64: ${{ secrets.ANDROID_PRODUCTION_KEYSTORE_B64 }}
+      ANDROID_PRODUCTION_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_PRODUCTION_KEYSTORE_PASSWORD }}
+      ANDROID_PRODUCTION_KEY_ALIAS: ${{ secrets.ANDROID_PRODUCTION_KEY_ALIAS }}
+      ANDROID_PRODUCTION_SIGNER_SHA256: ${{ secrets.ANDROID_PRODUCTION_SIGNER_SHA256 }}
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify signer and print public SHA-256 fingerprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in \
+            ANDROID_PRODUCTION_KEYSTORE_B64 \
+            ANDROID_PRODUCTION_KEYSTORE_PASSWORD \
+            ANDROID_PRODUCTION_KEY_ALIAS \
+            ANDROID_PRODUCTION_SIGNER_SHA256; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Required protected production signing secret is unavailable: $name" >&2
+              exit 1
+            fi
+          done
+
+          keystore="$RUNNER_TEMP/myfinhub-production-keystore.p12"
+          cert="$RUNNER_TEMP/myfinhub-production-cert.der"
+
+          python3 - "$keystore" <<'PY'
+          import base64
+          import os
+          import sys
+          from pathlib import Path
+
+          raw = os.environ["ANDROID_PRODUCTION_KEYSTORE_B64"]
+          Path(sys.argv[1]).write_bytes(base64.b64decode(raw, validate=True))
+          PY
+          chmod 600 "$keystore"
+
+          keytool -exportcert \
+            -alias "$ANDROID_PRODUCTION_KEY_ALIAS" \
+            -keystore "$keystore" \
+            -storepass:env ANDROID_PRODUCTION_KEYSTORE_PASSWORD \
+            -file "$cert" >/dev/null
+
+          actual="$(sha256sum "$cert" | awk '{print $1}')"
+          expected="$(printf '%s' "$ANDROID_PRODUCTION_SIGNER_SHA256" | tr '[:upper:]' '[:lower:]' | tr -d ':[:space:]')"
+          test "$actual" = "$expected"
+
+          public_fingerprint="$(python3 - "$actual" <<'PY'
+          import sys
+          value = sys.argv[1].upper()
+          print(':'.join(value[i:i+2] for i in range(0, len(value), 2)))
+          PY
+          )"
+
+          echo "Production app-signing certificate SHA-256: $public_fingerprint"
+          {
+            echo '## MyFinHub production app-signing certificate'
+            echo
+            echo 'SHA-256 fingerprint for Google Play / API provider registration:'
+            echo
+            echo '```text'
+            echo "$public_fingerprint"
+            echo '```'
+            echo
+            echo 'This is the public certificate fingerprint only. No private signing material is exposed.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          rm -f "$keystore" "$cert"

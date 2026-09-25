@@ -1,0 +1,36 @@
+package app.myfinhub.android.app
+
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface AppRoute : NavKey {
+    @Serializable data object Home : AppRoute
+    @Serializable data class HomeAttention(val attentionId: String) : AppRoute
+    @Serializable data object Settings : AppRoute
+    @Serializable data object Diagnostics : AppRoute
+    @Serializable data object NoticeHistory : AppRoute
+    @Serializable data object Activity : AppRoute
+    @Serializable data class CategoryActivity(
+        val category: String,
+        val start: String,
+        val end: String,
+        val categories: List<String> = emptyList(),
+    ) : AppRoute
+    @Serializable data class ActivityDetail(val eventId: String) : AppRoute
+    @Serializable data class ActivityEdit(val eventId: String) : AppRoute
+    @Serializable data object QuickEntry : AppRoute
+    @Serializable data object Money : AppRoute
+    @Serializable data class AccountDetail(val accountId: String) : AppRoute
+    @Serializable data object NetPosition : AppRoute
+    @Serializable data object CardCreate : AppRoute
+    @Serializable data class CardDetail(val cardId: String) : AppRoute
+    @Serializable data class CardSecureDetails(val cardId: String) : AppRoute
+    @Serializable data object Savings : AppRoute
+    @Serializable data object Loans : AppRoute
+    @Serializable data object Lending : AppRoute
+    @Serializable data object Plan : AppRoute
+    @Serializable data object PlanForecast : AppRoute
+    @Serializable data object PlanBudgets : AppRoute
+    @Serializable data object Insights : AppRoute
+}

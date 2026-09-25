@@ -1,0 +1,144 @@
+package app.myfinhub.android.feature.utilities
+
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import app.myfinhub.android.core.update.LocalUpdateController
+import app.myfinhub.android.core.update.UpdateController
+import app.myfinhub.android.core.update.UpdateFailureKind
+import app.myfinhub.android.core.update.UpdateRelease
+import app.myfinhub.android.core.update.UpdateUiState
+import app.myfinhub.android.designsystem.MyFinHubTheme
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+
+class UpdateSettingsCardTest {
+    @get:Rule
+    val composeRule = createComposeRule()
+
+    @Test
+    fun availableUpdate_isVisibleAndDownloadActionIsWired() {
+        var downloads = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CompositionLocalProvider(
+                    LocalUpdateController provides UpdateController(
+                        state = UpdateUiState.Available(release()),
+                        download = { downloads += 1 },
+                    ),
+                ) {
+                    ProductionSettingsScreen(
+                        state = FrontendUtilitiesUiState(),
+                        onAction = {},
+                        onBack = {},
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("Νέα έκδοση 0.2.0 διαθέσιμη").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Λήψη ενημέρωσης").performScrollTo().assertIsDisplayed().performClick()
+        assertEquals(1, downloads)
+    }
+
+    @Test
+    fun permissionRequired_exposesOnlyPlatformPermissionHandoffAction() {
+        var permissionOpens = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CompositionLocalProvider(
+                    LocalUpdateController provides UpdateController(
+                        state = UpdateUiState.PermissionRequired(release(), File("/tmp/verified.apk")),
+                        install = {},
+                        openInstallPermission = { permissionOpens += 1 },
+                    ),
+                ) {
+                    UpdateSettingsCard(
+                        currentVersionName = "0.1.0",
+                        state = LocalUpdateController.current.state,
+                        onCheck = {},
+                        onDownload = {},
+                        onInstall = LocalUpdateController.current.install,
+                        onOpenInstallPermission = LocalUpdateController.current.openInstallPermission,
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("Άνοιγμα ρύθμισης εγκατάστασης").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Έλεγχος άδειας και εγκατάσταση").assertDoesNotExist()
+        assertEquals(1, permissionOpens)
+    }
+
+    @Test
+    fun verificationRequired_usesConsumerFacingCopy() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                UpdateSettingsCard(
+                    currentVersionName = "0.1.0",
+                    state = UpdateUiState.Failure(
+                        kind = UpdateFailureKind.MFA_REQUIRED,
+                        retryable = true,
+                    ),
+                    onCheck = {},
+                    onDownload = {},
+                    onInstall = {},
+                    onOpenInstallPermission = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Χρειάζεται επαλήθευση λογαριασμού πριν τον έλεγχο ενημέρωσης.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Σύνδεση ξανά").assertIsDisplayed()
+        assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun diagnostics_keepRawTermsBehindSupportDisclosure() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionDiagnosticsCard(
+                    diagnostics = AppDiagnosticsSnapshot(
+                        versionName = "1.0.0-rc7",
+                        buildType = "release",
+                        environment = "Production public client",
+                        apiHost = "api.myfinhub.app",
+                        networkStatus = "Χωρίς σύνδεση",
+                        apiStatus = "Offline cache · 2 εκκρεμείς",
+                        sessionStatus = "Ενεργή · AAL2",
+                        lastSuccessfulSync = "2026-09-10T12:30:00Z",
+                        lastDiagnosticCode = "MFH-API-SERVER-503",
+                    ),
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Τοπικό αντίγραφο · 2 εκκρεμείς").assertIsDisplayed()
+        composeRule.onNodeWithText("Συνδεδεμένη και επαληθευμένη").assertIsDisplayed()
+        assertTrue(composeRule.onAllNodesWithText("AAL2", substring = true).fetchSemanticsNodes().isEmpty())
+        assertTrue(composeRule.onAllNodesWithText("MFH-API-SERVER-503", substring = true).fetchSemanticsNodes().isEmpty())
+
+        composeRule.onNodeWithText("Λεπτομέρειες για υποστήριξη").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("MFH-API-SERVER-503").assertIsDisplayed()
+    }
+
+    private fun release() = UpdateRelease(
+        versionCode = 2,
+        versionName = "0.2.0",
+        downloadUrl = "https://storage.example.test/storage/v1/object/authenticated/android-releases/0.2.0/MyFinHub.apk",
+        sha256 = "a".repeat(64),
+        sizeBytes = 24L * 1024L * 1024L,
+        mandatory = false,
+        notes = "Βελτιώσεις σταθερότητας",
+        publishedAt = "2026-09-03T12:00:00Z",
+    )
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="file" path="datastore/auth_session.preferences_pb" />
+    <exclude domain="file" path="datastore/local_app_unlock.preferences_pb" />
+    <exclude domain="file" path="datastore/local_pin_throttle.preferences_pb" />
+    <exclude domain="file" path="datastore/cvv_vault.preferences_pb" />
+</full-backup-content>

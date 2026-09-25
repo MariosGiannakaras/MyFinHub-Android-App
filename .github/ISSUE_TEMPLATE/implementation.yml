@@ -1,0 +1,45 @@
+name: Implementation batch
+description: Track a coherent Android implementation or architecture batch.
+title: "[Implementation] "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: Define one coherent outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and exclusions
+      description: State what is in scope and explicitly out of scope.
+    validations:
+      required: true
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Implementation checklist
+      description: Use Markdown `- [ ]` items and update them as work completes.
+      value: |
+        - [ ] Implementation task
+        - [ ] Tests/validation
+        - [ ] STATUS/TODO update
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security / data constraints
+      value: |
+        - No real finance data or credentials in source/tests/logs.
+        - No Android bypass of owner + AAL2 + RLS/RPC + revision/validation contracts.
+        - No WebView wrapper.
+    validations:
+      required: true

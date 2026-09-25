@@ -1,0 +1,277 @@
+package app.myfinhub.android.core.network
+
+import app.myfinhub.android.core.auth.AssuranceLevel
+import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.config.AppConfiguration
+import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.CanonicalFinanceEnvelope
+import app.myfinhub.android.core.data.CanonicalWriteReceipt
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+
+class OkHttpMyFinHubApi(
+    private val configuration: AppConfiguration,
+    private val client: OkHttpClient,
+    private val json: Json = Json { ignoreUnknownKeys = true },
+) : MyFinHubApi {
+    override suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+
+        val request = authenticatedRequest(session, "/api/data")
+            .get()
+            .build()
+
+        return execute(request, parse = ::parseEnvelope)
+    }
+
+    override suspend fun saveMutableState(
+        session: AuthSession,
+        document: CanonicalFinanceDocument,
+        expectedRevision: String,
+    ): ApiResult<CanonicalWriteReceipt> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        if (!expectedRevision.matches(REVISION_REGEX)) {
+            return ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED)
+        }
+
+        // The production write contract protects both the finance revision and the durable
+        // undo/redo cursor. Resolve the matching history generation immediately before the PUT.
+        // If another session changes either value between this GET and the PUT, the server's two
+        // preconditions still fail closed with 409 instead of accepting a stale write.
+        val historyGeneration = when (val history = loadHistoryGeneration(session, expectedRevision)) {
+            is ApiResult.Success -> history.value
+            is ApiResult.Failure -> return history
+        }
+
+        val body = buildJsonObject {
+            put("state", document.state)
+            put("updatedAt", JsonPrimitive(document.updatedAt))
+        }.toString()
+        val request = authenticatedRequest(session, "/api/data")
+            .header("If-Match", expectedRevision)
+            .header(HISTORY_GENERATION_HEADER, historyGeneration)
+            .put(body.toRequestBody(JSON_MEDIA_TYPE))
+            .build()
+
+        return execute(request) { responseBody ->
+            runCatching {
+                val receipt = json.parseToJsonElement(responseBody).jsonObject
+                ApiResult.Success(
+                    CanonicalWriteReceipt(
+                        revision = receipt["revision"]?.jsonPrimitive?.contentOrNull ?: error("Missing revision"),
+                        lastSavedAt = receipt["lastSavedAt"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    ),
+                )
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
+    override suspend fun loadCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecrets> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val normalizedCardId = cardId.trim()
+        if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+
+        val body = buildJsonObject { put("cardId", JsonPrimitive(normalizedCardId)) }.toString()
+        val request = authenticatedRequest(session, "/api/card-secrets")
+            .post(body.toRequestBody(JSON_MEDIA_TYPE))
+            .build()
+        return execute(request, notFoundKind = ApiFailureKind.INVALID_DATA) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val pan = payload.nullableString("pan")
+                val expiry = payload.nullableString("expiry")
+                val cvv = payload.nullableString("cvv")
+                if (pan == null && expiry == null && cvv == null) error("Empty card secret")
+                ApiResult.Success(CardSecrets(pan = pan, expiry = expiry, cvv = cvv))
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
+    override suspend fun saveCardSecrets(
+        session: AuthSession,
+        cardId: String,
+        update: CardSecretUpdate,
+    ): ApiResult<CardSecretWriteReceipt> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val normalizedCardId = cardId.trim()
+        if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        if (update.pan.isNullOrBlank() && update.expiry.isNullOrBlank() && update.cvv.isNullOrBlank()) {
+            return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        }
+
+        val body = buildJsonObject {
+            put("cardId", JsonPrimitive(normalizedCardId))
+            update.pan?.let { put("pan", JsonPrimitive(it)) }
+            update.expiry?.let { put("expiry", JsonPrimitive(it)) }
+            update.cvv?.let { put("cvv", JsonPrimitive(it)) }
+        }.toString()
+        val request = authenticatedRequest(session, "/api/card-secrets")
+            .put(body.toRequestBody(JSON_MEDIA_TYPE))
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val saved = payload["saved"]?.jsonPrimitive?.booleanOrNull ?: error("Missing saved flag")
+                if (!saved) error("Card secret was not saved")
+                ApiResult.Success(
+                    CardSecretWriteReceipt(
+                        saved = true,
+                        last4 = payload.nullableString("last4"),
+                    ),
+                )
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
+    override suspend fun deleteCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val normalizedCardId = cardId.trim()
+        if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+
+        val body = buildJsonObject { put("cardId", JsonPrimitive(normalizedCardId)) }.toString()
+        val request = authenticatedRequest(session, "/api/card-secrets")
+            .delete(body.toRequestBody(JSON_MEDIA_TYPE))
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val deleted = payload["deleted"]?.jsonPrimitive?.booleanOrNull ?: error("Missing deleted flag")
+                if (!deleted) error("Card secret was not deleted")
+                ApiResult.Success(CardSecretDeleteReceipt(deleted = true))
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
+    private suspend fun loadHistoryGeneration(
+        session: AuthSession,
+        expectedRevision: String,
+    ): ApiResult<String> {
+        val request = authenticatedRequest(session, "/api/history")
+            .get()
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val available = payload["available"]?.jsonPrimitive?.booleanOrNull
+                    ?: error("Missing history availability")
+                val generation = payload["generation"]?.jsonPrimitive?.contentOrNull
+                    ?: error("Missing history generation")
+                val financeRevision = payload["financeRevision"]?.jsonPrimitive?.contentOrNull
+                    ?: error("Missing history finance revision")
+                when {
+                    !available -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED)
+                    !generation.matches(REVISION_REGEX) || !financeRevision.matches(REVISION_REGEX) ->
+                        ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+                    financeRevision != expectedRevision -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT)
+                    else -> ApiResult.Success(generation)
+                }
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
+    private fun requestGate(session: AuthSession): ApiResult.Failure? = when {
+        session.accessToken.isBlank() -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
+        session.assuranceLevel != AssuranceLevel.AAL2 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED)
+        !configuration.isConfigured -> ApiResult.Failure(ApiFailureKind.BUILD_NOT_CONFIGURED)
+        else -> null
+    }
+
+    private fun authenticatedRequest(session: AuthSession, path: String): Request.Builder = Request.Builder()
+        .url("${configuration.myFinHubApiBaseUrl}$path")
+        .header("Authorization", "Bearer ${session.accessToken}")
+        .header("Accept", "application/json")
+
+    private fun parseEnvelope(body: String): ApiResult<CanonicalFinanceEnvelope> = runCatching {
+        val envelope = json.parseToJsonElement(body).jsonObject
+        val data = envelope["data"]?.jsonObject ?: error("Missing data")
+        val revision = envelope["revision"]?.jsonPrimitive?.contentOrNull ?: error("Missing revision")
+        val lastSavedAt = envelope["lastSavedAt"]?.jsonPrimitive?.contentOrNull.orEmpty()
+        ApiResult.Success(
+            CanonicalFinanceEnvelope(
+                document = CanonicalFinanceDocument(data),
+                revision = revision,
+                lastSavedAt = lastSavedAt,
+            ),
+        )
+    }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+
+    private fun JsonObject.nullableString(name: String): String? =
+        this[name]?.jsonPrimitive?.contentOrNull
+
+    private suspend fun <T> execute(
+        request: Request,
+        notFoundKind: ApiFailureKind? = null,
+        parse: (String) -> ApiResult<T>,
+    ): ApiResult<T> = withContext(Dispatchers.IO) {
+        try {
+            client.newCall(request).execute().use { response ->
+                val status = response.code
+                val body = response.body.string()
+                when {
+                    response.isSuccessful -> safeParse(status, body, parse)
+                    status == 401 -> ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED, statusCode = status)
+                    status == 403 -> ApiResult.Failure(ApiFailureKind.MFA_REQUIRED, statusCode = status)
+                    status == 404 && notFoundKind != null -> ApiResult.Failure(notFoundKind, statusCode = status)
+                    status == 409 -> ApiResult.Failure(ApiFailureKind.REVISION_CONFLICT, statusCode = status)
+                    status == 428 -> ApiResult.Failure(ApiFailureKind.PRECONDITION_REQUIRED, statusCode = status)
+                    status == 400 || status == 422 -> ApiResult.Failure(ApiFailureKind.INVALID_DATA, statusCode = status)
+                    status == 429 -> ApiResult.Failure(ApiFailureKind.RATE_LIMITED, retryable = true, statusCode = status)
+                    status in 500..599 -> ApiResult.Failure(ApiFailureKind.SERVER, retryable = true, statusCode = status)
+                    else -> ApiResult.Failure(ApiFailureKind.SERVER, statusCode = status)
+                }
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: IOException) {
+            ApiResult.Failure(ApiFailureKind.NETWORK, retryable = true)
+        } catch (_: Exception) {
+            ApiResult.Failure(ApiFailureKind.SERVER, retryable = true)
+        }
+    }
+
+    private fun <T> safeParse(
+        status: Int,
+        body: String,
+        parse: (String) -> ApiResult<T>,
+    ): ApiResult<T> = try {
+        when (val parsed = parse(body)) {
+            is ApiResult.Success -> parsed
+            is ApiResult.Failure -> if (parsed.statusCode == null) parsed.copy(statusCode = status) else parsed
+        }
+    } catch (_: Exception) {
+        ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE, statusCode = status)
+    }
+
+    private companion object {
+        val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+        val REVISION_REGEX = Regex("^(0|[1-9]\\d*)$")
+        val CARD_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
+        const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
+    }
+}

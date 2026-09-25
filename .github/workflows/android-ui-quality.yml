@@ -1,0 +1,128 @@
+name: Android UI Quality
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'app/**'
+      - 'scripts/install-android-sdk.sh'
+      - 'scripts/run-connected-android-tests.sh'
+      - 'build.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/android-ui-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ui-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshot-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Screenshot renderer / visual regression
+        shell: bash
+        run: |
+          if find app/src/screenshotTestDebug/reference -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
+            ./gradlew validateDebugScreenshotTest --stacktrace
+          else
+            echo 'No committed product screenshot references yet; smoke the official renderer only.'
+            ./gradlew updateDebugScreenshotTest --stacktrace
+            ./gradlew validateDebugScreenshotTest --stacktrace
+          fi
+
+      - name: Render candidate references after regression failure
+        id: render-candidates
+        if: failure()
+        shell: bash
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+
+      - name: Publish rendered UI screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-ui-screenshots-${{ github.run_id }}
+          path: |
+            app/src/screenshotTestDebug/reference/**/*.png
+            app/build/reports/screenshotTest/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+  s24-ultra-target-instrumented:
+    # A stock compact-phone emulator is only a representative automated host.
+    # The user's physical Samsung Galaxy S24 Ultra is the sole supported device
+    # and remains the authoritative device-specific acceptance target.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision compile SDK
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Prebuild instrumentation APKs
+        shell: bash
+        run: ./gradlew assembleDebug assembleDebugAndroidTest --stacktrace
+
+      - name: S24 Ultra target phone UI tests
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          heap-size: 384M
+          disable-animations: true
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window -no-audio -no-boot-anim
+            -no-snapshot-load -no-snapshot-save
+            -gpu swiftshader_indirect
+            -camera-back none -camera-front none
+          script: bash scripts/run-connected-android-tests.sh

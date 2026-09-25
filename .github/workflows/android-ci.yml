@@ -1,0 +1,176 @@
+name: Android CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths-ignore:
+      - 'tracking/**'
+      - 'STATUS.md'
+      - 'TODO.md'
+      - 'docs/CURRENT_HANDOFF.md'
+  push:
+    branches:
+      - develop
+      - main
+    paths-ignore:
+      - 'tracking/**'
+      - 'STATUS.md'
+      - 'TODO.md'
+      - 'docs/CURRENT_HANDOFF.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+
+      - name: Detect Android project
+        id: project
+        shell: bash
+        run: |
+          if [[ -f settings.gradle.kts || -f settings.gradle ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK 17
+        if: steps.project.outputs.present == 'true'
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        if: steps.project.outputs.present == 'true'
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+
+      - name: Provision Android SDK
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Generate wrapper for validation when not committed yet
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          if [[ ! -f gradle/wrapper/gradle-wrapper.jar ]]; then
+            gradle wrapper --gradle-version 9.7.0 --distribution-type bin
+          fi
+
+      - name: Benchmark and Baseline Profile tooling build
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew \
+            :benchmark:assembleBenchmark \
+            :app:assembleBenchmarkRelease \
+            :app:assembleNonMinifiedRelease \
+            --stacktrace
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          for variant in benchmarkRelease nonMinifiedRelease; do
+            apk=$(find "app/build/outputs/apk/$variant" -type f -name '*.apk' -print -quit)
+            if [[ -z "$apk" ]]; then
+              echo "No $variant APK was produced." >&2
+              exit 1
+            fi
+            if ! "$aapt" dump xmltree "$apk" AndroidManifest.xml | grep -F 'BenchmarkProductActivity'; then
+              echo "BenchmarkProductActivity is missing from packaged $variant manifest." >&2
+              exit 1
+            fi
+          done
+
+          if [[ -s app/build/outputs/mapping/nonMinifiedRelease/mapping.txt ]]; then
+            echo 'nonMinifiedRelease unexpectedly produced a non-empty R8 mapping file.' >&2
+            exit 1
+          fi
+          echo 'Baseline Profile targets package the deterministic host and remain unminified where required.'
+
+      - name: Unit, instrumentation compile, lint and debug assembly
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: ./gradlew test :app:compileDebugAndroidTestKotlin lint assembleDebug --stacktrace
+
+      - name: Optimized unsigned release and Play bundle assembly
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: ./gradlew assembleRelease bundlePlayRelease analyzeReleaseR8Config --stacktrace
+
+      - name: Audit release manifest and unsigned APK policy
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/release/*' -print)
+          if [[ ${#manifests[@]} -eq 0 ]]; then
+            echo 'No processed release manifest found.' >&2
+            exit 1
+          fi
+
+          forbidden='BenchmarkProductActivity|ProductTestActivity|AuthTestActivity|<profileable|android:debuggable="true"|android:usesCleartextTraffic="true"'
+          for manifest in "${manifests[@]}"; do
+            if grep -E "$forbidden" "$manifest"; then
+              echo "Forbidden release manifest content found in $manifest" >&2
+              exit 1
+            fi
+          done
+
+          apk=$(find app/build/outputs/apk/release -type f -name '*.apk' -print -quit)
+          if [[ -z "$apk" ]]; then
+            echo 'Unsigned release APK was not produced.' >&2
+            exit 1
+          fi
+
+          aapt="$ANDROID_HOME/build-tools/37.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$aapt" dump badging "$apk" | grep -F "package: name='app.myfinhub.android' versionCode='1'"
+
+          if "$apksigner" verify "$apk" >/dev/null 2>&1; then
+            echo 'Public CI release APK must remain unsigned.' >&2
+            exit 1
+          fi
+          echo 'Release artifact is unsigned and free of benchmark/debug manifest leakage.'
+
+      - name: Audit Google Play distribution bundle policy
+        if: steps.project.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          aab=$(find app/build/outputs/bundle/playRelease -type f -name '*.aab' -print -quit)
+          if [[ -z "$aab" ]]; then
+            echo 'Play release AAB was not produced.' >&2
+            exit 1
+          fi
+
+          mapfile -t play_manifests < <(find app/build/intermediates -type f -name AndroidManifest.xml -path '*/playRelease/*' -print)
+          if [[ ${#play_manifests[@]} -eq 0 ]]; then
+            echo 'No processed playRelease manifest found.' >&2
+            exit 1
+          fi
+          for manifest in "${play_manifests[@]}"; do
+            if grep -E 'android.permission.REQUEST_INSTALL_PACKAGES|android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION' "$manifest"; then
+              echo "Installer permission leaked into Google Play manifest: $manifest" >&2
+              exit 1
+            fi
+          done
+          echo 'Google Play bundle is built without direct/self-update installer permissions.'
+
+      - name: No Android project yet
+        if: steps.project.outputs.present != 'true'
+        run: echo "Android source has not landed on this branch yet; workflow foundation is active."
