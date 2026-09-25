@@ -26,6 +26,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130, and protected run 36140901059 published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup is complete to the safe destructive boundary: the original fully-merged-tip pass succeeded, then PR-aware cleanup run 36149961571 removed 62 additional historical merged-PR branches, leaving 33 remote branches consisting of permanent branches or branches without merged-PR evidence. Stable/main promotion remains intentionally blocked only on physical Galaxy S24 Ultra acceptance of rc11.
 
 ## Immediate work
+
 - Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
 - Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
 - After physical acceptance, reconcile the final acceptance evidence, promote the accepted develop baseline through draft PR #135 to main, and close issue #129.
