@@ -12,7 +12,7 @@
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
     "status": "android_redesign_complete",
-    "summary": "The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work.",
+    "summary": "The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work. Post-redesign tracking rendering is reconciled so completed Galaxy S24 Ultra physical acceptance is no longer reported as a future blocker.",
     "next": [
       "Keep develop as the authoritative implementation branch and preserve the completed 10/10 redesign evidence.",
       "Treat any stable/main promotion or later production release as a separate deliberate release workflow; do not infer it from redesign completion."

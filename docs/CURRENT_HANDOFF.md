@@ -23,7 +23,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work.
+The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work. Post-redesign tracking rendering is reconciled so completed Galaxy S24 Ultra physical acceptance is no longer reported as a future blocker.
 
 ## Immediate work
 
@@ -82,4 +82,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.
+- No recorded blocker.

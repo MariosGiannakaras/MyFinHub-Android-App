@@ -13,7 +13,7 @@ This app is intentionally developed for **one physical device only: the owner's 
 
 ## Current state
 
-Phases 0–5, the full-app 2026 Android redesign and the post-review reliability/cleanup hardening are complete and validated. Final physical-device production validation and production signing remain intentionally deferred to Phase 6.
+Phases 0–5, the full-app 2026 Android redesign and the post-review reliability/cleanup hardening are complete and validated. Phase 6 production signing and physical Galaxy S24 Ultra acceptance are also complete for the accepted rc10 candidate; `develop` remains the implementation authority and `main` remains the deliberate release/promotion baseline.
 
 - Kotlin + Jetpack Compose
 - Material 3 + Material 3 Adaptive
