@@ -78,4 +78,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-- No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim.
+- No recorded blocker.
