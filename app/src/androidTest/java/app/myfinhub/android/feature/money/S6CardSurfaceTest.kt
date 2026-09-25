@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -198,9 +199,9 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("5555444433331881").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("09/31").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("731").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Αριθμός. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Λήξη. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("CVV. Προστατευμένη τιμή αποκαλύφθηκε.").assertIsDisplayed()
         assertTrue(
             runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
         )
