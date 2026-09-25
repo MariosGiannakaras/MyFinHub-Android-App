@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
-import app.myfinhub.android.designsystem.MyFinHubDestructiveTextAction
 import app.myfinhub.android.designsystem.MyFinHubOutlinedField
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
@@ -58,7 +57,6 @@ fun CanonicalCardSecureDetailsScreen(
     onReveal: () -> Unit,
     onSaveServerSecrets: (CharArray, CharArray) -> Unit,
     onSaveCvv: (CharArray) -> Unit,
-    onDeleteCvv: () -> Unit,
     onBack: () -> Unit,
 ) {
     val relevantState = secretState.forCard(cardId)
@@ -123,7 +121,7 @@ fun CanonicalCardSecureDetailsScreen(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                     Text(
-                        "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
+                        "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (editorOpen) {
@@ -215,7 +213,7 @@ fun CanonicalCardSecureDetailsScreen(
                             SecureValueRow("Λήξη", relevantState.expiry, "Δεν έχει αποθηκευτεί") { value ->
                                 copySensitive("Λήξη", value)
                             }
-                            SecureValueRow("CVV", relevantState.cvv, "Δεν έχει αποθηκευτεί στη συσκευή") { value ->
+                            SecureValueRow("CVV", relevantState.cvv, "Δεν έχει αποθηκευτεί") { value ->
                                 copySensitive("CVV", value)
                             }
                             clipboardMessage?.let {
@@ -224,11 +222,11 @@ fun CanonicalCardSecureDetailsScreen(
                             MyFinHubOutlinedField(
                                 value = cvvDraft,
                                 onValueChange = { input -> cvvDraft = input.filter { it in '0'..'9' }.take(4) },
-                                label = "Νέο CVV για αυτή τη συσκευή",
+                                label = "Νέο CVV",
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             )
                             MyFinHubPrimaryAction(
-                                label = if (relevantState.cvvSaving) "Αποθήκευση…" else "Αποθήκευση CVV στη συσκευή",
+                                label = if (relevantState.cvvSaving) "Αποθήκευση…" else "Συγχρονισμός CVV",
                                 onClick = {
                                     val chars = cvvDraft.toCharArray()
                                     cvvDraft = ""
@@ -238,13 +236,6 @@ fun CanonicalCardSecureDetailsScreen(
                                 enabled = !relevantState.cvvSaving && cvvDraft.length in 3..4,
                                 icon = null,
                             )
-                            if (relevantState.cvv != null) {
-                                MyFinHubDestructiveTextAction(
-                                    label = "Διαγραφή τοπικού CVV",
-                                    onClick = onDeleteCvv,
-                                    enabled = !relevantState.cvvSaving,
-                                )
-                            }
                             relevantState.message?.let {
                                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
