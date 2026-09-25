@@ -92,4 +92,4 @@ Use the narrowest relevant checks first. The baseline Android project gate is:
 ./gradlew test lint assembleDebug
 ```
 
-Instrumented, screenshot, adaptive-device and performance tests are added as their corresponding implementation surfaces arrive. Routine development does not require signed APK generation; final run/build/signing happens at an explicit release checkpoint.
+Instrumented and screenshot validation run when affected paths require them; device-specific acceptance remains tied to the supported Galaxy S24 Ultra. Routine development does not publish signed artifacts. Production signing/publication happens only through the protected release workflow at an explicit release checkpoint.
