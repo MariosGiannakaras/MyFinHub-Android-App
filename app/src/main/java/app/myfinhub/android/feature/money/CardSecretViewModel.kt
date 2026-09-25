@@ -72,10 +72,9 @@ private data class PendingCardSecretCleanup(
 /**
  * Production Android card-details controller.
  *
- * PAN/expiry and CVV are encrypted at rest with separate non-exportable Android Keystore keys.
- * The canonical finance document stores only safe profile metadata (including last4). Full values
- * never enter finance JSON, logs, diagnostics or backups. Presentation may show the local values
- * directly while the authenticated app session is active.
+ * PAN/expiry/CVV are authoritative in the shared owner+AAL2 server-side encrypted card vault.
+ * The legacy Android Keystore vaults remain only as a one-time migration source for values saved
+ * by older builds. Full values never enter finance JSON, logs, diagnostics or backups.
  */
 class CardSecretViewModel internal constructor(
     application: Application,
@@ -142,7 +141,7 @@ class CardSecretViewModel internal constructor(
         }
         if (currentCardId == normalized && mutableState.value is CardSecretUiState.Revealed) return
         currentCardId = normalized
-        loadLocalDetails(normalized)
+        loadServerDetails(normalized)
     }
 
     fun closeCard(cardId: String) {
@@ -236,8 +235,8 @@ class CardSecretViewModel internal constructor(
                     localCleanupPending = nextRequest.localCleanupPending,
                 )
                 val failedParts = buildList {
-                    if (serverFailure != null) add("server PAN/λήξη")
-                    if (localFailure != null) add("τοπικά στοιχεία κάρτας")
+                    if (serverFailure != null) add("server card vault")
+                    if (localFailure != null) add("legacy τοπικά στοιχεία κάρτας")
                 }.joinToString(" και ")
                 mutableNotices.emit(
                     UserNotice(
@@ -267,31 +266,24 @@ class CardSecretViewModel internal constructor(
             emitInvalidCardNotice("Προβολή στοιχείων κάρτας")
             return
         }
-        loadLocalDetails(cardId)
+        loadServerDetails(cardId)
     }
 
     fun saveServerSecrets(pan: CharArray, expiry: CharArray) {
+        val session = currentSession
         val cardId = currentCardId
         val panCopy = pan.copyOf()
         val expiryCopy = expiry.copyOf()
         pan.fill('\u0000')
         expiry.fill('\u0000')
 
-        val normalizedPan = try {
-            panCopy.concatToString().filter(Char::isDigit)
-        } finally {
-            panCopy.fill('\u0000')
-        }
-        val normalizedExpiry = try {
-            normalizeServerExpiry(expiryCopy.concatToString())
-        } finally {
-            expiryCopy.fill('\u0000')
-        }
+        val normalizedPan = try { panCopy.concatToString().filter(Char::isDigit) } finally { panCopy.fill('\u0000') }
+        val normalizedExpiry = try { normalizeServerExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
 
-        if (cardId == null) {
+        if (session == null || cardId == null) {
             mutableNotices.tryEmit(
                 UserNotice(
-                    message = "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν επειδή η κάρτα δεν είναι πλέον ανοιχτή.",
+                    message = "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν επειδή η ασφαλής συνεδρία ή η κάρτα δεν είναι πλέον διαθέσιμη.",
                     details = "Ενέργεια: Αποθήκευση στοιχείων κάρτας\nΚατηγορία: STALE_CARD_STATE",
                     diagnosticCode = "MFH-APP-STALE_CARD_STATE",
                 ),
@@ -309,38 +301,26 @@ class CardSecretViewModel internal constructor(
 
         mutableState.value = CardSecretUiState.Saving(cardId)
         viewModelScope.launch {
-            val panChars = normalizedPan.toCharArray()
-            val expiryChars = normalizedExpiry.toCharArray()
-            try {
-                cardDetailsVault.save(cardId, panChars, expiryChars)
-                if (currentCardId == cardId) {
-                    loadLocalDetails(cardId, "Ο αριθμός και η λήξη αποθηκεύτηκαν κρυπτογραφημένα σε αυτή τη συσκευή.")
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                if (currentCardId == cardId) {
-                    mutableState.value = CardSecretUiState.Failure(
-                        cardId = cardId,
-                        message = "Τα στοιχεία κάρτας δεν μπόρεσαν να αποθηκευτούν στη συσκευή.",
-                        retryable = true,
-                    )
-                }
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Αποθήκευση τοπικών στοιχείων κάρτας",
-                        throwable = error,
-                        message = "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν στη συσκευή.",
+            val result = safeApiCall {
+                api.saveCardSecrets(
+                    session,
+                    cardId,
+                    app.myfinhub.android.core.network.CardSecretUpdate(
+                        pan = normalizedPan,
+                        expiry = normalizedExpiry,
                     ),
                 )
-            } finally {
-                panChars.fill('\u0000')
-                expiryChars.fill('\u0000')
+            }
+            if (!stillCurrent(session, cardId)) return@launch
+            when (result) {
+                is ApiResult.Success -> loadServerDetails(cardId, "Ο αριθμός και η λήξη συγχρονίστηκαν στο ασφαλές card vault.")
+                is ApiResult.Failure -> handleServerFailure(cardId, result, "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν στο ασφαλές card vault.")
             }
         }
     }
 
-    fun saveCardDetailsForCard(cardId: String, pan: CharArray, expiry: CharArray, cvv: CharArray) {
+    fun saveCardDetailsForCard    fun saveCardDetailsForCard(cardId: String, pan: CharArray, expiry: CharArray, cvv: CharArray) {
+        val session = currentSession
         val normalizedCardId = cardId.trim()
         val panCopy = pan.copyOf()
         val expiryCopy = expiry.copyOf()
@@ -349,23 +329,12 @@ class CardSecretViewModel internal constructor(
         expiry.fill('\u0000')
         cvv.fill('\u0000')
 
-        val normalizedPan = try {
-            panCopy.concatToString().filter(Char::isDigit)
-        } finally {
-            panCopy.fill('\u0000')
-        }
-        val normalizedExpiry = try {
-            normalizeServerExpiry(expiryCopy.concatToString())
-        } finally {
-            expiryCopy.fill('\u0000')
-        }
-        val normalizedCvv = try {
-            cvvCopy.concatToString().filter(Char::isDigit)
-        } finally {
-            cvvCopy.fill('\u0000')
-        }
+        val normalizedPan = try { panCopy.concatToString().filter(Char::isDigit) } finally { panCopy.fill('\u0000') }
+        val normalizedExpiry = try { normalizeServerExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
+        val normalizedCvv = try { cvvCopy.concatToString().filter(Char::isDigit) } finally { cvvCopy.fill('\u0000') }
 
         if (
+            session == null ||
             !CARD_ID_REGEX.matches(normalizedCardId) ||
             normalizedPan.length !in 12..19 ||
             normalizedExpiry == null ||
@@ -373,8 +342,8 @@ class CardSecretViewModel internal constructor(
         ) {
             mutableNotices.tryEmit(
                 UserNotice(
-                    message = "Έλεγξε τα στοιχεία της κάρτας.",
-                    details = "Ενέργεια: Αποθήκευση νέας κάρτας\nΚατηγορία: INVALID_LOCAL_CARD_DETAILS",
+                    message = "Έλεγξε τα στοιχεία της κάρτας ή την ασφαλή συνεδρία.",
+                    details = "Ενέργεια: Αποθήκευση νέας κάρτας\nΚατηγορία: INVALID_OR_UNAVAILABLE_CARD_DETAILS",
                     diagnosticCode = "MFH-APP-INVALID-CARD-DETAILS",
                 ),
             )
@@ -382,34 +351,38 @@ class CardSecretViewModel internal constructor(
         }
 
         viewModelScope.launch {
-            val panChars = normalizedPan.toCharArray()
-            val expiryChars = normalizedExpiry.toCharArray()
-            val cvvChars = normalizedCvv.toCharArray()
-            try {
-                cardDetailsVault.save(normalizedCardId, panChars, expiryChars)
-                cvvVault.save(normalizedCardId, cvvChars)
-                if (currentCardId == normalizedCardId) {
-                    loadLocalDetails(normalizedCardId, "Τα στοιχεία της κάρτας αποθηκεύτηκαν στη συσκευή.")
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Αποθήκευση νέας κάρτας",
-                        throwable = error,
-                        message = "Η κάρτα δημιουργήθηκε, αλλά τα πλήρη στοιχεία δεν αποθηκεύτηκαν στη συσκευή.",
+            val result = safeApiCall {
+                api.saveCardSecrets(
+                    session,
+                    normalizedCardId,
+                    app.myfinhub.android.core.network.CardSecretUpdate(
+                        pan = normalizedPan,
+                        expiry = normalizedExpiry,
+                        cvv = normalizedCvv,
                     ),
                 )
-            } finally {
-                panChars.fill('\u0000')
-                expiryChars.fill('\u0000')
-                cvvChars.fill('\u0000')
+            }
+            when (result) {
+                is ApiResult.Success -> {
+                    deleteLegacyLocalCopies(normalizedCardId)
+                    if (currentCardId == normalizedCardId) {
+                        loadServerDetails(normalizedCardId, "Τα στοιχεία της κάρτας συγχρονίστηκαν στο ασφαλές card vault.")
+                    }
+                }
+                is ApiResult.Failure -> {
+                    mutableNotices.emit(
+                        UserNotice(
+                            message = "Η κάρτα δημιουργήθηκε, αλλά τα πλήρη στοιχεία δεν συγχρονίστηκαν.",
+                            details = "Ενέργεια: Αποθήκευση νέας κάρτας\nΚατηγορία: ${result.kind}",
+                            diagnosticCode = "MFH-CARD-SECRET-SAVE-${result.kind}",
+                        ),
+                    )
+                }
             }
         }
     }
 
-    fun saveCvv(cvv: CharArray) {
+    fun saveCvv    fun saveCvv(cvv: CharArray) {
         val session = currentSession
         val cardId = currentCardId
         val current = mutableState.value as? CardSecretUiState.Revealed
@@ -422,7 +395,7 @@ class CardSecretViewModel internal constructor(
             mutableNotices.tryEmit(
                 UserNotice(
                     message = "Το CVV δεν αποθηκεύτηκε επειδή η κάρτα δεν είναι πλέον ανοιχτή.",
-                    details = "Ενέργεια: Αποθήκευση τοπικού CVV\nΚατηγορία: STALE_CARD_STATE",
+                    details = "Ενέργεια: Αποθήκευση CVV\nΚατηγορία: STALE_CARD_STATE",
                     diagnosticCode = "MFH-APP-STALE_CARD_STATE",
                 ),
             )
@@ -437,137 +410,149 @@ class CardSecretViewModel internal constructor(
             return
         }
 
+        val normalized = try { copy.concatToString() } finally { copy.fill('\u0000') }
         mutableState.value = current.copy(cvvSaving = true, message = null)
         viewModelScope.launch {
-            try {
-                cvvVault.save(cardId, copy)
-                if (!stillCurrent(session, cardId)) return@launch
-                val nextCvv = copy.concatToString()
-                val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
-                mutableState.value = latest.copy(
-                    cvv = nextCvv,
-                    cvvSaving = false,
-                    message = "Το CVV αποθηκεύτηκε μόνο σε αυτή τη συσκευή.",
+            val result = safeApiCall {
+                api.saveCardSecrets(
+                    session,
+                    cardId,
+                    app.myfinhub.android.core.network.CardSecretUpdate(cvv = normalized),
                 )
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: IllegalArgumentException) {
-                val latest = mutableState.value as? CardSecretUiState.Revealed
-                if (latest != null) {
+            }
+            if (!stillCurrent(session, cardId)) return@launch
+            when (result) {
+                is ApiResult.Success -> {
+                    deleteLegacyLocalCopies(cardId)
+                    val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
                     mutableState.value = latest.copy(
+                        cvv = normalized,
                         cvvSaving = false,
-                        message = "Το CVV πρέπει να έχει 3 ή 4 αριθμητικά ψηφία.",
+                        message = "Το CVV συγχρονίστηκε στο ασφαλές card vault.",
                     )
                 }
-            } catch (error: Exception) {
-                val latest = mutableState.value as? CardSecretUiState.Revealed
-                if (latest != null) {
-                    mutableState.value = latest.copy(
-                        cvvSaving = false,
-                        message = "Το τοπικό CVV vault δεν είναι διαθέσιμο.",
-                    )
+                is ApiResult.Failure -> {
+                    val latest = mutableState.value as? CardSecretUiState.Revealed
+                    if (latest != null) mutableState.value = latest.copy(cvvSaving = false)
+                    handleServerFailure(cardId, result, "Το CVV δεν αποθηκεύτηκε στο ασφαλές card vault.")
                 }
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Αποθήκευση τοπικού CVV",
-                        throwable = error,
-                        message = "Το CVV δεν αποθηκεύτηκε στη συσκευή.",
-                    ),
-                )
-            } finally {
-                copy.fill('\u0000')
             }
         }
     }
 
-    fun deleteCvv() {
-        val session = currentSession ?: return
-        val cardId = currentCardId ?: return
-        val current = mutableState.value as? CardSecretUiState.Revealed ?: return
-        if (current.cvvSaving) return
-        mutableState.value = current.copy(cvvSaving = true, message = null)
-
-        viewModelScope.launch {
-            try {
-                cvvVault.delete(cardId)
-                if (!stillCurrent(session, cardId)) return@launch
-                val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
-                mutableState.value = latest.copy(
-                    cvv = null,
-                    cvvSaving = false,
-                    message = "Το CVV αφαιρέθηκε από αυτή τη συσκευή.",
-                )
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                if (!stillCurrent(session, cardId)) return@launch
-                val latest = mutableState.value as? CardSecretUiState.Revealed ?: return@launch
-                mutableState.value = latest.copy(
-                    cvvSaving = false,
-                    message = "Η διαγραφή από το τοπικό CVV vault δεν ολοκληρώθηκε.",
-                )
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Διαγραφή τοπικού CVV",
-                        throwable = error,
-                        message = "Το CVV δεν μπόρεσε να διαγραφεί από τη συσκευή.",
-                    ),
-                )
-            }
+    private fun loadServerDetails(cardId: String, message: String? = null) {
+        val session = currentSession
+        if (session == null) {
+            mutableState.value = CardSecretUiState.AuthRejected
+            return
         }
-    }
-
-    private fun loadLocalDetails(cardId: String, message: String? = null) {
         mutableState.value = CardSecretUiState.Loading(cardId)
         viewModelScope.launch {
-            var localMessage = message
-            val details = try {
-                cardDetailsVault.load(cardId)
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                localMessage = listOfNotNull(localMessage, "Ο αριθμός/λήξη δεν μπόρεσαν να διαβαστούν από τη συσκευή.").joinToString(" ")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Ανάγνωση τοπικών στοιχείων κάρτας",
-                        throwable = error,
-                        message = "Τα στοιχεία κάρτας δεν είναι διαθέσιμα στη συσκευή.",
-                    ),
-                )
-                null
+            when (val result = safeApiCall { api.loadCardSecrets(session, cardId) }) {
+                is ApiResult.Success -> {
+                    val server = result.value
+                    val migrated = migrateMissingLegacyValues(
+                        session = session,
+                        cardId = cardId,
+                        serverPan = server.pan,
+                        serverExpiry = server.expiry,
+                        serverCvv = server.cvv,
+                    )
+                    if (!stillCurrent(session, cardId)) return@launch
+                    mutableState.value = CardSecretUiState.Revealed(
+                        cardId = cardId,
+                        pan = migrated.first,
+                        expiry = migrated.second,
+                        cvv = migrated.third,
+                        message = message,
+                    )
+                }
+                is ApiResult.Failure -> {
+                    if (result.kind == ApiFailureKind.INVALID_DATA) {
+                        val migrated = migrateMissingLegacyValues(session, cardId, null, null, null)
+                        if (!stillCurrent(session, cardId)) return@launch
+                        mutableState.value = CardSecretUiState.Revealed(
+                            cardId = cardId,
+                            pan = migrated.first,
+                            expiry = migrated.second,
+                            cvv = migrated.third,
+                            message = if (migrated.first != null || migrated.second != null || migrated.third != null)
+                                "Τα παλιά τοπικά στοιχεία μεταφέρθηκαν στο κοινό card vault."
+                            else message,
+                        )
+                    } else {
+                        handleServerFailure(cardId, result, "Τα ασφαλή στοιχεία κάρτας δεν είναι διαθέσιμα.")
+                    }
+                }
             }
-            val cvvChars = try {
-                cvvVault.load(cardId)
-            } catch (cancelled: CancellationException) {
-                details?.clear()
-                throw cancelled
-            } catch (error: Exception) {
-                localMessage = listOfNotNull(localMessage, "Το CVV δεν μπόρεσε να διαβαστεί από τη συσκευή.").joinToString(" ")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Ανάγνωση τοπικού CVV",
-                        throwable = error,
-                        message = "Ο αριθμός/λήξη φορτώθηκαν, αλλά το CVV δεν είναι διαθέσιμο.",
-                    ),
-                )
-                null
-            }
-
-            val pan = try { details?.pan?.concatToString() } finally { details?.pan?.fill('\u0000') }
-            val expiry = try { details?.expiry?.concatToString() } finally { details?.expiry?.fill('\u0000') }
-            val cvv = try { cvvChars?.concatToString() } finally { cvvChars?.fill('\u0000') }
-            if (currentCardId != cardId) return@launch
-            mutableState.value = CardSecretUiState.Revealed(
-                cardId = cardId,
-                pan = pan,
-                expiry = expiry,
-                cvv = cvv,
-                message = localMessage,
-            )
         }
     }
 
-    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
+    private suspend fun migrateMissingLegacyValues(
+        session: AuthSession,
+        cardId: String,
+        serverPan: String?,
+        serverExpiry: String?,
+        serverCvv: String?,
+    ): Triple<String?, String?, String?> {
+        if (serverPan != null && serverExpiry != null && serverCvv != null) {
+            deleteLegacyLocalCopies(cardId)
+            return Triple(serverPan, serverExpiry, serverCvv)
+        }
+
+        val localDetails = runCatching { cardDetailsVault.load(cardId) }.getOrNull()
+        val localCvv = runCatching { cvvVault.load(cardId) }.getOrNull()
+        val localPan = try { localDetails?.pan?.concatToString() } finally { localDetails?.pan?.fill('\u0000') }
+        val localExpiry = try { localDetails?.expiry?.concatToString() } finally { localDetails?.expiry?.fill('\u0000') }
+        val localCvvText = try { localCvv?.concatToString() } finally { localCvv?.fill('\u0000') }
+
+        val update = app.myfinhub.android.core.network.CardSecretUpdate(
+            pan = if (serverPan == null) localPan else null,
+            expiry = if (serverExpiry == null) localExpiry else null,
+            cvv = if (serverCvv == null) localCvvText else null,
+        )
+        if (update.pan == null && update.expiry == null && update.cvv == null) {
+            return Triple(serverPan, serverExpiry, serverCvv)
+        }
+
+        return when (safeApiCall { api.saveCardSecrets(session, cardId, update) }) {
+            is ApiResult.Success -> {
+                deleteLegacyLocalCopies(cardId)
+                Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
+            }
+            is ApiResult.Failure -> Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
+        }
+    }
+
+    private suspend fun deleteLegacyLocalCopies(cardId: String) {
+        runCatching { cardDetailsVault.delete(cardId) }
+        runCatching { cvvVault.delete(cardId) }
+    }
+
+    private fun handleServerFailure(cardId: String, failure: ApiResult.Failure, message: String) {
+        if (failure.kind == ApiFailureKind.AUTH_REQUIRED || failure.kind == ApiFailureKind.MFA_REQUIRED) {
+            mutableState.value = CardSecretUiState.AuthRejected
+            return
+        }
+        mutableState.value = CardSecretUiState.Failure(
+            cardId = cardId,
+            message = message,
+            retryable = failure.retryable,
+        )
+        mutableNotices.tryEmit(
+            UserNotice(
+                message = message,
+                details = buildString {
+                    append("Ενέργεια: Card vault\n")
+                    append("Κατηγορία: ${failure.kind}")
+                    failure.statusCode?.let { append("\nHTTP: $it") }
+                },
+                diagnosticCode = "MFH-CARD-SECRET-${failure.kind}",
+            ),
+        )
+    }
+
+    private suspend fun <T> safeApiCall    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
         block()
     } catch (cancelled: CancellationException) {
         throw cancelled
