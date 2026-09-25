@@ -5,7 +5,7 @@
 ## Active Android redesign boundary and continuity
 
 - The owner authorized repository cleanup and implementation of the September 2026 Android redesign. Earlier audit-only restrictions and old minimum-polish/final-completion claims do not govern this workstream.
-- Work only in `MyFinHub-Android-App`. Do not modify the MyFinHub web/desktop repository, shared Supabase schema/data/configuration, APIs or server behavior. Historical cross-repository instructions below are not authorization for this redesign. Record any unavoidable shared dependency as blocked; do not bypass it or invent local finance semantics.
+- The completed September redesign was Android-only. Post-redesign cross-repository backend/API work is allowed only when the owner explicitly requests it in the current conversation; the 2026-09-25 synchronized card-secret task is an explicit owner-approved exception. Keep any shared change minimal and isolated.
 - `docs/UI_2026_REDESIGN_HANDOFF.md` is the current design specification. Older design documents and rc7 correction plans are historical evidence, not competing visual acceptance contracts. Preserve security, canonical data and release invariants.
 - Edit current progress only in `tracking/android-project-state.json`; generate STATUS.md, TODO.md and CURRENT_HANDOFF.md with `python3 scripts/render_project_tracking.py`. Keep task IDs stable and attach validation evidence to completed subtasks.
 - Report redesign tasks x/10 and subtasks x/40 separately from historical overall project progress 4/6. Preparation is a separate 4-step checkpoint; do not count documents as implemented Android screens. Identify unmerged, untested and physical-acceptance-pending work explicitly.
@@ -87,7 +87,7 @@ If an Android requirement can be satisfied entirely inside `MyFinHub-Android-App
 - Native bearer-session support must preserve valid Supabase session + configured owner UID + AAL2 + RLS/RPC + revision/validation requirements.
 - Web/desktop cookie and same-origin protection must not be weakened to support Android.
 - Durable FinanceData remains server-side by default; do not introduce a second canonical Room/SQLite finance database.
-- PAN/expiry remain in the server vault. CVV remains device-local only and uses Android Keystore-backed encryption.
+- PAN/expiry/CVV use the shared owner+AAL2 server-side encrypted card vault. Legacy Android Keystore card-detail/CVV stores are migration-only and must be cleared after a successful server sync; they are not the product source of truth.
 - Never commit real finance data, credentials, JWTs, refresh tokens, PAN/expiry/CVV, vault keys, signing keystores/passwords, or APK/AAB binaries to Git history. Approved signed release binaries belong only in the explicitly authorized release/distribution channels.
 
 ## GitHub workflow
