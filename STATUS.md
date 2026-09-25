@@ -11,7 +11,7 @@
 Issue #129 — **Publish post-card-vault rc11 and promote stable baseline**
 State: `rc11_published_physical_acceptance_pending`
 
-The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130. Protected Production Release run 36140901059 then published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 to the private update channel and GitHub prerelease. Stable/main promotion is intentionally pending physical Galaxy S24 Ultra acceptance of this new candidate.
+The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130. Protected Production Release run 36140901059 then published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 to the private update channel and GitHub prerelease. Stable/main promotion is intentionally pending physical Galaxy S24 Ultra acceptance of this new candidate. A one-time repository cleanup checkpoint is staged to delete only remote branches already fully merged into develop; permanent branches, open-PR heads and divergent/unmerged branches are preserved.
 
 ## Current production candidate
 
@@ -23,7 +23,8 @@ Production-signed rc11 / versionCode 10010 was published from exact validated PR
 
 1. Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
 2. Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
-3. After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish repository cleanup.
+3. Run the one-time repository cleanup that deletes only branches fully merged into develop while preserving permanent, open-PR and divergent/unmerged branches.
+4. After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish any remaining non-destructive repository cleanup.
 
 ## Non-negotiable constraints
 
