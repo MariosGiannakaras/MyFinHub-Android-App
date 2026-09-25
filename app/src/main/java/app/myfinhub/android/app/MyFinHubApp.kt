@@ -124,11 +124,10 @@ internal fun MyFinHubAppContent(
     onRevealCardSecrets: () -> Unit = {},
     onHideCardSecrets: () -> Unit = {},
     onSaveServerCardSecrets: (CharArray, CharArray) -> Unit = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
-    onSaveLocalCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
+    onSaveCvv: (CharArray) -> Unit = { value -> value.fill('\u0000') },
     onSaveCardDetails: (String, CharArray, CharArray, CharArray) -> Unit = { _, pan, expiry, cvv ->
         pan.fill('\u0000'); expiry.fill('\u0000'); cvv.fill('\u0000')
     },
-    onDeleteLocalCvv: () -> Unit = {},
     onRetryCardSecretCleanup: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
     onCreateCard: (CardCreateRequest) -> Unit = {},
@@ -408,8 +407,7 @@ internal fun MyFinHubAppContent(
                         secretState = cardSecretState,
                         onReveal = onRevealCardSecrets,
                         onSaveServerSecrets = onSaveServerCardSecrets,
-                        onSaveCvv = onSaveLocalCvv,
-                        onDeleteCvv = onDeleteLocalCvv,
+                        onSaveCvv = onSaveCvv,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
