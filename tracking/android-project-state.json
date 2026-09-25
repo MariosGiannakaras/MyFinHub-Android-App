@@ -12,19 +12,19 @@
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
     "status": "android_redesign_s10_physical_rc10_pending",
-    "summary": "S1–S9 are complete and merged. S10.1–S10.3 are complete again after the owner-requested card extension. The Android card flow now uses web-style stacked cards, shows PAN/expiry/CVV directly without a reveal/masking gate, permits screenshots on card-detail surfaces, and stores full card details encrypted at rest with Android Keystore so normal Android card creation/read no longer depends on the unavailable production server card-vault key. Exact-head hosted gates and reviewed renders are green. S10.4 remains open for same-signer rc10 physical Galaxy S24 Ultra acceptance.",
+    "summary": "S1–S9 are complete and merged. S10.1–S10.3 are complete after the owner-requested card extension. Production-signed rc10 is now published from the exact validated PR #122 source. The remaining work is S10.4 owner acceptance on the physical Galaxy S24 Ultra: in-place rc9→rc10 continuity, card creation without 503, stacked Wallet cards with full PAN/expiry/CVV visible and screenshots permitted, edit/delete/restart persistence, plus a fresh offline→recovery smoke.",
     "next": [
-      "Publish the next same-signer protected production candidate (rc10 / next versionCode) directly from validated PR #122 without merging it.",
-      "Install rc10 in place over rc9 on the physical Galaxy S24 Ultra and verify: existing session/data continuity, create a card with PAN/expiry/CVV without 503, stacked Wallet rendering with all values visible, screenshots on card-detail surfaces, edit/delete behavior, restart persistence and updater state.",
-      "Perform a fresh offline → recovery smoke on the physical device. If the rc10 card/offline checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop."
+      "Install rc10 in place over rc9 from the private updater on the physical Galaxy S24 Ultra and confirm the existing session and finance data survive.",
+      "Create a card with PAN/expiry/CVV, verify there is no 503, verify the Wallet/Cards surface is stacked and shows the full values without reveal/masking, confirm screenshots work on card details, then verify edit/delete and restart persistence.",
+      "Perform a fresh offline → recovery smoke. If these physical checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop."
     ]
   },
   "latest_production_candidate": {
-    "version_name": "1.0.0-rc9",
-    "version_code": 10008,
-    "status": "protected_published_physical_partial_card_extension_pending",
+    "version_name": "1.0.0-rc10",
+    "version_code": 10009,
+    "status": "protected_published_physical_acceptance_pending",
     "source_pr": 122,
-    "notes": "Production-signed rc9 was published from exact PR #122 head 67d9d424cd73fa1e5cda177f46742abf4288e10d through protected run 35993365422 and installed in place on the physical Galaxy S24 Ultra. Upgrade/session continuity, sign-in recovery after the Supabase restore, updater recovery, diagnostics and the major redesigned surfaces were physically exercised. Owner acceptance then exposed a remaining card-product gap: card creation/full details depended on an unavailable server vault, screenshots were blocked on the details surface, and Wallet used flat rows instead of the approved stacked-card interaction. rc9 is therefore evidence, not final acceptance."
+    "notes": "Production-signed rc10 was published from validated PR #122 head 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611. The publisher verified the enrolled production signer, signed and verified the direct APK and Play AAB, uploaded the exact APK bytes to the private production channel, published metadata last, and created GitHub prerelease v1.0.0-rc10. rc10 contains the owner-requested full-card extension and is the authoritative physical S24 acceptance candidate."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -85,9 +85,9 @@
     "branch": "android/redesign-s10-integration-acceptance",
     "pr": 122,
     "current_slice": "S10.4",
-    "checkpoint": "s10_card_automated_acceptance_complete_rc10_physical_pending",
+    "checkpoint": "s10_rc10_published_physical_acceptance_pending",
     "blockers": [],
-    "next_action": "Publish a production-signed rc10 from the validated PR #122 head, then run the final physical Galaxy S24 Ultra card and offline/recovery acceptance. Do not complete S10.4 or merge before that owner evidence is recorded.",
+    "next_action": "Install production-signed rc10 (10009) from the private updater and complete the final physical Galaxy S24 Ultra card/offline acceptance. Do not complete S10.4 or merge until the owner evidence passes.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -611,7 +611,8 @@
           "evidence": [
             "Physical Galaxy S24 Ultra testing successfully installed production-signed rc9 (1.0.0-rc9 / 10008) in place over rc8 through the private updater/Play Protect flow without logout or data loss.",
             "Post-upgrade diagnostics showed connected, synchronized, active-and-verified session state on the production public client; Home, Settings, diagnostics/notices, Quick Entry, Activity, Analysis, Wallet and Plan were physically exercised in light/dark surfaces.",
-            "The owner then identified remaining card acceptance gaps: no usable stored full card details because PUT /api/card-secrets returned CARD_VAULT_UNAVAILABLE, screenshot blocking on card details, flat Wallet card rows instead of stacked cards, and masked/reveal-gated details. These are now explicit S10.4 acceptance requirements rather than accepted behavior."
+            "The owner then identified remaining card acceptance gaps: no usable stored full card details because PUT /api/card-secrets returned CARD_VAULT_UNAVAILABLE, screenshot blocking on card details, flat Wallet card rows instead of stacked cards, and masked/reveal-gated details. These are now explicit S10.4 acceptance requirements rather than accepted behavior.",
+            "Protected production release run 36117566611 published 1.0.0-rc10 / versionCode 10009 from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6. GitHub prerelease v1.0.0-rc10 and the private production row/storage were published successfully; direct APK SHA-256 is 148d4c0bb17393c0270179704b5138b8862b6fcaf96e0158cda125a8c424375a."
           ]
         }
       ]

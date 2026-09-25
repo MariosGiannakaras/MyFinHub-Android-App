@@ -18,18 +18,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
 - Workstream state: `android_redesign_s10_physical_rc10_pending`.
-- Latest private production candidate: `1.0.0-rc9` / `10008` — `protected_published_physical_partial_card_extension_pending`.
+- Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_pending`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S9 are complete and merged. S10.1–S10.3 are complete again after the owner-requested card extension. The Android card flow now uses web-style stacked cards, shows PAN/expiry/CVV directly without a reveal/masking gate, permits screenshots on card-detail surfaces, and stores full card details encrypted at rest with Android Keystore so normal Android card creation/read no longer depends on the unavailable production server card-vault key. Exact-head hosted gates and reviewed renders are green. S10.4 remains open for same-signer rc10 physical Galaxy S24 Ultra acceptance.
+S1–S9 are complete and merged. S10.1–S10.3 are complete after the owner-requested card extension. Production-signed rc10 is now published from the exact validated PR #122 source. The remaining work is S10.4 owner acceptance on the physical Galaxy S24 Ultra: in-place rc9→rc10 continuity, card creation without 503, stacked Wallet cards with full PAN/expiry/CVV visible and screenshots permitted, edit/delete/restart persistence, plus a fresh offline→recovery smoke.
 
 ## Immediate work
 
-- Publish the next same-signer protected production candidate (rc10 / next versionCode) directly from validated PR #122 without merging it.
-- Install rc10 in place over rc9 on the physical Galaxy S24 Ultra and verify: existing session/data continuity, create a card with PAN/expiry/CVV without 503, stacked Wallet rendering with all values visible, screenshots on card-detail surfaces, edit/delete behavior, restart persistence and updater state.
-- Perform a fresh offline → recovery smoke on the physical device. If the rc10 card/offline checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop.
+- Install rc10 in place over rc9 from the private updater on the physical Galaxy S24 Ultra and confirm the existing session and finance data survive.
+- Create a card with PAN/expiry/CVV, verify there is no 503, verify the Wallet/Cards surface is stacked and shows the full values without reveal/masking, confirm screenshots work on card details, then verify edit/delete and restart persistence.
+- Perform a fresh offline → recovery smoke. If these physical checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop.
 
 ## Constraints
 
@@ -57,9 +57,9 @@ S1–S9 are complete and merged. S10.1–S10.3 are complete again after the owne
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_card_automated_acceptance_complete_rc10_physical_pending`.
+Checkpoint: `s10_rc10_published_physical_acceptance_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Publish a production-signed rc10 from the validated PR #122 head, then run the final physical Galaxy S24 Ultra card and offline/recovery acceptance. Do not complete S10.4 or merge before that owner evidence is recorded.
+Next action: Install production-signed rc10 (10009) from the private updater and complete the final physical Galaxy S24 Ultra card/offline acceptance. Do not complete S10.4 or merge until the owner evidence passes.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
