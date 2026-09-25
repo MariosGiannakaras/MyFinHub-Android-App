@@ -13,7 +13,7 @@ This app is intentionally developed for **one physical device only: the owner's 
 
 ## Current state
 
-Phases 0–5, the full-app 2026 Android redesign and the post-review reliability/cleanup hardening are complete and validated. Phase 6 production signing and physical Galaxy S24 Ultra acceptance are also complete for the accepted rc10 candidate; `develop` remains the implementation authority and `main` remains the deliberate release/promotion baseline.
+Phases 0–5, the full-app 2026 Android redesign, post-review reliability hardening and synchronized server card-vault integration are complete on `develop`. Production-signed `1.0.0-rc11` / versionCode `10010` is the current post-card-vault candidate. Its hosted release gates are complete; physical Galaxy S24 Ultra acceptance remains the final gate before stable `main` promotion.
 
 - Kotlin + Jetpack Compose
 - Material 3 + Material 3 Adaptive
@@ -71,4 +71,4 @@ Real production Auth/API validation on the physical Galaxy S24 Ultra is a Phase 
 
 Never commit real FinanceData, `.env` files, credentials, JWT/refresh tokens, passwords, PINs, TOTP values, PAN/expiry/CVV, Supabase secret/service-role keys, `CARD_VAULT_KEY`, signing keystores/passwords or private APK binaries.
 
-Routine CI intentionally produces only an unsigned release artifact. A long-lived production signing key and signed APK are created only at the explicit Phase 6 signing handoff, after exact-head release validation.
+Routine CI intentionally produces only unsigned release artifacts. Production-signed APK/AAB artifacts are created only by the protected release workflow using the enrolled long-lived signer after exact-head validation; signing material must never enter the repository or ordinary CI artifacts.
