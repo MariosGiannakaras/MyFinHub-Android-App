@@ -47,7 +47,6 @@ Active tracker: issue #129 — **Publish post-card-vault rc11 and promote stable
 
 Do not append historical TODO sections here. Git history and closed issues/PRs are the history. Update `tracking/android-project-state.json` and regenerate this file instead.
 
-
 ## Android redesign progress
 
 **Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
