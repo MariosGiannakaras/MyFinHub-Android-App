@@ -9,21 +9,21 @@
 ## Active workstream
 
 Issue #129 — **Publish post-card-vault rc11 and promote stable baseline**
-State: `release_source_validation`
+State: `rc11_published_physical_acceptance_pending`
 
-The synchronized card-secret implementation is complete on develop and its backend dependency is merged. This checkpoint creates a no-product-behavior-change Android release source for 1.0.0-rc11 so the exact post-card-vault source can pass Project Tracking, Android CI and Android UI Quality before protected production publication. main promotion remains blocked on physical Galaxy S24 Ultra acceptance of the new signed candidate.
+The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130. Protected Production Release run 36140901059 then published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 to the private update channel and GitHub prerelease. Stable/main promotion is intentionally pending physical Galaxy S24 Ultra acceptance of this new candidate.
 
 ## Current production candidate
 
-`1.0.0-rc10` / versionCode `10009` — **protected_published_physical_acceptance_passed**.
+`1.0.0-rc11` / versionCode `10010` — **protected_published_physical_acceptance_pending**.
 
-Production-signed rc10 / versionCode 10009 was published from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611 and installed in place on the physical Galaxy S24 Ultra. Owner physical acceptance passed: session/data continuity survived the update; a card could be created and its full values persisted locally without the earlier card-vault 503 dependency; Wallet/Cards used the accepted stacked presentation with full details visible and screenshots permitted; offline local unlock and an offline finance mutation entered durable pending state, remained visible in Activity, and synchronized after connectivity returned. No PAN/CVV values are persisted in repository acceptance evidence. PR #122 was subsequently merged into develop as a43a37a54b5bff2db3a3ce7b2ded786d39b636a0 after final exact-head Project Tracking, Android UI Quality and Android CI all passed.
+Production-signed rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 through protected run 36140901059. Request gate, source gate, publisher tests, exact-source production-channel tests, direct APK and Play AAB build, enrolled-signer verification, signing, upload byte re-read, checksums and immutable GitHub prerelease publication all passed. GitHub release v1.0.0-rc11 contains the signed direct APK, Play AAB, release metadata and SHA-256 checksums. Physical Galaxy S24 Ultra install/acceptance is still required before stable/main promotion.
 
 ## Next
 
-1. Require exact-head Project Tracking, Android CI and Android UI Quality on the rc11 release-source PR.
-2. Publish production-signed 1.0.0-rc11 from the still-open validated Android release-source PR through the guarded production workflow.
-3. After physical Galaxy S24 Ultra acceptance, reconcile tracking, promote the accepted baseline to main, then clean obsolete merged/superseded branches.
+1. Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
+2. Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
+3. After physical acceptance, reconcile tracking, promote the accepted baseline to main, close issue #129, and finish repository cleanup.
 
 ## Non-negotiable constraints
 
