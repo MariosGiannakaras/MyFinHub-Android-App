@@ -319,7 +319,7 @@ class CardSecretViewModel internal constructor(
         }
     }
 
-    fun saveCardDetailsForCard    fun saveCardDetailsForCard(cardId: String, pan: CharArray, expiry: CharArray, cvv: CharArray) {
+    fun saveCardDetailsForCard(cardId: String, pan: CharArray, expiry: CharArray, cvv: CharArray) {
         val session = currentSession
         val normalizedCardId = cardId.trim()
         val panCopy = pan.copyOf()
@@ -382,7 +382,7 @@ class CardSecretViewModel internal constructor(
         }
     }
 
-    fun saveCvv    fun saveCvv(cvv: CharArray) {
+    fun saveCvv(cvv: CharArray) {
         val session = currentSession
         val cardId = currentCardId
         val current = mutableState.value as? CardSecretUiState.Revealed
@@ -552,7 +552,7 @@ class CardSecretViewModel internal constructor(
         )
     }
 
-    private suspend fun <T> safeApiCall    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
+    private suspend fun <T> safeApiCall(block: suspend () -> ApiResult<T>): ApiResult<T> = try {
         block()
     } catch (cancelled: CancellationException) {
         throw cancelled
