@@ -9,21 +9,21 @@
 ## Active workstream
 
 Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_s10_physical_rc10_pending`
+State: `android_redesign_complete_merge_pending`
 
-S1–S9 are complete and merged. S10.1–S10.3 are complete after the owner-requested card extension. Production-signed rc10 is now published from the exact validated PR #122 source. The remaining work is S10.4 owner acceptance on the physical Galaxy S24 Ultra: in-place rc9→rc10 continuity, card creation without 503, stacked Wallet cards with full PAN/expiry/CVV visible and screenshots permitted, edit/delete/restart persistence, plus a fresh offline→recovery smoke.
+All ten Android redesign slices are complete. S10 physical owner acceptance passed on the production-signed rc10 candidate on the supported Galaxy S24 Ultra, including same-signer continuity, full-card creation/persistence and stacked presentation with screenshots permitted, plus offline local unlock, durable pending mutation and successful recovery/synchronization. PR #122 now requires only final exact-head metadata validation and merge into develop; stable/main promotion remains a separate deliberate release checkpoint.
 
 ## Current production candidate
 
-`1.0.0-rc10` / versionCode `10009` — **protected_published_physical_acceptance_pending**.
+`1.0.0-rc10` / versionCode `10009` — **protected_published_physical_acceptance_passed**.
 
-Production-signed rc10 was published from validated PR #122 head 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611. The publisher verified the enrolled production signer, signed and verified the direct APK and Play AAB, uploaded the exact APK bytes to the private production channel, published metadata last, and created GitHub prerelease v1.0.0-rc10. rc10 contains the owner-requested full-card extension and is the authoritative physical S24 acceptance candidate.
+Production-signed rc10 / versionCode 10009 was published from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611 and installed in place on the physical Galaxy S24 Ultra. Owner physical acceptance passed: session/data continuity survived the update; a card could be created and its full values persisted locally without the earlier card-vault 503 dependency; Wallet/Cards used the accepted stacked presentation with full details visible and screenshots permitted; offline local unlock and an offline finance mutation entered durable pending state, remained visible in Activity, and synchronized after connectivity returned. No PAN/CVV values are persisted in repository acceptance evidence.
 
 ## Next
 
-1. Install rc10 in place over rc9 from the private updater on the physical Galaxy S24 Ultra and confirm the existing session and finance data survive.
-2. Create a card with PAN/expiry/CVV, verify there is no 503, verify the Wallet/Cards surface is stacked and shows the full values without reveal/masking, confirm screenshots work on card details, then verify edit/delete and restart persistence.
-3. Perform a fresh offline → recovery smoke. If these physical checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop.
+1. Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
+2. Merge PR #122 into develop after the final exact-head checks are green.
+3. After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
 
 ## Non-negotiable constraints
 
@@ -48,14 +48,14 @@ Edit current state only in tracking/android-project-state.json; run python3 scri
 
 ## Android redesign progress
 
-**Tasks: 9/10 · Subtasks: 39/40 · Preparation: 4/4**
+**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_rc10_published_physical_acceptance_pending`.
+Checkpoint: `s10_complete_final_merge_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Install production-signed rc10 (10009) from the private updater and complete the final physical Galaxy S24 Ultra card/offline acceptance. Do not complete S10.4 or merge until the owner evidence passes.
+Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -68,7 +68,7 @@ Next action: Install production-signed rc10 (10009) from the private updater and
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 3/4 | S10.4 Physical S24 acceptance (in_progress) |
+| S10 Integration and acceptance | 4/4 | Complete |
 
 ### Preparation
 

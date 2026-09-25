@@ -5,9 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Install rc10 in place over rc9 from the private updater on the physical Galaxy S24 Ultra and confirm the existing session and finance data survive.
-- [ ] Create a card with PAN/expiry/CVV, verify there is no 503, verify the Wallet/Cards surface is stacked and shows the full values without reveal/masking, confirm screenshots work on card details, then verify edit/delete and restart persistence.
-- [ ] Perform a fresh offline → recovery smoke. If these physical checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop.
+- [ ] Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
+- [ ] Merge PR #122 into develop after the final exact-head checks are green.
+- [ ] After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
 
 ## Completed foundations
 
@@ -40,6 +40,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)
 - [x] Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)
 - [x] Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease
+- [x] Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance
 
 ## Rule
 
@@ -47,14 +48,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 9/10 · Subtasks: 39/40 · Preparation: 4/4**
+**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_rc10_published_physical_acceptance_pending`.
+Checkpoint: `s10_complete_final_merge_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Install production-signed rc10 (10009) from the private updater and complete the final physical Galaxy S24 Ultra card/offline acceptance. Do not complete S10.4 or merge until the owner evidence passes.
+Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -67,7 +68,7 @@ Next action: Install production-signed rc10 (10009) from the private updater and
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 3/4 | S10.4 Physical S24 acceptance (in_progress) |
+| S10 Integration and acceptance | 4/4 | Complete |
 
 ### Preparation
 

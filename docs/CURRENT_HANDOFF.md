@@ -17,19 +17,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #73 — Post-Phase-6 full-app product audit and radical redesign.
-- Workstream state: `android_redesign_s10_physical_rc10_pending`.
-- Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_pending`.
+- Workstream state: `android_redesign_complete_merge_pending`.
+- Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_passed`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-S1–S9 are complete and merged. S10.1–S10.3 are complete after the owner-requested card extension. Production-signed rc10 is now published from the exact validated PR #122 source. The remaining work is S10.4 owner acceptance on the physical Galaxy S24 Ultra: in-place rc9→rc10 continuity, card creation without 503, stacked Wallet cards with full PAN/expiry/CVV visible and screenshots permitted, edit/delete/restart persistence, plus a fresh offline→recovery smoke.
+All ten Android redesign slices are complete. S10 physical owner acceptance passed on the production-signed rc10 candidate on the supported Galaxy S24 Ultra, including same-signer continuity, full-card creation/persistence and stacked presentation with screenshots permitted, plus offline local unlock, durable pending mutation and successful recovery/synchronization. PR #122 now requires only final exact-head metadata validation and merge into develop; stable/main promotion remains a separate deliberate release checkpoint.
 
 ## Immediate work
 
-- Install rc10 in place over rc9 from the private updater on the physical Galaxy S24 Ultra and confirm the existing session and finance data survive.
-- Create a card with PAN/expiry/CVV, verify there is no 503, verify the Wallet/Cards surface is stacked and shows the full values without reveal/masking, confirm screenshots work on card details, then verify edit/delete and restart persistence.
-- Perform a fresh offline → recovery smoke. If these physical checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop.
+- Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
+- Merge PR #122 into develop after the final exact-head checks are green.
+- After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
 
 ## Constraints
 
@@ -52,14 +52,14 @@ S1–S9 are complete and merged. S10.1–S10.3 are complete after the owner-requ
 
 ## Android redesign progress
 
-**Tasks: 9/10 · Subtasks: 39/40 · Preparation: 4/4**
+**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
 Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
-Checkpoint: `s10_rc10_published_physical_acceptance_pending`.
+Checkpoint: `s10_complete_final_merge_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Install production-signed rc10 (10009) from the private updater and complete the final physical Galaxy S24 Ultra card/offline acceptance. Do not complete S10.4 or merge until the owner evidence passes.
+Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -72,7 +72,7 @@ Next action: Install production-signed rc10 (10009) from the private updater and
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 3/4 | S10.4 Physical S24 acceptance (in_progress) |
+| S10 Integration and acceptance | 4/4 | Complete |
 
 ### Preparation
 
