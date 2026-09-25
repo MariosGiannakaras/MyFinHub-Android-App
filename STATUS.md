@@ -46,7 +46,6 @@ Canonical source: `tracking/android-project-state.json`.
 
 Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks.
 
-
 ## Android redesign progress
 
 **Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
