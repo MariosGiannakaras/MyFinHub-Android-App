@@ -16,14 +16,14 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #129 — Publish post-card-vault rc11 and promote stable baseline.
+- Active workstream: issue #139 — Final repository prune to permanent branches.
 - Workstream state: `completed`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The post-card-vault Android release is complete. Production-signed 1.0.0-rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup completed successfully, including PR-aware removal of historical merged branches while preserving permanent and unmerged/no-evidence branches. The owner reported rc11 installed on the supported Galaxy S24 Ultra and explicitly authorized stable promotion. PR #135 then merged the accepted develop baseline to main as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e.
+Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.
 
 ## Immediate work
 
