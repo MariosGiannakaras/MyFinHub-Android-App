@@ -14,22 +14,19 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Current facts
 
-- Overall progress: **4/6**.
+- Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #129 — Publish post-card-vault rc11 and promote stable baseline.
-- Workstream state: `rc11_published_repo_clean_physical_acceptance_pending`.
-- Latest private production candidate: `1.0.0-rc11` / `10010` — `protected_published_physical_acceptance_pending`.
+- Workstream state: `completed`.
+- Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The exact post-card-vault Android source passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation in PR #130, and protected run 36140901059 published production-signed 1.0.0-rc11 / versionCode 10010 from immutable source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup is complete to the safe destructive boundary: the original fully-merged-tip pass succeeded, then PR-aware cleanup run 36149961571 removed 62 additional historical merged-PR branches, leaving 33 remote branches consisting of permanent branches or branches without merged-PR evidence. Stable/main promotion remains intentionally blocked only on physical Galaxy S24 Ultra acceptance of rc11.
+The post-card-vault Android release is complete. Production-signed 1.0.0-rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup completed successfully, including PR-aware removal of historical merged branches while preserving permanent and unmerged/no-evidence branches. The owner reported rc11 installed on the supported Galaxy S24 Ultra and explicitly authorized stable promotion. PR #135 then merged the accepted develop baseline to main as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e.
 
 ## Immediate work
 
-- Install 1.0.0-rc11 / versionCode 10010 in place on the physical Galaxy S24 Ultra and verify same-signer update/session continuity.
-- Physically validate the post-card-vault flow, including synchronized PAN/expiry/CVV behavior, without recording sensitive values in repository evidence.
-- After physical acceptance, reconcile the final acceptance evidence, promote the accepted develop baseline through draft PR #135 to main, and close issue #129.
 
 ## Constraints
 
