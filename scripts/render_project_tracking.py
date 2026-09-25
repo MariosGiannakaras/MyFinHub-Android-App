@@ -126,7 +126,7 @@ def redesign_lines(s: dict) -> list[str]:
     lines.extend(f"- [{'x' if complete(row) else ' '}] {row['id']} {row['title']} — {row['status']}" for row in prep)
     lines += ["", "### Blockers", ""]
     blockers = list(r.get("blockers", [])) + [f"{row['id']}: {row['blocker']}" for row in prep + subtasks if row["status"] == "blocked"]
-    lines.extend(f"- {b}" for b in blockers or ["No recorded blocker. Physical S24 acceptance remains a future required gate, not an automated completion claim."])
+    lines.extend(f"- {b}" for b in blockers or ["No recorded blocker."])
     return lines + [""]
 
 
