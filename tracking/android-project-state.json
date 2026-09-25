@@ -11,11 +11,10 @@
   "active_workstream": {
     "issue": 126,
     "title": "Use shared server card vault for PAN/expiry/CVV",
-    "status": "implementation_in_progress",
-    "summary": "The owner explicitly changed the card-secret persistence model on 2026-09-25. Android is moving from device-local PAN/expiry/CVV authority to the shared owner+AAL2 encrypted server card vault used by web and Windows. Existing Android Keystore values are preserved only as a one-time migration source; central backend support is tracked in MyFinHub #407 / PR #408. No stable/main promotion or production release is part of this workstream.",
+    "status": "completed_merged",
+    "summary": "The synchronized card-secret workstream is complete and merged into develop. Android now uses the same owner+AAL2 encrypted server card vault as web and Windows for PAN, expiry and CVV; legacy Android Keystore card-secret stores remain migration-only and are cleared only after successful server synchronization. Central backend support merged through MyFinHub PR #408 and Android support merged through PR #127 after Project Tracking, Android CI and Android UI Quality passed on the exact final head. No stable/main promotion or production APK publication was performed.",
     "next": [
-      "Finish the synchronized server-vault implementation, legacy local migration and focused regression coverage on the Android feature branch.",
-      "Require Project Tracking, Android CI and Android UI Quality on the exact final PR head, then merge the validated change into develop.",
+      "Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.",
       "Keep stable/main promotion and production APK publication as a separate explicit release decision."
     ]
   },
@@ -56,7 +55,8 @@
     "Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)",
     "Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)",
     "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease",
-    "Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance"
+    "Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance",
+    "Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #407/#408)"
   ],
   "constraints": [
     "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",

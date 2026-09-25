@@ -17,18 +17,17 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #126 — Use shared server card vault for PAN/expiry/CVV.
-- Workstream state: `implementation_in_progress`.
+- Workstream state: `completed_merged`.
 - Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_passed`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The owner explicitly changed the card-secret persistence model on 2026-09-25. Android is moving from device-local PAN/expiry/CVV authority to the shared owner+AAL2 encrypted server card vault used by web and Windows. Existing Android Keystore values are preserved only as a one-time migration source; central backend support is tracked in MyFinHub #407 / PR #408. No stable/main promotion or production release is part of this workstream.
+The synchronized card-secret workstream is complete and merged into develop. Android now uses the same owner+AAL2 encrypted server card vault as web and Windows for PAN, expiry and CVV; legacy Android Keystore card-secret stores remain migration-only and are cleared only after successful server synchronization. Central backend support merged through MyFinHub PR #408 and Android support merged through PR #127 after Project Tracking, Android CI and Android UI Quality passed on the exact final head. No stable/main promotion or production APK publication was performed.
 
 ## Immediate work
 
-- Finish the synchronized server-vault implementation, legacy local migration and focused regression coverage on the Android feature branch.
-- Require Project Tracking, Android CI and Android UI Quality on the exact final PR head, then merge the validated change into develop.
+- Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.
 - Keep stable/main promotion and production APK publication as a separate explicit release decision.
 
 ## Constraints
