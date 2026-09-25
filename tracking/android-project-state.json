@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-24",
+  "updated_at": "2026-09-25",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,12 +11,12 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s10_card_extension_validation",
-    "summary": "S1–S9 are complete and merged. S10.1 remains complete. Physical rc9 testing validated same-signer upgrade/session continuity and the major redesigned surfaces, then exposed owner-requested card requirements that reopen S10.2/S10.3 validation: remove screenshot blocking, use the web-style stacked card presentation, show full card details without a reveal/masking gate, and make card creation work without the unavailable server card-vault key. The implementation candidate keeps PAN/expiry/CVV encrypted at rest with Android Keystore while presenting them fully in the authenticated app.",
+    "status": "android_redesign_s10_physical_rc10_pending",
+    "summary": "S1–S9 are complete and merged. S10.1–S10.3 are complete again after the owner-requested card extension. The Android card flow now uses web-style stacked cards, shows PAN/expiry/CVV directly without a reveal/masking gate, permits screenshots on card-detail surfaces, and stores full card details encrypted at rest with Android Keystore so normal Android card creation/read no longer depends on the unavailable production server card-vault key. Exact-head hosted gates and reviewed renders are green. S10.4 remains open for same-signer rc10 physical Galaxy S24 Ultra acceptance.",
     "next": [
-      "Validate the coherent card-extension batch on PR #122: device-local Keystore PAN/expiry + CVV, full unmasked stacked cards, screenshot-permitted card details, complete card creation, and no Android dependency on the unavailable server card-vault for normal read/write.",
-      "Run exact-head Project Tracking, Android CI and Android UI Quality/S24 gates; inspect every changed real Compose reference before accepting any new screenshot baseline.",
-      "After exact-head automation and visual evidence pass, publish a same-signer rc10 from PR #122 and repeat physical Galaxy S24 Ultra acceptance for card creation, full stacked details, screenshots and offline/recovery before completing S10.4 and merging."
+      "Publish the next same-signer protected production candidate (rc10 / next versionCode) directly from validated PR #122 without merging it.",
+      "Install rc10 in place over rc9 on the physical Galaxy S24 Ultra and verify: existing session/data continuity, create a card with PAN/expiry/CVV without 503, stacked Wallet rendering with all values visible, screenshots on card-detail surfaces, edit/delete behavior, restart persistence and updater state.",
+      "Perform a fresh offline → recovery smoke on the physical device. If the rc10 card/offline checks pass, record S10.4 evidence, complete 10/10 tasks and 40/40 subtasks, run final tracking validation and merge PR #122 into develop."
     ]
   },
   "latest_production_candidate": {
@@ -84,10 +84,10 @@
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
     "branch": "android/redesign-s10-integration-acceptance",
     "pr": 122,
-    "current_slice": "S10.2 / S10.3 / S10.4",
-    "checkpoint": "s10_card_full_details_candidate",
+    "current_slice": "S10.4",
+    "checkpoint": "s10_card_automated_acceptance_complete_rc10_physical_pending",
     "blockers": [],
-    "next_action": "Validate the owner-requested full-card extension as one coherent PR #122 batch. Do not mark S10.2/S10.3 complete until the new exact-head gates and rendered references pass; do not mark S10.4 complete until the resulting same-signer candidate passes physical S24 card/offline acceptance.",
+    "next_action": "Publish a production-signed rc10 from the validated PR #122 head, then run the final physical Galaxy S24 Ultra card and offline/recovery acceptance. Do not complete S10.4 or merge before that owner evidence is recorded.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -579,23 +579,29 @@
         {
           "id": "S10.2",
           "title": "Full affected hosted gates",
-          "status": "in_progress",
+          "status": "completed",
           "evidence": [
             "Exact-head Project Tracking run 35890299222 passed on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
             "Exact-head Android CI run 35890299299 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and both release-policy audits on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
             "Exact-head Android UI Quality run 35890299223 passed screenshot regression and S24-target instrumentation; the device suite completed 75/75 tests with zero failures.",
-            "The previous exact-head automated acceptance is superseded for final S10 completion by the owner-requested card extension; fresh hosted gates are required on the new card implementation head."
+            "The previous exact-head automated acceptance is superseded for final S10 completion by the owner-requested card extension; fresh hosted gates are required on the new card implementation head.",
+            "Card-extension exact-head Project Tracking run 36115578943 passed on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android CI run 36115578924 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and release/Play policy audits on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android UI Quality run 36115578941 passed both screenshot regression and the S24-target instrumented job. The device runner executed a 70-test suite with zero failures reported throughout progress and completed successfully."
           ]
         },
         {
           "id": "S10.3",
           "title": "Inspect and replace actual screenshot evidence",
-          "status": "pending",
+          "status": "completed",
           "evidence": [
             "The cleanup changed exactly one surviving canonical render: UserNoticeSnackbar over the canonical Production Home. It was personally inspected for layout, amount privacy, snackbar/action/dismiss behavior and bottom-navigation overlap before acceptance.",
             "One-shot reviewed-render acceptance run 35797193835 regenerated that exact reference, verified the reviewed byte and screenshot scope, passed screenshot validation, committed only the approved PNG, and removed its temporary helper in the same acceptance commit ce12cfcd6b2a6af9b265bf766f757ca34013c755.",
             "Final exact-head screenshot regression in Android UI Quality run 35890299223 passed with candidate regeneration skipped. Artifact 10765400098 has digest sha256:b563f54276a4ece81e94ae919c2a52ce5f2273206abe215ee361a59b1c7f5cc8.",
-            "The previous accepted references remain historical evidence, but Wallet/Cards and card-details presentation now intentionally change and require fresh real-render inspection before S10.3 can complete again."
+            "The previous accepted references remain historical evidence, but Wallet/Cards and card-details presentation now intentionally change and require fresh real-render inspection before S10.3 can complete again.",
+            "Fourteen intentional card renders were personally inspected after the full-card extension: canonical card detail/full-details light-dark-large-font, card creation light-dark-large-font, standalone stacked-card light/150%-font, and Wallet/Cards light-dark-large-font. Full PAN/expiry/CVV visibility, stacked geometry, create fields, dark mode and large-font layout were verified without clipping or reveal controls.",
+            "One-shot reviewed-render acceptance run 36112817621 regenerated only the reviewed card references, verified the exact 14 SHA-256 bytes and exact screenshot path scope, then removed its helper and committed the accepted evidence as b3596b9f8724ed51e8c748a9cb4370ef2a400538.",
+            "Final exact-head screenshot regression in Android UI Quality run 36115578941 passed with candidate regeneration skipped. Artifact 10854614111 has digest sha256:a9e6a42baa7fca960bf68b91982f95ca618a3a1bd35a77fae6dbf6278eae94ab."
           ]
         },
         {
