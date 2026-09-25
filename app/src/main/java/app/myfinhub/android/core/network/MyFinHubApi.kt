@@ -31,20 +31,22 @@ interface MyFinHubApi {
     ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 }
 
-/** Sensitive PAN/expiry response. Intentionally redacts values from toString(). */
+/** Sensitive PAN/expiry/CVV response. Intentionally redacts values from toString(). */
 class CardSecrets(
     val pan: String?,
     val expiry: String?,
+    val cvv: String?,
 ) {
-    override fun toString(): String = "CardSecrets(pan=<redacted>, expiry=<redacted>)"
+    override fun toString(): String = "CardSecrets(pan=<redacted>, expiry=<redacted>, cvv=<redacted>)"
 }
 
-/** Server-vault update. There is deliberately no CVV/CVC field in this API surface. */
+/** Shared encrypted server-vault update. Sensitive values are always redacted from diagnostics. */
 class CardSecretUpdate(
     val pan: String? = null,
     val expiry: String? = null,
+    val cvv: String? = null,
 ) {
-    override fun toString(): String = "CardSecretUpdate(pan=<redacted>, expiry=<redacted>)"
+    override fun toString(): String = "CardSecretUpdate(pan=<redacted>, expiry=<redacted>, cvv=<redacted>)"
 }
 
 data class CardSecretWriteReceipt(

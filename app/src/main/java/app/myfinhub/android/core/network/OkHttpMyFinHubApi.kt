@@ -101,8 +101,9 @@ class OkHttpMyFinHubApi(
                 val payload = json.parseToJsonElement(responseBody).jsonObject
                 val pan = payload.nullableString("pan")
                 val expiry = payload.nullableString("expiry")
-                if (pan == null && expiry == null) error("Empty card secret")
-                ApiResult.Success(CardSecrets(pan = pan, expiry = expiry))
+                val cvv = payload.nullableString("cvv")
+                if (pan == null && expiry == null && cvv == null) error("Empty card secret")
+                ApiResult.Success(CardSecrets(pan = pan, expiry = expiry, cvv = cvv))
             }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
         }
     }
@@ -116,7 +117,7 @@ class OkHttpMyFinHubApi(
         if (gate != null) return gate
         val normalizedCardId = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
-        if (update.pan.isNullOrBlank() && update.expiry.isNullOrBlank()) {
+        if (update.pan.isNullOrBlank() && update.expiry.isNullOrBlank() && update.cvv.isNullOrBlank()) {
             return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
         }
 
@@ -124,6 +125,7 @@ class OkHttpMyFinHubApi(
             put("cardId", JsonPrimitive(normalizedCardId))
             update.pan?.let { put("pan", JsonPrimitive(it)) }
             update.expiry?.let { put("expiry", JsonPrimitive(it)) }
+            update.cvv?.let { put("cvv", JsonPrimitive(it)) }
         }.toString()
         val request = authenticatedRequest(session, "/api/card-secrets")
             .put(body.toRequestBody(JSON_MEDIA_TYPE))
