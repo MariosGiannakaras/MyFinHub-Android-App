@@ -198,9 +198,9 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("5555444433331881").assertIsDisplayed()
-        composeRule.onNodeWithText("09/31").assertIsDisplayed()
-        composeRule.onNodeWithText("731").assertIsDisplayed()
+        composeRule.onNodeWithText("5555444433331881").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("09/31").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("731").performScrollTo().assertIsDisplayed()
         assertTrue(
             runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
         )
