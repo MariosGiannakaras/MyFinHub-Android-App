@@ -1,8 +1,8 @@
 # MyFinHub Android repository instructions
 
-> **Mandatory start:** Read permanent issue #27, this file, `tracking/android-project-state.json`, and generated `docs/CURRENT_HANDOFF.md`. Inspect live develop, the active working branch/PR and relevant checks. Read only the active slice of `docs/UI_2026_REDESIGN_HANDOFF.md` and its implementation dependencies. Do not repeat the completed full-product audit without new evidence.
+> **Mandatory start:** Read permanent issue #27, this file, `tracking/android-project-state.json`, and generated `docs/CURRENT_HANDOFF.md`. Inspect live `develop`, the active Issue/PR and relevant checks. Read only the documents and direct dependencies needed by the active workstream. Do not repeat the completed full-product audit/redesign without new evidence.
 
-## Active Android redesign boundary and continuity
+## Active Android workstream boundary and continuity
 
 - The owner authorized repository cleanup and implementation of the September 2026 Android redesign. Earlier audit-only restrictions and old minimum-polish/final-completion claims do not govern this workstream.
 - The completed September redesign was Android-only. Post-redesign cross-repository backend/API work is allowed only when the owner explicitly requests it in the current conversation; the 2026-09-25 synchronized card-secret task is an explicit owner-approved exception. Keep any shared change minimal and isolated.

@@ -33,11 +33,11 @@ Hosted-emulator Macrobenchmark/Baseline Profile runs are optional diagnostic too
 
 ## Physical-device authority
 
-When Phase 6 begins, the owner's physical Samsung Galaxy S24 Ultra is the final authority for:
+The owner's physical Samsung Galaxy S24 Ultra remains the final authority for:
 
 - actual Samsung One UI rendering and system bars;
 - the owner's current display resolution, display zoom and font-size settings;
 - startup/performance behavior on real hardware;
 - physical-device Auth/API smoke validation.
 
-Phase 6 remains separate. Do not create a production signing key, production-signed APK or release as part of ordinary implementation/redesign work.
+Production signing is already enrolled and protected. Ordinary implementation work must still not create, rotate or expose signing material or publish signed releases. Each new production candidate requires an explicit release checkpoint and physical S24 Ultra acceptance before stable promotion.
