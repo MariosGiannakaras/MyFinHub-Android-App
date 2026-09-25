@@ -49,6 +49,15 @@ class RedesignTrackingTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "IDs must remain stable"):
             tracking.validate_redesign(self.state)
 
+    def test_completed_redesign_does_not_claim_future_physical_acceptance(self):
+        for task in self.state["redesign_tasks"]:
+            for sub in task["subtasks"]:
+                sub.update(status="completed", evidence=["Acceptance evidence"])
+        self.state["current_redesign_pass"]["blockers"] = []
+        rendered = "\n".join(tracking.rendered(self.state).values())
+        self.assertIn("No recorded blocker.", rendered)
+        self.assertNotIn("Physical S24 acceptance remains a future required gate", rendered)
+
     def test_historical_state_remains_readable(self):
         del self.state["redesign_tasks"]
         tracking.validate_redesign(self.state)
