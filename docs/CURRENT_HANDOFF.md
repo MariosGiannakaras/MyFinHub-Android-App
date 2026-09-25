@@ -16,19 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **4/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #126 — Use shared server card vault for PAN/expiry/CVV.
-- Workstream state: `completed_merged`.
+- Active workstream: issue #129 — Publish post-card-vault rc11 and promote stable baseline.
+- Workstream state: `release_source_validation`.
 - Latest private production candidate: `1.0.0-rc10` / `10009` — `protected_published_physical_acceptance_passed`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The synchronized card-secret workstream is complete and merged into develop. Android now uses the same owner+AAL2 encrypted server card vault as web and Windows for PAN, expiry and CVV; legacy Android Keystore card-secret stores remain migration-only and are cleared only after successful server synchronization. Central backend support merged through MyFinHub PR #408 and Android support merged through PR #127 after Project Tracking, Android CI and Android UI Quality passed on the exact final head. No stable/main promotion or production APK publication was performed.
+The synchronized card-secret implementation is complete on develop and its backend dependency is merged. This checkpoint creates a no-product-behavior-change Android release source for 1.0.0-rc11 so the exact post-card-vault source can pass Project Tracking, Android CI and Android UI Quality before protected production publication. main promotion remains blocked on physical Galaxy S24 Ultra acceptance of the new signed candidate.
 
 ## Immediate work
 
-- Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.
-- Keep stable/main promotion and production APK publication as a separate explicit release decision.
+- Require exact-head Project Tracking, Android CI and Android UI Quality on the rc11 release-source PR.
+- Publish production-signed 1.0.0-rc11 from the still-open validated Android release-source PR through the guarded production workflow.
+- After physical Galaxy S24 Ultra acceptance, reconcile tracking, promote the accepted baseline to main, then clean obsolete merged/superseded branches.
 
 ## Constraints
 
@@ -48,6 +49,7 @@ The synchronized card-secret workstream is complete and merged into develop. And
 ## Tracking discipline
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
+
 
 ## Android redesign progress
 
