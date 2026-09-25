@@ -67,9 +67,33 @@ import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.quickentry.DateEntryField
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+internal fun activityTransferRouteLabel(
+    item: ActivityItem,
+    accountOptions: List<ActivityAccountOption>,
+): String {
+    val from = item.fromAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
+    val to = item.toAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
+    if (!from.isNullOrBlank() && !to.isNullOrBlank()) return "Από $from → Προς $to"
+
+    val route = item.accountLabel.replace("->", "→").split("→", limit = 2).map(String::trim)
+    if (route.size == 2 && route.all(String::isNotBlank)) return "Από p → Προς a"
+    return item.subtitle
+}
+
+internal fun formatSignedEuro(amount: Double): String {
+    val formatted = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+        .format(kotlin.math.abs(amount))
+    return when {
+        amount > 0.0 -> "+$formatted"
+        amount < 0.0 -> "−$formatted"
+        else -> formatted
+    }
+}
 
 /** S3 production Activity surface: one dense ledger, one exact filter sheet and no gesture-only actions. */
 @OptIn(ExperimentalMaterial3Api::class)

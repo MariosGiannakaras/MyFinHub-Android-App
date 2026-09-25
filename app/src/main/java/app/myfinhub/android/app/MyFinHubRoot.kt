@@ -143,11 +143,10 @@ fun MyFinHubRoot(
                     session = state.session,
                     allowAutomaticSync = !state.offline,
                 )
+                cardSecretViewModel.attachSession(state.session)
                 if (state.offline) {
-                    cardSecretViewModel.clear()
                     updateViewModel.clearSession()
                 } else {
-                    cardSecretViewModel.attachSession(state.session)
                     updateViewModel.attachSession(state.session)
                 }
             }
@@ -242,7 +241,6 @@ fun MyFinHubRoot(
                             onHomeAction = financeViewModel::onHomeAction,
                             onActivityAction = financeViewModel::onActivityAction,
                             onQuickEntryAction = financeViewModel::onQuickEntryAction,
-                            onPlanAction = financeViewModel::onPlanAction,
                             onSaveBudget = financeViewModel::saveOverallBudget,
                             onCardDetailOpened = cardSecretViewModel::openCard,
                             onCardDetailClosed = cardSecretViewModel::closeCard,
@@ -250,6 +248,7 @@ fun MyFinHubRoot(
                             onHideCardSecrets = cardSecretViewModel::hideSecrets,
                             onSaveServerCardSecrets = cardSecretViewModel::saveServerSecrets,
                             onSaveLocalCvv = cardSecretViewModel::saveCvv,
+                            onSaveCardDetails = cardSecretViewModel::saveCardDetailsForCard,
                             onDeleteLocalCvv = cardSecretViewModel::deleteCvv,
                             onRetryCardSecretCleanup = cardSecretViewModel::retryPurgeCard,
                             onDeleteCard = financeViewModel::deleteCard,
@@ -315,7 +314,6 @@ private fun FinanceProductSurface(
     onHomeAction: (app.myfinhub.android.feature.home.HomeAction) -> Unit,
     onActivityAction: (app.myfinhub.android.feature.activity.ActivityAction) -> Unit,
     onQuickEntryAction: (app.myfinhub.android.feature.quickentry.QuickEntryAction) -> Unit,
-    onPlanAction: (app.myfinhub.android.feature.plan.PlanAction) -> Unit,
     onSaveBudget: (String, String) -> Unit,
     onCardDetailOpened: (String) -> Unit,
     onCardDetailClosed: (String) -> Unit,
@@ -323,6 +321,7 @@ private fun FinanceProductSurface(
     onHideCardSecrets: () -> Unit,
     onSaveServerCardSecrets: (CharArray, CharArray) -> Unit,
     onSaveLocalCvv: (CharArray) -> Unit,
+    onSaveCardDetails: (String, CharArray, CharArray, CharArray) -> Unit,
     onDeleteLocalCvv: () -> Unit,
     onRetryCardSecretCleanup: (String) -> Unit,
     onDeleteCard: (String) -> Unit,
@@ -364,12 +363,12 @@ private fun FinanceProductSurface(
                     onHideCardSecrets = onHideCardSecrets,
                     onSaveServerCardSecrets = onSaveServerCardSecrets,
                     onSaveLocalCvv = onSaveLocalCvv,
+                    onSaveCardDetails = onSaveCardDetails,
                     onDeleteLocalCvv = onDeleteLocalCvv,
                     onRetryCardSecretCleanup = onRetryCardSecretCleanup,
                     onDeleteCard = onDeleteCard,
                     onCreateCard = onCreateCard,
                     planState = projection.planState,
-                    onPlanAction = onPlanAction,
                     onSaveBudget = onSaveBudget,
                     planMutationInFlight = state.saving,
                     planMutationBlocked = state.issue != null,
@@ -377,7 +376,6 @@ private fun FinanceProductSurface(
                     diagnostics = diagnostics,
                     noticeHistory = noticeHistory,
                     onLogout = onLogout,
-                    canonicalProductMode = true,
                 )
                 if (state.saving) {
                     LinearProgressIndicator(

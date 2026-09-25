@@ -5,8 +5,9 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 
 ## Open
 
-- [ ] Merge validated PR #121 into develop without changing the accepted S9 product/test tree.
-- [ ] Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion.
+- [ ] Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.
+- [ ] Merge PR #122 into develop after the final exact-head checks are green.
+- [ ] After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision.
 
 ## Completed foundations
 
@@ -39,6 +40,7 @@ Active tracker: issue #73 — **Post-Phase-6 full-app product audit and radical 
 - [x] Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)
 - [x] Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)
 - [x] Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease
+- [x] Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance
 
 ## Rule
 
@@ -46,14 +48,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android redesign progress
 
-**Tasks: 9/10 · Subtasks: 36/40 · Preparation: 4/4**
+**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
 
 These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
 
-Working branch: `android/redesign-s9-settings-auth`. PR: 121.
-Checkpoint: `s9_complete_merge_ready`.
+Working branch: `android/redesign-s10-integration-acceptance`. PR: 122.
+Checkpoint: `s10_complete_final_merge_pending`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.
+Next action: Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
@@ -66,7 +68,7 @@ Next action: Merge validated PR #121 into develop, create the S10 integration/ac
 | S7 Plan and debts | 4/4 | Complete |
 | S8 Analysis | 4/4 | Complete |
 | S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 0/4 | S10.1 Remove proven obsolete paths (pending); S10.2 Full affected hosted gates (pending); S10.3 Inspect and replace actual screenshot evidence (pending); S10.4 Physical S24 acceptance (pending) |
+| S10 Integration and acceptance | 4/4 | Complete |
 
 ### Preparation
 

@@ -725,6 +725,74 @@ private fun formatProductionMoney(value: Double): String = if (value % 1.0 == 0.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+internal fun DateEntryField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    errorMessage: String?,
+    modifier: Modifier = Modifier,
+    optional: Boolean = false,
+) {
+    var pickerOpen by remember { mutableStateOf(false) }
+    val displayValue = when {
+        value.isBlank() && optional -> "Δεν έχει οριστεί"
+        value.isBlank() -> "Επιλογή ημερομηνίας"
+        else -> value.toGreekDateLabel()
+    }
+
+    MyFinHubSelectorButton(
+        label = label,
+        onClick = { pickerOpen = true },
+        modifier = modifier,
+        errorMessage = errorMessage,
+    ) { Text(displayValue) }
+
+    if (optional && errorMessage == null) {
+        Text(
+            "Προαιρετικό",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+
+    if (pickerOpen) {
+        val pickerState = remember(value) {
+            DatePickerState(
+                locale = Locale.forLanguageTag("el-GR"),
+                initialSelectedDateMillis = value.toDatePickerMillis(),
+            )
+        }
+        DatePickerDialog(
+            onDismissRequest = { pickerOpen = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pickerState.selectedDateMillis?.let { onValueChange(it.toIsoDateText()) }
+                        pickerOpen = false
+                    },
+                    enabled = pickerState.selectedDateMillis != null,
+                ) { Text("Επιλογή") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickerOpen = false }) { Text("Ακύρωση") }
+            },
+        ) {
+            GreekDatePicker(
+                selectedDate = pickerState.selectedDateMillis?.toIsoDateText()?.toGreekDateLabel()
+                    ?: displayValue,
+            ) {
+                DatePicker(
+                    state = pickerState,
+                    title = { Text("Επιλογή ημερομηνίας") },
+                    headline = { Text(it) },
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 private fun ProductionDateChoice(
     value: String,
     onValueChange: (String) -> Unit,

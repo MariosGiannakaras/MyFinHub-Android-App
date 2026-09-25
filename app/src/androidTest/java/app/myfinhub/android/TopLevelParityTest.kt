@@ -49,25 +49,32 @@ class TopLevelParityTest {
     @Test
     fun fourRoots_walletPlanAndAnalysis_haveRealMobileContent() {
         selectDestination("Πορτοφόλι")
-        composeRule.onNodeWithText("Λογαριασμοί").assertIsDisplayed()
+        composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
+        composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
-        composeRule.onNodeWithTag("credit_card_stack")
+        composeRule.onNodeWithTag("credit_card_card-1")
             .assertIsDisplayed()
-            .performSemanticsAction(SemanticsActions.RequestFocus)
-        composeRule.onNodeWithTag("credit_card_stack")
-            .performKeyInput { pressKey(Key.Enter) }
+            .performClick()
+        composeRule.onNodeWithTag("card_secure_details")
+            .assertIsDisplayed()
+            .performClick()
         composeRule.onNodeWithText(
-            "PAN/λήξη αποκαλύπτονται μόνο από το owner+AAL2 server vault. Το CVV παραμένει αποκλειστικά σε κρυπτογραφημένο vault αυτής της συσκευής.",
+            "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στη συσκευή και εμφανίζονται πλήρως όσο χρησιμοποιείς την εφαρμογή.",
         ).assertIsDisplayed()
-        composeRule.onNodeWithText("Αποκάλυψη ασφαλών στοιχείων").assertIsDisplayed()
+        assertTrue(
+            "Card details must not expose a reveal gate",
+            runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("card_secure_details").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
 
         selectDestination("Πλάνο")
-        composeRule.onNodeWithText("Επόμενες υποχρεώσεις").assertIsDisplayed()
-        composeRule.onNode(hasText("Budgets", substring = true) and hasClickAction())
-            .performScrollTo()
-            .assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_link").performScrollTo().assertIsDisplayed()
 
         selectAnalysis()
         composeRule.onNodeWithTag("insights_list")
@@ -79,21 +86,18 @@ class TopLevelParityTest {
     }
 
     @Test
-    fun plan_drillsIntoItemAndBudgetWorkflows() {
+    fun plan_drillsIntoForecastAndBudgetWorkflows() {
         selectDestination("Πλάνο")
 
-        composeRule.onNode(hasText("Ενοίκιο") and hasClickAction())
-            .performScrollTo()
-            .performClick()
-        composeRule.onNodeWithText("Επεξεργασία").assertIsDisplayed()
-        composeRule.onNodeWithText("Αποθήκευση").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().performClick()
+        composeRule.onNodeWithTag("s7_forecast_root").assertIsDisplayed()
+        composeRule.onNodeWithText("Κινήσεις που υπολογίζονται").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
-        composeRule.onNode(hasText("Budgets", substring = true) and hasClickAction())
-            .performScrollTo()
-            .performClick()
-        composeRule.onNodeWithText("Συνολικό μηνιαίο budget").assertIsDisplayed()
-        composeRule.onNodeWithText("Budgets ανά κατηγορία").assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_link").performScrollTo().performClick()
+        composeRule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_limit").assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_save").assertIsDisplayed()
     }
 
     @Test

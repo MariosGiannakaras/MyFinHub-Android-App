@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-20",
+  "updated_at": "2026-09-25",
   "overall_progress": {
     "completed": 4,
     "total": 6
@@ -11,19 +11,20 @@
   "active_workstream": {
     "issue": 73,
     "title": "Post-Phase-6 full-app product audit and radical redesign",
-    "status": "android_redesign_s9_complete_merge_ready",
-    "summary": "S1–S9 are complete. Draft PR #121 contains the validated Android-only Settings/authentication redesign: consumer-first Settings, live global amount privacy, sanitized diagnostics, deterministic updater recovery and hardened login/MFA/PIN/biometric presentation. The accepted S9 product/test head passed Project Tracking, Android CI, screenshot regression and the full 76-test S24-target instrumentation suite.",
+    "status": "android_redesign_complete_merge_pending",
+    "summary": "All ten Android redesign slices are complete. S10 physical owner acceptance passed on the production-signed rc10 candidate on the supported Galaxy S24 Ultra, including same-signer continuity, full-card creation/persistence and stacked presentation with screenshots permitted, plus offline local unlock, durable pending mutation and successful recovery/synchronization. PR #122 now requires only final exact-head metadata validation and merge into develop; stable/main promotion remains a separate deliberate release checkpoint.",
     "next": [
-      "Merge validated PR #121 into develop without changing the accepted S9 product/test tree.",
-      "Create the S10 integration/acceptance branch from updated develop, remove only proven obsolete paths, run full affected hosted/visual validation, then perform explicit physical S24 acceptance before any stable/main promotion."
+      "Require the final PR #122 head that records 10/10 tasks and 40/40 subtasks to pass Project Tracking, Android CI and Android UI Quality without product or screenshot drift.",
+      "Merge PR #122 into develop after the final exact-head checks are green.",
+      "After merge, reconcile tracking to the merged develop head and keep any stable/main promotion as a separate deliberate release decision."
     ]
   },
   "latest_production_candidate": {
-    "version_name": "1.0.0-rc8",
-    "version_code": 10007,
-    "status": "protected_published_physical_acceptance_pending",
-    "source_pr": 109,
-    "notes": "Protected same-signer rc8 was built and published from the exact validated Slice H PR #109 source after all hosted gates and fresh visual inspection passed. The enrolled long-lived production signer was verified and preserved. rc8 is available through the approved private update/GitHub prerelease path but has not yet been installed in place or explicitly accepted on the physical S24; do not promote to stable/main before that acceptance."
+    "version_name": "1.0.0-rc10",
+    "version_code": 10009,
+    "status": "protected_published_physical_acceptance_passed",
+    "source_pr": 122,
+    "notes": "Production-signed rc10 / versionCode 10009 was published from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6 through protected run 36117566611 and installed in place on the physical Galaxy S24 Ultra. Owner physical acceptance passed: session/data continuity survived the update; a card could be created and its full values persisted locally without the earlier card-vault 503 dependency; Wallet/Cards used the accepted stacked presentation with full details visible and screenshots permitted; offline local unlock and an offline finance mutation entered durable pending state, remained visible in Activity, and synchronized after connectivity returned. No PAN/CVV values are persisted in repository acceptance evidence."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -54,7 +55,8 @@
     "Owner correction Slice F — equivalent-period Insights comparisons, explicit finance metrics, partial-month semantics, category percentages/drill-down, `Ανάλυση` navigation and owner-audited screenshot/S24 validation (#107)",
     "Owner correction Slice G — consumer-first Settings hierarchy, secondary human-readable diagnostics, privacy-safe notification history, consumer-facing update copy and owner-audited screenshot/S24 validation (#108)",
     "Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)",
-    "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease"
+    "Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease",
+    "Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance"
   ],
   "constraints": [
     "Strict Android-only redesign: no changes to MyFinHub web/desktop, shared Supabase schema/data/configuration, APIs or server behavior. Record missing shared capabilities as blockers.",
@@ -81,12 +83,12 @@
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
-    "branch": "android/redesign-s9-settings-auth",
-    "pr": 121,
-    "current_slice": "S10.1 / S10.2 / S10.3 / S10.4",
-    "checkpoint": "s9_complete_merge_ready",
+    "branch": "android/redesign-s10-integration-acceptance",
+    "pr": 122,
+    "current_slice": "Complete",
+    "checkpoint": "s10_complete_final_merge_pending",
     "blockers": [],
-    "next_action": "Merge validated PR #121 into develop, create the S10 integration/acceptance branch from the resulting develop head, then execute S10.1–S10.4 without reopening completed redesign discovery.",
+    "next_action": "Require final exact-head Project Tracking, Android CI and Android UI Quality on the 10/10 acceptance metadata head, then merge PR #122 into develop. Stable/main promotion is separate.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -568,26 +570,55 @@
         {
           "id": "S10.1",
           "title": "Remove proven obsolete paths",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "PR #122 removes the proven non-production pre-redesign fallback UI stack that was previously reachable only through canonicalProductMode=false/debug ProductTestActivity, while production remains MainActivity → MyFinHubRoot → canonical MyFinHubAppContent routes.",
+            "Obsolete Home/Money/Plan/Settings editors/routes, historical parity tests and their obsolete golden references were removed; shared Activity formatting/transfer helpers, the Greek DateEntryField and canonical budget-progress calculation were relocated into active S3/S4/S7 production files rather than deleted.",
+            "Integration tests were aligned to canonical Home, Wallet/Card, Plan, Settings and attention flows without restoring obsolete UI solely for tests. Exact-head compilation and device validation confirm no hidden source dependency remains."
+          ]
         },
         {
           "id": "S10.2",
           "title": "Full affected hosted gates",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Exact-head Project Tracking run 35890299222 passed on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android CI run 35890299299 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and both release-policy audits on 4610c7ee8e18ed39d618d0e3e23e77b105ea059e.",
+            "Exact-head Android UI Quality run 35890299223 passed screenshot regression and S24-target instrumentation; the device suite completed 75/75 tests with zero failures.",
+            "The previous exact-head automated acceptance is superseded for final S10 completion by the owner-requested card extension; fresh hosted gates are required on the new card implementation head.",
+            "Card-extension exact-head Project Tracking run 36115578943 passed on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android CI run 36115578924 passed benchmark/baseline tooling, unit tests, instrumentation compilation, lint/debug assembly, optimized unsigned release/Play bundle assembly and release/Play policy audits on a2656d1c7c35f27dbbb2f176dfe63b72f09b4057.",
+            "Card-extension exact-head Android UI Quality run 36115578941 passed both screenshot regression and the S24-target instrumented job. The device runner executed a 70-test suite with zero failures reported throughout progress and completed successfully."
+          ]
         },
         {
           "id": "S10.3",
           "title": "Inspect and replace actual screenshot evidence",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "The cleanup changed exactly one surviving canonical render: UserNoticeSnackbar over the canonical Production Home. It was personally inspected for layout, amount privacy, snackbar/action/dismiss behavior and bottom-navigation overlap before acceptance.",
+            "One-shot reviewed-render acceptance run 35797193835 regenerated that exact reference, verified the reviewed byte and screenshot scope, passed screenshot validation, committed only the approved PNG, and removed its temporary helper in the same acceptance commit ce12cfcd6b2a6af9b265bf766f757ca34013c755.",
+            "Final exact-head screenshot regression in Android UI Quality run 35890299223 passed with candidate regeneration skipped. Artifact 10765400098 has digest sha256:b563f54276a4ece81e94ae919c2a52ce5f2273206abe215ee361a59b1c7f5cc8.",
+            "The previous accepted references remain historical evidence, but Wallet/Cards and card-details presentation now intentionally change and require fresh real-render inspection before S10.3 can complete again.",
+            "Fourteen intentional card renders were personally inspected after the full-card extension: canonical card detail/full-details light-dark-large-font, card creation light-dark-large-font, standalone stacked-card light/150%-font, and Wallet/Cards light-dark-large-font. Full PAN/expiry/CVV visibility, stacked geometry, create fields, dark mode and large-font layout were verified without clipping or reveal controls.",
+            "One-shot reviewed-render acceptance run 36112817621 regenerated only the reviewed card references, verified the exact 14 SHA-256 bytes and exact screenshot path scope, then removed its helper and committed the accepted evidence as b3596b9f8724ed51e8c748a9cb4370ef2a400538.",
+            "Final exact-head screenshot regression in Android UI Quality run 36115578941 passed with candidate regeneration skipped. Artifact 10854614111 has digest sha256:a9e6a42baa7fca960bf68b91982f95ca618a3a1bd35a77fae6dbf6278eae94ab."
+          ]
         },
         {
           "id": "S10.4",
           "title": "Physical S24 acceptance",
-          "status": "pending",
-          "evidence": []
+          "status": "completed",
+          "evidence": [
+            "Physical Galaxy S24 Ultra testing successfully installed production-signed rc9 (1.0.0-rc9 / 10008) in place over rc8 through the private updater/Play Protect flow without logout or data loss.",
+            "Post-upgrade diagnostics showed connected, synchronized, active-and-verified session state on the production public client; Home, Settings, diagnostics/notices, Quick Entry, Activity, Analysis, Wallet and Plan were physically exercised in light/dark surfaces.",
+            "The owner then identified remaining card acceptance gaps: no usable stored full card details because PUT /api/card-secrets returned CARD_VAULT_UNAVAILABLE, screenshot blocking on card details, flat Wallet card rows instead of stacked cards, and masked/reveal-gated details. These are now explicit S10.4 acceptance requirements rather than accepted behavior.",
+            "Protected production release run 36117566611 published 1.0.0-rc10 / versionCode 10009 from validated PR #122 source 5925a105b9ee88d0c0fc884eaa95719db232cdd6. GitHub prerelease v1.0.0-rc10 and the private production row/storage were published successfully; direct APK SHA-256 is 148d4c0bb17393c0270179704b5138b8862b6fcaf96e0158cda125a8c424375a.",
+            "Owner physical acceptance on the Galaxy S24 Ultra confirmed rc10 installed in place with existing session and finance data intact. The owner explicitly confirmed the final checklist after exercising the candidate.",
+            "Physical card evidence showed successful local full-card save/edit, full PAN/expiry/CVV presentation without a reveal gate, the accepted stacked Wallet card surface, and screenshots functioning on the card-details surface. Sensitive numeric values were intentionally not copied into repository evidence.",
+            "Physical offline evidence showed MFH-AUTH-OFFLINE-LOCAL-UNLOCK, creation of an offline finance mutation with MFH-OFFLINE-PENDING-SYNC and the pending item visible in Activity, followed by a recovered state with the pending banner cleared while the transaction remained present.",
+            "Production runtime logs corroborated the recovery path with GET /api/data 200 followed by PUT /api/data 200 after connectivity returned, confirming the pending mutation reached the server."
+          ]
         }
       ]
     }

@@ -85,6 +85,11 @@ private val cardFormFactorOptions = listOf(
 fun CanonicalCardCreateScreen(
     cards: List<MoneyCard>,
     onCreate: (CardCreateRequest) -> Unit,
+    onSaveCardDetails: (String, CharArray, CharArray, CharArray) -> Unit = { _, pan, expiry, cvv ->
+        pan.fill('\u0000')
+        expiry.fill('\u0000')
+        cvv.fill('\u0000')
+    },
     onBack: () -> Unit,
 ) {
     var nickname by remember { mutableStateOf("") }
@@ -93,7 +98,9 @@ fun CanonicalCardCreateScreen(
     var kind by remember { mutableStateOf("debit") }
     var network by remember { mutableStateOf("visa") }
     var formFactor by remember { mutableStateOf("physical") }
-    var last4 by remember { mutableStateOf("") }
+    var pan by remember { mutableStateOf("") }
+    var expiry by remember { mutableStateOf("") }
+    var cvv by remember { mutableStateOf("") }
     var creditLimit by remember { mutableStateOf("") }
     var validation by remember { mutableStateOf<String?>(null) }
     var submittedId by remember { mutableStateOf<String?>(null) }
@@ -106,7 +113,9 @@ fun CanonicalCardCreateScreen(
         kind != "debit" ||
         network != "visa" ||
         formFactor != "physical" ||
-        last4.isNotBlank() ||
+        pan.isNotBlank() ||
+        expiry.isNotBlank() ||
+        cvv.isNotBlank() ||
         (kind == "credit" && creditLimit.isNotBlank())
     val requestBack = {
         when {
@@ -139,7 +148,7 @@ fun CanonicalCardCreateScreen(
         ) {
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Η κάρτα συγχρονίζεται με το οικονομικό σου αρχείο. Τα ευαίσθητα στοιχεία προστατεύονται και δεν εμφανίζονται σε στιγμιότυπα οθόνης ή διαγνωστικά.",
+                    "Το προφίλ της κάρτας συγχρονίζεται με το οικονομικό σου αρχείο. Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα σε αυτή τη συσκευή και εμφανίζονται πλήρως στις κάρτες.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -195,10 +204,38 @@ fun CanonicalCardCreateScreen(
             )
 
             OutlinedTextField(
-                value = last4,
-                onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) last4 = it; validation = null },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Τελευταία 4 ψηφία (προαιρετικό)") },
+                value = pan,
+                onValueChange = { input ->
+                    pan = input.filter(Char::isDigit).take(19)
+                    validation = null
+                },
+                modifier = Modifier.fillMaxWidth().testTag("card_create_pan"),
+                label = { Text("Αριθμός κάρτας") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                enabled = submittedId == null,
+            )
+            OutlinedTextField(
+                value = expiry,
+                onValueChange = { input ->
+                    val digits = input.filter(Char::isDigit).take(4)
+                    expiry = if (digits.length <= 2) digits else "${digits.take(2)}/${digits.drop(2)}"
+                    validation = null
+                },
+                modifier = Modifier.fillMaxWidth().testTag("card_create_expiry"),
+                label = { Text("Λήξη (MM/YY)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                enabled = submittedId == null,
+            )
+            OutlinedTextField(
+                value = cvv,
+                onValueChange = { input ->
+                    cvv = input.filter(Char::isDigit).take(4)
+                    validation = null
+                },
+                modifier = Modifier.fillMaxWidth().testTag("card_create_cvv"),
+                label = { Text("CVV") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 enabled = submittedId == null,
@@ -222,18 +259,26 @@ fun CanonicalCardCreateScreen(
                 onClick = {
                     val normalizedNickname = nickname.trim()
                     val normalizedBank = selectedProvider?.key ?: customBank.trim()
-                    val normalizedLast4 = last4.trim().takeIf(String::isNotBlank)
+                    val normalizedPan = pan.filter(Char::isDigit)
+                    val normalizedExpiry = expiry.trim()
+                    val normalizedCvv = cvv.filter(Char::isDigit)
                     val limit = creditLimit.trim().replace(',', '.').takeIf(String::isNotBlank)?.toDoubleOrNull()
                     validation = when {
                         normalizedNickname.isBlank() -> "Συμπλήρωσε όνομα κάρτας."
                         normalizedBank.isBlank() -> "Συμπλήρωσε τράπεζα ή εκδότη."
-                        normalizedLast4 != null && normalizedLast4.length != 4 -> "Τα τελευταία ψηφία πρέπει να είναι ακριβώς τέσσερα."
+                        normalizedPan.length !in 12..19 -> "Ο αριθμός κάρτας πρέπει να έχει 12 έως 19 ψηφία."
+                        !Regex("^(0[1-9]|1[0-2])/\\d{2}$").matches(normalizedExpiry) -> "Η λήξη πρέπει να είναι MM/YY."
+                        normalizedCvv.length !in 3..4 -> "Το CVV πρέπει να έχει 3 ή 4 ψηφία."
                         kind == "credit" && creditLimit.isNotBlank() && (limit == null || limit <= 0.0) -> "Το πιστωτικό όριο πρέπει να είναι μεγαλύτερο από μηδέν."
                         else -> null
                     }
                     if (validation == null) {
                         val id = "card-android-${UUID.randomUUID()}"
                         submittedId = id
+                        val panChars = normalizedPan.toCharArray()
+                        val expiryChars = normalizedExpiry.toCharArray()
+                        val cvvChars = normalizedCvv.toCharArray()
+                        onSaveCardDetails(id, panChars, expiryChars, cvvChars)
                         onCreate(
                             CardCreateRequest(
                                 cardId = id,
@@ -242,7 +287,7 @@ fun CanonicalCardCreateScreen(
                                 kind = kind,
                                 network = network,
                                 formFactor = formFactor,
-                                last4 = normalizedLast4,
+                                last4 = normalizedPan.takeLast(4),
                                 creditLimit = if (kind == "credit") limit else null,
                             ),
                         )

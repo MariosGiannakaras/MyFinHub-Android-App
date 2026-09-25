@@ -4,12 +4,14 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -44,7 +46,7 @@ class S6CardSurfaceTest {
     )
 
     @Test
-    fun walletCards_areFlatStableRows_andRouteByStableId() {
+    fun walletCards_useStackedPresentation_andRouteByStableId() {
         var opened: String? = null
         composeRule.setContent {
             MyFinHubTheme {
@@ -54,6 +56,12 @@ class S6CardSurfaceTest {
                     onOpenNetPosition = {},
                     onOpenCard = { opened = it },
                     onAddCard = {},
+                    cardSecretState = CardSecretUiState.Revealed(
+                        cardId = "debit",
+                        pan = "4242424242424242",
+                        expiry = "12/30",
+                        cvv = "123",
+                    ),
                     onOpenLoans = {},
                     onOpenLending = {},
                     amountsVisibleOverride = true,
@@ -62,8 +70,10 @@ class S6CardSurfaceTest {
         }
 
         composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
-        composeRule.onNodeWithTag("wallet_card_debit").assertIsDisplayed()
-        composeRule.onNodeWithTag("wallet_card_credit").assertIsDisplayed().performClick()
+        composeRule.onNodeWithTag("credit_card_stack").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_debit").assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
+        composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }
     }
 
@@ -114,6 +124,9 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("card_create_network").performScrollTo().performClick()
         composeRule.onNodeWithTag("card_create_network_mastercard").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Mastercard").assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_pan").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_expiry").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_create_cvv").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -158,22 +171,26 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("Εκκρεμεί: CVV σε αυτή τη συσκευή.").assertIsDisplayed()
+        composeRule.onNodeWithText("Εκκρεμεί: τοπικά στοιχεία κάρτας.").assertIsDisplayed()
         composeRule.onNodeWithText("Δοκιμή καθαρισμού ξανά").performClick()
         composeRule.runOnIdle { assertEquals("credit", retryCardId) }
     }
 
     @Test
-    fun secureDetails_areHiddenByDefault_andRevealIsExplicit() {
-        var revealCalls = 0
+    fun cardDetails_showFullValues_withoutRevealGate() {
+        var loadCalls = 0
         composeRule.setContent {
             MyFinHubTheme {
                 CanonicalCardSecureDetailsScreen(
                     cardId = "credit",
                     card = credit,
-                    secretState = CardSecretUiState.Hidden("credit"),
-                    onReveal = { revealCalls += 1 },
-                    onHideSecrets = {},
+                    secretState = CardSecretUiState.Revealed(
+                        cardId = "credit",
+                        pan = "5555444433331881",
+                        expiry = "09/31",
+                        cvv = "731",
+                    ),
+                    onReveal = { loadCalls += 1 },
                     onSaveServerSecrets = { pan, expiry -> pan.fill('\u0000'); expiry.fill('\u0000') },
                     onSaveCvv = { it.fill('\u0000') },
                     onDeleteCvv = {},
@@ -182,7 +199,12 @@ class S6CardSurfaceTest {
             }
         }
 
-        composeRule.onNodeWithText("Αποκάλυψη στοιχείων").performClick()
-        composeRule.runOnIdle { assertEquals(1, revealCalls) }
+        composeRule.onNodeWithContentDescription("Αριθμός. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Λήξη. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("CVV. Πλήρης τιμή εμφανίζεται.").assertIsDisplayed()
+        assertTrue(
+            runCatching { composeRule.onNodeWithText("Αποκάλυψη στοιχείων").fetchSemanticsNode() }.isFailure,
+        )
+        composeRule.runOnIdle { assertEquals(1, loadCalls) }
     }
 }

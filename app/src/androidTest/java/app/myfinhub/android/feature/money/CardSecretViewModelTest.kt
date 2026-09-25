@@ -15,11 +15,10 @@ import app.myfinhub.android.core.network.CardSecretUpdate
 import app.myfinhub.android.core.network.CardSecretWriteReceipt
 import app.myfinhub.android.core.network.CardSecrets
 import app.myfinhub.android.core.network.MyFinHubApi
+import app.myfinhub.android.core.security.CardDetailsVault
 import app.myfinhub.android.core.security.CvvVault
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.async
+import app.myfinhub.android.core.security.LocalCardDetails
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
@@ -41,157 +40,95 @@ class CardSecretViewModelTest {
     )
 
     @Test
-    fun revealAndLocalCvvSave_keepCvvOffServerAndClearOnClose() = runBlocking {
-        val api = FakeCardApi(
-            revealResult = ApiResult.Success(CardSecrets("4242424242424242", "12/30")),
+    fun openCard_loadsFullLocalDetailsAndCvv_withoutServerRead() = runBlocking {
+        val api = FakeCardApi()
+        val cvvVault = FakeCvvVault(initial = "321".toCharArray())
+        val detailsVault = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
         )
-        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))
-        val viewModel = CardSecretViewModel(application, api, vault)
+        val viewModel = CardSecretViewModel(application, api, cvvVault, detailsVault)
 
         viewModel.attachSession(session)
         viewModel.openCard("card-1")
-        viewModel.reveal()
         waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
 
-        val revealed = viewModel.state.value as CardSecretUiState.Revealed
-        assertEquals("4242", revealed.pan?.takeLast(4))
-        assertEquals("321", revealed.cvv)
-        assertFalse(revealed.toString().contains("4242424242424242"))
-        assertFalse(revealed.toString().contains("321"))
-
-        val replacement = charArrayOf('9', '8', '7')
-        viewModel.saveCvv(replacement)
-        assertTrue(replacement.all { it == '\u0000' })
-        waitUntil { vault.saved?.contentEquals(charArrayOf('9', '8', '7')) == true }
-        assertEquals(0, api.serverSecretWriteCalls)
-
-        viewModel.closeCard("card-1")
-        assertTrue(viewModel.state.value is CardSecretUiState.Hidden)
+        val state = viewModel.state.value as CardSecretUiState.Revealed
+        assertEquals("4242424242424242", state.pan)
+        assertEquals("12/30", state.expiry)
+        assertEquals("321", state.cvv)
+        assertEquals(0, api.serverSecretReadCalls)
+        assertFalse(state.toString().contains("4242424242424242"))
+        assertFalse(state.toString().contains("321"))
     }
 
     @Test
-    fun saveServerPanAndExpiry_usesNativeVaultBoundary_zeroesInputs_andRevealsSavedValues() = runBlocking {
-        val api = FakeCardApi(ApiResult.Failure(ApiFailureKind.INVALID_DATA))
-        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))
-        val viewModel = CardSecretViewModel(application, api, vault)
+    fun editPanAndExpiry_savesOnlyToDeviceVault_andZeroesInputs() = runBlocking {
+        val api = FakeCardApi()
+        val cvvVault = FakeCvvVault(initial = "321".toCharArray())
+        val detailsVault = FakeCardDetailsVault()
+        val viewModel = CardSecretViewModel(application, api, cvvVault, detailsVault)
 
         viewModel.attachSession(session)
         viewModel.openCard("card-1")
-        val pan = "4242424242424242".toCharArray()
-        val expiry = "12/30".toCharArray()
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+
+        val pan = "5555444433331111".toCharArray()
+        val expiry = "09/31".toCharArray()
         viewModel.saveServerSecrets(pan, expiry)
 
         assertTrue(pan.all { it == '\u0000' })
         assertTrue(expiry.all { it == '\u0000' })
-        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+        waitUntil { detailsVault.savedPan?.concatToString() == "5555444433331111" }
+        waitUntil { (viewModel.state.value as? CardSecretUiState.Revealed)?.pan == "5555444433331111" }
 
-        val revealed = viewModel.state.value as CardSecretUiState.Revealed
-        assertEquals("4242", revealed.pan?.takeLast(4))
-        assertEquals("12/30", revealed.expiry)
-        assertEquals("321", revealed.cvv)
-        assertEquals(1, api.serverSecretWriteCalls)
-        assertFalse(revealed.toString().contains("4242424242424242"))
+        assertEquals(0, api.serverSecretWriteCalls)
+        assertEquals("09/31", (viewModel.state.value as CardSecretUiState.Revealed).expiry)
     }
 
     @Test
-    fun purgeCard_clearsRevealedStateAndDeviceLocalCvv() = runBlocking {
-        val api = FakeCardApi(ApiResult.Success(CardSecrets("4242424242424242", "12/30")))
-        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'))
-        val viewModel = CardSecretViewModel(application, api, vault)
+    fun createFlow_savesPanExpiryAndCvvLocally_andZeroesCallerBuffers() = runBlocking {
+        val api = FakeCardApi()
+        val cvvVault = FakeCvvVault()
+        val detailsVault = FakeCardDetailsVault()
+        val viewModel = CardSecretViewModel(application, api, cvvVault, detailsVault)
 
-        viewModel.attachSession(session)
-        viewModel.openCard("card-1")
-        viewModel.reveal()
-        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
+        val pan = "4000000000000002".toCharArray()
+        val expiry = "08/30".toCharArray()
+        val cvv = "987".toCharArray()
+        viewModel.saveCardDetailsForCard("card-new", pan, expiry, cvv)
 
-        viewModel.purgeCard("card-1")
-        waitUntil { vault.deletedCardId == "card-1" }
+        assertTrue(pan.all { it == '\u0000' })
+        assertTrue(expiry.all { it == '\u0000' })
+        assertTrue(cvv.all { it == '\u0000' })
+        waitUntil { detailsVault.savedPan?.concatToString() == "4000000000000002" }
+        waitUntil { cvvVault.saved?.concatToString() == "987" }
 
-        assertTrue(viewModel.state.value is CardSecretUiState.Hidden)
-        assertEquals(CardSecretCleanupUiState.Complete("card-1"), viewModel.cleanupState.value)
-        assertNull(vault.load("card-1"))
+        assertEquals("08/30", detailsVault.savedExpiry?.concatToString())
         assertEquals(0, api.serverSecretWriteCalls)
     }
 
     @Test
-    fun partialPurgeRetry_retriesOnlyFailedStore_withoutRepeatingServerDelete() = runBlocking {
-        val api = FakeCardApi(ApiResult.Success(CardSecrets(null, null)))
-        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'), deleteFailuresRemaining = 1)
-        val viewModel = CardSecretViewModel(application, api, vault)
+    fun purgeCard_removesServerResidueAndBothDeviceLocalVaults() = runBlocking {
+        val api = FakeCardApi()
+        val cvvVault = FakeCvvVault(initial = "321".toCharArray())
+        val detailsVault = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        )
+        val viewModel = CardSecretViewModel(application, api, cvvVault, detailsVault)
 
         viewModel.attachSession(session)
+        viewModel.openCard("card-1")
+        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
         viewModel.purgeCard("card-1")
-        waitUntil { viewModel.cleanupState.value is CardSecretCleanupUiState.Failure }
-
-        val failure = viewModel.cleanupState.value as CardSecretCleanupUiState.Failure
-        assertFalse(failure.serverCleanupPending)
-        assertTrue(failure.localCleanupPending)
-        assertEquals(1, api.serverSecretDeleteCalls)
-
-        viewModel.retryPurgeCard("card-1")
         waitUntil { viewModel.cleanupState.value is CardSecretCleanupUiState.Complete }
 
         assertEquals(1, api.serverSecretDeleteCalls)
-        assertEquals(2, vault.deleteCalls)
-        assertNull(vault.load("card-1"))
-    }
-
-    @Test
-    fun failedLocalDelete_keepsExistingCvvVisibleAndReportsFailure() = runBlocking {
-        val api = FakeCardApi(ApiResult.Success(CardSecrets(null, null)))
-        val vault = FakeCvvVault(initial = charArrayOf('3', '2', '1'), failDelete = true)
-        val viewModel = CardSecretViewModel(application, api, vault)
-
-        viewModel.attachSession(session)
-        viewModel.openCard("card-1")
-        viewModel.reveal()
-        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
-        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
-        viewModel.deleteCvv()
-        waitUntil {
-            (viewModel.state.value as? CardSecretUiState.Revealed)?.cvvSaving == false &&
-                (viewModel.state.value as? CardSecretUiState.Revealed)?.message != null
-        }
-
-        val state = viewModel.state.value as CardSecretUiState.Revealed
-        assertEquals("321", state.cvv)
-        assertTrue(state.message.orEmpty().contains("δεν ολοκληρώθηκε"))
-        assertTrue(withTimeout(3_000) { notice.await() }.diagnosticCode.startsWith("MFH-APP-"))
-    }
-
-    @Test
-    fun failedLocalLoad_keepsServerSecretsAvailableAndReportsSafeNotice() = runBlocking {
-        val api = FakeCardApi(ApiResult.Success(CardSecrets("4242424242424242", "12/30")))
-        val viewModel = CardSecretViewModel(application, api, FakeCvvVault(failLoad = true))
-
-        viewModel.attachSession(session)
-        viewModel.openCard("card-1")
-        val notice = async(start = CoroutineStart.UNDISPATCHED) { viewModel.notices.first() }
-        viewModel.reveal()
-        waitUntil { viewModel.state.value is CardSecretUiState.Revealed }
-
-        val state = viewModel.state.value as CardSecretUiState.Revealed
-        assertEquals("4242", state.pan?.takeLast(4))
-        assertNull(state.cvv)
-        assertTrue(state.message.orEmpty().contains("τοπικό CVV"))
-        val reported = withTimeout(3_000) { notice.await() }
-        assertTrue(reported.diagnosticCode.startsWith("MFH-APP-"))
-        assertFalse(reported.details.contains("4242424242424242"))
-    }
-
-    @Test
-    fun authFailureFromCardVault_requestsNormalAuthRecovery() = runBlocking {
-        val api = FakeCardApi(
-            revealResult = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED),
-        )
-        val viewModel = CardSecretViewModel(application, api, FakeCvvVault())
-
-        viewModel.attachSession(session)
-        viewModel.openCard("card-1")
-        viewModel.reveal()
-        waitUntil { viewModel.state.value is CardSecretUiState.AuthRejected }
-
-        assertTrue(viewModel.state.value is CardSecretUiState.AuthRejected)
+        assertEquals("card-1", detailsVault.deletedCardId)
+        assertEquals("card-1", cvvVault.deletedCardId)
+        assertNull(detailsVault.load("card-1"))
+        assertNull(cvvVault.load("card-1"))
     }
 
     private suspend fun waitUntil(predicate: () -> Boolean) {
@@ -201,44 +138,74 @@ class CardSecretViewModelTest {
     }
 }
 
-private class FakeCvvVault(
-    initial: CharArray? = null,
-    private val failDelete: Boolean = false,
-    private val failLoad: Boolean = false,
-    deleteFailuresRemaining: Int = 0,
-) : CvvVault {
+private class FakeCardDetailsVault(
+    initialPan: CharArray? = null,
+    initialExpiry: CharArray? = null,
+) : CardDetailsVault {
+    private var storedPan: CharArray? = initialPan?.copyOf()
+    private var storedExpiry: CharArray? = initialExpiry?.copyOf()
+    var savedPan: CharArray? = null
+        private set
+    var savedExpiry: CharArray? = null
+        private set
+    var deletedCardId: String? = null
+        private set
+
+    override suspend fun load(cardId: String): LocalCardDetails? {
+        val pan = storedPan?.copyOf() ?: return null
+        val expiry = storedExpiry?.copyOf() ?: run {
+            pan.fill('\u0000')
+            return null
+        }
+        return LocalCardDetails(pan, expiry)
+    }
+
+    override suspend fun save(cardId: String, pan: CharArray, expiry: CharArray) {
+        savedPan?.fill('\u0000')
+        savedExpiry?.fill('\u0000')
+        storedPan?.fill('\u0000')
+        storedExpiry?.fill('\u0000')
+        savedPan = pan.copyOf()
+        savedExpiry = expiry.copyOf()
+        storedPan = pan.copyOf()
+        storedExpiry = expiry.copyOf()
+    }
+
+    override suspend fun delete(cardId: String) {
+        deletedCardId = cardId
+        storedPan?.fill('\u0000')
+        storedExpiry?.fill('\u0000')
+        storedPan = null
+        storedExpiry = null
+    }
+}
+
+private class FakeCvvVault(initial: CharArray? = null) : CvvVault {
     private var stored: CharArray? = initial?.copyOf()
-    private var remainingDeleteFailures = deleteFailuresRemaining
     var saved: CharArray? = null
         private set
     var deletedCardId: String? = null
         private set
-    var deleteCalls: Int = 0
-        private set
 
-    override suspend fun load(cardId: String): CharArray? {
-        if (failLoad) error("synthetic load failure")
-        return stored?.copyOf()
-    }
+    override suspend fun load(cardId: String): CharArray? = stored?.copyOf()
 
     override suspend fun save(cardId: String, cvv: CharArray) {
-        saved = cvv.copyOf()
+        saved?.fill('\u0000')
         stored?.fill('\u0000')
+        saved = cvv.copyOf()
         stored = cvv.copyOf()
     }
 
     override suspend fun delete(cardId: String) {
-        deleteCalls += 1
-        if (failDelete || remainingDeleteFailures-- > 0) error("synthetic delete failure")
         deletedCardId = cardId
         stored?.fill('\u0000')
         stored = null
     }
 }
 
-private class FakeCardApi(
-    private val revealResult: ApiResult<CardSecrets>,
-) : MyFinHubApi {
+private class FakeCardApi : MyFinHubApi {
+    var serverSecretReadCalls: Int = 0
+        private set
     var serverSecretWriteCalls: Int = 0
         private set
     var serverSecretDeleteCalls: Int = 0
@@ -253,7 +220,10 @@ private class FakeCardApi(
         expectedRevision: String,
     ): ApiResult<CanonicalWriteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
-    override suspend fun loadCardSecrets(session: AuthSession, cardId: String): ApiResult<CardSecrets> = revealResult
+    override suspend fun loadCardSecrets(session: AuthSession, cardId: String): ApiResult<CardSecrets> {
+        serverSecretReadCalls += 1
+        return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+    }
 
     override suspend fun saveCardSecrets(
         session: AuthSession,

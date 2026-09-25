@@ -184,9 +184,9 @@ fun CanonicalCardDetailScreen(
                     OutlinedButton(
                         onClick = { onOpenSecureDetails(card.id) },
                         modifier = Modifier.fillMaxWidth().testTag("card_secure_details"),
-                    ) { Text("Ασφαλή στοιχεία") }
+                    ) { Text("Στοιχεία κάρτας") }
                     Text(
-                        "Η αλλαγή ασφαλών στοιχείων γίνεται σε ξεχωριστή προστατευμένη οθόνη.",
+                        "Ο αριθμός, η λήξη και το CVV εμφανίζονται πλήρως στην οθόνη στοιχείων κάρτας.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -218,7 +218,7 @@ fun CanonicalCardDetailScreen(
             text = {
                 Text(
                     "Η κάρτα θα φύγει από την ενεργή λίστα. Το ιστορικό και τυχόν οφειλή διατηρούνται. " +
-                        "Δεν ακυρώνεται στην τράπεζα. Μετά την αφαίρεση θα καθαριστούν χωριστά τα ασφαλή στοιχεία.",
+                        "Δεν ακυρώνεται στην τράπεζα. Μετά την αφαίρεση θα καθαριστούν τα κρυπτογραφημένα στοιχεία της συσκευής και τυχόν παλιό server-vault υπόλοιπο.",
                 )
             },
             confirmButton = {
@@ -247,7 +247,7 @@ private fun RemovedOrUnavailableCard(
             when (val cleanup = cleanupState.takeIf { it.matches(cardId) }) {
                 is CardSecretCleanupUiState.Cleaning -> {
                     Text("Η κάρτα αφαιρέθηκε από το MyFinHub.", style = MaterialTheme.typography.titleLarge)
-                    Text("Καθαρίζονται ο αριθμός/λήξη από το ασφαλές server vault και το τοπικό CVV.")
+                    Text("Καθαρίζονται τα κρυπτογραφημένα στοιχεία αυτής της συσκευής και τυχόν παλιό server-vault υπόλοιπο.")
                 }
                 is CardSecretCleanupUiState.Complete -> {
                     Text("Η κάρτα αφαιρέθηκε από το MyFinHub.", style = MaterialTheme.typography.titleLarge)
@@ -256,8 +256,8 @@ private fun RemovedOrUnavailableCard(
                 is CardSecretCleanupUiState.Failure -> {
                     Text("Η κάρτα αφαιρέθηκε, αλλά ο καθαρισμός δεν ολοκληρώθηκε.", style = MaterialTheme.typography.titleLarge)
                     val failedParts = buildList {
-                        if (cleanup.serverCleanupPending) add("αριθμός/λήξη στο server vault")
-                        if (cleanup.localCleanupPending) add("CVV σε αυτή τη συσκευή")
+                        if (cleanup.serverCleanupPending) add("παλιό server-vault υπόλοιπο")
+                        if (cleanup.localCleanupPending) add("τοπικά στοιχεία κάρτας")
                     }
                     Text(
                         failedParts.joinToString(prefix = "Εκκρεμεί: ", separator = " και ", postfix = "."),
