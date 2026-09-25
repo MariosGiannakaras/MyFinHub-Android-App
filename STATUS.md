@@ -8,10 +8,10 @@
 
 ## Active workstream
 
-Issue #129 — **Publish post-card-vault rc11 and promote stable baseline**
-State: `completed`
+Issue #139 — **Final repository prune to permanent branches**
+State: `explicit_obsolete_branch_prune`
 
-The post-card-vault Android release is complete. Production-signed 1.0.0-rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8. Repository cleanup completed successfully, including PR-aware removal of historical merged branches while preserving permanent and unmerged/no-evidence branches. The owner reported rc11 installed on the supported Galaxy S24 Ultra and explicitly authorized stable promotion. PR #135 then merged the accepted develop baseline to main as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e.
+The Android product and stable promotion are already complete at 6/6. Final repository housekeeping is now restricted to an explicit reviewed allowlist of obsolete historical, superseded, test, automation and checkpoint branches. No open PR head or branch outside that allowlist is eligible. The target steady state is exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger.
 
 ## Current production candidate
 
@@ -21,6 +21,9 @@ Production-signed rc11 / versionCode 10010 was published from exact validated PR
 
 ## Next
 
+1. Merge the explicit allowlist cleanup checkpoint and verify that only the four permanent branches remain.
+2. Remove the one-time cleanup workflow and reconcile canonical/generated tracking.
+3. Synchronize the final cleanup state to main, close issue #139 and verify no open cleanup PR remains.
 
 ## Non-negotiable constraints
 
