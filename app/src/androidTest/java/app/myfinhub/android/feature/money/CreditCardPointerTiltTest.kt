@@ -105,8 +105,6 @@ class CreditCardPointerTiltTest {
                     ),
                     secretState = CardSecretUiState.Hidden("card-a"),
                     onActiveCardChanged = {},
-                    onRevealSecrets = {},
-                    onHideSecrets = {},
                     onOpenCard = {},
                     onDeleteCard = {},
                 )
