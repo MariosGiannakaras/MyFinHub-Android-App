@@ -11,7 +11,7 @@
 Issue #139 — **Final repository prune to permanent branches**
 State: `explicit_obsolete_branch_prune`
 
-The Android product and stable promotion are already complete at 6/6. Final repository housekeeping is now restricted to an explicit reviewed allowlist of obsolete historical, superseded, test, automation and checkpoint branches. No open PR head or branch outside that allowlist is eligible. The target steady state is exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger.
+The Android product and stable promotion are already complete at 6/6. Final repository housekeeping is restricted to an explicit reviewed allowlist of obsolete historical, superseded, test, automation and checkpoint branches. The first explicit-prune workflow was rejected by GitHub before job creation because the heredoc allowlist broke YAML indentation; no branch deletion occurred. A corrected Bash-array checkpoint is staged. No open PR head or branch outside the reviewed allowlist is eligible. The target steady state is exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger.
 
 ## Current production candidate
 
