@@ -50,7 +50,6 @@ The synchronized card-secret implementation is complete on develop and its backe
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
 
-
 ## Android redesign progress
 
 **Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
