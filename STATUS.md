@@ -8,10 +8,10 @@
 
 ## Active workstream
 
-Issue #73 — **Post-Phase-6 full-app product audit and radical redesign**
-State: `android_redesign_complete`
+Issue #126 — **Use shared server card vault for PAN/expiry/CVV**
+State: `implementation_in_progress`
 
-The full ten-slice Android redesign is complete, physically accepted on the supported Galaxy S24 Ultra, and merged into develop through PR #122. All 10/10 tasks and 40/40 subtasks are complete with hosted, rendered and physical evidence. rc10 remains the accepted production-signed private candidate. main remains release-only; any stable/main promotion is a separate deliberate release checkpoint rather than unfinished redesign work.
+The owner explicitly changed the card-secret persistence model on 2026-09-25. Android is moving from device-local PAN/expiry/CVV authority to the shared owner+AAL2 encrypted server card vault used by web and Windows. Existing Android Keystore values are preserved only as a one-time migration source; central backend support is tracked in MyFinHub #407 / PR #408. No stable/main promotion or production release is part of this workstream.
 
 ## Current production candidate
 
@@ -21,12 +21,13 @@ Production-signed rc10 / versionCode 10009 was published from validated PR #122 
 
 ## Next
 
-1. Keep develop as the authoritative implementation branch and preserve the completed 10/10 redesign evidence.
-2. Treat any stable/main promotion or later production release as a separate deliberate release workflow; do not infer it from redesign completion.
+1. Finish the synchronized server-vault implementation, legacy local migration and focused regression coverage on the Android feature branch.
+2. Require Project Tracking, Android CI and Android UI Quality on the exact final PR head, then merge the validated change into develop.
+3. Keep stable/main promotion and production APK publication as a separate explicit release decision.
 
 ## Non-negotiable constraints
 
-- Strict Android-only redesign: no changes to MyFinHub web/desktop, shared Supabase schema/data/configuration, APIs or server behavior. Record missing shared capabilities as blockers.
+- The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.
 - main is release-only; promotion from develop remains deliberate and must follow the validated release path.
 - Use only the enrolled long-lived production signer; never create, rotate, expose or commit production signing material.
 - Samsung Galaxy S24 Ultra is the only supported device and the authoritative physical UI/reference environment.
