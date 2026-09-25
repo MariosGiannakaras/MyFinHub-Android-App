@@ -1,4 +1,4 @@
-name: One-time merged branch cleanup
+name: Merged branch cleanup
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Fetch all remote branches
         run: git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune
 
-      - name: Delete only fully merged historical branches
+      - name: Delete only merged historical branches
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -35,7 +35,11 @@ jobs:
           set -euo pipefail
 
           mapfile -t open_heads < <(
-            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" --jq '.[].head.ref'
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" --jq '.[].head.ref' | sort -u
+          )
+          mapfile -t merged_pr_heads < <(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=closed&per_page=100" \
+              --jq '.[] | select(.merged_at != null) | .head.ref' | sort -u
           )
 
           is_open_pr_head() {
@@ -47,14 +51,27 @@ jobs:
             return 1
           }
 
-          deleted=0
-          skipped=0
-          failed=0
+          declare -A candidates=()
 
           while IFS= read -r remote_ref; do
             branch="${remote_ref#origin/}"
             [[ -z "$branch" || "$branch" == *" -> "* ]] && continue
+            candidates["$branch"]="fully-merged-tip"
+          done < <(git branch -r --merged origin/develop --format='%(refname:short)' | sort)
 
+          for branch in "${merged_pr_heads[@]}"; do
+            [[ -z "$branch" ]] && continue
+            if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
+              candidates["$branch"]="merged-pr-head"
+            fi
+          done
+
+          deleted=0
+          skipped=0
+          failed=0
+
+          while IFS= read -r branch; do
+            [[ -z "$branch" ]] && continue
             case "$branch" in
               main|develop|extensions|android/protected-release-develop-trigger)
                 echo "Preserve permanent branch: $branch"
@@ -62,21 +79,20 @@ jobs:
                 continue
                 ;;
             esac
-
             if is_open_pr_head "$branch"; then
               echo "Preserve open-PR branch: $branch"
               ((skipped+=1))
               continue
             fi
-
-            echo "Delete fully merged branch: $branch"
+            reason="${candidates[$branch]}"
+            echo "Delete historical branch ($reason): $branch"
             if git push origin --delete "$branch"; then
               ((deleted+=1))
             else
               echo "::warning::Could not delete $branch; leaving it in place."
               ((failed+=1))
             fi
-          done < <(git branch -r --merged origin/develop --format='%(refname:short)' | sort)
+          done < <(printf '%s\n' "${!candidates[@]}" | sort)
 
           {
             echo "## Merged branch cleanup"
@@ -84,5 +100,6 @@ jobs:
             echo "- preserved/skipped: $skipped"
             echo "- deletion failures: $failed"
             echo
-            echo "Only branches whose remote tip was fully merged into develop were eligible."
+            echo "Eligible branches were either fully merged into develop or recorded as heads of merged PRs."
+            echo "Permanent branches, open-PR heads, branches with no merged-PR evidence, and other divergent work were not eligible."
           } >> "$GITHUB_STEP_SUMMARY"
