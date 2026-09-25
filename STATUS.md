@@ -9,9 +9,9 @@
 ## Active workstream
 
 Issue #126 — **Use shared server card vault for PAN/expiry/CVV**
-State: `implementation_in_progress`
+State: `completed_merged`
 
-The owner explicitly changed the card-secret persistence model on 2026-09-25. Android is moving from device-local PAN/expiry/CVV authority to the shared owner+AAL2 encrypted server card vault used by web and Windows. Existing Android Keystore values are preserved only as a one-time migration source; central backend support is tracked in MyFinHub #407 / PR #408. No stable/main promotion or production release is part of this workstream.
+The synchronized card-secret workstream is complete and merged into develop. Android now uses the same owner+AAL2 encrypted server card vault as web and Windows for PAN, expiry and CVV; legacy Android Keystore card-secret stores remain migration-only and are cleared only after successful server synchronization. Central backend support merged through MyFinHub PR #408 and Android support merged through PR #127 after Project Tracking, Android CI and Android UI Quality passed on the exact final head. No stable/main promotion or production APK publication was performed.
 
 ## Current production candidate
 
@@ -21,9 +21,8 @@ Production-signed rc10 / versionCode 10009 was published from validated PR #122 
 
 ## Next
 
-1. Finish the synchronized server-vault implementation, legacy local migration and focused regression coverage on the Android feature branch.
-2. Require Project Tracking, Android CI and Android UI Quality on the exact final PR head, then merge the validated change into develop.
-3. Keep stable/main promotion and production APK publication as a separate explicit release decision.
+1. Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.
+2. Keep stable/main promotion and production APK publication as a separate explicit release decision.
 
 ## Non-negotiable constraints
 

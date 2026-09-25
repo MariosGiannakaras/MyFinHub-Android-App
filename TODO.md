@@ -5,8 +5,7 @@ Active tracker: issue #126 — **Use shared server card vault for PAN/expiry/CVV
 
 ## Open
 
-- [ ] Finish the synchronized server-vault implementation, legacy local migration and focused regression coverage on the Android feature branch.
-- [ ] Require Project Tracking, Android CI and Android UI Quality on the exact final PR head, then merge the validated change into develop.
+- [ ] Keep develop as the authoritative implementation branch; any future card-secret behavior change starts a new scoped workstream.
 - [ ] Keep stable/main promotion and production APK publication as a separate explicit release decision.
 
 ## Completed foundations
@@ -41,6 +40,7 @@ Active tracker: issue #126 — **Use shared server card vault for PAN/expiry/CVV
 - [x] Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)
 - [x] Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease
 - [x] Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance
+- [x] Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #407/#408)
 
 ## Rule
 
