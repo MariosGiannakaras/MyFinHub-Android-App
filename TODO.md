@@ -5,9 +5,6 @@ Active tracker: issue #139 — **Final repository prune to permanent branches**
 
 ## Open
 
-- [ ] Merge the explicit allowlist cleanup checkpoint and verify that only the four permanent branches remain.
-- [ ] Remove the one-time cleanup workflow and reconcile canonical/generated tracking.
-- [ ] Synchronize the final cleanup state to main, close issue #139 and verify no open cleanup PR remains.
 
 ## Completed foundations
 
@@ -46,6 +43,7 @@ Active tracker: issue #139 — **Final repository prune to permanent branches**
 - [x] Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved
 - [x] Owner-reported rc11 installation on the supported Galaxy S24 Ultra and explicit stable-promotion authorization
 - [x] Accepted develop baseline promoted to main through PR #135 as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e
+- [x] Final repository prune completed: exactly four permanent remote branches retained and temporary cleanup workflow removed (#139)
 
 ## Rule
 

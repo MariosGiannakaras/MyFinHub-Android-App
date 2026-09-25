@@ -11,13 +11,9 @@
   "active_workstream": {
     "issue": 139,
     "title": "Final repository prune to permanent branches",
-    "status": "explicit_obsolete_branch_prune",
-    "summary": "The Android product and stable promotion are already complete at 6/6. Final repository housekeeping is restricted to an explicit reviewed allowlist of obsolete historical, superseded, test, automation and checkpoint branches. The first explicit-prune workflow was rejected by GitHub before job creation because the heredoc allowlist broke YAML indentation; no branch deletion occurred. A corrected Bash-array checkpoint is staged. No open PR head or branch outside the reviewed allowlist is eligible. The target steady state is exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger.",
-    "next": [
-      "Merge the explicit allowlist cleanup checkpoint and verify that only the four permanent branches remain.",
-      "Remove the one-time cleanup workflow and reconcile canonical/generated tracking.",
-      "Synchronize the final cleanup state to main, close issue #139 and verify no open cleanup PR remains."
-    ]
+    "status": "completed",
+    "summary": "Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.",
+    "next": []
   },
   "latest_production_candidate": {
     "version_name": "1.0.0-rc11",
@@ -61,7 +57,8 @@
     "Protected production-signed rc11 / versionCode 10010 publication from exact validated PR #130 source",
     "Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved",
     "Owner-reported rc11 installation on the supported Galaxy S24 Ultra and explicit stable-promotion authorization",
-    "Accepted develop baseline promoted to main through PR #135 as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e"
+    "Accepted develop baseline promoted to main through PR #135 as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e",
+    "Final repository prune completed: exactly four permanent remote branches retained and temporary cleanup workflow removed (#139)"
   ],
   "constraints": [
     "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",

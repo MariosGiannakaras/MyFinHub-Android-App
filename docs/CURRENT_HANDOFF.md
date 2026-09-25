@@ -17,19 +17,16 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #139 — Final repository prune to permanent branches.
-- Workstream state: `explicit_obsolete_branch_prune`.
+- Workstream state: `completed`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-The Android product and stable promotion are already complete at 6/6. Final repository housekeeping is restricted to an explicit reviewed allowlist of obsolete historical, superseded, test, automation and checkpoint branches. The first explicit-prune workflow was rejected by GitHub before job creation because the heredoc allowlist broke YAML indentation; no branch deletion occurred. A corrected Bash-array checkpoint is staged. No open PR head or branch outside the reviewed allowlist is eligible. The target steady state is exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger.
+Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.
 
 ## Immediate work
 
-- Merge the explicit allowlist cleanup checkpoint and verify that only the four permanent branches remain.
-- Remove the one-time cleanup workflow and reconcile canonical/generated tracking.
-- Synchronize the final cleanup state to main, close issue #139 and verify no open cleanup PR remains.
 
 ## Constraints
 
