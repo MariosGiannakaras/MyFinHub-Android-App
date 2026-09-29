@@ -10,10 +10,14 @@
   "release_branch": "main",
   "active_workstream": {
     "issue": 144,
-    "title": "Refresh Android branding from PureVector Brand Kit",
-    "status": "completed",
-    "summary": "PureVector Android branding is implemented and validated on the branding PR: adaptive launcher foreground/background resources follow the Android safe-zone contract, Android 13+ themed icons use a native monochrome MF layer, in-app branding uses one canonical symbol and one non-duplicate horizontal lockup, and the store-listing asset remains outside APK runtime resources. Android CI, Project Tracking, screenshot regression and S24-target instrumentation are green; the seven intentionally changed real Compose references were personally inspected and accepted. Package/signing identity, finance/auth/card/CVV behavior and provider/bank artwork are unchanged.",
-    "next": []
+    "title": "Integrate platform-correct PureVector branding",
+    "status": "in_progress",
+    "summary": "The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.",
+    "next": [
+      "Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.",
+      "Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.",
+      "Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task."
+    ]
   },
   "latest_production_candidate": {
     "version_name": "1.0.0-rc11",
@@ -58,8 +62,7 @@
     "Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved",
     "Owner-reported rc11 installation on the supported Galaxy S24 Ultra and explicit stable-promotion authorization",
     "Accepted develop baseline promoted to main through PR #135 as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e",
-    "Final repository prune completed: exactly four permanent remote branches retained and temporary cleanup workflow removed (#139)",
-    "PureVector Android branding with adaptive/themed launcher assets and reviewed Compose references (#144/#145)"
+    "Final repository prune completed: exactly four permanent remote branches retained and temporary cleanup workflow removed (#139)"
   ],
   "constraints": [
     "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",

@@ -16,17 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #144 — Refresh Android branding from PureVector Brand Kit.
-- Workstream state: `completed`.
+- Active workstream: issue #144 — Integrate platform-correct PureVector branding.
+- Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-PureVector Android branding is implemented and validated on the branding PR: adaptive launcher foreground/background resources follow the Android safe-zone contract, Android 13+ themed icons use a native monochrome MF layer, in-app branding uses one canonical symbol and one non-duplicate horizontal lockup, and the store-listing asset remains outside APK runtime resources. Android CI, Project Tracking, screenshot regression and S24-target instrumentation are green; the seven intentionally changed real Compose references were personally inspected and accepted. Package/signing identity, finance/auth/card/CVV behavior and provider/bank artwork are unchanged.
+The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.
 
 ## Immediate work
 
+- Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.
+- Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.
+- Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task.
 
 ## Constraints
 
@@ -80,4 +83,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-No recorded blocker.
+- No recorded blocker.
