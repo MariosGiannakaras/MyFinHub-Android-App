@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-25",
+  "updated_at": "2026-09-29",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -9,11 +9,15 @@
   "authoritative_branch": "develop",
   "release_branch": "main",
   "active_workstream": {
-    "issue": 139,
-    "title": "Final repository prune to permanent branches",
-    "status": "completed",
-    "summary": "Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.",
-    "next": []
+    "issue": 144,
+    "title": "Refresh Android branding from Brand Kit v2",
+    "status": "in_progress",
+    "summary": "Owner-supplied Brand Kit v2 has been audited. Android runtime branding is being refreshed with the approved wallet/MF symbol, theme lockups and adaptive/themed launcher assets. The mislabeled vertical duplicates and raster-wrapped SVG containers are intentionally excluded; unrelated finance behavior and provider/bank artwork remain unchanged.",
+    "next": [
+      "Replace legacy Android MyFinHub resources and in-app brand rendering with the reviewed Brand Kit v2 assets.",
+      "Validate launcher/theme resources, compilation/tests and fresh rendered Compose screenshots through the hosted Android gates.",
+      "Merge the validated branding PR into develop and close issue #144."
+    ]
   },
   "latest_production_candidate": {
     "version_name": "1.0.0-rc11",

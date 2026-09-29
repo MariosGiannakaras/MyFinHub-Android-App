@@ -16,17 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #139 — Final repository prune to permanent branches.
-- Workstream state: `completed`.
+- Active workstream: issue #144 — Refresh Android branding from Brand Kit v2.
+- Workstream state: `in_progress`..
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.
+Owner-supplied Brand Kit v2 has been audited. Android runtime branding is being refreshed with the approved wallet/MF symbol, theme lockups and adaptive/themed launcher assets. The mislabeled vertical duplicates and raster-wrapped SVG containers are intentionally excluded; unrelated finance behavior and provider/bank artwork remain unchanged.
 
 ## Immediate work
 
+- Replace legacy Android MyFinHub resources and in-app brand rendering with the reviewed Brand Kit v2 assets.
+- Validate launcher/theme resources, compilation/tests and fresh rendered Compose screenshots through the hosted Android gates.
+- Merge the validated branding PR into develop and close issue #144.
 
 ## Constraints
 

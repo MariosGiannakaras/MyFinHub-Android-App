@@ -3,18 +3,17 @@ package app.myfinhub.android.designsystem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import app.myfinhub.android.R
 
@@ -24,16 +23,12 @@ enum class MyFinHubBrandMode {
 }
 
 /**
- * Canonical MyFinHub brand presentation for Android.
+ * Canonical Android presentation of the owner-approved MyFinHub Brand Kit v2.
  *
- * The bitmap resources are byte-for-byte copies of the canonical runtime artwork from the main
- * MyFinHub repository. The responsive lockup follows the main product contract: authentic square
- * mark plus product word treatment rather than an invented Android-specific logo.
- *
- * Artwork selection follows the active MyFinHub Material theme rather than the OS preference, so
- * explicit light/dark previews and future in-app theme selection always render the matching mark.
- * Runtime screens and screenshot validation share this same presentation component, and the
- * canonical screenshot baseline is regenerated from this exact runtime rendering path.
+ * The runtime resources are APK-optimized derivatives of the supplied PNG artwork: the wallet/MF
+ * symbol remains the canonical compact mark, while the supplied horizontal light/dark lockups are
+ * used directly instead of reconstructing the wordmark in Compose. Theme selection follows the
+ * active Material background so explicit previews use the matching asset.
  */
 @Composable
 fun MyFinHubBrandMark(
@@ -42,54 +37,39 @@ fun MyFinHubBrandMark(
     iconSize: Dp = MyFinHubDesignMetrics.brandMarkDefaultSize,
     subtitle: String? = null,
 ) {
-    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val resource = if (darkTheme) R.drawable.myfinhub_brand_dark else R.drawable.myfinhub_brand_light
-    val mark = @Composable {
-        Image(
-            painter = painterResource(resource),
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
-        )
-    }
+    val semanticsModifier =
+        modifier.semantics(mergeDescendants = true) { contentDescription = "MyFinHub" }
 
     if (mode == MyFinHubBrandMode.Icon) {
-        Row(
-            modifier = modifier.semantics { contentDescription = "MyFinHub" },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            mark()
-        }
+        Image(
+            painter = painterResource(R.drawable.myfinhub_symbol),
+            contentDescription = null,
+            modifier = semanticsModifier.size(iconSize),
+            contentScale = ContentScale.Fit,
+        )
         return
     }
 
-    Row(
-        modifier = modifier.semantics(mergeDescendants = true) { contentDescription = "MyFinHub" },
-        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-        verticalAlignment = Alignment.CenterVertically,
+    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val lockupResource =
+        if (darkTheme) R.drawable.myfinhub_lockup_dark else R.drawable.myfinhub_lockup_light
+
+    Column(
+        modifier = semanticsModifier,
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
     ) {
-        mark()
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "MyFin",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "Hub",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-            subtitle?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+        Image(
+            painter = painterResource(lockupResource),
+            contentDescription = null,
+            modifier = Modifier.height(iconSize),
+            contentScale = ContentScale.Fit,
+        )
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
