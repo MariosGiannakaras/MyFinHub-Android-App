@@ -17,7 +17,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #144 — Refresh Android branding from Brand Kit v2.
-- Workstream state: `in_progress`..
+- Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
