@@ -85,4 +85,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-No recorded blocker.
+- No recorded blocker.
