@@ -16,17 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #139 — Final repository prune to permanent branches.
-- Workstream state: `completed`.
+- Active workstream: issue #144 — Integrate platform-correct PureVector branding.
+- Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.
+The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.
 
 ## Immediate work
 
+- Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.
+- Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.
+- Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task.
 
 ## Constraints
 
