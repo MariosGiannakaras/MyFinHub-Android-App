@@ -9,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
@@ -23,12 +22,12 @@ enum class MyFinHubBrandMode {
 }
 
 /**
- * Canonical Android presentation of the owner-approved MyFinHub Brand Kit v2.
+ * Canonical Android presentation of the owner-approved MyFinHub PureVector identity.
  *
- * The runtime resources are APK-optimized derivatives of the supplied PNG artwork: the wallet/MF
- * symbol remains the canonical compact mark, while the supplied horizontal light/dark lockups are
- * used directly instead of reconstructing the wordmark in Compose. Theme selection follows the
- * active Material background so explicit previews use the matching asset.
+ * Android consumes APK-appropriate raster derivatives of the same vector masters used by the
+ * web/desktop client. The compact mark uses the standalone wallet/MF symbol. The supplied
+ * horizontal light/dark lockups are byte-identical, so Android keeps one canonical lockup instead
+ * of duplicating identical resources by theme.
  */
 @Composable
 fun MyFinHubBrandMark(
@@ -50,16 +49,12 @@ fun MyFinHubBrandMark(
         return
     }
 
-    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val lockupResource =
-        if (darkTheme) R.drawable.myfinhub_lockup_dark else R.drawable.myfinhub_lockup_light
-
     Column(
         modifier = semanticsModifier,
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
     ) {
         Image(
-            painter = painterResource(lockupResource),
+            painter = painterResource(R.drawable.myfinhub_lockup),
             contentDescription = null,
             modifier = Modifier.height(iconSize),
             contentScale = ContentScale.Fit,

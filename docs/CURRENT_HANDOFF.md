@@ -16,20 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #144 — Refresh Android branding from Brand Kit v2.
+- Active workstream: issue #144 — Integrate platform-correct PureVector branding.
 - Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Owner-supplied Brand Kit v2 has been audited. Android runtime branding is being refreshed with the approved wallet/MF symbol, theme lockups and adaptive/themed launcher assets. The mislabeled vertical duplicates and raster-wrapped SVG containers are intentionally excluded; unrelated finance behavior and provider/bank artwork remain unchanged.
+The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.
 
 ## Immediate work
 
-- Replace legacy Android MyFinHub resources and in-app brand rendering with the reviewed Brand Kit v2 assets.
-- Validate launcher/theme resources, compilation/tests and fresh rendered Compose screenshots through the hosted Android gates.
-- Merge the validated branding PR into develop and close issue #144.
+- Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.
+- Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.
+- Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task.
 
 ## Constraints
 
@@ -83,4 +83,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-- No recorded blocker.
+No recorded blocker.

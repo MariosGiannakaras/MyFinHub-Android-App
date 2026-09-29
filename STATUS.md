@@ -8,10 +8,10 @@
 
 ## Active workstream
 
-Issue #144 — **Refresh Android branding from Brand Kit v2**
+Issue #144 — **Integrate platform-correct PureVector branding**
 State: `in_progress`
 
-Owner-supplied Brand Kit v2 has been audited. Android runtime branding is being refreshed with the approved wallet/MF symbol, theme lockups and adaptive/themed launcher assets. The mislabeled vertical duplicates and raster-wrapped SVG containers are intentionally excluded; unrelated finance behavior and provider/bank artwork remain unchanged.
+The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.
 
 ## Current production candidate
 
@@ -21,9 +21,9 @@ Production-signed rc11 / versionCode 10010 was published from exact validated PR
 
 ## Next
 
-1. Replace legacy Android MyFinHub resources and in-app brand rendering with the reviewed Brand Kit v2 assets.
-2. Validate launcher/theme resources, compilation/tests and fresh rendered Compose screenshots through the hosted Android gates.
-3. Merge the validated branding PR into develop and close issue #144.
+1. Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.
+2. Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.
+3. Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task.
 
 ## Non-negotiable constraints
 
@@ -79,4 +79,4 @@ Next action: Preserve the completed redesign on develop. Stable/main promotion i
 
 ### Blockers
 
-- No recorded blocker.
+No recorded blocker.
