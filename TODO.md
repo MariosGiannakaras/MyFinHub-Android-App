@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish exact-head CI on PR #165, which has reviewed Web designId screenshots, then merge W2.2. PR #169 statement read model is merged. Continue W2.3 using clean draft #172 (supersedes closed #170), resolve tests/screenshot comparisons, then W2.4 secure card lifecycle. Keep W3.1 partial until payment allocation and legacy debt ownership are verified; no release.
+- [ ] Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt.
 
 ## Completed foundations
 
@@ -56,19 +56,19 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 5/24**
+**Implementations: 1/6 · Subtasks: 6/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #173, branch android/web-parity-continue-cards-tracking-20261014
-Current W2.2: W1 4/4 and W2.1 merged; W2.2 reviewed card design PR #165 CI pending; statement view #169 merged; inline credit UI clean draft #172 pending
+Current W2.3: W1 4/4; W2.1 and W2.2 accepted/merged (#164/#165), W2.3 inline credit workspace clean PR #172 tests/screenshot in correction, statement read #169 merged
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish exact-head CI on PR #165, which has reviewed Web designId screenshots, then merge W2.2. PR #169 statement read model is merged. Continue W2.3 using clean draft #172 (supersedes closed #170), resolve tests/screenshot comparisons, then W2.4 secure card lifecycle. Keep W3.1 partial until payment allocation and legacy debt ownership are verified; no release.
+Next Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
-| W2 Card identity and integrated credit experience | 1/4 | W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (in_progress); W2.4 Card interactions and secure details (pending) |
+| W2 Card identity and integrated credit experience | 2/4 | W2.3 Credit information on card screen (in_progress); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
@@ -81,7 +81,7 @@ Next Finish exact-head CI on PR #165, which has reviewed Web designId screenshot
 - [x] W1.3 Chart/target/IBAN web-fidelity — completed
 - [x] W1.4 Home tests and shared projections — completed
 - [x] W2.1 Canonical card metadata/lifecycle — completed
-- [ ] W2.2 Shared native card visual — in_progress
+- [x] W2.2 Shared native card visual — completed
 - [ ] W2.3 Credit information on card screen — in_progress
 - [ ] W2.4 Card interactions and secure details — pending
 - [ ] W3.1 Statement cycle and historical debt — in_progress
