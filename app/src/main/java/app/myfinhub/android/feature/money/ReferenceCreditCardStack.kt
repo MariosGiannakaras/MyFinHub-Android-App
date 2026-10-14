@@ -447,7 +447,9 @@ fun CreditCardStack(
 
                     ReferenceCardFace(
                         card = card,
-                        visual = remember(card.id, card.bankId, card.nickname) { visualForReferenceCard(card) },
+                        visual = remember(card.id, card.bankId, card.nickname, card.designId, card.canonicalKind, card.formFactor, card.network) {
+                            visualForReferenceCard(card)
+                        },
                         revealed = revealed?.takeIf { isTop },
                         isTop = isTop,
                         deleteArmed = deleteArmedId == card.id,
@@ -1072,36 +1074,43 @@ private fun ReferenceCloseGlyph(color: Color) {
 private fun referenceFormatPan(value: String): String =
     value.filter(Char::isDigit).chunked(4).joinToString(" ")
 
-private fun visualForReferenceCard(card: MoneyCard): ReferenceCardVisual {
-    val bank = card.bankId.trim().lowercase()
-    val searchable = "${card.id} ${card.nickname}".lowercase()
-    val variants = when {
-        bank == "piraeus" || (bank.isBlank() && ("piraeus" in searchable || "πειρ" in searchable)) -> piraeusVisuals
-        bank == "revolut" || (bank.isBlank() && "revolut" in searchable) -> revolutVisuals
-        bank == "alpha" || bank == "alpha-bank" || (bank.isBlank() && "alpha" in searchable) -> alphaVisuals
-        bank == "payzy" || (bank.isBlank() && "payzy" in searchable) -> payzyVisuals
-        bank == "viva" || bank == "viva-wallet" || (bank.isBlank() && "viva" in searchable) -> vivaVisuals
-        else -> null
-    }
-    if (variants != null) {
-        return variants[stableReferenceHash(card.id).absoluteValue % variants.size]
-    }
+/**
+ * Native mapping for the authoritative Web defaultDesignForCard (cardDesigns.ts).
+ * Design choice uses persisted designId and semantic card attributes, never card.id hash.
+ */
+internal fun referenceVisualTemplateId(card: MoneyCard): String {
+    val known = (piraeusVisuals + revolutVisuals + alphaVisuals + payzyVisuals + vivaVisuals)
+        .map(ReferenceCardVisual::templateId).toSet() + "custom"
+    card.designId?.takeIf(known::contains)?.let { return it }
 
-    val hue = (stableReferenceHash(card.id).absoluteValue % 360).toFloat()
-    return ReferenceCardVisual(
-        templateId = "custom",
-        brand = ReferenceBrand.CUSTOM,
-        label = card.nickname.ifBlank { card.bankId.ifBlank { "Card" } },
-        colors = listOf(
-            Color.hsv(hue, .68f, .72f),
-            Color.hsv((hue + 28f) % 360f, .62f, .52f),
-        ),
-        text = Color.White,
-    )
+    val bank = card.bankId.trim().lowercase()
+    val kind = card.canonicalKind.ifBlank {
+        if (card.kind.contains("Πιστω", ignoreCase = true)) "credit" else "debit"
+    }
+    val form = card.formFactor?.ifBlank { null } ?: "physical"
+    return when (bank) {
+        "piraeus" -> when {
+            kind == "credit" -> "piraeus-green"
+            form == "virtual" -> "piraeus-virtual"
+            else -> "piraeus-yellow"
+        }
+        "revolut" -> "revolut"
+        "alpha", "alpha-bank" -> if (kind == "credit") "alpha-bonus" else "alpha"
+        "payzy" -> if (form == "virtual") "payzy" else "payzy-physical"
+        "viva", "viva-wallet" -> if (form == "virtual") "viva-digital" else "viva"
+        else -> "custom"
+    }
 }
 
-private fun stableReferenceHash(value: String): Int {
-    var hash = 0
-    value.forEach { character -> hash = hash * 31 + character.code }
-    return if (hash == Int.MIN_VALUE) 0 else hash
+private fun visualForReferenceCard(card: MoneyCard): ReferenceCardVisual {
+    val template = referenceVisualTemplateId(card)
+    return (piraeusVisuals + revolutVisuals + alphaVisuals + payzyVisuals + vivaVisuals)
+        .firstOrNull { it.templateId == template }
+        ?: ReferenceCardVisual(
+            templateId = "custom",
+            brand = ReferenceBrand.CUSTOM,
+            label = card.nickname.ifBlank { card.bankId.ifBlank { "Card" } },
+            colors = listOf(Color(0xFF3C78CE), Color(0xFF4B4DB8)),
+            text = Color.White,
+        )
 }

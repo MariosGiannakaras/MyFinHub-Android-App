@@ -710,7 +710,9 @@
             "title": "Shared native card visual",
             "acceptance": "Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.",
             "status": "pending",
-            "evidence": []
+            "evidence": [
+              "Dependent draft PR maps persisted Web designId / card form factor and kind to deterministic native visual template; previously random hash-based style removed. Tests pending."
+            ]
           },
           {
             "id": "W2.3",
