@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Current Web parity: 0/6 implementations, 1/24 subtasks completed. W1.1 canonical account semantics merged via PR #158 with all CI gates green. W1.2/W1.3 Home code remains draft/unmerged in PR #156 pending tests, rendered screenshot review and physical acceptance. Historical redesign 10/10 and 40/40 separate; rc12 follow-up remains issue #149.",
+    "summary": "Web parity: 0/6 implementations · 2/24 subtasks completed. W1.1 (accounts) merged #158; W1.2 (Home cash+payroll, three primary chart cards, secondary accounts) merged #156 with all exact-head CI/emulator/screenshot gates green. W1.3 IBAN/provider/visual parity remains in progress (draft PR #160); W1.4 pending. Old redesign 10/10,40/40 historical; real S24 acceptance #149 independent.",
     "next": [
-      "Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release."
+      "Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/web-parity-home-20261014",
-    "checkpoint": "W1.1 merged and validated (#158); W1.2/W1.3 draft #156 unmerged",
+    "checkpoint": "W1.1 and W1.2 merged to develop; W1.3 account IBAN/visual and provider parity pending; W1.4 not started",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -662,9 +662,12 @@
             "id": "W1.2",
             "title": "Home total and three primary account slots",
             "acceptance": "Hero is exclusively daily cash plus payroll; three slots Cash, Payroll, Savings with charts, then compact remaining accounts; no other bank or reserve in total.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+              "PR #156 squash merged into Android develop as 2f3bfbb34d6b5f47084d9c08a732be326c1b0480.",
+              "At exact head a71773a4ec2478e2cb005488d70059890ae72522, Android CI, Project Tracking, screenshot-regression and S24-target emulator instrumentation passed.",
+              "Reviewed Home light/dark/150%-font and full-account Compose renders; refreshed only Home and associated UserNotice snackbar screenshot baselines.",
+              "Owner Home total cash+payroll only; primary Cash/Payroll/Savings cards with history and compact secondary account list validated."
             ]
           },
           {
@@ -674,7 +677,8 @@
             "status": "in_progress",
             "evidence": [
               "Snapshot-reanchored daily account history, 30-day deltas and month-aligned savings comparison source added to draft PR #156; golden Web fixture and screenshots not yet accepted.",
-              "Visual review of earlier rendered PR #156 Home light/dark/150% found low-contrast Piraeus mark in dark theme; requires correction before acceptance."
+              "Visual review of earlier rendered PR #156 Home light/dark/150% found low-contrast Piraeus mark in dark theme; requires correction before acceptance.",
+              "Provider-ID Home/Wallet parity merged in #156. Read-only account-metadata/IBAN contract exists in draft PR #160 but is not consumed by Android Home yet."
             ]
           },
           {
@@ -862,10 +866,10 @@
         ]
       }
     ],
-    "next_action": "Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.",
+    "next_action": "Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 156,
-    "current_subtask": "W1.2",
+    "current_subtask": "W1.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

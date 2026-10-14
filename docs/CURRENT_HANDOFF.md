@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Current Web parity: 0/6 implementations, 1/24 subtasks completed. W1.1 canonical account semantics merged via PR #158 with all CI gates green. W1.2/W1.3 Home code remains draft/unmerged in PR #156 pending tests, rendered screenshot review and physical acceptance. Historical redesign 10/10 and 40/40 separate; rc12 follow-up remains issue #149.
+Web parity: 0/6 implementations · 2/24 subtasks completed. W1.1 (accounts) merged #158; W1.2 (Home cash+payroll, three primary chart cards, secondary accounts) merged #156 with all exact-head CI/emulator/screenshot gates green. W1.3 IBAN/provider/visual parity remains in progress (draft PR #160); W1.4 pending. Old redesign 10/10,40/40 historical; real S24 acceptance #149 independent.
 
 ## Immediate work
 
-- Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.
+- Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.
 
 ## Constraints
 
@@ -50,18 +50,18 @@ Current Web parity: 0/6 implementations, 1/24 subtasks completed. W1.1 canonical
 
 ## Active Web parity progress
 
-**Implementations: 0/6 · Subtasks: 1/24**
+**Implementations: 0/6 · Subtasks: 2/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #156, branch android/web-parity-home-20261014
-Current W1.2: W1.1 merged and validated (#158); W1.2/W1.3 draft #156 unmerged
+Current W1.3: W1.1 and W1.2 merged to develop; W1.3 account IBAN/visual and provider parity pending; W1.4 not started
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.
+Next Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
-| W1 Canonical accounts and Home | 1/4 | W1.2 Home total and three primary account slots (in_progress); W1.3 Chart/target/IBAN web-fidelity (in_progress); W1.4 Home tests and shared projections (pending) |
+| W1 Canonical accounts and Home | 2/4 | W1.3 Chart/target/IBAN web-fidelity (in_progress); W1.4 Home tests and shared projections (pending) |
 | W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (pending); W2.2 Shared native card visual (pending); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
@@ -71,7 +71,7 @@ Next Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures,
 ### Subtasks
 
 - [x] W1.1 Canonical account merge and roles — completed
-- [ ] W1.2 Home total and three primary account slots — in_progress
+- [x] W1.2 Home total and three primary account slots — completed
 - [ ] W1.3 Chart/target/IBAN web-fidelity — in_progress
 - [ ] W1.4 Home tests and shared projections — pending
 - [ ] W2.1 Canonical card metadata/lifecycle — pending
