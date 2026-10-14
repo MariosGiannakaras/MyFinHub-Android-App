@@ -10,6 +10,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
+import app.myfinhub.android.core.data.RestoreCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.EditCanonicalActivity
 import app.myfinhub.android.core.data.EncryptedFinanceLocalStore
@@ -339,6 +340,23 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 nowIso = Instant.now().toString(),
             ),
         )
+    }
+
+    fun restoreCard(cardId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val normalized = cardId.trim()
+        if (normalized.isBlank() ||
+            ready.projection.document.canonicalCards().none { it.id == normalized && !it.active }
+        ) {
+            mutableNotices.tryEmit(UserNotice(
+                message = "Η αρχειοθετημένη κάρτα δεν είναι πλέον διαθέσιμη.",
+                details = "Ενέργεια: Επαναφορά κάρτας\\nΚατηγορία: INVALID_CARD_STATE",
+                diagnosticCode = "MFH-APP-INVALID_CARD_STATE",
+            ))
+            return
+        }
+        applyMutation(RestoreCanonicalCard(cardId = normalized, nowIso = Instant.now().toString()))
     }
 
     fun onQuickEntryAction(action: QuickEntryAction) {
@@ -988,6 +1006,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
                 PendingMutationKind.DEACTIVATE_CARD -> "Διαγραφή κάρτας"
+                PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
             },
             statusLabel = if (pending.syncState == PendingMutationSyncState.NEVER_SENT) {
                 "Προς συγχρονισμό"
