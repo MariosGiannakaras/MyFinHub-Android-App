@@ -745,7 +745,9 @@
             "title": "Statement cycle and historical debt",
             "acceptance": "Statement open/closed/due/paid, allocation, legacy card ID ownership and accurate card debt parity.",
             "status": "pending",
-            "evidence": []
+            "evidence": [
+              "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes."
+            ]
           },
           {
             "id": "W3.2",
