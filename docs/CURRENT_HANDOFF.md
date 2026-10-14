@@ -16,18 +16,20 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Last completed workstream: issue #144 — Integrate platform-correct PureVector branding.
-- Workstream state: `completed`.
+- Active workstream: issue #149 — Publish PureVector Android 1.0.0-rc12 through protected release.
+- Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
-## Completed workstream outcome
+## Why implementation is open
 
-PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.
+Owner explicitly authorized normal Android production deployment on 2026-10-14 after the validated PureVector source baseline was synchronized to main and develop. Prepare an Android-owned exact-source PR without runtime changes, require exact-head Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then use the trusted protected production publisher for 1.0.0-rc12 with the existing signer and a strictly higher versionCode than rc11/10010. Production publication is pending verification; physical Galaxy S24 Ultra installation and acceptance cannot be claimed from hosted checks.
 
-## Follow-up status
+## Immediate work
 
-- No active implementation tasks. SMS/notification import (issue #146) is deferred until the owner explicitly authorizes implementation.
+- Validate the open nonfunctional Android-owned rc12 release-source PR on its exact head with Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
+- Trigger the guarded production release request on develop and verify the protected same-signer publisher outputs, private production metadata and immutable GitHub prerelease/checksums.
+- Close the release-source PR without merge, reconcile published facts in canonical tracking, and synchronize main/develop; leave physical S24 Ultra update acceptance pending owner evidence.
 
 ## Constraints
 

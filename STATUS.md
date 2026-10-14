@@ -6,12 +6,12 @@
 **Authoritative branch:** `develop`
 **Supported device:** Samsung Galaxy S24 Ultra
 
-## Last completed workstream
+## Active workstream
 
-Issue #144 — **Integrate platform-correct PureVector branding**
-State: `completed`
+Issue #149 — **Publish PureVector Android 1.0.0-rc12 through protected release**
+State: `in_progress`
 
-PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.
+Owner explicitly authorized normal Android production deployment on 2026-10-14 after the validated PureVector source baseline was synchronized to main and develop. Prepare an Android-owned exact-source PR without runtime changes, require exact-head Android CI, Project Tracking, screenshot regression and S24-target instrumentation, then use the trusted protected production publisher for 1.0.0-rc12 with the existing signer and a strictly higher versionCode than rc11/10010. Production publication is pending verification; physical Galaxy S24 Ultra installation and acceptance cannot be claimed from hosted checks.
 
 ## Current production candidate
 
@@ -19,9 +19,11 @@ PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue
 
 Production-signed rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 through protected run 36140901059. The owner subsequently reported installation on the supported Galaxy S24 Ultra and explicitly authorized stable promotion. PR #135 merged the accepted develop baseline to main as 2d8489b4513603efa51f3914a58fb743b9bc0b3e. No sensitive card values were recorded in repository evidence.
 
-## Next implementation work
+## Next
 
-No active implementation tasks. Future issue #146 remains deferred until a new explicit owner request.
+1. Validate the open nonfunctional Android-owned rc12 release-source PR on its exact head with Project Tracking, Android CI, screenshot regression and S24-target instrumentation.
+2. Trigger the guarded production release request on develop and verify the protected same-signer publisher outputs, private production metadata and immutable GitHub prerelease/checksums.
+3. Close the release-source PR without merge, reconcile published facts in canonical tracking, and synchronize main/develop; leave physical S24 Ultra update acceptance pending owner evidence.
 
 ## Non-negotiable constraints
 
