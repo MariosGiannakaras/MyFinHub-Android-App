@@ -40,7 +40,7 @@ class AccountMetadataApiContractTest {
             assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
             assertFalse(request.headers.names().contains("Cookie"))
             assertTrue(result is ApiResult.Success)
-            val records = (result as ApiResult.Success).value
+            val records = (result as ApiResult.Success<Map<String, AccountMetadataRecord>>).value
             assertEquals(setOf("payroll"), records.keys)
             assertEquals("GR1601101250000000012300695", records["payroll"]?.iban)
             assertFalse(records["payroll"].toString().contains("GR160"))
