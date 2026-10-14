@@ -67,9 +67,17 @@ fun InlineCreditCardWorkspace(
                             Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
                             Text("Διαθέσιμα: " + creditWorkspaceMoney((limit - outstanding).coerceAtLeast(0.0), amountsVisible))
                         }
-                        LinearProgressIndicator(progress = { creditUtilizationRatio(card) }, modifier = Modifier.fillMaxWidth())
-                        if (amountsVisible) Text("Χρήση ορίου: ${(creditUtilizationRatio(card) * 100).toInt()}%",
-                            style = MaterialTheme.typography.bodySmall)
+                        // Privacy mode also conceals utilization, not just textual figures.
+                        if (amountsVisible) {
+                            LinearProgressIndicator(
+                                progress = { creditUtilizationRatio(card) },
+                                modifier = Modifier.fillMaxWidth().testTag("credit_utilization_indicator"),
+                            )
+                            Text(
+                                "Χρήση ορίου: ${(creditUtilizationRatio(card) * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
                     Button(
                         onClick = onPayCard,
