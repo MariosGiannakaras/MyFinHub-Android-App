@@ -4,6 +4,7 @@ on:
     branches: [android/web-parity-inline-credit-workspace-clean-20261014]
     paths:
       - '.github/workflows/android-inline-credit-baselines.yml'
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:
