@@ -150,6 +150,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
             name = financialAccountDisplayName(account.id, account.name, account.kind),
             role = accountKindLabel(account.kind),
             institution = provider?.institutionLabel ?: account.provider,
+            providerId = account.providerId,
             balance = balances[account.id] ?: 0.0,
             group = if (account.isSavingsAccount() || account.excludeFromAvailable) HomeAccountGroup.SAVINGS
                 else HomeAccountGroup.LIQUID,

@@ -557,7 +557,7 @@ private fun HomeAccountIdentity(account: HomeAccount, modifier: Modifier = Modif
 
 @Composable
 private fun HomeAccountIdentityMark(account: HomeAccount) {
-    val provider = financialProvider(account.id, account.institution ?: account.name)
+    val provider = financialProvider(account.providerId ?: account.id, account.institution ?: account.name)
     if (provider != null) {
         // Piraeus' actual dark-blue mark needs a light contrasting surface in dark mode.
         // Never tint or recolor the bank's approved logo asset.

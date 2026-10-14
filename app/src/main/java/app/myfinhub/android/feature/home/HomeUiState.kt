@@ -26,6 +26,7 @@ data class HomeAccount(
     val isPrimary: Boolean = false,
     val balanceTrend: List<Double> = listOf(balance, balance),
     val institution: String? = null,
+    val providerId: String? = null,
     val primaryRole: HomePrimaryRole? = null,
     val balanceChange30d: Double? = null,
     val monthBoundaryIndex: Int = 0,

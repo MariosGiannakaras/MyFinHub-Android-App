@@ -179,6 +179,21 @@ class CanonicalProductProjectionTest {
 
 
     @Test
+    fun homeProviderIdentityUsesWebProviderIdNotAccountIdGuessing() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[
+              {"id":"salary-custom-42","name":"Salary","kind":"bank","providerId":"piraeus","bankAccountCategory":"payroll"}
+          ],"snapshots":[{"date":"2026-10-01","balances":{"salary-custom-42":320}}]},
+          "state":{}}
+        """.trimIndent()).jsonObject)
+        val account = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+            .homeState.accounts.single()
+        assertEquals("piraeus", account.providerId)
+        assertEquals("Τράπεζα Πειραιώς", account.institution)
+        assertEquals(HomePrimaryRole.PAYROLL, account.primaryRole)
+    }
+
+    @Test
     fun multipleSavingsGoalsDoNotArbitrarilySelectOne() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[
