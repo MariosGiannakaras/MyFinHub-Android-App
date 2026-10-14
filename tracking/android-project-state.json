@@ -653,7 +653,8 @@
             "acceptance": "Account overrides, custom accounts, banking/cash metadata, provider IDs and account eligibility match Web.",
             "status": "in_progress",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending.",
+              "Isolated W1.1 account-domain PR under validation: canonical accounts seeded/overridden/custom plus provider and savings identity tests. Mark completed only after verified merge."
             ]
           },
           {
