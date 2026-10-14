@@ -723,7 +723,9 @@
             "title": "Credit information on card screen",
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
             "status": "pending",
-            "evidence": []
+            "evidence": [
+              "Stacked draft native Wallet inline credit workspace shows selected card, debt/limit/utilization, statement cycles, purchases and repayments with working Quick Entry callbacks. Requires upstream statement PR #169, CI, screenshot acceptance and W2 card visual PR #165; not merged or counted."
+            ]
           },
           {
             "id": "W2.4",
