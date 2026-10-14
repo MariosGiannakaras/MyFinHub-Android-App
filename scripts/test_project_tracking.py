@@ -83,12 +83,13 @@ class WebParityTrackingTests(unittest.TestCase):
 
     def test_reconciliation_counts_are_derived(self):
         stages = self.state['reconciliation_workstream']['stages']
+        # Isolate this synthetic fixture from any future live stage completions.
+        for stage in stages:
+            for sub in stage['subtasks']:
+                sub.update(status='pending', evidence=[])
         for sub in stages[0]['subtasks']:
             sub.update(status='completed', evidence=['merged and validated'])
         stages[1]['subtasks'][0].update(status='completed', evidence=['merged and validated'])
-        # The canonical live state evolves: force a synthetic 5/24 checkpoint
-        # regardless of whether W2.2 has since become completed.
-        stages[1]['subtasks'][1].update(status='pending', evidence=[])
         self.state['reconciliation_workstream']['current_subtask'] = 'W2.2'
         tracking.validate_reconciliation(self.state)
         lines = '\n'.join(tracking.reconciliation_lines(self.state))

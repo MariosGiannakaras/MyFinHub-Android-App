@@ -15,6 +15,7 @@ import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
+import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.creditDebtForCardAt
@@ -293,6 +294,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 archivedAt = card.archivedAt,
             )
         },
+        creditStatementsByCard = activeCards.filter { it.kind == "credit" }
+            .associate { card -> card.id to document.creditStatementViews(card.id, asOf) },
         cards = activeCards.map { card ->
             val eventOutstanding = document.creditDebtForCardAt(card.id, asOf)
             val cardActivity = events

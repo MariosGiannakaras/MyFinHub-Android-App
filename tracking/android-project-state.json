@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity verified 1/6 implementations and 6/24 subtasks. W1 4/4 complete; W2.1 card metadata #164 and W2.2 native Web designId artwork #165 merged with all exact-head CI/screenshot/emulator checks green. W2.3 one-screen credit workspace in draft #172 pending corrected tests and visual snapshots. W3.1 statement views #169 merged as partial foundation; no release or physical S24 owner acceptance.",
+    "summary": "Current Web parity 1/6 implementations, 7/24 subtasks verified. W1 complete, W2.1-2.3 merged (#164/#165/#172). W2.4 native archived card restoration/offline mutation source reintegrated with latest develop in PR #174; unmerged, exact-head tests pending. W3.1 read-only statement model #169 merged but debt allocation/legacy ownership remain partial. No backend change, release or owner S24 signoff.",
     "next": [
-      "Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt."
+      "Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-continue-cards-tracking-20261014",
-    "checkpoint": "W1 4/4; W2.1 and W2.2 accepted/merged (#164/#165), W2.3 inline credit workspace clean PR #172 tests/screenshot in correction, statement read #169 merged",
+    "branch": "android/web-parity-card-archive-restore-20261014",
+    "checkpoint": "W2.3 merged (7/24); W2.4 original PR #174 integrated onto post-#172/#175 develop with offline restore/archive source, exact-head CI pending",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -725,9 +725,12 @@
             "id": "W2.3",
             "title": "Credit information on card screen",
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged."
+              "PR #172 squash merged to Android develop 47572b98224fad5a20fe7ae651d4b2331695db5d. Exact head 74bc882e86423ebd98e15343dab44b62025ddeae passed Project Tracking, Android CI optimized unsigned release, screenshot regression and S24-target emulator instrumentation.",
+              "Native Wallet Cards screen displays selected card with debt, limit, available credit and utilization, statement open/closed/due/paid cycles, linked purchases/repayments and working in-context Quick Entry purchase/payment callbacks. Card details remain optional.",
+              "Privacy mode masks all card financial figures and hides utilization bar/ratio; Compose instrumentation verifies privacy, actions and debit-vs-credit filtering.",
+              "Six reviewed card-specific screenshots (new credit workspace light/dark/150%-type and changed Wallet card light/dark/150%-type) recorded; one-off workflow removed before merge."
             ]
           },
           {
@@ -736,8 +739,8 @@
             "acceptance": "In-context purchase/payment, safe archive/restore/delete, card picker, secure vault only on protected view, navigation and screenshot tests.",
             "status": "in_progress",
             "evidence": [
-              "Draft PR introduces Web-equivalent archive timestamp and restore-by-stable-card-ID mutation, with idempotency/history/secret-isolation regression tests. Native archived-list UI and secure action acceptance remain pending; no code merged.",
-              "Draft PR #174 also projects archived card identities into Wallet and wires a native restore action to a validated canonical mutation through Root/ViewModel; secrets stay locked. UI and exact-head CI still unverified."
+              "Draft #174 implements archivedAt and native archived-card restore action but currently fails Kotlin sealed mutation exhaustiveness; fix durable pending restore serialization and test before merge.",
+              "Reintegrated original #174 source onto latest develop (after #172/#175) in temp integration branch; preserves inline credit workspace and includes native archive/restore, pending offline intents and tests. Exact-head CI and visual/security review pending."
             ]
           }
         ]
@@ -886,10 +889,10 @@
         ]
       }
     ],
-    "next_action": "Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt.",
+    "next_action": "Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 173,
-    "current_subtask": "W2.3",
+    "pr": 174,
+    "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
