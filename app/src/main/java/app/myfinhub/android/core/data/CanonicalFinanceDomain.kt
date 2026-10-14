@@ -17,6 +17,12 @@ data class CanonicalAccount(
     val shortName: String?,
     val kind: String,
     val excludeFromAvailable: Boolean,
+    val providerId: String? = null,
+    val provider: String? = null,
+    val bankAccountCategory: String? = null,
+    val cashRole: String? = null,
+    val cashType: String? = null,
+    val showInQuickChoices: Boolean = true,
 )
 
 data class CanonicalLegacyTransaction(
@@ -110,24 +116,42 @@ private data class FlowImpact(
     val refund: Double = 0.0,
 )
 
+/** Same account identity/override/custom merge as web allAccounts. */
 fun CanonicalFinanceDocument.canonicalAccounts(): List<CanonicalAccount> {
     val settings = state.obj("settings")
-    val renamed = settings.obj("accountNames")
+    val overrides = settings.obj("accountOverrides")
+    val names = settings.obj("accountNames")
     val excluded = settings.array("excludedFromAvailable")
-        .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
-        .toSet()
-    return seed.array("accounts").mapNotNull accounts@{ element ->
-        val raw = element as? JsonObject ?: return@accounts null
-        val id = raw.string("id") ?: return@accounts null
+        .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.toSet()
+    val seeded = seed.array("accounts").mapNotNull { it as? JsonObject }
+    val seededIds = seeded.mapNotNull { it.string("id") }.toSet()
+    val custom = settings.array("customAccounts").mapNotNull { it as? JsonObject }
+        .filter { it.string("id") !in seededIds }
+    return (seeded + custom).mapNotNull { raw ->
+        val id = raw.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+        val merged = JsonObject(raw + overrides.obj(id).filterKeys { it != "id" })
         CanonicalAccount(
             id = id,
-            name = renamed.string(id) ?: raw.string("name") ?: id,
-            shortName = raw.string("short"),
-            kind = raw.string("kind").orEmpty(),
-            excludeFromAvailable = raw.bool("excludeFromAvailable") == true || id in excluded,
+            name = merged.string("name") ?: names.string(id) ?: id,
+            shortName = merged.string("short"),
+            kind = merged.string("kind").orEmpty(),
+            excludeFromAvailable = merged.bool("excludeFromAvailable") == true || id in excluded,
+            providerId = merged.string("providerId"),
+            provider = merged.string("provider"),
+            bankAccountCategory = merged.string("bankAccountCategory"),
+            cashRole = merged.string("cashRole"),
+            cashType = merged.string("cashType"),
+            showInQuickChoices = merged.bool("showInQuickChoices") != false,
         )
     }
 }
+
+fun CanonicalAccount.isSavingsAccount(): Boolean =
+    kind == "savings" || (kind == "bank" && bankAccountCategory == "savings")
+
+fun CanonicalAccount.isSavingContributionSource(): Boolean =
+    kind == "bank" && (bankAccountCategory == null ||
+        bankAccountCategory == "current" || bankAccountCategory == "payroll")
 
 /** Mirrors web effectiveLegacyTransactions: seed minus deleted, then overrides, then custom. */
 fun CanonicalFinanceDocument.effectiveLegacyTransactions(): List<CanonicalLegacyTransaction> {
