@@ -58,6 +58,19 @@ class RedesignTrackingTests(unittest.TestCase):
         self.assertIn("No recorded blocker.", rendered)
         self.assertNotIn("Physical S24 acceptance remains a future required gate", rendered)
 
+    def test_completed_workstream_does_not_show_open_implementation(self):
+        self.state["active_workstream"].update(status="completed", next=[])
+        outputs = tracking.rendered(self.state)
+        status = next(value for path, value in outputs.items() if path.name == "STATUS.md")
+        todo = next(value for path, value in outputs.items() if path.name == "TODO.md")
+        handoff = next(value for path, value in outputs.items() if path.name == "CURRENT_HANDOFF.md")
+        self.assertIn("## Last completed workstream", status)
+        self.assertIn("No active implementation tasks.", status)
+        self.assertIn("No active implementation tasks.", todo)
+        self.assertNotIn("- [ ]", todo)
+        self.assertIn("## Completed workstream outcome", handoff)
+        self.assertNotIn("## Why implementation is open", handoff)
+
     def test_historical_state_remains_readable(self):
         del self.state["redesign_tasks"]
         tracking.validate_redesign(self.state)

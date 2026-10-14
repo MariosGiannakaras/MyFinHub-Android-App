@@ -147,7 +147,7 @@ def render_status(s: dict) -> str:
         f"**Authoritative branch:** `{s['authoritative_branch']}`",
         f"**Supported device:** {s['supported_device']}",
         "",
-        "## Active workstream",
+        ("## Last completed workstream" if w["status"] == "completed" else "## Active workstream"),
         "",
         f"Issue #{w['issue']} — **{w['title']}**",
         f"State: `{w['status']}`",
@@ -160,10 +160,10 @@ def render_status(s: dict) -> str:
         "",
         r["notes"],
         "",
-        "## Next",
+        ("## Next" if w["next"] else "## Next implementation work"),
         "",
     ]
-    lines.extend(f"{i}. {item}" for i, item in enumerate(w["next"], 1))
+    lines.extend((f"{i}. {item}" for i, item in enumerate(w["next"], 1)) if w["next"] else ["No active implementation tasks. Future issue #146 remains deferred until a new explicit owner request."])
     lines += ["", "## Non-negotiable constraints", ""]
     lines.extend(f"- {item}" for item in s["constraints"])
     lines += [
@@ -184,12 +184,12 @@ def render_todo(s: dict) -> str:
         header().rstrip(),
         "# MyFinHub Android — Current TODO",
         "",
-        f"Active tracker: issue #{w['issue']} — **{w['title']}**",
+        f"{'Last completed tracker' if w['status'] == 'completed' else 'Active tracker'}: issue #{w['issue']} — **{w['title']}**",
         "",
         "## Open",
         "",
     ]
-    lines.extend(f"- [ ] {item}" for item in w["next"])
+    lines.extend((f"- [ ] {item}" for item in w["next"]) if w["next"] else ["No active implementation tasks. Future SMS import (issue #146) is explicitly deferred."])
     lines += ["", "## Completed foundations", ""]
     lines.extend(f"- [x] {item}" for item in s["completed"])
     lines += [
@@ -225,19 +225,19 @@ def render_handoff(s: dict) -> str:
         "",
         f"- Overall progress: **{p['completed']}/{p['total']}**.",
         f"- Supported device: **{s['supported_device']} only**.",
-        f"- Active workstream: issue #{w['issue']} — {w['title']}.",
+        f"- {'Last completed workstream' if w['status'] == 'completed' else 'Active workstream'}: issue #{w['issue']} — {w['title']}.",
         f"- Workstream state: `{w['status']}`.",
         f"- Latest private production candidate: `{r['version_name']}` / `{r['version_code']}` — `{r['status']}`.",
         f"- `develop` is the authoritative implementation branch; `{s['release_branch']}` is release-only.",
         "",
-        "## Why implementation is open",
+        ("## Completed workstream outcome" if w["status"] == "completed" else "## Why implementation is open"),
         "",
         w["summary"],
         "",
-        "## Immediate work",
+        ("## Follow-up status" if not w["next"] else "## Immediate work"),
         "",
     ]
-    lines.extend(f"- {item}" for item in w["next"])
+    lines.extend((f"- {item}" for item in w["next"]) if w["next"] else ["- No active implementation tasks. SMS/notification import (issue #146) is deferred until the owner explicitly authorizes implementation."])
     lines += ["", "## Constraints", ""]
     lines.extend(f"- {item}" for item in s["constraints"])
     lines += [
