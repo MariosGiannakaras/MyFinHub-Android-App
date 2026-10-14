@@ -11,7 +11,7 @@
 Issue #144 — **Integrate platform-correct PureVector branding**
 State: `completed`
 
-Completed on 2026-09-29: the owner-approved PureVector Android branding was integrated and merged to develop in PR #145; issue #144 was closed as completed. The exact PR head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. Adaptive/themed launcher assets, compact in-app branding, true SVG masters and a separate store-listing icon are present on develop. This branding is not yet in the release-only main branch and has not been included in a new signed production release; existing rc11 remains the last physically accepted release.
+PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.
 
 ## Current production candidate
 
@@ -53,7 +53,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Redesign S1–S10 and physical S24 Ultra acceptance are completed; the rc11 baseline was promoted to main via PR #135. PureVector branding PR #145 is merged to develop only; a later production release is a separate explicit checkpoint.
+Next action: The S1–S10 Android redesign, 40/40 subtasks, physical S24 Ultra acceptance and existing rc11 promotion are complete. PureVector branding and canonical progress are synchronized between main and develop as a source baseline, without publishing a new signed release. There is no active implementation work; future SMS/notification import issue #146 requires a separate explicit owner instruction.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
