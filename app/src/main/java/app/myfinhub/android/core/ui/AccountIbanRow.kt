@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.semantics
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.network.compactIban
@@ -42,7 +43,7 @@ fun AccountIbanRow(
     val context = LocalContext.current
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(androidx.compose.ui.unit.Dp(4f)),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
