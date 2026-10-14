@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.
+- [ ] Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release.
 
 ## Completed foundations
 
@@ -56,19 +56,19 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 0/6 · Subtasks: 2/24**
+**Implementations: 0/6 · Subtasks: 3/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #160, branch android/web-parity-iban-contract-20261014
-Current W1.3: W1.1/W1.2 verified on develop; W1.3 secure account metadata GET in PR #160 under CI, Home IBAN/visual parity pending
+Issue #155, PR #166, branch android/web-parity-track-w1-3-20261014
+Current W1.4: W1.1-W1.3 merged; W1.4 fixtures/accessibility open, W2.1/#164 and W2.2/#165 in draft
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.
+Next Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
-| W1 Canonical accounts and Home | 2/4 | W1.3 Chart/target/IBAN web-fidelity (in_progress); W1.4 Home tests and shared projections (pending) |
-| W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (pending); W2.2 Shared native card visual (pending); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
+| W1 Canonical accounts and Home | 3/4 | W1.4 Home tests and shared projections (in_progress) |
+| W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (in_progress); W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
@@ -78,10 +78,10 @@ Next Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify an
 
 - [x] W1.1 Canonical account merge and roles — completed
 - [x] W1.2 Home total and three primary account slots — completed
-- [ ] W1.3 Chart/target/IBAN web-fidelity — in_progress
-- [ ] W1.4 Home tests and shared projections — pending
-- [ ] W2.1 Canonical card metadata/lifecycle — pending
-- [ ] W2.2 Shared native card visual — pending
+- [x] W1.3 Chart/target/IBAN web-fidelity — completed
+- [ ] W1.4 Home tests and shared projections — in_progress
+- [ ] W2.1 Canonical card metadata/lifecycle — in_progress
+- [ ] W2.2 Shared native card visual — in_progress
 - [ ] W2.3 Credit information on card screen — pending
 - [ ] W2.4 Card interactions and secure details — pending
 - [ ] W3.1 Statement cycle and historical debt — pending
