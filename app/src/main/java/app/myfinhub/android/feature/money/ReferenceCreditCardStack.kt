@@ -1087,7 +1087,7 @@ internal fun referenceVisualTemplateId(card: MoneyCard): String {
     val kind = card.canonicalKind.ifBlank {
         if (card.kind.contains("Πιστω", ignoreCase = true)) "credit" else "debit"
     }
-    val form = card.formFactor?.ifBlank { null } ?: "physical"
+    val form = card.formFactor?.takeIf(String::isNotBlank) ?: "physical"
     return when (bank) {
         "piraeus" -> when {
             kind == "credit" -> "piraeus-green"
