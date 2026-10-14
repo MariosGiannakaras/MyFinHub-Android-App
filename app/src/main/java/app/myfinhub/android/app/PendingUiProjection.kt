@@ -148,6 +148,16 @@ private fun pendingCardChangeMessage(
                     linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
                 }
             }
+            PendingMutationKind.RESTORE_CARD -> {
+                val cardId = intent.affectedCardId.orEmpty()
+                val card = runCatching {
+                    projectCanonicalProduct(next, today).moneyState.cards.firstOrNull { it.id == cardId }
+                }.getOrNull()
+                if (card != null) {
+                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί επαναφορά · ${intent.syncState.pendingStatusLabel()}"
+                }
+            }
             else -> Unit
         }
         replayDocument = next
