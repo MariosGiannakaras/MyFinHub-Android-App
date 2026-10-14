@@ -1,0 +1,49 @@
+name: Review-approved Home screenshot references
+on:
+  push:
+    branches: [android/web-parity-home-20261014]
+    paths:
+      - '.github/workflows/android-home-parity-baselines.yml'
+permissions:
+  contents: write
+concurrency:
+  group: home-screenshot-baseline-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  update-reviewed-home-only:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Install Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Render candidate screenshots
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+      - name: Commit only visually reviewed Home references
+        shell: bash
+        run: |
+          set -euo pipefail
+          references=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt
+          git add -A -- "$references"/ProductionHome*.png
+          if git diff --cached --quiet; then
+            echo "No Home screenshot baseline changed."
+            exit 0
+          fi
+          git diff --cached --name-only
+          if git diff --cached --name-only | grep -vE '^app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt/ProductionHome.*\.png$'; then
+            echo "Refusing unexpected staged changes."
+            exit 1
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(android): update reviewed Home-only Compose screenshot references (#155)'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
