@@ -653,7 +653,8 @@
             "acceptance": "Account overrides, custom accounts, banking/cash metadata, provider IDs and account eligibility match Web.",
             "status": "in_progress",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending.",
+              "Draft PR #156 reviewed against live Web accountSelection.ts and domain.ts: semantic slots select first quick-preferred daily cash, payroll and savings; source has tests and remains unmerged/unverified."
             ]
           },
           {
@@ -662,7 +663,8 @@
             "acceptance": "Hero is exclusively daily cash plus payroll; three slots Cash, Payroll, Savings with charts, then compact remaining accounts; no other bank or reserve in total.",
             "status": "in_progress",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending.",
+              "First hosted Android CI exposed stale seven-day trend assertion; fixture assertion updated to the Web month-window range on draft PR #156. Visual screenshot baselines still require real-render validation."
             ]
           },
           {
