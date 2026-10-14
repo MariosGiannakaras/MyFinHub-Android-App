@@ -257,7 +257,6 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     )
 
     val activeCards = document.canonicalCards().filter { it.active }
-    val bankIdsByCard = document.cards().associate { it.id to it.bankId }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
@@ -302,8 +301,15 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 limit = card.creditLimit,
                 vaultState = if (card.vaultRef.isNullOrBlank()) VaultState.LOCKED else VaultState.AVAILABLE,
                 network = card.network.ifBlank { "VISA" },
-                bankId = bankIdsByCard[card.id].orEmpty(),
+                bankId = card.bankId,
                 canonicalKind = card.kind,
+                designId = card.designId,
+                formFactor = card.formFactor,
+                holderName = card.holderName,
+                statementClosingDay = card.statementClosingDay,
+                statementDueDay = card.statementDueDay,
+                statementBoundaryRule = card.statementBoundaryRule,
+                archivedAt = card.archivedAt,
                 activity = cardActivity,
             )
         },

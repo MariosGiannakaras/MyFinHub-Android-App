@@ -45,6 +45,13 @@ data class MoneyCard(
     val bankId: String = "",
     val canonicalKind: String = "",
     val activity: List<MoneyCardActivity> = emptyList(),
+    val designId: String? = null,
+    val formFactor: String? = null,
+    val holderName: String? = null,
+    val statementClosingDay: Int? = null,
+    val statementDueDay: Int? = null,
+    val statementBoundaryRule: String? = null,
+    val archivedAt: String? = null,
 )
 
 enum class VaultState { LOCKED, AVAILABLE }
@@ -87,7 +94,6 @@ data class LendingItem(
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = emptyList(),
     val cards: List<MoneyCard> = emptyList(),
-    /** Read-only Web-backed billing cycles, projected per active credit card. */
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
     val savingsGoal: Double? = null,
     val savingsCurrent: Double = 0.0,

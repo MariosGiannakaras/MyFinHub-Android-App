@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.
+- [ ] Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release.
 
 ## Completed foundations
 
@@ -56,19 +56,19 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 4/24**
+**Implementations: 1/6 · Subtasks: 5/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #168, branch android/web-parity-track-w1-4-20261014
-Current W2.1: W1 fully completed/merged 4/4; W2.1 metadata draft PR #164 needs latest develop reconciliation, W2.2 stacked #165 open
+Issue #155, PR #171, branch android/web-parity-track-w2-1-20261014
+Current W2.2: W1 4/4 merged, W2.1 canonical PaymentCard metadata verified/merged #164, W2.2 native visual #165 under CI, W2.3 inline credit UI draft #170 depends on #169 statement views
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.
+Next Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
-| W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (in_progress); W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
+| W2 Card identity and integrated credit experience | 1/4 | W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
@@ -80,7 +80,7 @@ Next Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preservi
 - [x] W1.2 Home total and three primary account slots — completed
 - [x] W1.3 Chart/target/IBAN web-fidelity — completed
 - [x] W1.4 Home tests and shared projections — completed
-- [ ] W2.1 Canonical card metadata/lifecycle — in_progress
+- [x] W2.1 Canonical card metadata/lifecycle — completed
 - [ ] W2.2 Shared native card visual — in_progress
 - [ ] W2.3 Credit information on card screen — pending
 - [ ] W2.4 Card interactions and secure details — pending
