@@ -671,8 +671,10 @@
             "id": "W1.3",
             "title": "Chart/target/IBAN web-fidelity",
             "acceptance": "Use Web-accurate history and comparative savings charts, 30-day deltas, goal, IBAN/provider identity, period and privacy states.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "Read-only owner+AAL2 bearer /api/account-metadata contract and checksum-validated IBAN projection are in draft PR #160; not wired to Home yet, no exact-head CI acceptance or merge."
+            ]
           },
           {
             "id": "W1.4",
