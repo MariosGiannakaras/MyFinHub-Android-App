@@ -278,8 +278,8 @@ fun ProductionQuickEntryScreen(
                 CompactChoice(
                     label = "Από λογαριασμό",
                     selectedId = state.fromAccountId,
-                    choices = state.accounts.map { it.id to it.label },
-                    subtitles = state.accounts.associate { it.id to accountKindLabel(it.kind) },
+                    choices = productionSourceOptions(state).map { it.id to it.label },
+                    subtitles = productionSourceOptions(state).associate { it.id to accountKindLabel(it.kind) },
                     onSelected = { onAction(QuickEntryAction.FromAccountChanged(it)) },
                     searchable = true,
                 )
@@ -701,13 +701,19 @@ private fun ProductionTransactionSemanticsHint(kind: QuickEntryKind) {
     )
 }
 
+private fun productionSourceOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> =
+    if (state.kind == QuickEntryKind.SAVING) {
+        state.accounts.filter(QuickEntryAccountOption::isSavingContributionSource)
+    } else state.accounts
+
 private fun productionDestinationOptions(state: QuickEntryUiState): List<QuickEntryAccountOption> {
     val filtered = when (state.kind) {
         QuickEntryKind.WITHDRAWAL -> state.accounts.filter { it.kind == "cash" }
-        QuickEntryKind.SAVING -> state.accounts.filter { it.kind == "savings" }
+        QuickEntryKind.SAVING -> state.accounts.filter(QuickEntryAccountOption::isSavingsDestination)
         else -> state.accounts
     }.filter { it.id != state.fromAccountId }
-    return filtered.ifEmpty { state.accounts.filter { it.id != state.fromAccountId } }
+    return if (state.kind == QuickEntryKind.SAVING) filtered
+        else filtered.ifEmpty { state.accounts.filter { it.id != state.fromAccountId } }
 }
 
 private fun productionPrimaryAccountLabel(kind: QuickEntryKind): String = when (kind) {

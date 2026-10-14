@@ -14,10 +14,10 @@ class CardWebMetadataParityTest {
        {"seed":{"accounts":[],"snapshots":[{"date":"2026-10-01","balances":{}}]},
         "state":{"cards":[
          {"id":"pay-card","bankId":"piraeus","nickname":"Salary Visa","kind":"debit","network":"visa",
-          "formFactor":"physical","designId":"piraeus-classic","holderName":"CARD HOLDER",
+          "formFactor":"physical","designId":"piraeus-yellow","holderName":"CARD HOLDER",
           "last4":"1234","active":true,"createdAt":"2026-09-01T00:00:00Z","updatedAt":"2026-10-01T00:00:00Z"},
          {"id":"credit-1","bankId":"alpha","nickname":"Credit","kind":"credit","network":"mastercard",
-          "formFactor":"virtual","designId":"alpha-blue","last4":"9876","creditLimit":2000,
+          "formFactor":"virtual","designId":"alpha-bonus","last4":"9876","creditLimit":2000,
           "statementClosingDay":25,"statementDueDay":5,"statementBoundaryRule":"next-cycle",
           "active":true,"createdAt":"2026-09-02T00:00:00Z","updatedAt":"2026-10-01T00:00:00Z"},
          {"id":"archived","bankId":"revolut","nickname":"Retired","kind":"credit","network":"visa",
@@ -34,7 +34,7 @@ class CardWebMetadataParityTest {
         val cards = document.canonicalCards()
         assertEquals(3, cards.size)
         assertEquals("piraeus", cards.first().bankId)
-        assertEquals("piraeus-classic", cards.first().designId)
+        assertEquals("piraeus-yellow", cards.first().designId)
         assertEquals("physical", cards.first().formFactor)
         assertEquals("CARD HOLDER", cards.first().holderName)
         assertEquals("2026-09-01T00:00:00Z", cards.first().createdAt)
@@ -49,9 +49,9 @@ class CardWebMetadataParityTest {
     fun walletActiveCardsKeepWebDesignAndStatementMetadataWithoutShowingArchivedCard() {
         val projected = projectCanonicalProduct(document, LocalDate.of(2026,10,14)).moneyState.cards
         assertEquals(2, projected.size)
-        assertEquals("piraeus-classic", projected[0].designId)
+        assertEquals("piraeus-yellow", projected[0].designId)
         assertEquals("piraeus", projected[0].bankId)
-        assertEquals("alpha-blue", projected[1].designId)
+        assertEquals("alpha-bonus", projected[1].designId)
         assertEquals("virtual", projected[1].formFactor)
         assertEquals(25, projected[1].statementClosingDay)
         assertEquals("next-cycle", projected[1].statementBoundaryRule)

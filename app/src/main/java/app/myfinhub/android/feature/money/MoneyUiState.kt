@@ -16,6 +16,10 @@ data class MoneyAccount(
     val canonicalKind: String = "",
     /** Canonical availability rule, independent of the localized account label. */
     val excludeFromAvailable: Boolean = false,
+    val bankAccountCategory: String? = null,
+    val cashRole: String? = null,
+    val cashType: String? = null,
+    val providerId: String? = null,
 )
 
 enum class MoneyCardActivityKind { PURCHASE, PAYMENT }

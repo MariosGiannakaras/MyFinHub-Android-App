@@ -268,6 +268,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 institution = provider?.institutionLabel ?: account.provider,
                 canonicalKind = account.kind,
                 excludeFromAvailable = account.excludeFromAvailable,
+                bankAccountCategory = account.bankAccountCategory,
+                cashRole = account.cashRole,
+                cashType = account.cashType,
+                providerId = account.providerId,
             )
         },
         cards = activeCards.map { card ->

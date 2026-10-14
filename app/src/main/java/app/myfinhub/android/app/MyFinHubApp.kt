@@ -21,6 +21,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.ActivityEditScreen
 import app.myfinhub.android.feature.activity.ActivityLedgerScreen
@@ -109,6 +110,8 @@ fun MyFinHubApp(
 internal fun MyFinHubAppContent(
     homeState: HomeUiState,
     onHomeAction: (HomeAction) -> Unit,
+    accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
+    accountMetadataLoaded: Boolean = false,
     activityState: ActivityUiState = ActivityUiState(),
     onActivityAction: (ActivityAction) -> Unit = {},
     activityMutationInFlight: Boolean = false,
@@ -176,6 +179,8 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Home> {
                     ProductionHomeScreen(
                         state = homeState,
+                        accountMetadata = accountMetadata,
+                        accountMetadataLoaded = accountMetadataLoaded,
                         onAction = onHomeAction,
                         onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
                         onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
@@ -323,6 +328,8 @@ internal fun MyFinHubAppContent(
                         state = moneyState,
                         accountsRequest = walletAccountsRequest,
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
+                        accountMetadata = accountMetadata,
+                        accountMetadataLoaded = accountMetadataLoaded,
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
@@ -337,6 +344,8 @@ internal fun MyFinHubAppContent(
                     val account = moneyState.accounts.firstOrNull { it.id == route.accountId }
                     CanonicalAccountDetailScreen(
                         account = account,
+                        ibanRecord = accountMetadata[route.accountId],
+                        accountMetadataLoaded = accountMetadataLoaded,
                         activityItems = accountActivityItems(route.accountId, activityState.items),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
