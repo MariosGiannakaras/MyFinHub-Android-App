@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 7/24 subtasks verified. W1 and W2.1-W2.3 complete. Native archived-card restore/offline intent PR #174 merged to develop with 4/4 exact-head tests; W2.4 remains in_progress pending Web permanent-deletion and protected vault cleanup. Read-only eligibility PR #176 under CI. W3.1 statement foundation #169 merged, allocation/legacy debt incomplete. S24 physical owner signoff and production release pending.
+Current Web parity 1/6 implementations, 7/24 subtasks completed. W1 4/4 and W2.1–W2.3 merged and tested. W2.4 archive/restore/offline replay #174 and read-only deletion eligibility #176 merged with exact-head 4/4 checks. Guarded permanent-delete tombstone intent draft #177 and accurate archive UX draft #178 are under CI; neither is accepted or live deletion UI. Protected vault cleanup and full physical S24 acceptance remain pending; W3.1 historical credit debt/repayment allocation partial. No backend/schema changes or release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
+1. Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #176, branch android/web-parity-card-delete-policy-20261015
-Current W2.4: W1 4/4, W2.1-W2.3 merged; W2.4 archive/restore #174 merged/verified; safe permanent-deletion eligibility in draft #176; vault cleanup+destructive mutation pending
+Issue #155, PR #179, branch android/web-parity-track-current-w2-4-20261015
+Current W2.4: W2.1–W2.3 verified merged (7/24); W2.4 archive/restore #174 and delete eligibility #176 merged/green, guarded-delete #177 and archive-label #178 draft
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
+Next Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
