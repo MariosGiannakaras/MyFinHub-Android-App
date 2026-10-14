@@ -5,7 +5,7 @@ Active tracker: issue #149 — **Deploy PureVector Android 1.0.0-rc12 via protec
 
 ## Open
 
-- [ ] On the physical Samsung Galaxy S24 Ultra, install signed 1.0.0-rc12 / versionCode 10011 in place without uninstalling. Verify package/signer continuity, existing session/PIN/biometrics, shared owner+AAL2 server card vault, canonical finance data and PureVector launcher in light/dark. Record actual device findings and explicit owner acceptance; this has not yet occurred.
+- [ ] Owner has reported successful installation of signed rc12 / versionCode 10011 on the supported physical Galaxy S24 Ultra. Record post-install smoke and explicit owner acceptance: confirm whether the install was an in-place update without uninstall/data clearing, retention of the existing server session and PIN/biometric enrollment, correct canonical finance and owner+AAL2 card-vault state, and PureVector adaptive/themed launcher appearance in light/dark. Do not infer these checks from installation alone.
 
 ## Completed foundations
 
@@ -48,6 +48,7 @@ Active tracker: issue #149 — **Deploy PureVector Android 1.0.0-rc12 via protec
 - [x] PureVector Android branding source/launcher/in-app/store assets integrated, visually reviewed and validated in merged PR #145; issue #144 closed (no production release)
 - [x] Owner-authorized PureVector source-baseline promotion to main (2026-10-14); no new signed production release created
 - [x] Published signed PureVector Android 1.0.0-rc12 / versionCode 10011 via validated source PR #150 and protected production run 38552478100, GitHub prerelease and private updater; physical S24 acceptance pending
+- [x] Owner-reported successful installation of published PureVector Android rc12 / 10011 on the supported S24 Ultra (2026-10-14); detailed post-install continuity and functional acceptance not yet reported
 
 ## Rule
 
@@ -62,7 +63,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Redesign S1–S10 (40/40) and prior rc11 physical acceptance remain completed. Published same-signer rc12/10011 includes PureVector branding but needs owner physical S24 Ultra in-place upgrade and acceptance. Current source and tracking are maintained through normal main/develop promotion; SMS/notification import #146 remains deferred until explicit owner authorization.
+Next action: Redesign S1–S10 (40/40) and earlier rc11 acceptance remain complete. The signed, same-signer PureVector rc12/10011 was published and owner-reported installed on the Galaxy S24 Ultra on 2026-10-14; post-install continuity, canonical finance/card-vault, launcher and explicit product acceptance remain to be confirmed in issue #149. main/develop source and tracking are synchronized. SMS/notification import #146 remains deferred until explicitly authorized.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

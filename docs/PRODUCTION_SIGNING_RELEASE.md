@@ -100,10 +100,10 @@ A release tag is immutable release identity. Do not overwrite/reuse an existing 
 - The signed direct APK is stored in the authenticated private update channel at `production/10011/MyFinHub-10011.apk`, 3,520,604 bytes, SHA-256 `f162e4b66a1d5fef209045fffc9d3668f507fe12d0c75bf7a02b24651d1f83de`.
 - Source PR #150 was closed without merge per the immutable publisher contract. `main` and `develop` are synchronized through deliberate release/source tracking PRs, not by merging the temporary release-source marker.
 
-### Pending physical device acceptance
+### Owner-reported installation; functional device acceptance pending
 
-On the owner's authorized Samsung Galaxy S24 Ultra, update **in place** to rc12 without uninstall or data clearing. Verify installed package `app.myfinhub.android`, versionCode `10011`, signer continuity, login session/PIN/biometric continuity, canonical finance data, and current owner+AAL2 server card vault (PAN/expiry/CVV). Inspect the PureVector adaptive launcher and themed icon in light/dark Samsung One UI. Record actual physical evidence and an explicit acceptance or defect report under issue #149.
+The owner reported rc12 installed on the authorized Galaxy S24 Ultra on 2026-10-14. The installation method and continuity tests have not yet been reported. Confirm whether this was an **in-place upgrade** without uninstall or data clearing, then verify package `app.myfinhub.android`, versionCode `10011`, signer and login session/PIN/biometric continuity, canonical finance data, and current owner+AAL2 server card vault (PAN/expiry/CVV). Inspect the PureVector adaptive launcher and themed icon in light/dark Samsung One UI. Record actual physical smoke evidence and explicit functional acceptance or defects in issue #149.
 
-Hosted CI and completed production publication cannot substitute for owner physical acceptance. Until tested, `1.0.0-rc12` remains `published_pending_physical_acceptance`; do not mark it owner-accepted or reuse its immutable version. A rejected version requires a strictly higher versionCode for any correction.
+Hosted CI and completed production publication cannot substitute for owner physical acceptance. Until post-install checks and explicit owner acceptance are reported, `1.0.0-rc12` remains `installed_pending_functional_acceptance`; do not mark it owner-accepted or reuse its immutable version. A rejected version requires a strictly higher versionCode for any correction.
 
 The old rc6→rc7 handoff in `docs/PHASE_6_DEVICE_HANDOFF.md` remains historical, not the latest release-state authority. The canonical current-state source is `tracking/android-project-state.json`.
