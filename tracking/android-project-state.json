@@ -717,7 +717,7 @@
             "status": "in_progress",
             "evidence": [
               "Stacked PR #165 moves native card appearance from random IDs to Web designId and semantic defaults; unmerged.",
-              "Rebased stacked draft #165 onto latest W2.1 branch #164 following W1 completions. Explicit designId/default-by-bank/kind/formFactor native stack visuals and unit tests pending exact-head checks."
+              "Reanchored PR #165 to develop after merged #164 b886259539d6146f568e5e9acece85bb53d6baec. Persisted designId + native Web default semantics covered by tests; awaiting full exact-head checks."
             ]
           },
           {
