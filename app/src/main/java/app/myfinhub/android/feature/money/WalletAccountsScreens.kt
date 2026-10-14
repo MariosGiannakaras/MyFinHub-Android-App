@@ -545,7 +545,7 @@ private fun LazyListScope.walletCardsContent(
     }
 }
 
-private fun LazyListScope.walletDebtsContent
+private fun LazyListScope.walletDebtsContent(
     state: MoneyUiState,
     amountsVisible: Boolean,
     onOpenCards: () -> Unit,
