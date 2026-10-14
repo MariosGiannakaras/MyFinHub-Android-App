@@ -22,6 +22,7 @@ enum class PendingMutationKind {
     UPSERT_OVERALL_BUDGET,
     CREATE_CARD,
     DEACTIVATE_CARD,
+    RESTORE_CARD,
 }
 
 data class PendingCanonicalMutationIntent(
@@ -46,7 +47,9 @@ data class PendingCanonicalMutationIntent(
         }
 
     val affectedCardId: String?
-        get() = payload.string("cardId").takeIf { kind == PendingMutationKind.DEACTIVATE_CARD }
+        get() = payload.string("cardId").takeIf {
+            kind == PendingMutationKind.DEACTIVATE_CARD || kind == PendingMutationKind.RESTORE_CARD
+        }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
         PendingMutationKind.APPEND_EVENT -> AppendCanonicalEvent(
@@ -84,6 +87,10 @@ data class PendingCanonicalMutationIntent(
             nowIso = payload.string("nowIso").orEmpty(),
         )
         PendingMutationKind.DEACTIVATE_CARD -> DeactivateCanonicalCard(
+            cardId = payload.string("cardId").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.RESTORE_CARD -> RestoreCanonicalCard(
             cardId = payload.string("cardId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
         )
@@ -154,6 +161,15 @@ data class PendingCanonicalMutationIntent(
                 .mapNotNull { it as? JsonObject }
                 .firstOrNull { it.string("id") == cardId }
             cardId.isNotBlank() && (card == null || card.bool("active") == false)
+        }
+        PendingMutationKind.RESTORE_CARD -> {
+            val cardId = payload.string("cardId").orEmpty()
+            val card = document.state.array("cards")
+                .mapNotNull { it as? JsonObject }
+                .firstOrNull { it.string("id") == cardId }
+            // A permanently deleted profile cannot safely be resurrected. Treat the
+            // stale restore as resolved rather than replaying against a missing ID.
+            cardId.isNotBlank() && (card == null || card.bool("active") != false)
         }
     }
 
@@ -231,6 +247,17 @@ data class PendingCanonicalMutationIntent(
             is DeactivateCanonicalCard -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.DEACTIVATE_CARD,
+                payload = JsonObject(
+                    mapOf(
+                        "cardId" to JsonPrimitive(mutation.cardId),
+                        "nowIso" to JsonPrimitive(mutation.nowIso),
+                    ),
+                ),
+                syncState = syncState,
+            )
+            is RestoreCanonicalCard -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.RESTORE_CARD,
                 payload = JsonObject(
                     mapOf(
                         "cardId" to JsonPrimitive(mutation.cardId),

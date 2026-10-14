@@ -29,6 +29,24 @@ class OfflinePendingMutationSemanticsTest {
     }
 
     @Test
+    fun restoreCardIntent_roundTripsAndReconcilesAgainstLatestServerCardState() {
+        val archived = DeactivateCanonicalCard("card-1", NOW).apply(document())
+        val intent = PendingCanonicalMutationIntent.fromMutation(
+            RestoreCanonicalCard("card-1", "2026-10-14T19:00:00Z"),
+            "restore-card",
+        )
+        assertEquals(PendingMutationKind.RESTORE_CARD, intent.kind)
+        assertEquals("card-1", intent.affectedCardId)
+        assertFalse(intent.isSatisfiedBy(archived))
+        val restored = intent.asMutation().apply(archived)
+        val active = restored.state.array("cards").single() as JsonObject
+        assertTrue(active.bool("active") == true)
+        assertEquals(null, active.string("archivedAt"))
+        assertTrue(intent.isSatisfiedBy(restored))
+        assertTrue(reconcileSatisfiedPendingMutations(restored, listOf(intent)).isEmpty())
+    }
+
+    @Test
     fun stableEventIdReplay_isIdempotentAndCannotCreateDuplicateEvent() {
         val pending = PendingCanonicalMutationIntent.fromMutation(
             AppendCanonicalEvent(event("evt-stable", "Offline"), NOW),
