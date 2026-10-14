@@ -734,8 +734,10 @@
             "id": "W2.4",
             "title": "Card interactions and secure details",
             "acceptance": "In-context purchase/payment, safe archive/restore/delete, card picker, secure vault only on protected view, navigation and screenshot tests.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "Draft PR introduces Web-equivalent archive timestamp and restore-by-stable-card-ID mutation, with idempotency/history/secret-isolation regression tests. Native archived-list UI and secure action acceptance remain pending; no code merged."
+            ]
           }
         ]
       },
