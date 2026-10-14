@@ -1,5 +1,7 @@
 # MyFinHub Android — Phase 6 physical Galaxy S24 Ultra handoff
 
+> **Historical rc6→rc7 handoff (2026-09-08).** This file documents the older acceptance checkpoint and is not the current release handoff. The new published candidate is `1.0.0-rc12` / versionCode `10011`, with physical acceptance still pending. For the live release contract, private update channel and current shared owner+AAL2 server card vault (including CVV), consult `docs/PRODUCTION_SIGNING_RELEASE.md` and `tracking/android-project-state.json`. Do not apply old rc7/device-local-CVV statements to the current implementation.
+
 ## Purpose
 
 This is the executable physical handoff for the final post-rc6 correction release. The **owner's Samsung Galaxy S24 Ultra is the sole supported device and authoritative physical acceptance environment**.
