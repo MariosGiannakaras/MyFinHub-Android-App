@@ -344,7 +344,7 @@ internal fun MyFinHubAppContent(
                             onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
-                        onOpenCreditActivity = { eventId -> moneyBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenCreditActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
                         cardSecretState = cardSecretState,
                         onCardActiveChanged = onCardDetailOpened,
