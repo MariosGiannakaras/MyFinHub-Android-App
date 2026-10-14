@@ -69,11 +69,8 @@ class CanonicalProductProjectionTest {
 
         assertEquals(2, projection.homeState.accounts.size)
         assertEquals(1_155.0, projection.homeState.accounts.first { it.id == "acc-main" }.balance, 0.001)
-        val accountTrend = projection.homeState.accounts.first { it.id == "acc-main" }.balanceTrend
-        assertEquals(java.time.LocalDate.of(2026, 8, 23).toEpochDay() -
-            java.time.YearMonth.of(2026, 7).atEndOfMonth().minusDays(7).toEpochDay() + 1,
-            accountTrend.size.toLong())
-        assertEquals(1_155.0, accountTrend.last(), 0.001)
+        // Secondary account rows do not build or display Home chart series.
+        assertTrue(projection.homeState.accounts.first { it.id == "acc-main" }.balanceTrend.isEmpty())
         assertEquals(200.0, projection.homeState.monthFlow.income, 0.001)
         assertEquals(155.0, projection.homeState.monthFlow.expense, 0.001)
         assertEquals(800.0, projection.homeState.monthFlow.budget, 0.001)

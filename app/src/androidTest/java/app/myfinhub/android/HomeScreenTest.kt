@@ -28,6 +28,9 @@ class HomeScreenTest {
             .performScrollToNode(hasText("Χρειάζεται προσοχή"))
         composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
 
+        // Primary account cards precede attention now, so the top action is outside
+        // the viewport after the attention section has been inspected.
+        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Νέα κίνηση"))
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
 
         composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
