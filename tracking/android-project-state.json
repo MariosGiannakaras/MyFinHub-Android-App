@@ -701,7 +701,9 @@
             "title": "Canonical card metadata/lifecycle",
             "acceptance": "Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.",
             "status": "pending",
-            "evidence": []
+            "evidence": [
+              "Unmerged source PR introduces Web card designId/bankId/formFactor/statement-cycle/archive/deleted tombstone metadata projections; pending exact-head CI and visual/workspace integration."
+            ]
           },
           {
             "id": "W2.2",

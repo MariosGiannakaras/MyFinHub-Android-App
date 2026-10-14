@@ -40,6 +40,13 @@ data class MoneyCard(
     val bankId: String = "",
     val canonicalKind: String = "",
     val activity: List<MoneyCardActivity> = emptyList(),
+    val designId: String? = null,
+    val formFactor: String? = null,
+    val holderName: String? = null,
+    val statementClosingDay: Int? = null,
+    val statementDueDay: Int? = null,
+    val statementBoundaryRule: String? = null,
+    val archivedAt: String? = null,
 )
 
 enum class VaultState { LOCKED, AVAILABLE }
