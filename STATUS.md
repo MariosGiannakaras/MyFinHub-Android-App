@@ -11,17 +11,17 @@
 Issue #149 — **Deploy PureVector Android 1.0.0-rc12 via protected production release**
 State: `in_progress`
 
-Protected production deployment completed on 2026-10-14. The exact validated PR #150 head 0e438e1d9ca1365637edfc907e2f210b23bfedae passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation. Protected production run 38552478100 completed successfully with the enrolled existing signer and package app.myfinhub.android, uploaded rc12 / versionCode 10011 to the private production updater, and created immutable GitHub prerelease v1.0.0-rc12. Release-source PR #150 was closed without merge. Owner installation and physical acceptance on S24 Ultra remain pending; rc11 is still the last physically accepted version. SMS/notification import issue #146 remains future-only until expressly authorized.
+Protected production deployment was completed on 2026-10-14 using validated immutable PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae, signed with the enrolled production identity and published as GitHub prerelease v1.0.0-rc12 / versionCode 10011 and via the authenticated private updater (protected run 38552478100, success). On 2026-10-14 the owner reported that rc12 was installed on the supported Galaxy S24 Ultra. Detailed in-place-upgrade, session/PIN/biometric, finance/card-vault and PureVector device checks and explicit product acceptance have not been reported, so the release remains installed_pending_functional_acceptance. PR #150 was closed without merge, and main/develop were synchronized via merged PRs #151/#152. SMS/notification import issue #146 remains strictly future-only.
 
 ## Current production candidate
 
-`1.0.0-rc12` / versionCode `10011` — **published_pending_physical_acceptance**.
+`1.0.0-rc12` / versionCode `10011` — **installed_pending_functional_acceptance**.
 
-Protected release workflow run 38552478100 published production-signed MyFinHub Android 1.0.0-rc12 / versionCode 10011 on 2026-10-14 from validated PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae. The publisher verified the enrolled signer, package, version and APK SHA-256; uploaded and re-read the exact APK bytes (3,520,604 bytes; SHA-256 f162e4b66a1d5fef209045fffc9d3668f507fe12d0c75bf7a02b24651d1f83de) at private path production/10011/MyFinHub-10011.apk, then published metadata. Immutable GitHub prerelease v1.0.0-rc12 includes the APK, signed Play-compatible AAB, checksums and safe metadata. No physical installation or acceptance of rc12 has been verified; rc11/10010 remains the last physically owner-accepted installation.
+Protected release workflow run 38552478100 published production-signed MyFinHub Android 1.0.0-rc12 / versionCode 10011 on 2026-10-14 from validated PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae. The publisher verified the enrolled signer, package, version and APK SHA-256; uploaded and re-read the exact APK bytes (3,520,604 bytes; SHA-256 f162e4b66a1d5fef209045fffc9d3668f507fe12d0c75bf7a02b24651d1f83de) at private path production/10011/MyFinHub-10011.apk, then published metadata. Immutable GitHub prerelease v1.0.0-rc12 includes the APK, signed Play-compatible AAB, checksums and safe metadata. On 2026-10-14 the owner reported that rc12 was installed on the supported physical Galaxy S24 Ultra; the method of installation, continuity smoke tests and explicit functional acceptance have not yet been reported. rc11/10010 remains the last version with recorded full owner acceptance.
 
 ## Next
 
-1. On the physical Samsung Galaxy S24 Ultra, install signed 1.0.0-rc12 / versionCode 10011 in place without uninstalling. Verify package/signer continuity, existing session/PIN/biometrics, shared owner+AAL2 server card vault, canonical finance data and PureVector launcher in light/dark. Record actual device findings and explicit owner acceptance; this has not yet occurred.
+1. Owner has reported successful installation of signed rc12 / versionCode 10011 on the supported physical Galaxy S24 Ultra. Record post-install smoke and explicit owner acceptance: confirm whether the install was an in-place update without uninstall/data clearing, retention of the existing server session and PIN/biometric enrollment, correct canonical finance and owner+AAL2 card-vault state, and PureVector adaptive/themed launcher appearance in light/dark. Do not infer these checks from installation alone.
 
 ## Non-negotiable constraints
 
@@ -53,7 +53,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Redesign S1–S10 (40/40) and prior rc11 physical acceptance remain completed. Published same-signer rc12/10011 includes PureVector branding but needs owner physical S24 Ultra in-place upgrade and acceptance. Current source and tracking are maintained through normal main/develop promotion; SMS/notification import #146 remains deferred until explicit owner authorization.
+Next action: Redesign S1–S10 (40/40) and earlier rc11 acceptance remain complete. The signed, same-signer PureVector rc12/10011 was published and owner-reported installed on the Galaxy S24 Ultra on 2026-10-14; post-install continuity, canonical finance/card-vault, launcher and explicit product acceptance remain to be confirmed in issue #149. main/develop source and tracking are synchronized. SMS/notification import #146 remains deferred until explicitly authorized.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
