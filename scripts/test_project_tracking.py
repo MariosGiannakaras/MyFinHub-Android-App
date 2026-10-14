@@ -77,5 +77,35 @@ class RedesignTrackingTests(unittest.TestCase):
         self.assertEqual(tracking.redesign_lines(self.state), [])
 
 
+class WebParityTrackingTests(unittest.TestCase):
+    def setUp(self):
+        self.state = copy.deepcopy(tracking.load_state())
+
+    def test_reconciliation_counts_are_derived(self):
+        stages = self.state['reconciliation_workstream']['stages']
+        for sub in stages[0]['subtasks']:
+            sub.update(status='completed', evidence=['merged and validated'])
+        stages[1]['subtasks'][0].update(status='completed', evidence=['merged and validated'])
+        self.state['reconciliation_workstream']['current_subtask'] = 'W2.2'
+        tracking.validate_reconciliation(self.state)
+        lines = '\n'.join(tracking.reconciliation_lines(self.state))
+        self.assertIn('Implementations: 1/6 · Subtasks: 5/24', lines)
+
+    def test_completed_requires_evidence(self):
+        sub = self.state['reconciliation_workstream']['stages'][0]['subtasks'][0]
+        sub.update(status='completed', evidence=[])
+        with self.assertRaisesRegex(SystemExit, 'needs evidence'):
+            tracking.validate_reconciliation(self.state)
+
+    def test_reconciliation_id_invariant(self):
+        self.state['reconciliation_workstream']['stages'][0]['subtasks'][0]['id'] = 'W9.1'
+        with self.assertRaisesRegex(SystemExit, 'ID'):
+            tracking.validate_reconciliation(self.state)
+
+    def test_old_schema_without_web_parity_still_reads(self):
+        del self.state['reconciliation_workstream']
+        tracking.validate_reconciliation(self.state)
+        self.assertEqual(tracking.reconciliation_lines(self.state), [])
+
 if __name__ == "__main__":
     unittest.main()

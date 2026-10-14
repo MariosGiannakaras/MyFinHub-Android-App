@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Owner approved the new Web↔Android finance reconciliation on 2026-10-14 (issue #155). The android/web-parity-home-20261014 branch contains an initial implementation of web-semantic account identity, strict daily-cash+payroll-only Home total, separate primary account history charts and secondary accounts. This code is unmerged and has not yet passed new CI, rendered screenshot review or physical S24 validation; card, statement and wider finance parity remain open. The rc12 physical-install follow-up stays independently owned by issue #149.
+New Web parity plan tracked in docs/WEB_ANDROID_RECONCILIATION_PLAN.md (6 implementations/24 subtasks); issue #155, unmerged draft PR #156. W1.1/W1.2 source is unverified. Completed new parity progress 0/6 and 0/24. Older September redesign 10/10, 40/40 is historical. rc12 issue #149 awaits separate device acceptance.
 
 ## Immediate work
 
-- Validate the current Home/account checkpoint with unit tests, compilation, exact-head Android CI and real rendered S24 screenshots; correct any regressions. Then deliver shared card/credit/statement parity and remaining finance/recurring/forecast/provider/settings reconciliation as verified checkpoints under issue #155. Do not release until explicitly authorized. Issue #149 remains open for rc12 physical acceptance; SMS/notification import #146 stays deferred.
+- Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.
 
 ## Constraints
 
@@ -47,6 +47,58 @@ Owner approved the new Web↔Android finance reconciliation on 2026-10-14 (issue
 ## Tracking discipline
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
+
+## Active Web parity progress
+
+**Implementations: 0/6 · Subtasks: 0/24**
+
+Evidence-backed current progress, separate from historical September redesign.
+
+Issue #155, PR #156, branch android/web-parity-home-20261014
+Current W1.1: W1.1/W1.2 source in unmerged draft PR #156; verification outstanding
+Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
+Next Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.
+
+| Implementation | Completed | Outstanding |
+|---|---|---|
+| W1 Canonical accounts and Home | 0/4 | W1.1 Canonical account merge and roles (in_progress); W1.2 Home total and three primary account slots (in_progress); W1.3 Chart/target/IBAN web-fidelity (pending); W1.4 Home tests and shared projections (pending) |
+| W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (pending); W2.2 Shared native card visual (pending); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
+| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
+| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
+| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
+| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
+
+### Subtasks
+
+- [ ] W1.1 Canonical account merge and roles — in_progress
+- [ ] W1.2 Home total and three primary account slots — in_progress
+- [ ] W1.3 Chart/target/IBAN web-fidelity — pending
+- [ ] W1.4 Home tests and shared projections — pending
+- [ ] W2.1 Canonical card metadata/lifecycle — pending
+- [ ] W2.2 Shared native card visual — pending
+- [ ] W2.3 Credit information on card screen — pending
+- [ ] W2.4 Card interactions and secure details — pending
+- [ ] W3.1 Statement cycle and historical debt — pending
+- [ ] W3.2 Event and classification parity — pending
+- [ ] W3.3 Card repayment provider validation — pending
+- [ ] W3.4 Single mutation pipeline — pending
+- [ ] W4.1 Recurring lifecycle — pending
+- [ ] W4.2 Scheduled forecast — pending
+- [ ] W4.3 Savings, loans, lending and budgets — pending
+- [ ] W4.4 Transactions and analytics completeness — pending
+- [ ] W5.1 Dynamic provider/IBAN/assets contract — pending
+- [ ] W5.2 Auth/sync/history consistency — pending
+- [ ] W5.3 Card vault and security endpoints — pending
+- [ ] W5.4 Settings, backup, rules and ancillary parity — pending
+- [ ] W6.1 Golden cross-client fixture tests — pending
+- [ ] W6.2 Real Compose accessibility/visual verification — pending
+- [ ] W6.3 Exact-head CI, deduplication and tracking handoff — pending
+- [ ] W6.4 Owner physical acceptance and release isolation — pending
+
+### Blockers
+
+- None recorded.
+
 
 ## Android redesign progress
 
