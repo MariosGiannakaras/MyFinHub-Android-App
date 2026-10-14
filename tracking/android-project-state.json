@@ -747,7 +747,7 @@
               "Read-only permanent card deletion eligibility PR #176 merged to develop 2a799a7e96e21faa7d5ee8cf291beb44fc393c1c after 4/4 exact-head checks; active credit, unsettled debt, and linked debit events are blocked.",
               "Guarded permanent delete tombstone+pending secret cleanup offline intent source is in draft PR #177, no UI wiring or cleanup yet; archive user-facing terminology correction is draft #178. Both unmerged.",
               "Draft #177 safely reanchored to post-#179 canonical tracking: reversible status unchanged 1/6 & 7/24, guarded permanent delete intent not user exposed; exact-head CI still required.",
-              "Draft #178 archive terminology light/dark screenshot candidates reviewed, exact 2 references updated. Stacked on #177 guarded delete contract without overwriting pending mutation changes; CI acceptance pending."
+              "Guarded permanent-delete domain contract PR #177 merged 5351d3110d28efdaaade94448eaad4efb6a9979d after all four exact-head gates success. Still no delete UI or vault cleanup. Archive wording PR #178 rebased on develop, with precisely 2 visually reviewed card screenshots."
             ]
           }
         ]
