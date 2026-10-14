@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release.
+- [ ] Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #174, branch android/web-parity-card-archive-restore-20261014
-Current W2.4: W2.3 merged (7/24); W2.4 original PR #174 integrated onto post-#172/#175 develop with offline restore/archive source, exact-head CI pending
+Issue #155, PR #176, branch android/web-parity-card-delete-policy-20261015
+Current W2.4: W1 4/4, W2.1-W2.3 merged; W2.4 archive/restore #174 merged/verified; safe permanent-deletion eligibility in draft #176; vault cleanup+destructive mutation pending
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release.
+Next Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
