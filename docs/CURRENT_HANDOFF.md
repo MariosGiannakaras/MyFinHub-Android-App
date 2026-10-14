@@ -16,18 +16,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #149 — Deploy PureVector Android 1.0.0-rc12 via protected production release.
+- Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
 - Latest private production candidate: `1.0.0-rc12` / `10011` — `installed_pending_functional_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Protected production deployment was completed on 2026-10-14 using validated immutable PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae, signed with the enrolled production identity and published as GitHub prerelease v1.0.0-rc12 / versionCode 10011 and via the authenticated private updater (protected run 38552478100, success). On 2026-10-14 the owner reported that rc12 was installed on the supported Galaxy S24 Ultra. Detailed in-place-upgrade, session/PIN/biometric, finance/card-vault and PureVector device checks and explicit product acceptance have not been reported, so the release remains installed_pending_functional_acceptance. PR #150 was closed without merge, and main/develop were synchronized via merged PRs #151/#152. SMS/notification import issue #146 remains strictly future-only.
+New Web parity plan tracked in docs/WEB_ANDROID_RECONCILIATION_PLAN.md (6 implementations/24 subtasks); issue #155, unmerged draft PR #156. W1.1/W1.2 source is unverified. Completed new parity progress 0/6 and 0/24. Older September redesign 10/10, 40/40 is historical. rc12 issue #149 awaits separate device acceptance.
 
 ## Immediate work
 
-- Owner has reported successful installation of signed rc12 / versionCode 10011 on the supported physical Galaxy S24 Ultra. Record post-install smoke and explicit owner acceptance: confirm whether the install was an in-place update without uninstall/data clearing, retention of the existing server session and PIN/biometric enrollment, correct canonical finance and owner+AAL2 card-vault state, and PureVector adaptive/themed launcher appearance in light/dark. Do not infer these checks from installation alone.
+- Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.
 
 ## Constraints
 
@@ -48,6 +48,58 @@ Protected production deployment was completed on 2026-10-14 using validated immu
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
 
+## Active Web parity progress
+
+**Implementations: 0/6 · Subtasks: 0/24**
+
+Evidence-backed current progress, separate from historical September redesign.
+
+Issue #155, PR #156, branch android/web-parity-home-20261014
+Current W1.1: W1.1/W1.2 source in unmerged draft PR #156; verification outstanding
+Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
+Next Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.
+
+| Implementation | Completed | Outstanding |
+|---|---|---|
+| W1 Canonical accounts and Home | 0/4 | W1.1 Canonical account merge and roles (in_progress); W1.2 Home total and three primary account slots (in_progress); W1.3 Chart/target/IBAN web-fidelity (pending); W1.4 Home tests and shared projections (pending) |
+| W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (pending); W2.2 Shared native card visual (pending); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
+| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
+| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
+| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
+| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
+
+### Subtasks
+
+- [ ] W1.1 Canonical account merge and roles — in_progress
+- [ ] W1.2 Home total and three primary account slots — in_progress
+- [ ] W1.3 Chart/target/IBAN web-fidelity — pending
+- [ ] W1.4 Home tests and shared projections — pending
+- [ ] W2.1 Canonical card metadata/lifecycle — pending
+- [ ] W2.2 Shared native card visual — pending
+- [ ] W2.3 Credit information on card screen — pending
+- [ ] W2.4 Card interactions and secure details — pending
+- [ ] W3.1 Statement cycle and historical debt — pending
+- [ ] W3.2 Event and classification parity — pending
+- [ ] W3.3 Card repayment provider validation — pending
+- [ ] W3.4 Single mutation pipeline — pending
+- [ ] W4.1 Recurring lifecycle — pending
+- [ ] W4.2 Scheduled forecast — pending
+- [ ] W4.3 Savings, loans, lending and budgets — pending
+- [ ] W4.4 Transactions and analytics completeness — pending
+- [ ] W5.1 Dynamic provider/IBAN/assets contract — pending
+- [ ] W5.2 Auth/sync/history consistency — pending
+- [ ] W5.3 Card vault and security endpoints — pending
+- [ ] W5.4 Settings, backup, rules and ancillary parity — pending
+- [ ] W6.1 Golden cross-client fixture tests — pending
+- [ ] W6.2 Real Compose accessibility/visual verification — pending
+- [ ] W6.3 Exact-head CI, deduplication and tracking handoff — pending
+- [ ] W6.4 Owner physical acceptance and release isolation — pending
+
+### Blockers
+
+- None recorded.
+
+
 ## Android redesign progress
 
 **Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
@@ -57,7 +109,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Redesign S1–S10 (40/40) and earlier rc11 acceptance remain complete. The signed, same-signer PureVector rc12/10011 was published and owner-reported installed on the Galaxy S24 Ultra on 2026-10-14; post-install continuity, canonical finance/card-vault, launcher and explicit product acceptance remain to be confirmed in issue #149. main/develop source and tracking are synchronized. SMS/notification import #146 remains deferred until explicitly authorized.
+Next action: September redesign S1–S10 (40/40) remains historical and complete. The separate new owner-approved Web-parity workstream is issue #155 and reconciliation_workstream; prior completion counts do not establish Web parity. Signed rc12 physical acceptance remains pending under issue #149. SMS/notification import issue #146 remains deferred.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
