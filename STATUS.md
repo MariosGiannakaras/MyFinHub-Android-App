@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity: 0/6 implementations, 3/24 subtasks verified. W1.1 #158, W1.2 #156, W1.3 secure IBAN/visual chart parity #160/#162 merged with tests. W1.4 shared cross-client fixtures remain in progress (Wallet semantic fix #163 merged). W2.1/#164 card data and W2.2/#165 native designs are in-progress drafts. Historical September redesign 10/10 40/40 separate. Owner physical S24 acceptance #149 pending.
+Web parity: 1/6 implementations and 4/24 subtasks verified. W1 account/Home complete (#158 #156 #160 #162 #163 #167) with exact-head CI/screenshot/emulator checks. Current W2.1 card metadata PR #164 and stacked W2.2 visual PR #165 remain unmerged drafts. September redesign 10/10 40/40 historical; owner S24 physical signoff #149 pending.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release.
+1. Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.
 
 ## Non-negotiable constraints
 
@@ -46,18 +46,18 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 ## Active Web parity progress
 
-**Implementations: 0/6 · Subtasks: 3/24**
+**Implementations: 1/6 · Subtasks: 4/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #166, branch android/web-parity-track-w1-3-20261014
-Current W1.4: W1.1-W1.3 merged; W1.4 fixtures/accessibility open, W2.1/#164 and W2.2/#165 in draft
+Issue #155, PR #168, branch android/web-parity-track-w1-4-20261014
+Current W2.1: W1 fully completed/merged 4/4; W2.1 metadata draft PR #164 needs latest develop reconciliation, W2.2 stacked #165 open
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release.
+Next Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
-| W1 Canonical accounts and Home | 3/4 | W1.4 Home tests and shared projections (in_progress) |
+| W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (in_progress); W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
@@ -69,7 +69,7 @@ Next Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibil
 - [x] W1.1 Canonical account merge and roles — completed
 - [x] W1.2 Home total and three primary account slots — completed
 - [x] W1.3 Chart/target/IBAN web-fidelity — completed
-- [ ] W1.4 Home tests and shared projections — in_progress
+- [x] W1.4 Home tests and shared projections — completed
 - [ ] W2.1 Canonical card metadata/lifecycle — in_progress
 - [ ] W2.2 Shared native card visual — in_progress
 - [ ] W2.3 Credit information on card screen — pending

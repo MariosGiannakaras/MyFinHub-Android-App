@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity: 0/6 implementations, 3/24 subtasks verified. W1.1 #158, W1.2 #156, W1.3 secure IBAN/visual chart parity #160/#162 merged with tests. W1.4 shared cross-client fixtures remain in progress (Wallet semantic fix #163 merged). W2.1/#164 card data and W2.2/#165 native designs are in-progress drafts. Historical September redesign 10/10 40/40 separate. Owner physical S24 acceptance #149 pending.",
+    "summary": "Web parity: 1/6 implementations and 4/24 subtasks verified. W1 account/Home complete (#158 #156 #160 #162 #163 #167) with exact-head CI/screenshot/emulator checks. Current W2.1 card metadata PR #164 and stacked W2.2 visual PR #165 remain unmerged drafts. September redesign 10/10 40/40 historical; owner S24 physical signoff #149 pending.",
     "next": [
-      "Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release."
+      "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-track-w1-3-20261014",
-    "checkpoint": "W1.1-W1.3 merged; W1.4 fixtures/accessibility open, W2.1/#164 and W2.2/#165 in draft",
+    "branch": "android/web-parity-track-w1-4-20261014",
+    "checkpoint": "W1 fully completed/merged 4/4; W2.1 metadata draft PR #164 needs latest develop reconciliation, W2.2 stacked #165 open",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -686,11 +686,11 @@
             "id": "W1.4",
             "title": "Home tests and shared projections",
             "acceptance": "Web↔Android fixture parity, accessible Compose/S24 real screenshots, Wallet/Quick Entry consistent account projections, exact-head CI.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Wallet semantic account grouping #163 merged ca15a894032614cbd1a778c48a998aedc5881dc5; exact-head CI, screenshots, and instrumented checks succeeded.",
-              "Open W1.4: expand golden Web/Android fixtures across Home, Wallet and Quick Entry, combined-source checks and accessibility review.",
-              "Draft cross-surface PR fixes Quick Entry savings destination/source selection and validation for bankAccountCategory=savings and tests Home+Wallet+Quick Entry deterministic fixtures; CI pending."
+              "PR #167 cross-surface golden Home/Wallet/Quick Entry savings cases merged a2f7f3bedb249589fbc85e10376e1ad5dab44b48, exact head 9562bd3c500fb7b8376006b2c18a7ab5cea17b17 all four CI/screenshot/S24-target emulator gates green.",
+              "Wallet savings/reserve/term semantics PR #163 merged ca15a894032614cbd1a778c48a998aedc5881dc5, all four exact-head checks green.",
+              "Cash+payroll-only Home headline, three primary chart/goal/previous-month cards, secondary accounts, shared IBAN AAL2 privacy and 150%-font Compose regression verified via #156/#160/#162. Physical device signoff remains separate #149."
             ]
           }
         ]
@@ -875,10 +875,10 @@
         ]
       }
     ],
-    "next_action": "Complete W1.4 shared Home/Wallet/Quick Entry golden fixtures and accessibility, then validate stacked card contracts PR #164/#165 and proceed to integrated credit workspace. Do not claim owner physical S24 signoff or release.",
+    "next_action": "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 166,
-    "current_subtask": "W1.4",
+    "pr": 168,
+    "current_subtask": "W2.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
