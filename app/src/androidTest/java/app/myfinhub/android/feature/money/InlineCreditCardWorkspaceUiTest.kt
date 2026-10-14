@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -68,7 +69,7 @@ class InlineCreditCardWorkspaceUiTest {
         }
         composeRule.onNodeWithText("420,00", substring = true).assertDoesNotExist()
         composeRule.onNodeWithText("1.200,00", substring = true).assertDoesNotExist()
-        composeRule.onNodeWithText("•••• €", substring = true).assertExists()
+        composeRule.onAllNodesWithText("•••• €", substring = true).onFirst().assertExists()
         composeRule.onNodeWithText("Πληρωμή κάρτας").performClick()
         composeRule.onNodeWithText("Καταχώριση αγοράς").performClick()
         assertEquals(1, pays)
