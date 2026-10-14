@@ -706,7 +706,8 @@
             "acceptance": "Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.",
             "status": "in_progress",
             "evidence": [
-              "Draft PR #164 adds typed Web card metadata, statement days, archive/tombstone refs; unmerged pending CI."
+              "Draft PR #164 adds typed Web card metadata, statement days, archive/tombstone refs; unmerged pending CI.",
+              "PR #164 reconciled with develop W1 completions: card identity bankId/designId/formFactor, holder, billing dates/boundary, archived refs and deletion tombstones; no loss of W1 Wallet source fields. CI acceptance pending."
             ]
           },
           {

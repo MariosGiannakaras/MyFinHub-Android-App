@@ -91,6 +91,23 @@ data class CanonicalCard(
     val creditLimit: Double?,
     val active: Boolean,
     val vaultRef: String?,
+    val bankId: String = "",
+    val designId: String? = null,
+    val formFactor: String? = null,
+    val holderName: String? = null,
+    val statementClosingDay: Int? = null,
+    val statementDueDay: Int? = null,
+    val statementBoundaryRule: String? = null,
+    val archivedAt: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+)
+
+data class CanonicalDeletedCardReference(
+    val id: String,
+    val createdAt: String,
+    val deletedAt: String,
+    val kind: String = "credit",
 )
 
 data class CanonicalMonthlyFlow(
@@ -228,8 +245,32 @@ fun CanonicalFinanceDocument.canonicalCards(): List<CanonicalCard> =
             creditLimit = card.number("creditLimit"),
             active = card.bool("active") ?: false,
             vaultRef = card.string("vaultRef"),
+            bankId = card.string("bankId").orEmpty(),
+            designId = card.string("designId"),
+            formFactor = card.string("formFactor"),
+            holderName = card.string("holderName"),
+            statementClosingDay = card.number("statementClosingDay")?.toInt(),
+            statementDueDay = card.number("statementDueDay")?.toInt(),
+            statementBoundaryRule = card.string("statementBoundaryRule"),
+            archivedAt = card.string("archivedAt"),
+            createdAt = card.string("createdAt"),
+            updatedAt = card.string("updatedAt"),
         )
     }
+
+/** Preserve card identity tombstones: Web uses these to attribute pre-cardId legacy debt. */
+fun CanonicalFinanceDocument.deletedCreditCardReferences(): List<CanonicalDeletedCardReference> =
+    state.array("deletedCards").mapNotNull { it as? JsonObject }
+        .filter { it.string("kind") == "credit" }
+        .mapNotNull { raw ->
+            val id = raw.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+            CanonicalDeletedCardReference(
+                id = id,
+                createdAt = raw.string("createdAt").orEmpty(),
+                deletedAt = raw.string("deletedAt").orEmpty(),
+            )
+        }
+        .sortedWith(compareBy<CanonicalDeletedCardReference> { it.createdAt }.thenBy { it.id })
 
 /** Mirrors web accountBalances: latest snapshot + mutable legacy deltas + event legs. */
 fun CanonicalFinanceDocument.accountBalances(asOf: String): Map<String, Double> {
