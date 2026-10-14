@@ -16,18 +16,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Last completed workstream: issue #144 — Integrate platform-correct PureVector branding.
-- Workstream state: `completed`.
-- Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
+- Active workstream: issue #149 — Deploy PureVector Android 1.0.0-rc12 via protected production release.
+- Workstream state: `in_progress`.
+- Latest private production candidate: `1.0.0-rc12` / `10011` — `published_pending_physical_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
-## Completed workstream outcome
+## Why implementation is open
 
-PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.
+Protected production deployment completed on 2026-10-14. The exact validated PR #150 head 0e438e1d9ca1365637edfc907e2f210b23bfedae passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation. Protected production run 38552478100 completed successfully with the enrolled existing signer and package app.myfinhub.android, uploaded rc12 / versionCode 10011 to the private production updater, and created immutable GitHub prerelease v1.0.0-rc12. Release-source PR #150 was closed without merge. Owner installation and physical acceptance on S24 Ultra remain pending; rc11 is still the last physically accepted version. SMS/notification import issue #146 remains future-only until expressly authorized.
 
-## Follow-up status
+## Immediate work
 
-- No active implementation tasks. SMS/notification import (issue #146) is deferred until the owner explicitly authorizes implementation.
+- On the physical Samsung Galaxy S24 Ultra, install signed 1.0.0-rc12 / versionCode 10011 in place without uninstalling. Verify package/signer continuity, existing session/PIN/biometrics, shared owner+AAL2 server card vault, canonical finance data and PureVector launcher in light/dark. Record actual device findings and explicit owner acceptance; this has not yet occurred.
 
 ## Constraints
 
@@ -57,7 +57,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: The S1–S10 Android redesign, 40/40 subtasks, physical S24 Ultra acceptance and existing rc11 promotion are complete. PureVector branding and canonical progress are synchronized between main and develop as a source baseline, without publishing a new signed release. There is no active implementation work; future SMS/notification import issue #146 requires a separate explicit owner instruction.
+Next action: Redesign S1–S10 (40/40) and prior rc11 physical acceptance remain completed. Published same-signer rc12/10011 includes PureVector branding but needs owner physical S24 Ultra in-place upgrade and acceptance. Current source and tracking are maintained through normal main/develop promotion; SMS/notification import #146 remains deferred until explicit owner authorization.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

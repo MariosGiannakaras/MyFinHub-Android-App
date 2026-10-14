@@ -9,18 +9,20 @@
   "authoritative_branch": "develop",
   "release_branch": "main",
   "active_workstream": {
-    "issue": 144,
-    "title": "Integrate platform-correct PureVector branding",
-    "status": "completed",
-    "summary": "PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.",
-    "next": []
+    "issue": 149,
+    "title": "Deploy PureVector Android 1.0.0-rc12 via protected production release",
+    "status": "in_progress",
+    "summary": "Protected production deployment completed on 2026-10-14. The exact validated PR #150 head 0e438e1d9ca1365637edfc907e2f210b23bfedae passed Project Tracking, Android CI, screenshot regression and S24-target instrumentation. Protected production run 38552478100 completed successfully with the enrolled existing signer and package app.myfinhub.android, uploaded rc12 / versionCode 10011 to the private production updater, and created immutable GitHub prerelease v1.0.0-rc12. Release-source PR #150 was closed without merge. Owner installation and physical acceptance on S24 Ultra remain pending; rc11 is still the last physically accepted version. SMS/notification import issue #146 remains future-only until expressly authorized.",
+    "next": [
+      "On the physical Samsung Galaxy S24 Ultra, install signed 1.0.0-rc12 / versionCode 10011 in place without uninstalling. Verify package/signer continuity, existing session/PIN/biometrics, shared owner+AAL2 server card vault, canonical finance data and PureVector launcher in light/dark. Record actual device findings and explicit owner acceptance; this has not yet occurred."
+    ]
   },
   "latest_production_candidate": {
-    "version_name": "1.0.0-rc11",
-    "version_code": 10010,
-    "status": "stable_accepted_promoted",
-    "source_pr": 130,
-    "notes": "Production-signed rc11 / versionCode 10010 was published from exact validated PR #130 source 432077919756d9cfe8c92d0b0d0efeb59ff20ef8 through protected run 36140901059. The owner subsequently reported installation on the supported Galaxy S24 Ultra and explicitly authorized stable promotion. PR #135 merged the accepted develop baseline to main as 2d8489b4513603efa51f3914a58fb743b9bc0b3e. No sensitive card values were recorded in repository evidence."
+    "version_name": "1.0.0-rc12",
+    "version_code": 10011,
+    "status": "published_pending_physical_acceptance",
+    "source_pr": 150,
+    "notes": "Protected release workflow run 38552478100 published production-signed MyFinHub Android 1.0.0-rc12 / versionCode 10011 on 2026-10-14 from validated PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae. The publisher verified the enrolled signer, package, version and APK SHA-256; uploaded and re-read the exact APK bytes (3,520,604 bytes; SHA-256 f162e4b66a1d5fef209045fffc9d3668f507fe12d0c75bf7a02b24651d1f83de) at private path production/10011/MyFinHub-10011.apk, then published metadata. Immutable GitHub prerelease v1.0.0-rc12 includes the APK, signed Play-compatible AAB, checksums and safe metadata. No physical installation or acceptance of rc12 has been verified; rc11/10010 remains the last physically owner-accepted installation."
   },
   "completed": [
     "Phase 6 physical acceptance and production signing enrollment",
@@ -60,7 +62,8 @@
     "Accepted develop baseline promoted to main through PR #135 as merge commit 2d8489b4513603efa51f3914a58fb743b9bc0b3e",
     "Final repository prune completed: exactly four permanent remote branches retained and temporary cleanup workflow removed (#139)",
     "PureVector Android branding source/launcher/in-app/store assets integrated, visually reviewed and validated in merged PR #145; issue #144 closed (no production release)",
-    "Owner-authorized PureVector source-baseline promotion to main (2026-10-14); no new signed production release created"
+    "Owner-authorized PureVector source-baseline promotion to main (2026-10-14); no new signed production release created",
+    "Published signed PureVector Android 1.0.0-rc12 / versionCode 10011 via validated source PR #150 and protected production run 38552478100, GitHub prerelease and private updater; physical S24 acceptance pending"
   ],
   "constraints": [
     "The completed September redesign was Android-only. Cross-repository backend/API changes require an explicit current owner request; the 2026-09-25 synchronized card-secret backend change is explicitly authorized and must remain narrowly scoped.",
@@ -92,7 +95,7 @@
     "current_slice": "Complete",
     "checkpoint": "s10_complete_merged_to_develop",
     "blockers": [],
-    "next_action": "The S1–S10 Android redesign, 40/40 subtasks, physical S24 Ultra acceptance and existing rc11 promotion are complete. PureVector branding and canonical progress are synchronized between main and develop as a source baseline, without publishing a new signed release. There is no active implementation work; future SMS/notification import issue #146 requires a separate explicit owner instruction.",
+    "next_action": "Redesign S1–S10 (40/40) and prior rc11 physical acceptance remain completed. Published same-signer rc12/10011 includes PureVector branding but needs owner physical S24 Ultra in-place upgrade and acceptance. Current source and tracking are maintained through normal main/develop promotion; SMS/notification import #146 remains deferred until explicit owner authorization.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {

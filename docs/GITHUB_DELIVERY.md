@@ -1,5 +1,7 @@
 # GitHub build, test, signing, and private APK delivery
 
+> **Historical Phase 0 architecture note (2026-08-22).** The initial separate-private-distribution-repository proposal below was superseded by the owner-authorized, protected production publisher. The active distribution now uses the authenticated Supabase private update channel plus immutable approved GitHub prereleases. Never use this historical plan to override `docs/PRODUCTION_SIGNING_RELEASE.md`, `docs/PRIVATE_SELF_UPDATE.md` or `tracking/android-project-state.json`. Signing secrets and personal data remain prohibited from public assets.
+
 Status: Phase 0 delivery design  
 Date: 2026-08-22
 
