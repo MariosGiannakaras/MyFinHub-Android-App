@@ -716,7 +716,8 @@
             "acceptance": "Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.",
             "status": "in_progress",
             "evidence": [
-              "Stacked PR #165 moves native card appearance from random IDs to Web designId and semantic defaults; unmerged."
+              "Stacked PR #165 moves native card appearance from random IDs to Web designId and semantic defaults; unmerged.",
+              "PR #165 native Web designId card stack rebased to tracker-accepted develop after W2.1 #164; exact-head validation pending."
             ]
           },
           {
