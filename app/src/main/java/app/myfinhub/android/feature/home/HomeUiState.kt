@@ -10,10 +10,11 @@ data class HomeUiState(
     val quickEntryOpen: Boolean = false,
     val selectedQuickEntryType: HomeQuickEntryType? = null,
 ) {
+    /** Owner-defined Home headline, not the portfolio's available-money balance. */
     val liquidTotal: Double
-        get() = accounts
-            .filter { account -> account.group == HomeAccountGroup.LIQUID }
-            .sumOf(HomeAccount::balance)
+        get() = accounts.filter {
+            it.primaryRole == HomePrimaryRole.CASH || it.primaryRole == HomePrimaryRole.PAYROLL
+        }.sumOf(HomeAccount::balance)
 }
 
 data class HomeAccount(
@@ -25,7 +26,14 @@ data class HomeAccount(
     val isPrimary: Boolean = false,
     val balanceTrend: List<Double> = listOf(balance, balance),
     val institution: String? = null,
+    val primaryRole: HomePrimaryRole? = null,
+    val balanceChange30d: Double? = null,
+    val previousMonthTrend: List<Double> = emptyList(),
+    val savingsTarget: Double? = null,
+    val savingsTargetRate: Double? = null,
 )
+
+enum class HomePrimaryRole { CASH, PAYROLL, SAVINGS }
 
 enum class HomeAccountGroup {
     LIQUID,
@@ -121,6 +129,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 185.40,
             group = HomeAccountGroup.LIQUID,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.CASH,
             balanceTrend = listOf(164.20, 176.80, 153.40, 194.10, 188.60, 181.20, 185.40),
         ),
         HomeAccount(
@@ -130,6 +139,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 2_465.80,
             group = HomeAccountGroup.LIQUID,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.PAYROLL,
             balanceTrend = listOf(2_128.40, 2_094.20, 2_028.70, 1_962.10, 1_884.00, 2_512.30, 2_465.80),
             institution = "Τράπεζα Πειραιώς",
         ),
@@ -140,6 +150,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 6_240.00,
             group = HomeAccountGroup.SAVINGS,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.SAVINGS,
             balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
             institution = "Τράπεζα Πειραιώς",
         ),

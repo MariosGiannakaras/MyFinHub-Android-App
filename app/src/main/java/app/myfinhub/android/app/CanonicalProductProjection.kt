@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.CanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalLegacyTransaction
 import app.myfinhub.android.core.data.accountBalances
+import app.myfinhub.android.core.data.isSavingsAccount
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.bool
@@ -40,6 +41,7 @@ import app.myfinhub.android.feature.home.HomeMonthFlow
 import app.myfinhub.android.feature.home.HomeRecentItem
 import app.myfinhub.android.feature.home.HomeRecentTone
 import app.myfinhub.android.feature.home.HomeUiState
+import app.myfinhub.android.feature.home.HomePrimaryRole
 import app.myfinhub.android.feature.home.HomeUpcomingItem
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightsUiState
@@ -75,7 +77,17 @@ data class CanonicalProductProjection(
     val insightsState: InsightsUiState,
 )
 
-private val PRIMARY_HOME_ACCOUNT_IDS = listOf("cash", "piraeus-payroll", "piraeus-savings")
+/** Mirrors web accountSelection: exact daily cash, payroll and savings semantic slots. */
+internal fun primaryHomeRoles(accounts: List<app.myfinhub.android.core.data.CanonicalAccount>): Map<HomePrimaryRole, String> {
+    fun choose(test: (app.myfinhub.android.core.data.CanonicalAccount) -> Boolean): String? =
+        accounts.firstOrNull { test(it) && it.showInQuickChoices }?.id
+            ?: accounts.firstOrNull(test)?.id
+    return buildMap {
+        choose { it.kind == "cash" && it.cashRole == "daily" }?.let { put(HomePrimaryRole.CASH, it) }
+        choose { it.kind == "bank" && it.bankAccountCategory == "payroll" }?.let { put(HomePrimaryRole.PAYROLL, it) }
+        choose { it.isSavingsAccount() }?.let { put(HomePrimaryRole.SAVINGS, it) }
+    }
+}
 
 fun projectCanonicalProduct(
     document: CanonicalFinanceDocument,
@@ -110,30 +122,46 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
 }
 
     val oldHome = previous?.homeState
-    val primaryHomeAccountIds = PRIMARY_HOME_ACCOUNT_IDS.toSet()
-    val homeTrendBalances = (6L downTo 0L).map { offset ->
-        document.accountBalances(today.minusDays(offset).toString())
-    }
+    val homeRoles = primaryHomeRoles(accounts)
+    val rolesById = homeRoles.entries.associate { (role, id) -> id to role }
+    val opening30 = document.accountBalances(today.minusDays(30).toString())
+    val start = YearMonth.from(today).minusMonths(1).atEndOfMonth().minusDays(7)
+    val dates = generateSequence(start) { it.plusDays(1).takeIf { date -> !date.isAfter(today) } }.toList()
+    val historicalBalances = dates.map { document.accountBalances(it.toString()) }
+    val previousMonth = YearMonth.from(today).minusMonths(1)
+    val previousBalances = (1..minOf(today.dayOfMonth, previousMonth.lengthOfMonth()))
+        .map { document.accountBalances(previousMonth.atDay(it).toString()) }
+    val savingsAccounts = accounts.filter { it.isSavingsAccount() }
+    val savingsGoal = if (savingsAccounts.size == 1) {
+        document.state.array("savingsGoals").mapNotNull { (it as? JsonObject)?.number("targetAmount") }
+            .firstOrNull { it.isFinite() && it > 0 }
+    } else null
+    val savingsRate = document.settingsObject().number("savingsTargetRate") ?: 0.2
     val rawHomeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
-        val provider = financialProvider(account.id, account.name)
+        val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name)
+        val role = rolesById[account.id]
         HomeAccount(
             id = account.id,
             name = financialAccountDisplayName(account.id, account.name, account.kind),
             role = accountKindLabel(account.kind),
-            institution = provider?.institutionLabel,
+            institution = provider?.institutionLabel ?: account.provider,
             balance = balances[account.id] ?: 0.0,
-            group = if (account.kind == "savings" || account.excludeFromAvailable) {
-                HomeAccountGroup.SAVINGS
-            } else {
-                HomeAccountGroup.LIQUID
-            },
-            isPrimary = account.id in primaryHomeAccountIds,
-            balanceTrend = homeTrendBalances.map { dailyBalances -> dailyBalances[account.id] ?: 0.0 },
+            group = if (account.isSavingsAccount() || account.excludeFromAvailable) HomeAccountGroup.SAVINGS
+                else HomeAccountGroup.LIQUID,
+            isPrimary = role != null,
+            primaryRole = role,
+            balanceTrend = historicalBalances.map { it[account.id] ?: 0.0 },
+            balanceChange30d = (balances[account.id] ?: 0.0) - (opening30[account.id] ?: 0.0),
+            previousMonthTrend = if (role == HomePrimaryRole.SAVINGS) previousBalances.map { it[account.id] ?: 0.0 }
+                else emptyList(),
+            savingsTarget = if (role == HomePrimaryRole.SAVINGS) savingsGoal else null,
+            savingsTargetRate = if (role == HomePrimaryRole.SAVINGS) savingsRate else null,
         )
     }
     val homeAccountsById = rawHomeAccounts.associateBy(HomeAccount::id)
-    val homeAccounts = PRIMARY_HOME_ACCOUNT_IDS.mapNotNull(homeAccountsById::get) +
-        rawHomeAccounts.filterNot { it.id in primaryHomeAccountIds }
+    val homeAccounts = HomePrimaryRole.entries.mapNotNull { role ->
+        homeRoles[role]?.let(homeAccountsById::get)
+    } + rawHomeAccounts.filterNot { it.id in rolesById }
     val homeRecentItems = activityItems.take(6).map { item ->
         HomeRecentItem(
             id = item.id,
@@ -266,8 +294,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 activity = cardActivity,
             )
         },
-        savingsGoal = null,
-        savingsCurrent = accounts.filter { it.kind == "savings" }.sumOf { balances[it.id] ?: 0.0 },
+        savingsGoal = savingsGoal,
+        savingsCurrent = savingsAccounts.sumOf { balances[it.id] ?: 0.0 },
         loanOutstanding = document.loanOutstanding(),
         lendingReceivable = document.receivableOutstanding(),
         aggregateCreditOutstanding = globalCreditOutstanding,
