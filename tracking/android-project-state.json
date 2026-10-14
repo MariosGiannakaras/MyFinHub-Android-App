@@ -742,7 +742,8 @@
               "Draft #174 implements archivedAt and native archived-card restore action but currently fails Kotlin sealed mutation exhaustiveness; fix durable pending restore serialization and test before merge.",
               "Reintegrated original #174 source onto latest develop (after #172/#175) in temp integration branch; preserves inline credit workspace and includes native archive/restore, pending offline intents and tests. Exact-head CI and visual/security review pending.",
               "PR #174 archive/restore and offline RESTORE_CARD intent merged into develop as 5a61dcf598af76c522df059db5396ab7680cd35a; exact-head 37f2cb0674b2b7ee206358c261b1674d78c15edf passed Android CI, Project Tracking, screenshot regression and S24 emulator instrumentation.",
-              "Draft #176 implements Web-equivalent read-only permanent delete eligibility: active/outstanding credit cannot be purged, linked non-credit finance history preserved. Safe vault-cleanup/deletion mutation is not yet implemented."
+              "Draft #176 implements Web-equivalent read-only permanent delete eligibility: active/outstanding credit cannot be purged, linked non-credit finance history preserved. Safe vault-cleanup/deletion mutation is not yet implemented.",
+              "PR #176 read-only Web permanent deletion eligibility merged into develop (2a799a7e96e21faa7d5ee8cf291beb44fc393c1c) after 4/4 exact-head checks. Separate draft adds guarded replayable canonical deletion contract with credit tombstone and pendingCardSecretDeletes, intentionally not exposed in UI until post-commit vault cleanup is audited."
             ]
           }
         ]
