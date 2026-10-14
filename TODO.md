@@ -68,7 +68,7 @@ Next Validate and merge PR #165 Web designId/default bank/kind/formFactor native
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
-| W2 Card identity and integrated credit experience | 1/4 | W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
+| W2 Card identity and integrated credit experience | 1/4 | W2.2 Shared native card visual (in_progress); W2.3 Credit information on card screen (in_progress); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
@@ -82,7 +82,7 @@ Next Validate and merge PR #165 Web designId/default bank/kind/formFactor native
 - [x] W1.4 Home tests and shared projections — completed
 - [x] W2.1 Canonical card metadata/lifecycle — completed
 - [ ] W2.2 Shared native card visual — in_progress
-- [ ] W2.3 Credit information on card screen — pending
+- [ ] W2.3 Credit information on card screen — in_progress
 - [ ] W2.4 Card interactions and secure details — pending
 - [ ] W3.1 Statement cycle and historical debt — pending
 - [ ] W3.2 Event and classification parity — pending
