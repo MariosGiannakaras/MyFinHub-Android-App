@@ -113,6 +113,7 @@ fun CanonicalWalletScreen(
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
     onCardActiveChanged: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
+    onRestoreCard: (String) -> Unit = {},
     onPayCreditCard: (String) -> Unit = {},
     onAddCreditPurchase: (String) -> Unit = {},
     onOpenCreditActivity: (String) -> Unit = {},
@@ -199,6 +200,7 @@ fun CanonicalWalletScreen(
                     onOpenCard = onOpenCard,
                     onAddCard = onAddCard,
                     onDeleteCard = onDeleteCard,
+                    onRestoreCard = onRestoreCard,
                 )
                 WalletSection.DEBTS -> walletDebtsContent(
                     state = state,
@@ -477,6 +479,7 @@ private fun LazyListScope.walletCardsContent(
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
     onDeleteCard: (String) -> Unit,
+    onRestoreCard: (String) -> Unit,
 ) {
     item("cards-action") {
         MyFinHubPrimaryAction(
@@ -515,9 +518,34 @@ private fun LazyListScope.walletCardsContent(
             )
         }
     }
+    if (state.archivedCards.isNotEmpty()) {
+        item("archived-card-heading") {
+            Text(
+                "Αρχειοθετημένες κάρτες",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        items(state.archivedCards, key = { "archived-" + it.id }) { card ->
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("archived_card_" + card.id)) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    Text(card.nickname, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (card.last4.isBlank()) card.kind else "${card.kind} · •••• ${card.last4}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(
+                        onClick = { onRestoreCard(card.id) },
+                        modifier = Modifier.testTag("restore_archived_card_" + card.id),
+                    ) { Text("Επαναφορά") }
+                }
+            }
+        }
+    }
 }
 
-private fun LazyListScope.walletDebtsContent(
+private fun LazyListScope.walletDebtsContent
     state: MoneyUiState,
     amountsVisible: Boolean,
     onOpenCards: () -> Unit,
