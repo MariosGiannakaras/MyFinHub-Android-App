@@ -723,8 +723,11 @@
             "id": "W2.3",
             "title": "Credit information on card screen",
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "PR #170 re-anchored after merged read-only credit statements #169, preserving Web card model from #164. One-screen Wallet card workspace with statement, debt/limit, actions and activities, plus Compose tests; not yet accepted until full CI and screenshots.",
+              "Clean develop-based PR supersedes stacked #170 after statement PR #169 merged; exact-head tests and screenshot review pending."
+            ]
           },
           {
             "id": "W2.4",
@@ -746,7 +749,8 @@
             "acceptance": "Statement open/closed/due/paid, allocation, legacy card ID ownership and accurate card debt parity.",
             "status": "pending",
             "evidence": [
-              "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes."
+              "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes.",
+              "PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 with 4 exact-head checks successful. W3.1 still partial: allocation and legacy card debt ownership remain open."
             ]
           },
           {

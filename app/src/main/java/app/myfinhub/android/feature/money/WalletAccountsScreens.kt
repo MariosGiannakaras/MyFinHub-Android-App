@@ -56,6 +56,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
+import app.myfinhub.android.feature.money.InlineCreditCardWorkspace
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -112,6 +113,9 @@ fun CanonicalWalletScreen(
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
     onCardActiveChanged: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
+    onPayCreditCard: (String) -> Unit = {},
+    onAddCreditPurchase: (String) -> Unit = {},
+    onOpenCreditActivity: (String) -> Unit = {},
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
     amountsVisibleOverride: Boolean? = null,
@@ -143,6 +147,7 @@ fun CanonicalWalletScreen(
     }
     val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var selectedCardId by rememberSaveable { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -182,7 +187,15 @@ fun CanonicalWalletScreen(
                 WalletSection.CARDS -> walletCardsContent(
                     state = state,
                     cardSecretState = cardSecretState,
-                    onCardActiveChanged = onCardActiveChanged,
+                    onCardActiveChanged = { id ->
+                        selectedCardId = id
+                        onCardActiveChanged(id)
+                    },
+                    selectedCardId = selectedCardId,
+                    amountsVisible = amountsVisible,
+                    onPayCreditCard = onPayCreditCard,
+                    onAddCreditPurchase = onAddCreditPurchase,
+                    onOpenCreditActivity = onOpenCreditActivity,
                     onOpenCard = onOpenCard,
                     onAddCard = onAddCard,
                     onDeleteCard = onDeleteCard,
@@ -456,6 +469,11 @@ private fun LazyListScope.walletCardsContent(
     state: MoneyUiState,
     cardSecretState: CardSecretUiState,
     onCardActiveChanged: (String) -> Unit,
+    selectedCardId: String?,
+    amountsVisible: Boolean,
+    onPayCreditCard: (String) -> Unit,
+    onAddCreditPurchase: (String) -> Unit,
+    onOpenCreditActivity: (String) -> Unit,
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
     onDeleteCard: (String) -> Unit,
@@ -482,6 +500,18 @@ private fun LazyListScope.walletCardsContent(
                 onOpenCard = onOpenCard,
                 onDeleteCard = onDeleteCard,
                 modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        item("card-workspace") {
+            val active = state.cards.firstOrNull { it.id == selectedCardId } ?: state.cards.first()
+            InlineCreditCardWorkspace(
+                card = active,
+                statements = state.creditStatementsByCard[active.id].orEmpty(),
+                amountsVisible = amountsVisible,
+                onPayCard = { onPayCreditCard(active.id) },
+                onAddPurchase = { onAddCreditPurchase(active.id) },
+                onOpenActivity = onOpenCreditActivity,
+                onOpenDetails = { onOpenCard(active.id) },
             )
         }
     }
