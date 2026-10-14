@@ -64,6 +64,7 @@ def load_state() -> dict:
     if progress["completed"] < 0 or progress["completed"] > progress["total"]:
         raise SystemExit("overall_progress is invalid")
     validate_redesign(data)
+    validate_reconciliation(data)
     return data
 
 
@@ -98,6 +99,48 @@ def validate_redesign(s: dict) -> None:
         if row["status"] == "blocked" and not row.get("blocker", "").strip():
             raise SystemExit(f"Blocked checkpoint needs a reason: {row['id']}")
 
+
+def validate_reconciliation(s: dict) -> None:
+    r=s.get('reconciliation_workstream')
+    if not r: return
+    stages=r['stages']
+    if len(stages)!=6: raise SystemExit('Web parity requires six implementations')
+    undone=[]
+    for i,stage in enumerate(stages,1):
+        if stage['id']!=f'W{i}' or len(stage['subtasks'])!=4: raise SystemExit('Web parity IDs/counts invalid')
+        for j,sub in enumerate(stage['subtasks'],1):
+            if sub['id']!=f'W{i}.{j}': raise SystemExit('Web parity subtask ID invalid')
+            if sub['status'] not in ('pending','in_progress','blocked','completed'): raise SystemExit('Web parity subtask status invalid')
+            evidence=sub.get('evidence',[])
+            if not isinstance(evidence,list) or any(not isinstance(v,str) or not v.strip() for v in evidence): raise SystemExit('Web parity evidence invalid')
+            if sub['status']=='completed' and not evidence: raise SystemExit('Web parity completed needs evidence')
+            if sub['status']=='blocked' and not sub.get('blocker','').strip(): raise SystemExit('Web parity blocked needs reason')
+            if sub['status']!='completed': undone.append(sub['id'])
+    if undone and r['current_subtask'] not in undone: raise SystemExit('Web parity current subtask must be incomplete')
+
+def reconciliation_lines(s: dict) -> list[str]:
+    r=s.get('reconciliation_workstream')
+    if not r: return []
+    stages=r['stages']
+    subs=[sub for st in stages for sub in st['subtasks']]
+    done=lambda sub: sub['status']=='completed'
+    count=sum(all(map(done,st['subtasks'])) for st in stages)
+    lines=['','## Active Web parity progress','',
+           f'**Implementations: {count}/{len(stages)} · Subtasks: {sum(map(done,subs))}/{len(subs)}**','',
+           'Evidence-backed current progress, separate from historical September redesign.','',
+           f"Issue #{r['issue']}, PR #{r['pr']}, branch {r['branch']}",
+           f"Current {r['current_subtask']}: {r['checkpoint']}",
+           f"Plan {r['plan_doc']}",f"Next {r['next_action']}",'',
+           '| Implementation | Completed | Outstanding |','|---|---|---|']
+    for st in stages:
+        todo='; '.join(f"{sub['id']} {sub['title']} ({sub['status']})" for sub in st['subtasks'] if not done(sub)) or 'Complete'
+        lines.append(f"| {st['id']} {st['title']} | {sum(map(done,st['subtasks']))}/4 | {todo} |")
+    lines+=['','### Subtasks','']
+    lines.extend(f"- [{'x' if done(sub) else ' '}] {sub['id']} {sub['title']} — {sub['status']}" for sub in subs)
+    lines+=['','### Blockers','']
+    blockers=list(r.get('blockers',[]))+[f"{sub['id']}: {sub['blocker']}" for sub in subs if sub['status']=='blocked']
+    lines.extend(f'- {v}' for v in blockers or ['None recorded.'])
+    return lines+['']
 
 def redesign_lines(s: dict) -> list[str]:
     tasks = s.get("redesign_tasks", [])
@@ -256,7 +299,7 @@ def rendered(s: dict) -> dict[Path, str]:
         ROOT / "TODO.md": render_todo(s),
         ROOT / "docs/CURRENT_HANDOFF.md": render_handoff(s),
     }
-    progress = "\n".join(redesign_lines(s))
+    progress = "\n".join(reconciliation_lines(s) + redesign_lines(s))
     return {path: content + progress for path, content in outputs.items()}
 
 

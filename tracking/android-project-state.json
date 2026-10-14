@@ -9,12 +9,12 @@
   "authoritative_branch": "develop",
   "release_branch": "main",
   "active_workstream": {
-    "issue": 149,
-    "title": "Deploy PureVector Android 1.0.0-rc12 via protected production release",
+    "issue": 155,
+    "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Protected production deployment was completed on 2026-10-14 using validated immutable PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae, signed with the enrolled production identity and published as GitHub prerelease v1.0.0-rc12 / versionCode 10011 and via the authenticated private updater (protected run 38552478100, success). On 2026-10-14 the owner reported that rc12 was installed on the supported Galaxy S24 Ultra. Detailed in-place-upgrade, session/PIN/biometric, finance/card-vault and PureVector device checks and explicit product acceptance have not been reported, so the release remains installed_pending_functional_acceptance. PR #150 was closed without merge, and main/develop were synchronized via merged PRs #151/#152. SMS/notification import issue #146 remains strictly future-only.",
+    "summary": "New Web parity plan tracked in docs/WEB_ANDROID_RECONCILIATION_PLAN.md (6 implementations/24 subtasks); issue #155, unmerged draft PR #156. W1.1/W1.2 source is unverified. Completed new parity progress 0/6 and 0/24. Older September redesign 10/10, 40/40 is historical. rc12 issue #149 awaits separate device acceptance.",
     "next": [
-      "Owner has reported successful installation of signed rc12 / versionCode 10011 on the supported physical Galaxy S24 Ultra. Record post-install smoke and explicit owner acceptance: confirm whether the install was an in-place update without uninstall/data clearing, retention of the existing server session and PIN/biometric enrollment, correct canonical finance and owner+AAL2 card-vault state, and PureVector adaptive/themed launcher appearance in light/dark. Do not infer these checks from installation alone."
+      "Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release."
     ]
   },
   "latest_production_candidate": {
@@ -87,7 +87,7 @@
       "TODO.md",
       "docs/CURRENT_HANDOFF.md"
     ],
-    "policy": "Edit current state only in tracking/android-project-state.json; run python3 scripts/render_project_tracking.py and --check. Report derived redesign task/subtask counts separately from historical project progress. Resume the recorded branch/PR and first unfinished subtask; inspect only its direct dependencies. Completed subtasks require evidence; physical acceptance cannot be inferred from hosted checks."
+    "policy": "Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.md and docs/CURRENT_HANDOFF.md are generated. Report active Web parity X/6 implementation, Y/24 subtasks, current ID and branch/PR and validation state in every substantive update. Older September redesign counters are historical. Resume first unfinished subtask from current live repository, not chat memory."
   },
   "current_redesign_pass": {
     "plan_doc": "docs/UI_2026_REDESIGN_HANDOFF.md",
@@ -96,7 +96,7 @@
     "current_slice": "Complete",
     "checkpoint": "s10_complete_merged_to_develop",
     "blockers": [],
-    "next_action": "Redesign S1–S10 (40/40) and earlier rc11 acceptance remain complete. The signed, same-signer PureVector rc12/10011 was published and owner-reported installed on the Galaxy S24 Ultra on 2026-10-14; post-install continuity, canonical finance/card-vault, launcher and explicit product acceptance remain to be confirmed in issue #149. main/develop source and tracking are synchronized. SMS/notification import #146 remains deferred until explicitly authorized.",
+    "next_action": "September redesign S1–S10 (40/40) remains historical and complete. The separate new owner-approved Web-parity workstream is issue #155 and reconciliation_workstream; prior completion counts do not establish Web parity. Signed rc12 physical acceptance remains pending under issue #149. SMS/notification import issue #146 remains deferred.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -630,5 +630,237 @@
         }
       ]
     }
-  ]
+  ],
+  "reconciliation_workstream": {
+    "issue": 155,
+    "branch": "android/web-parity-home-20261014",
+    "checkpoint": "W1.1/W1.2 source in unmerged draft PR #156; verification outstanding",
+    "status": "in_progress",
+    "owner_decisions": [
+      "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
+      "Three web-semantic primary accounts each have a chart, followed by simple secondary account rows",
+      "Cards and credit use one web-parity PaymentCard identity and integrated credit workspace"
+    ],
+    "stages": [
+      {
+        "id": "W1",
+        "title": "Canonical accounts and Home",
+        "reference": "Web domain.ts, accountSelection.ts, accountSemantics.ts, DashboardPage.tsx, dashboardAccounts.ts",
+        "subtasks": [
+          {
+            "id": "W1.1",
+            "title": "Canonical account merge and roles",
+            "acceptance": "Account overrides, custom accounts, banking/cash metadata, provider IDs and account eligibility match Web.",
+            "status": "in_progress",
+            "evidence": [
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+            ]
+          },
+          {
+            "id": "W1.2",
+            "title": "Home total and three primary account slots",
+            "acceptance": "Hero is exclusively daily cash plus payroll; three slots Cash, Payroll, Savings with charts, then compact remaining accounts; no other bank or reserve in total.",
+            "status": "in_progress",
+            "evidence": [
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
+            ]
+          },
+          {
+            "id": "W1.3",
+            "title": "Chart/target/IBAN web-fidelity",
+            "acceptance": "Use Web-accurate history and comparative savings charts, 30-day deltas, goal, IBAN/provider identity, period and privacy states.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W1.4",
+            "title": "Home tests and shared projections",
+            "acceptance": "Web↔Android fixture parity, accessible Compose/S24 real screenshots, Wallet/Quick Entry consistent account projections, exact-head CI.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      },
+      {
+        "id": "W2",
+        "title": "Card identity and integrated credit experience",
+        "reference": "Web types.ts, cardDesigns.ts, CardsPage.tsx, CreditCardPage.tsx, InteractivePaymentCard.tsx",
+        "subtasks": [
+          {
+            "id": "W2.1",
+            "title": "Canonical card metadata/lifecycle",
+            "acceptance": "Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W2.2",
+            "title": "Shared native card visual",
+            "acceptance": "Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W2.3",
+            "title": "Credit information on card screen",
+            "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W2.4",
+            "title": "Card interactions and secure details",
+            "acceptance": "In-context purchase/payment, safe archive/restore/delete, card picker, secure vault only on protected view, navigation and screenshot tests.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      },
+      {
+        "id": "W3",
+        "title": "Events, statements and mutation semantics",
+        "reference": "Web domain.ts, creditStatements.ts, cards.ts, transactionRules.ts, App.tsx",
+        "subtasks": [
+          {
+            "id": "W3.1",
+            "title": "Statement cycle and historical debt",
+            "acceptance": "Statement open/closed/due/paid, allocation, legacy card ID ownership and accurate card debt parity.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W3.2",
+            "title": "Event and classification parity",
+            "acceptance": "Canonical legs, transfers, refunds, savings, splits, lending, loans, reconciliation, date/money validation, category rules.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W3.3",
+            "title": "Card repayment provider validation",
+            "acceptance": "Match eligible source by canonical bank/provider metadata, not string-prefix guesses, with card debt limits.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W3.4",
+            "title": "Single mutation pipeline",
+            "acceptance": "Unify Android event builders and shared validation, preserve durable offline/revision semantics; test with Web-derived vectors.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      },
+      {
+        "id": "W4",
+        "title": "Recurring, forecast, savings and reporting",
+        "reference": "Web recurring.ts, recurringCadence.ts, forecast.ts, SavingsPage.tsx, PlanningPage.tsx, ReportsPage.tsx",
+        "subtasks": [
+          {
+            "id": "W4.1",
+            "title": "Recurring lifecycle",
+            "acceptance": "Include custom/overridden recurring entries, cadence, paid history, pause/stop, next due and service metadata.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W4.2",
+            "title": "Scheduled forecast",
+            "acceptance": "Web-equivalent 30/60/90-day projections, loan/recurring/scheduled impacts, low-balance warnings, no double count.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W4.3",
+            "title": "Savings, loans, lending and budgets",
+            "acceptance": "Goals, targets, savings offset eligibility, correct debts/receivables/installments, overall and category budgets.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W4.4",
+            "title": "Transactions and analytics completeness",
+            "acceptance": "Consistent history, filters, categories/drilldowns, edit/delete, comparisons and remaining Web domain flows.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      },
+      {
+        "id": "W5",
+        "title": "Providers, API, security and settings",
+        "reference": "Web financialProviders.ts, accountMetadataHandler.ts, deviceSessionsHandler.ts, accountSecurityHandler.ts, useFinance.ts",
+        "subtasks": [
+          {
+            "id": "W5.1",
+            "title": "Dynamic provider/IBAN/assets contract",
+            "acceptance": "Read canonical providers, metadata, IBAN, logos/wordmarks/card marks and remove hardcoded bank assumptions.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W5.2",
+            "title": "Auth/sync/history consistency",
+            "acceptance": "AAL2/owner bearer, optimistic revisions, history generation, pending/offline NEEDS_REVIEW, no blind retries.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W5.3",
+            "title": "Card vault and security endpoints",
+            "acceptance": "Preserve secure PAN/expiry/CVV and lifecycle; inspect device/account security endpoints; document native-API blocker if needed.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W5.4",
+            "title": "Settings, backup, rules and ancillary parity",
+            "acceptance": "Reconcile settings, backup/change history, receipt OCR where supported and approved, provider/service assets; exclude SMS import.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      },
+      {
+        "id": "W6",
+        "title": "Parity validation, cleanup and device acceptance",
+        "reference": "Android unit/Compose/UI screenshot checks and matching Web pure-domain fixtures; issue #149 remains separate",
+        "subtasks": [
+          {
+            "id": "W6.1",
+            "title": "Golden cross-client fixture tests",
+            "acceptance": "Assert account/credit/recurring/savings/categorization and legacy fixture outcomes and revision semantics.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W6.2",
+            "title": "Real Compose accessibility/visual verification",
+            "acceptance": "S24 light/dark, large text, privacy, screen-reader/touch, account charts/card visuals/credit workspace.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W6.3",
+            "title": "Exact-head CI, deduplication and tracking handoff",
+            "acceptance": "Targeted then broader checks, only remove replaced code, update tracker/docs in coherent merged checkpoints.",
+            "status": "pending",
+            "evidence": []
+          },
+          {
+            "id": "W6.4",
+            "title": "Owner physical acceptance and release isolation",
+            "acceptance": "Record real S24 approval without inferring from CI; no new signed publication without release authorization.",
+            "status": "pending",
+            "evidence": []
+          }
+        ]
+      }
+    ],
+    "next_action": "Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.",
+    "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
+    "pr": 156,
+    "current_subtask": "W1.1",
+    "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
+  }
 }
