@@ -5,6 +5,10 @@ import app.myfinhub.android.core.data.CanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalLegacyTransaction
 import app.myfinhub.android.core.data.accountBalances
+import app.myfinhub.android.core.data.dashboardAccountHistory
+import app.myfinhub.android.core.data.dashboardHistoryStart
+import app.myfinhub.android.core.data.dashboardPreviousMonthHistory
+import app.myfinhub.android.core.data.dashboardBalanceChange
 import app.myfinhub.android.core.data.isSavingsAccount
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
@@ -124,13 +128,13 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val oldHome = previous?.homeState
     val homeRoles = primaryHomeRoles(accounts)
     val rolesById = homeRoles.entries.associate { (role, id) -> id to role }
-    val opening30 = document.accountBalances(today.minusDays(30).toString())
-    val start = YearMonth.from(today).minusMonths(1).atEndOfMonth().minusDays(7)
-    val dates = generateSequence(start) { it.plusDays(1).takeIf { date -> !date.isAfter(today) } }.toList()
-    val historicalBalances = dates.map { document.accountBalances(it.toString()) }
+    val historyStart = dashboardHistoryStart(YearMonth.from(today))
+    val monthBoundaryIndex = (YearMonth.from(today).atDay(1).toEpochDay() - historyStart.toEpochDay()).toInt()
+    val history = document.dashboardAccountHistory(homeRoles.values.toList(), historyStart, today)
     val previousMonth = YearMonth.from(today).minusMonths(1)
-    val previousBalances = (1..minOf(today.dayOfMonth, previousMonth.lengthOfMonth()))
-        .map { document.accountBalances(previousMonth.atDay(it).toString()) }
+    val previousSavings = homeRoles[HomePrimaryRole.SAVINGS]?.let {
+        document.dashboardPreviousMonthHistory(it, YearMonth.from(today), today)
+    }.orEmpty()
     val savingsAccounts = accounts.filter { it.isSavingsAccount() }
     val savingsGoal = if (savingsAccounts.size == 1) {
         document.state.array("savingsGoals").mapNotNull { (it as? JsonObject)?.number("targetAmount") }
@@ -151,10 +155,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 else HomeAccountGroup.LIQUID,
             isPrimary = role != null,
             primaryRole = role,
-            balanceTrend = historicalBalances.map { it[account.id] ?: 0.0 },
-            balanceChange30d = (balances[account.id] ?: 0.0) - (opening30[account.id] ?: 0.0),
-            previousMonthTrend = if (role == HomePrimaryRole.SAVINGS) previousBalances.map { it[account.id] ?: 0.0 }
-                else emptyList(),
+            balanceTrend = history[account.id] ?: emptyList(),
+            monthBoundaryIndex = if (role != null) monthBoundaryIndex else 0,
+            balanceChange30d = if (role != null) document.dashboardBalanceChange(account.id, today) else null,
+            previousMonthTrend = if (role == HomePrimaryRole.SAVINGS) previousSavings else emptyList(),
             savingsTarget = if (role == HomePrimaryRole.SAVINGS) savingsGoal else null,
             savingsTargetRate = if (role == HomePrimaryRole.SAVINGS) savingsRate else null,
         )

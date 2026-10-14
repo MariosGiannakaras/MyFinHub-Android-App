@@ -28,6 +28,7 @@ data class HomeAccount(
     val institution: String? = null,
     val primaryRole: HomePrimaryRole? = null,
     val balanceChange30d: Double? = null,
+    val monthBoundaryIndex: Int = 0,
     val previousMonthTrend: List<Double> = emptyList(),
     val savingsTarget: Double? = null,
     val savingsTargetRate: Double? = null,
