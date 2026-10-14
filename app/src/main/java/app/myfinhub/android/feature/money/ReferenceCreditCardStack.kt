@@ -607,7 +607,7 @@ private fun ReferenceCardFace(
                 }
                 if (isTop) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        ReferenceActionButton(label = "Διαγραφή κάρτας", onClick = onDeleteRequested) {
+                        ReferenceActionButton(label = "Αρχειοθέτηση κάρτας", onClick = onDeleteRequested) {
                             ReferenceTrashGlyph(visual.text)
                         }
                     }
@@ -889,9 +889,9 @@ private fun ReferenceDeleteConfirmation(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Διαγραφή κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε το κόκκινο χειριστήριο μέχρι τέρμα δεξιά. Η ενέργεια δεν αναιρείται.",
+                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα μπορεί να επανέλθει· το ιστορικό διατηρείται. Τα ασφαλή στοιχεία θα καθαριστούν.",
                     color = Color.White.copy(alpha = .76f),
                     fontSize = 9.sp,
                 )
@@ -914,7 +914,7 @@ private fun ReferenceDeleteConfirmation(
                         onProgress(requested.coerceIn(0f, 1f))
                         true
                     }
-                    contentDescription = "Σύρε για οριστική διαγραφή"
+                    contentDescription = "Σύρε για αρχειοθέτηση κάρτας"
                 }
                 .onPreviewKeyEvent { event ->
                     if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false

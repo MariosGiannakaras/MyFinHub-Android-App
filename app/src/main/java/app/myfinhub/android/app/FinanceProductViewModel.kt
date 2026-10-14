@@ -1005,7 +1005,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
-                PendingMutationKind.DEACTIVATE_CARD -> "Διαγραφή κάρτας"
+                PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
             },
             statusLabel = if (pending.syncState == PendingMutationSyncState.NEVER_SENT) {
