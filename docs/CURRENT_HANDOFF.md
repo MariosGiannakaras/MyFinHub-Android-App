@@ -16,17 +16,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #139 — Final repository prune to permanent branches.
+- Last completed workstream: issue #144 — Integrate platform-correct PureVector branding.
 - Workstream state: `completed`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
-## Why implementation is open
+## Completed workstream outcome
 
-Final repository housekeeping is complete. The corrected explicit allowlist prune succeeded and reduced the repository to exactly four permanent remote branches: main, develop, extensions and android/protected-release-develop-trigger. No open-PR or non-allowlisted branch was deleted. The temporary cleanup workflow is removed in the final cleanup checkpoint; Android product behavior, card/CVV logic, backend contracts, release artifacts and signing material are unchanged.
+PureVector Android branding completed in merged PR #145 on 2026-09-29 with issue #144 closed; its exact head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. At the owner's explicit request on 2026-10-14, this validated branding source baseline was promoted to main together with the latest develop tracking. The baseline includes platform-correct adaptive/themed launcher assets, compact in-app branding, true SVG source masters and a separate store-listing icon. This is source promotion only: the latest physically accepted signed and published candidate remains 1.0.0-rc11 / versionCode 10010; no new APK or AAB is signed or published.
 
-## Immediate work
+## Follow-up status
 
+- No active implementation tasks. SMS/notification import (issue #146) is deferred until the owner explicitly authorizes implementation.
 
 ## Constraints
 
@@ -56,7 +57,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.
+Next action: The S1–S10 Android redesign, 40/40 subtasks, physical S24 Ultra acceptance and existing rc11 promotion are complete. PureVector branding and canonical progress are synchronized between main and develop as a source baseline, without publishing a new signed release. There is no active implementation work; future SMS/notification import issue #146 requires a separate explicit owner instruction.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|
