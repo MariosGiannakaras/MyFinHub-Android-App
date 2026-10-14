@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity: 0/6 implementations · 2/24 subtasks completed. W1.1 (accounts) merged #158; W1.2 (Home cash+payroll, three primary chart cards, secondary accounts) merged #156 with all exact-head CI/emulator/screenshot gates green. W1.3 IBAN/provider/visual parity remains in progress (draft PR #160); W1.4 pending. Old redesign 10/10,40/40 historical; real S24 acceptance #149 independent.",
+    "summary": "Web parity: 1/6 implementations and 4/24 subtasks verified. W1 account/Home complete (#158 #156 #160 #162 #163 #167) with exact-head CI/screenshot/emulator checks. Current W2.1 card metadata PR #164 and stacked W2.2 visual PR #165 remain unmerged drafts. September redesign 10/10 40/40 historical; owner S24 physical signoff #149 pending.",
     "next": [
-      "Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release."
+      "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-iban-contract-20261014",
-    "checkpoint": "W1.1/W1.2 verified on develop; W1.3 secure account metadata GET in PR #160 under CI, Home IBAN/visual parity pending",
+    "branch": "android/web-parity-track-w1-4-20261014",
+    "checkpoint": "W1 fully completed/merged 4/4; W2.1 metadata draft PR #164 needs latest develop reconciliation, W2.2 stacked #165 open",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -674,20 +674,24 @@
             "id": "W1.3",
             "title": "Chart/target/IBAN web-fidelity",
             "acceptance": "Use Web-accurate history and comparative savings charts, 30-day deltas, goal, IBAN/provider identity, period and privacy states.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Snapshot-reanchored daily account history, 30-day deltas and month-aligned savings comparison source added to draft PR #156; golden Web fixture and screenshots not yet accepted.",
-              "Visual review of earlier rendered PR #156 Home light/dark/150% found low-contrast Piraeus mark in dark theme; requires correction before acceptance.",
-              "Provider-ID Home/Wallet parity merged in #156. Read-only account-metadata/IBAN contract exists in draft PR #160 but is not consumed by Android Home yet.",
-              "In PR #160, owner+AAL2 native bearer GET /api/account-metadata plus IBAN checksum/redaction tests are implemented; UI consumption and full provider registry remain pending."
+              "Web account charts, statement goal and previous-month comparison merged in PR #156 with screenshot and CI evidence.",
+              "Owner+AAL2 read-only GET /api/account-metadata contract merged PR #160 at 3bb14290f885547f59f30c873d726ecbbfc1b4fc (4/4 checks green).",
+              "Masked IBAN and session-isolated Home/Wallet/AccountDetail UI merged PR #162 at 0cf43ef2968165c78f2513e950b5f4209988c6d1; head 82d7167c14ac4e5e865e89cd5e862cd7364803fa all 4 checks green, including screenshot and S24 emulator.",
+              "IBAN is in-memory only, hidden with amount-visibility privacy and session-lock/offline gating, and sensitive clipboard copy tested."
             ]
           },
           {
             "id": "W1.4",
             "title": "Home tests and shared projections",
             "acceptance": "Web↔Android fixture parity, accessible Compose/S24 real screenshots, Wallet/Quick Entry consistent account projections, exact-head CI.",
-            "status": "pending",
-            "evidence": []
+            "status": "completed",
+            "evidence": [
+              "PR #167 cross-surface golden Home/Wallet/Quick Entry savings cases merged a2f7f3bedb249589fbc85e10376e1ad5dab44b48, exact head 9562bd3c500fb7b8376006b2c18a7ab5cea17b17 all four CI/screenshot/S24-target emulator gates green.",
+              "Wallet savings/reserve/term semantics PR #163 merged ca15a894032614cbd1a778c48a998aedc5881dc5, all four exact-head checks green.",
+              "Cash+payroll-only Home headline, three primary chart/goal/previous-month cards, secondary accounts, shared IBAN AAL2 privacy and 150%-font Compose regression verified via #156/#160/#162. Physical device signoff remains separate #149."
+            ]
           }
         ]
       },
@@ -700,18 +704,20 @@
             "id": "W2.1",
             "title": "Canonical card metadata/lifecycle",
             "acceptance": "Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.",
-            "status": "pending",
+            "status": "in_progress",
             "evidence": [
-              "Unmerged source PR introduces Web card designId/bankId/formFactor/statement-cycle/archive/deleted tombstone metadata projections; pending exact-head CI and visual/workspace integration."
+              "Draft PR #164 adds typed Web card metadata, statement days, archive/tombstone refs; unmerged pending CI.",
+              "PR #164 reconciled with develop W1 completions: card identity bankId/designId/formFactor, holder, billing dates/boundary, archived refs and deletion tombstones; no loss of W1 Wallet source fields. CI acceptance pending."
             ]
           },
           {
             "id": "W2.2",
             "title": "Shared native card visual",
             "acceptance": "Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.",
-            "status": "pending",
+            "status": "in_progress",
             "evidence": [
-              "Dependent draft PR maps persisted Web designId / card form factor and kind to deterministic native visual template; previously random hash-based style removed. Tests pending."
+              "Stacked PR #165 moves native card appearance from random IDs to Web designId and semantic defaults; unmerged.",
+              "Rebased stacked draft #165 onto latest W2.1 branch #164 following W1 completions. Explicit designId/default-by-bank/kind/formFactor native stack visuals and unit tests pending exact-head checks."
             ]
           },
           {
@@ -871,10 +877,10 @@
         ]
       }
     ],
-    "next_action": "Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.",
+    "next_action": "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 160,
-    "current_subtask": "W1.3",
+    "pr": 168,
+    "current_subtask": "W2.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

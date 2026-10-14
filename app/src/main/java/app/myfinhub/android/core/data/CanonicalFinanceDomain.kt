@@ -258,9 +258,9 @@ fun CanonicalFinanceDocument.canonicalCards(): List<CanonicalCard> =
         )
     }
 
-/** Preserves Web's deleted credit-card identity tombstones for legacy debt attribution. */
+/** Preserve card identity tombstones: Web uses these to attribute pre-cardId legacy debt. */
 fun CanonicalFinanceDocument.deletedCreditCardReferences(): List<CanonicalDeletedCardReference> =
-    state.array("deletedCards").mapNotNull { (it as? JsonObject) }
+    state.array("deletedCards").mapNotNull { it as? JsonObject }
         .filter { it.string("kind") == "credit" }
         .mapNotNull { raw ->
             val id = raw.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null

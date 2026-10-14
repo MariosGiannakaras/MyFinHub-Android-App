@@ -51,7 +51,13 @@ data class QuickEntryAccountOption(
     val id: String,
     val label: String,
     val kind: String,
-)
+    val bankAccountCategory: String? = null,
+) {
+    val isSavingsDestination: Boolean get() = kind == "savings" ||
+        (kind == "bank" && bankAccountCategory == "savings")
+    val isSavingContributionSource: Boolean get() = kind == "bank" &&
+        bankAccountCategory in setOf(null, "payroll", "current")
+}
 
 data class QuickEntryCardOption(
     val id: String,
@@ -211,23 +217,27 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
     val contextualSourceId = state.accountId.takeIf {
         previousKind.needsPrimaryAccount && newUsesSource && idExists(state, it)
     }
-    val fromId = state.fromAccountId.takeIf {
+    val candidateFromId = state.fromAccountId.takeIf {
         previousUsesSource && newUsesSource && idExists(state, it)
     } ?: contextualSourceId ?: defaultSourceId
+    val fromId = if (kind == QuickEntryKind.SAVING) {
+        state.accounts.firstOrNull { it.id == candidateFromId && it.isSavingContributionSource }?.id
+            ?: state.accounts.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
+    } else candidateFromId
 
     val currentDestination = state.accounts.firstOrNull { it.id == state.toAccountId && it.id != fromId }
         ?.takeIf { account ->
             when (kind) {
                 QuickEntryKind.WITHDRAWAL -> account.kind == "cash"
-                QuickEntryKind.SAVING -> account.kind == "savings"
+                QuickEntryKind.SAVING -> account.isSavingsDestination
                 else -> true
             }
         }
         ?.takeIf { previousKind.needsTransferAccounts && kind.needsTransferAccounts }
     val preferredTo = currentDestination ?: when (kind) {
         QuickEntryKind.WITHDRAWAL -> state.accounts.firstOrNull { it.kind == "cash" && it.id != fromId }
-        QuickEntryKind.SAVING -> state.accounts.firstOrNull { it.kind == "savings" && it.id != fromId }
-        else -> state.accounts.firstOrNull { it.kind == "savings" && it.id != fromId }
+        QuickEntryKind.SAVING -> state.accounts.firstOrNull { it.isSavingsDestination && it.id != fromId }
+        else -> state.accounts.firstOrNull { it.isSavingsDestination && it.id != fromId }
             ?: state.accounts.firstOrNull { it.id != fromId }
     }
 
@@ -397,8 +407,13 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         if (state.kind == QuickEntryKind.WITHDRAWAL && destination.kind != "cash") {
             return state.invalid("Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών.")
         }
-        if (state.kind == QuickEntryKind.SAVING && destination.kind != "savings") {
+        if (state.kind == QuickEntryKind.SAVING && !destination.isSavingsDestination) {
             return state.invalid("Η αποταμίευση πρέπει να καταλήγει σε λογαριασμό αποταμίευσης.")
+        }
+        if (state.kind == QuickEntryKind.SAVING &&
+            state.accounts.none { it.id == state.fromAccountId && it.isSavingContributionSource }
+        ) {
+            return state.invalid("Η αποταμίευση πρέπει να ξεκινά από τραπεζικό τρεχούμενο/μισθοδοσίας.")
         }
     }
 

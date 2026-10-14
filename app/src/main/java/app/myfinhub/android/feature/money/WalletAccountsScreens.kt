@@ -53,6 +53,8 @@ import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.core.network.AccountMetadataRecord
+import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
@@ -72,9 +74,16 @@ private enum class WalletSection(val label: String) {
     DEBTS("Οφειλές"),
 }
 
+/** Same semantic account categories that drive the Web dashboard and saving eligibility. */
 internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {
-    account.canonicalKind == "savings" || account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS
-    account.excludeFromAvailable -> WalletAccountGroup.OTHER
+    account.canonicalKind == "savings" ||
+        (account.canonicalKind == "bank" && account.bankAccountCategory == "savings") ||
+        (account.bankAccountCategory == null && account.kind.contains("Αποταμί", ignoreCase = true)) ->
+        WalletAccountGroup.SAVINGS
+    account.excludeFromAvailable ||
+        account.cashRole == "reserve" || account.cashType == "reserve" ||
+        account.bankAccountCategory in setOf("term", "other") ->
+        WalletAccountGroup.OTHER
     account.canonicalKind in setOf("bank", "cash") ||
         account.kind.contains("Τράπεζ", ignoreCase = true) ||
         account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY
@@ -106,6 +115,8 @@ fun CanonicalWalletScreen(
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
     amountsVisibleOverride: Boolean? = null,
+    accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
+    accountMetadataLoaded: Boolean = false,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -165,6 +176,8 @@ fun CanonicalWalletScreen(
                     amountsVisible = amountsVisible,
                     onOpenAccount = onOpenAccount,
                     onOpenNetPosition = onOpenNetPosition,
+                    accountMetadata = accountMetadata,
+                    accountMetadataLoaded = accountMetadataLoaded,
                 )
                 WalletSection.CARDS -> walletCardsContent(
                     state = state,
@@ -263,6 +276,8 @@ private fun LazyListScope.walletAccountsContent(
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
+    accountMetadata: Map<String, AccountMetadataRecord>,
+    accountMetadataLoaded: Boolean,
 ) {
     item("available-total") {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
@@ -300,6 +315,8 @@ private fun LazyListScope.walletAccountsContent(
                     WalletAccountRow(
                         account = account,
                         amountsVisible = amountsVisible,
+                        ibanRecord = accountMetadata[account.id],
+                        accountMetadataLoaded = accountMetadataLoaded,
                         onClick = { onOpenAccount(account.id) },
                     )
                 }
@@ -341,6 +358,8 @@ private fun LazyListScope.walletAccountsContent(
 private fun WalletAccountRow(
     account: MoneyAccount,
     amountsVisible: Boolean,
+    ibanRecord: AccountMetadataRecord?,
+    accountMetadataLoaded: Boolean,
     onClick: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -366,7 +385,12 @@ private fun WalletAccountRow(
                     verticalAlignment = Alignment.Top,
                 ) {
                     WalletAccountMark(account)
-                    WalletAccountIdentity(account, Modifier.weight(1f), largeFont = true)
+                    Column(modifier = Modifier.weight(1f)) {
+                        WalletAccountIdentity(account, Modifier.fillMaxWidth(), largeFont = true)
+                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                        }
+                    }
                 }
                 MyFinHubAmountText(amountText, tone, modifier = Modifier.align(Alignment.End))
             }
@@ -377,7 +401,12 @@ private fun WalletAccountRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 WalletAccountMark(account)
-                WalletAccountIdentity(account, Modifier.weight(1f), largeFont = false)
+                Column(modifier = Modifier.weight(1f)) {
+                    WalletAccountIdentity(account, Modifier.fillMaxWidth(), largeFont = false)
+                    if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                    }
+                }
                 MyFinHubAmountText(amountText, tone)
             }
         }
@@ -407,7 +436,7 @@ private fun WalletAccountIdentity(account: MoneyAccount, modifier: Modifier, lar
 
 @Composable
 private fun WalletAccountMark(account: MoneyAccount) {
-    val provider = financialProvider(account.id, account.institution ?: account.name)
+    val provider = financialProvider(account.providerId ?: account.id, account.institution ?: account.name)
     if (provider != null) {
         MyFinHubProviderMark(provider, modifier = Modifier.size(40.dp), contentDescription = provider.institutionLabel)
     } else {

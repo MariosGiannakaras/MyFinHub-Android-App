@@ -28,6 +28,7 @@ internal fun projectQuickEntryState(
             id = account.id,
             label = account.name,
             kind = account.kind,
+            bankAccountCategory = account.bankAccountCategory,
         )
     }
     val accountIds = accountOptions.map { it.id }.toSet()
@@ -39,7 +40,7 @@ internal fun projectQuickEntryState(
         ?.takeIf(accountIds::contains)
         ?: defaultExpenseId
     val defaultDestinationId = accountOptions.firstOrNull {
-        it.kind == "savings" && it.id != defaultExpenseId
+        it.isSavingsDestination && it.id != defaultExpenseId
     }?.id ?: accountOptions.firstOrNull { it.id != defaultExpenseId }?.id.orEmpty()
 
     val cards = document.canonicalCards()
@@ -75,9 +76,14 @@ internal fun projectQuickEntryState(
     }.orEmpty()
     val selectedAccount = base.accountId.takeIf(accountIds::contains)
         ?: if (base.kind == QuickEntryKind.INCOME) defaultIncomeId else defaultExpenseId
-    val selectedFrom = base.fromAccountId.takeIf(accountIds::contains) ?: defaultExpenseId
+    val selectedFromCandidate = base.fromAccountId.takeIf(accountIds::contains) ?: defaultExpenseId
+    val selectedFrom = if (base.kind == QuickEntryKind.SAVING) {
+        accountOptions.firstOrNull {
+            it.id == selectedFromCandidate && it.isSavingContributionSource
+        }?.id ?: accountOptions.firstOrNull(QuickEntryAccountOption::isSavingContributionSource)?.id.orEmpty()
+    } else selectedFromCandidate
     val selectedTo = base.toAccountId.takeIf { it in accountIds && it != selectedFrom }
-        ?: accountOptions.firstOrNull { option -> option.kind == "savings" && option.id != selectedFrom }?.id
+        ?: accountOptions.firstOrNull { option -> option.isSavingsDestination && option.id != selectedFrom }?.id
         ?: defaultDestinationId
     val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
     val splitFallbackCategory = expenseCategories.firstOrNull()?.name ?: "Άλλο"
