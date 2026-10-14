@@ -7,8 +7,6 @@ Active tracker: issue #149 — **Deploy PureVector Android 1.0.0-rc12 via protec
 
 - [ ] On the physical Samsung Galaxy S24 Ultra, install signed 1.0.0-rc12 / versionCode 10011 in place without uninstalling. Verify package/signer continuity, existing session/PIN/biometrics, shared owner+AAL2 server card vault, canonical finance data and PureVector launcher in light/dark. Record actual device findings and explicit owner acceptance; this has not yet occurred.
 
-Future SMS import (issue #146) is explicitly deferred.
-
 ## Completed foundations
 
 - [x] Phase 6 physical acceptance and production signing enrollment
