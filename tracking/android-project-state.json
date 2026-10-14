@@ -687,7 +687,9 @@
             "title": "Home tests and shared projections",
             "acceptance": "Web↔Android fixture parity, accessible Compose/S24 real screenshots, Wallet/Quick Entry consistent account projections, exact-head CI.",
             "status": "pending",
-            "evidence": []
+            "evidence": [
+              "Separate W1.4 source PR adds shared bankAccountCategory/cashRole/cashType to Wallet projection and tests correct savings/reserve grouping; pending CI and merge."
+            ]
           }
         ]
       },

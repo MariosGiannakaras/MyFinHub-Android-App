@@ -72,9 +72,16 @@ private enum class WalletSection(val label: String) {
     DEBTS("Οφειλές"),
 }
 
+/** Same semantic account categories that drive the Web dashboard and saving eligibility. */
 internal fun walletAccountGroup(account: MoneyAccount): WalletAccountGroup = when {
-    account.canonicalKind == "savings" || account.kind.contains("Αποταμί", ignoreCase = true) -> WalletAccountGroup.SAVINGS
-    account.excludeFromAvailable -> WalletAccountGroup.OTHER
+    account.canonicalKind == "savings" ||
+        (account.canonicalKind == "bank" && account.bankAccountCategory == "savings") ||
+        (account.bankAccountCategory == null && account.kind.contains("Αποταμί", ignoreCase = true)) ->
+        WalletAccountGroup.SAVINGS
+    account.excludeFromAvailable ||
+        account.cashRole == "reserve" || account.cashType == "reserve" ||
+        account.bankAccountCategory in setOf("term", "other") ->
+        WalletAccountGroup.OTHER
     account.canonicalKind in setOf("bank", "cash") ||
         account.kind.contains("Τράπεζ", ignoreCase = true) ||
         account.kind.contains("Μετρη", ignoreCase = true) -> WalletAccountGroup.DAILY
@@ -407,7 +414,7 @@ private fun WalletAccountIdentity(account: MoneyAccount, modifier: Modifier, lar
 
 @Composable
 private fun WalletAccountMark(account: MoneyAccount) {
-    val provider = financialProvider(account.id, account.institution ?: account.name)
+    val provider = financialProvider(account.providerId ?: account.id, account.institution ?: account.name)
     if (provider != null) {
         MyFinHubProviderMark(provider, modifier = Modifier.size(40.dp), contentDescription = provider.institutionLabel)
     } else {
