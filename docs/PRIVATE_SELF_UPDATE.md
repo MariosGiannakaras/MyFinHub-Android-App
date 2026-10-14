@@ -4,11 +4,11 @@
 
 MyFinHub is privately distributed to the owner's supported Samsung Galaxy S24 Ultra and does not depend on Google Play for updates. The in-app updater is therefore an authenticated private distribution channel, not a public APK feed.
 
-The updater is auxiliary to authentication and finance synchronization. A failed update check, download or installation must never log the user out, clear the encrypted server session, reset the local PIN, or delete the device-local encrypted CVV vault.
+The updater is auxiliary to authentication and finance synchronization. A failed update check, download or installation must never log the user out, clear the encrypted server session, reset the local PIN, or alter the shared owner+AAL2 server-side card vault.
 
 ## Trust and distribution boundary
 
-Production-signed APKs must never be published as public GitHub releases or public workflow artifacts.
+Signed Android APK/AAB distribution is restricted to the explicitly owner-authorized protected production publisher. The current approved process creates an immutable public GitHub prerelease containing only the approved signed binaries, checksums and safe metadata, alongside an authenticated private Supabase update channel. Signing keys, credentials, finance/customer data and personal secrets must never be attached to public releases or ordinary workflow artifacts.
 
 The production update channel uses:
 
@@ -69,23 +69,15 @@ After Android replaces the APK and the app process restarts:
 - the encrypted stored server session remains subject to the existing session validation/refresh contract;
 - the existing local PIN enrollment remains available;
 - biometric/PIN local unlock proceeds normally;
-- the device-local encrypted CVV vault remains governed by its existing keystore/storage behavior;
+- PAN/expiry/CVV remain under the shared owner+AAL2 encrypted server card vault contract, with legacy device-local stores used only for migration when applicable;
 - email/password/TOTP are requested only when the existing server session is actually expired, revoked, invalid, or otherwise requires re-authentication.
 
 The physical Phase 6 upgrade smoke is authoritative for this continuity guarantee because hosted CI cannot reproduce the owner's production signing identity and real installed-app upgrade state.
 
-## Publishing boundary
+## Publishing boundary — current protected channel
 
-Repository implementation can prepare and test the channel before production signing exists, but it must keep the production release table/bucket empty.
+Production signing is already enrolled and must not be re-created or rotated. The only authorized publication mechanism is `.github/workflows/production-private-release.yml` using an exact-head validated open Android-owned release-source PR targeting `develop`, the guarded production request, and the protected existing signing/publisher credentials. Its versionCode must monotonically increase.
 
-Only after the physical Galaxy S24 Ultra Phase 6 acceptance passes and the owner explicitly starts the signing handoff may the release process:
+The trusted publisher signs and verifies the direct APK with the enrolled production signer, checks package and version identity, uploads bytes to the authenticated private Supabase bucket, re-reads the exact content and publishes matching metadata last. It then creates a new immutable GitHub prerelease with the same signed APK, the signed Play-compatible AAB, checksums and safe metadata. A public source repository is never a location for private signing material, access tokens or personal data.
 
-1. freeze the final `versionCode`/`versionName`;
-2. create/use the long-lived production signing identity outside the public repository;
-3. build the exact accepted production APK;
-4. calculate its exact size and SHA-256;
-5. upload the APK privately;
-6. publish matching release metadata;
-7. perform an update-over-existing-install smoke on the physical S24 Ultra.
-
-Do not publish metadata before the corresponding private APK is fully uploaded and verified. Do not replace a published version's APK bytes in place; publish a strictly newer version instead.
+Latest published candidate: `1.0.0-rc12` / `10011` (2026-10-14); last owner-accepted physical installation: `1.0.0-rc11` / `10010`. An in-place update and acceptance on the physical Galaxy S24 Ultra must be verified separately. The release process cannot itself claim session/card-data continuity on that physical device. See `docs/PRODUCTION_SIGNING_RELEASE.md`.
