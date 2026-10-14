@@ -745,7 +745,8 @@
               "Draft #176 implements Web-equivalent read-only permanent delete eligibility: active/outstanding credit cannot be purged, linked non-credit finance history preserved. Safe vault-cleanup/deletion mutation is not yet implemented.",
               "Native archive+stable-ID restore/offline replay PR #174 merged to develop 5a61dcf598af76c522df059db5396ab7680cd35a after 4/4 exact-head CI/screenshot/instrumentation/tracking checks.",
               "Read-only permanent card deletion eligibility PR #176 merged to develop 2a799a7e96e21faa7d5ee8cf291beb44fc393c1c after 4/4 exact-head checks; active credit, unsettled debt, and linked debit events are blocked.",
-              "Guarded permanent delete tombstone+pending secret cleanup offline intent source is in draft PR #177, no UI wiring or cleanup yet; archive user-facing terminology correction is draft #178. Both unmerged."
+              "Guarded permanent delete tombstone+pending secret cleanup offline intent source is in draft PR #177, no UI wiring or cleanup yet; archive user-facing terminology correction is draft #178. Both unmerged.",
+              "Draft #177 safely reanchored to post-#179 canonical tracking: reversible status unchanged 1/6 & 7/24, guarded permanent delete intent not user exposed; exact-head CI still required."
             ]
           }
         ]

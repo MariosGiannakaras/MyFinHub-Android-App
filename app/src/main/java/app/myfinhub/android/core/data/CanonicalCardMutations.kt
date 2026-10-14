@@ -140,3 +140,98 @@ data class RestoreCanonicalCard(
         )
     }
 }
+
+/**
+ * Web withCardSecretCleanupPending: removes only an eligible card profile, never
+ * its financial history or private card vault records. A durable cleanup marker
+ * remains until authenticated server AND legacy local vault deletion succeed.
+ *
+ * Not exposed to the UI until the post-commit secret-cleanup contract is validated.
+ */
+data class PermanentlyDeleteCanonicalCard(
+    val cardId: String,
+    val nowIso: String,
+    val asOf: String = nowIso.take(10),
+) : CanonicalFinanceMutation {
+    override val description: String = "Οριστική διαγραφή εξοφλημένης κάρτας"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        val id = cardId.trim()
+        require(Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$").matches(id)) {
+            "Μη έγκυρο αναγνωριστικό κάρτας."
+        }
+        val deleteDay = java.time.LocalDate.parse(asOf)
+        require(nowIso.startsWith(deleteDay.toString())) {
+            "Η ημερομηνία διαγραφής δεν συμφωνεί με την ημερομηνία ελέγχου."
+        }
+        val cards = document.state.array("cards")
+        val target = cards.mapNotNull { it as? JsonObject }.firstOrNull { it.string("id") == id }
+        if (target == null) {
+            val markerExists = document.state.array("pendingCardSecretDeletes")
+                .any { (it as? JsonPrimitive)?.content == id }
+            val tombstoneExists = document.state.array("deletedCards")
+                .any { (it as? JsonObject)?.string("id") == id &&
+                    (it as? JsonObject)?.string("kind") == "credit" }
+            require(markerExists || tombstoneExists) {
+                "Η κάρτα δεν υπάρχει για οριστική διαγραφή."
+            }
+            // Retrying the same committed intent must not create duplicate entries.
+            return document
+        }
+        val eligibility = document.assessPermanentCardDeletion(id, asOf)
+        require(eligibility.allowed) {
+            "Δεν επιτρέπεται οριστική διαγραφή: ${eligibility.blocker}"
+        }
+        // A future-dated debt must not become orphaned by an as-of deletion.
+        val latestLinkedDate = document.state.array("events")
+            .mapNotNull { it as? JsonObject }
+            .filter { event ->
+                event.string("kind") in setOf("card_purchase", "card_payment") &&
+                    (event.string("cardId") == id ||
+                        (event.string("cardId") == null &&
+                            target.string("kind") == "credit" &&
+                            document.legacyCreditOwnerForDeletion() == id))
+            }
+            .mapNotNull { it.string("date") }
+            .maxOrNull()
+        require(latestLinkedDate == null || latestLinkedDate <= asOf) {
+            "Υπάρχουν μελλοντικές συνδεδεμένες κινήσεις κάρτας."
+        }
+
+        val kept = JsonArray(cards.filterNot { (it as? JsonObject)?.string("id") == id })
+        val alreadyPending = document.state.array("pendingCardSecretDeletes")
+        val pendingSecrets = if (alreadyPending.any { (it as? JsonPrimitive)?.content == id }) {
+            alreadyPending
+        } else JsonArray(alreadyPending + JsonPrimitive(id))
+        var next = document.state
+            .updated("cards", kept)
+            .updated("pendingCardSecretDeletes", pendingSecrets)
+        if (target.string("kind") == "credit") {
+            val tombstones = document.state.array("deletedCards")
+            val createdAt = target.string("createdAt").orEmpty()
+            val tombstone = JsonObject(mapOf(
+                "id" to JsonPrimitive(id),
+                "kind" to JsonPrimitive("credit"),
+                "createdAt" to JsonPrimitive(createdAt),
+                "deletedAt" to JsonPrimitive(nowIso),
+            ))
+            next = next.updated("deletedCards", JsonArray(
+                tombstones.filterNot { (it as? JsonObject)?.string("id") == id } + tombstone
+            ))
+        }
+        return CanonicalFinanceDocument(
+            document.raw.updated("state", next)
+                .updated("updatedAt", JsonPrimitive(nowIso))
+        )
+    }
+}
+
+/** Same deleted/current oldest-credit selection as Web cards.ts, used for legacy events. */
+private fun CanonicalFinanceDocument.legacyCreditOwnerForDeletion(): String? {
+    val live = canonicalCards().filter { it.kind == "credit" }
+        .map { it.id to it.createdAt.orEmpty() }
+    val deleted = deletedCreditCardReferences().map { it.id to it.createdAt }
+    return (live + deleted).minWithOrNull(
+        compareBy<Pair<String, String>> { it.second }.thenBy { it.first }
+    )?.first
+}
