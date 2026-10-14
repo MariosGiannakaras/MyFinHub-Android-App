@@ -16,20 +16,18 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
-- Active workstream: issue #144 — Integrate platform-correct PureVector branding.
-- Workstream state: `in_progress`.
+- Last completed workstream: issue #144 — Integrate platform-correct PureVector branding.
+- Workstream state: `completed`.
 - Latest private production candidate: `1.0.0-rc11` / `10010` — `stable_accepted_promoted`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
-## Why implementation is open
+## Completed workstream outcome
 
-The owner-supplied PureVector kit and the current Android icon contract have been audited against adaptive/themed launcher and distribution requirements. The Android branding branch now converges on one canonical PureVector identity: a safe-zone standalone-symbol adaptive foreground, theme background, dedicated monochrome MF layer, compact in-app symbol/horizontal lockup resources, and a separate full-square 512×512 store-listing asset. Duplicate/mislabelled lockups and obsolete raster branding resources are excluded; package/signing identity, finance behavior, card/CVV behavior and provider/bank artwork remain unchanged.
+Completed on 2026-09-29: the owner-approved PureVector Android branding was integrated and merged to develop in PR #145; issue #144 was closed as completed. The exact PR head passed Android CI, Project Tracking, screenshot regression and S24-target instrumentation. Adaptive/themed launcher assets, compact in-app branding, true SVG masters and a separate store-listing icon are present on develop. This branding is not yet in the release-only main branch and has not been included in a new signed production release; existing rc11 remains the last physically accepted release.
 
-## Immediate work
+## Follow-up status
 
-- Validate the PureVector launcher/in-app/store asset integration with source tests, Android CI and project tracking.
-- Render and inspect the affected real Compose brand surfaces before accepting any screenshot baseline changes.
-- Merge the validated branding PR into develop and close issue #144; do not publish/sign a new production release as part of this task.
+- No active implementation tasks. SMS/notification import (issue #146) is deferred until the owner explicitly authorizes implementation.
 
 ## Constraints
 
@@ -59,7 +57,7 @@ These counts are separate from historical overall project progress. Documents do
 Working branch: `develop`. PR: 122.
 Checkpoint: `s10_complete_merged_to_develop`.
 Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: Preserve the completed redesign on develop. Stable/main promotion is a separate deliberate release decision.
+Next action: Redesign S1–S10 and physical S24 Ultra acceptance are completed; the rc11 baseline was promoted to main via PR #135. PureVector branding PR #145 is merged to develop only; a later production release is a separate explicit checkpoint.
 
 | Slice | Completed subtasks | Remaining |
 |---|---|---|

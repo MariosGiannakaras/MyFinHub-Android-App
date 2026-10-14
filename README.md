@@ -13,7 +13,7 @@ This app is intentionally developed for **one physical device only: the owner's 
 
 ## Current state
 
-Phases 0–5, the full-app 2026 Android redesign, post-review reliability hardening and synchronized server card-vault integration are complete on `develop`. Production-signed `1.0.0-rc11` / versionCode `10010` is the current post-card-vault candidate. Its hosted release gates are complete; physical Galaxy S24 Ultra acceptance remains the final gate before stable `main` promotion.
+Phases 0–5, the full-app 2026 Android redesign, post-review reliability hardening and synchronized server card-vault integration are complete and physically accepted on the supported Galaxy S24 Ultra. Production-signed `1.0.0-rc11` / versionCode `10010` is the latest accepted published candidate; its validated baseline was promoted to `main` by PR #135. The newer PureVector Android branding was validated and merged into `develop` by PR #145 on 2026-09-29, but is not yet included in `main` or a new signed release. SMS/notification transaction import is deferred in issue #146 and must not begin without a new explicit owner request.
 
 - Kotlin + Jetpack Compose
 - Material 3 + Material 3 Adaptive
