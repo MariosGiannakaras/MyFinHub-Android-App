@@ -45,13 +45,13 @@ import java.util.Locale
 fun CanonicalAccountDetailScreen(
     account: MoneyAccount?,
     activityItems: List<ActivityItem>,
-    ibanRecord: AccountMetadataRecord? = null,
-    accountMetadataLoaded: Boolean = false,
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
     onNewTransaction: () -> Unit = {},
     referenceDate: LocalDate = LocalDate.now(),
     amountsVisibleOverride: Boolean? = null,
+    ibanRecord: AccountMetadataRecord? = null,
+    accountMetadataLoaded: Boolean = false,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember(context) {
