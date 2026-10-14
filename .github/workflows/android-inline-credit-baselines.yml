@@ -1,0 +1,71 @@
+name: Reviewed W2.3 inline credit screenshot baselines
+on:
+  push:
+    branches: [android/web-parity-inline-credit-workspace-clean-20261014]
+    paths:
+      - '.github/workflows/android-inline-credit-baselines.yml'
+permissions:
+  contents: write
+concurrency:
+  group: reviewed-w2-3-inline-credit-baselines-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  reviewed-credit-references-only:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Install Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Render candidate screenshots
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+      - name: Commit only six visually reviewed W2.3 screenshot references
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money
+          inline="$base/InlineCreditCardWorkspaceScreenshotTestKt"
+          wallet="$base/WalletAccountsScreenshotTestKt"
+          files=(
+            "$inline/InlineCreditWorkspaceDarkScreenshot_inline_credit_workspace_dark_877be978_0.png"
+            "$inline/InlineCreditWorkspaceLightScreenshot_inline_credit_workspace_light_6e124b1d_0.png"
+            "$inline/InlineCreditWorkspaceLargeTypeScreenshot_inline_credit_workspace_large_type_e688d5b8_0.png"
+            "$wallet/WalletCardsDarkScreenshot_wallet_cards_dark_73ffd8d2_0.png"
+            "$wallet/WalletCardsLightScreenshot_wallet_cards_light_7ba61c12_0.png"
+            "$wallet/WalletCardsLargeFontScreenshot_wallet_cards_large_font_78193a3b_0.png"
+          )
+          for file in "${files[@]}"; do
+            test -s "$file" || { echo "Missing reviewed PNG: $file"; exit 1; }
+          done
+          git add -- "${files[@]}"
+          if git diff --cached --quiet; then
+            echo "No card screenshot updates needed"
+            exit 0
+          fi
+          count="$(git diff --cached --name-only | wc -l)"
+          if (( count > 6 )); then
+            echo "Unexpected staged screenshots ($count)"; exit 1
+          fi
+          while IFS= read -r changed; do
+            allowed=0
+            for file in "${files[@]}"; do
+              if [[ "$changed" == "$file" ]]; then allowed=1; break; fi
+            done
+            if (( allowed == 0 )); then
+              echo "Refusing to stage unexpected path: $changed"; exit 1
+            fi
+          done < <(git diff --cached --name-only)
+          git diff --cached --name-only
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(android): accept reviewed inline credit and Wallet card snapshots (#155)'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
