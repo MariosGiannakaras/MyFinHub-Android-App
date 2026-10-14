@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "New Web parity plan tracked in docs/WEB_ANDROID_RECONCILIATION_PLAN.md (6 implementations/24 subtasks); issue #155, unmerged draft PR #156. W1.1/W1.2 source is unverified. Completed new parity progress 0/6 and 0/24. Older September redesign 10/10, 40/40 is historical. rc12 issue #149 awaits separate device acceptance.",
+    "summary": "Current Web parity: 0/6 implementations, 1/24 subtasks completed. W1.1 canonical account semantics merged via PR #158 with all CI gates green. W1.2/W1.3 Home code remains draft/unmerged in PR #156 pending tests, rendered screenshot review and physical acceptance. Historical redesign 10/10 and 40/40 separate; rc12 follow-up remains issue #149.",
     "next": [
-      "Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release."
+      "Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/web-parity-home-20261014",
-    "checkpoint": "W1.1/W1.2 source in unmerged draft PR #156; verification outstanding",
+    "checkpoint": "W1.1 merged and validated (#158); W1.2/W1.3 draft #156 unmerged",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -651,10 +651,11 @@
             "id": "W1.1",
             "title": "Canonical account merge and roles",
             "acceptance": "Account overrides, custom accounts, banking/cash metadata, provider IDs and account eligibility match Web.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending.",
-              "Draft PR #156 reviewed against live Web accountSelection.ts and domain.ts: semantic slots select first quick-preferred daily cash, payroll and savings; source has tests and remains unmerged/unverified."
+              "PR #158 merged to develop (1a2ba9652e602c464010250ac9b8a39ae1fcff35).",
+              "Exact-head fea97f27969b19ea0594656b5eebf6b50acde959: Project Tracking, Android CI, screenshot regression and S24-target instrumentation passed.",
+              "CanonicalAccountMetadataParityTest covers overrides, custom deduplication, ID stability, provider/category and savings source semantics."
             ]
           },
           {
@@ -663,16 +664,18 @@
             "acceptance": "Hero is exclusively daily cash plus payroll; three slots Cash, Payroll, Savings with charts, then compact remaining accounts; no other bank or reserve in total.",
             "status": "in_progress",
             "evidence": [
-              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending.",
-              "First hosted Android CI exposed stale seven-day trend assertion; fixture assertion updated to the Web month-window range on draft PR #156. Visual screenshot baselines still require real-render validation."
+              "Unmerged source in draft PR #156; tests/screenshots/acceptance pending."
             ]
           },
           {
             "id": "W1.3",
             "title": "Chart/target/IBAN web-fidelity",
             "acceptance": "Use Web-accurate history and comparative savings charts, 30-day deltas, goal, IBAN/provider identity, period and privacy states.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "Snapshot-reanchored daily account history, 30-day deltas and month-aligned savings comparison source added to draft PR #156; golden Web fixture and screenshots not yet accepted.",
+              "Visual review of earlier rendered PR #156 Home light/dark/150% found low-contrast Piraeus mark in dark theme; requires correction before acceptance."
+            ]
           },
           {
             "id": "W1.4",
@@ -859,10 +862,10 @@
         ]
       }
     ],
-    "next_action": "Review exact-head PR #156 checks; fix W1.1/W1.2 as needed, complete Web fixture and actual rendered S24 tests, then W1.3. Update canonical tracker/generated handoff each validated checkpoint. No automatic release.",
+    "next_action": "Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 156,
-    "current_subtask": "W1.1",
+    "current_subtask": "W1.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
