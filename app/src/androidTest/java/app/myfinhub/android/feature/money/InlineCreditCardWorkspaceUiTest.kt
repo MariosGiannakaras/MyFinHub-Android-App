@@ -69,7 +69,7 @@ class InlineCreditCardWorkspaceUiTest {
         }
         composeRule.onNodeWithText("420,00", substring = true).assertDoesNotExist()
         composeRule.onNodeWithText("1.200,00", substring = true).assertDoesNotExist()
-        composeRule.onAllNodesWithText("•••• €", substring = true).onFirst().assertExists()
+        composeRule.onAllNodesWithText("•••• €", substring = true)[0].assertExists()
         composeRule.onNodeWithText("Πληρωμή κάρτας").performClick()
         composeRule.onNodeWithText("Καταχώριση αγοράς").performClick()
         assertEquals(1, pays)
