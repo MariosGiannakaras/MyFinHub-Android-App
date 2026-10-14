@@ -260,13 +260,13 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
-            val provider = financialProvider(account.id, account.name)
+            val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name)
             MoneyAccount(
                 id = account.id,
                 name = financialAccountDisplayName(account.id, account.name, account.kind),
                 balance = balances[account.id] ?: 0.0,
                 kind = accountKindLabel(account.kind),
-                institution = provider?.institutionLabel,
+                institution = provider?.institutionLabel ?: account.provider,
                 canonicalKind = account.kind,
                 excludeFromAvailable = account.excludeFromAvailable,
             )

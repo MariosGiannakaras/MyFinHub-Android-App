@@ -191,6 +191,11 @@ class CanonicalProductProjectionTest {
             .homeState.accounts.single()
         assertEquals("piraeus", account.providerId)
         assertEquals("Τράπεζα Πειραιώς", account.institution)
+        val walletAccount = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+            .moneyState.accounts.single()
+        assertEquals(account.name, walletAccount.name)
+        assertEquals(account.balance, walletAccount.balance, 0.001)
+        assertEquals(account.institution, walletAccount.institution)
         assertEquals(HomePrimaryRole.PAYROLL, account.primaryRole)
     }
 
