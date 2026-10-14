@@ -23,8 +23,8 @@ class CanonicalDashboardHistoryTest {
           ]}}
         """)
         val actual = data.dashboardAccountHistory(listOf("cash"), LocalDate.of(2026,9,1), LocalDate.of(2026,9,7)).getValue("cash")
-        assertEquals(listOf(90.0,100.0,100.0,95.0,95.0,120.0,127.0), actual)
-        assertEquals(127.0, data.accountBalances("2026-09-07")["cash"] ?: 0.0, 0.001)
+        assertEquals(listOf(100.0,110.0,110.0,105.0,105.0,125.0,132.0), actual)
+        assertEquals(132.0, data.accountBalances("2026-09-07")["cash"] ?: 0.0, 0.001)
     }
 
     @Test

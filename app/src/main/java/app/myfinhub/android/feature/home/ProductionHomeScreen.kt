@@ -386,36 +386,76 @@ private fun HomeAccountTrendChart(account: HomeAccount) {
     val comparisonColor = MaterialTheme.colorScheme.outline
     val values = account.balanceTrend
     val comparison = account.previousMonthTrend
-    val target = account.savingsTarget
+    val rawTarget = account.savingsTarget
     Canvas(
         modifier = Modifier.fillMaxWidth().height(80.dp)
             .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
     ) {
-        val all = values + comparison + listOfNotNull(target)
-        val lower = all.minOrNull() ?: 0.0
-        val upper = all.maxOrNull() ?: 1.0
-        val margin = maxOf(1.0, upper - lower) * 0.12
-        val span = (upper - lower) + 2 * margin
-        fun y(value: Double): Float = ((upper + margin - value) / span * size.height).toFloat()
-        fun drawSeries(rows: List<Double>, color: androidx.compose.ui.graphics.Color, dashed: Boolean = false) {
-            if (rows.size < 2) return
+        val original = values + comparison
+        if (values.size < 2 || original.isEmpty()) return@Canvas
+        val low = original.minOrNull() ?: 0.0
+        val high = original.maxOrNull() ?: 0.0
+        val observedSpan = maxOf(1.0, high - low)
+        // Web accountChartTarget: don't squash an entire curve for a remote target.
+        val allowance = maxOf(observedSpan * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * 0.08)
+        val target = rawTarget?.takeIf { it.isFinite() && it >= low - allowance && it <= high + allowance }
+        val all = original + listOfNotNull(target)
+        val minimum = (all.minOrNull() ?: 0.0) - observedSpan * .12
+        val maximum = (all.maxOrNull() ?: 0.0) + observedSpan * .12
+        val span = maxOf(1.0, maximum - minimum)
+        val horizontalPad = 3.dp.toPx()
+        val verticalPad = 4.dp.toPx()
+        val availableWidth = (size.width - 2 * horizontalPad).coerceAtLeast(1f)
+        val availableHeight = (size.height - 2 * verticalPad).coerceAtLeast(1f)
+        fun x(index: Int): Float =
+            horizontalPad + availableWidth * index / (values.size - 1)
+        fun y(value: Double): Float =
+            verticalPad + ((maximum - value) / span * availableHeight).toFloat()
+        val boundary = account.monthBoundaryIndex.coerceIn(0, values.lastIndex)
+        val boundaryX = x(boundary)
+        fun drawCurve(indices: IntRange, color: androidx.compose.ui.graphics.Color, dashed: Boolean = false) {
+            if (indices.count() < 2) return
             val path = Path()
-            rows.forEachIndexed { index, value ->
-                val x = size.width * index / (rows.size - 1)
-                if (index == 0) path.moveTo(x, y(value)) else path.lineTo(x, y(value))
+            indices.forEachIndexed { index, i ->
+                if (index == 0) path.moveTo(x(i), y(values[i])) else path.lineTo(x(i), y(values[i]))
             }
             drawPath(path, color, style = Stroke(
                 width = 2.6.dp.toPx(),
                 pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(8f, 6f)) else null,
             ))
         }
-        if (target != null && target in (lower - margin)..(upper + margin)) {
-            drawLine(mainColor.copy(alpha = 0.55f), androidx.compose.ui.geometry.Offset(0f, y(target)),
-                androidx.compose.ui.geometry.Offset(size.width, y(target)), strokeWidth = 1.8.dp.toPx(),
+        if (boundary > 0 && boundaryX > horizontalPad + 1f) {
+            drawLine(comparisonColor.copy(alpha = .35f),
+                androidx.compose.ui.geometry.Offset(boundaryX, 0f),
+                androidx.compose.ui.geometry.Offset(boundaryX, size.height), 1.dp.toPx())
+        }
+        if (comparison.size > 1) {
+            val chartWidth = (size.width - horizontalPad - boundaryX).coerceAtLeast(1f)
+            val line = Path()
+            comparison.forEachIndexed { index, value ->
+                val xp = boundaryX + chartWidth * index / (comparison.size - 1)
+                if (index == 0) line.moveTo(xp, y(value)) else line.lineTo(xp, y(value))
+            }
+            drawPath(line, comparisonColor, style = Stroke(2.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 5f))))
+        }
+        target?.let {
+            drawLine(mainColor.copy(alpha = .55f),
+                androidx.compose.ui.geometry.Offset(boundaryX, y(it)),
+                androidx.compose.ui.geometry.Offset(size.width - horizontalPad, y(it)),
+                strokeWidth = 1.8.dp.toPx(),
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 6f)))
         }
-        drawSeries(comparison, comparisonColor, dashed = true)
-        drawSeries(values, mainColor)
+        if (boundary > 1) drawCurve(0 until boundary, mainColor.copy(alpha = .65f))
+        if (boundary in 1 until values.size) {
+            drawLine(mainColor.copy(alpha = .75f),
+                androidx.compose.ui.geometry.Offset(x(boundary - 1), y(values[boundary - 1])),
+                androidx.compose.ui.geometry.Offset(x(boundary), y(values[boundary])),
+                strokeWidth = 2.dp.toPx())
+        }
+        drawCurve(boundary until values.size, mainColor)
+        drawCircle(mainColor, radius = 2.35.dp.toPx(),
+            center = androidx.compose.ui.geometry.Offset(x(values.lastIndex), y(values.last())))
     }
 }
 
