@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.home
 
 import android.content.Context
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +28,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -79,6 +84,8 @@ fun ProductionHomeScreen(
     }
 
     val primaryAccounts = homePrimaryAccounts(state.accounts)
+    val primaryIds = primaryAccounts.mapTo(mutableSetOf(), HomeAccount::id)
+    val secondaryAccounts = state.accounts.filterNot { it.id in primaryIds }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -130,6 +137,30 @@ fun ProductionHomeScreen(
                     onOpenQuickEntry = onOpenQuickEntry,
                 )
             }
+            item {
+                HomePrimaryAccountsSection(
+                    accounts = primaryAccounts,
+                    amountsVisible = amountsVisible,
+                    onOpenAccount = onOpenAccount,
+                )
+            }
+            if (secondaryAccounts.isNotEmpty()) {
+                item {
+                    HomeSecondaryAccountsSection(
+                        accounts = secondaryAccounts,
+                        amountsVisible = amountsVisible,
+                        onOpenAccount = onOpenAccount,
+                        onOpenAllAccounts = onOpenAllAccounts,
+                    )
+                }
+            } else {
+                item {
+                    TextButton(
+                        onClick = onOpenAllAccounts,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Όλοι οι λογαριασμοί") }
+                }
+            }
             if (state.attentionItems.isNotEmpty()) {
                 item {
                     HomeAttentionSection(
@@ -138,22 +169,14 @@ fun ProductionHomeScreen(
                     )
                 }
             }
-            item {
-                HomePrimaryAccountsSection(
-                    accounts = primaryAccounts,
-                    amountsVisible = amountsVisible,
-                    onOpenAccount = onOpenAccount,
-                    onOpenAllAccounts = onOpenAllAccounts,
-                )
-            }
         }
     }
 }
 
 internal fun homePrimaryAccounts(accounts: List<HomeAccount>): List<HomeAccount> {
-    val explicitlyPrimary = accounts.filter(HomeAccount::isPrimary)
-    val primaryIds = explicitlyPrimary.mapTo(mutableSetOf(), HomeAccount::id)
-    return (explicitlyPrimary + accounts.filterNot { it.id in primaryIds }).take(3)
+    return HomePrimaryRole.entries.mapNotNull { role ->
+        accounts.firstOrNull { it.primaryRole == role }
+    }
 }
 
 @Composable
@@ -168,12 +191,12 @@ private fun HomeAvailableSummary(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
             Text(
-                text = "Διαθέσιμα τώρα",
+                text = "Μετρητά + Μισθοδοσίας",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Μετρητά και καθημερινοί λογαριασμοί · δεν περιλαμβάνει αποταμίευση ή πίστωση",
+                text = "Μόνο καθημερινά μετρητά και λογαριασμός μισθοδοσίας · χωρίς καβάτζα, αποταμίευση ή άλλες τράπεζες",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -271,44 +294,151 @@ private fun HomePrimaryAccountsSection(
     accounts: List<HomeAccount>,
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+        Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        HomePrimaryRole.entries.forEach { role ->
+            val account = accounts.firstOrNull { it.primaryRole == role }
+            if (account == null) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text(when (role) {
+                            HomePrimaryRole.CASH -> "Μετρητά"
+                            HomePrimaryRole.PAYROLL -> "Μισθοδοσίας"
+                            HomePrimaryRole.SAVINGS -> "Αποταμιευτικός"
+                        }, style = MaterialTheme.typography.titleMedium)
+                        Text("Δεν έχει οριστεί αντίστοιχος λογαριασμός.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            } else {
+                HomePrimaryAccountCard(account, amountsVisible, onClick = { onOpenAccount(account.id) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomePrimaryAccountCard(
+    account: HomeAccount,
+    amountsVisible: Boolean,
+    onClick: () -> Unit,
+) {
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HomeAccountIdentityMark(account)
+                HomeAccountIdentity(account, Modifier.weight(1f))
+            }
+            MyFinHubAmountText(
+                if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
+                if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            if (amountsVisible && account.balanceTrend.size > 1) {
+                HomeAccountTrendChart(account)
+            } else {
+                Text("Η εξέλιξη υπολοίπου είναι κρυφή", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (account.primaryRole == HomePrimaryRole.SAVINGS) {
+                val goal = account.savingsTarget
+                val rate = account.savingsTargetRate
+                Text(
+                    text = when {
+                        goal != null -> "Στόχος: ${if (amountsVisible) formatHomeEuro(goal) else "•••• €"}"
+                        rate != null -> "Στόχος αποταμίευσης: ${(rate * 100).toInt()}% εσόδων"
+                        else -> "Δεν έχει οριστεί στόχος"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (account.previousMonthTrend.size > 1) {
+                    Text("Τρέχων μήνας · Προηγούμενος μήνας", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else {
+                account.balanceChange30d?.let { change ->
+                    Text("Μεταβολή 30 ημερών: " +
+                        if (!amountsVisible) "•••• €"
+                        else (if (change > 0) "+" else "") + formatHomeEuro(change),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            TextButton(onClick = onClick, modifier = Modifier.align(Alignment.End)) {
+                Text(if (account.primaryRole == HomePrimaryRole.SAVINGS) "Μεταφορά / Κινήσεις" else "Συναλλαγές")
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeAccountTrendChart(account: HomeAccount) {
+    val mainColor = when (account.primaryRole) {
+        HomePrimaryRole.CASH -> MaterialTheme.colorScheme.tertiary
+        HomePrimaryRole.PAYROLL -> MaterialTheme.colorScheme.secondary
+        HomePrimaryRole.SAVINGS, null -> MaterialTheme.colorScheme.primary
+    }
+    val comparisonColor = MaterialTheme.colorScheme.outline
+    val values = account.balanceTrend
+    val comparison = account.previousMonthTrend
+    val target = account.savingsTarget
+    Canvas(
+        modifier = Modifier.fillMaxWidth().height(80.dp)
+            .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
+    ) {
+        val all = values + comparison + listOfNotNull(target)
+        val lower = all.minOrNull() ?: 0.0
+        val upper = all.maxOrNull() ?: 1.0
+        val margin = maxOf(1.0, upper - lower) * 0.12
+        val span = (upper - lower) + 2 * margin
+        fun y(value: Double): Float = ((upper + margin - value) / span * size.height).toFloat()
+        fun drawSeries(rows: List<Double>, color: androidx.compose.ui.graphics.Color, dashed: Boolean = false) {
+            if (rows.size < 2) return
+            val path = Path()
+            rows.forEachIndexed { index, value ->
+                val x = size.width * index / (rows.size - 1)
+                if (index == 0) path.moveTo(x, y(value)) else path.lineTo(x, y(value))
+            }
+            drawPath(path, color, style = Stroke(
+                width = 2.6.dp.toPx(),
+                pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(8f, 6f)) else null,
+            ))
+        }
+        if (target != null && target in (lower - margin)..(upper + margin)) {
+            drawLine(mainColor.copy(alpha = 0.55f), androidx.compose.ui.geometry.Offset(0f, y(target)),
+                androidx.compose.ui.geometry.Offset(size.width, y(target)), strokeWidth = 1.8.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 6f)))
+        }
+        drawSeries(comparison, comparisonColor, dashed = true)
+        drawSeries(values, mainColor)
+    }
+}
+
+@Composable
+private fun HomeSecondaryAccountsSection(
+    accounts: List<HomeAccount>,
+    amountsVisible: Boolean,
+    onOpenAccount: (String) -> Unit,
     onOpenAllAccounts: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-        Text(
-            text = "Κύριοι λογαριασμοί",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-        if (accounts.isEmpty()) {
-            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Δεν υπάρχουν διαθέσιμοι λογαριασμοί.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        } else {
-            MyFinHubSectionCard(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(0.dp),
-            ) {
-                Column {
-                    accounts.forEachIndexed { index, account ->
-                        HomeAccountRow(
-                            account = account,
-                            amountsVisible = amountsVisible,
-                            onClick = { onOpenAccount(account.id) },
-                        )
-                        if (index != accounts.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        }
+        Text("Λοιποί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+            Column {
+                accounts.forEachIndexed { index, account ->
+                    HomeAccountRow(account, amountsVisible) { onOpenAccount(account.id) }
+                    if (index != accounts.lastIndex) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                 }
             }
         }
-        TextButton(
-            onClick = onOpenAllAccounts,
-            modifier = Modifier.align(Alignment.End),
-        ) {
+        TextButton(onClick = onOpenAllAccounts, modifier = Modifier.align(Alignment.End)) {
             Text("Όλοι οι λογαριασμοί")
         }
     }
