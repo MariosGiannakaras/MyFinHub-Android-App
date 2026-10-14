@@ -256,7 +256,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         accountOptions = activityAccountOptions,
     )
 
-    val activeCards = document.canonicalCards().filter { it.active }
+    val canonicalCardProfiles = document.canonicalCards()
+    val activeCards = canonicalCardProfiles.filter { it.active }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
@@ -273,6 +274,24 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 cashRole = account.cashRole,
                 cashType = account.cashType,
                 providerId = account.providerId,
+            )
+        },
+        archivedCards = canonicalCardProfiles.filterNot { it.active }.map { card ->
+            // Archived card identity and debt survive: secrets stay locked and absent.
+            MoneyCard(
+                id = card.id,
+                nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
+                last4 = card.last4.orEmpty(),
+                kind = cardKindLabel(card.kind),
+                currentBalance = document.creditDebtForCardAt(card.id, asOf),
+                limit = card.creditLimit,
+                vaultState = VaultState.LOCKED,
+                network = card.network.ifBlank { "VISA" },
+                bankId = card.bankId,
+                canonicalKind = card.kind,
+                designId = card.designId,
+                formFactor = card.formFactor,
+                archivedAt = card.archivedAt,
             )
         },
         creditStatementsByCard = activeCards.filter { it.kind == "credit" }

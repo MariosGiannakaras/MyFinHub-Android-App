@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity verified 1/6 implementations, 7/24 subtasks: W1 complete 4/4; W2.1 PaymentCard contract #164, W2.2 designId visual #165, W2.3 one-screen credit workspace #172 all merged after 4/4 exact-head build, screenshot, emulator and tracking checks. W2.4 native archive/restore draft #174 has open CI correction; W3.1 statement read-only foundation #169 merged but debt allocation and legacy attribution pending. Historical redesign 10/10,40/40 separate; owner physical S24 acceptance #149 unconfirmed; no release.
+Web parity 1/6 implementations · 7/24 subtasks verified. W1 and W2.1-W2.3 complete. Native archived-card restore/offline intent PR #174 merged to develop with 4/4 exact-head tests; W2.4 remains in_progress pending Web permanent-deletion and protected vault cleanup. Read-only eligibility PR #176 under CI. W3.1 statement foundation #169 merged, allocation/legacy debt incomplete. S24 physical owner signoff and production release pending.
 
 ## Immediate work
 
-- Fix PR #174 Kotlin sealed PendingCanonicalMutation when exhaustiveness by adding durable RESTORE_CARD intent codec, tests and clean develop sync; rerun all exact-head CI/screenshots/emulator. Verify archive/restore UI and secure-vault cleanup semantics before counting W2.4. Then resume W3.1 repayment allocation/legacy credit ownership. Do not release.
+- Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity verified 1/6 implementations, 7/24 subtasks: W1 complete 4/4; W2.1 Pa
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #175, branch android/web-parity-track-w2-3-20261014
-Current W2.4: W1 4/4 and W2.1-W2.3 accepted/merged; W2.4 safe archive/restore/details native draft #174 CI correction, W3.1 statement allocation/legacy attribution incomplete
+Issue #155, PR #176, branch android/web-parity-card-delete-policy-20261015
+Current W2.4: W1 4/4, W2.1-W2.3 merged; W2.4 archive/restore #174 merged/verified; safe permanent-deletion eligibility in draft #176; vault cleanup+destructive mutation pending
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Fix PR #174 Kotlin sealed PendingCanonicalMutation when exhaustiveness by adding durable RESTORE_CARD intent codec, tests and clean develop sync; rerun all exact-head CI/screenshots/emulator. Verify archive/restore UI and secure-vault cleanup semantics before counting W2.4. Then resume W3.1 repayment allocation/legacy credit ownership. Do not release.
+Next Validate exact-head PR #176 read-only Web permanent card deletion rules and merge only after all 4 checks. Then finish W2.4 with protected vault cleanup, debt-safe permanent-delete mutation, user confirmation, and screenshots; W3.1 legacy attribution/payment allocation remains separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
