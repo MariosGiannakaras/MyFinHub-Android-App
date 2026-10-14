@@ -679,7 +679,8 @@
               "Snapshot-reanchored daily account history, 30-day deltas and month-aligned savings comparison source added to draft PR #156; golden Web fixture and screenshots not yet accepted.",
               "Visual review of earlier rendered PR #156 Home light/dark/150% found low-contrast Piraeus mark in dark theme; requires correction before acceptance.",
               "Provider-ID Home/Wallet parity merged in #156. Read-only account-metadata/IBAN contract exists in draft PR #160 but is not consumed by Android Home yet.",
-              "In PR #160, owner+AAL2 native bearer GET /api/account-metadata plus IBAN checksum/redaction tests are implemented; UI consumption and full provider registry remain pending."
+              "In PR #160, owner+AAL2 native bearer GET /api/account-metadata plus IBAN checksum/redaction tests are implemented; UI consumption and full provider registry remain pending.",
+              "API PR #160 merged to develop (3bb14290f885547f59f30c873d726ecbbfc1b4fc) with all 4 CI checks green. Native in-memory IBAN Home, Wallet and AccountDetail UI source is being verified on a separate PR."
             ]
           },
           {

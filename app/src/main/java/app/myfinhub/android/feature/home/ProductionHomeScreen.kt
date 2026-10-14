@@ -40,6 +40,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.AccountIbanRow
+import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import androidx.compose.foundation.shape.RoundedCornerShape
 import app.myfinhub.android.designsystem.FinanceTone
@@ -70,6 +72,8 @@ fun ProductionHomeScreen(
     onOpenAllAccounts: () -> Unit = {},
     @Suppress("UNUSED_PARAMETER") onOpenRecent: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
+    accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
+    accountMetadataLoaded: Boolean = false,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -143,6 +147,8 @@ fun ProductionHomeScreen(
                 HomePrimaryAccountsSection(
                     accounts = primaryAccounts,
                     amountsVisible = amountsVisible,
+                    accountMetadata = accountMetadata,
+                    accountMetadataLoaded = accountMetadataLoaded,
                     onOpenAccount = onOpenAccount,
                 )
             }
@@ -295,6 +301,8 @@ private fun HomeAttentionRow(
 private fun HomePrimaryAccountsSection(
     accounts: List<HomeAccount>,
     amountsVisible: Boolean,
+    accountMetadata: Map<String, AccountMetadataRecord>,
+    accountMetadataLoaded: Boolean,
     onOpenAccount: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -314,7 +322,13 @@ private fun HomePrimaryAccountsSection(
                     }
                 }
             } else {
-                HomePrimaryAccountCard(account, amountsVisible, onClick = { onOpenAccount(account.id) })
+                HomePrimaryAccountCard(
+                    account,
+                    amountsVisible,
+                    ibanRecord = accountMetadata[account.id],
+                    accountMetadataLoaded = accountMetadataLoaded,
+                    onClick = { onOpenAccount(account.id) },
+                )
             }
         }
     }
@@ -324,6 +338,8 @@ private fun HomePrimaryAccountsSection(
 private fun HomePrimaryAccountCard(
     account: HomeAccount,
     amountsVisible: Boolean,
+    ibanRecord: AccountMetadataRecord?,
+    accountMetadataLoaded: Boolean,
     onClick: () -> Unit,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -335,6 +351,9 @@ private fun HomePrimaryAccountCard(
             ) {
                 HomeAccountIdentityMark(account)
                 HomeAccountIdentity(account, Modifier.weight(1f))
+            }
+            if (account.primaryRole != HomePrimaryRole.CASH) {
+                AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
             }
             MyFinHubAmountText(
                 if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
