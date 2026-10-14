@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity: 1/6 implementations, 5/24 subtasks completed. W1 account/Home 4/4 verified; W2.1 card metadata/lifecycle read model merged PR #164, exact-head all 4 checks green. Current W2.2 native card art PR #165 under CI; W2.3 inline credit draft #170 depends on read-only statement PR #169. No backend/production release; physical S24 owner acceptance #149 pending.",
+    "summary": "Web parity verified 1/6 implementations and 6/24 subtasks. W1 4/4 complete; W2.1 card metadata #164 and W2.2 native Web designId artwork #165 merged with all exact-head CI/screenshot/emulator checks green. W2.3 one-screen credit workspace in draft #172 pending corrected tests and visual snapshots. W3.1 statement views #169 merged as partial foundation; no release or physical S24 owner acceptance.",
     "next": [
-      "Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release."
+      "Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-track-w2-1-20261014",
-    "checkpoint": "W1 4/4 merged, W2.1 canonical PaymentCard metadata verified/merged #164, W2.2 native visual #165 under CI, W2.3 inline credit UI draft #170 depends on #169 statement views",
+    "branch": "android/web-parity-continue-cards-tracking-20261014",
+    "checkpoint": "W1 4/4; W2.1 and W2.2 accepted/merged (#164/#165), W2.3 inline credit workspace clean PR #172 tests/screenshot in correction, statement read #169 merged",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -714,9 +714,11 @@
             "id": "W2.2",
             "title": "Shared native card visual",
             "acceptance": "Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Stacked PR #165 moves native card appearance from random IDs to Web designId and semantic defaults; unmerged."
+              "PR #165 merged to Android develop 1fdc855d02572e3f059c8d85e849c936ba303c8d; exact head a8287cfce2ca11b71047d9ee67c87b68c58b5232 passed Android CI, S24 emulator instrumentation, screenshot regression and Project Tracking.",
+              "Native shared card stack selects explicit Web designId, or deterministic bank/kind/formFactor default instead of card.id-hashed skin. Native templates carry current Piraeus/Revolut/Alpha/payzy/Viva designs.",
+              "Five card-focused Compose references reviewed light/dark/150%-font and refreshed exactly. One-off screenshot refresh workflow removed before merge; no production/backend changes."
             ]
           },
           {
@@ -725,8 +727,8 @@
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
             "status": "in_progress",
             "evidence": [
-              "PR #170 re-anchored after merged read-only credit statements #169, preserving Web card model from #164. One-screen Wallet card workspace with statement, debt/limit, actions and activities, plus Compose tests; not yet accepted until full CI and screenshots.",
-              "Clean develop-based PR supersedes stacked #170 after statement PR #169 merged; exact-head tests and screenshot review pending."
+              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged.",
+              "Develop-based #172 includes in-context debit/credit workspace plus light/dark/150% screenshot previews and Compose tests. Android CI and reviewed reference updates are not yet accepted."
             ]
           },
           {
@@ -747,10 +749,10 @@
             "id": "W3.1",
             "title": "Statement cycle and historical debt",
             "acceptance": "Statement open/closed/due/paid, allocation, legacy card ID ownership and accurate card debt parity.",
-            "status": "pending",
+            "status": "in_progress",
             "evidence": [
               "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes.",
-              "PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 with 4 exact-head checks successful. W3.1 still partial: allocation and legacy card debt ownership remain open."
+              "Read-only Web statement views/status/as-of/unlinked projection PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 after four exact-head checks passed. W3.1 remains partial pending legacy card attribution and payment allocation acceptance."
             ]
           },
           {
@@ -882,10 +884,10 @@
         ]
       }
     ],
-    "next_action": "Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release.",
+    "next_action": "Resume W2.3 in clean draft PR #172: fix instrumented Compose test assertion, re-anchor to newest develop after #165, review and update only 3 changed Wallet-card screenshots, verify full exact-head CI/emulator and merge. Then W2.4 restore/archive/secure/card actions acceptance. W3.1 remains partial pending allocation/legacy debt.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 171,
-    "current_subtask": "W2.2",
+    "pr": 173,
+    "current_subtask": "W2.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
