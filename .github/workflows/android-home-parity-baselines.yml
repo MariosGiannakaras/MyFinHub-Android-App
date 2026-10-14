@@ -34,25 +34,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          references=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt
-          git add -A -- "$references"/ProductionHome*.png
-          # Snackbar reference includes the Home behind the notice; its old baseline is
-          # stale for this approved account-first layout. The notice itself is unchanged.
-          git add -A -- app/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png
+          home=app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/home/ProductionHomeScreenshotTestKt
+          snackbar=app/src/screenshotTestDebug/reference/app/myfinhub/android/app/UserNoticeScreenshotTestKt/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png
+          git add -A -- "$home"/ProductionHome*.png "$snackbar"
           if git diff --cached --quiet; then
-            echo "No Home screenshot baseline changed."
+            echo "No relevant screenshot baseline changed."
             exit 0
           fi
+          while IFS= read -r changed; do
+            case "$changed" in
+              "$home"/ProductionHome*.png|"$snackbar") ;;
+              *) echo "Refusing unexpected staged change: $changed"; exit 1 ;;
+            esac
+          done < <(git diff --cached --name-only)
           git diff --cached --name-only
-          if git diff --cached --name-only | grep -vE '^app/src/screenshotTestDebug/reference/app/myfinhub/android/(feature/home/ProductionHomeScreenshotTestKt/ProductionHome.*|app/UserNoticeScreenshotTestKt/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0)\.png; then
-            echo "Refusing unexpected staged changes."
-            exit 1
-          fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(android): update reviewed Home-only Compose screenshot references (#155)'
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-; then
-            echo "Refusing unexpected staged changes."
-            exit 1
-          fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(android): update reviewed Home-only Compose screenshot references (#155)'
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(android): update reviewed Home and snackbar references (#155)'
           git push origin "HEAD:${GITHUB_REF_NAME}"
