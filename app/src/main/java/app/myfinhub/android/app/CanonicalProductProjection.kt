@@ -134,7 +134,8 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val savingsAccounts = accounts.filter { it.isSavingsAccount() }
     val savingsGoal = if (savingsAccounts.size == 1) {
         document.state.array("savingsGoals").mapNotNull { (it as? JsonObject)?.number("targetAmount") }
-            .firstOrNull { it.isFinite() && it > 0 }
+            .filter { it.isFinite() && it > 0.0 }
+            .singleOrNull()
     } else null
     val savingsRate = document.settingsObject().number("savingsTargetRate") ?: 0.2
     val rawHomeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
