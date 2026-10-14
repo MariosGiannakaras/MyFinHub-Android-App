@@ -9,12 +9,12 @@
   "authoritative_branch": "develop",
   "release_branch": "main",
   "active_workstream": {
-    "issue": 149,
-    "title": "Deploy PureVector Android 1.0.0-rc12 via protected production release",
+    "issue": 155,
+    "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Protected production deployment was completed on 2026-10-14 using validated immutable PR #150 source 0e438e1d9ca1365637edfc907e2f210b23bfedae, signed with the enrolled production identity and published as GitHub prerelease v1.0.0-rc12 / versionCode 10011 and via the authenticated private updater (protected run 38552478100, success). On 2026-10-14 the owner reported that rc12 was installed on the supported Galaxy S24 Ultra. Detailed in-place-upgrade, session/PIN/biometric, finance/card-vault and PureVector device checks and explicit product acceptance have not been reported, so the release remains installed_pending_functional_acceptance. PR #150 was closed without merge, and main/develop were synchronized via merged PRs #151/#152. SMS/notification import issue #146 remains strictly future-only.",
+    "summary": "Owner approved the new Web↔Android finance reconciliation on 2026-10-14 (issue #155). The android/web-parity-home-20261014 branch contains an initial implementation of web-semantic account identity, strict daily-cash+payroll-only Home total, separate primary account history charts and secondary accounts. This code is unmerged and has not yet passed new CI, rendered screenshot review or physical S24 validation; card, statement and wider finance parity remain open. The rc12 physical-install follow-up stays independently owned by issue #149.",
     "next": [
-      "Owner has reported successful installation of signed rc12 / versionCode 10011 on the supported physical Galaxy S24 Ultra. Record post-install smoke and explicit owner acceptance: confirm whether the install was an in-place update without uninstall/data clearing, retention of the existing server session and PIN/biometric enrollment, correct canonical finance and owner+AAL2 card-vault state, and PureVector adaptive/themed launcher appearance in light/dark. Do not infer these checks from installation alone."
+      "Validate the current Home/account checkpoint with unit tests, compilation, exact-head Android CI and real rendered S24 screenshots; correct any regressions. Then deliver shared card/credit/statement parity and remaining finance/recurring/forecast/provider/settings reconciliation as verified checkpoints under issue #155. Do not release until explicitly authorized. Issue #149 remains open for rc12 physical acceptance; SMS/notification import #146 stays deferred."
     ]
   },
   "latest_production_candidate": {
@@ -96,7 +96,7 @@
     "current_slice": "Complete",
     "checkpoint": "s10_complete_merged_to_develop",
     "blockers": [],
-    "next_action": "Redesign S1–S10 (40/40) and earlier rc11 acceptance remain complete. The signed, same-signer PureVector rc12/10011 was published and owner-reported installed on the Galaxy S24 Ultra on 2026-10-14; post-install continuity, canonical finance/card-vault, launcher and explicit product acceptance remain to be confirmed in issue #149. main/develop source and tracking are synchronized. SMS/notification import #146 remains deferred until explicitly authorized.",
+    "next_action": "September redesign S1–S10 (40/40) remains historical and complete. The separate new owner-approved Web-parity workstream is issue #155 and reconciliation_workstream; prior completion counts do not establish Web parity. Signed rc12 physical acceptance remains pending under issue #149. SMS/notification import issue #146 remains deferred.",
     "completion_rule": "Each of ten slices has four evidence-backed subtasks. All four must complete for the slice to count. S10 includes physical owner acceptance. Keep preparation separate and preserve historical overall 4/6 until genuine project acceptance.",
     "preparation": [
       {
@@ -630,5 +630,52 @@
         }
       ]
     }
-  ]
+  ],
+  "reconciliation_workstream": {
+    "issue": 155,
+    "branch": "android/web-parity-home-20261014",
+    "checkpoint": "home_accounts_source_committed_unverified",
+    "status": "in_progress",
+    "owner_decisions": [
+      "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
+      "Three web-semantic primary accounts each have a chart, followed by simple secondary account rows",
+      "Cards and credit use one web-parity PaymentCard identity and integrated credit workspace"
+    ],
+    "stages": [
+      {
+        "id": "W1",
+        "title": "Account identity, Home semantics and charts",
+        "status": "in_progress",
+        "evidence": [
+          "Code committed on branch; exact-head CI, rendered screenshot and physical validation pending"
+        ]
+      },
+      {
+        "id": "W2",
+        "title": "Shared payment cards and integrated credit statements workspace",
+        "status": "pending"
+      },
+      {
+        "id": "W3",
+        "title": "Card payment and transaction validation/rule parity",
+        "status": "pending"
+      },
+      {
+        "id": "W4",
+        "title": "Recurring, savings, budgets, forecast and remaining domain parity",
+        "status": "pending"
+      },
+      {
+        "id": "W5",
+        "title": "Provider metadata, finance API and privacy/security parity",
+        "status": "pending"
+      },
+      {
+        "id": "W6",
+        "title": "Cross-client fixture, UI screenshot and physical acceptance",
+        "status": "pending"
+      }
+    ],
+    "next_action": "Validate the current Home/account checkpoint with unit tests, compilation, exact-head Android CI and real rendered S24 screenshots; correct any regressions. Then deliver shared card/credit/statement parity and remaining finance/recurring/forecast/provider/settings reconciliation as verified checkpoints under issue #155. Do not release until explicitly authorized. Issue #149 remains open for rc12 physical acceptance; SMS/notification import #146 stays deferred."
+  }
 }

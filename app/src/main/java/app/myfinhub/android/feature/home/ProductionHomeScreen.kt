@@ -191,7 +191,7 @@ private fun HomeAvailableSummary(
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
             Text(
-                text = "Μετρητά + Μισθοδοσίας",
+                text = "Διαθέσιμα τώρα",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
