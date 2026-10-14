@@ -10,10 +10,11 @@ data class HomeUiState(
     val quickEntryOpen: Boolean = false,
     val selectedQuickEntryType: HomeQuickEntryType? = null,
 ) {
+    /** Owner-defined Home headline, not the portfolio's available-money balance. */
     val liquidTotal: Double
-        get() = accounts
-            .filter { account -> account.group == HomeAccountGroup.LIQUID }
-            .sumOf(HomeAccount::balance)
+        get() = accounts.filter {
+            it.primaryRole == HomePrimaryRole.CASH || it.primaryRole == HomePrimaryRole.PAYROLL
+        }.sumOf(HomeAccount::balance)
 }
 
 data class HomeAccount(
@@ -25,7 +26,16 @@ data class HomeAccount(
     val isPrimary: Boolean = false,
     val balanceTrend: List<Double> = listOf(balance, balance),
     val institution: String? = null,
+    val providerId: String? = null,
+    val primaryRole: HomePrimaryRole? = null,
+    val balanceChange30d: Double? = null,
+    val monthBoundaryIndex: Int = 0,
+    val previousMonthTrend: List<Double> = emptyList(),
+    val savingsTarget: Double? = null,
+    val savingsTargetRate: Double? = null,
 )
+
+enum class HomePrimaryRole { CASH, PAYROLL, SAVINGS }
 
 enum class HomeAccountGroup {
     LIQUID,
@@ -121,6 +131,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 185.40,
             group = HomeAccountGroup.LIQUID,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.CASH,
             balanceTrend = listOf(164.20, 176.80, 153.40, 194.10, 188.60, 181.20, 185.40),
         ),
         HomeAccount(
@@ -130,6 +141,7 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 2_465.80,
             group = HomeAccountGroup.LIQUID,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.PAYROLL,
             balanceTrend = listOf(2_128.40, 2_094.20, 2_028.70, 1_962.10, 1_884.00, 2_512.30, 2_465.80),
             institution = "Τράπεζα Πειραιώς",
         ),
@@ -140,8 +152,17 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             balance = 6_240.00,
             group = HomeAccountGroup.SAVINGS,
             isPrimary = true,
+            primaryRole = HomePrimaryRole.SAVINGS,
             balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
             institution = "Τράπεζα Πειραιώς",
+            savingsTarget = 7_000.0,
+            savingsTargetRate = 0.2,
+            previousMonthTrend = listOf(
+                5_840.0, 5_860.0, 5_850.0, 5_885.0, 5_900.0, 5_940.0, 5_975.0,
+                6_000.0, 5_985.0, 6_030.0, 6_050.0, 6_040.0, 6_070.0, 6_100.0,
+                6_120.0, 6_130.0, 6_150.0, 6_140.0, 6_170.0, 6_200.0, 6_215.0,
+                6_220.0, 6_240.0,
+            ),
         ),
         HomeAccount(
             id = "revolut-main",

@@ -46,15 +46,20 @@ class HomeUiStateTest {
     }
 
     @Test
-    fun primaryAccounts_fillRemainingSlotsWithoutDuplicatingExplicitChoices() {
-        val accounts = syntheticHomeUiState().accounts.mapIndexed { index, account ->
-            account.copy(isPrimary = index == 1)
-        }
+    fun homeHeadlineIncludesOnlyDailyCashAndPayroll() {
+        val original = syntheticHomeUiState()
+        assertEquals(2651.20, original.liquidTotal, 0.001)
+        val otherBank = HomeAccount("other", "Άλλη τράπεζα", "Τρεχούμενος", 99999.0, HomeAccountGroup.LIQUID)
+        val reserve = HomeAccount("reserve", "Καβάτζα", "Μετρητά", 8000.0, HomeAccountGroup.LIQUID)
+        assertEquals(original.liquidTotal,
+            original.copy(accounts = original.accounts + otherBank + reserve).liquidTotal, 0.001)
+    }
 
+    @Test
+    fun primaryAccountsPreserveSemanticSlotsWithoutFallingBackToOtherBanks() {
+        val accounts = syntheticHomeUiState().accounts
+            .filterNot { it.primaryRole == HomePrimaryRole.PAYROLL }
         val primary = homePrimaryAccounts(accounts)
-
-        assertEquals(3, primary.size)
-        assertEquals(accounts[1].id, primary.first().id)
-        assertEquals(3, primary.map(HomeAccount::id).distinct().size)
+        assertEquals(listOf("cash", "piraeus-savings"), primary.map(HomeAccount::id))
     }
 }

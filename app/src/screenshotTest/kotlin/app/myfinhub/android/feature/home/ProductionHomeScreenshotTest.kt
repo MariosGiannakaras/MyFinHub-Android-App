@@ -47,6 +47,20 @@ private fun ProductionHomeFixture(darkTheme: Boolean) {
 }
 
 @PreviewTest
+@Preview(name = "production_home_full_accounts_light", widthDp = 412, heightDp = 1680, showBackground = true)
+@Composable
+fun ProductionHomeAllAccountsLightScreenshot() {
+    ProductionHomeFixture(darkTheme = false)
+}
+
+@PreviewTest
+@Preview(name = "production_home_full_accounts_dark", widthDp = 412, heightDp = 1680, showBackground = true)
+@Composable
+fun ProductionHomeAllAccountsDarkScreenshot() {
+    ProductionHomeFixture(darkTheme = true)
+}
+
+@PreviewTest
 @Preview(name = "home_attention_detail_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 fun HomeAttentionDetailLightScreenshot() {

@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.canonicalFixture
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
+import app.myfinhub.android.feature.home.HomePrimaryRole
 import app.myfinhub.android.feature.money.canonicalCreditOutstanding
 import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
@@ -69,7 +70,8 @@ class CanonicalProductProjectionTest {
 
         assertEquals(2, projection.homeState.accounts.size)
         assertEquals(1_155.0, projection.homeState.accounts.first { it.id == "acc-main" }.balance, 0.001)
-        assertEquals(7, projection.homeState.accounts.first { it.id == "acc-main" }.balanceTrend.size)
+        // Secondary account rows do not build or display Home chart series.
+        assertTrue(projection.homeState.accounts.first { it.id == "acc-main" }.balanceTrend.isEmpty())
         assertEquals(200.0, projection.homeState.monthFlow.income, 0.001)
         assertEquals(155.0, projection.homeState.monthFlow.expense, 0.001)
         assertEquals(800.0, projection.homeState.monthFlow.budget, 0.001)
@@ -148,6 +150,86 @@ class CanonicalProductProjectionTest {
         assertEquals("2026-09-13", projection.moneyState.asOfDate)
     }
 
+    @Test
+    fun homeUsesAccountMetadataNotHardcodedIdsAndIncludesCustomAccountsOnlyAsSecondary() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[
+            {"id":"wallet","kind":"cash","cashRole":"daily","name":"Cash"},
+            {"id":"bank-main","kind":"bank","bankAccountCategory":"current","name":"Current"},
+            {"id":"save","kind":"bank","bankAccountCategory":"savings","name":"Savings"}
+          ],"snapshots":[{"date":"2026-10-01","balances":{
+            "wallet":100,"bank-main":200,"save":300,"reserve":400,"extra":500
+          }}]},
+          "state":{"settings":{
+            "accountOverrides":{"bank-main":{"bankAccountCategory":"payroll"}},
+            "customAccounts":[
+              {"id":"reserve","name":"Καβάτζα","kind":"cash","cashRole":"reserve"},
+              {"id":"extra","name":"Other bank","kind":"bank","bankAccountCategory":"current"}
+            ],
+            "savingsTargetRate":0.15
+          },"savingsGoals":[{"id":"goal","name":"Στόχος","targetAmount":1000}]}}
+        """.trimIndent()).jsonObject)
+        val projected = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+        assertEquals(listOf("wallet", "bank-main", "save", "reserve", "extra"),
+            projected.homeState.accounts.map { it.id })
+        assertEquals(300.0, projected.homeState.liquidTotal, 0.001)
+        assertEquals(1000.0, projected.homeState.accounts[2].savingsTarget ?: 0.0, 0.001)
+        assertTrue(projected.homeState.accounts[2].previousMonthTrend.isNotEmpty())
+        assertEquals(300.0, projected.moneyState.savingsCurrent, 0.001)
+    }
+
+
+    @Test
+    fun homeProviderIdentityUsesWebProviderIdNotAccountIdGuessing() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[
+              {"id":"salary-custom-42","name":"Salary","kind":"bank","providerId":"piraeus","bankAccountCategory":"payroll"}
+          ],"snapshots":[{"date":"2026-10-01","balances":{"salary-custom-42":320}}]},
+          "state":{}}
+        """.trimIndent()).jsonObject)
+        val account = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+            .homeState.accounts.single()
+        assertEquals("piraeus", account.providerId)
+        assertEquals("Τράπεζα Πειραιώς", account.institution)
+        val walletAccount = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+            .moneyState.accounts.single()
+        assertEquals(account.name, walletAccount.name)
+        assertEquals(account.balance, walletAccount.balance, 0.001)
+        assertEquals(account.institution, walletAccount.institution)
+        assertEquals(HomePrimaryRole.PAYROLL, account.primaryRole)
+    }
+
+    @Test
+    fun multipleSavingsGoalsDoNotArbitrarilySelectOne() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[
+              {"id":"wallet","kind":"cash","cashRole":"daily","name":"Cash"},
+              {"id":"save","kind":"bank","bankAccountCategory":"savings","name":"Savings"}
+            ],"snapshots":[{"date":"2026-10-01","balances":{"wallet":100,"save":300}}]},
+           "state":{"savingsGoals":[
+             {"id":"a","name":"First","targetAmount":1000},
+             {"id":"b","name":"Second","targetAmount":2000}
+           ]}}
+        """.trimIndent()).jsonObject)
+        val view = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+        assertNull(view.homeState.accounts.first { it.id == "save" }.savingsTarget)
+    }
+
+    @Test
+    fun semanticHomeNeverSubstitutesOtherBankForAbsentPayroll() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[
+              {"id":"cash","kind":"cash","cashRole":"daily","name":"Cash"},
+              {"id":"other","kind":"bank","bankAccountCategory":"current","name":"Other"},
+              {"id":"save","kind":"bank","bankAccountCategory":"savings","name":"Savings"}
+            ],"snapshots":[{"date":"2026-10-01","balances":{"cash":20,"other":9000,"save":8000}}]},
+           "state":{}}
+        """.trimIndent()).jsonObject)
+        val view = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 14))
+        assertEquals(20.0, view.homeState.liquidTotal, 0.001)
+        assertEquals(listOf("cash", "save", "other"), view.homeState.accounts.map { it.id })
+        assertNull(view.homeState.accounts.first { it.id == "other" }.primaryRole)
+    }
     @Test
     fun reprojection_preservesEphemeralUiChoicesButReplacesFinanceData() {
         val original = projectCanonicalProduct(canonicalFixture(), LocalDate.of(2026, 8, 23))
