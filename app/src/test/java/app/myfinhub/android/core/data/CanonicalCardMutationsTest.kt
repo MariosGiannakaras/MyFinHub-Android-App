@@ -40,6 +40,7 @@ class CanonicalCardMutationsTest {
         val stored = twice.state.array("cards").single() as JsonObject
 
         assertFalse(stored.bool("active") ?: true)
+        assertEquals("2026-08-23T19:30:00Z", stored.string("archivedAt"))
         assertEquals("preserve-me", stored.string("unknownCardField"))
         assertEquals("2026-08-23T19:30:00Z", stored.string("updatedAt"))
         assertEquals(1, twice.state.array("cards").size)
@@ -86,6 +87,35 @@ class CanonicalCardMutationsTest {
     @Test(expected = IllegalArgumentException::class)
     fun createCard_rejectsMalformedLast4() {
         CreateCanonicalCard("new", "issuer", "Name", "debit", "visa", "physical", "12x4", null, "2026-09-04T20:00:00Z")
+            .apply(canonicalFixture())
+    }
+
+    @Test
+    fun restoreArchivedCard_preservesHistoryAndClearsArchivedAtWithoutRestoringSecrets() {
+        val created = CreateCanonicalCard(
+            cardId = "pay-credit", bankId = "piraeus", nickname = "Visa",
+            kind = "credit", network = "visa", formFactor = "physical",
+            last4 = "1234", creditLimit = 900.0, nowIso = "2026-10-01T09:00:00Z",
+        ).apply(canonicalFixture())
+        val archived = DeactivateCanonicalCard("pay-credit", "2026-10-02T09:00:00Z").apply(created)
+        val archivedItem = archived.state.array("cards").single() as JsonObject
+        assertFalse(archivedItem.bool("active") ?: true)
+        assertEquals("2026-10-02T09:00:00Z", archivedItem.string("archivedAt"))
+        val restored = RestoreCanonicalCard("pay-credit", "2026-10-03T09:00:00Z").apply(archived)
+        val twice = RestoreCanonicalCard("pay-credit", "2026-10-04T09:00:00Z").apply(restored)
+        val item = twice.state.array("cards").single() as JsonObject
+        assertTrue(item.bool("active") == true)
+        assertEquals(null, item.string("archivedAt"))
+        assertEquals("2026-10-03T09:00:00Z", item.string("updatedAt"))
+        assertEquals("1234", item.string("last4"))
+        assertEquals("2026-10-01T09:00:00Z", item.string("createdAt"))
+        assertEquals(1, twice.canonicalCards().count { it.id == "pay-credit" && it.active })
+        assertTrue(item.keys.none { it.lowercase() in setOf("pan", "cvv", "cvc", "expiry") })
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun restoreNeverResurrectsPermanentlyDeletedOrUnknownCardId() {
+        RestoreCanonicalCard("deleted-card", "2026-10-14T00:00:00Z")
             .apply(canonicalFixture())
     }
 

@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity verified 1/6 implementations, 7/24 subtasks: W1 complete 4/4; W2.1 PaymentCard contract #164, W2.2 designId visual #165, W2.3 one-screen credit workspace #172 all merged after 4/4 exact-head build, screenshot, emulator and tracking checks. W2.4 native archive/restore draft #174 has open CI correction; W3.1 statement read-only foundation #169 merged but debt allocation and legacy attribution pending. Historical redesign 10/10,40/40 separate; owner physical S24 acceptance #149 unconfirmed; no release.
+Current Web parity 1/6 implementations, 7/24 subtasks verified. W1 complete, W2.1-2.3 merged (#164/#165/#172). W2.4 native archived card restoration/offline mutation source reintegrated with latest develop in PR #174; unmerged, exact-head tests pending. W3.1 read-only statement model #169 merged but debt allocation/legacy ownership remain partial. No backend change, release or owner S24 signoff.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Fix PR #174 Kotlin sealed PendingCanonicalMutation when exhaustiveness by adding durable RESTORE_CARD intent codec, tests and clean develop sync; rerun all exact-head CI/screenshots/emulator. Verify archive/restore UI and secure-vault cleanup semantics before counting W2.4. Then resume W3.1 repayment allocation/legacy credit ownership. Do not release.
+1. Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #175, branch android/web-parity-track-w2-3-20261014
-Current W2.4: W1 4/4 and W2.1-W2.3 accepted/merged; W2.4 safe archive/restore/details native draft #174 CI correction, W3.1 statement allocation/legacy attribution incomplete
+Issue #155, PR #174, branch android/web-parity-card-archive-restore-20261014
+Current W2.4: W2.3 merged (7/24); W2.4 original PR #174 integrated onto post-#172/#175 develop with offline restore/archive source, exact-head CI pending
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Fix PR #174 Kotlin sealed PendingCanonicalMutation when exhaustiveness by adding durable RESTORE_CARD intent codec, tests and clean develop sync; rerun all exact-head CI/screenshots/emulator. Verify archive/restore UI and secure-vault cleanup semantics before counting W2.4. Then resume W3.1 repayment allocation/legacy credit ownership. Do not release.
+Next Run exact-head PR #174 Android CI, unit and emulator restored-card UI tests, screenshot regression, and validate vault isolation/permanent deletion/credit debt history. Fix any failures, merge only after 4/4 checks green; then mark W2.4 completed and W2 2/6 implementation, 8/24 subtasks. Do not release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -99,6 +99,7 @@ data class DeactivateCanonicalCard(
 
         val updatedCard = current
             .updated("active", JsonPrimitive(false))
+            .updated("archivedAt", JsonPrimitive(nowIso))
             .updated("updatedAt", JsonPrimitive(nowIso))
         val updatedCards = cards.toMutableList().apply { this[index] = updatedCard }
         val updatedState = document.state.updated("cards", JsonArray(updatedCards))
@@ -106,6 +107,35 @@ data class DeactivateCanonicalCard(
         return CanonicalFinanceDocument(
             document.raw
                 .updated("state", updatedState)
+                .updated("updatedAt", JsonPrimitive(nowIso)),
+        )
+    }
+}
+/**
+ * Web restoreCard parity: reactivate an archived profile using its stable ID.
+ * Archive timestamps are cleared but accounting history, unknown Web fields and
+ * the unchanged vault isolation policy remain intact. PAN/CVV are never restored.
+ */
+data class RestoreCanonicalCard(
+    val cardId: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Επαναφορά αρχειοθετημένης κάρτας"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(cardId.isNotBlank()) { "Απαιτείται αναγνωριστικό κάρτας." }
+        val cards = document.state.array("cards")
+        val index = cards.indexOfFirst { raw -> (raw as? JsonObject)?.string("id") == cardId }
+        require(index >= 0) { "Η κάρτα δεν είναι διαθέσιμη για επαναφορά." }
+        val current = cards[index] as? JsonObject ?: error("Η κάρτα δεν είναι έγκυρη.")
+        if (current.bool("active") != false) return document
+        val restored = JsonObject(current - "archivedAt")
+            .updated("active", JsonPrimitive(true))
+            .updated("updatedAt", JsonPrimitive(nowIso))
+        val updatedCards = cards.toMutableList().apply { this[index] = restored }
+        return CanonicalFinanceDocument(
+            document.raw
+                .updated("state", document.state.updated("cards", JsonArray(updatedCards)))
                 .updated("updatedAt", JsonPrimitive(nowIso)),
         )
     }
