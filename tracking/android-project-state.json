@@ -689,7 +689,8 @@
             "status": "in_progress",
             "evidence": [
               "Wallet semantic account grouping #163 merged ca15a894032614cbd1a778c48a998aedc5881dc5; exact-head CI, screenshots, and instrumented checks succeeded.",
-              "Open W1.4: expand golden Web/Android fixtures across Home, Wallet and Quick Entry, combined-source checks and accessibility review."
+              "Open W1.4: expand golden Web/Android fixtures across Home, Wallet and Quick Entry, combined-source checks and accessibility review.",
+              "Draft cross-surface PR fixes Quick Entry savings destination/source selection and validation for bankAccountCategory=savings and tests Home+Wallet+Quick Entry deterministic fixtures; CI pending."
             ]
           }
         ]
