@@ -736,7 +736,8 @@
             "acceptance": "In-context purchase/payment, safe archive/restore/delete, card picker, secure vault only on protected view, navigation and screenshot tests.",
             "status": "in_progress",
             "evidence": [
-              "Draft PR introduces Web-equivalent archive timestamp and restore-by-stable-card-ID mutation, with idempotency/history/secret-isolation regression tests. Native archived-list UI and secure action acceptance remain pending; no code merged."
+              "Draft PR introduces Web-equivalent archive timestamp and restore-by-stable-card-ID mutation, with idempotency/history/secret-isolation regression tests. Native archived-list UI and secure action acceptance remain pending; no code merged.",
+              "Draft PR #174 also projects archived card identities into Wallet and wires a native restore action to a validated canonical mutation through Root/ViewModel; secrets stay locked. UI and exact-head CI still unverified."
             ]
           }
         ]

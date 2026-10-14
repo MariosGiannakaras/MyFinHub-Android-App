@@ -133,6 +133,7 @@ internal fun MyFinHubAppContent(
     },
     onRetryCardSecretCleanup: (String) -> Unit = {},
     onDeleteCard: (String) -> Unit = {},
+    onRestoreCard: (String) -> Unit = {},
     onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
@@ -336,6 +337,7 @@ internal fun MyFinHubAppContent(
                         cardSecretState = cardSecretState,
                         onCardActiveChanged = onCardDetailOpened,
                         onDeleteCard = onDeleteCard,
+                        onRestoreCard = onRestoreCard,
                         onOpenLoans = { moneyBackStack.pushIfNew(AppRoute.Loans) },
                         onOpenLending = { moneyBackStack.pushIfNew(AppRoute.Lending) },
                     )

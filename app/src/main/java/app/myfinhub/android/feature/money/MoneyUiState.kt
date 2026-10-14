@@ -93,6 +93,7 @@ data class LendingItem(
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = emptyList(),
     val cards: List<MoneyCard> = emptyList(),
+    val archivedCards: List<MoneyCard> = emptyList(),
     val savingsGoal: Double? = null,
     val savingsCurrent: Double = 0.0,
     val loanOutstanding: Double = 0.0,
