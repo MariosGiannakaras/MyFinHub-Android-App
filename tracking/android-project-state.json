@@ -739,7 +739,8 @@
             "acceptance": "In-context purchase/payment, safe archive/restore/delete, card picker, secure vault only on protected view, navigation and screenshot tests.",
             "status": "in_progress",
             "evidence": [
-              "Draft #174 implements archivedAt and native archived-card restore action but currently fails Kotlin sealed mutation exhaustiveness; fix durable pending restore serialization and test before merge."
+              "Draft #174 implements archivedAt and native archived-card restore action but currently fails Kotlin sealed mutation exhaustiveness; fix durable pending restore serialization and test before merge.",
+              "Separate draft read-only Web permanent card deletion eligibility policy tests (archive-first credit, no outstanding debt, preserve linked finance history) under review; does not execute destructive deletion or vault cleanup."
             ]
           }
         ]
