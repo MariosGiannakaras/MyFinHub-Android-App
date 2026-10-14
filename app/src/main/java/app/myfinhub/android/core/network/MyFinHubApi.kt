@@ -8,6 +8,10 @@ import app.myfinhub.android.core.data.CanonicalWriteReceipt
 interface MyFinHubApi {
     suspend fun loadFinanceData(session: AuthSession): ApiResult<CanonicalFinanceEnvelope>
 
+    /** Owner-scoped read-only account metadata: IBAN is never part of FinanceData or on-disk cache. */
+    suspend fun loadAccountMetadata(session: AuthSession): ApiResult<Map<String, AccountMetadataRecord>> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,

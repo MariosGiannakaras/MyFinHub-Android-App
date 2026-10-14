@@ -54,8 +54,8 @@ Web parity: 0/6 implementations · 2/24 subtasks completed. W1.1 (accounts) merg
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #156, branch android/web-parity-home-20261014
-Current W1.3: W1.1 and W1.2 merged to develop; W1.3 account IBAN/visual and provider parity pending; W1.4 not started
+Issue #155, PR #160, branch android/web-parity-iban-contract-20261014
+Current W1.3: W1.1/W1.2 verified on develop; W1.3 secure account metadata GET in PR #160 under CI, Home IBAN/visual parity pending
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Resume W1.3 from draft PR #160 (owner+AAL2 GET account-metadata). Verify and integrate IBAN with Home/Wallet shared account projection, preserve masking/privacy and Web chart/previous-month behavior, then execute W1.4 fixtures and real Compose checks. No release.
 
