@@ -261,7 +261,7 @@ class OfflinePendingMutationSemanticsTest {
 
 
     @Test
-    fun neverSentCardCreateThenDeactivate_compactsToNothing() {
+    fun neverSentCardCreateThenArchive_keepsCausalIdentityForFutureRestore() {
         val create = PendingCanonicalMutationIntent.fromMutation(
             CreateCanonicalCard("card-local", "issuer", "Local", "debit", "visa", "physical", null, null, NOW),
             "create-card",
@@ -272,7 +272,32 @@ class OfflinePendingMutationSemanticsTest {
         )
         val afterCreate = compactPendingMutationIntents(emptyList(), create)
         val afterDelete = compactPendingMutationIntents(afterCreate, deactivate)
-        assertTrue(afterDelete.isEmpty())
+        assertEquals(listOf("create-card", "delete-card"), afterDelete.map { it.intentId })
+        // The archive must reach the server even if creation was still unsent,
+        // otherwise an eventual restore could silently lose the card identity.
+        val restored = PendingCanonicalMutationIntent.fromMutation(
+            RestoreCanonicalCard("card-local", NOW), "restore-card",
+        )
+        val afterRestore = compactPendingMutationIntents(afterDelete, restored)
+        assertEquals(3, afterRestore.size)
+        val replay = afterRestore.fold(document()) { result, intent ->
+            intent.asMutation().apply(result)
+        }
+        val card = replay.state.array("cards").mapNotNull { it as? JsonObject }
+            .single { it.string("id") == "card-local" }
+        assertTrue(card.bool("active") == true)
+        assertEquals(null, card.string("archivedAt"))
+        val archiveAgain = PendingCanonicalMutationIntent.fromMutation(
+            DeactivateCanonicalCard("card-local", NOW), "archive-again",
+        )
+        val finalQueue = compactPendingMutationIntents(afterRestore, archiveAgain)
+        assertEquals(4, finalQueue.size)
+        val finalDoc = finalQueue.fold(document()) { result, intent ->
+            intent.asMutation().apply(result)
+        }
+        val finalCard = finalDoc.state.array("cards").mapNotNull { it as? JsonObject }
+            .single { it.string("id") == "card-local" }
+        assertFalse(finalCard.bool("active") ?: true)
     }
 
     @Test

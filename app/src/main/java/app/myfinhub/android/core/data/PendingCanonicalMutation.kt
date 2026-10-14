@@ -152,8 +152,9 @@ data class PendingCanonicalMutationIntent(
                 card.string("bankId") == payload.string("bankId") &&
                 card.string("nickname") == payload.string("nickname") &&
                 card.string("kind") == payload.string("cardKind") &&
-                card.string("network") == payload.string("network") &&
-                card.bool("active") != false
+                // An archived profile still proves that its earlier create was accepted.
+                // Do not resurrect archived server state just to replay a settled create.
+                card.string("network") == payload.string("network")
         }
         PendingMutationKind.DEACTIVATE_CARD -> {
             val cardId = payload.string("cardId").orEmpty()
@@ -320,19 +321,17 @@ fun compactPendingMutationIntents(
 
     if (next.kind == PendingMutationKind.DEACTIVATE_CARD) {
         val cardId = next.affectedCardId
-        val neverSentCreate = current.lastOrNull {
-            it.kind == PendingMutationKind.CREATE_CARD &&
-                it.payload.string("cardId") == cardId &&
-                it.syncState == PendingMutationSyncState.NEVER_SENT
+        // Deactivation is Web-style archival: keep a preceding unsent creation
+        // so an offline create -> archive -> restore can replay against the server.
+        // Deduplicate only a *consecutive* archive for this ID: if a restore came
+        // between two archives, the later archive must not disappear.
+        val lastForCard = current.lastOrNull {
+            it.affectedCardId == cardId ||
+                (it.kind == PendingMutationKind.CREATE_CARD &&
+                    it.payload.string("cardId") == cardId)
         }
-        if (neverSentCreate != null) {
-            return current.filterNot { it.intentId == neverSentCreate.intentId }
-        }
-        if (current.any {
-                it.kind == PendingMutationKind.DEACTIVATE_CARD &&
-                    it.affectedCardId == cardId &&
-                    it.syncState == PendingMutationSyncState.NEVER_SENT
-            }
+        if (lastForCard?.kind == PendingMutationKind.DEACTIVATE_CARD &&
+            lastForCard.syncState == PendingMutationSyncState.NEVER_SENT
         ) return current
     }
 
