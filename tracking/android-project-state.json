@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity: 1/6 implementations and 4/24 subtasks verified. W1 account/Home complete (#158 #156 #160 #162 #163 #167) with exact-head CI/screenshot/emulator checks. Current W2.1 card metadata PR #164 and stacked W2.2 visual PR #165 remain unmerged drafts. September redesign 10/10 40/40 historical; owner S24 physical signoff #149 pending.",
+    "summary": "Web parity: 1/6 implementations, 5/24 subtasks completed. W1 account/Home 4/4 verified; W2.1 card metadata/lifecycle read model merged PR #164, exact-head all 4 checks green. Current W2.2 native card art PR #165 under CI; W2.3 inline credit draft #170 depends on read-only statement PR #169. No backend/production release; physical S24 owner acceptance #149 pending.",
     "next": [
-      "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance."
+      "Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-track-w1-4-20261014",
-    "checkpoint": "W1 fully completed/merged 4/4; W2.1 metadata draft PR #164 needs latest develop reconciliation, W2.2 stacked #165 open",
+    "branch": "android/web-parity-track-w2-1-20261014",
+    "checkpoint": "W1 4/4 merged, W2.1 canonical PaymentCard metadata verified/merged #164, W2.2 native visual #165 under CI, W2.3 inline credit UI draft #170 depends on #169 statement views",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -704,9 +704,10 @@
             "id": "W2.1",
             "title": "Canonical card metadata/lifecycle",
             "acceptance": "Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "Draft PR #164 adds typed Web card metadata, statement days, archive/tombstone refs; unmerged pending CI."
+              "PR #164 Web PaymentCard identity/cycle/archive metadata merged to develop b886259539d6146f568e5e9acece85bb53d6baec. Exact head b603231e30ba6b1daba5e2e77f9b070f2efd7919 passed Project Tracking, Android CI optimized build, screenshot regression and S24 emulator instrumentation.",
+              "CanonicalCard/MoneyCard carry bankId, designId, formFactor, holderName, statementClosingDay/dueDay/boundaryRule, archivedAt, timestamps. Deleted credit card identity tombstones survive to support future legacy attribution. Projection uses one canonical bankId (no duplicate secondary card bank map), unit parity fixture passed."
             ]
           },
           {
@@ -745,7 +746,7 @@
             "acceptance": "Statement open/closed/due/paid, allocation, legacy card ID ownership and accurate card debt parity.",
             "status": "pending",
             "evidence": [
-              "Draft read-only W3.1 statement view projection and Web-derived as-of linked/unlinked statements tests. This foundation supports W2.3 inline credit workspace; unmerged and not counted completed."
+              "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes."
             ]
           },
           {
@@ -877,10 +878,10 @@
         ]
       }
     ],
-    "next_action": "Reintegrate W2.1 Web PaymentCard model PR #164 onto latest develop preserving W1 category changes, pass full exact-head CI and merge. Rebase W2.2 stacked native card design PR #165, then progress integrated credit workspace W2.3. No production release, backend or owner-device acceptance.",
+    "next_action": "Validate and merge PR #165 Web designId/default bank/kind/formFactor native card stack with exact-head Android CI, screenshot and S24 emulator checks. Merge W3.1 statement view read-only #169 then rebase draft #170 one-screen credit workspace. Do not publish release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 168,
-    "current_subtask": "W2.1",
+    "pr": 171,
+    "current_subtask": "W2.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
