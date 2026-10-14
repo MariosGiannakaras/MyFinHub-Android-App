@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
@@ -23,6 +24,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+
+private val ACCOUNT_METADATA_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
 
 class OkHttpMyFinHubApi(
     private val configuration: AppConfiguration,
@@ -38,6 +41,35 @@ class OkHttpMyFinHubApi(
             .build()
 
         return execute(request, parse = ::parseEnvelope)
+    }
+
+    override suspend fun loadAccountMetadata(
+        session: AuthSession,
+    ): ApiResult<Map<String, AccountMetadataRecord>> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val request = authenticatedRequest(session, "/api/account-metadata")
+            .get()
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val records = payload["records"] as? JsonArray ?: error("Missing records")
+                val parsed = records.mapNotNull { raw ->
+                    val row = raw as? JsonObject ?: return@mapNotNull null
+                    val accountId = (row["accountId"] as? JsonPrimitive)?.contentOrNull
+                        ?.takeIf { ACCOUNT_METADATA_ID_REGEX.matches(it) } ?: return@mapNotNull null
+                    val revision = (row["revision"] as? JsonPrimitive)?.contentOrNull?.toLongOrNull()
+                        ?.takeIf { it > 0L } ?: return@mapNotNull null
+                    val updatedAt = (row["updatedAt"] as? JsonPrimitive)?.contentOrNull
+                        ?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+                    val rawIban = (row["iban"] as? JsonPrimitive)?.contentOrNull
+                    if (!isValidIban(rawIban)) return@mapNotNull null
+                    AccountMetadataRecord(accountId, normalizeIban(rawIban), revision, updatedAt)
+                }
+                ApiResult.Success(parsed.associateBy(AccountMetadataRecord::accountId))
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
     }
 
     override suspend fun saveMutableState(
