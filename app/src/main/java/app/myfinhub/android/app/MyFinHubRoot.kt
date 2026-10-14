@@ -124,6 +124,7 @@ fun MyFinHubRoot(
     }
     var accountMetadata by remember { mutableStateOf<Map<String, AccountMetadataRecord>>(emptyMap()) }
     var accountMetadataLoaded by remember { mutableStateOf(false) }
+    var metadataSessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
@@ -151,11 +152,13 @@ fun MyFinHubRoot(
     LaunchedEffect(authState) {
         accountMetadata = emptyMap()
         accountMetadataLoaded = false
+        metadataSessionKey = null
         val ready = authState as? AuthShellUiState.Ready
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadAccountMetadata(ready.session)) {
                 is ApiResult.Success -> {
                     accountMetadata = result.value
+                    metadataSessionKey = ready.session.userId to ready.session.accessToken
                     accountMetadataLoaded = true
                 }
                 is ApiResult.Failure -> Unit
@@ -245,6 +248,12 @@ fun MyFinHubRoot(
         },
     )
 
+    // An account switch or token refresh must never render a previous session's private IBAN,
+    // including the single Compose frame before LaunchedEffect clears the stale response.
+    val activeMetadataSession = authState as? AuthShellUiState.Ready
+    val metadataAuthorized = activeMetadataSession != null && !activeMetadataSession.offline &&
+        metadataSessionKey == (activeMetadataSession.session.userId to activeMetadataSession.session.accessToken)
+
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -259,8 +268,8 @@ fun MyFinHubRoot(
                     readyContent = {
                         FinanceProductSurface(
                             state = financeState,
-                            accountMetadata = accountMetadata,
-                            accountMetadataLoaded = accountMetadataLoaded,
+                            accountMetadata = if (metadataAuthorized) accountMetadata else emptyMap(),
+                            accountMetadataLoaded = metadataAuthorized && accountMetadataLoaded,
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
                             onRetryLoad = financeViewModel::retryLoad,
