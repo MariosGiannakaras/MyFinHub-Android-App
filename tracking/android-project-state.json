@@ -727,7 +727,8 @@
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
             "status": "in_progress",
             "evidence": [
-              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged."
+              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged.",
+              "Web card workspace privacy regression hides credit utilization percentage and visual progress bar when amounts are hidden; Compose test added in PR #172. Six reviewed snapshot changes awaiting CI; no completion claimed."
             ]
           },
           {

@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.money
 
 import androidx.lifecycle.ViewModel
+import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,6 +94,7 @@ data class LendingItem(
 data class MoneyUiState(
     val accounts: List<MoneyAccount> = emptyList(),
     val cards: List<MoneyCard> = emptyList(),
+    val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
     val savingsGoal: Double? = null,
     val savingsCurrent: Double = 0.0,
     val loanOutstanding: Double = 0.0,

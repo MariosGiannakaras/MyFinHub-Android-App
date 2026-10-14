@@ -332,6 +332,19 @@ internal fun MyFinHubAppContent(
                         accountMetadataLoaded = accountMetadataLoaded,
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
+                        onPayCreditCard = { cardId ->
+                            onQuickEntryAction(QuickEntryAction.Reset)
+                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                            onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
+                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onAddCreditPurchase = { cardId ->
+                            onQuickEntryAction(QuickEntryAction.Reset)
+                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
+                            onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
+                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onOpenCreditActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
                         cardSecretState = cardSecretState,
                         onCardActiveChanged = onCardDetailOpened,
