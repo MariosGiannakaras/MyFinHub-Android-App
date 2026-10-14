@@ -40,6 +40,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.FinancialProvider
+import androidx.compose.foundation.shape.RoundedCornerShape
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBrandMark
@@ -557,11 +559,26 @@ private fun HomeAccountIdentity(account: HomeAccount, modifier: Modifier = Modif
 private fun HomeAccountIdentityMark(account: HomeAccount) {
     val provider = financialProvider(account.id, account.institution ?: account.name)
     if (provider != null) {
-        MyFinHubProviderMark(
-            provider = provider,
-            modifier = Modifier.size(36.dp),
-            contentDescription = provider.institutionLabel,
-        )
+        // Piraeus' actual dark-blue mark needs a light contrasting surface in dark mode.
+        // Never tint or recolor the bank's approved logo asset.
+        if (provider == FinancialProvider.PIRAEUS) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = androidx.compose.ui.graphics.Color.White,
+            ) {
+                MyFinHubProviderMark(
+                    provider = provider,
+                    modifier = Modifier.size(36.dp).padding(4.dp),
+                    contentDescription = provider.institutionLabel,
+                )
+            }
+        } else {
+            MyFinHubProviderMark(
+                provider = provider,
+                modifier = Modifier.size(36.dp),
+                contentDescription = provider.institutionLabel,
+            )
+        }
         return
     }
     MyFinHubIconBadge(

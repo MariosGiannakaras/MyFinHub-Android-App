@@ -154,6 +154,14 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             primaryRole = HomePrimaryRole.SAVINGS,
             balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
             institution = "Τράπεζα Πειραιώς",
+            savingsTarget = 7_000.0,
+            savingsTargetRate = 0.2,
+            previousMonthTrend = listOf(
+                5_840.0, 5_860.0, 5_850.0, 5_885.0, 5_900.0, 5_940.0, 5_975.0,
+                6_000.0, 5_985.0, 6_030.0, 6_050.0, 6_040.0, 6_070.0, 6_100.0,
+                6_120.0, 6_130.0, 6_150.0, 6_140.0, 6_170.0, 6_200.0, 6_215.0,
+                6_220.0, 6_240.0,
+            ),
         ),
         HomeAccount(
             id = "revolut-main",
