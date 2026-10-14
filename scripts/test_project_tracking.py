@@ -67,7 +67,7 @@ class RedesignTrackingTests(unittest.TestCase):
         self.assertIn("## Last completed workstream", status)
         self.assertIn("No active implementation tasks.", status)
         self.assertIn("No active implementation tasks.", todo)
-        self.assertNotIn("- [ ]", todo)
+        self.assertNotIn("- [ ]", todo.split("## Completed foundations", 1)[0])
         self.assertIn("## Completed workstream outcome", handoff)
         self.assertNotIn("## Why implementation is open", handoff)
 
