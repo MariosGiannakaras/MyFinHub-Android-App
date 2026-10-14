@@ -727,8 +727,7 @@
             "acceptance": "Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.",
             "status": "in_progress",
             "evidence": [
-              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged.",
-              "Develop-based #172 includes in-context debit/credit workspace plus light/dark/150% screenshot previews and Compose tests. Android CI and reviewed reference updates are not yet accepted."
+              "One-screen Wallet credit workspace (debt/limit/cycles/movements/actions) source and Compose tests in clean develop-based draft PR #172; previous stacked #170 closed as superseded. Not verified/merged."
             ]
           },
           {
