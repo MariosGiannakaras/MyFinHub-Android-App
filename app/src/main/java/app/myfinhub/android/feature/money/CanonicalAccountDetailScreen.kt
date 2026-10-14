@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import app.myfinhub.android.core.ui.AccountIbanRow
+import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -43,6 +45,8 @@ import java.util.Locale
 fun CanonicalAccountDetailScreen(
     account: MoneyAccount?,
     activityItems: List<ActivityItem>,
+    ibanRecord: AccountMetadataRecord? = null,
+    accountMetadataLoaded: Boolean = false,
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
     onNewTransaction: () -> Unit = {},
@@ -96,6 +100,9 @@ fun CanonicalAccountDetailScreen(
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         Text("Τρέχον υπόλοιπο", style = MaterialTheme.typography.labelLarge)
+                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                        }
                         MyFinHubAmountText(
                             text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
                             tone = if (account.balance >= 0.0) FinanceTone.Income else FinanceTone.Expense,

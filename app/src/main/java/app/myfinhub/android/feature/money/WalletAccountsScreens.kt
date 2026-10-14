@@ -53,6 +53,8 @@ import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.core.network.AccountMetadataRecord
+import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
@@ -106,6 +108,8 @@ fun CanonicalWalletScreen(
     onOpenLoans: () -> Unit,
     onOpenLending: () -> Unit,
     amountsVisibleOverride: Boolean? = null,
+    accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
+    accountMetadataLoaded: Boolean = false,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -165,6 +169,8 @@ fun CanonicalWalletScreen(
                     amountsVisible = amountsVisible,
                     onOpenAccount = onOpenAccount,
                     onOpenNetPosition = onOpenNetPosition,
+                    accountMetadata = accountMetadata,
+                    accountMetadataLoaded = accountMetadataLoaded,
                 )
                 WalletSection.CARDS -> walletCardsContent(
                     state = state,
@@ -263,6 +269,8 @@ private fun LazyListScope.walletAccountsContent(
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
+    accountMetadata: Map<String, AccountMetadataRecord>,
+    accountMetadataLoaded: Boolean,
 ) {
     item("available-total") {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
@@ -300,6 +308,8 @@ private fun LazyListScope.walletAccountsContent(
                     WalletAccountRow(
                         account = account,
                         amountsVisible = amountsVisible,
+                        ibanRecord = accountMetadata[account.id],
+                        accountMetadataLoaded = accountMetadataLoaded,
                         onClick = { onOpenAccount(account.id) },
                     )
                 }
@@ -341,6 +351,8 @@ private fun LazyListScope.walletAccountsContent(
 private fun WalletAccountRow(
     account: MoneyAccount,
     amountsVisible: Boolean,
+    ibanRecord: AccountMetadataRecord?,
+    accountMetadataLoaded: Boolean,
     onClick: () -> Unit,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -366,7 +378,12 @@ private fun WalletAccountRow(
                     verticalAlignment = Alignment.Top,
                 ) {
                     WalletAccountMark(account)
-                    WalletAccountIdentity(account, Modifier.weight(1f), largeFont = true)
+                    Column(modifier = Modifier.weight(1f)) {
+                        WalletAccountIdentity(account, Modifier.fillMaxWidth(), largeFont = true)
+                        if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                            AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                        }
+                    }
                 }
                 MyFinHubAmountText(amountText, tone, modifier = Modifier.align(Alignment.End))
             }
@@ -377,7 +394,12 @@ private fun WalletAccountRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 WalletAccountMark(account)
-                WalletAccountIdentity(account, Modifier.weight(1f), largeFont = false)
+                Column(modifier = Modifier.weight(1f)) {
+                    WalletAccountIdentity(account, Modifier.fillMaxWidth(), largeFont = false)
+                    if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
+                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                    }
+                }
                 MyFinHubAmountText(amountText, tone)
             }
         }

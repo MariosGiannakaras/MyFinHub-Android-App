@@ -43,6 +43,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
+import app.myfinhub.android.core.network.NetworkClientFactory
+import app.myfinhub.android.core.network.OkHttpMyFinHubApi
+import app.myfinhub.android.core.network.AccountMetadataRecord
+import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.ui.PrivacySafeNoticeHistoryStore
 import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.core.ui.UserNotice
@@ -115,6 +119,12 @@ fun MyFinHubRoot(
         AppAppearance.DARK -> true
     }
 
+    val accountMetadataApi = remember {
+        OkHttpMyFinHubApi(AppConfiguration.fromBuildConfig(), NetworkClientFactory.create())
+    }
+    var accountMetadata by remember { mutableStateOf<Map<String, AccountMetadataRecord>>(emptyMap()) }
+    var accountMetadataLoaded by remember { mutableStateOf(false) }
+
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
@@ -135,6 +145,23 @@ fun MyFinHubRoot(
     val snackbarBottomPadding = if (
         authState is AuthShellUiState.Ready && financeState is FinanceProductState.Ready
     ) MyFinHubDesignMetrics.productSnackbarBottomClearance else MyFinHubSpacing.sm
+
+    // No disk/cache persistence. A changed, offline or locked session instantly clears values.
+    // LaunchedEffect cancels stale network work on session changes.
+    LaunchedEffect(authState) {
+        accountMetadata = emptyMap()
+        accountMetadataLoaded = false
+        val ready = authState as? AuthShellUiState.Ready
+        if (ready != null && !ready.offline) {
+            when (val result = accountMetadataApi.loadAccountMetadata(ready.session)) {
+                is ApiResult.Success -> {
+                    accountMetadata = result.value
+                    accountMetadataLoaded = true
+                }
+                is ApiResult.Failure -> Unit
+            }
+        }
+    }
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -232,6 +259,8 @@ fun MyFinHubRoot(
                     readyContent = {
                         FinanceProductSurface(
                             state = financeState,
+                            accountMetadata = accountMetadata,
+                            accountMetadataLoaded = accountMetadataLoaded,
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
                             onRetryLoad = financeViewModel::retryLoad,
@@ -304,6 +333,8 @@ internal fun UserNoticeDetailsDialog(
 @Composable
 private fun FinanceProductSurface(
     state: FinanceProductState,
+    accountMetadata: Map<String, AccountMetadataRecord>,
+    accountMetadataLoaded: Boolean,
     cardSecretState: CardSecretUiState,
     cardSecretCleanupState: CardSecretCleanupUiState,
     onRetryLoad: () -> Unit,
@@ -344,6 +375,8 @@ private fun FinanceProductSurface(
             Box(modifier = Modifier.fillMaxSize()) {
                 MyFinHubAppContent(
                     homeState = projection.homeState,
+                    accountMetadata = accountMetadata,
+                    accountMetadataLoaded = accountMetadataLoaded,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
                     onActivityAction = onActivityAction,
