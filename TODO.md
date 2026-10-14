@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Resume W1.2/W1.3 from draft PR #156. Bring latest develop plus W1.1 tests, fix Kotlin/instrumented regressions, inspect savings/secondary Compose screenshots and update approved screenshot references. Continue W1.4; no release.
+- [ ] Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.
 
 ## Completed foundations
 
@@ -63,11 +63,11 @@ Evidence-backed current progress, separate from historical September redesign.
 Issue #155, PR #156, branch android/web-parity-home-20261014
 Current W1.2: W1.1 merged and validated (#158); W1.2/W1.3 draft #156 unmerged
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Resume W1.2/W1.3 from draft PR #156. Bring latest develop plus W1.1 tests, fix Kotlin/instrumented regressions, inspect savings/secondary Compose screenshots and update approved screenshot references. Continue W1.4; no release.
+Next Validate W1.2/W1.3 Home/Graph source on draft PR #156 against Web fixtures, inspect updated actual Compose light/dark/150% renders, fix affected unit/instrumented tests, and replace accepted screenshot references only after visual review. Then W1.4; no production release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
-| W1 Canonical accounts and Home | 1/4 | W1.2 Home total and three primary account slots (in_progress); W1.3 Chart/target/IBAN web-fidelity (pending); W1.4 Home tests and shared projections (pending) |
+| W1 Canonical accounts and Home | 1/4 | W1.2 Home total and three primary account slots (in_progress); W1.3 Chart/target/IBAN web-fidelity (in_progress); W1.4 Home tests and shared projections (pending) |
 | W2 Card identity and integrated credit experience | 0/4 | W2.1 Canonical card metadata/lifecycle (pending); W2.2 Shared native card visual (pending); W2.3 Credit information on card screen (pending); W2.4 Card interactions and secure details (pending) |
 | W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (pending); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
@@ -78,7 +78,7 @@ Next Resume W1.2/W1.3 from draft PR #156. Bring latest develop plus W1.1 tests, 
 
 - [x] W1.1 Canonical account merge and roles — completed
 - [ ] W1.2 Home total and three primary account slots — in_progress
-- [ ] W1.3 Chart/target/IBAN web-fidelity — pending
+- [ ] W1.3 Chart/target/IBAN web-fidelity — in_progress
 - [ ] W1.4 Home tests and shared projections — pending
 - [ ] W2.1 Canonical card metadata/lifecycle — pending
 - [ ] W2.2 Shared native card visual — pending
