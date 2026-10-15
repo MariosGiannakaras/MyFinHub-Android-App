@@ -15,6 +15,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -413,8 +415,27 @@ internal fun canonicalNetPosition(state: MoneyUiState): Double =
 fun CanonicalSavingsScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
+    onSaveGoal: ((String?, String, String, String?) -> Unit)? = null,
+    onDeleteGoal: ((String) -> Unit)? = null,
+    mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var editorVisible by rememberSaveable { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var nameDraft by rememberSaveable { mutableStateOf("") }
+    var amountDraft by rememberSaveable { mutableStateOf("") }
+    var dateDraft by rememberSaveable { mutableStateOf("") }
+    var editorError by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun editGoal(goal: SavingsGoalItem?) {
+        editingId = goal?.id
+        nameDraft = goal?.name.orEmpty()
+        amountDraft = goal?.targetAmount?.toString().orEmpty()
+        dateDraft = goal?.targetDate.orEmpty()
+        editorError = null
+        editorVisible = true
+    }
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -445,7 +466,7 @@ fun CanonicalSavingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         val goal = state.savingsGoal
-                        if (goal != null && goal > 0.0) {
+                        if (goal != null && goal > 0.0 && state.savingsGoalItems.isEmpty()) {
                             if (amountsVisible) LinearProgressIndicator(
                                 progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -485,6 +506,15 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            if (onSaveGoal != null) {
+                item("savings-goal-add") {
+                    TextButton(
+                        enabled = !mutationBlocked,
+                        onClick = { editGoal(null) },
+                        modifier = Modifier.testTag("savings_goal_new"),
+                    ) { Text("Νέος στόχος αποταμίευσης") }
+                }
+            }
             if (state.savingsGoalItems.isNotEmpty()) {
                 item("savings-goals-heading") {
                     Text("Στόχοι αποταμίευσης",
@@ -519,6 +549,20 @@ fun CanonicalSavingsScreen(
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            if (onSaveGoal != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { editGoal(goal) },
+                                    modifier = Modifier.testTag("savings_goal_edit_" + goal.id),
+                                ) { Text("Επεξεργασία στόχου") }
+                            }
+                            if (onDeleteGoal != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { confirmDeleteId = goal.id },
+                                    modifier = Modifier.testTag("savings_goal_delete_" + goal.id),
+                                ) { Text("Διαγραφή στόχου") }
+                            }
                         }
                     }
                 }
@@ -528,12 +572,12 @@ fun CanonicalSavingsScreen(
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
-                                "Ο στόχος δεν είναι διαθέσιμος ακόμη",
+                                if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης" else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
+                                if (onSaveGoal != null) "Δημιούργησε στόχο από την ενέργεια παραπάνω. Οι αποταμιεύσεις σου δεν μεταφέρονται αυτόματα." else "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -542,6 +586,84 @@ fun CanonicalSavingsScreen(
                 }
             }
         }
+    }
+    if (editorVisible && onSaveGoal != null) {
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) editorVisible = false },
+            title = { Text(if (editingId == null) "Νέος στόχος" else "Επεξεργασία στόχου") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    OutlinedTextField(
+                        value = nameDraft, onValueChange = { nameDraft = it; editorError = null },
+                        label = { Text("Όνομα") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_name"),
+                    )
+                    OutlinedTextField(
+                        value = amountDraft, onValueChange = { amountDraft = it; editorError = null },
+                        label = { Text("Ποσό στόχου (€)") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_amount"),
+                    )
+                    OutlinedTextField(
+                        value = dateDraft, onValueChange = { dateDraft = it; editorError = null },
+                        label = { Text("Προθεσμία YYYY-MM-DD (προαιρετική)") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_date"),
+                    )
+                    editorError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.testTag("savings_goal_save"),
+                    onClick = {
+                        val amount = amountDraft.replace(',', '.').toDoubleOrNull()
+                        val date = dateDraft.trim().takeIf(String::isNotEmpty)
+                        val parsed = date?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                        val previous = state.savingsGoalItems.firstOrNull { it.id == editingId }
+                        val today = state.asOfDate?.let { runCatching {
+                            java.time.LocalDate.parse(it)
+                        }.getOrNull() } ?: java.time.LocalDate.now()
+                        editorError = when {
+                            nameDraft.trim().isEmpty() || nameDraft.trim().length > 500 ->
+                                "Συμπλήρωσε όνομα στόχου έως 500 χαρακτήρες."
+                            amount == null || !amount.isFinite() || amount <= 0.0 ->
+                                "Το ποσό στόχου πρέπει να είναι θετικό."
+                            date != null && parsed == null -> "Η προθεσμία δεν είναι έγκυρη."
+                            parsed != null && parsed.isBefore(today) && previous?.targetDate != date ->
+                                "Δεν μπορείς να ορίσεις νέα προθεσμία στο παρελθόν."
+                            else -> null
+                        }
+                        if (editorError == null) {
+                            onSaveGoal(editingId, nameDraft.trim(), amountDraft, date)
+                            editorVisible = false
+                        }
+                    },
+                ) { Text("Αποθήκευση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editorVisible = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
+    confirmDeleteId?.let { id ->
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) confirmDeleteId = null },
+            title = { Text("Διαγραφή στόχου;") },
+            text = { Text("Αφαιρείται μόνο ο στόχος, όχι η αποταμίευση ή οι κινήσεις σου.") },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && onDeleteGoal != null,
+                    modifier = Modifier.testTag("savings_goal_confirm_delete"),
+                    onClick = {
+                        onDeleteGoal?.invoke(id)
+                        confirmDeleteId = null
+                    },
+                ) { Text("Διαγραφή στόχου") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteId = null }) { Text("Ακύρωση") }
+            },
+        )
     }
 }
 

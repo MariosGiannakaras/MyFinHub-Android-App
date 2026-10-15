@@ -27,6 +27,8 @@ enum class PendingMutationKind {
     PERMANENTLY_DELETE_CARD,
     COMPLETE_CARD_SECRET_CLEANUP,
     SET_RECURRING_STATUS,
+    UPSERT_SAVINGS_GOAL,
+    DELETE_SAVINGS_GOAL,
 }
 
 data class PendingCanonicalMutationIntent(
@@ -56,6 +58,18 @@ data class PendingCanonicalMutationIntent(
         }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
+        PendingMutationKind.UPSERT_SAVINGS_GOAL -> UpsertCanonicalSavingsGoal(
+            goalId = payload.string("goalId").orEmpty(),
+            name = payload.string("name").orEmpty(),
+            targetAmount = payload.number("targetAmount") ?: Double.NaN,
+            targetDate = payload.string("targetDate"),
+            asOf = payload.string("asOf").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_SAVINGS_GOAL -> DeleteCanonicalSavingsGoal(
+            goalId = payload.string("goalId").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.SET_RECURRING_STATUS -> SetCanonicalRecurringStatus(
             recurringId = payload.string("recurringId").orEmpty(),
             status = payload.string("status").orEmpty(),
@@ -120,6 +134,22 @@ data class PendingCanonicalMutationIntent(
      * target left to mutate, so it must not poison persistence or be replayed against a missing id.
      */
     fun isSatisfiedBy(document: CanonicalFinanceDocument): Boolean = when (kind) {
+        PendingMutationKind.UPSERT_SAVINGS_GOAL -> {
+            val id = payload.string("goalId").orEmpty()
+            val amount = payload.number("targetAmount")
+            val name = payload.string("name").orEmpty().trim()
+            val actual = document.state.array("savingsGoals")
+                .mapNotNull { it as? JsonObject }.firstOrNull { it.string("id") == id }
+            id.isNotBlank() && amount != null && amount.isFinite() && actual != null &&
+                actual.string("name").orEmpty().trim() == name &&
+                actual.number("targetAmount")?.let { moneyToCents(it) == moneyToCents(amount) } == true &&
+                actual.string("targetDate") == payload.string("targetDate")
+        }
+        PendingMutationKind.DELETE_SAVINGS_GOAL -> {
+            val id = payload.string("goalId").orEmpty()
+            id.isNotBlank() && document.state.array("savingsGoals")
+                .none { (it as? JsonObject)?.string("id") == id }
+        }
         PendingMutationKind.SET_RECURRING_STATUS -> {
             val id = payload.string("recurringId").orEmpty()
             val expected = payload.string("status")
@@ -227,6 +257,26 @@ data class PendingCanonicalMutationIntent(
             intentId: String,
             syncState: PendingMutationSyncState = PendingMutationSyncState.NEVER_SENT,
         ): PendingCanonicalMutationIntent = when (mutation) {
+            is UpsertCanonicalSavingsGoal -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_SAVINGS_GOAL,
+                payload = JsonObject(buildMap {
+                    put("goalId", JsonPrimitive(mutation.goalId))
+                    put("name", JsonPrimitive(mutation.name))
+                    put("targetAmount", JsonPrimitive(mutation.targetAmount))
+                    mutation.targetDate?.let { put("targetDate", JsonPrimitive(it)) }
+                    put("asOf", JsonPrimitive(mutation.asOf))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalSavingsGoal -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.DELETE_SAVINGS_GOAL,
+                payload = JsonObject(mapOf(
+                    "goalId" to JsonPrimitive(mutation.goalId),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
             is SetCanonicalRecurringStatus -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.SET_RECURRING_STATUS,

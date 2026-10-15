@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budget net spending/thresholds and #199 as-of loans/lending/Pay & Save native detail were merged with four exact-head gates each. W4.3 #200 adds real multi-goal Savings progress and historical deadlines with privacy-masked Wallet/Savings, golden/Compose tests, pending exact-head CI. W4.1/4.2 visual/device owner S24 acceptance remains pending and W2.4 permanent card delete UI disabled. No release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 budgets #198, as-of loans/lending/Pay & Save #199 and read-only multi-goal Savings #200 merged with four exact-head checks each. W4.3 consolidated #201 implements owner-safe SavingsGoal metadata CRUD through canonical server/offline replay with native form and explicit delete confirmation, pending exact-head CI. W4.1/W4.2 physical owner S24 acceptance remains outstanding, W2.4 permanent card delete stays disabled; no release.
 
 ## Immediate work
 
-- Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
+- Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budget net
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #200, branch android/w4-3-savings-goals-history-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 and #199 merged 4/4; #200 Web multi-goal as-of savings/progress/privacy batch pending exact-head checks. W2.4 destructive delete disabled.
+Issue #155, PR #201, branch android/w4-3-savings-goal-durable-mutations-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198/#199/#200 merged with 4/4 exact-head each; #201 canonical goal writes + native CRUD and durable offline codec pending 4-gate CI. W2.4 card deletion UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
+Next Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -27,6 +27,8 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
+import app.myfinhub.android.core.data.UpsertCanonicalSavingsGoal
+import app.myfinhub.android.core.data.DeleteCanonicalSavingsGoal
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
@@ -424,6 +426,38 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     /** Mutates the canonical recurring record through the guarded/offline replay pipeline. */
+    /** Savings goals are server-authoritative metadata, never a transfer of funds. */
+    fun saveSavingsGoal(goalId: String?, name: String, amountText: String, deadline: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val amount = amountText.replace(',', '.').toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 } ?: return
+        if (name.trim().isBlank() || name.length > 500) return
+        val previous = ready.projection.moneyState.savingsGoalItems.firstOrNull { it.id == goalId }
+        if (goalId != null && previous == null) return
+        val asOf = LocalDate.now()
+        val date = deadline?.trim()?.takeIf(String::isNotEmpty)
+        if (date != null) {
+            val parsed = runCatching { LocalDate.parse(date) }.getOrNull() ?: return
+            if (parsed.isBefore(asOf) && previous?.targetDate != date) return
+        }
+        applyMutation(UpsertCanonicalSavingsGoal(
+            goalId = goalId ?: "goal-android-${UUID.randomUUID()}",
+            name = name.trim(),
+            targetAmount = amount,
+            targetDate = date,
+            asOf = asOf.toString(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    fun deleteSavingsGoal(goalId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (ready.projection.moneyState.savingsGoalItems.none { it.id == goalId }) return
+        applyMutation(DeleteCanonicalSavingsGoal(goalId, Instant.now().toString()))
+    }
+
     fun setRecurringStatus(recurringId: String, status: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -1029,6 +1063,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
+                PendingMutationKind.UPSERT_SAVINGS_GOAL -> "Αποθήκευση στόχου αποταμίευσης"
+                PendingMutationKind.DELETE_SAVINGS_GOAL -> "Διαγραφή στόχου αποταμίευσης"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
                 PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"

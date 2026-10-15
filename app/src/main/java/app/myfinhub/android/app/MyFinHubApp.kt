@@ -139,6 +139,8 @@ internal fun MyFinHubAppContent(
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
+    onSaveSavingsGoal: ((String?, String, String, String?) -> Unit)? = null,
+    onDeleteSavingsGoal: ((String) -> Unit)? = null,
     planMutationInFlight: Boolean = false,
     planMutationBlocked: Boolean = false,
     insightsState: InsightsUiState = InsightsUiState(),
@@ -441,6 +443,9 @@ internal fun MyFinHubAppContent(
                     CanonicalSavingsScreen(
                         state = moneyState,
                         onBack = { moneyBackStack.removeLastOrNull() },
+                        onSaveGoal = onSaveSavingsGoal,
+                        onDeleteGoal = onDeleteSavingsGoal,
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
                 entry<AppRoute.Loans> {
