@@ -227,7 +227,7 @@ fun CanonicalMoneyScreen(
                         }
                     }
                     if (goal != null && goal > 0.0) {
-                        LinearProgressIndicator(
+                        if (amountsVisible) LinearProgressIndicator(
                             progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth(),
                         )
