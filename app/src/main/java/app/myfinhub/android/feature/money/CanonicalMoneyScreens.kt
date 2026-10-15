@@ -466,7 +466,7 @@ fun CanonicalSavingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         val goal = state.savingsGoal
-                        if (goal != null && goal > 0.0) {
+                        if (goal != null && goal > 0.0 && state.savingsGoalItems.isEmpty()) {
                             if (amountsVisible) LinearProgressIndicator(
                                 progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -572,12 +572,12 @@ fun CanonicalSavingsScreen(
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
-                                "Ο στόχος δεν είναι διαθέσιμος ακόμη",
+                                if (onSaveGoal != null) "Δεν έχεις ορίσει στόχο αποταμίευσης" else "Ο στόχος δεν είναι διαθέσιμος ακόμη",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
+                                if (onSaveGoal != null) "Δημιούργησε στόχο από την ενέργεια παραπάνω. Οι αποταμιεύσεις σου δεν μεταφέρονται αυτόματα." else "Μπορείς να βλέπεις το αποταμιευμένο ποσό σου. Η επεξεργασία στόχου θα εμφανιστεί όταν υποστηρίζεται από τον λογαριασμό σου.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
