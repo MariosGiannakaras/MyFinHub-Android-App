@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
+import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
@@ -11,6 +12,7 @@ import app.myfinhub.android.feature.quickentry.QuickEntryCardOption
 import app.myfinhub.android.feature.quickentry.QuickEntryCategoryOption
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.QuickEntrySplitPartDraft
+import app.myfinhub.android.feature.quickentry.QuickEntryStatementOption
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import java.time.LocalDate
 import kotlinx.serialization.json.JsonObject
@@ -86,6 +88,21 @@ internal fun projectQuickEntryState(
         ?: accountOptions.firstOrNull { option -> option.isSavingsDestination && option.id != selectedFrom }?.id
         ?: defaultDestinationId
     val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
+    val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
+    val creditStatements = document.creditStatementViews(selectedCard, selectedAsOf)
+        .filter { it.remaining > 0.005 }
+        .map { statement ->
+            QuickEntryStatementOption(
+                id = statement.id,
+                cardId = statement.cardId,
+                label = statement.closeDate + " · " +
+                    String.format(java.util.Locale.US, "%.2f", statement.remaining) + " €",
+                remaining = statement.remaining,
+            )
+        }
+    val selectedStatementId = base.statementId.takeIf { id ->
+        creditStatements.any { it.id == id && it.cardId == selectedCard }
+    }.orEmpty()
     val splitFallbackCategory = expenseCategories.firstOrNull()?.name ?: "Άλλο"
     val splitParts = base.splitParts.mapIndexed { index, part ->
         val categoryOption = expenseCategories.firstOrNull { it.name == part.category }
@@ -115,6 +132,8 @@ internal fun projectQuickEntryState(
         fromAccountId = selectedFrom,
         toAccountId = selectedTo,
         cardId = selectedCard,
+        statementId = selectedStatementId,
+        creditStatements = creditStatements,
         splitParts = splitParts,
         accounts = accountOptions,
         creditCards = cards,
