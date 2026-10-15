@@ -10,6 +10,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
+import app.myfinhub.android.core.data.committedPermanentCardCleanupIds
 import app.myfinhub.android.core.data.RestoreCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.EditCanonicalActivity
@@ -129,9 +130,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private val mutableNotices = MutableSharedFlow<UserNotice>(extraBufferCapacity = 8)
     val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
 
-    /** Emits only after a card deactivation is accepted by the canonical server revision. */
-    private val mutableCommittedCardDeletions = MutableSharedFlow<String>(extraBufferCapacity = 1)
-    val committedCardDeletions: SharedFlow<String> = mutableCommittedCardDeletions.asSharedFlow()
+    /** Only confirmed *permanent* deletions may remove card vault secrets.
+     * Ordinary reversible archives/restores must retain encrypted card details.
+     */
+    private val mutableCommittedPermanentCardCleanupRequests = MutableSharedFlow<String>(extraBufferCapacity = 8)
+    val committedPermanentCardCleanupRequests: SharedFlow<String> =
+        mutableCommittedPermanentCardCleanupRequests.asSharedFlow()
 
     private var currentSession: AuthSession? = null
     private var automaticSyncAllowed = true
@@ -577,8 +581,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 pendingMutations = pendingMutations.filterNot { it.intentId in eligibleIds }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
-                committed.mapNotNull(PendingCanonicalMutationIntent::affectedCardId).distinct().forEach { cardId ->
-                    mutableCommittedCardDeletions.emit(cardId)
+                committedPermanentCardCleanupIds(committed, saved.envelope.document).forEach { cardId ->
+                    mutableCommittedPermanentCardCleanupRequests.emit(cardId)
                 }
                 reconcileCommittedPending(saved.envelope.document)
                 persistLocalSnapshot()
@@ -731,8 +735,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 pendingMutations = pendingMutations.filterNot { it.intentId == inFlightIntent.intentId }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
-                if (mutation is DeactivateCanonicalCard) {
-                    mutableCommittedCardDeletions.emit(mutation.cardId)
+                committedPermanentCardCleanupIds(listOf(inFlightIntent), saved.envelope.document).forEach { cardId ->
+                    mutableCommittedPermanentCardCleanupRequests.emit(cardId)
                 }
                 persistLocalSnapshot()
 
@@ -913,8 +917,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val remainingIds = remaining.map(PendingCanonicalMutationIntent::intentId).toSet()
         val committed = pendingMutations.filterNot { it.intentId in remainingIds }
         pendingMutations = remaining
-        committed.mapNotNull(PendingCanonicalMutationIntent::affectedCardId).distinct().forEach { cardId ->
-            mutableCommittedCardDeletions.emit(cardId)
+        committedPermanentCardCleanupIds(committed, serverDocument).forEach { cardId ->
+            mutableCommittedPermanentCardCleanupRequests.emit(cardId)
         }
     }
 

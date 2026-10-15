@@ -33,6 +33,12 @@ interface MyFinHubApi {
         session: AuthSession,
         cardId: String,
     ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
+    /** Vault deletion conditioned on a server-confirmed finance profile deletion. */
+    suspend fun deleteCommittedCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> = ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 }
 
 /** Sensitive PAN/expiry/CVV response. Intentionally redacts values from toString(). */
