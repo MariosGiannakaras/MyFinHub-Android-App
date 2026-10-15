@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.3 Web provider-based credit repayment #189 and W3.1 user-selected statement repayment #190 merged after all four exact-head checks each. W3.1 remains in progress pending focused real Compose statement selector screenshots and final S24 verification. W3.2 PR #191 adds Web transaction-rule matching at new canonical event creation with pure and integrated golden fixtures, unmerged pending CI. W2.4 irreversible deletion UI stays disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.2 new-event transaction-rule checkpoint #191 merged after four exact-head checks; W3.2 still has projection/classification gaps. Follow-on draft fixes zero-vs-missing savingAmount Web flow impact parity without modifying stored data. W3.1 #192 Compose statement selector verification is a separate draft; W2.4 permanent card deletion UI remains disabled. No release.",
     "next": [
-      "Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release."
+      "Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-web-transaction-rules-20261015",
-    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 complete; W3.1 #190 merged, real Compose selector/S24 acceptance open. W3.2 #191 Web rule matching and new-event integration awaiting CI. W2.4 destructive UI disabled.",
+    "branch": "android/w3-2-explicit-savings-zero-parity-20261015",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 rule engine merged, zero-vs-missing savings projection fix draft pending CI. W3.1 #192 Compose selector draft independent. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -796,7 +796,8 @@
             "acceptance": "Canonical legs, transfers, refunds, savings, splits, lending, loans, reconciliation, date/money validation, category rules.",
             "status": "in_progress",
             "evidence": [
-              "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending."
+              "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending.",
+              "W3.2 follow-on pure projection: Web flowImpactEvent savingAmount ?? amount preserves explicit 0, whereas Android previously treated 0 as absent and overcounted savings. Add numeric presence tracking to CanonicalEvent plus missing/null/explicit-zero/positive golden fixtures. Independent draft; exact-head CI pending."
             ]
           },
           {
@@ -924,9 +925,9 @@
         ]
       }
     ],
-    "next_action": "Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.",
+    "next_action": "Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 191,
+    "pr": 0,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
