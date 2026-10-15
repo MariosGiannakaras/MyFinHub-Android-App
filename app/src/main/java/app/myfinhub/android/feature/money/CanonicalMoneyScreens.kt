@@ -446,7 +446,7 @@ fun CanonicalSavingsScreen(
                         )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0) {
-                            LinearProgressIndicator(
+                            if (amountsVisible) LinearProgressIndicator(
                                 progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -499,12 +499,13 @@ fun CanonicalSavingsScreen(
                                 amountVisibilityText(formatCanonicalEuro(goal.targetAmount), amountsVisible),
                                 FinanceTone.Savings,
                             )
-                            LinearProgressIndicator(
+                            if (amountsVisible) LinearProgressIndicator(
                                 progress = { (goal.progressPercent / 100.0).toFloat().coerceIn(0f,1f) },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                goal.progressPercent.toInt().toString() + "% · Κοινό υπόλοιπο αποταμίευσης: " +
+                                (if (amountsVisible) goal.progressPercent.toInt().toString() + "%"
+                                    else HIDDEN_AMOUNT_TEXT) + " · Κοινό υπόλοιπο αποταμίευσης: " +
                                     amountVisibilityText(formatCanonicalEuro(goal.backingBalance), amountsVisible),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
