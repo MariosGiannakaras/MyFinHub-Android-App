@@ -62,6 +62,11 @@ data class ForecastWindow(
     val expectedIncome: Double,
     val expectedOutflow: Double,
     val balanceDeltaFromThirtyDays: Double,
+    val projectedPortfolio: Double = 0.0,
+    val minimumPortfolio: Double = 0.0,
+    val accountsWithLowBalance: Int = 0,
+    val accountsWithNegativeBalance: Int = 0,
+    val omittedSourceCount: Int = 0,
 )
 
 /** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */

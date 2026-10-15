@@ -441,6 +441,58 @@ fun CanonicalPlanForecastScreen(
                 }
             }
 
+            if (state.forecastWindows.isNotEmpty()) {
+                item("web-forecast-comparison-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Σύγκριση χαρτοφυλακίου",
+                        subtitle = "30, 60 και 90 ημέρες · όλα τα μη πιστωτικά υπόλοιπα",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                items(state.forecastWindows, key = { "portfolio-" + it.days }) { window ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_forecast_portfolio_" + window.days),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(window.label, style = MaterialTheme.typography.titleMedium)
+                            MyFinHubAmountText(
+                                amountVisibilityText(
+                                    formatPlanS7Euro(window.projectedPortfolio),
+                                    amountsVisible,
+                                ),
+                                if (window.projectedPortfolio >= 0.0)
+                                    FinanceTone.Income else FinanceTone.Expense,
+                            )
+                            Text("Ελάχιστο: " + amountVisibilityText(
+                                formatPlanS7Euro(window.minimumPortfolio), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (window.accountsWithNegativeBalance > 0 ||
+                                window.accountsWithLowBalance > 0) {
+                                Text(
+                                    "Προσοχή: " + window.accountsWithNegativeBalance +
+                                        " αρνητικά και " + window.accountsWithLowBalance +
+                                        " χαμηλά υπόλοιπα λογαριασμών.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                            if (window.omittedSourceCount > 0) {
+                                Text(
+                                    window.omittedSourceCount.toString() +
+                                        " κινήσεις παραλείφθηκαν λόγω ελλιπών στοιχείων.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             item("forecast-items-heading") {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     MyFinHubSectionHeading(

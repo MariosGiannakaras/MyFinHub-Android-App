@@ -97,6 +97,11 @@ internal fun projectCanonicalPlanState(
                 expectedIncome = f.movements.sumOf { it.portfolioDelta.coerceAtLeast(0.0) },
                 expectedOutflow = -f.movements.sumOf { it.portfolioDelta.coerceAtMost(0.0) },
                 balanceDeltaFromThirtyDays = f.projectedPortfolio - webThirty,
+                projectedPortfolio = f.projectedPortfolio,
+                minimumPortfolio = f.minimumPortfolio,
+                accountsWithLowBalance = f.accounts.count { it.firstLowDate != null },
+                accountsWithNegativeBalance = f.accounts.count { it.firstNegativeDate != null },
+                omittedSourceCount = f.omitted.size,
             )
         },
         budget = BudgetDraft(

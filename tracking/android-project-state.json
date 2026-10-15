@@ -847,7 +847,8 @@
             "acceptance": "Web-equivalent 30/60/90-day projections, loan/recurring/scheduled impacts, low-balance warnings, no double count.",
             "status": "in_progress",
             "evidence": [
-              "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending."
+              "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending.",
+              "Staged after W4.2 #196: real Plan forecast detail now compares Web 30/60/90 portfolio projections separately from H7 30-day spendable headline, shows minima/first low-negative warnings and omitted-source counts with privacy masking; Compose instrumentation for all three windows. New batch held without PR/CI until W4.2 integration."
             ]
           },
           {
