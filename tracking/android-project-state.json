@@ -924,7 +924,7 @@
     ],
     "next_action": "Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
+    "pr": 192,
     "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

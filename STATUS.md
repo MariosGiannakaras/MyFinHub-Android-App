@@ -50,7 +50,7 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w3-1-statement-selector-compose-20261015
+Issue #155, PR #192, branch android/w3-1-statement-selector-compose-20261015
 Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.1 #190 merged; selector Compose/accessibility verification isolated in new draft. W3.2 #191 running; W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
