@@ -41,6 +41,15 @@ class CommittedCardSecretCleanupRoutingTest {
         assertTrue(committedPermanentCardCleanupIds(listOf(removed), document("[]","[]")).isEmpty())
     }
 
+    @Test fun persistedCleanupMarkerReplaysAfterRestartOnlyForRemovedProfiles() {
+        val saved = document(
+            """[{"id":"archived-card","active":false},{"id":"live-card","active":true}]""",
+            """["deleted-card","deleted-card","archived-card","live-card","/bad-id"]""",
+        )
+        assertEquals(listOf("deleted-card"), confirmedPendingCardSecretCleanupIds(saved))
+        assertEquals(emptyList<String>(), confirmedPendingCardSecretCleanupIds(document("[]","[]")))
+    }
+
     @Test fun staleDeleteIntentNeverPurgesNewlyRestoredCard() {
         val intent = intent(PermanentlyDeleteCanonicalCard("same-id",now), "delete")
         val nowActive = document("""[{"id":"same-id","kind":"credit","active":true}]""", """["same-id"]""")

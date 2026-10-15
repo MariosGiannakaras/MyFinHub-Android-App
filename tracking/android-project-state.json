@@ -758,7 +758,8 @@
               "Stacked draft #184 resumes the durable post-commit cleanup marker on next authenticated session/restart, prevents local secret removal after failed server guard and acknowledges completion only after server and local vaults both succeed. Needs full exact-head CI/security review and no permanent delete UI exposed.",
               "New W2.4 source PR routes secret purge only for permanent delete intents with server-confirmed absent profile and pendingCardSecretDeletes marker; prevents archive/restore from deleting retained Web card vault details. Pure regression tests. Pending CI/merge; no destructive UI.",
               "W2.4 PR #183 now uses server atomic requireCommittedDeletion:true for permanent vault cleanup; preserves archive secrets and blocks AAL1; HTTP and instrumented fake tests. No delete UI. Await exact-head checks.",
-              "PR #183 merged to Android develop c0e1c42abfa3ec73463f25bbc28c836853389acd after all four exact-head checks passed: reversible archive/restore no longer purges encrypted card secrets; atomic committed-only server purge guard owner+AAL2 enforced. Durable W2.4 orchestrator PR #184 still unmerged."
+              "PR #183 merged to Android develop c0e1c42abfa3ec73463f25bbc28c836853389acd after all four exact-head checks passed: reversible archive/restore no longer purges encrypted card secrets; atomic committed-only server purge guard owner+AAL2 enforced. Durable W2.4 orchestrator PR #184 still unmerged.",
+              "PR #184 reanchored to merged #183 and canonical handoff #185: confirmed server marker only, crash/restart resumption and ACK only after owner+AAL2 atomic vault plus legacy local vault success. Emulator failure fixtures verify local secrets survive server rejection and explicit retry. Exact-head CI required; irreversible delete UI remains disabled."
             ]
           }
         ]
