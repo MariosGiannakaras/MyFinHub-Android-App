@@ -144,10 +144,14 @@ data class AppendCanonicalEvent(
         val id = event.string("id") ?: error("Event id is required")
         val events = document.state.array("events")
         if (events.any { (it as? JsonObject)?.string("id") == id }) return document
-        return document.withMutableState(
-            document.state.updated("events", JsonArray(events + event)),
-            nowIso,
-        )
+        // Match Web creditStatements.ts at the canonical append/replay boundary.
+        // Unlinked repayments stay unallocated until a statement is explicitly selected.
+        val prepared = document.prepareCanonicalCreditStatementEvent(event, nowIso)
+        var nextState = document.state.updated("events", JsonArray(events + prepared.event))
+        if (prepared.statements != document.state.array("creditStatements")) {
+            nextState = nextState.updated("creditStatements", JsonArray(prepared.statements))
+        }
+        return document.withMutableState(nextState, nowIso)
     }
 }
 

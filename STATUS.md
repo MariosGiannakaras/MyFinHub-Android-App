@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity verified 1/6 implementations and 7/24 completed subtasks. W2.4 card-secret cleanup #184/#187 merged, permanent-delete UI safely disabled. W3.1 statement chronology #188 merged; statement preparation PR #186 reanchored pending exact-head CI. Parallel W3.3 PR #189 replaces guessed account-ID prefixes with Web-equivalent provider metadata validation and regression tests, not yet merged. No release.
+Web parity 1/6 implementations and 7/24 completed subtasks. W2.4 secure card-secret PRs #184/#187 merged; permanent-delete UI remains disabled. W3.1 #182/#188 and purchase-cycle preparation #186 merged with four exact-head checks each, while user-selected statement repayments remain open. W3.3 provider-based repayment validation #189 reanchored after #186; exact-head tests and merge pending. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify W3.1 #186 and W3.3 #189 on their distinct exact-head CI runs; merge only after 4/4 green each, updating merged evidence and handoff without overwriting parallel tracking. W2.4 permanent deletion disabled pending full safe UI/device acceptance; W3.1 repayment selection still outstanding. No release.
+1. Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #189, branch android/w3-3-provider-repayment-parity-20261015
-Current W3.3: Verified 1/6 implementations · 7/24 subtasks. W2.4 #187 and W3.1 #188 merged. W3.1 #186 statement preparation and W3.3 #189 provider-based repayment source validation run independently; both incomplete until exact-head gates/merge.
+Current W3.3: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged with destructive UI disabled. W3.1 #182/#188/#186 merged, statement repayment choice outstanding. W3.3 provider bank matching #189 reanchored, fresh CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W3.1 #186 and W3.3 #189 on their distinct exact-head CI runs; merge only after 4/4 green each, updating merged evidence and handoff without overwriting parallel tracking. W2.4 permanent deletion disabled pending full safe UI/device acceptance; W3.1 repayment selection still outstanding. No release.
+Next Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
