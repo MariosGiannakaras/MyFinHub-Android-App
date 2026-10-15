@@ -296,7 +296,7 @@ fun CreditCardStack(
         if (deletingId != null) return
         deleteArmedId = null
         deleteProgress = 0f
-        statusMessage = "Η διαγραφή της κάρτας ξεκίνησε"
+        statusMessage = "Η αρχειοθέτηση της κάρτας ξεκίνησε"
         deletingId = cardId
         scope.launch {
             // Keep the canonical card in the projected list until the approved shred/collapse
@@ -963,7 +963,7 @@ private fun ReferenceDeleteConfirmation(
                     .background(Brush.horizontalGradient(listOf(Color(0x55FF5469), Color(0xCCFF3552)))),
             )
             Text(
-                "ΣΥΡΕ ΓΙΑ ΔΙΑΓΡΑΦΗ",
+                "ΣΥΡΕ ΓΙΑ ΑΡΧΕΙΟΘΕΤΗΣΗ",
                 color = Color.White.copy(alpha = .82f - progress * .35f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,
