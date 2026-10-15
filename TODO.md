@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
+- [ ] Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #200, branch android/w4-3-savings-goals-history-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 and #199 merged 4/4; #200 Web multi-goal as-of savings/progress/privacy batch pending exact-head checks. W2.4 destructive delete disabled.
+Issue #155, PR #0, branch android/w4-3-savings-goal-durable-mutations-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks in unmerged staging base. #200 read-only multi-goal Savings in CI; durable goal metadata offline mutation codec staged without PR, native action UI still unimplemented. W2.4 card delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
+Next Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

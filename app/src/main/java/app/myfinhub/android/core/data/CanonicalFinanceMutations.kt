@@ -262,6 +262,71 @@ data class DeleteCanonicalActivity(
     }
 }
 
+
+/**
+ * Web savingsGoals.ts: durable goal metadata, not a transfer or an allocation of cash.
+ * Captured asOf prevents offline replay from invalidating an originally future deadline.
+ */
+data class UpsertCanonicalSavingsGoal(
+    val goalId: String,
+    val name: String,
+    val targetAmount: Double,
+    val targetDate: String?,
+    val asOf: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Αποθήκευση στόχου αποταμίευσης"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(goalId.isNotBlank() && goalId.length <= 200) { "Μη έγκυρο αναγνωριστικό στόχου." }
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty() && trimmed.length <= 500) { "Απαιτείται όνομα στόχου." }
+        val cents = moneyToCents(targetAmount)
+        require(cents > 0) { "Το ποσό στόχου πρέπει να είναι θετικό." }
+        val today = runCatching { java.time.LocalDate.parse(asOf) }.getOrNull()
+            ?: throw IllegalArgumentException("Άκυρη ημερομηνία ενημέρωσης.")
+        val rows = document.state.array("savingsGoals")
+        val index = rows.indexOfFirst { (it as? JsonObject)?.string("id") == goalId }
+        val original = rows.getOrNull(index) as? JsonObject
+        if (targetDate != null) {
+            val date = runCatching { java.time.LocalDate.parse(targetDate) }.getOrNull()
+                ?: throw IllegalArgumentException("Μη έγκυρη προθεσμία στόχου.")
+            require(!date.isBefore(today) || original?.string("targetDate") == targetDate) {
+                "Δεν επιτρέπεται νέα παρελθούσα προθεσμία."
+            }
+        }
+        val updated = JsonObject((original?.toMutableMap() ?: mutableMapOf()).apply {
+            put("id", JsonPrimitive(goalId))
+            put("name", JsonPrimitive(trimmed))
+            put("targetAmount", JsonPrimitive(centsToMoney(cents)))
+            if (targetDate == null) remove("targetDate") else put("targetDate", JsonPrimitive(targetDate))
+            put("createdAt", JsonPrimitive(original?.string("createdAt") ?: nowIso))
+            put("updatedAt", JsonPrimitive(nowIso))
+        })
+        val all = rows.toMutableList()
+        if (index >= 0) all[index] = updated else all += updated
+        return document.withMutableState(document.state.updated("savingsGoals", JsonArray(all)), nowIso)
+    }
+}
+
+/** Removes goal metadata only; never deletes a savings account or its finance history. */
+data class DeleteCanonicalSavingsGoal(
+    val goalId: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Διαγραφή στόχου αποταμίευσης"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(goalId.isNotBlank()) { "Απαιτείται αναγνωριστικό στόχου." }
+        val rows = document.state.array("savingsGoals")
+        val remaining = rows.filterNot { (it as? JsonObject)?.string("id") == goalId }
+        if (remaining.size == rows.size) return document
+        return document.withMutableState(
+            document.state.updated("savingsGoals", JsonArray(remaining)), nowIso,
+        )
+    }
+}
+
 data class UpsertOverallBudget(
     val month: String,
     val amount: Double,
