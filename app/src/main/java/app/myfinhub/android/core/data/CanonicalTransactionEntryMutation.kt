@@ -27,6 +27,7 @@ data class CanonicalTransactionEntryDraft(
     val person: String? = null,
     val expectedReturnDate: String? = null,
     val cardId: String? = null,
+    val statementId: String? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -85,6 +86,7 @@ fun createCanonicalTransactionEntryMutation(
     var normalizedFromId = draft.fromAccountId?.trim()?.takeIf(String::isNotBlank)
     var normalizedToId = draft.toAccountId?.trim()?.takeIf(String::isNotBlank)
     var normalizedCardId = draft.cardId?.trim()?.takeIf(String::isNotBlank)
+    var selectedStatementId: String? = null
 
     when (draft.kind) {
         "expense" -> {
@@ -173,6 +175,16 @@ fun createCanonicalTransactionEntryMutation(
             val debt = document.creditDebtForCardAt(cardId, draft.date)
             require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
             require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
+            selectedStatementId = draft.statementId?.trim()?.takeIf(String::isNotBlank)
+            selectedStatementId?.let { statementId ->
+                val statement = document.creditStatementViews(cardId, draft.date)
+                    .firstOrNull { it.id == statementId }
+                    ?: throw IllegalArgumentException("Η επιλεγμένη δήλωση δεν ανήκει στην πιστωτική κάρτα.")
+                require(statement.remaining > 0.005) { "Η επιλεγμένη δήλωση έχει ήδη εξοφληθεί." }
+                require(amount <= statement.remaining + 0.01) {
+                    "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
+                }
+            }
             val cardBankId = document.cards().firstOrNull { it.id == cardId }?.bankId.orEmpty()
             if (cardBankId.isNotBlank()) {
                 require(sourceAccountId.startsWith("$cardBankId-")) {
@@ -235,6 +247,7 @@ fun createCanonicalTransactionEntryMutation(
         draft.person?.trim()?.takeIf(String::isNotBlank)?.let { put("person", JsonPrimitive(it)) }
         draft.expectedReturnDate?.trim()?.takeIf(String::isNotBlank)?.let { put("expectedReturnDate", JsonPrimitive(it)) }
         normalizedCardId?.let { put("cardId", JsonPrimitive(it)) }
+        selectedStatementId?.let { put("statementId", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))
