@@ -26,21 +26,25 @@ class WebSelectedCreditPaymentParityTest {
          ]}}
     """.trimIndent()).jsonObject)
 
-    private fun pay(document: CanonicalFinanceDocument, id: String, amount: Double, statementId: String?) =
+    private fun paymentMutation(document: CanonicalFinanceDocument, id: String, amount: Double, statementId: String?) =
         createCanonicalTransactionEntryMutation(
             document, CanonicalTransactionEntryDraft(
                 kind = "card_payment", date = "2026-09-03", amount = amount,
                 fromAccountId = "piraeus-main", cardId = "c1", statementId = statementId,
             ), id, now,
-        ).apply(document)
+        )
+
+    private fun pay(document: CanonicalFinanceDocument, id: String, amount: Double, statementId: String?) =
+        paymentMutation(document, id, amount, statementId).apply(document)
 
     @Test fun explicitStatementLinkPersistsAndCapsRemaining() {
-        val result = pay(fixture, "paid-1", 15.0, "s1")
+        val mutation = paymentMutation(fixture, "paid-1", 15.0, "s1")
+        val result = mutation.apply(fixture)
         val payment = result.state.array("events").last() as JsonObject
         assertEquals("s1", payment.string("statementId"))
         assertEquals(5.0, result.creditStatementViews("c1", "2026-09-03")
             .first { it.id == "s1" }.remaining, 0.001)
-        assertEquals(result.raw, pay(result, "paid-1", 15.0, "s1").raw)
+        assertEquals(result.raw, mutation.apply(result).raw)
     }
 
     @Test fun noUserChoiceNeverAllocatesStatement() {

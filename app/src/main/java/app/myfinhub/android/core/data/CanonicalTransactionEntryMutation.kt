@@ -185,11 +185,9 @@ fun createCanonicalTransactionEntryMutation(
                     "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
                 }
             }
-            val cardBankId = document.cards().firstOrNull { it.id == cardId }?.bankId.orEmpty()
-            if (cardBankId.isNotBlank()) {
-                require(sourceAccountId.startsWith("$cardBankId-")) {
-                    "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
-                }
+            val cardBankId = activeCreditCards[cardId]?.bankId.orEmpty()
+            require(eligibleAccounts[sourceAccountId]?.matchesFinancialProvider(cardBankId) == true) {
+                "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
             }
             legs += transactionLedgerLeg(sourceAccountId, -amount)
             legs += transactionLedgerLeg(CREDIT_ACCOUNT_ID, amount)

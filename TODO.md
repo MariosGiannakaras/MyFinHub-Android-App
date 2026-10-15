@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate separate draft PRs #189 and #190 at exact heads, integrate only after tests and targeted native UI review, and retain W2.4 destructive UI disabled until owner/device safety confirmation. Continue W3.1/W3.3 independently; no backend or release.
+- [ ] Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
 
 ## Completed foundations
 
@@ -56,20 +56,20 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 7/24**
+**Implementations: 1/6 · Subtasks: 8/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #190, branch android/w3-1-statement-payment-selection-20261015
-Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #187 merged; W3.1 #186/#188 merged. Parallel drafts: W3.3 provider matching #189 in CI and W3.1 explicit statement repayment selection #190 in CI/visual review.
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 merged, W2.4 vault cleanup merged but destructive UI disabled. W3.1 #182/#188/#186 merged, #190 statement payment selection reanchored and corrected pending new CI/visual review.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate separate draft PRs #189 and #190 at exact heads, integrate only after tests and targeted native UI review, and retain W2.4 destructive UI disabled until owner/device safety confirmation. Continue W3.1/W3.3 independently; no backend or release.
+Next Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (in_progress); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -86,7 +86,7 @@ Next Validate separate draft PRs #189 and #190 at exact heads, integrate only af
 - [ ] W2.4 Card interactions and secure details — in_progress
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — pending
-- [ ] W3.3 Card repayment provider validation — in_progress
+- [x] W3.3 Card repayment provider validation — completed
 - [ ] W3.4 Single mutation pipeline — pending
 - [ ] W4.1 Recurring lifecycle — pending
 - [ ] W4.2 Scheduled forecast — pending
