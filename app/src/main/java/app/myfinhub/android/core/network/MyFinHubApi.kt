@@ -12,6 +12,10 @@ interface MyFinHubApi {
     suspend fun loadAccountMetadata(session: AuthSession): ApiResult<Map<String, AccountMetadataRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Authenticated owner+AAL2 read of the Web dynamic provider catalog, no asset fetches. */
+    suspend fun loadFinancialProviders(session: AuthSession): ApiResult<List<FinancialProviderRecord>> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,

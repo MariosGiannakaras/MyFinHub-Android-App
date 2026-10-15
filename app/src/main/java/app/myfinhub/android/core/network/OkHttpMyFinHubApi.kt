@@ -72,6 +72,22 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun loadFinancialProviders(
+        session: AuthSession,
+    ): ApiResult<List<FinancialProviderRecord>> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val request = authenticatedRequest(session,
+            "/api/account-metadata?resource=financial-providers")
+            .get()
+            .build()
+        return execute(request) { responseBody ->
+            val providers = parseFinancialProviderCatalog(responseBody, json)
+                ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+            ApiResult.Success(providers)
+        }
+    }
+
     override suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,

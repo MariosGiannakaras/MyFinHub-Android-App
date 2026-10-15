@@ -895,7 +895,8 @@
             "acceptance": "Read canonical providers, metadata, IBAN, logos/wordmarks/card marks and remove hardcoded bank assumptions.",
             "status": "in_progress",
             "evidence": [
-              "W5.1 staged Web-known provider identity parity: full eight Web provider IDs (including National/Eurobank/PayPal and Magenta Pay label), Unicode Greek accent alias matching, authoritative explicit providerId precedence and unknown provider guard, provider-neutral readable marks for three brands missing verified assets, and provider-aware Home/Wallet/Plan names plus card picker and Kotlin goldens. Staged behind #202 with no new PR/CI or completed credit."
+              "W5.1 staged Web-known provider identity parity: full eight Web provider IDs (including National/Eurobank/PayPal and Magenta Pay label), Unicode Greek accent alias matching, authoritative explicit providerId precedence and unknown provider guard, provider-neutral readable marks for three brands missing verified assets, and provider-aware Home/Wallet/Plan names plus card picker and Kotlin goldens. Staged behind #202 with no new PR/CI or completed credit.",
+              "W5.1 staged live provider catalog transport via existing owner+AAL2 GET /api/account-metadata?resource=financial-providers: strict non-URL ID/name/kind/country/sort/asset-key parsing, reject invalid rows and duplicate IDs, never fetch unverified remote artwork or persist it; MyFinHubApi synthetic fallback and OkHttp requestGate; 3 Kotlin goldens. Not wired into screen state yet and no PR/CI while #202 pending."
             ]
           },
           {
