@@ -37,9 +37,17 @@ data class CanonicalEventDraft(
     val fromAccountId: String? = null,
     val toAccountId: String? = null,
     val cardId: String? = null,
+    val statementId: String? = null,
     val parts: List<CanonicalSplitDraft> = emptyList(),
 )
 
+/**
+ * Compatibility adapter for the legacy four-kind constructor.
+ *
+ * All new financial events must use the single strict canonical transaction validator and
+ * [AppendCanonicalEvent] replay boundary, regardless of which historical UI caller initiates them.
+ * Keep the old public DTO for pending-mutation wire compatibility; do not rebuild event JSON here.
+ */
 fun createCanonicalEventMutation(
     document: CanonicalFinanceDocument,
     draft: CanonicalEventDraft,
@@ -49,89 +57,44 @@ fun createCanonicalEventMutation(
     require(eventId.isNotBlank()) { "Απαιτείται αναγνωριστικό κίνησης." }
     require(draft.date.isNotBlank()) { "Απαιτείται ημερομηνία." }
     require(draft.note.isNotBlank()) { "Πρόσθεσε μια σύντομη περιγραφή." }
+    require(draft.kind in setOf("expense", "transfer", "card_payment", "split")) {
+        "Unsupported legacy Android event kind."
+    }
     val amountCents = moneyToCents(draft.amount)
-    require(amountCents > 0) { "Το ποσό πρέπει να είναι μεγαλύτερο από μηδέν." }
-    val amount = centsToMoney(amountCents)
-    val eligibleAccounts = document.canonicalAccounts().filter { it.kind != "credit" }.map { it.id }.toSet()
-
-    val legs = mutableListOf<JsonObject>()
-    var creditDelta = 0.0
-    val normalizedParts = mutableListOf<JsonObject>()
-
-    when (draft.kind) {
-        "expense" -> {
-            require(draft.accountId in eligibleAccounts) { "Διάλεξε υπαρκτό λογαριασμό πληρωμής." }
-            legs += ledgerLeg(draft.accountId!!, -amount)
+    require(amountCents > 0L) { "Το ποσό πρέπει να είναι μεγαλύτερο από μηδέν." }
+    if (draft.kind == "split") {
+        require(draft.parts.size >= 2) { "Ο διαχωρισμός χρειάζεται τουλάχιστον δύο μέρη." }
+        require(draft.parts.sumOf { moneyToCents(it.amount) } == amountCents) {
+            "Τα επιμέρους ποσά πρέπει να ισούνται ακριβώς με το σύνολο."
         }
-        "transfer" -> {
-            require(draft.fromAccountId in eligibleAccounts) { "Διάλεξε υπαρκτό λογαριασμό προέλευσης." }
-            require(draft.toAccountId in eligibleAccounts) { "Διάλεξε υπαρκτό λογαριασμό προορισμού." }
-            require(draft.fromAccountId != draft.toAccountId) { "Οι λογαριασμοί μεταφοράς πρέπει να είναι διαφορετικοί." }
-            legs += ledgerLeg(draft.fromAccountId!!, -amount)
-            legs += ledgerLeg(draft.toAccountId!!, amount)
-        }
-        "card_payment" -> {
-            require(draft.fromAccountId in eligibleAccounts) { "Διάλεξε υπαρκτό λογαριασμό πληρωμής." }
-            require(!draft.cardId.isNullOrBlank()) { "Διάλεξε πιστωτική κάρτα." }
-            require(document.canonicalCards().any { it.id == draft.cardId && it.active }) { "Η κάρτα δεν είναι ενεργή." }
-            legs += ledgerLeg(draft.fromAccountId!!, -amount)
-            legs += ledgerLeg(CREDIT_ACCOUNT_ID, amount)
-            creditDelta = amount
-        }
-        "split" -> {
-            require(draft.accountId in eligibleAccounts) { "Διάλεξε υπαρκτό λογαριασμό πληρωμής." }
-            require(draft.parts.size >= 2) { "Ο διαχωρισμός χρειάζεται τουλάχιστον δύο μέρη." }
-            val normalized = draft.parts.map { part ->
-                val cents = moneyToCents(part.amount)
-                require(cents > 0) { "Κάθε μέρος του διαχωρισμού πρέπει να έχει θετικό ποσό." }
-                CanonicalSplitDraft(
-                    id = part.id,
-                    label = part.label.trim(),
-                    category = part.category.trim().ifBlank { "Άλλο" },
-                    subcategory = part.subcategory?.trim()?.takeIf(String::isNotBlank),
-                    amount = centsToMoney(cents),
-                )
-            }
-            require(normalized.sumOf { moneyToCents(it.amount) } == amountCents) {
-                "Τα επιμέρους ποσά πρέπει να ισούνται ακριβώς με το σύνολο."
-            }
-            normalizedParts += normalized.map { part ->
-                JsonObject(buildMap {
-                    put("id", JsonPrimitive(part.id))
-                    put("label", JsonPrimitive(part.label))
-                    put("category", JsonPrimitive(part.category))
-                    part.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
-                    put("amount", JsonPrimitive(part.amount))
-                    put("kind", JsonPrimitive("expense"))
-                })
-            }
-            legs += ledgerLeg(draft.accountId!!, -amount)
-        }
-        else -> error("Unsupported Android Quick Entry event kind: ${draft.kind}")
     }
 
-    val event = JsonObject(buildMap {
-        put("id", JsonPrimitive(eventId))
-        put("date", JsonPrimitive(draft.date))
-        put("kind", JsonPrimitive(draft.kind))
-        put("amount", JsonPrimitive(amount))
-        put("note", JsonPrimitive(draft.note.trim()))
-        draft.category?.trim()?.takeIf(String::isNotBlank)?.let { put("category", JsonPrimitive(it)) }
-        draft.accountId?.let { put("accountId", JsonPrimitive(it)) }
-        draft.fromAccountId?.let { put("fromAccountId", JsonPrimitive(it)) }
-        draft.toAccountId?.let { put("toAccountId", JsonPrimitive(it)) }
-        draft.cardId?.let { put("cardId", JsonPrimitive(it)) }
-        put("legs", JsonArray(legs))
-        if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
-        put("savingAmount", JsonPrimitive(0.0))
-        put("receivableDelta", JsonPrimitive(0.0))
-        put("creditDelta", JsonPrimitive(creditDelta))
-        put("source", JsonPrimitive("user"))
-        put("createdAt", JsonPrimitive(nowIso))
-        put("updatedAt", JsonPrimitive(nowIso))
-    })
-
-    return AppendCanonicalEvent(event = event, nowIso = nowIso)
+    return createCanonicalTransactionEntryMutation(
+        document = document,
+        draft = CanonicalTransactionEntryDraft(
+            kind = draft.kind,
+            date = draft.date,
+            amount = centsToMoney(amountCents),
+            note = draft.note,
+            category = draft.category,
+            accountId = draft.accountId,
+            fromAccountId = draft.fromAccountId,
+            toAccountId = draft.toAccountId,
+            cardId = draft.cardId,
+            statementId = draft.statementId,
+            parts = draft.parts.map { part ->
+                CanonicalTransactionSplitDraft(
+                    id = part.id,
+                    label = part.label,
+                    category = part.category.trim().ifBlank { "Άλλο" },
+                    subcategory = part.subcategory,
+                    amount = part.amount,
+                )
+            },
+        ),
+        eventId = eventId,
+        nowIso = nowIso,
+    )
 }
 
 data class AppendCanonicalEvent(
@@ -322,13 +285,6 @@ fun equalExpenseSplit(
         )
     }
 }
-
-private fun ledgerLeg(accountId: String, amount: Double): JsonObject = JsonObject(
-    mapOf(
-        "accountId" to JsonPrimitive(accountId),
-        "amount" to JsonPrimitive(amount),
-    ),
-)
 
 private fun CanonicalFinanceDocument.withMutableState(
     newState: JsonObject,

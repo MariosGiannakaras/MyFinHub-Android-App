@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 #189 completed; W3.2 #191 new-event rules and #193 explicit-zero savings parity merged with four exact-head checks each, full W3.2 still open. W3.1 #190 selected credit repayments merged; batched #192 now includes Compose instrumentation, due/closed/open priority, Greek labels, paid/foreign filtering and golden projections pending fresh full CI. W2.4 irreversible card deletion remains disabled. No release.",
+    "summary": "Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.1 #192 larger Compose/payment-selector priority batch pending final four gates. W3.2 #191/#193 merged; W3.3 #189 completed. Consolidated W3.4 branch now replaces the legacy duplicate event builder with a compatibility adapter to one strict canonical mutation pipeline and Web-derived replay/accounting tests. W2.4 irreversible deletion UI stays disabled. No release.",
     "next": [
-      "Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release."
+      "Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,13 +633,14 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-1-statement-selector-compose-20261015",
-    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.2 #191/#193 merged; #192 batched selector UI/projection/Compose tests reanchored after #193 pending final exact-head CI. W2.4 permanent delete disabled.",
+    "branch": "android/w3-4-unified-finance-mutation-batch-20261015",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.1 #192 in CI, W3.2 #191/#193 merged; W3.4 consolidated compatibility adapter + six golden vectors staged (PR not yet opened) to avoid overlapping CI; permanent delete UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
       "Three web-semantic primary accounts each have a chart, followed by simple secondary account rows",
-      "Cards and credit use one web-parity PaymentCard identity and integrated credit workspace"
+      "Cards and credit use one web-parity PaymentCard identity and integrated credit workspace",
+      "Use consolidated reviewable implementation batches (code, tests, UI, tracker together) and fewer but full exact-head CI checkpoints; no per-file CI pushes, never weaken finance/security validation."
     ],
     "stages": [
       {
@@ -816,8 +817,10 @@
             "id": "W3.4",
             "title": "Single mutation pipeline",
             "acceptance": "Unify Android event builders and shared validation, preserve durable offline/revision semantics; test with Web-derived vectors.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "Batched W3.4 compatibility-layer consolidation: deprecated four-kind createCanonicalEventMutation delegates to same strict createCanonicalTransactionEntryMutation as production Quick Entry. Removes duplicated JSON/ledger builder and obsolete helper; preserves legacy split cent-sum and empty-note guards, stable AppendEvent replay, provider+debt caps. New Web-derived six-vector Kotlin suite. Branch staged without PR/CI while W3.1 #192 exact-head acceptance pending; no completed count claimed."
+            ]
           }
         ]
       },
@@ -927,10 +930,10 @@
         ]
       }
     ],
-    "next_action": "Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.",
+    "next_action": "Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 192,
-    "current_subtask": "W3.1",
+    "pr": 0,
+    "current_subtask": "W3.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
