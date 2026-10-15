@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalAccount
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
+import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.activeCanonicalRecurringItems
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
@@ -71,9 +72,21 @@ internal fun projectCanonicalPlanState(
         }
     val startBalance = document.availableMoney(today.toString())
     val monthlyFlow = document.monthlyFlow(month.toString())
+    // Web portfolio windows remain a separate projection from the existing H7 spendable headline.
+    val webForecasts = listOf(30, 60, 90).map { document.cashFlowForecast(today, it) }
+    val webThirty = webForecasts.first().projectedPortfolio
 
     return PlanUiState(
         items = items,
+        forecastWindows = webForecasts.map { f ->
+            app.myfinhub.android.feature.plan.ForecastWindow(
+                days = f.horizonDays,
+                label = f.horizonDays.toString() + " ημέρες",
+                expectedIncome = f.movements.sumOf { it.portfolioDelta.coerceAtLeast(0.0) },
+                expectedOutflow = -f.movements.sumOf { it.portfolioDelta.coerceAtMost(0.0) },
+                balanceDeltaFromThirtyDays = f.projectedPortfolio - webThirty,
+            )
+        },
         budget = BudgetDraft(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
