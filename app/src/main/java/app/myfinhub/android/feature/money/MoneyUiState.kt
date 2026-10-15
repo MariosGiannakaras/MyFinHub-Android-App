@@ -56,6 +56,16 @@ data class MoneyCard(
 
 enum class VaultState { LOCKED, AVAILABLE }
 
+data class SavingsGoalItem(
+    val id: String,
+    val name: String,
+    val targetAmount: Double,
+    val targetDate: String?,
+    val backingBalance: Double,
+    val progressPercent: Double,
+    val deadlinePast: Boolean,
+)
+
 data class SavingsPlan(
     val name: String = "Ταμείο ασφαλείας",
     val targetAmountText: String,
@@ -97,6 +107,7 @@ data class MoneyUiState(
     val archivedCards: List<MoneyCard> = emptyList(),
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
     val savingsGoal: Double? = null,
+    val savingsGoalItems: List<SavingsGoalItem> = emptyList(),
     val savingsCurrent: Double = 0.0,
     val savingsSources: Map<String, Double> = emptyMap(),
     val loanOutstanding: Double = 0.0,

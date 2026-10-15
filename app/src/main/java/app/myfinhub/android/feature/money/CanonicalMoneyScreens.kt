@@ -227,7 +227,7 @@ fun CanonicalMoneyScreen(
                         }
                     }
                     if (goal != null && goal > 0.0) {
-                        LinearProgressIndicator(
+                        if (amountsVisible) LinearProgressIndicator(
                             progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -446,7 +446,7 @@ fun CanonicalSavingsScreen(
                         )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0) {
-                            LinearProgressIndicator(
+                            if (amountsVisible) LinearProgressIndicator(
                                 progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -485,7 +485,45 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
-            if (state.savingsGoal == null) {
+            if (state.savingsGoalItems.isNotEmpty()) {
+                item("savings-goals-heading") {
+                    Text("Στόχοι αποταμίευσης",
+                        style = MaterialTheme.typography.titleMedium)
+                }
+                items(state.savingsGoalItems, key = { "goal-" + it.id }) { goal ->
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                        .testTag("savings_goal_" + goal.id)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(goal.name, style = MaterialTheme.typography.titleMedium)
+                            MyFinHubAmountText(
+                                amountVisibilityText(formatCanonicalEuro(goal.targetAmount), amountsVisible),
+                                FinanceTone.Savings,
+                            )
+                            if (amountsVisible) LinearProgressIndicator(
+                                progress = { (goal.progressPercent / 100.0).toFloat().coerceIn(0f,1f) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                (if (amountsVisible) goal.progressPercent.toInt().toString() + "%"
+                                    else amountVisibilityText("100%", false)) + " · Κοινό υπόλοιπο αποταμίευσης: " +
+                                    amountVisibilityText(formatCanonicalEuro(goal.backingBalance), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            goal.targetDate?.let { deadline ->
+                                Text(
+                                    (if (goal.deadlinePast) "Η υπάρχουσα προθεσμία έχει παρέλθει: "
+                                        else "Προθεσμία: ") + deadline,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (goal.deadlinePast) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            if (state.savingsGoalItems.isEmpty() && state.savingsGoal == null) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {

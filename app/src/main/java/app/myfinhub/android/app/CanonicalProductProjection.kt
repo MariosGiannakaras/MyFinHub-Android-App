@@ -15,6 +15,7 @@ import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
+import app.myfinhub.android.core.data.canonicalSavingsGoals
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
@@ -338,6 +339,17 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
             )
         },
         savingsGoal = savingsGoal,
+        savingsGoalItems = document.canonicalSavingsGoals(today).map { goal ->
+            app.myfinhub.android.feature.money.SavingsGoalItem(
+                id = goal.id,
+                name = goal.name,
+                targetAmount = goal.targetAmount,
+                targetDate = goal.targetDate,
+                backingBalance = goal.backingBalance,
+                progressPercent = goal.progressPercent,
+                deadlinePast = goal.deadlinePast,
+            )
+        },
         savingsCurrent = savingsAccounts.sumOf { balances[it.id] ?: 0.0 },
         loanOutstanding = document.loanOutstanding(asOf),
         lendingReceivable = document.receivableOutstanding(asOf),

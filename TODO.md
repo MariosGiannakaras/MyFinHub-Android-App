@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
+- [ ] Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #199, branch android/w4-3-loans-lending-savings-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 merged 4/4; #199 reanchored for as-of loans/lending/Pay & Save and native Money surfaces/golden tests, pending full exact-head CI. W2.4 destructive deletion UI disabled.
+Issue #155, PR #200, branch android/w4-3-savings-goals-history-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 and #199 merged 4/4; #200 Web multi-goal as-of savings/progress/privacy batch pending exact-head checks. W2.4 destructive delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
+Next Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
