@@ -1008,6 +1008,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
                 PendingMutationKind.PERMANENTLY_DELETE_CARD -> "Οριστική διαγραφή κάρτας"
+                PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP -> "Καθαρισμός ασφαλών στοιχείων κάρτας"
             },
             statusLabel = if (pending.syncState == PendingMutationSyncState.NEVER_SENT) {
                 "Προς συγχρονισμό"

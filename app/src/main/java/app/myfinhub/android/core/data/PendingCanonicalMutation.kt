@@ -24,6 +24,7 @@ enum class PendingMutationKind {
     DEACTIVATE_CARD,
     RESTORE_CARD,
     PERMANENTLY_DELETE_CARD,
+    COMPLETE_CARD_SECRET_CLEANUP,
 }
 
 data class PendingCanonicalMutationIntent(
@@ -49,7 +50,7 @@ data class PendingCanonicalMutationIntent(
 
     val affectedCardId: String?
         get() = payload.string("cardId").takeIf {
-            kind in setOf(PendingMutationKind.DEACTIVATE_CARD, PendingMutationKind.RESTORE_CARD, PendingMutationKind.PERMANENTLY_DELETE_CARD)
+            kind in setOf(PendingMutationKind.DEACTIVATE_CARD, PendingMutationKind.RESTORE_CARD, PendingMutationKind.PERMANENTLY_DELETE_CARD, PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP)
         }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
@@ -99,6 +100,10 @@ data class PendingCanonicalMutationIntent(
             cardId = payload.string("cardId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
             asOf = payload.string("asOf").orEmpty(),
+        )
+        PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP -> CompleteCanonicalCardSecretCleanup(
+            cardId = payload.string("cardId").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
         )
     }
 
@@ -185,6 +190,12 @@ data class PendingCanonicalMutationIntent(
             // A removed profile is resolved even if server-side secret cleanup already
             // cleared the pending marker. Never recreate a deleted record on replay.
             cardId.isNotBlank() && !hasCard
+        }
+        PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP -> {
+            val id = payload.string("cardId").orEmpty()
+            id.isNotBlank() &&
+                document.state.array("cards").none { (it as? JsonObject)?.string("id") == id } &&
+                document.state.array("pendingCardSecretDeletes").none { (it as? JsonPrimitive)?.content == id }
         }
     }
 
@@ -288,6 +299,15 @@ data class PendingCanonicalMutationIntent(
                     "cardId" to JsonPrimitive(mutation.cardId),
                     "nowIso" to JsonPrimitive(mutation.nowIso),
                     "asOf" to JsonPrimitive(mutation.asOf),
+                )),
+                syncState = syncState,
+            )
+            is CompleteCanonicalCardSecretCleanup -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP,
+                payload = JsonObject(mapOf(
+                    "cardId" to JsonPrimitive(mutation.cardId),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
                 )),
                 syncState = syncState,
             )

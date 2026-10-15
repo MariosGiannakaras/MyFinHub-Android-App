@@ -235,3 +235,35 @@ private fun CanonicalFinanceDocument.legacyCreditOwnerForDeletion(): String? {
         compareBy<Pair<String, String>> { it.second }.thenBy { it.first }
     )?.first
 }
+
+/**
+ * Web withCardSecretCleanupComplete parity.
+ *
+ * This mutation is only permitted after BOTH the authenticated server vault and the local
+ * legacy vault confirm deletion; callers must keep the durable pending marker otherwise.
+ * It never changes financial events, credit debt or deleted-card tombstones.
+ */
+data class CompleteCanonicalCardSecretCleanup(
+    val cardId: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Επιβεβαίωση καθαρισμού ασφαλών στοιχείων κάρτας"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        val id = cardId.trim()
+        require(Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$").matches(id)) {
+            "Μη έγκυρο αναγνωριστικό κάρτας."
+        }
+        require(document.state.array("cards").none { (it as? JsonObject)?.string("id") == id }) {
+            "Δεν επιτρέπεται ολοκλήρωση καθαρισμού ενώ υπάρχει προφίλ κάρτας."
+        }
+        val pending = document.state.array("pendingCardSecretDeletes")
+        if (pending.none { (it as? JsonPrimitive)?.content == id }) return document
+        val remaining = pending.filterNot { (it as? JsonPrimitive)?.content == id }
+        return CanonicalFinanceDocument(
+            document.raw
+                .updated("state", document.state.updated("pendingCardSecretDeletes", JsonArray(remaining)))
+                .updated("updatedAt", JsonPrimitive(nowIso)),
+        )
+    }
+}

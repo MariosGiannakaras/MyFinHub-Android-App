@@ -750,7 +750,8 @@
               "Guarded permanently delete card metadata/tombstone plus durable pendingCardSecretDeletes intent #177 merged into develop 5351d3110d28efdaaade94448eaad4efb6a9979d; head 7abd1aeb9609b942c05536526d6d060a12ea9346 passed all four exact-head checks; not exposed in UI.",
               "Draft #178 fixes archive wording across stack slider, progress notices, offline pending messages and instrumented regressions; CI pending.",
               "Draft #180 implements Web-equivalent cleanup-ack mutation and durable intent, not connected to actual authenticated server/device vault cleanup; CI pending.",
-              "PR #178 exact UI archive wording revalidated against latest develop: slider, live status and offline pending/card notices use reversible archive not permanent deletion; stale instrumentation was corrected and reviewed card-detail light/dark baselines retained. Branch exact-head CI pending."
+              "PR #178 exact UI archive wording revalidated against latest develop: slider, live status and offline pending/card notices use reversible archive not permanent deletion; stale instrumentation was corrected and reviewed card-detail light/dark baselines retained. Branch exact-head CI pending.",
+              "PR #180 now directly reconciled to develop after successful PR #178 merge 5a56082ab212a4df27bde45167954fa952e4519a. Includes only idempotent cleanup-ack model, durable replay and unit tests; no premature UI/server cleanup and no W2.4 completion claim."
             ]
           }
         ]
