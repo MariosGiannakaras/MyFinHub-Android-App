@@ -151,6 +151,11 @@ class CardSecretViewModelTest {
         assertEquals("card-1", cvvVault.deletedCardId)
         assertNull(detailsVault.load("card-1"))
         assertNull(cvvVault.load("card-1"))
+        // A recomposition or repeated confirmed-marker notification may not re-delete
+        // an already completed server+legacy-local secret cleanup.
+        viewModel.purgeCard("card-1")
+        delay(50)
+        assertEquals(1, api.committedSecretDeleteCalls)
     }
 
     @Test
