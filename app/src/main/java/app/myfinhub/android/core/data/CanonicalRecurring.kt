@@ -91,7 +91,7 @@ private fun CanonicalFinanceDocument.recurringPaymentDates(id: String): List<Loc
 fun CanonicalFinanceDocument.canonicalTypicalRecurringPaymentDay(item: CanonicalRecurringItem): Int? {
     val payments = recurringPaymentDates(item.id)
     if (payments.isNotEmpty()) {
-        return (payments.sumOf(LocalDate::getDayOfMonth).toDouble() / payments.size)
+        return (payments.sumOf { it.dayOfMonth }.toDouble() / payments.size)
             .roundToInt().coerceIn(1,31)
     }
     return dateOnly(item.firstExpectedDate)?.dayOfMonth ?: item.day

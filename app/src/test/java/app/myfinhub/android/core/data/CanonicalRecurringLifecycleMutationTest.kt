@@ -49,4 +49,22 @@ class CanonicalRecurringLifecycleMutationTest {
             SetCanonicalRecurringStatus("seeded","deleted",whenIso).apply(fixture)
         }
     }
+    @Test fun durableOfflineStatusIntentRoundTripsAndReconcilesSafely() {
+        val intended=SetCanonicalRecurringStatus("seeded","paused",whenIso)
+        val queued=PendingCanonicalMutationIntent.fromMutation(
+            intended,"intent-pause",PendingMutationSyncState.NEVER_SENT)
+        assertEquals(PendingMutationKind.SET_RECURRING_STATUS,queued.kind)
+        assertFalse(queued.isSatisfiedBy(fixture))
+        val first=queued.asMutation().apply(fixture)
+        assertEquals("paused",first.allCanonicalRecurringItems().first { it.id=="seeded" }.effectiveStatus)
+        assertTrue(queued.isSatisfiedBy(first))
+        assertEquals(first.raw,queued.asMutation().apply(first).raw)
+        assertEquals(emptyList<PendingCanonicalMutationIntent>(),
+            reconcileSatisfiedPendingMutations(first,listOf(queued)))
+        val remoteRemoved=CanonicalFinanceDocument(Json.parseToJsonElement(
+            """{"seed":{"recurring":[]},"state":{"recurringCustom":[]}}"""
+        ).jsonObject)
+        assertTrue(queued.isSatisfiedBy(remoteRemoved))
+    }
+
 }
