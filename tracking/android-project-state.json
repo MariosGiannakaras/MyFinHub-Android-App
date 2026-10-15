@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.1 #192 larger Compose/payment-selector priority batch pending final four gates. W3.2 #191/#193 merged; W3.3 #189 completed. Consolidated W3.4 branch now replaces the legacy duplicate event builder with a compatibility adapter to one strict canonical mutation pipeline and Web-derived replay/accounting tests. W2.4 irreversible deletion UI stays disabled. No release.",
+    "summary": "Web parity remains 1/6 implementations and 8/24 completed subtasks at branch base. W3.4 #194 unified canonical event batch is in full CI; W4.1 next batched checkpoint has Web-recurring custom/overrides, payment-derived cadence and pause/stop lifecycle mutation integrated into Plan plus regression vectors, staged without PR/CI until #194 merges. W2.4 irreversible deletion UI disabled; no release.",
     "next": [
-      "Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release."
+      "Verify W3.4 #194 on four exact-head gates and merge if safe; then open the staged consolidated W4.1 recurring lifecycle/Plan batch as one PR and run complete CI on that final head, review errors as a single correction batch. Maintain S24 physical signoff and card deletion safety gates. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-4-unified-finance-mutation-batch-20261015",
-    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.1 #192 in CI, W3.2 #191/#193 merged; W3.4 consolidated compatibility adapter + six golden vectors staged (PR not yet opened) to avoid overlapping CI; permanent delete UI disabled.",
+    "branch": "android/w4-1-recurring-cadence-lifecycle-batch-20261015",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.4 #194 in CI; W4.1 complete source/test batch staged without PR/CI, awaiting prior merge. W3.1 physical acceptance and W2.4 destructive UI remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -833,8 +833,10 @@
             "id": "W4.1",
             "title": "Recurring lifecycle",
             "acceptance": "Include custom/overridden recurring entries, cadence, paid history, pause/stop, next due and service metadata.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W4.1 consolidated recurring batch staged behind W3.4 #194: one canonical seed/override/custom identity source, active/paused/stopped status, monthly/yearly cadence, short-month/leap clamp, current-month paid-history schedule, effective monthly total, Plan read-only integration, owner-requested seeded/custom pause/stop/restore through canonical revision mutation, 8 Kotlin golden/integration/lifecycle tests. New branch no open PR/CI yet; not completed."
+            ]
           },
           {
             "id": "W4.2",
@@ -930,10 +932,10 @@
         ]
       }
     ],
-    "next_action": "Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.",
+    "next_action": "Verify W3.4 #194 on four exact-head gates and merge if safe; then open the staged consolidated W4.1 recurring lifecycle/Plan batch as one PR and run complete CI on that final head, review errors as a single correction batch. Maintain S24 physical signoff and card deletion safety gates. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 194,
-    "current_subtask": "W3.4",
+    "pr": 195,
+    "current_subtask": "W4.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

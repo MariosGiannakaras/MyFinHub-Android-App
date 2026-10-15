@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.
+- [ ] Verify W3.4 #194 on four exact-head gates and merge if safe; then open the staged consolidated W4.1 recurring lifecycle/Plan batch as one PR and run complete CI on that final head, review errors as a single correction batch. Maintain S24 physical signoff and card deletion safety gates. No release.
 
 ## Completed foundations
 
@@ -60,17 +60,17 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #194, branch android/w3-4-unified-finance-mutation-batch-20261015
-Current W3.4: Verified 1/6 implementations · 8/24 subtasks. W3.1 #192 in CI, W3.2 #191/#193 merged; W3.4 consolidated compatibility adapter + six golden vectors staged (PR not yet opened) to avoid overlapping CI; permanent delete UI disabled.
+Issue #155, PR #195, branch android/w4-1-recurring-cadence-lifecycle-batch-20261015
+Current W4.1: Verified 1/6 implementations · 8/24 subtasks. W3.4 #194 in CI; W4.1 complete source/test batch staged without PR/CI, awaiting prior merge. W3.1 physical acceptance and W2.4 destructive UI remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.
+Next Verify W3.4 #194 on four exact-head gates and merge if safe; then open the staged consolidated W4.1 recurring lifecycle/Plan batch as one PR and run complete CI on that final head, review errors as a single correction batch. Maintain S24 physical signoff and card deletion safety gates. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.4 Single mutation pipeline (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
+| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
@@ -88,7 +88,7 @@ Next Finish exact-head W3.1 #192 and merge only on four green gates. Then open t
 - [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
 - [ ] W3.4 Single mutation pipeline — in_progress
-- [ ] W4.1 Recurring lifecycle — pending
+- [ ] W4.1 Recurring lifecycle — in_progress
 - [ ] W4.2 Scheduled forecast — pending
 - [ ] W4.3 Savings, loans, lending and budgets — pending
 - [ ] W4.4 Transactions and analytics completeness — pending
