@@ -180,13 +180,29 @@ class OkHttpMyFinHubApi(
     override suspend fun deleteCardSecrets(
         session: AuthSession,
         cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> =
+        deleteCardSecretsRequest(session, cardId, requireCommittedDeletion = false)
+
+    override suspend fun deleteCommittedCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> =
+        deleteCardSecretsRequest(session, cardId, requireCommittedDeletion = true)
+
+    private suspend fun deleteCardSecretsRequest(
+        session: AuthSession,
+        cardId: String,
+        requireCommittedDeletion: Boolean,
     ): ApiResult<CardSecretDeleteReceipt> {
         val gate = requestGate(session)
         if (gate != null) return gate
         val normalizedCardId = cardId.trim()
         if (!CARD_ID_REGEX.matches(normalizedCardId)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
 
-        val body = buildJsonObject { put("cardId", JsonPrimitive(normalizedCardId)) }.toString()
+        val body = buildJsonObject {
+            put("cardId", JsonPrimitive(normalizedCardId))
+            if (requireCommittedDeletion) put("requireCommittedDeletion", JsonPrimitive(true))
+        }.toString()
         val request = authenticatedRequest(session, "/api/card-secrets")
             .delete(body.toRequestBody(JSON_MEDIA_TYPE))
             .build()

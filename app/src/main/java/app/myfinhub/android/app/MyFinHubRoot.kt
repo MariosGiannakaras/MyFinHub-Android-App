@@ -189,7 +189,7 @@ fun MyFinHubRoot(
         }
     }
     LaunchedEffect(financeViewModel, cardSecretViewModel) {
-        financeViewModel.committedCardDeletions.collect { cardId ->
+        financeViewModel.committedPermanentCardCleanupRequests.collect { cardId ->
             cardSecretViewModel.purgeCard(cardId)
         }
     }

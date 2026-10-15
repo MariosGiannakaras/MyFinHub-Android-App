@@ -146,6 +146,7 @@ class CardSecretViewModelTest {
         waitUntil { viewModel.cleanupState.value is CardSecretCleanupUiState.Complete }
 
         assertEquals(1, api.serverSecretDeleteCalls)
+        assertEquals(1, api.committedSecretDeleteCalls)
         assertEquals("card-1", detailsVault.deletedCardId)
         assertEquals("card-1", cvvVault.deletedCardId)
         assertNull(detailsVault.load("card-1"))
@@ -233,6 +234,8 @@ private class FakeCardApi(
         private set
     var serverSecretDeleteCalls: Int = 0
         private set
+    var committedSecretDeleteCalls: Int = 0
+        private set
     var lastUpdate: CardSecretUpdate? = null
         private set
 
@@ -272,5 +275,13 @@ private class FakeCardApi(
     ): ApiResult<CardSecretDeleteReceipt> {
         serverSecretDeleteCalls += 1
         return ApiResult.Success(CardSecretDeleteReceipt(deleted = true))
+    }
+
+    override suspend fun deleteCommittedCardSecrets(
+        session: AuthSession,
+        cardId: String,
+    ): ApiResult<CardSecretDeleteReceipt> {
+        committedSecretDeleteCalls += 1
+        return deleteCardSecrets(session, cardId)
     }
 }
