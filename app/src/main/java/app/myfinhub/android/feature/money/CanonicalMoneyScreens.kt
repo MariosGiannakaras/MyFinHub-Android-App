@@ -535,7 +535,7 @@ fun CanonicalSavingsScreen(
                             )
                             Text(
                                 (if (amountsVisible) goal.progressPercent.toInt().toString() + "%"
-                                    else HIDDEN_AMOUNT_TEXT) + " · Κοινό υπόλοιπο αποταμίευσης: " +
+                                    else amountVisibilityText("100%", false)) + " · Κοινό υπόλοιπο αποταμίευσης: " +
                                     amountVisibilityText(formatCanonicalEuro(goal.backingBalance), amountsVisible),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -586,6 +586,84 @@ fun CanonicalSavingsScreen(
                 }
             }
         }
+    }
+    if (editorVisible && onSaveGoal != null) {
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) editorVisible = false },
+            title = { Text(if (editingId == null) "Νέος στόχος" else "Επεξεργασία στόχου") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    OutlinedTextField(
+                        value = nameDraft, onValueChange = { nameDraft = it; editorError = null },
+                        label = { Text("Όνομα") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_name"),
+                    )
+                    OutlinedTextField(
+                        value = amountDraft, onValueChange = { amountDraft = it; editorError = null },
+                        label = { Text("Ποσό στόχου (€)") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_amount"),
+                    )
+                    OutlinedTextField(
+                        value = dateDraft, onValueChange = { dateDraft = it; editorError = null },
+                        label = { Text("Προθεσμία YYYY-MM-DD (προαιρετική)") }, singleLine = true,
+                        enabled = !mutationBlocked, modifier = Modifier.testTag("savings_goal_date"),
+                    )
+                    editorError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.testTag("savings_goal_save"),
+                    onClick = {
+                        val amount = amountDraft.replace(',', '.').toDoubleOrNull()
+                        val date = dateDraft.trim().takeIf(String::isNotEmpty)
+                        val parsed = date?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                        val previous = state.savingsGoalItems.firstOrNull { it.id == editingId }
+                        val today = state.asOfDate?.let { runCatching {
+                            java.time.LocalDate.parse(it)
+                        }.getOrNull() } ?: java.time.LocalDate.now()
+                        editorError = when {
+                            nameDraft.trim().isEmpty() || nameDraft.trim().length > 500 ->
+                                "Συμπλήρωσε όνομα στόχου έως 500 χαρακτήρες."
+                            amount == null || !amount.isFinite() || amount <= 0.0 ->
+                                "Το ποσό στόχου πρέπει να είναι θετικό."
+                            date != null && parsed == null -> "Η προθεσμία δεν είναι έγκυρη."
+                            parsed != null && parsed.isBefore(today) && previous?.targetDate != date ->
+                                "Δεν μπορείς να ορίσεις νέα προθεσμία στο παρελθόν."
+                            else -> null
+                        }
+                        if (editorError == null) {
+                            onSaveGoal(editingId, nameDraft.trim(), amountDraft, date)
+                            editorVisible = false
+                        }
+                    },
+                ) { Text("Αποθήκευση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editorVisible = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
+    confirmDeleteId?.let { id ->
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) confirmDeleteId = null },
+            title = { Text("Διαγραφή στόχου;") },
+            text = { Text("Αφαιρείται μόνο ο στόχος, όχι η αποταμίευση ή οι κινήσεις σου.") },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && onDeleteGoal != null,
+                    modifier = Modifier.testTag("savings_goal_confirm_delete"),
+                    onClick = {
+                        onDeleteGoal?.invoke(id)
+                        confirmDeleteId = null
+                    },
+                ) { Text("Διαγραφή στόχου") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteId = null }) { Text("Ακύρωση") }
+            },
+        )
     }
 }
 
