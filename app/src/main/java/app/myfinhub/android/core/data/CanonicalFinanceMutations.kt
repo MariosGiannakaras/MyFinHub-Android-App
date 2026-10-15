@@ -118,6 +118,45 @@ data class AppendCanonicalEvent(
     }
 }
 
+/**
+ * Owner-approved recurring pause/stop/reactivation through canonical finance state.
+ * Seeded rows write complete recurringOverrides records; custom rows are edited in place.
+ * No synthetic payments or seed mutations are created.
+ */
+data class SetCanonicalRecurringStatus(
+    val recurringId: String,
+    val status: String,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Αλλαγή κατάστασης παγίου"
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(recurringId.isNotBlank()) { "Απαιτείται αναγνωριστικό παγίου." }
+        require(status in setOf("active", "paused", "stopped")) { "Άγνωστη κατάσταση παγίου." }
+        val custom = document.state.array("recurringCustom")
+        val index = custom.indexOfFirst { (it as? JsonObject)?.string("id") == recurringId }
+        fun updated(item: JsonObject): JsonObject = JsonObject(item + mapOf(
+            "active" to JsonPrimitive(status == "active"),
+            "status" to JsonPrimitive(status),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
+        val newState = if (index >= 0) {
+            val mutable = custom.toMutableList()
+            mutable[index] = updated(mutable[index] as JsonObject)
+            document.state.updated("recurringCustom", JsonArray(mutable))
+        } else {
+            val seed = document.seed.array("recurring").firstOrNull {
+                (it as? JsonObject)?.string("id") == recurringId
+            } as? JsonObject ?: throw IllegalArgumentException("Το πάγιο δεν βρέθηκε.")
+            val overrides = document.state.obj("recurringOverrides")
+            val before = (overrides[recurringId] as? JsonObject) ?: seed
+            document.state.updated("recurringOverrides",
+                JsonObject(overrides + (recurringId to updated(before))))
+        }
+        return document.withMutableState(newState, nowIso)
+    }
+}
+
 data class EditCanonicalActivity(
     val transactionId: String,
     val note: String,
