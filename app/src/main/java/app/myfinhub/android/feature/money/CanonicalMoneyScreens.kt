@@ -15,6 +15,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -413,8 +415,27 @@ internal fun canonicalNetPosition(state: MoneyUiState): Double =
 fun CanonicalSavingsScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
+    onSaveGoal: ((String?, String, String, String?) -> Unit)? = null,
+    onDeleteGoal: ((String) -> Unit)? = null,
+    mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var editorVisible by rememberSaveable { mutableStateOf(false) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var nameDraft by rememberSaveable { mutableStateOf("") }
+    var amountDraft by rememberSaveable { mutableStateOf("") }
+    var dateDraft by rememberSaveable { mutableStateOf("") }
+    var editorError by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun editGoal(goal: SavingsGoalItem?) {
+        editingId = goal?.id
+        nameDraft = goal?.name.orEmpty()
+        amountDraft = goal?.targetAmount?.toString().orEmpty()
+        dateDraft = goal?.targetDate.orEmpty()
+        editorError = null
+        editorVisible = true
+    }
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -485,6 +506,15 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            if (onSaveGoal != null) {
+                item("savings-goal-add") {
+                    TextButton(
+                        enabled = !mutationBlocked,
+                        onClick = { editGoal(null) },
+                        modifier = Modifier.testTag("savings_goal_new"),
+                    ) { Text("Νέος στόχος αποταμίευσης") }
+                }
+            }
             if (state.savingsGoalItems.isNotEmpty()) {
                 item("savings-goals-heading") {
                     Text("Στόχοι αποταμίευσης",
@@ -518,6 +548,20 @@ fun CanonicalSavingsScreen(
                                     color = if (goal.deadlinePast) MaterialTheme.colorScheme.error
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                            }
+                            if (onSaveGoal != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { editGoal(goal) },
+                                    modifier = Modifier.testTag("savings_goal_edit_" + goal.id),
+                                ) { Text("Επεξεργασία στόχου") }
+                            }
+                            if (onDeleteGoal != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { confirmDeleteId = goal.id },
+                                    modifier = Modifier.testTag("savings_goal_delete_" + goal.id),
+                                ) { Text("Διαγραφή στόχου") }
                             }
                         }
                     }
