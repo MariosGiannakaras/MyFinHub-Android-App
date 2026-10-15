@@ -40,7 +40,7 @@ fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String?
         }
     }
     effectiveLegacyTransactions().filter { include(it.date) }.forEach { tx ->
-        val decision = reviewDecision(tx.id)
+        val decision = state.obj("reviewDecisions")[tx.id] as? JsonObject
         if (decision?.string("status") == "confirmed" && decision.string("semanticKind") == "split") {
             addParts(decision.array("parts").mapNotNull { it as? JsonObject })
         } else {
