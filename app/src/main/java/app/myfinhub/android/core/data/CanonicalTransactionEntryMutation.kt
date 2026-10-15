@@ -236,7 +236,7 @@ fun createCanonicalTransactionEntryMutation(
         put("date", JsonPrimitive(draft.date))
         put("kind", JsonPrimitive(draft.kind))
         put("amount", JsonPrimitive(normalizedAmount))
-        put("note", JsonPrimitive(draft.note.trim().ifBlank { defaultTransactionNote(draft.kind) }))
+        put("note", JsonPrimitive(draft.note.trim()))
         draft.category?.trim()?.takeIf(String::isNotBlank)?.let { put("category", JsonPrimitive(it)) }
         draft.subcategory?.trim()?.takeIf(String::isNotBlank)?.let { put("subcategory", JsonPrimitive(it)) }
         normalizedAccountId?.let { put("accountId", JsonPrimitive(it)) }
@@ -256,7 +256,13 @@ fun createCanonicalTransactionEntryMutation(
         put("updatedAt", JsonPrimitive(nowIso))
     })
 
-    return AppendCanonicalEvent(event = event, nowIso = nowIso)
+    // Apply Web rules once, when the caller builds a new stable event intent, never
+    // during server replay or while projecting previously committed history.
+    val ruled = document.applyCanonicalTransactionRules(event)
+    val finalEvent = if (ruled.string("note").isNullOrBlank()) {
+        JsonObject(ruled + ("note" to JsonPrimitive(defaultTransactionNote(draft.kind))))
+    } else ruled
+    return AppendCanonicalEvent(event = finalEvent, nowIso = nowIso)
 }
 
 private val SUPPORTED_TRANSACTION_ENTRY_KINDS = setOf(
