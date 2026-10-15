@@ -54,7 +54,7 @@ Web parity 1/6 implementations and 8/24 completed subtasks. W3.2 new-event trans
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w3-2-explicit-savings-zero-parity-20261015
+Issue #155, PR #193, branch android/w3-2-explicit-savings-zero-parity-20261015
 Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 rule engine merged, zero-vs-missing savings projection fix draft pending CI. W3.1 #192 Compose selector draft independent. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
