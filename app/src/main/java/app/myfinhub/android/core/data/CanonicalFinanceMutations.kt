@@ -274,7 +274,7 @@ data class UpsertOverallBudget(
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         val cents = moneyToCents(amount)
         require(cents > 0) { "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν." }
-        require(alertThreshold in 1..100) { "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%." }
+        require(alertThreshold in 50..99) { "Το όριο ειδοποίησης πρέπει να είναι από 50 έως 99%." }
         val budgets = document.state.array("budgets")
         val index = budgets.indexOfFirst { raw ->
             val item = raw as? JsonObject
@@ -286,7 +286,7 @@ data class UpsertOverallBudget(
             put("month", JsonPrimitive(month))
             put("scope", JsonPrimitive("overall"))
             put("amount", JsonPrimitive(centsToMoney(cents)))
-            put("alertThreshold", JsonPrimitive(alertThreshold))
+            put("alertThreshold", JsonPrimitive(alertThreshold / 100.0))
             put("createdAt", JsonPrimitive(existing?.string("createdAt") ?: nowIso))
             put("updatedAt", JsonPrimitive(nowIso))
         })

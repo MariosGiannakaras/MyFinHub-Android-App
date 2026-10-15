@@ -134,7 +134,7 @@ class CanonicalFinanceDomainTest {
 
         assertEquals("budget-android-stable", budget.string("id"))
         assertEquals(900.13, budget.number("amount") ?: 0.0, 0.001)
-        assertEquals(75.0, budget.number("alertThreshold") ?: 0.0, 0.001)
+        assertEquals(0.75, budget.number("alertThreshold") ?: 0.0, 0.001)
         assertEquals(1, budgets.count { it.string("id") == "budget-android-stable" })
         assertEquals("keep-state", twice.state.string("unknownState"))
     }

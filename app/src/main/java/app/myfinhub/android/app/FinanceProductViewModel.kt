@@ -439,7 +439,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         val amount = monthlyLimitText.replace(',', '.').toDoubleOrNull()
         val threshold = alertThresholdText.toIntOrNull()
-        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 1..100) return
+        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
 
         applyMutation(
             UpsertOverallBudget(
@@ -463,7 +463,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableState.value = ready.copy(projection = ready.projection.copy(planState = validated))
         val amount = validated.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
         val threshold = validated.budget.alertThresholdText.toIntOrNull()
-        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 1..100) return
+        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
 
         applyMutation(
             UpsertOverallBudget(

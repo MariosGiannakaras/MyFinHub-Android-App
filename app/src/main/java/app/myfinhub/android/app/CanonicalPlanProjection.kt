@@ -14,9 +14,12 @@ import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
+import app.myfinhub.android.core.data.categoryBudgetSpending
+import app.myfinhub.android.core.data.webBudgetProgress
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.feature.plan.BudgetDraft
+import app.myfinhub.android.feature.plan.CategoryBudget
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
@@ -27,6 +30,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Builds the production Plan projection from canonical finance data.
@@ -43,6 +47,9 @@ internal fun projectCanonicalPlanState(
 ): PlanUiState {
     val month = YearMonth.from(today)
     val canonicalBudget = document.overallBudget(month.toString())
+    val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
+    val categorizedBudgetTotal = document.categoryBudgetSpending(month.toString(), today.toString())
+        .values.sum().coerceAtLeast(0.0)
     // H7 production forecast is a fixed, explainable 30-day window. Legacy preview-only
     // horizon controls must never change canonical production semantics.
     val horizonDays = 30
@@ -108,6 +115,16 @@ internal fun projectCanonicalPlanState(
                 omittedSourceCount = f.omitted.size,
             )
         },
+        categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
+            .map { row ->
+                CategoryBudget(
+                    id = row.id,
+                    name = row.category.orEmpty(),
+                    monthlyLimitText = row.limit.toPlainPlanMoney(),
+                    alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
+                    spent = row.used,
+                )
+            },
         budget = BudgetDraft(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
@@ -123,7 +140,7 @@ internal fun projectCanonicalPlanState(
         forecastEndDateLabel = horizonEnd.format(
             DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
-        budgetSpent = monthlyFlow.expense,
+        budgetSpent = categorizedBudgetTotal,
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),

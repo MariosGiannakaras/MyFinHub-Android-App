@@ -134,7 +134,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
         val threshold = state.budget.alertThresholdText.toIntOrNull()
         when {
             limit == null || limit <= 0 -> state.copy(message = "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν.")
-            threshold == null || threshold !in 1..100 -> state.copy(message = "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%.")
+            threshold == null || threshold !in 50..99 -> state.copy(message = "Το όριο ειδοποίησης πρέπει να είναι από 50 έως 99%.")
             else -> state.copy(message = "Ο μηνιαίος προϋπολογισμός ενημερώθηκε.")
         }
     }
@@ -191,7 +191,7 @@ fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (acti
             if (!budget.enabled) return@firstOrNull false
             val limit = budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
             val threshold = budget.alertThresholdText.toIntOrNull()
-            limit == null || limit <= 0.0 || threshold == null || threshold !in 1..100
+            limit == null || limit <= 0.0 || threshold == null || threshold !in 50..99
         }
         if (invalid != null) {
             state.copy(categoryBudgetMessage = "Έλεγξε το όριο και το ποσοστό ειδοποίησης για ${invalid.name}.")

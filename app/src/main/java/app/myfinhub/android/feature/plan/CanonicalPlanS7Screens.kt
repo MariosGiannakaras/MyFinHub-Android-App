@@ -715,7 +715,7 @@ fun CanonicalBudget2026Screen(
                         val threshold = thresholdDraft.toIntOrNull()
                         localError = when {
                             limit == null || limit <= 0.0 -> "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν."
-                            threshold == null || threshold !in 1..100 -> "Το όριο προειδοποίησης πρέπει να είναι από 1 έως 100%."
+                            threshold == null || threshold !in 50..99 -> "Το όριο προειδοποίησης πρέπει να είναι από 50 έως 99%."
                             else -> null
                         }
                         if (localError == null) {
@@ -788,6 +788,46 @@ fun CanonicalBudget2026Screen(
                 }
             }
 
+            if (state.categoryBudgets.isNotEmpty()) {
+                item("budget-categories-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Όρια ανά κατηγορία",
+                        subtitle = "Πραγματικές κατηγοριοποιημένες δαπάνες του μήνα",
+                        icon = MyFinHubIcons.Savings,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                items(state.categoryBudgets, key = { "category-budget-" + it.id }) { budget ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_" + budget.id),
+                    ) {
+                        val limit = budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        val used = budget.spent.coerceAtLeast(0.0)
+                        val threshold = (budget.alertThresholdText.toDoubleOrNull() ?: 80.0) / 100.0
+                        val ratio = if (limit > 0.0) used / limit else 0.0
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                if (amountsVisible) "${formatPlanS7Euro(used)} / ${formatPlanS7Euro(limit)}"
+                                else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            LinearProgressIndicator(
+                                progress = { ratio.toFloat().coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (ratio > 1.0 || ratio >= threshold) {
+                                Text(
+                                    if (ratio > 1.0) "Υπέρβαση ορίου" else "Κοντά στο όριο",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             item("budget-editor") {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -815,7 +855,7 @@ fun CanonicalBudget2026Screen(
                             suffix = { Text("%") },
                             errorMessage = localError.takeIf { it?.contains("προειδοποίησης") == true },
                             supportingText = if (localError?.contains("προειδοποίησης") == true) null else
-                                "Από 1 έως 100% · επισημαίνει την πρόοδο μέσα στο MyFinHub",
+                                "Από 50 έως 99% · επισημαίνει την πρόοδο μέσα στο MyFinHub",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             enabled = !mutationInFlight && !saveRequested,
                         )
