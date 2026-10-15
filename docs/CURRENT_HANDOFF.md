@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 unified event builder #194 and W4.1 recurring cadence/Plan/offline status #195 merged with 4/4 exact-head checks. W4.1 UI lifecycle remains open. W4.2 new consolidated Web 30/60/90 forecast projection, warning accounts, source attribution, Plan comparison windows and golden tests pending full exact-head CI. W2.4 permanent-delete UI disabled. No release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 #194 and W4.2 forecast engine #196 merged with four exact-head gates; W4.1 #195 recurring Web lifecycle core merged. Consolidated PR #197 adds native Plan recurring management with guarded pause/stop/reactivate, real 30/60/90 account-portfolio comparison and risk warnings, and golden/Compose tests. W4.1/W4.2 remain partial pending final exact-head CI and physical S24 acceptance; W2.4 destructive card-delete UI disabled. No release.
 
 ## Immediate work
 
-- Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.
+- Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 unified event b
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #196, branch android/w4-2-forecast-consolidated-20261015
-Current W4.2: Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 completed; W4.1 #195 merged but native actions open; W4.2 multi-source 30/60/90 draft ready for one CI batch. W2.4 destructive UI disabled.
+Issue #155, PR #197, branch android/w4-1-recurring-native-actions-batch-20261015
+Current W4.1: Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 and W4.2 engine #196 merged; #197 real recurring lifecycle UI plus Web forecast detail staged, awaiting four exact-head CI checks. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.
+Next Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
