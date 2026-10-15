@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release.
+- [ ] Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w4-3-savings-goal-durable-mutations-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks in unmerged staging base. #200 read-only multi-goal Savings in CI; durable goal metadata offline mutation codec staged without PR, native action UI still unimplemented. W2.4 card delete disabled.
+Issue #155, PR #201, branch android/w4-3-savings-goal-durable-mutations-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198/#199/#200 merged with 4/4 exact-head each; #201 canonical goal writes + native CRUD and durable offline codec pending 4-gate CI. W2.4 card deletion UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release.
+Next Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

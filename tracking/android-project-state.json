@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 read-only multi-goal Savings #200 pending exact-head CI. Staged next safe owner-approved goal metadata upsert/delete mutation codecs with captured-asOf deadline rule and four offline/replay tests, without enabling native mutation controls or a second CI until #200 merges. W2.4 permanent-delete card UI disabled and owner physical S24 acceptance pending; no release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 budgets #198, as-of loans/lending/Pay & Save #199 and read-only multi-goal Savings #200 merged with four exact-head checks each. W4.3 consolidated #201 implements owner-safe SavingsGoal metadata CRUD through canonical server/offline replay with native form and explicit delete confirmation, pending exact-head CI. W4.1/W4.2 physical owner S24 acceptance remains outstanding, W2.4 permanent card delete stays disabled; no release.",
     "next": [
-      "Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release."
+      "Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w4-3-savings-goal-durable-mutations-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks in unmerged staging base. #200 read-only multi-goal Savings in CI; durable goal metadata offline mutation codec staged without PR, native action UI still unimplemented. W2.4 card delete disabled.",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #198/#199/#200 merged with 4/4 exact-head each; #201 canonical goal writes + native CRUD and durable offline codec pending 4-gate CI. W2.4 card deletion UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -868,8 +868,8 @@
               "W4.3 consolidated PR #199 reanchored on post-#198 develop: Web as-of loans/self-loan returns, per-person lending and unattributed receivables, Pay & Save/manual/cash sources, real Money loan/lending/savings screen rows, 3 domain+1 integration golden unit tests and production Compose tests; all exact-head CI and physical S24 acceptance pending.",
               "W4.3 #199 finance as-of loans/lending and Pay & Save/manual/cash source projections, actual native Money lists and golden/Compose cases merged to develop as 27b1324408ed41e7dd5fdbe83358f2f6c7e463ec with all four exact-head gates passed.",
               "W4.3 consolidated #200 read-only Web SavingsGoal multiple targets, as-of positive eligible bank+savings balances, capped progress and historical deadline warning, real production Money screen, privacy-masked bars and ratios across Wallet/Savings, unit/integration/Compose tests. New exact-head 4-gate verification pending; CRUD intentionally deferred until owner-authorized durable mutation replay.",
-              "Staged next W4.3 owner-approved savings-goal durable metadata mutations and PendingCanonicalMutationIntent kinds: goal create/edit preserve unknown/createdAt/history, validate historical deadline on captured asOf, delete only goal not money, stable queued replay/isSatisfiedBy/idempotent reconciliation; four unit goldens. No native create/delete buttons or PR/CI started while #200 ongoing.",
-              "Staged native savings goal editor with validation of target, historical unchanged deadline, confirmation for goal-only delete, guarded VM callbacks, captured intent IDs and full offline canonical mutation codec. No actual UI CI or PR until predecessor #200 merges; mutations not declared complete/accepted."
+              "W4.3 PR #200 Web canonical savings multi-goal as-of balances/deadlines and privacy-masked progress, real Money screen and Kotlin/Compose goldens merged as 96d519d9a2b3ffae1a82610606f0e6b447d575fe after 4/4 exact-head CI checks; native goal write editor still incomplete pending #201.",
+              "W4.3 #201 reanchored goal owner mutation UI: server-authoritative guarded ViewModel, owner-approved Upsert/Delete SavingsGoal metadata only, captured date validation, stable idempotent PendingCanonicalMutation replay and isSatisfiedBy, native create/edit/delete confirmation, hidden privacy progress and domain+emulator tests. Fresh full exact-head CI pending, no completed credit or physical S24 acceptance yet."
             ]
           },
           {
@@ -952,9 +952,9 @@
         ]
       }
     ],
-    "next_action": "Wait for #200 full exact-head CI then merge only on four green gates. Reanchor the staged goal-mutation/offline-intent branch on verified develop and complete guarded native goal editor/delete confirmation and tests in one subsequent consolidated PR; no bypass of owner session/security/revision checks. No release.",
+    "next_action": "Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
+    "pr": 201,
     "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
