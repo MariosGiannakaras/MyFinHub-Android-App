@@ -54,7 +54,7 @@ Web parity 1/6 implementations and 7/24 completed subtasks in this base. W3.3 pr
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w3-2-web-transaction-rules-20261015
+Issue #155, PR #191, branch android/w3-2-web-transaction-rules-20261015
 Current W3.2: Verified 1/6 implementations · 7/24 subtasks in base. W3.3 #189 merged; W3.1 #190 independent pending. W3.2 pure rule matcher source and golden fixtures draft, integration outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release.

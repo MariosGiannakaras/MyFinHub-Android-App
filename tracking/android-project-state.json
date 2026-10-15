@@ -923,7 +923,7 @@
     ],
     "next_action": "Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
+    "pr": 191,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

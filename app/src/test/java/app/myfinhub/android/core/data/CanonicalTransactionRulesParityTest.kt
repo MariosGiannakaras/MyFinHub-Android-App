@@ -24,7 +24,7 @@ class CanonicalTransactionRulesParityTest {
         "id" to JsonPrimitive(id),
         "priority" to JsonPrimitive(priority),
         "enabled" to JsonPrimitive(enabled),
-        "scopes" to JsonArray(scopes.map(::JsonPrimitive)),
+        "scopes" to JsonArray(scopes.map { JsonPrimitive(it) }),
         "match" to match,
         "action" to action,
     ))
