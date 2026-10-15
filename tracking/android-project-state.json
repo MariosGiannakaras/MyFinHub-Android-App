@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Current Web parity 1/6 implementations, 7/24 subtasks completed. W1 4/4 and W2.1–W2.3 merged and tested. W2.4 archive/restore/offline replay #174 and read-only deletion eligibility #176 merged with exact-head 4/4 checks. Guarded permanent-delete tombstone intent draft #177 and accurate archive UX draft #178 are under CI; neither is accepted or live deletion UI. Protected vault cleanup and full physical S24 acceptance remain pending; W3.1 historical credit debt/repayment allocation partial. No backend/schema changes or release.",
+    "summary": "Web parity verified 1/6 implementations and 7/24 subtasks. W1 completed, W2.1–W2.3 merged/green. W2.4 archive/restore #174, eligibility #176 and guarded deletion/tombstones #177 merged with all four exact-head checks; irreversible delete NOT available in UI. Archive language PR #178 and durable secret-cleanup acknowledgement PR #180 under CI. Full post-commit authenticated server/device vault cleanup, retry and owner S24 acceptance outstanding. W3.1 repayment allocation/legacy card debt partial. No backend or release.",
     "next": [
-      "Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open."
+      "Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-track-current-w2-4-20261015",
-    "checkpoint": "W2.1–W2.3 verified merged (7/24); W2.4 archive/restore #174 and delete eligibility #176 merged/green, guarded-delete #177 and archive-label #178 draft",
+    "branch": "android/web-parity-track-safe-cleanup-20261015",
+    "checkpoint": "Verified 1/6 implementations and 7/24 subtasks. W2.4 archive/restore #174, delete eligibility #176, guarded deletion tombstones/offline intent #177 merged. Archive UX PR #178 under retest; cleanup-ack contract #180 in CI. No permanent deletion in UI or completed vault cleanup.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -746,7 +746,10 @@
               "Native archive+stable-ID restore/offline replay PR #174 merged to develop 5a61dcf598af76c522df059db5396ab7680cd35a after 4/4 exact-head CI/screenshot/instrumentation/tracking checks.",
               "Read-only permanent card deletion eligibility PR #176 merged to develop 2a799a7e96e21faa7d5ee8cf291beb44fc393c1c after 4/4 exact-head checks; active credit, unsettled debt, and linked debit events are blocked.",
               "Guarded permanent delete tombstone+pending secret cleanup offline intent source is in draft PR #177, no UI wiring or cleanup yet; archive user-facing terminology correction is draft #178. Both unmerged.",
-              "Draft #177 safely reanchored to post-#179 canonical tracking: reversible status unchanged 1/6 & 7/24, guarded permanent delete intent not user exposed; exact-head CI still required."
+              "Draft #177 safely reanchored to post-#179 canonical tracking: reversible status unchanged 1/6 & 7/24, guarded permanent delete intent not user exposed; exact-head CI still required.",
+              "Guarded permanently delete card metadata/tombstone plus durable pendingCardSecretDeletes intent #177 merged into develop 5351d3110d28efdaaade94448eaad4efb6a9979d; head 7abd1aeb9609b942c05536526d6d060a12ea9346 passed all four exact-head checks; not exposed in UI.",
+              "Draft #178 fixes archive wording across stack slider, progress notices, offline pending messages and instrumented regressions; CI pending.",
+              "Draft #180 implements Web-equivalent cleanup-ack mutation and durable intent, not connected to actual authenticated server/device vault cleanup; CI pending."
             ]
           }
         ]
@@ -895,9 +898,9 @@
         ]
       }
     ],
-    "next_action": "Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.",
+    "next_action": "Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 179,
+    "pr": 181,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Current Web parity 1/6 implementations, 7/24 subtasks completed. W1 4/4 and W2.1–W2.3 merged and tested. W2.4 archive/restore/offline replay #174 and read-only deletion eligibility #176 merged with exact-head 4/4 checks. Guarded permanent-delete tombstone intent draft #177 and accurate archive UX draft #178 are under CI; neither is accepted or live deletion UI. Protected vault cleanup and full physical S24 acceptance remain pending; W3.1 historical credit debt/repayment allocation partial. No backend/schema changes or release.
+Web parity verified 1/6 implementations and 7/24 subtasks. W1 completed, W2.1–W2.3 merged/green. W2.4 archive/restore #174, eligibility #176 and guarded deletion/tombstones #177 merged with all four exact-head checks; irreversible delete NOT available in UI. Archive language PR #178 and durable secret-cleanup acknowledgement PR #180 under CI. Full post-commit authenticated server/device vault cleanup, retry and owner S24 acceptance outstanding. W3.1 repayment allocation/legacy card debt partial. No backend or release.
 
 ## Immediate work
 
-- Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
+- Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Current Web parity 1/6 implementations, 7/24 subtasks completed. W1 4/4 and W2.1
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #179, branch android/web-parity-track-current-w2-4-20261015
-Current W2.4: W2.1–W2.3 verified merged (7/24); W2.4 archive/restore #174 and delete eligibility #176 merged/green, guarded-delete #177 and archive-label #178 draft
+Issue #155, PR #181, branch android/web-parity-track-safe-cleanup-20261015
+Current W2.4: Verified 1/6 implementations and 7/24 subtasks. W2.4 archive/restore #174, delete eligibility #176, guarded deletion tombstones/offline intent #177 merged. Archive UX PR #178 under retest; cleanup-ack contract #180 in CI. No permanent deletion in UI or completed vault cleanup.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
+Next Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

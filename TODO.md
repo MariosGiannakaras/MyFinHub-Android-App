@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
+- [ ] Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #179, branch android/web-parity-track-current-w2-4-20261015
-Current W2.4: W2.1–W2.3 verified merged (7/24); W2.4 archive/restore #174 and delete eligibility #176 merged/green, guarded-delete #177 and archive-label #178 draft
+Issue #155, PR #181, branch android/web-parity-track-safe-cleanup-20261015
+Current W2.4: Verified 1/6 implementations and 7/24 subtasks. W2.4 archive/restore #174, delete eligibility #176, guarded deletion tombstones/offline intent #177 merged. Archive UX PR #178 under retest; cleanup-ack contract #180 in CI. No permanent deletion in UI or completed vault cleanup.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Resume W2.4: validate exact-head PR #177 guarded permanent card deletion/tombstone and durable cleanup intent; merge only after all 4 CI/emulator/screenshot gates. Review PR #178 reversible archive UX and fresh Compose screenshots; merge only after visual acceptance. Then implement protected post-commit server/local vault cleanup and confirmation before marking W2.4 complete or releasing. W3.1 legacy debt/allocation remains open.
+Next Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
