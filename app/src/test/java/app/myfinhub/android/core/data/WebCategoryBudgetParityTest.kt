@@ -83,6 +83,51 @@ class WebCategoryBudgetParityTest {
         assertEquals(99,converted.overallBudget("2026-10")?.alertThreshold)
     }
 
+    @Test fun oldOfflineBudgetsReconcileBothLegacyAndNormalizedServerRepresentations() {
+        val oldMutation = UpsertOverallBudget(
+            "2026-10", 300.0, 25, "old-budget-id", "2026-10-15T10:00:00Z",
+        )
+        val intent = PendingCanonicalMutationIntent.fromMutation(
+            oldMutation, "pending-old-budget", PendingMutationSyncState.NEEDS_REVIEW,
+        )
+        val modernServer = oldMutation.apply(doc)
+        val modern = modernServer.state.array("budgets")
+            .mapNotNull { it as? kotlinx.serialization.json.JsonObject }
+            .first { it.string("scope") == "overall" }
+        assertEquals(0.50, modern.number("alertThreshold")!!, 0.001)
+        assertTrue(reconcileSatisfiedPendingMutations(modernServer, listOf(intent)).isEmpty())
+        val historical = kotlinx.serialization.json.JsonObject(
+            modern + mapOf(
+                "alertThreshold" to kotlinx.serialization.json.JsonPrimitive(25),
+            ),
+        )
+        val historicalServer = CanonicalFinanceDocument(kotlinx.serialization.json.JsonObject(
+            modernServer.raw + (
+                "state" to kotlinx.serialization.json.JsonObject(
+                    modernServer.state + (
+                        "budgets" to kotlinx.serialization.json.JsonArray(
+                            modernServer.state.array("budgets").map { raw ->
+                                val row = raw as? kotlinx.serialization.json.JsonObject
+                                if (row?.string("scope") == "overall") historical else raw
+                            },
+                        )
+                    )
+                )
+            )
+        ))
+        assertTrue(reconcileSatisfiedPendingMutations(historicalServer, listOf(intent)).isEmpty())
+        val oldFull = UpsertOverallBudget(
+            "2026-10", 301.0, 100, "old-budget-id", "2026-10-15T11:00:00Z",
+        ).apply(doc)
+        assertEquals(
+            0.99,
+            oldFull.state.array("budgets").mapNotNull {
+                it as? kotlinx.serialization.json.JsonObject
+            }.first { it.string("scope") == "overall" }.number("alertThreshold")!!,
+            0.001,
+        )
+    }
+
     @Test fun canonicalThresholdPercentAndFractionAreBothReadWithoutSilentDrift() {
         val prior=UpsertOverallBudget("2026-10",500.0,85,"new-id","2026-10-15T09:00:00Z").apply(doc)
         val row=prior.webBudgetProgress("2026-10","2026-10-15").first { it.scope=="overall" }
