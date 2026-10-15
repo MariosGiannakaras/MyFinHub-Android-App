@@ -69,9 +69,7 @@ class CreditStatementSelectorComposeTest {
                 )
             }
         }
-        rule.runOnIdle {
-            assertTrue(rule.onAllNodes(hasText("Δήλωση πιστωτικής (προαιρετικά)"))
-                .fetchSemanticsNodes().isEmpty())
-        }
+        assertTrue(rule.onAllNodes(hasText("Δήλωση πιστωτικής (προαιρετικά)"))
+            .fetchSemanticsNodes().isEmpty())
     }
 }
