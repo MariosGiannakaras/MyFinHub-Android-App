@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete and W2.1–W2.3 merged. W2.4 archive/restore #174, eligibility #176, guarded domain delete #177, accurate wording #178, cleanup ACK #180 and corrected committed-only owner+AAL2 vault purge #183 merged/verified. Durable post-commit cleanup/restart retry PR #184 still draft and permanent deletion disabled in UI. W3.1 read-only statements #169 and billing date boundaries #182 merged as partial work; payment allocation/legacy credit ownership open. Owner S24 physical signoff #149 and production release separate.
+Web parity 1/6 implementations and 7/24 completed subtasks. Secure-card cleanup PRs #184/#187 and statement chronology/legacy attribution PR #188 are merged to develop after four exact-head checks each. W2.4 permanent-delete UI remains disabled pending full safety/device acceptance. W3.1 canonical statement purchase-cycle linking #186 reanchored to develop and requires exact-head CI; selected repayment allocation remains open. No release.
 
 ## Immediate work
 
-- Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+- Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete and W2.1�
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
-Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
+Issue #155, PR #186, branch android/w3-1-credit-event-statement-linkage-20261015
+Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+Next Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+- [ ] Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
-Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
+Issue #155, PR #186, branch android/w3-1-credit-event-statement-linkage-20261015
+Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+Next Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

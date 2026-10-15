@@ -144,9 +144,8 @@ data class AppendCanonicalEvent(
         val id = event.string("id") ?: error("Event id is required")
         val events = document.state.array("events")
         if (events.any { (it as? JsonObject)?.string("id") == id }) return document
-        // Web creditStatements.ts prepares the statement reference at the single event
-        // append boundary, including durable offline replay. Do not duplicate the engine
-        // inside the Android Quick Entry UI or assign unlinked card repayments.
+        // Match Web creditStatements.ts at the canonical append/replay boundary.
+        // Unlinked repayments stay unallocated until a statement is explicitly selected.
         val prepared = document.prepareCanonicalCreditStatementEvent(event, nowIso)
         var nextState = document.state.updated("events", JsonArray(events + prepared.event))
         if (prepared.statements != document.state.array("creditStatements")) {

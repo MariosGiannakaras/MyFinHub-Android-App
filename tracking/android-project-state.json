@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14",
+  "updated_at": "2026-10-15",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete and W2.1–W2.3 merged. W2.4 archive/restore #174, eligibility #176, guarded domain delete #177, accurate wording #178, cleanup ACK #180 and corrected committed-only owner+AAL2 vault purge #183 merged/verified. Durable post-commit cleanup/restart retry PR #184 still draft and permanent deletion disabled in UI. W3.1 read-only statements #169 and billing date boundaries #182 merged as partial work; payment allocation/legacy credit ownership open. Owner S24 physical signoff #149 and production release separate.",
+    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks. Secure-card cleanup PRs #184/#187 and statement chronology/legacy attribution PR #188 are merged to develop after four exact-head checks each. W2.4 permanent-delete UI remains disabled pending full safety/device acceptance. W3.1 canonical statement purchase-cycle linking #186 reanchored to develop and requires exact-head CI; selected repayment allocation remains open. No release.",
     "next": [
-      "Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release."
+      "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-tracker-vault-progress-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.",
+    "branch": "android/w3-1-credit-event-statement-linkage-20261015",
+    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -758,7 +758,11 @@
               "Stacked draft #184 resumes the durable post-commit cleanup marker on next authenticated session/restart, prevents local secret removal after failed server guard and acknowledges completion only after server and local vaults both succeed. Needs full exact-head CI/security review and no permanent delete UI exposed.",
               "New W2.4 source PR routes secret purge only for permanent delete intents with server-confirmed absent profile and pendingCardSecretDeletes marker; prevents archive/restore from deleting retained Web card vault details. Pure regression tests. Pending CI/merge; no destructive UI.",
               "W2.4 PR #183 now uses server atomic requireCommittedDeletion:true for permanent vault cleanup; preserves archive secrets and blocks AAL1; HTTP and instrumented fake tests. No delete UI. Await exact-head checks.",
-              "PR #183 merged to Android develop c0e1c42abfa3ec73463f25bbc28c836853389acd after all four exact-head checks passed: reversible archive/restore no longer purges encrypted card secrets; atomic committed-only server purge guard owner+AAL2 enforced. Durable W2.4 orchestrator PR #184 still unmerged."
+              "PR #183 merged to Android develop c0e1c42abfa3ec73463f25bbc28c836853389acd after all four exact-head checks passed: reversible archive/restore no longer purges encrypted card secrets; atomic committed-only server purge guard owner+AAL2 enforced. Durable W2.4 orchestrator PR #184 still unmerged.",
+              "PR #184 reanchored to merged #183 and canonical handoff #185: confirmed server marker only, crash/restart resumption and ACK only after owner+AAL2 atomic vault plus legacy local vault success. Emulator failure fixtures verify local secrets survive server rejection and explicit retry. Exact-head CI required; irreversible delete UI remains disabled.",
+              "PR #184 durable server-confirmed secret cleanup orchestrator merged to develop as 4a69a352390cd7284c1b5fd204ec40740f6e8602 with four exact-head CI/screenshot/emulator gates green; W2.4 still pending UI/complete acceptance.",
+              "Follow-up hardening branch removes obsolete one-shot secret purge emissions, gates the sole persistent server marker cleanup route on active AAL2 session, and tests sequential durable markers; draft pending CI.",
+              "W2.4 PR #187 owner+AAL2 marker-only purge hardening merged to develop as 804869e54088462004a3df5f6e1b6e612dadfcb0 after four exact-head gates passed; permanent-delete UI remains disabled pending safe end-to-end verification."
             ]
           }
         ]
@@ -778,7 +782,9 @@
               "Read-only Web statement views/status/as-of/unlinked projection PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 after four exact-head checks passed. W3.1 remains partial pending legacy card attribution and payment allocation acceptance.",
               "Draft PR #182 adds pure Web-parity credit statement period boundaries (closing/due/open; next-cycle vs include closing, short month/leap-year) and rejects fractional card billing day metadata. Requires exact-head CI and integration with W3.2 event assignment, no finance mutation or release.",
               "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete.",
-              "Draft Web parity PR creates/reuses deterministic credit statement on canonical card_purchase append (including offline replay), validates explicit card/statement links, never silently allocates unlinked payments. W3.1 still partial; CI pending."
+              "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete.",
+              "PR #188 canonical statement chronology and deleted-card legacy ownership merged to develop as bb39fcb7dc631756a2b93ca30a57542763bca0d8, with four exact-head CI gates. W3.1 remains partial.",
+              "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete."
             ]
           },
           {
@@ -910,10 +916,10 @@
         ]
       }
     ],
-    "next_action": "Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.",
+    "next_action": "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 185,
-    "current_subtask": "W2.4",
+    "pr": 186,
+    "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
