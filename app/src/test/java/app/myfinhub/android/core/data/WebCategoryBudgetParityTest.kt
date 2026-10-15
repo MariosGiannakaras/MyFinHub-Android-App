@@ -72,6 +72,17 @@ class WebCategoryBudgetParityTest {
         assertEquals(360.0,doc.categoryBudgetSpending("2026-10","2026-09-15").values.sum(),0.001)
     }
 
+    @Test fun oldAndNewBudgetThresholdFormsProduceIdenticalUiPercent() {
+        val canonical = doc.overallBudget("2026-10")
+        assertEquals(80, canonical?.alertThreshold)
+        val converted = UpsertOverallBudget("2026-10",300.0,99,"migration","2026-10-15T09:00:00Z").apply(doc)
+        val actual = converted.state.array("budgets")
+            .mapNotNull { it as? kotlinx.serialization.json.JsonObject }
+            .first { it.string("id")=="overall" }
+        assertEquals(0.99,actual.number("alertThreshold")!!,0.001)
+        assertEquals(99,converted.overallBudget("2026-10")?.alertThreshold)
+    }
+
     @Test fun canonicalThresholdPercentAndFractionAreBothReadWithoutSilentDrift() {
         val prior=UpsertOverallBudget("2026-10",500.0,85,"new-id","2026-10-15T09:00:00Z").apply(doc)
         val row=prior.webBudgetProgress("2026-10","2026-10-15").first { it.scope=="overall" }

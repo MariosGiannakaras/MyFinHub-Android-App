@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.data
 
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -163,7 +164,7 @@ data class PendingCanonicalMutationIntent(
                 ?.let { budget ->
                     val actualAmount = budget.number("amount")
                     val actualThreshold = budget.number("alertThreshold")?.let { raw ->
-                        if (raw <= 1.0) (raw * 100.0).toInt() else raw.toInt()
+                        if (raw <= 1.0) (raw * 100.0).roundToInt() else raw.roundToInt()
                     }
                     expectedAmount != null && actualAmount != null &&
                         moneyToCents(actualAmount) == moneyToCents(expectedAmount) &&
