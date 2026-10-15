@@ -2,6 +2,7 @@ package app.myfinhub.android.core.data
 
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -387,7 +388,10 @@ fun CanonicalFinanceDocument.overallBudget(month: String): CanonicalBudget? {
             id = specific.string("id"),
             month = month,
             amount = specific.number("amount") ?: return null,
-            alertThreshold = specific.number("alertThreshold")?.toInt(),
+            alertThreshold = specific.number("alertThreshold")?.let { raw ->
+                val percent = if (raw <= 1.0) raw * 100.0 else raw
+                percent.roundToInt().coerceIn(50, 99)
+            },
         )
     }
     val settingsAmount = state.obj("settings").number("monthlyBudget") ?: return null

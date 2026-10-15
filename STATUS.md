@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 #194 and W4.2 forecast engine #196 merged with four exact-head gates; W4.1 #195 recurring Web lifecycle core merged. Consolidated PR #197 adds native Plan recurring management with guarded pause/stop/reactivate, real 30/60/90 account-portfolio comparison and risk warnings, and golden/Compose tests. W4.1/W4.2 remain partial pending final exact-head CI and physical S24 acceptance; W2.4 destructive card-delete UI disabled. No release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 #194 completed; W4.1 native status UI plus W4.2 Web 30/60/90 risk preview #197 merged with 4/4 checks; both await final physical owner acceptance. New W4.3 consolidated Web category budgets/semantically reviewed split and refund totals with canonical fraction alert thresholds, native read-only category progress, four golden tests pending exact-head CI. Permanent card delete disabled; no release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release.
+1. Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release.
 
 ## Non-negotiable constraints
 
@@ -50,17 +50,17 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #197, branch android/w4-1-recurring-native-actions-batch-20261015
-Current W4.1: Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 and W4.2 engine #196 merged; #197 real recurring lifecycle UI plus Web forecast detail staged, awaiting four exact-head CI checks. W2.4 permanent delete disabled.
+Issue #155, PR #198, branch android/w4-3-web-category-budget-consolidated-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. #197 merged 4/4; consolidated W4.3 Web budget calculation/fraction threshold/native category list pending fresh CI. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release.
+Next Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
+| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
@@ -80,7 +80,7 @@ Next Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect r
 - [x] W3.4 Single mutation pipeline — completed
 - [ ] W4.1 Recurring lifecycle — in_progress
 - [ ] W4.2 Scheduled forecast — in_progress
-- [ ] W4.3 Savings, loans, lending and budgets — pending
+- [ ] W4.3 Savings, loans, lending and budgets — in_progress
 - [ ] W4.4 Transactions and analytics completeness — pending
 - [ ] W5.1 Dynamic provider/IBAN/assets contract — pending
 - [ ] W5.2 Auth/sync/history consistency — pending

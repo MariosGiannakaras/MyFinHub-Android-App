@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.data
 
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -157,15 +158,22 @@ data class PendingCanonicalMutationIntent(
             val month = payload.string("month").orEmpty()
             val expectedAmount = payload.number("amount")
             val expectedThreshold = payload.number("alertThreshold")?.toInt()
+            val normalizedExpectedThreshold = expectedThreshold?.coerceIn(50, 99)
             document.state.array("budgets")
                 .mapNotNull { it as? JsonObject }
                 .firstOrNull { it.string("month") == month && it.string("scope") == "overall" }
                 ?.let { budget ->
                     val actualAmount = budget.number("amount")
-                    val actualThreshold = budget.number("alertThreshold")?.toInt()
+                    val actualThreshold = budget.number("alertThreshold")?.let { raw ->
+                        if (raw <= 1.0) (raw * 100.0).roundToInt() else raw.roundToInt()
+                    }
                     expectedAmount != null && actualAmount != null &&
                         moneyToCents(actualAmount) == moneyToCents(expectedAmount) &&
-                        actualThreshold == expectedThreshold
+                        // A previously committed Android percentage (1–100), or the newer
+                        // Web canonical fraction (50–99%), satisfies the SAME queued intent.
+                        // Do not replay an ambiguous already-accepted historical budget write.
+                        (actualThreshold == expectedThreshold ||
+                            actualThreshold == normalizedExpectedThreshold)
                 } == true
         }
         PendingMutationKind.CREATE_CARD -> {
