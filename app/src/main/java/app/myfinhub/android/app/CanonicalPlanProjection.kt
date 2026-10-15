@@ -154,7 +154,7 @@ internal fun canonicalPlannedItems(
 ): List<PlannedItem> {
     val accounts = document.canonicalAccounts()
     val accountNames = accounts.associate { account ->
-        account.id to financialAccountDisplayName(account.id, account.name, account.kind)
+        account.id to financialAccountDisplayName(account.id, account.name, account.kind, account.providerId)
     }
     val scheduled = document.canonicalScheduled()
         .filter { it.status == "pending" }

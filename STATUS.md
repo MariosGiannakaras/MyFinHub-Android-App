@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198–#201 budget, as-of loans/lending, Pay & Save, multi-goal savings and guarded goal CRUD merged after four exact-head CI gates each; W4.3 remains partial pending owner S24 visual acceptance. W4.4 #202 staged consolidated Insights and Activity Web signed-flow parity/legacy splits, net refunds, explicit-zero savings and accurate category drilldown, pending full exact-head checks. W2.4 irreversible card deletion disabled; no release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W4.4 consolidated signed Insights/Activity flow PR #202 pending exact-head CI. W5.1 next staged Web provider ID/metadata parity (eight providers, accent aliases, explicit ID priority, neutral no-fake-logo fallback, native account/card choices with pure golden tests) behind #202 without overlapping PR/CI. W2.4 permanent delete UI disabled, physical S24 acceptance outstanding, no release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.
+1. Validate and merge W4.4 #202 only after all four exact-head gates; then reanchor this W5.1 provider ID/account label/card choices + missing-asset fallback coherent batch, review exact UI/screenshots and open a single full CI PR. Defer real dynamic asset fetch until existing API contract/security paths verified. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #202, branch android/w4-4-unified-insights-ledger-flows-20261016
-Current W4.4: Verified 1/6 implementations · 9/24 subtasks. W4.3 #201 owner-safe SavingsGoal CRUD merged; W4.4 one financial flow implementation for Insights+Activity and signed category drilldowns staged, exact-head CI pending. W2.4 destructive UI disabled.
+Issue #155, PR #0, branch android/w5-1-provider-identities-batch-20261016
+Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 in exact-head CI; W5.1 eight-provider native identity/cards + neutral asset fallback staged, no PR yet; permanent-delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.
+Next Validate and merge W4.4 #202 only after all four exact-head gates; then reanchor this W5.1 provider ID/account label/card choices + missing-asset fallback coherent batch, review exact UI/screenshots and open a single full CI PR. Defer real dynamic asset fetch until existing API contract/security paths verified. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -61,7 +61,7 @@ Next Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consis
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
-| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
+| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
@@ -82,7 +82,7 @@ Next Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consis
 - [ ] W4.2 Scheduled forecast — in_progress
 - [ ] W4.3 Savings, loans, lending and budgets — in_progress
 - [ ] W4.4 Transactions and analytics completeness — in_progress
-- [ ] W5.1 Dynamic provider/IBAN/assets contract — pending
+- [ ] W5.1 Dynamic provider/IBAN/assets contract — in_progress
 - [ ] W5.2 Auth/sync/history consistency — pending
 - [ ] W5.3 Card vault and security endpoints — pending
 - [ ] W5.4 Settings, backup, rules and ancillary parity — pending

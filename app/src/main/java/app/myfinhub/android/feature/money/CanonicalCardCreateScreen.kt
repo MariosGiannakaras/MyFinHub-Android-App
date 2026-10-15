@@ -58,9 +58,12 @@ private data class CardCreateOption(
 private val cardProviders = listOf(
     FinancialProvider.PIRAEUS,
     FinancialProvider.ALPHA,
+    FinancialProvider.NATIONAL,
+    FinancialProvider.EUROBANK,
     FinancialProvider.REVOLUT,
-    FinancialProvider.PAYZY,
     FinancialProvider.VIVA,
+    FinancialProvider.PAYZY,
+    FinancialProvider.PAYPAL,
 )
 
 private val cardKindOptions = listOf(

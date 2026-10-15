@@ -163,11 +163,11 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     } else null
     val savingsRate = document.settingsObject().number("savingsTargetRate") ?: 0.2
     val rawHomeAccounts = accounts.filter { it.kind != "credit" }.map { account ->
-        val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name)
+        val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name, account.providerId)
         val role = rolesById[account.id]
         HomeAccount(
             id = account.id,
-            name = financialAccountDisplayName(account.id, account.name, account.kind),
+            name = financialAccountDisplayName(account.id, account.name, account.kind, account.providerId),
             role = accountKindLabel(account.kind),
             institution = provider?.institutionLabel ?: account.provider,
             providerId = account.providerId,
@@ -280,10 +280,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
-            val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name)
+            val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name, account.providerId)
             MoneyAccount(
                 id = account.id,
-                name = financialAccountDisplayName(account.id, account.name, account.kind),
+                name = financialAccountDisplayName(account.id, account.name, account.kind, account.providerId),
                 balance = balances[account.id] ?: 0.0,
                 kind = accountKindLabel(account.kind),
                 institution = provider?.institutionLabel ?: account.provider,
