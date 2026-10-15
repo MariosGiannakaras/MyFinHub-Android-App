@@ -861,7 +861,8 @@
             "status": "in_progress",
             "evidence": [
               "W4.3 consolidated read-only Web categoryBudgetSpending and budgetProgress: reviewed semantic splits, refunds, card purchases, as-of, negative raw vs clamped used, 0.5–0.99 threshold, legacy integer percent compatibility; native category-budget display and overall-budget canonical fractional writes; Web golden fixtures. Fresh exact-head CI required, no completed credit yet.",
-              "Parallel staged post-#198 W4.3 loan/lending/savings Web semantics: as-of loan outstanding and self-loan return identity, as-of per-person lending with unapportioned receivable preservation, Pay & Save/manual/cash breakdown including explicit savingAmount=0; real Money loans/lending/savings detail rows with privacy masking, three golden fixtures. Branch staged without PR/CI pending merged #198, no completion claimed."
+              "Parallel staged post-#198 W4.3 loan/lending/savings Web semantics: as-of loan outstanding and self-loan return identity, as-of per-person lending with unapportioned receivable preservation, Pay & Save/manual/cash breakdown including explicit savingAmount=0; real Money loans/lending/savings detail rows with privacy masking, three golden fixtures. Branch staged without PR/CI pending merged #198, no completion claimed.",
+              "W4.3 staged post-#198 finance integration golden: real Money loans/lending/Pay&Save rows reflect as-of server projection, including future loan repayment exclusion and no mock data. Removed obsolete duplicate private domain loan helpers after shared Web loan projection takes over."
             ]
           },
           {

@@ -488,15 +488,6 @@ private fun JsonObject.toLegacyTransaction(): CanonicalLegacyTransaction? = Cano
     subcategory = string("subcategory"),
 )
 
-private fun JsonObject.isSelfLoan(): Boolean {
-    if (string("kind") == "self-loan" || string("source") == "self-loan") return true
-    val text = "${string("name").orEmpty()} ${string("provider").orEmpty()}"
-    return Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE).containsMatchIn(text)
-}
-
-private fun CanonicalEvent.isSelfLoanReturn(): Boolean =
-    kind == "transfer" && Regex("^(?:ΕΠΙΣΤΡΟΦΗ|RETURN)(?:\\s|:|$)", RegexOption.IGNORE_CASE).containsMatchIn(note.trim())
-
 private operator fun FlowImpact.plus(other: FlowImpact): FlowImpact = FlowImpact(
     income = income + other.income,
     expense = expense + other.expense,
