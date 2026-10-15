@@ -1,0 +1,56 @@
+name: One-shot reviewed W4.3 budget screenshot regeneration
+on:
+  push:
+    branches:
+      - android/w4-3-web-category-budget-consolidated-20261015
+    paths:
+      - .github/workflows/pr198-budget-reference-refresh.yml
+permissions:
+  contents: write
+jobs:
+  reviewed-budget-references:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact PR branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/w4-3-web-category-budget-consolidated-20261015
+          persist-credentials: true
+      - name: JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Render actual Compose references with official renderer
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+      - name: Strictly limit refs, commit and remove this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only -- app/src/screenshotTestDebug/reference | sort)
+          if [[ ${#changed[@]} -ne 3 ]]; then
+            printf 'Expected exactly 3 reviewed references, got %s:\n' "${#changed[@]}"
+            printf '%s\n' "${changed[@]}"
+            exit 1
+          fi
+          for path in "${changed[@]}"; do
+            case "$path" in
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetDark_s7_budget_dark_25640f28_0.png|\
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLarge_s7_budget_large_acbd1ba0_0.png|\
+              app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLight_s7_budget_light_73b79d53_0.png) ;;
+              *) echo "Unexpected screenshot changed: $path"; exit 1 ;;
+            esac
+          done
+          git add -- "${changed[@]}"
+          git rm .github/workflows/pr198-budget-reference-refresh.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh only three reviewed W4.3 budget Compose screenshot goldens"
+          git push origin HEAD:android/w4-3-web-category-budget-consolidated-20261015

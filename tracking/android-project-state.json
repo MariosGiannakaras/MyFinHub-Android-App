@@ -860,7 +860,8 @@
             "acceptance": "Goals, targets, savings offset eligibility, correct debts/receivables/installments, overall and category budgets.",
             "status": "in_progress",
             "evidence": [
-              "W4.3 consolidated read-only Web categoryBudgetSpending and budgetProgress: reviewed semantic splits, refunds, card purchases, as-of, negative raw vs clamped used, 0.5–0.99 threshold, legacy integer percent compatibility; native category-budget display and overall-budget canonical fractional writes; Web golden fixtures. Fresh exact-head CI required, no completed credit yet."
+              "W4.3 consolidated read-only Web categoryBudgetSpending and budgetProgress: reviewed semantic splits, refunds, card purchases, as-of, negative raw vs clamped used, 0.5–0.99 threshold, legacy integer percent compatibility; native category-budget display and overall-budget canonical fractional writes; Web golden fixtures. Fresh exact-head CI required, no completed credit yet.",
+              "W4.3 #198 initial CI: fixed file-private review accessor and offline queued-budget replay comparison for Web alertThreshold fraction vs legacy percent; updated Plan reducer regression. Budget light/dark/150%-font actual Compose candidates were visually inspected, exactly three golden updates required; one-shot guarded renderer removes its workflow after commit. Rerun all four gates on final head."
             ]
           },
           {

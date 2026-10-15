@@ -12,7 +12,7 @@ class PlanReducerTest {
 
         val result = reducePlan(state, PlanAction.SaveBudget)
 
-        assertEquals("Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100%.", result.message)
+        assertEquals("Το όριο ειδοποίησης πρέπει να είναι από 50 έως 99%.", result.message)
     }
 
     @Test

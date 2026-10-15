@@ -162,7 +162,9 @@ data class PendingCanonicalMutationIntent(
                 .firstOrNull { it.string("month") == month && it.string("scope") == "overall" }
                 ?.let { budget ->
                     val actualAmount = budget.number("amount")
-                    val actualThreshold = budget.number("alertThreshold")?.toInt()
+                    val actualThreshold = budget.number("alertThreshold")?.let { raw ->
+                        if (raw <= 1.0) (raw * 100.0).toInt() else raw.toInt()
+                    }
                     expectedAmount != null && actualAmount != null &&
                         moneyToCents(actualAmount) == moneyToCents(expectedAmount) &&
                         actualThreshold == expectedThreshold
