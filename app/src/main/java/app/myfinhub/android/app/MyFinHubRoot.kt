@@ -193,6 +193,28 @@ fun MyFinHubRoot(
             cardSecretViewModel.purgeCard(cardId)
         }
     }
+    // The server-saved finance marker survives process death. Resume vault cleanup only with
+    // an online authenticated session and a freshly confirmed profile deletion.
+    LaunchedEffect(authState, financeState, cardSecretCleanupState) {
+        val authReady = authState as? AuthShellUiState.Ready
+        if (authReady != null && !authReady.offline) {
+            val pendingIds = financeViewModel.serverConfirmedPendingSecretCleanupIds()
+            when (val cleanup = cardSecretCleanupState) {
+                is CardSecretCleanupUiState.Complete -> {
+                    if (cleanup.cardId in pendingIds) {
+                        financeViewModel.acknowledgeCompletedCardSecretCleanup(cleanup.cardId)
+                    } else {
+                        pendingIds.firstOrNull()?.let(cardSecretViewModel::purgeCard)
+                    }
+                }
+                CardSecretCleanupUiState.Idle ->
+                    pendingIds.firstOrNull()?.let(cardSecretViewModel::purgeCard)
+                is CardSecretCleanupUiState.Cleaning,
+                is CardSecretCleanupUiState.Failure -> Unit
+            }
+        }
+    }
+
     LaunchedEffect(financeState, cardSecretState) {
         if (shouldLogoutForProductAuthRejection(financeState, cardSecretState)) {
             financeViewModel.clear()

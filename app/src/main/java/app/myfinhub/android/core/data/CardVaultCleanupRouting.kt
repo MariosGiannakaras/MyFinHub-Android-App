@@ -11,6 +11,16 @@ import kotlinx.serialization.json.JsonPrimitive
  * The event itself is non-durable. The marker remains the source of truth until both
  * authenticated server vault and legacy local vault cleanup have been acknowledged.
  */
+/** The durable canonical pending marker, not a one-shot UI notification, drives retries. */
+fun confirmedPendingCardSecretCleanupIds(document: CanonicalFinanceDocument): List<String> {
+    val cards = document.state.array("cards")
+        .mapNotNull { (it as? JsonObject)?.string("id") }.toSet()
+    return document.state.array("pendingCardSecretDeletes")
+        .mapNotNull { (it as? JsonPrimitive)?.content }
+        .filter { Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$").matches(it) && it !in cards }
+        .distinct()
+}
+
 fun committedPermanentCardCleanupIds(
     committed: List<PendingCanonicalMutationIntent>,
     confirmedServerDocument: CanonicalFinanceDocument,

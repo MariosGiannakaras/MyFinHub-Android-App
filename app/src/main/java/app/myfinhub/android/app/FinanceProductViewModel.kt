@@ -11,6 +11,8 @@ import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.committedPermanentCardCleanupIds
+import app.myfinhub.android.core.data.confirmedPendingCardSecretCleanupIds
+import app.myfinhub.android.core.data.CompleteCanonicalCardSecretCleanup
 import app.myfinhub.android.core.data.RestoreCanonicalCard
 import app.myfinhub.android.core.data.DeleteCanonicalActivity
 import app.myfinhub.android.core.data.EditCanonicalActivity
@@ -322,6 +324,26 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 nowIso = Instant.now().toString(),
             ),
         )
+    }
+
+    /**
+     * Only server-accepted profiles with a durable pending secret-deletion marker may trigger
+     * vault cleanup. Never infer cleanup from an optimistic offline finance projection.
+     */
+    fun serverConfirmedPendingSecretCleanupIds(): List<String> {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return emptyList()
+        if (!canUseServer() || ready.saving || ready.offline || ready.issue != null ||
+            mutationLaunchInFlight || pendingMutations.isNotEmpty()
+        ) return emptyList()
+        val server = lastServerDocument ?: return emptyList()
+        return confirmedPendingCardSecretCleanupIds(server)
+    }
+
+    /** Called ONLY once both owner+AAL2 server and legacy local vault deletion succeeded. */
+    fun acknowledgeCompletedCardSecretCleanup(cardId: String) {
+        val normalized = cardId.trim()
+        if (normalized !in serverConfirmedPendingSecretCleanupIds()) return
+        applyMutation(CompleteCanonicalCardSecretCleanup(normalized, Instant.now().toString()))
     }
 
     fun deleteCard(cardId: String) {

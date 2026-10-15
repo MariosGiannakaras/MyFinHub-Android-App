@@ -167,6 +167,15 @@ class CardSecretViewModel internal constructor(
             emitInvalidCardNotice("Καθαρισμός ασφαλών στοιχείων κάρτας")
             return
         }
+        // The finance server marker will still be present after a crash or a failed cleanup.
+        // Do not restart the same purge on every Compose state emission; failures require
+        // an explicit retry or a new authenticated session.
+        when (val current = mutableCleanupState.value) {
+            is CardSecretCleanupUiState.Cleaning -> if (current.cardId == normalized) return
+            is CardSecretCleanupUiState.Complete -> if (current.cardId == normalized) return
+            is CardSecretCleanupUiState.Failure -> if (current.cardId == normalized) return
+            CardSecretCleanupUiState.Idle -> Unit
+        }
         if (currentCardId == normalized) {
             currentCardId = null
             mutableState.value = CardSecretUiState.Hidden()
@@ -206,8 +215,11 @@ class CardSecretViewModel internal constructor(
                 }
             }
 
+            // Never delete a device-local secret for a stale/wrong user after the server
+            // refused to confirm the committed removal or the session changed mid-flight.
+            if (generation != cleanupGeneration) return@launch
             var localFailure: Exception? = null
-            if (request.localCleanupPending) {
+            if (request.localCleanupPending && serverFailure == null) {
                 try {
                     cardDetailsVault.delete(request.cardId)
                     cvvVault.delete(request.cardId)
@@ -221,7 +233,7 @@ class CardSecretViewModel internal constructor(
             val nextRequest = PendingCardSecretCleanup(
                 cardId = request.cardId,
                 serverCleanupPending = serverFailure != null,
-                localCleanupPending = localFailure != null,
+                localCleanupPending = request.localCleanupPending && (serverFailure != null || localFailure != null),
             )
             if (generation != cleanupGeneration) return@launch
             if (!nextRequest.serverCleanupPending && !nextRequest.localCleanupPending) {
