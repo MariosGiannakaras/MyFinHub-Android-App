@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete and W2.1–W2.3 merged. W2.4 archive/restore #174, eligibility #176, guarded domain delete #177, accurate wording #178, cleanup ACK #180 and corrected committed-only owner+AAL2 vault purge #183 merged/verified. Durable post-commit cleanup/restart retry PR #184 still draft and permanent deletion disabled in UI. W3.1 read-only statements #169 and billing date boundaries #182 merged as partial work; payment allocation/legacy credit ownership open. Owner S24 physical signoff #149 and production release separate.
+Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable post-commit card-secret cleanup #184 and owner+AAL2 server-marker-only hardening #187 are merged with four exact-head gates each; permanent-delete UI remains disabled pending end-to-end destructive confirmation and device acceptance. W3.1 statement dates #182 are merged; credit chronology/legacy ownership PR #188 is reanchored for exact-head CI, and purchase-cycle event preparation PR #186 remains separate. No release.
 
 ## Immediate work
 
-- Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+- Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete and W2.1�
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
-Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
+Issue #155, PR #188, branch android/w3-1-credit-history-order-20261015
+Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
