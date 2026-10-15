@@ -777,7 +777,8 @@
               "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes.",
               "Read-only Web statement views/status/as-of/unlinked projection PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 after four exact-head checks passed. W3.1 remains partial pending legacy card attribution and payment allocation acceptance.",
               "Draft PR #182 adds pure Web-parity credit statement period boundaries (closing/due/open; next-cycle vs include closing, short month/leap-year) and rejects fractional card billing day metadata. Requires exact-head CI and integration with W3.2 event assignment, no finance mutation or release.",
-              "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete."
+              "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete.",
+              "Draft Web parity PR creates/reuses deterministic credit statement on canonical card_purchase append (including offline replay), validates explicit card/statement links, never silently allocates unlinked payments. W3.1 still partial; CI pending."
             ]
           },
           {
