@@ -752,7 +752,8 @@
               "Draft #180 implements Web-equivalent cleanup-ack mutation and durable intent, not connected to actual authenticated server/device vault cleanup; CI pending.",
               "PR #178 exact UI archive wording revalidated against latest develop: slider, live status and offline pending/card notices use reversible archive not permanent deletion; stale instrumentation was corrected and reviewed card-detail light/dark baselines retained. Branch exact-head CI pending.",
               "PR #180 now directly reconciled to develop after successful PR #178 merge 5a56082ab212a4df27bde45167954fa952e4519a. Includes only idempotent cleanup-ack model, durable replay and unit tests; no premature UI/server cleanup and no W2.4 completion claim.",
-              "New W2.4 source PR routes secret purge only for permanent delete intents with server-confirmed absent profile and pendingCardSecretDeletes marker; prevents archive/restore from deleting retained Web card vault details. Pure regression tests. Pending CI/merge; no destructive UI."
+              "New W2.4 source PR routes secret purge only for permanent delete intents with server-confirmed absent profile and pendingCardSecretDeletes marker; prevents archive/restore from deleting retained Web card vault details. Pure regression tests. Pending CI/merge; no destructive UI.",
+              "W2.4 PR #183 now uses server atomic requireCommittedDeletion:true for permanent vault cleanup; preserves archive secrets and blocks AAL1; HTTP and instrumented fake tests. No delete UI. Await exact-head checks."
             ]
           }
         ]

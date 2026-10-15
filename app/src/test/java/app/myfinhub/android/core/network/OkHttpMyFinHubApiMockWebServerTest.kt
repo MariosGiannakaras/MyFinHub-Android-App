@@ -149,6 +149,39 @@ class OkHttpMyFinHubApiMockWebServerTest {
     }
 
     @Test
+    fun permanentCardCleanupUsesAtomicServerCommittedDeletionGuard() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(200).body("""{"deleted":true}""").build())
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+
+            val result = api.deleteCommittedCardSecrets(session, "deleted-visa")
+            val request = server.takeRequest()
+            val body = Json.parseToJsonElement(request.body!!.utf8()).jsonObject
+
+            assertTrue(result is ApiResult.Success)
+            assertEquals("DELETE", request.method)
+            assertEquals("/api/card-secrets", request.url.encodedPath)
+            assertEquals("Bearer synthetic-bearer", request.headers["Authorization"])
+            assertFalse(request.headers.names().contains("Cookie"))
+            assertEquals(setOf("cardId", "requireCommittedDeletion"), body.keys)
+            assertEquals("true", body["requireCommittedDeletion"].toString())
+        }
+    }
+
+    @Test
+    fun permanentCardCleanupFailsClosedForAal1BeforeHttp() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val api = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+            val result = api.deleteCommittedCardSecrets(
+                session.copy(assuranceLevel = AssuranceLevel.AAL1), "deleted-visa")
+            assertTrue(result is ApiResult.Failure)
+            assertEquals(0, server.requestCount)
+        }
+    }
+
+    @Test
     fun cardSecret404_failsClosedAndPreservesStatus() = runBlocking {
         MockWebServer().use { server ->
             server.start()

@@ -199,7 +199,7 @@ class CardSecretViewModel internal constructor(
                 if (session == null) {
                     serverFailure = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
                 } else {
-                    when (val result = safeApiCall { api.deleteCardSecrets(session, request.cardId) }) {
+                    when (val result = safeApiCall { api.deleteCommittedCardSecrets(session, request.cardId) }) {
                         is ApiResult.Success -> Unit
                         is ApiResult.Failure -> serverFailure = result
                     }
