@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.3 Web provider-based credit repayment #189 and W3.1 user-selected statement repayment #190 merged after all four exact-head checks each. W3.1 remains in progress pending focused real Compose statement selector screenshots and final S24 verification. W3.2 PR #191 adds Web transaction-rule matching at new canonical event creation with pure and integrated golden fixtures, unmerged pending CI. W2.4 irreversible deletion UI stays disabled; no release.
+Web parity 1/6 implementations and 8/24 completed subtasks. W3.2 new-event transaction-rule checkpoint #191 merged after four exact-head checks; W3.2 still has projection/classification gaps. Follow-on draft fixes zero-vs-missing savingAmount Web flow impact parity without modifying stored data. W3.1 #192 Compose statement selector verification is a separate draft; W2.4 permanent card deletion UI remains disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
+1. Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #191, branch android/w3-2-web-transaction-rules-20261015
-Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 complete; W3.1 #190 merged, real Compose selector/S24 acceptance open. W3.2 #191 Web rule matching and new-event integration awaiting CI. W2.4 destructive UI disabled.
+Issue #155, PR #193, branch android/w3-2-explicit-savings-zero-parity-20261015
+Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 rule engine merged, zero-vs-missing savings projection fix draft pending CI. W3.1 #192 Compose selector draft independent. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
+Next Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

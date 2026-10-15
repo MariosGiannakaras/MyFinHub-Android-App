@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
+- [ ] Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #191, branch android/w3-2-web-transaction-rules-20261015
-Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 complete; W3.1 #190 merged, real Compose selector/S24 acceptance open. W3.2 #191 Web rule matching and new-event integration awaiting CI. W2.4 destructive UI disabled.
+Issue #155, PR #193, branch android/w3-2-explicit-savings-zero-parity-20261015
+Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 rule engine merged, zero-vs-missing savings projection fix draft pending CI. W3.1 #192 Compose selector draft independent. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
+Next Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
