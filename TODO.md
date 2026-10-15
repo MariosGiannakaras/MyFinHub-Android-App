@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
+- [ ] Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #193, branch android/w3-2-explicit-savings-zero-parity-20261015
-Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 rule engine merged, zero-vs-missing savings projection fix draft pending CI. W3.1 #192 Compose selector draft independent. W2.4 destructive UI disabled.
+Issue #155, PR #192, branch android/w3-1-statement-selector-compose-20261015
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191/#193 merged; #192 batched selector UI/projection/Compose tests reanchored after #193 pending final exact-head CI. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W3.2 explicit-zero savings flow PR with exact-head unit/CI checks and merge if green; continue independent W3.1 #192 selector tests and visual acceptance, then W2.4 irreversible safety. No backend or release changes.
+Next Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
