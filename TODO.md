@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
+- [ ] Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #181, branch android/web-parity-track-safe-cleanup-20261015
-Current W2.4: Verified 1/6 implementations and 7/24 subtasks. W2.4 archive/restore #174, delete eligibility #176, guarded deletion tombstones/offline intent #177 merged. Archive UX PR #178 under retest; cleanup-ack contract #180 in CI. No permanent deletion in UI or completed vault cleanup.
+Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
+Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
+Next Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
