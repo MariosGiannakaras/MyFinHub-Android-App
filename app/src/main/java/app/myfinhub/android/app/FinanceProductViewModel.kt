@@ -327,8 +327,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (normalizedCardId.isBlank() || ready.projection.document.canonicalCards().none { it.id == normalizedCardId && it.active }) {
             mutableNotices.tryEmit(
                 UserNotice(
-                    message = "Η κάρτα δεν είναι πλέον διαθέσιμη για διαγραφή.",
-                    details = "Ενέργεια: Διαγραφή κάρτας\nΚατηγορία: INVALID_CARD_STATE",
+                    message = "Η κάρτα δεν είναι πλέον διαθέσιμη για αρχειοθέτηση.",
+                    details = "Ενέργεια: Αρχειοθέτηση κάρτας\nΚατηγορία: INVALID_CARD_STATE",
                     diagnosticCode = "MFH-APP-INVALID_CARD_STATE",
                 ),
             )
