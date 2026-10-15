@@ -65,6 +65,13 @@ data class QuickEntryCardOption(
     val provider: String = "",
 )
 
+data class QuickEntryStatementOption(
+    val id: String,
+    val cardId: String,
+    val label: String,
+    val remaining: Double,
+)
+
 data class QuickEntryCategoryOption(
     val name: String,
     val subcategories: List<String> = emptyList(),
@@ -92,6 +99,8 @@ data class QuickEntryUiState(
     val fromAccountId: String = "acc-main",
     val toAccountId: String = "acc-save",
     val cardId: String = "card-credit",
+    val statementId: String = "",
+    val creditStatements: List<QuickEntryStatementOption> = emptyList(),
     val person: String = "",
     val expectedReturnDateText: String = "",
     val actualBalanceText: String = "",
@@ -145,6 +154,7 @@ sealed interface QuickEntryAction {
     data class FromAccountChanged(val id: String) : QuickEntryAction
     data class ToAccountChanged(val id: String) : QuickEntryAction
     data class CardChanged(val id: String) : QuickEntryAction
+    data class StatementChanged(val id: String) : QuickEntryAction
     data class PersonChanged(val value: String) : QuickEntryAction
     data class ExpectedReturnDateChanged(val value: String) : QuickEntryAction
     data class ActualBalanceChanged(val value: String) : QuickEntryAction
@@ -161,14 +171,15 @@ sealed interface QuickEntryAction {
 fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickEntryUiState = when (action) {
     is QuickEntryAction.SelectKind -> selectKind(state, action.kind)
     is QuickEntryAction.AmountChanged -> state.changed(amountText = action.value)
-    is QuickEntryAction.DateChanged -> state.changed(dateText = action.value)
+    is QuickEntryAction.DateChanged -> state.changed(dateText = action.value, statementId = "")
     is QuickEntryAction.NoteChanged -> state.changed(note = action.value)
     is QuickEntryAction.CategoryChanged -> state.changed(category = action.value, subcategory = "")
     is QuickEntryAction.SubcategoryChanged -> state.changed(subcategory = action.value)
     is QuickEntryAction.AccountChanged -> state.changed(accountId = action.id)
     is QuickEntryAction.FromAccountChanged -> state.changed(fromAccountId = action.id)
     is QuickEntryAction.ToAccountChanged -> state.changed(toAccountId = action.id)
-    is QuickEntryAction.CardChanged -> state.changed(cardId = action.id)
+    is QuickEntryAction.CardChanged -> state.changed(cardId = action.id, statementId = "")
+    is QuickEntryAction.StatementChanged -> state.changed(statementId = action.id)
     is QuickEntryAction.PersonChanged -> state.changed(person = action.value)
     is QuickEntryAction.ExpectedReturnDateChanged -> state.changed(expectedReturnDateText = action.value)
     is QuickEntryAction.ActualBalanceChanged -> state.changed(actualBalanceText = action.value)
@@ -256,6 +267,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         accountId = accountId,
         fromAccountId = fromId,
         toAccountId = preferredTo?.id.orEmpty(),
+        statementId = "",
         cardId = state.cardId.takeIf {
             previousKind.needsCard && kind.needsCard && state.creditCards.any { card -> card.id == it }
         } ?: state.creditCards.firstOrNull()?.id.orEmpty(),
@@ -293,6 +305,7 @@ private fun QuickEntryUiState.changed(
     fromAccountId: String = this.fromAccountId,
     toAccountId: String = this.toAccountId,
     cardId: String = this.cardId,
+    statementId: String = this.statementId,
     person: String = this.person,
     expectedReturnDateText: String = this.expectedReturnDateText,
     actualBalanceText: String = this.actualBalanceText,
@@ -306,6 +319,7 @@ private fun QuickEntryUiState.changed(
     fromAccountId = fromAccountId,
     toAccountId = toAccountId,
     cardId = cardId,
+    statementId = statementId,
     person = person,
     expectedReturnDateText = expectedReturnDateText,
     actualBalanceText = actualBalanceText,
@@ -368,6 +382,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         person = "",
         expectedReturnDateText = "",
         actualBalanceText = "",
+        statementId = "",
         splitParts = defaultSplitParts(state.expenseCategories.firstOrNull()?.name ?: "Άλλο"),
         validationMessage = null,
         savedSummary = null,
@@ -419,6 +434,14 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
 
     if (state.kind.needsCard && state.creditCards.none { it.id == state.cardId }) {
         return state.invalid("Διάλεξε ενεργή πιστωτική κάρτα.")
+    }
+    if (state.kind == QuickEntryKind.CARD_PAYMENT && state.statementId.isNotBlank()) {
+        val selected = state.creditStatements.firstOrNull {
+            it.id == state.statementId && it.cardId == state.cardId
+        } ?: return state.invalid("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.")
+        if ((state.amount ?: 0.0) > selected.remaining + 0.01) {
+            return state.invalid("Η πληρωμή ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης.")
+        }
     }
 
     if (state.kind.usesCategory && state.activeCategoryOptions.none { it.name == state.category }) {
