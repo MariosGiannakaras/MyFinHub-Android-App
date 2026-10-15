@@ -1,6 +1,6 @@
 package app.myfinhub.android.feature.quickentry
 
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -69,6 +69,9 @@ class CreditStatementSelectorComposeTest {
                 )
             }
         }
-        rule.onNodeWithText("Δήλωση πιστωτικής (προαιρετικά)").assertDoesNotExist()
+        rule.runOnIdle {
+            assertTrue(rule.onAllNodes(hasText("Δήλωση πιστωτικής (προαιρετικά)"))
+                .fetchSemanticsNodes().isEmpty())
+        }
     }
 }
