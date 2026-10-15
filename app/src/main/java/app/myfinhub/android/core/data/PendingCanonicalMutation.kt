@@ -25,6 +25,7 @@ enum class PendingMutationKind {
     RESTORE_CARD,
     PERMANENTLY_DELETE_CARD,
     COMPLETE_CARD_SECRET_CLEANUP,
+    SET_RECURRING_STATUS,
 }
 
 data class PendingCanonicalMutationIntent(
@@ -54,6 +55,11 @@ data class PendingCanonicalMutationIntent(
         }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
+        PendingMutationKind.SET_RECURRING_STATUS -> SetCanonicalRecurringStatus(
+            recurringId = payload.string("recurringId").orEmpty(),
+            status = payload.string("status").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.APPEND_EVENT -> AppendCanonicalEvent(
             event = payload.obj("event"),
             nowIso = payload.string("nowIso").orEmpty(),
@@ -113,6 +119,14 @@ data class PendingCanonicalMutationIntent(
      * target left to mutate, so it must not poison persistence or be replayed against a missing id.
      */
     fun isSatisfiedBy(document: CanonicalFinanceDocument): Boolean = when (kind) {
+        PendingMutationKind.SET_RECURRING_STATUS -> {
+            val id = payload.string("recurringId").orEmpty()
+            val expected = payload.string("status")
+            val actual = document.allCanonicalRecurringItems()
+                .firstOrNull { it.id == id }?.effectiveStatus
+            id.isNotBlank() && expected in setOf("active", "paused", "stopped") &&
+                (actual == null || actual == expected)
+        }
         PendingMutationKind.APPEND_EVENT -> {
             val eventId = appendedEventId.orEmpty()
             eventId.isNotBlank() && document.state.array("events").any {
@@ -205,6 +219,16 @@ data class PendingCanonicalMutationIntent(
             intentId: String,
             syncState: PendingMutationSyncState = PendingMutationSyncState.NEVER_SENT,
         ): PendingCanonicalMutationIntent = when (mutation) {
+            is SetCanonicalRecurringStatus -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.SET_RECURRING_STATUS,
+                payload = JsonObject(mapOf(
+                    "recurringId" to JsonPrimitive(mutation.recurringId),
+                    "status" to JsonPrimitive(mutation.status),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
             is AppendCanonicalEvent -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.APPEND_EVENT,

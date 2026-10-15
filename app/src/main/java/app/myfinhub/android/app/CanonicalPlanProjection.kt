@@ -4,6 +4,8 @@ import app.myfinhub.android.core.data.CanonicalAccount
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
+import app.myfinhub.android.core.data.activeCanonicalRecurringItems
+import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalScheduled
@@ -22,8 +24,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.min
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Builds the production Plan projection from canonical finance data.
@@ -130,28 +130,19 @@ internal fun canonicalPlannedItems(
             )
         }
 
-    val recurring = document.seed.array("recurring").mapNotNull { element ->
-        val item = element as? JsonObject ?: return@mapNotNull null
-        if (item.bool("active") == false || item.string("status") in setOf("paused", "stopped")) return@mapNotNull null
-        val id = item.string("id") ?: return@mapNotNull null
-        val title = item.string("name") ?: id
-        val amount = item.number("amount") ?: 0.0
-        val dueDate = nextRecurringDate(
-            firstExpectedDate = item.string("firstExpectedDate"),
-            day = item.number("day")?.toInt(),
-            today = today,
-        )
+    val recurring = document.activeCanonicalRecurringItems().map { item ->
+        val dueDate = document.nextCanonicalRecurringDate(item, today)
         PlannedItem(
-            id = id,
-            title = title,
+            id = item.id,
+            title = item.name,
             dueLabel = dueDate?.let { formatPlanDueDate(it, today) } ?: "Επαναλαμβανόμενο",
             dueDateIso = dueDate?.toString().orEmpty(),
-            amount = amount,
+            amount = item.amount,
             kind = PlannedKind.RECURRING,
             flow = PlannedFlow.OBLIGATION,
-            category = item.string("category").orEmpty(),
-            accountLabel = item.string("accountId")?.let(accountNames::get).orEmpty(),
-            note = item.string("note").orEmpty(),
+            category = item.category,
+            accountLabel = accountNames[item.accountId].orEmpty(),
+            note = item.note,
             urgency = urgencyFor(dueDate, today),
         )
     }
@@ -162,25 +153,6 @@ internal fun canonicalPlannedItems(
                 .thenBy { it.title.lowercase(Locale.forLanguageTag("el-GR")) }
                 .thenBy { it.id },
         )
-}
-
-private fun nextRecurringDate(
-    firstExpectedDate: String?,
-    day: Int?,
-    today: LocalDate,
-): LocalDate? {
-    val first = firstExpectedDate.toLocalDateOrNull()
-    if (first != null && !first.isBefore(today)) return first
-    val targetDay = day ?: first?.dayOfMonth ?: return null
-    if (targetDay !in 1..31) return null
-
-    var month = YearMonth.from(today)
-    var candidate = month.atDay(min(targetDay, month.lengthOfMonth()))
-    if (candidate.isBefore(today)) {
-        month = month.plusMonths(1)
-        candidate = month.atDay(min(targetDay, month.lengthOfMonth()))
-    }
-    return candidate
 }
 
 private fun urgencyFor(dueDate: LocalDate?, today: LocalDate): PlannedUrgency = when {
