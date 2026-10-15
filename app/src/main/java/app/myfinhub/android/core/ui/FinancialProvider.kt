@@ -21,7 +21,7 @@ enum class FinancialProvider(
 
 private fun normalizeProviderName(raw: String): String = Normalizer
     .normalize(raw.lowercase(Locale.forLanguageTag("el-GR")), Normalizer.Form.NFD)
-    .replace(Regex("[\\u0300-\\u036f]"), "")
+    .replace(Regex("\\p{M}+"), "")
 
 /** Web financialProviderId: accent-insensitive aliases for all eight canonical providers. */
 fun financialProviderId(vararg values: String?): String {
@@ -71,6 +71,7 @@ fun financialAccountDisplayName(
         FinancialProvider.PIRAEUS -> trimmed
             .replace(Regex("^(Πειραιώς|Piraeus|Τράπεζα Πειραιώς)\\s+", RegexOption.IGNORE_CASE), "")
             .trim()
+            .takeUnless { trimmed.equals("Τράπεζα Πειραιώς", ignoreCase = true) }.orEmpty()
         FinancialProvider.REVOLUT -> trimmed.takeUnless { it.equals("Revolut", ignoreCase = true) }.orEmpty()
         FinancialProvider.ALPHA -> trimmed.takeUnless { it.equals("Alpha Bank", ignoreCase = true) }.orEmpty()
         FinancialProvider.NATIONAL -> trimmed.takeUnless {
