@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 #194 completed; W4.1 native status UI plus W4.2 Web 30/60/90 risk preview #197 merged with 4/4 checks; both await final physical owner acceptance. New W4.3 consolidated Web category budgets/semantically reviewed split and refund totals with canonical fraction alert thresholds, native read-only category progress, four golden tests pending exact-head CI. Permanent card delete disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budgets canonical fraction/return/split parity awaiting four gates. W4.3 next batched read-only as-of loan/lending/savings projections, real Money detail rows and Pay & Save grouped sources staged behind #198 with no overlapping PR CI. W4.1/W4.2 native improvements #197 merged, physical S24 acceptance pending. W2.4 permanent delete UI disabled, no release.",
     "next": [
-      "Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release."
+      "Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-3-web-category-budget-consolidated-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. #197 merged 4/4; consolidated W4.3 Web budget calculation/fraction threshold/native category list pending fresh CI. W2.4 permanent delete disabled.",
+    "branch": "android/w4-3-loans-lending-savings-20261015",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 budget threshold/categorized expense in CI; staged loan/lending/savings Pay & Save parity and real Money list rows awaits #198 integration. No physical S24 acceptance.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -860,7 +860,8 @@
             "acceptance": "Goals, targets, savings offset eligibility, correct debts/receivables/installments, overall and category budgets.",
             "status": "in_progress",
             "evidence": [
-              "W4.3 consolidated read-only Web categoryBudgetSpending and budgetProgress: reviewed semantic splits, refunds, card purchases, as-of, negative raw vs clamped used, 0.5–0.99 threshold, legacy integer percent compatibility; native category-budget display and overall-budget canonical fractional writes; Web golden fixtures. Fresh exact-head CI required, no completed credit yet."
+              "W4.3 consolidated read-only Web categoryBudgetSpending and budgetProgress: reviewed semantic splits, refunds, card purchases, as-of, negative raw vs clamped used, 0.5–0.99 threshold, legacy integer percent compatibility; native category-budget display and overall-budget canonical fractional writes; Web golden fixtures. Fresh exact-head CI required, no completed credit yet.",
+              "Parallel staged post-#198 W4.3 loan/lending/savings Web semantics: as-of loan outstanding and self-loan return identity, as-of per-person lending with unapportioned receivable preservation, Pay & Save/manual/cash breakdown including explicit savingAmount=0; real Money loans/lending/savings detail rows with privacy masking, three golden fixtures. Branch staged without PR/CI pending merged #198, no completion claimed."
             ]
           },
           {
@@ -943,9 +944,9 @@
         ]
       }
     ],
-    "next_action": "Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release.",
+    "next_action": "Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 198,
+    "pr": 0,
     "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

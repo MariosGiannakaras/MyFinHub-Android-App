@@ -27,6 +27,9 @@ import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
+import app.myfinhub.android.core.data.canonicalLoanBalanceRows
+import app.myfinhub.android.core.data.canonicalLendingPersonRows
+import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
@@ -52,6 +55,8 @@ import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
+import app.myfinhub.android.feature.money.LoanItem
+import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.MoneyCardActivity
 import app.myfinhub.android.feature.money.MoneyCardActivityKind
@@ -334,8 +339,30 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         },
         savingsGoal = savingsGoal,
         savingsCurrent = savingsAccounts.sumOf { balances[it.id] ?: 0.0 },
-        loanOutstanding = document.loanOutstanding(),
-        lendingReceivable = document.receivableOutstanding(),
+        loanOutstanding = document.loanOutstanding(asOf),
+        lendingReceivable = document.receivableOutstanding(asOf),
+        loans = document.canonicalLoanBalanceRows(asOf).map { loan ->
+            LoanItem(
+                id = loan.id,
+                name = loan.name,
+                lender = loan.provider,
+                remaining = loan.remaining,
+                monthlyPayment = loan.installment,
+                nextPaymentLabel = loan.typicalPaymentDay?.let { "Συνήθης ημέρα πληρωμής: $it" }.orEmpty(),
+                originalAmount = loan.total,
+            )
+        },
+        lendingItems = document.canonicalLendingPersonRows(asOf)
+            .filter { it.outstanding > 0.005 }
+            .map { row ->
+                LendingItem(
+                    id = "lending-person-" + row.person,
+                    personLabel = row.person,
+                    amount = row.outstanding,
+                    dueLabel = "",
+                )
+            },
+        savingsSources = document.canonicalSavingsBreakdown(YearMonth.from(today).toString(), asOf).bySource,
         aggregateCreditOutstanding = globalCreditOutstanding,
         asOfDate = asOf,
     )

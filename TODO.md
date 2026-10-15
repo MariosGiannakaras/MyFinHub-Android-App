@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release.
+- [ ] Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #198, branch android/w4-3-web-category-budget-consolidated-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. #197 merged 4/4; consolidated W4.3 Web budget calculation/fraction threshold/native category list pending fresh CI. W2.4 permanent delete disabled.
+Issue #155, PR #0, branch android/w4-3-loans-lending-savings-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 budget threshold/categorized expense in CI; staged loan/lending/savings Pay & Save parity and real Money list rows awaits #198 integration. No physical S24 acceptance.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate consolidated W4.3 budgets categorization, review-split/refund/threshold semantics and native category presentation in one exact-head 4/4 CI pass; then address remaining loans/lending/savings parity in a larger follow-up. Preserve legacy threshold reads, no release.
+Next Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

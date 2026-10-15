@@ -399,36 +399,17 @@ fun CanonicalFinanceDocument.overallBudget(month: String): CanonicalBudget? {
 }
 
 /** Sum of web-equivalent outstanding values across effective seed/custom loans. */
-fun CanonicalFinanceDocument.loanOutstanding(): Double {
-    val loans = seed.array("loans").mapNotNull { it as? JsonObject }
-        .associateBy { it.string("id").orEmpty() }
-        .filterKeys(String::isNotBlank)
-        .toMutableMap()
-    state.obj("loanOverrides").forEach { (id, value) -> (value as? JsonObject)?.let { loans[id] = it } }
-    state.array("customLoans").mapNotNull { it as? JsonObject }.forEach { loan ->
-        loan.string("id")?.let { loans[it] = loan }
-    }
-    val extraCounts = state.obj("loanExtra")
-    val events = canonicalEvents()
-    return loans.values.sumOf { loan ->
-        val id = loan.string("id").orEmpty()
-        val total = loan.number("total") ?: 0.0
-        val installment = loan.number("installment") ?: 0.0
-        val installments = loan.number("installments") ?: 0.0
-        val baselinePaidCount = loan.number("paidCount") ?: 0.0
-        val legacyExtraCount = extraCounts.number(id) ?: 0.0
-        val baselineAmount = min(installments, baselinePaidCount + legacyExtraCount) * installment
-        val linkedAmount = events.filter { event ->
-            event.loanId == id && (!loan.isSelfLoan() || event.isSelfLoanReturn())
-        }.sumOf { max(0.0, it.amount) }
-        max(0.0, total - baselineAmount - linkedAmount - (loan.number("forgivenAmount") ?: 0.0))
-    }
-}
+fun CanonicalFinanceDocument.loanOutstanding(asOf: String? = null): Double =
+    canonicalLoanBalanceRows(asOf).sumOf { it.remaining }
 
-/** Mirrors web net-worth receivables: legacy seed outstanding + canonical event deltas. */
-fun CanonicalFinanceDocument.receivableOutstanding(): Double {
-    val legacy = seed.array("lending").mapNotNull { it as? JsonObject }.sumOf { it.number("outstanding") ?: 0.0 }
-    return max(0.0, legacy + canonicalEvents().sumOf { it.receivableDelta })
+/** Canonical net-worth receivables include unattributed deltas; as-of dates exclude future finance events. */
+fun CanonicalFinanceDocument.receivableOutstanding(asOf: String? = null): Double {
+    val legacy = seed.array("lending").mapNotNull { it as? JsonObject }
+        .sumOf { it.number("outstanding") ?: 0.0 }
+    val eventDelta = state.array("events").mapNotNull { it as? JsonObject }.filter {
+        asOf == null || it.string("date").orEmpty() <= asOf
+    }.sumOf { it.number("receivableDelta") ?: 0.0 }
+    return max(0.0, legacy + eventDelta)
 }
 
 fun CanonicalFinanceDocument.cardOutstanding(cardId: String, asOf: String): Double = max(
