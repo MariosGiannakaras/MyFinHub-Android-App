@@ -355,7 +355,7 @@ private fun transactionEntryFixture(): CanonicalFinanceDocument = CanonicalFinan
           "updatedAt":"2026-09-02T00:00:00Z",
           "seed":{
             "accounts":[
-              {"id":"acc-main","name":"Κύριος","kind":"bank"},
+              {"id":"acc-main","name":"Κύριος","kind":"bank","providerId":"piraeus"},
               {"id":"acc-save","name":"Αποταμίευση","kind":"savings"},
               {"id":"acc-cash","name":"Μετρητά","kind":"cash"}
             ],
@@ -380,7 +380,7 @@ private fun transactionEntryFixture(): CanonicalFinanceDocument = CanonicalFinan
             "events":[],
             "scheduled":[],
             "cards":[
-              {"id":"card-credit","nickname":"Πιστωτική","kind":"credit","network":"visa","last4":"1881","active":true,"creditLimit":2000.0},
+              {"id":"card-credit","nickname":"Πιστωτική","kind":"credit","bankId":"piraeus","network":"visa","last4":"1881","active":true,"creditLimit":2000.0},
               {"id":"card-debit","nickname":"Χρεωστική","kind":"debit","network":"visa","last4":"4242","active":true}
             ],
             "budgets":[]
