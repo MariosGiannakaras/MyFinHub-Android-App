@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity verified 1/6 implementations and 7/24 subtasks. W1 completed, W2.1–W2.3 merged/green. W2.4 archive/restore #174, eligibility #176 and guarded deletion/tombstones #177 merged with all four exact-head checks; irreversible delete NOT available in UI. Archive language PR #178 and durable secret-cleanup acknowledgement PR #180 under CI. Full post-commit authenticated server/device vault cleanup, retry and owner S24 acceptance outstanding. W3.1 repayment allocation/legacy card debt partial. No backend or release.
+Web parity verified 1/6 implementations and 7/24 subtasks. W1 complete; W2.1–W2.3 merged. W2.4 archive/restore #174, guarded deletion policy #176/#177, correct archive wording #178 and canonical cleanup ACK #180 merged/verified; secret purge-on-archive regression is under correction in draft #183 with atomic server guard, durable authenticated cleanup/retry draft #184 stacked. Permanent delete UI disabled. W3.1 statement read model #169 and billing boundaries #182 merged as partial foundation; payment allocation/legacy credit ownership open. Physical S24 approval #149 and production release are separate.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
+1. Review exact-head CI for #183 (archive must never purge PAN/CVV; requireCommittedDeletion owner+AAL2 server guard). Merge only when all gates pass. Then rebase/check stacked #184 (post-commit durable server+device cleanup, acknowledgement and retries); keep permanent-delete UI disabled until end-to-end security/device acceptance. W3.1 legacy debt/payment allocation stays partial. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #181, branch android/web-parity-track-safe-cleanup-20261015
-Current W2.4: Verified 1/6 implementations and 7/24 subtasks. W2.4 archive/restore #174, delete eligibility #176, guarded deletion tombstones/offline intent #177 merged. Archive UX PR #178 under retest; cleanup-ack contract #180 in CI. No permanent deletion in UI or completed vault cleanup.
+Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
+Current W2.4: Verified 1/6 implementations, 7/24 subtasks. Archive UX #178, canonical cleanup-ACK #180 and statement date math #182 merged. Security PR #183 and stacked durable vault orchestration #184 in review; irreversible delete stays unavailable in UI.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate and merge PR #178 reversible archive wording after exact-head screenshot/emulator/build tests. Validate PR #180 idempotent card secret-cleanup completion marker and durable offline intent. Safely wire authenticated post-commit server and legacy device vault deletion/retry before exposing permanent-delete UI or marking W2.4 complete. Continue W3.1 payment allocation/legacy card debt later; do not release.
+Next Review exact-head CI for #183 (archive must never purge PAN/CVV; requireCommittedDeletion owner+AAL2 server guard). Merge only when all gates pass. Then rebase/check stacked #184 (post-commit durable server+device cleanup, acknowledgement and retries); keep permanent-delete UI disabled until end-to-end security/device acceptance. W3.1 legacy debt/payment allocation stays partial. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
