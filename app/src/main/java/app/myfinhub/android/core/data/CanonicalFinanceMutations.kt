@@ -138,7 +138,6 @@ data class SetCanonicalRecurringStatus(
         fun updated(item: JsonObject): JsonObject = JsonObject(item + mapOf(
             "active" to JsonPrimitive(status == "active"),
             "status" to JsonPrimitive(status),
-            "updatedAt" to JsonPrimitive(nowIso),
         ))
         val newState = if (index >= 0) {
             val mutable = custom.toMutableList()
