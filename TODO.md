@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
+- [ ] Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.
 
 ## Completed foundations
 
@@ -60,16 +60,16 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #186, branch android/w3-1-credit-event-statement-linkage-20261015
-Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.
+Issue #155, PR #189, branch android/w3-3-provider-repayment-parity-20261015
+Current W3.3: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged with destructive UI disabled. W3.1 #182/#188/#186 merged, statement repayment choice outstanding. W3.3 provider bank matching #189 reanchored, fresh CI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
+Next Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (in_progress); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -86,7 +86,7 @@ Next Run four exact-head checks on W3.1 PR #186, merge only if green, then compl
 - [ ] W2.4 Card interactions and secure details — in_progress
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — pending
-- [ ] W3.3 Card repayment provider validation — pending
+- [ ] W3.3 Card repayment provider validation — in_progress
 - [ ] W3.4 Single mutation pipeline — pending
 - [ ] W4.1 Recurring lifecycle — pending
 - [ ] W4.2 Scheduled forecast — pending

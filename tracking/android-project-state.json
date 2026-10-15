@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks. Secure-card cleanup PRs #184/#187 and statement chronology/legacy attribution PR #188 are merged to develop after four exact-head checks each. W2.4 permanent-delete UI remains disabled pending full safety/device acceptance. W3.1 canonical statement purchase-cycle linking #186 reanchored to develop and requires exact-head CI; selected repayment allocation remains open. No release.",
+    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks. W2.4 secure card-secret PRs #184/#187 merged; permanent-delete UI remains disabled. W3.1 #182/#188 and purchase-cycle preparation #186 merged with four exact-head checks each, while user-selected statement repayments remain open. W3.3 provider-based repayment validation #189 reanchored after #186; exact-head tests and merge pending. No release.",
     "next": [
-      "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release."
+      "Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-1-credit-event-statement-linkage-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.",
+    "branch": "android/w3-3-provider-repayment-parity-20261015",
+    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged with destructive UI disabled. W3.1 #182/#188/#186 merged, statement repayment choice outstanding. W3.3 provider bank matching #189 reanchored, fresh CI pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -784,7 +784,8 @@
               "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete.",
               "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete.",
               "PR #188 canonical statement chronology and deleted-card legacy ownership merged to develop as bb39fcb7dc631756a2b93ca30a57542763bca0d8, with four exact-head CI gates. W3.1 remains partial.",
-              "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete."
+              "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete.",
+              "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open."
             ]
           },
           {
@@ -798,8 +799,10 @@
             "id": "W3.3",
             "title": "Card repayment provider validation",
             "acceptance": "Match eligible source by canonical bank/provider metadata, not string-prefix guesses, with card debt limits.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "PR #189 Web financialProviders providerId/legacy matching replaces guessed account-prefix eligibility, with bank mismatch and account override regression tests; reanchored onto post-#186 develop for new CI."
+            ]
           },
           {
             "id": "W3.4",
@@ -916,10 +919,10 @@
         ]
       }
     ],
-    "next_action": "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.",
+    "next_action": "Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 186,
-    "current_subtask": "W3.1",
+    "pr": 189,
+    "current_subtask": "W3.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

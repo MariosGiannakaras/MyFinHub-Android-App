@@ -39,6 +39,78 @@ class CanonicalTransactionEntryBankParityTest {
         assertEquals(10.0, result.creditDebtForCardAt("card-piraeus", "2026-09-02"), 0.001)
     }
 
+    private fun payAgainstFixture(document: CanonicalFinanceDocument, sourceId: String) {
+        val withDebt = createCanonicalTransactionEntryMutation(
+            document = document,
+            draft = CanonicalTransactionEntryDraft(
+                kind = "card_purchase", date = "2026-09-02", amount = 20.0,
+                cardId = "card-piraeus",
+            ),
+            eventId = "evt-provider-purchase",
+            nowIso = now,
+        ).apply(document)
+        createCanonicalTransactionEntryMutation(
+            document = withDebt,
+            draft = CanonicalTransactionEntryDraft(
+                kind = "card_payment", date = "2026-09-02", amount = 10.0,
+                fromAccountId = sourceId, cardId = "card-piraeus",
+            ),
+            eventId = "evt-provider-payment",
+            nowIso = now,
+        ).apply(withDebt)
+    }
+
+    @Test
+    fun cardPayment_acceptsMetadataProviderEvenWhenAccountIdHasNoBankPrefix() {
+        payAgainstFixture(
+            bankParityFixture(
+                firstId = "arbitrary-current-42",
+                firstMetadata = ",\"providerId\":\"piraeus\"",
+            ),
+            "arbitrary-current-42",
+        )
+    }
+
+    @Test
+    fun cardPayment_acceptsCanonicalProviderOverrideForCustomAccount() {
+        payAgainstFixture(
+            bankParityFixture(
+                firstId = "user-current-42",
+                overrides = """{"user-current-42":{"providerId":"piraeus"}}""",
+            ),
+            "user-current-42",
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPayment_rejectsDeceptiveMatchingPrefixWhenMetadataBelongsToOtherBank() {
+        payAgainstFixture(
+            bankParityFixture(
+                firstId = "piraeus-misleading",
+                firstMetadata = ",\"providerId\":\"eurobank\"",
+            ),
+            "piraeus-misleading",
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cardPayment_rejectsUnknownCardProviderInsteadOfAllowingAnySource() {
+        payAgainstFixture(bankParityFixture(cardProvider = ""), "piraeus-main")
+    }
+
+    @Test
+    fun legacyFallbackUsesWebMetadataPriorityAndGreekNormalization() {
+        val account = CanonicalAccount(
+            id = "legacy-02", name = "Πειραιώς μισθοδοσίας", shortName = null,
+            kind = "bank", excludeFromAvailable = false,
+        )
+        org.junit.Assert.assertTrue(account.matchesFinancialProvider("piraeus"))
+        org.junit.Assert.assertFalse(account.matchesFinancialProvider("alpha"))
+        val authoritative = account.copy(providerId = "alpha")
+        org.junit.Assert.assertFalse(authoritative.matchesFinancialProvider("piraeus"))
+        org.junit.Assert.assertTrue(authoritative.matchesFinancialProvider("alpha"))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun cardPayment_rejectsAccountFromDifferentCanonicalBank() {
         val document = bankParityFixture()
@@ -69,7 +141,12 @@ class CanonicalTransactionEntryBankParityTest {
     }
 }
 
-private fun bankParityFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
+private fun bankParityFixture(
+    firstId: String = "piraeus-main",
+    firstMetadata: String = "",
+    overrides: String = "{}",
+    cardProvider: String = "piraeus",
+): CanonicalFinanceDocument = CanonicalFinanceDocument(
     Json.parseToJsonElement(
         """
         {
@@ -78,11 +155,11 @@ private fun bankParityFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
           "updatedAt":"2026-09-02T00:00:00Z",
           "seed":{
             "accounts":[
-              {"id":"piraeus-main","name":"Πειραιώς","kind":"bank"},
+              {"id":"$firstId","name":"Πειραιώς","kind":"bank"$firstMetadata},
               {"id":"eurobank-main","name":"Eurobank","kind":"bank"}
             ],
             "snapshots":[
-              {"date":"2026-09-01","balances":{"piraeus-main":1000.0,"eurobank-main":1000.0}}
+              {"date":"2026-09-01","balances":{"$firstId":1000.0,"eurobank-main":1000.0}}
             ],
             "transactions":[],
             "recurring":[],
@@ -96,15 +173,16 @@ private fun bankParityFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
             "settings":{
               "excludedFromAvailable":[],
               "accountNames":{},
-              "defaultExpenseAccount":"piraeus-main",
-              "defaultIncomeAccount":"piraeus-main"
+              "accountOverrides":$overrides,
+              "defaultExpenseAccount":"$firstId",
+              "defaultIncomeAccount":"$firstId"
             },
             "events":[],
             "scheduled":[],
             "cards":[
               {
                 "id":"card-piraeus",
-                "bankId":"piraeus",
+                "bankId":"$cardProvider",
                 "nickname":"Piraeus Credit",
                 "kind":"credit",
                 "network":"visa",

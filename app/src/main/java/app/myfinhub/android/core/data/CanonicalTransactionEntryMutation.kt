@@ -173,11 +173,9 @@ fun createCanonicalTransactionEntryMutation(
             val debt = document.creditDebtForCardAt(cardId, draft.date)
             require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
             require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
-            val cardBankId = document.cards().firstOrNull { it.id == cardId }?.bankId.orEmpty()
-            if (cardBankId.isNotBlank()) {
-                require(sourceAccountId.startsWith("$cardBankId-")) {
-                    "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
-                }
+            val cardBankId = activeCreditCards[cardId]?.bankId.orEmpty()
+            require(eligibleAccounts[sourceAccountId]?.matchesFinancialProvider(cardBankId) == true) {
+                "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
             }
             legs += transactionLedgerLeg(sourceAccountId, -amount)
             legs += transactionLedgerLeg(CREDIT_ACCOUNT_ID, amount)
