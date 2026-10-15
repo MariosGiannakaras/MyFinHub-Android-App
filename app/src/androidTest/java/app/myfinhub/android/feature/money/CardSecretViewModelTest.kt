@@ -153,6 +153,39 @@ class CardSecretViewModelTest {
         assertNull(cvvVault.load("card-1"))
     }
 
+    @Test
+    fun rejectedCommittedDeletionMustNotEraseLegacyDeviceSecretsOrAutoRetry() = runBlocking {
+        val api = FakeCardApi(committedDeletionFailure = ApiFailureKind.INVALID_DATA)
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        )
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        vm.purgeCard("card-1")
+        waitUntil { vm.cleanupState.value is CardSecretCleanupUiState.Failure }
+        assertEquals(1, api.committedSecretDeleteCalls)
+        assertEquals(0, api.serverSecretDeleteCalls)
+        assertNull(details.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        assertEquals("4242424242424242", details.load("card-1")?.pan?.concatToString())
+        assertEquals("321", cvv.load("card-1")?.concatToString())
+
+        // A rerender cannot repeat an AAL2/server-rejected attempt.
+        vm.purgeCard("card-1")
+        delay(50)
+        assertEquals(1, api.committedSecretDeleteCalls)
+
+        // A deliberate retry may succeed and then both local stores may be erased.
+        api.committedDeletionFailure = null
+        vm.retryPurgeCard("card-1")
+        waitUntil { vm.cleanupState.value is CardSecretCleanupUiState.Complete }
+        assertEquals(2, api.committedSecretDeleteCalls)
+        assertEquals("card-1", details.deletedCardId)
+        assertEquals("card-1", cvv.deletedCardId)
+    }
+
     private suspend fun waitUntil(predicate: () -> Boolean) {
         withTimeout(3_000) {
             while (!predicate()) delay(10)
@@ -227,6 +260,7 @@ private class FakeCvvVault(initial: CharArray? = null) : CvvVault {
 
 private class FakeCardApi(
     private var serverSecrets: CardSecrets? = CardSecrets("4242424242424242", "12/30", "321"),
+    var committedDeletionFailure: ApiFailureKind? = null,
 ) : MyFinHubApi {
     var serverSecretReadCalls: Int = 0
         private set
@@ -282,6 +316,7 @@ private class FakeCardApi(
         cardId: String,
     ): ApiResult<CardSecretDeleteReceipt> {
         committedSecretDeleteCalls += 1
+        committedDeletionFailure?.let { return ApiResult.Failure(it) }
         return deleteCardSecrets(session, cardId)
     }
 }
