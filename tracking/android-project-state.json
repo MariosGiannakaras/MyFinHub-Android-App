@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks. W2.4 secure card-secret PRs #184/#187 merged; permanent-delete UI remains disabled. W3.1 #182/#188 and purchase-cycle preparation #186 merged with four exact-head checks each, while user-selected statement repayments remain open. W3.3 provider-based repayment validation #189 reanchored after #186; exact-head tests and merge pending. No release.",
+    "summary": "Web parity 1/6 implementations and 8/24 evidence-backed completed subtasks. W3.3 Web-equivalent provider-based repayment account validation #189 merged with four green exact-head gates. W3.1 statement chronology/cycles #182/#188/#186 merged; #190 explicit user-selected statement repayment reanchored for new CI and native UI review. W2.4 server-authorized card cleanup #184/#187 merged, irreversible deletion UI disabled pending complete safety/device acceptance. No release.",
     "next": [
-      "Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes."
+      "Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-3-provider-repayment-parity-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged with destructive UI disabled. W3.1 #182/#188/#186 merged, statement repayment choice outstanding. W3.3 provider bank matching #189 reanchored, fresh CI pending.",
+    "branch": "android/w3-1-statement-payment-selection-20261015",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 merged, W2.4 vault cleanup merged but destructive UI disabled. W3.1 #182/#188/#186 merged, #190 statement payment selection reanchored and corrected pending new CI/visual review.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -785,7 +785,8 @@
               "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete.",
               "PR #188 canonical statement chronology and deleted-card legacy ownership merged to develop as bb39fcb7dc631756a2b93ca30a57542763bca0d8, with four exact-head CI gates. W3.1 remains partial.",
               "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete.",
-              "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open."
+              "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open.",
+              "PR #190 explicit user-selected credit statement repayment Quick Entry UI and canonical mutation branch reanchored after #189 provider matcher; previously one unit test incorrectly rebuilt a new payment after its original statement was partially settled; fixed to replay the original stable mutation. Fresh exact-head CI required before merge."
             ]
           },
           {
@@ -799,9 +800,10 @@
             "id": "W3.3",
             "title": "Card repayment provider validation",
             "acceptance": "Match eligible source by canonical bank/provider metadata, not string-prefix guesses, with card debt limits.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "PR #189 Web financialProviders providerId/legacy matching replaces guessed account-prefix eligibility, with bank mismatch and account override regression tests; reanchored onto post-#186 develop for new CI."
+              "PR #189 Web financialProviders providerId/legacy matching replaces guessed account-prefix eligibility, with bank mismatch and account override regression tests; reanchored onto post-#186 develop for new CI.",
+              "W3.3 PR #189 providerId/overrides and Web legacy provider matcher plus per-card as-of debt caps merged to develop as 245218298f0333658376f2816039ace7f8924a51; all four exact-head Android/Tracking/UI emulator gates passed. No backend or release changes."
             ]
           },
           {
@@ -919,10 +921,10 @@
         ]
       }
     ],
-    "next_action": "Validate reanchored W3.3 PR #189 on four new exact-head checks and merge only if green; continue W3.1 explicit statement repayment selection and W2.4 irreversible action safety. No backend/schema/real finance data or release changes.",
+    "next_action": "Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 189,
-    "current_subtask": "W3.3",
+    "pr": 190,
+    "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

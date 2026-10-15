@@ -28,6 +28,12 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals(listOf("credit-one"), projected.creditCards.map { it.id })
         assertTrue(projected.creditCards.single().label.contains("9012"))
         assertEquals("Mastercard", projected.creditCards.single().provider)
+        val selectedCardPayment = projectQuickEntryState(
+            projectionFixture(), LocalDate.parse("2026-09-02"),
+            projected.copy(kind = QuickEntryKind.CARD_PAYMENT),
+        )
+        assertEquals(listOf("stmt-one"), selectedCardPayment.creditStatements.map { it.id })
+        assertEquals(40.0, selectedCardPayment.creditStatements.single().remaining, 0.001)
         assertEquals(listOf("Τρόφιμα", "Μετακίνηση"), projected.expenseCategories.map { it.name })
         assertEquals(listOf("Σούπερ μάρκετ", "Καφές"), projected.expenseCategories.first().subcategories)
         assertEquals(listOf("Μισθός"), projected.incomeCategories.map { it.name })
@@ -42,6 +48,7 @@ class QuickEntryCanonicalProjectionTest {
             note = "Εξόφληση",
             fromAccountId = "missing-account",
             cardId = "missing-card",
+            statementId = "stale-statement",
             dirty = true,
         )
         val projected = projectQuickEntryState(
@@ -56,6 +63,7 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("Εξόφληση", projected.note)
         assertEquals("bank-main", projected.fromAccountId)
         assertEquals("credit-one", projected.cardId)
+        assertEquals("", projected.statementId)
         assertTrue(projected.dirty)
         assertFalse(projected.accounts.any { it.id == "missing-account" })
     }
@@ -84,7 +92,14 @@ private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
             "deleted":[],
             "overrides":{},
             "customTransactions":[],
-            "events":[],
+            "events":[
+              {"id":"fixture-purchase","kind":"card_purchase","date":"2026-09-01",
+               "cardId":"credit-one","statementId":"stmt-one","amount":40}
+            ],
+            "creditStatements":[
+              {"id":"stmt-one","cardId":"credit-one","openDate":"2026-08-26",
+               "closeDate":"2026-09-25","dueDate":"2026-10-05","boundaryRule":"next-cycle"}
+            ],
             "scheduled":[],
             "cards":[
               {"id":"credit-one","nickname":"Ταξίδια","kind":"credit","network":"mastercard","last4":"9012","active":true,"creditLimit":2500.0},
