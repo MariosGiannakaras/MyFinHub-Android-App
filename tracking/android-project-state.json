@@ -932,7 +932,7 @@
     ],
     "next_action": "Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
+    "pr": 194,
     "current_subtask": "W3.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

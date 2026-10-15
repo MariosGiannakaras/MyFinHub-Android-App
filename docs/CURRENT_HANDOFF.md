@@ -54,7 +54,7 @@ Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.1 #192 la
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w3-4-unified-finance-mutation-batch-20261015
+Issue #155, PR #194, branch android/w3-4-unified-finance-mutation-batch-20261015
 Current W3.4: Verified 1/6 implementations · 8/24 subtasks. W3.1 #192 in CI, W3.2 #191/#193 merged; W3.4 consolidated compatibility adapter + six golden vectors staged (PR not yet opened) to avoid overlapping CI; permanent delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.
