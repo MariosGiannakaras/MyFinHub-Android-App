@@ -126,7 +126,7 @@ class PendingUiProjectionTest {
         assertFalse(result.moneyState.cards.any { it.id == "card-credit" })
         assertNotNull(message)
         assertTrue(message.orEmpty().contains("Πιστωτική"))
-        assertTrue(message.orEmpty().contains("Εκκρεμεί διαγραφή"))
+        assertTrue(message.orEmpty().contains("Εκκρεμεί αρχειοθέτηση"))
         assertTrue(message.orEmpty().contains("Προς συγχρονισμό"))
     }
 
@@ -156,7 +156,7 @@ class PendingUiProjectionTest {
 
         assertFalse(result.moneyState.cards.any { it.id == "card-local" })
         assertTrue(result.moneyState.frontendMessage.orEmpty().contains("Νέα κάρτα ••••4242"))
-        assertTrue(result.moneyState.frontendMessage.orEmpty().contains("Εκκρεμεί διαγραφή"))
+        assertTrue(result.moneyState.frontendMessage.orEmpty().contains("Εκκρεμεί αρχειοθέτηση"))
     }
 
     @Test

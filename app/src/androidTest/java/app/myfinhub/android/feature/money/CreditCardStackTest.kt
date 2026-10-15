@@ -115,7 +115,7 @@ class CreditCardStackTest {
     }
 
     @Test
-    fun deleteCancel_restoresNormalCardState() {
+    fun archiveCancel_restoresNormalCardState() {
         composeRule.setContent {
             MyFinHubTheme {
                 CreditCardStack(
@@ -128,8 +128,9 @@ class CreditCardStackTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
+        composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").performClick()
         composeRule.onNodeWithTag("card_delete_slider").assertIsDisplayed()
+        composeRule.onNodeWithText("ΣΥΡΕ ΓΙΑ ΑΡΧΕΙΟΘΕΤΗΣΗ").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ακύρωση").performClick()
         assertTrue(
             runCatching { composeRule.onNodeWithTag("card_delete_slider").fetchSemanticsNode() }.isFailure,
@@ -138,7 +139,7 @@ class CreditCardStackTest {
     }
 
     @Test
-    fun deleteAboveThreshold_requestsStableId_andParentCommitAllowsEmptyStack() {
+    fun archiveAboveThreshold_requestsStableId_andParentCommitAllowsEmptyStack() {
         val deleted = mutableListOf<String>()
         val cards = mutableStateOf(testCards(1))
 
@@ -157,7 +158,7 @@ class CreditCardStackTest {
             }
         }
 
-        composeRule.onNodeWithContentDescription("Διαγραφή κάρτας").performClick()
+        composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").performClick()
         val slider = composeRule.onNodeWithTag("card_delete_slider")
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(.91f) }
         slider.performSemanticsAction(SemanticsActions.RequestFocus) { it() }

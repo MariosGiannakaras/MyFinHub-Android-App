@@ -191,7 +191,7 @@ fun CanonicalCardDetailScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     MyFinHubDestructiveTextAction(
-                        label = "Αφαίρεση από το MyFinHub",
+                        label = "Αρχειοθέτηση κάρτας",
                         onClick = { removeDialogOpen = true },
                     )
                 }
@@ -214,11 +214,11 @@ fun CanonicalCardDetailScreen(
     if (removeDialogOpen && card != null) {
         AlertDialog(
             onDismissRequest = { removeDialogOpen = false },
-            title = { Text("Αφαίρεση από το MyFinHub;") },
+            title = { Text("Αρχειοθέτηση στο MyFinHub;") },
             text = {
                 Text(
-                    "Η κάρτα θα φύγει από την ενεργή λίστα. Το ιστορικό και τυχόν οφειλή διατηρούνται. " +
-                        "Δεν ακυρώνεται στην τράπεζα. Μετά την αφαίρεση θα καθαριστούν τα κρυπτογραφημένα στοιχεία της συσκευής και τυχόν παλιό server-vault υπόλοιπο.",
+                    "Η κάρτα θα μεταφερθεί στις αρχειοθετημένες και μπορεί να επανέλθει. Το ιστορικό και τυχόν οφειλή διατηρούνται. " +
+                        "Δεν ακυρώνεται στην τράπεζα. Τα προστατευμένα στοιχεία της κάρτας καθαρίζονται και θα χρειαστεί νέα καταχώριση μετά από επαναφορά.",
                 )
             },
             confirmButton = {
@@ -228,7 +228,7 @@ fun CanonicalCardDetailScreen(
                         onRemoveCard(card.id)
                     },
                     modifier = Modifier.testTag("confirm_remove_card"),
-                ) { Text("Αφαίρεση") }
+                ) { Text("Αρχειοθέτηση") }
             },
             dismissButton = { TextButton(onClick = { removeDialogOpen = false }) { Text("Ακύρωση") } },
         )

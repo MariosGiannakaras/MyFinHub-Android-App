@@ -130,7 +130,7 @@ class S6CardSurfaceTest {
     }
 
     @Test
-    fun cardDetail_routesToProtectedSurface_andUsesExplicitRemovalLanguage() {
+    fun cardDetail_routesToProtectedSurface_andUsesExplicitArchiveLanguage() {
         var secureCardId: String? = null
         var removedCardId: String? = null
         composeRule.setContent {
@@ -146,8 +146,9 @@ class S6CardSurfaceTest {
 
         composeRule.onNodeWithTag("card_secure_details").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("credit", secureCardId) }
-        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").performScrollTo().performClick()
+        composeRule.onNodeWithText("Αρχειοθέτηση κάρτας").performScrollTo().performClick()
         composeRule.onNodeWithText("Δεν ακυρώνεται στην τράπεζα.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("μπορεί να επανέλθει", substring = true).assertIsDisplayed()
         composeRule.onNodeWithTag("confirm_remove_card").performClick()
         composeRule.runOnIdle { assertEquals("credit", removedCardId) }
     }
