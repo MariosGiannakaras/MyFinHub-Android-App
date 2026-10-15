@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
+- [ ] Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w4-3-savings-goals-history-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.3 #199 in CI; multi-goal as-of Savings UI staged behind it without extra PR/CI. W2.4 irreversible card deletion disabled.
+Issue #155, PR #200, branch android/w4-3-savings-goals-history-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 and #199 merged 4/4; #200 Web multi-goal as-of savings/progress/privacy batch pending exact-head checks. W2.4 destructive delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
+Next Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

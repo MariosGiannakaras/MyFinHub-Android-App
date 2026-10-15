@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations and 9/24 subtasks. W4.3 #199 as-of loans/lending/Pay & Save in full CI; staged next read-only Web multi-goal Savings completion with deadline/history and real native Compose UI, no PR/CI to avoid overlap. Full CRUD deferred until owner+AAL2/canonical offline mutation codecs are proven. W2.4 destructive card-delete UI remains disabled; no release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budget net spending/thresholds and #199 as-of loans/lending/Pay & Save native detail were merged with four exact-head gates each. W4.3 #200 adds real multi-goal Savings progress and historical deadlines with privacy-masked Wallet/Savings, golden/Compose tests, pending exact-head CI. W4.1/4.2 visual/device owner S24 acceptance remains pending and W2.4 permanent card delete UI disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
+1. Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w4-3-savings-goals-history-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.3 #199 in CI; multi-goal as-of Savings UI staged behind it without extra PR/CI. W2.4 irreversible card deletion disabled.
+Issue #155, PR #200, branch android/w4-3-savings-goals-history-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 and #199 merged 4/4; #200 Web multi-goal as-of savings/progress/privacy batch pending exact-head checks. W2.4 destructive delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
+Next Validate consolidated W4.3 #200 multi-goal read-only savings, privacy indicators and golden/Compose tests with all four exact-head CI checks, then review evidence and merge if green. Plan safe durable SavingsGoal CRUD only after offline codec validation; remaining W3 and W5 work separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
