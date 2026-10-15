@@ -505,7 +505,7 @@ fun CanonicalSavingsScreen(
                             )
                             Text(
                                 (if (amountsVisible) goal.progressPercent.toInt().toString() + "%"
-                                    else HIDDEN_AMOUNT_TEXT) + " · Κοινό υπόλοιπο αποταμίευσης: " +
+                                    else amountVisibilityText("100%", false)) + " · Κοινό υπόλοιπο αποταμίευσης: " +
                                     amountVisibilityText(formatCanonicalEuro(goal.backingBalance), amountsVisible),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
