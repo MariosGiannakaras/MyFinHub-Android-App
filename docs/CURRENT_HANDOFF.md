@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable post-commit card-secret cleanup #184 and owner+AAL2 server-marker-only hardening #187 are merged with four exact-head gates each; permanent-delete UI remains disabled pending end-to-end destructive confirmation and device acceptance. W3.1 statement dates #182 are merged; credit chronology/legacy ownership PR #188 is reanchored for exact-head CI, and purchase-cycle event preparation PR #186 remains separate. No release.
+Web parity verified 1/6 implementations and 7/24 completed subtasks. W2.4 card-secret cleanup #184/#187 merged, permanent-delete UI safely disabled. W3.1 statement chronology #188 merged; statement preparation PR #186 reanchored pending exact-head CI. Parallel W3.3 PR #189 replaces guessed account-ID prefixes with Web-equivalent provider metadata validation and regression tests, not yet merged. No release.
 
 ## Immediate work
 
-- Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
+- Verify W3.1 #186 and W3.3 #189 on their distinct exact-head CI runs; merge only after 4/4 green each, updating merged evidence and handoff without overwriting parallel tracking. W2.4 permanent deletion disabled pending full safe UI/device acceptance; W3.1 repayment selection still outstanding. No release.
 
 ## Constraints
 
@@ -54,16 +54,16 @@ Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #188, branch android/w3-1-credit-history-order-20261015
-Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
+Issue #155, PR #189, branch android/w3-3-provider-repayment-parity-20261015
+Current W3.3: Verified 1/6 implementations · 7/24 subtasks. W2.4 #187 and W3.1 #188 merged. W3.1 #186 statement preparation and W3.3 #189 provider-based repayment source validation run independently; both incomplete until exact-head gates/merge.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
+Next Verify W3.1 #186 and W3.3 #189 on their distinct exact-head CI runs; merge only after 4/4 green each, updating merged evidence and handoff without overwriting parallel tracking. W2.4 permanent deletion disabled pending full safe UI/device acceptance; W3.1 repayment selection still outstanding. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (pending); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.3 Card repayment provider validation (in_progress); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -80,7 +80,7 @@ Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after 
 - [ ] W2.4 Card interactions and secure details — in_progress
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — pending
-- [ ] W3.3 Card repayment provider validation — pending
+- [ ] W3.3 Card repayment provider validation — in_progress
 - [ ] W3.4 Single mutation pipeline — pending
 - [ ] W4.1 Recurring lifecycle — pending
 - [ ] W4.2 Scheduled forecast — pending
