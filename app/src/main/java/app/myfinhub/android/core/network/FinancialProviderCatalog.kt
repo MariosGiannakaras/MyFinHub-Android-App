@@ -61,5 +61,5 @@ internal fun parseFinancialProviderCatalog(body: String, json: Json = Json): Lis
     return parsed.distinctBy(FinancialProviderRecord::id)
         .sortedWith(compareBy<FinancialProviderRecord> { it.sortOrder }
             .thenBy { it.displayName.lowercase(Locale.forLanguageTag("el-GR")) })
-        .takeIf(List<FinancialProviderRecord>::isNotEmpty)
+        .takeIf { it.isNotEmpty() }
 }
