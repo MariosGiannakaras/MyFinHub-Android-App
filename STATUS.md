@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable post-commit card-secret cleanup #184 and owner+AAL2 server-marker-only hardening #187 are merged with four exact-head gates each; permanent-delete UI remains disabled pending end-to-end destructive confirmation and device acceptance. W3.1 statement dates #182 are merged; credit chronology/legacy ownership PR #188 is reanchored for exact-head CI, and purchase-cycle event preparation PR #186 remains separate. No release.
+Web parity 1/6 implementations and 7/24 completed subtasks. Secure-card cleanup PRs #184/#187 and statement chronology/legacy attribution PR #188 are merged to develop after four exact-head checks each. W2.4 permanent-delete UI remains disabled pending full safety/device acceptance. W3.1 canonical statement purchase-cycle linking #186 reanchored to develop and requires exact-head CI; selected repayment allocation remains open. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
+1. Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #188, branch android/w3-1-credit-history-order-20261015
-Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
+Issue #155, PR #186, branch android/w3-1-credit-event-statement-linkage-20261015
+Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
+Next Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable post-commit card-secret cleanup #184 and owner+AAL2 server-marker-only hardening #187 are merged with four exact-head gates each; permanent-delete UI remains disabled pending end-to-end destructive confirmation and device acceptance. W3.1 statement dates #182 are merged; credit chronology/legacy ownership PR #188 is reanchored for exact-head CI, and purchase-cycle event preparation PR #186 remains separate. No release.",
+    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks. Secure-card cleanup PRs #184/#187 and statement chronology/legacy attribution PR #188 are merged to develop after four exact-head checks each. W2.4 permanent-delete UI remains disabled pending full safety/device acceptance. W3.1 canonical statement purchase-cycle linking #186 reanchored to develop and requires exact-head CI; selected repayment allocation remains open. No release.",
     "next": [
-      "Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release."
+      "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-1-credit-history-order-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.",
+    "branch": "android/w3-1-credit-event-statement-linkage-20261015",
+    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184/#187 merged; delete UI pending. W3.1 #182/#188 merged; #186 purchase-cycle preparation reanchored for new exact-head CI. Repayment selection remains open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -782,7 +782,9 @@
               "Read-only Web statement views/status/as-of/unlinked projection PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 after four exact-head checks passed. W3.1 remains partial pending legacy card attribution and payment allocation acceptance.",
               "Draft PR #182 adds pure Web-parity credit statement period boundaries (closing/due/open; next-cycle vs include closing, short month/leap-year) and rejects fractional card billing day metadata. Requires exact-head CI and integration with W3.2 event assignment, no finance mutation or release.",
               "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete.",
-              "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete."
+              "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete.",
+              "PR #188 canonical statement chronology and deleted-card legacy ownership merged to develop as bb39fcb7dc631756a2b93ca30a57542763bca0d8, with four exact-head CI gates. W3.1 remains partial.",
+              "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete."
             ]
           },
           {
@@ -914,9 +916,9 @@
         ]
       }
     ],
-    "next_action": "Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.",
+    "next_action": "Run four exact-head checks on W3.1 PR #186, merge only if green, then complete explicit credit repayment statement selection and W2.4 destructive-action acceptance. Permanent deletion remains disabled; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 188,
+    "pr": 186,
     "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
