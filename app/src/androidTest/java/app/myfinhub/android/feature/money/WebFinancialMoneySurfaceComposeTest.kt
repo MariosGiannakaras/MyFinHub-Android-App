@@ -47,7 +47,7 @@ class WebFinancialMoneySurfaceComposeTest {
             CanonicalSavingsScreen(state,onBack={})
         } }
         rule.onNodeWithText("Πηγές αποταμίευσης μήνα").assertIsDisplayed()
-        rule.onNodeWithText("Pay & Save").assertIsDisplayed()
-        rule.onNodeWithText("Μεταφορές στην αποταμίευση").assertIsDisplayed()
+        rule.onNodeWithText("Pay & Save").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Μεταφορές στην αποταμίευση").performScrollTo().assertIsDisplayed()
     }
 }

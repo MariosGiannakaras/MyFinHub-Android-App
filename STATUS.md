@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budgets canonical fraction/return/split parity awaiting four gates. W4.3 next batched read-only as-of loan/lending/savings projections, real Money detail rows and Pay & Save grouped sources staged behind #198 with no overlapping PR CI. W4.1/W4.2 native improvements #197 merged, physical S24 acceptance pending. W2.4 permanent delete UI disabled, no release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budgets/return/split/fractional threshold merged with 4/4 exact-head CI; #199 consolidates as-of loans/lending and Pay & Save projection, real Money detail rows and golden/Compose tests pending new exact-head CI. W4.1 #195/#197 and W4.2 #196/#197 integrated but physical S24 acceptance remains pending; W2.4 permanent card deletion disabled; no release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release.
+1. Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w4-3-loans-lending-savings-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 budget threshold/categorized expense in CI; staged loan/lending/savings Pay & Save parity and real Money list rows awaits #198 integration. No physical S24 acceptance.
+Issue #155, PR #199, branch android/w4-3-loans-lending-savings-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 merged 4/4; #199 reanchored for as-of loans/lending/Pay & Save and native Money surfaces/golden tests, pending full exact-head CI. W2.4 destructive deletion UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.3 #198 exact-head CI and merge only 4/4 green. Reanchor this staged loan/lending/savings as-of projection batch afterward and review full Kotlin/Compose tests as one new PR; maintain offline/server finance invariants and no release.
+Next Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
