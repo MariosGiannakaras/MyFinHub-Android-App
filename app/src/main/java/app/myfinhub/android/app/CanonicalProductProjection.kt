@@ -23,6 +23,8 @@ import app.myfinhub.android.core.data.creditDebtForCardAt
 import app.myfinhub.android.core.data.categoryTotals
 import app.myfinhub.android.core.data.categoryContributionsBetween
 import app.myfinhub.android.core.data.effectiveLegacyTransactions
+import app.myfinhub.android.core.data.legacyFlowImpact
+import app.myfinhub.android.core.data.eventFlowImpact
 import app.myfinhub.android.core.data.loanOutstanding
 import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.number
@@ -122,14 +124,25 @@ fun projectCanonicalProduct(
 }.toMap()
 val contributionsById = document.categoryContributionsBetween("0001-01-01", "9999-12-31")
     .groupBy { it.transactionId }
+val signedFlowById = legacy.map { tx ->
+    val impact = document.legacyFlowImpact(tx)
+    tx.id to (impact.income to impact.expense)
+}.toMap() + events.associate { event ->
+    val impact = eventFlowImpact(event)
+    event.id to (impact.income to impact.expense)
+}
 val activityCardLabels = document.canonicalCards().associate { card ->
     val base = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } }
     val last4 = card.last4.orEmpty()
     card.id to if (last4.isBlank()) base else "$base • $last4"
 }
 val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology, activityCardLabels).map { item ->
-    item.copy(categoryContributions = contributionsById[item.id].orEmpty()
-        .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } })
+    item.copy(
+        categoryContributions = contributionsById[item.id].orEmpty()
+            .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } },
+        financeIncomeContribution = signedFlowById[item.id]?.first,
+        financeExpenseContribution = signedFlowById[item.id]?.second,
+    )
 }
 
     val oldHome = previous?.homeState

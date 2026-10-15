@@ -56,4 +56,38 @@ class CanonicalInsightsRangeTest {
         assertEquals(0.0, flow.expense, 0.001)
         assertTrue(categories.isEmpty())
     }
+
+    @Test
+    fun monthAndDateScopeShareExactWebFlowForExplicitZeroSavingAndReviewedSplit() {
+        val data = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"transactions":[
+              {"id":"legacy","type":"expense","date":"2026-10-03",
+               "amount":40,"category":"Τρόφιμα"}
+            ]},"state":{"reviewDecisions":{
+                "legacy":{"status":"confirmed","semanticKind":"split","parts":[
+                  {"id":"food","kind":"expense","category":"Τρόφιμα","amount":30},
+                  {"id":"refund","kind":"refund","category":"Τρόφιμα","amount":10}
+                ]}
+              },"events":[
+                {"id":"payroll","kind":"income","date":"2026-10-04","amount":200},
+                {"id":"purchase","kind":"card_purchase","date":"2026-10-05",
+                 "amount":20,"category":"Τρόφιμα"},
+                {"id":"zero","kind":"saving_cash_offset","date":"2026-10-06",
+                 "amount":300,"savingAmount":0},
+                {"id":"missing","kind":"saving_cash_offset","date":"2026-10-07","amount":7},
+                {"id":"refund-event","kind":"refund","date":"2026-10-08",
+                 "amount":5,"category":"Τρόφιμα"},
+                {"id":"payment","kind":"card_payment","date":"2026-10-09",
+                 "amount":50,"category":"Τρόφιμα"}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val month = data.monthlyFlow("2026-10")
+        val range = data.flowBetween("2026-10-01", "2026-10-31")
+        assertEquals(month, range)
+        assertEquals(200.0, range.income, 0.001)
+        assertEquals(35.0, range.expense, 0.001)
+        assertEquals(7.0, range.saving, 0.001)
+        assertEquals(15.0, range.refunds, 0.001)
+        assertEquals(35.0, data.categoryTotalsBetween("2026-10-01", "2026-10-31")["Τρόφιμα"]!!, 0.001)
+    }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-15",
+  "updated_at": "2026-10-16",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 budgets #198, as-of loans/lending/Pay & Save #199 and read-only multi-goal Savings #200 merged with four exact-head checks each. W4.3 consolidated #201 implements owner-safe SavingsGoal metadata CRUD through canonical server/offline replay with native form and explicit delete confirmation, pending exact-head CI. W4.1/W4.2 physical owner S24 acceptance remains outstanding, W2.4 permanent card delete stays disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198–#201 budget, as-of loans/lending, Pay & Save, multi-goal savings and guarded goal CRUD merged after four exact-head CI gates each; W4.3 remains partial pending owner S24 visual acceptance. W4.4 #202 staged consolidated Insights and Activity Web signed-flow parity/legacy splits, net refunds, explicit-zero savings and accurate category drilldown, pending full exact-head checks. W2.4 irreversible card deletion disabled; no release.",
     "next": [
-      "Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release."
+      "Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-3-savings-goal-durable-mutations-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #198/#199/#200 merged with 4/4 exact-head each; #201 canonical goal writes + native CRUD and durable offline codec pending 4-gate CI. W2.4 card deletion UI disabled.",
+    "branch": "android/w4-4-unified-insights-ledger-flows-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #201 owner-safe SavingsGoal CRUD merged; W4.4 one financial flow implementation for Insights+Activity and signed category drilldowns staged, exact-head CI pending. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -869,15 +869,18 @@
               "W4.3 #199 finance as-of loans/lending and Pay & Save/manual/cash source projections, actual native Money lists and golden/Compose cases merged to develop as 27b1324408ed41e7dd5fdbe83358f2f6c7e463ec with all four exact-head gates passed.",
               "W4.3 consolidated #200 read-only Web SavingsGoal multiple targets, as-of positive eligible bank+savings balances, capped progress and historical deadline warning, real production Money screen, privacy-masked bars and ratios across Wallet/Savings, unit/integration/Compose tests. New exact-head 4-gate verification pending; CRUD intentionally deferred until owner-authorized durable mutation replay.",
               "W4.3 PR #200 Web canonical savings multi-goal as-of balances/deadlines and privacy-masked progress, real Money screen and Kotlin/Compose goldens merged as 96d519d9a2b3ffae1a82610606f0e6b447d575fe after 4/4 exact-head CI checks; native goal write editor still incomplete pending #201.",
-              "W4.3 #201 reanchored goal owner mutation UI: server-authoritative guarded ViewModel, owner-approved Upsert/Delete SavingsGoal metadata only, captured date validation, stable idempotent PendingCanonicalMutation replay and isSatisfiedBy, native create/edit/delete confirmation, hidden privacy progress and domain+emulator tests. Fresh full exact-head CI pending, no completed credit or physical S24 acceptance yet."
+              "W4.3 #201 reanchored goal owner mutation UI: server-authoritative guarded ViewModel, owner-approved Upsert/Delete SavingsGoal metadata only, captured date validation, stable idempotent PendingCanonicalMutation replay and isSatisfiedBy, native create/edit/delete confirmation, hidden privacy progress and domain+emulator tests. Fresh full exact-head CI pending, no completed credit or physical S24 acceptance yet.",
+              "W4.3 PR #201 safe SavingsGoal create/edit/delete with guarded canonical optimistic/offline replay and native confirm-before-delete merged to develop as 04ee7ea8b51c3658ad0759fcda43e0824359ebe9 after all four exact-head gates; full W4.3 owner visual/physical acceptance still pending."
             ]
           },
           {
             "id": "W4.4",
             "title": "Transactions and analytics completeness",
             "acceptance": "Consistent history, filters, categories/drilldowns, edit/delete, comparisons and remaining Web domain flows.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W4.4 batched PR #202 consolidates Web signed flow semantics across monthlyFlow/flowBetween/Insights and production Activity rows: explicit zero savingAmount vs missing is preserved, refunds net expense, internal transfers/card repayments/lending omitted from expense, exact category drilldown excludes zero-contribution rows; new cross-domain regression goldens. Exact-head CI not yet confirmed, no completion count claimed."
+            ]
           }
         ]
       },
@@ -952,10 +955,10 @@
         ]
       }
     ],
-    "next_action": "Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.",
+    "next_action": "Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 201,
-    "current_subtask": "W4.3",
+    "pr": 202,
+    "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

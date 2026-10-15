@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
+- [ ] Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.
 
 ## Completed foundations
 
@@ -60,17 +60,17 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #201, branch android/w4-3-savings-goal-durable-mutations-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198/#199/#200 merged with 4/4 exact-head each; #201 canonical goal writes + native CRUD and durable offline codec pending 4-gate CI. W2.4 card deletion UI disabled.
+Issue #155, PR #202, branch android/w4-4-unified-insights-ledger-flows-20261016
+Current W4.4: Verified 1/6 implementations · 9/24 subtasks. W4.3 #201 owner-safe SavingsGoal CRUD merged; W4.4 one financial flow implementation for Insights+Activity and signed category drilldowns staged, exact-head CI pending. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata CRUD, historical deadline rules, offline replay/idempotent reconciliation and real native Compose goal editor/delete confirmation, all four exact-head CI gates; merge only on evidence. Continue remaining W3 and W5 parity and S24 owner acceptance separately. No release.
+Next Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (pending) |
+| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
@@ -91,7 +91,7 @@ Next Validate one consolidated W4.3 PR #201: owner-guarded savings-goal metadata
 - [ ] W4.1 Recurring lifecycle — in_progress
 - [ ] W4.2 Scheduled forecast — in_progress
 - [ ] W4.3 Savings, loans, lending and budgets — in_progress
-- [ ] W4.4 Transactions and analytics completeness — pending
+- [ ] W4.4 Transactions and analytics completeness — in_progress
 - [ ] W5.1 Dynamic provider/IBAN/assets contract — pending
 - [ ] W5.2 Auth/sync/history consistency — pending
 - [ ] W5.3 Card vault and security endpoints — pending
