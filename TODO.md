@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
+- [ ] Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.
 
 ## Completed foundations
 
@@ -60,16 +60,16 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #192, branch android/w3-1-statement-selector-compose-20261015
-Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191/#193 merged; #192 batched selector UI/projection/Compose tests reanchored after #193 pending final exact-head CI. W2.4 permanent delete disabled.
+Issue #155, PR #194, branch android/w3-4-unified-finance-mutation-batch-20261015
+Current W3.4: Verified 1/6 implementations · 8/24 subtasks. W3.1 #192 in CI, W3.2 #191/#193 merged; W3.4 consolidated compatibility adapter + six golden vectors staged (PR not yet opened) to avoid overlapping CI; permanent delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
+Next Finish exact-head W3.1 #192 and merge only on four green gates. Then open the already prepared consolidated W3.4 canonical finance builder batch as one PR with one complete final CI cycle; test strict amount/split/card security and queued replay before merge. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.4 Single mutation pipeline (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -87,7 +87,7 @@ Next Validate batched W3.1 PR #192 at exact head with all four checks and review
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
-- [ ] W3.4 Single mutation pipeline — pending
+- [ ] W3.4 Single mutation pipeline — in_progress
 - [ ] W4.1 Recurring lifecycle — pending
 - [ ] W4.2 Scheduled forecast — pending
 - [ ] W4.3 Savings, loans, lending and budgets — pending
