@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 bank provider validation #189 and W3.1 selected statement canonical repayments #190 merged with four exact-head checks each. Native statement selector Compose instrumentation is under separate W3.1 visual/accessibility validation; W3.2 parallel Web rule-matching PR #191 in CI. W2.4 irreversible card deletion remains disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 #189 provider repayment and W3.2 #191 new-event transaction-rule core merged with four exact-head checks; W3.2 remains partial. W3.1 #190 explicit statement repayments merged and #192 native picker Compose instrumentation reanchored after #191, pending current CI/device visual validation. W2.4 irreversible card-delete UI remains disabled; no release.",
     "next": [
-      "Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release."
+      "Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w3-1-statement-selector-compose-20261015",
-    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.1 #190 merged; selector Compose/accessibility verification isolated in new draft. W3.2 #191 running; W2.4 permanent delete disabled.",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 merged, additional classification pending. W3.1 #190 merged, selector Compose PR #192 reanchored awaiting CI/visual. W2.4 permanent delete disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -787,15 +787,19 @@
               "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete.",
               "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open.",
               "PR #190 explicit user-selected credit statement repayment Quick Entry UI and canonical mutation branch reanchored after #189 provider matcher; previously one unit test incorrectly rebuilt a new payment after its original statement was partially settled; fixed to replay the original stable mutation. Fresh exact-head CI required before merge.",
-              "W3.1 native statement repayment selector Compose instrumentation checkpoint: real ProductionQuickEntryScreen selected statement is accessible, optional unlinked choice emits explicit StatementChanged, and no-options picker is absent. Separate draft, exact-head CI and device/visual signoff pending."
+              "W3.1 #190 selected statement repayment and provider integration merged to develop as 84122c3c120ef98ea0a87d73a21c6d46a79310d7 after four exact-head checks; native statement-selector fresh screenshot and S24 physical acceptance remain pending; W3.1 still in_progress.",
+              "W3.1 PR #192 real Compose credit statement picker instrumentation, linked statement selection and explicit unlinked option: initial test had incompatible assertion import, corrected; reanchored after W3.2 #191. New exact-head CI pending, no S24 physical acceptance claimed."
             ]
           },
           {
             "id": "W3.2",
             "title": "Event and classification parity",
             "acceptance": "Canonical legs, transfers, refunds, savings, splits, lending, loans, reconciliation, date/money validation, category rules.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending.",
+              "W3.2 PR #191 pure Web rule matching and native new-event-only application merged to develop as 9139c8fd7c764b4fc92f59dbb990da884b6d1f43 after four exact-head CI/screenshot/emulator gates; broader W3.2 still in_progress."
+            ]
           },
           {
             "id": "W3.3",
@@ -922,7 +926,7 @@
         ]
       }
     ],
-    "next_action": "Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.",
+    "next_action": "Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 192,
     "current_subtask": "W3.1",

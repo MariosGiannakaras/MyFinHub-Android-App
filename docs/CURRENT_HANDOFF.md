@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 bank provider validation #189 and W3.1 selected statement canonical repayments #190 merged with four exact-head checks each. Native statement selector Compose instrumentation is under separate W3.1 visual/accessibility validation; W3.2 parallel Web rule-matching PR #191 in CI. W2.4 irreversible card deletion remains disabled; no release.
+Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 #189 provider repayment and W3.2 #191 new-event transaction-rule core merged with four exact-head checks; W3.2 remains partial. W3.1 #190 explicit statement repayments merged and #192 native picker Compose instrumentation reanchored after #191, pending current CI/device visual validation. W2.4 irreversible card-delete UI remains disabled; no release.
 
 ## Immediate work
 
-- Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
+- Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.
 
 ## Constraints
 
@@ -55,15 +55,15 @@ Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 bank provider v
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #192, branch android/w3-1-statement-selector-compose-20261015
-Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.1 #190 merged; selector Compose/accessibility verification isolated in new draft. W3.2 #191 running; W2.4 permanent delete disabled.
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 merged, additional classification pending. W3.1 #190 merged, selector Compose PR #192 reanchored awaiting CI/visual. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
+Next Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (pending); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -79,7 +79,7 @@ Next Validate real native credit statement selector Compose instrumentation on e
 - [x] W2.3 Credit information on card screen — completed
 - [ ] W2.4 Card interactions and secure details — in_progress
 - [ ] W3.1 Statement cycle and historical debt — in_progress
-- [ ] W3.2 Event and classification parity — pending
+- [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
 - [ ] W3.4 Single mutation pipeline — pending
 - [ ] W4.1 Recurring lifecycle — pending
