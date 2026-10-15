@@ -27,6 +27,7 @@ data class CanonicalTransactionEntryDraft(
     val person: String? = null,
     val expectedReturnDate: String? = null,
     val cardId: String? = null,
+    val statementId: String? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -85,6 +86,7 @@ fun createCanonicalTransactionEntryMutation(
     var normalizedFromId = draft.fromAccountId?.trim()?.takeIf(String::isNotBlank)
     var normalizedToId = draft.toAccountId?.trim()?.takeIf(String::isNotBlank)
     var normalizedCardId = draft.cardId?.trim()?.takeIf(String::isNotBlank)
+    var selectedStatementId: String? = null
 
     when (draft.kind) {
         "expense" -> {
@@ -173,6 +175,16 @@ fun createCanonicalTransactionEntryMutation(
             val debt = document.creditDebtForCardAt(cardId, draft.date)
             require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
             require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
+            selectedStatementId = draft.statementId?.trim()?.takeIf(String::isNotBlank)
+            selectedStatementId?.let { statementId ->
+                val statement = document.creditStatementViews(cardId, draft.date)
+                    .firstOrNull { it.id == statementId }
+                    ?: throw IllegalArgumentException("Η επιλεγμένη δήλωση δεν ανήκει στην πιστωτική κάρτα.")
+                require(statement.remaining > 0.005) { "Η επιλεγμένη δήλωση έχει ήδη εξοφληθεί." }
+                require(amount <= statement.remaining + 0.01) {
+                    "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
+                }
+            }
             val cardBankId = activeCreditCards[cardId]?.bankId.orEmpty()
             require(eligibleAccounts[sourceAccountId]?.matchesFinancialProvider(cardBankId) == true) {
                 "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
@@ -224,7 +236,7 @@ fun createCanonicalTransactionEntryMutation(
         put("date", JsonPrimitive(draft.date))
         put("kind", JsonPrimitive(draft.kind))
         put("amount", JsonPrimitive(normalizedAmount))
-        put("note", JsonPrimitive(draft.note.trim().ifBlank { defaultTransactionNote(draft.kind) }))
+        put("note", JsonPrimitive(draft.note.trim()))
         draft.category?.trim()?.takeIf(String::isNotBlank)?.let { put("category", JsonPrimitive(it)) }
         draft.subcategory?.trim()?.takeIf(String::isNotBlank)?.let { put("subcategory", JsonPrimitive(it)) }
         normalizedAccountId?.let { put("accountId", JsonPrimitive(it)) }
@@ -233,6 +245,7 @@ fun createCanonicalTransactionEntryMutation(
         draft.person?.trim()?.takeIf(String::isNotBlank)?.let { put("person", JsonPrimitive(it)) }
         draft.expectedReturnDate?.trim()?.takeIf(String::isNotBlank)?.let { put("expectedReturnDate", JsonPrimitive(it)) }
         normalizedCardId?.let { put("cardId", JsonPrimitive(it)) }
+        selectedStatementId?.let { put("statementId", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))
@@ -243,7 +256,13 @@ fun createCanonicalTransactionEntryMutation(
         put("updatedAt", JsonPrimitive(nowIso))
     })
 
-    return AppendCanonicalEvent(event = event, nowIso = nowIso)
+    // Apply Web rules once, when the caller builds a new stable event intent, never
+    // during server replay or while projecting previously committed history.
+    val ruled = document.applyCanonicalTransactionRules(event)
+    val finalEvent = if (ruled.string("note").isNullOrBlank()) {
+        JsonObject(ruled + ("note" to JsonPrimitive(defaultTransactionNote(draft.kind))))
+    } else ruled
+    return AppendCanonicalEvent(event = finalEvent, nowIso = nowIso)
 }
 
 private val SUPPORTED_TRANSACTION_ENTRY_KINDS = setOf(

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release.
+- [ ] Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
 
 ## Completed foundations
 
@@ -56,20 +56,20 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 7/24**
+**Implementations: 1/6 · Subtasks: 8/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #191, branch android/w3-2-web-transaction-rules-20261015
-Current W3.2: Verified 1/6 implementations · 7/24 subtasks in base. W3.3 #189 merged; W3.1 #190 independent pending. W3.2 pure rule matcher source and golden fixtures draft, integration outstanding.
+Current W3.2: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 complete; W3.1 #190 merged, real Compose selector/S24 acceptance open. W3.2 #191 Web rule matching and new-event integration awaiting CI. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release.
+Next Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
-| W3 Events, statements and mutation semantics | 0/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.3 Card repayment provider validation (in_progress); W3.4 Single mutation pipeline (pending) |
+| W3 Events, statements and mutation semantics | 1/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress); W3.4 Single mutation pipeline (pending) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (pending); W4.2 Scheduled forecast (pending); W4.3 Savings, loans, lending and budgets (pending); W4.4 Transactions and analytics completeness (pending) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (pending); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -86,7 +86,7 @@ Next Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, the
 - [ ] W2.4 Card interactions and secure details — in_progress
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — in_progress
-- [ ] W3.3 Card repayment provider validation — in_progress
+- [x] W3.3 Card repayment provider validation — completed
 - [ ] W3.4 Single mutation pipeline — pending
 - [ ] W4.1 Recurring lifecycle — pending
 - [ ] W4.2 Scheduled forecast — pending

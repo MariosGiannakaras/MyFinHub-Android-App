@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 7/24 completed subtasks in this base. W3.3 provider repayment #189 merged after four green gates; W3.1 #190 selected repayment pending fresh CI. Parallel W3.2 draft ports pure Web transaction-rule matching and isolated golden fixtures; not wired into financial writes, exact-head CI pending. W2.4 permanent-delete UI disabled; no release.",
+    "summary": "Web parity remains 1/6 implementations and 8/24 completed subtasks. W3.3 Web provider-based credit repayment #189 and W3.1 user-selected statement repayment #190 merged after all four exact-head checks each. W3.1 remains in progress pending focused real Compose statement selector screenshots and final S24 verification. W3.2 PR #191 adds Web transaction-rule matching at new canonical event creation with pure and integrated golden fixtures, unmerged pending CI. W2.4 irreversible deletion UI stays disabled; no release.",
     "next": [
-      "Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release."
+      "Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w3-2-web-transaction-rules-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks in base. W3.3 #189 merged; W3.1 #190 independent pending. W3.2 pure rule matcher source and golden fixtures draft, integration outstanding.",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 complete; W3.1 #190 merged, real Compose selector/S24 acceptance open. W3.2 #191 Web rule matching and new-event integration awaiting CI. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -785,7 +785,9 @@
               "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete.",
               "PR #188 canonical statement chronology and deleted-card legacy ownership merged to develop as bb39fcb7dc631756a2b93ca30a57542763bca0d8, with four exact-head CI gates. W3.1 remains partial.",
               "PR #186 source reanchored onto post-#188 develop for Web purchase-cycle statement linking at append/replay boundary; new exact-head CI and merge pending. Explicit repayment selection incomplete.",
-              "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open."
+              "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open.",
+              "PR #190 explicit user-selected credit statement repayment Quick Entry UI and canonical mutation branch reanchored after #189 provider matcher; previously one unit test incorrectly rebuilt a new payment after its original statement was partially settled; fixed to replay the original stable mutation. Fresh exact-head CI required before merge.",
+              "W3.1 #190 selected statement repayment and provider integration merged to develop as 84122c3c120ef98ea0a87d73a21c6d46a79310d7 after four exact-head checks; native statement-selector fresh screenshot and S24 physical acceptance remain pending; W3.1 still in_progress."
             ]
           },
           {
@@ -794,16 +796,17 @@
             "acceptance": "Canonical legs, transfers, refunds, savings, splits, lending, loans, reconciliation, date/money validation, category rules.",
             "status": "in_progress",
             "evidence": [
-              "W3.2 isolated draft: read-only pure Web transactionRules.ts precedence/first-match, manual/imported/review scope, income taxonomy exclusion and no historical event rewriting, with Golden Kotlin fixtures. Not yet connected to live new-event creation; integration and full W3.2 semantics remain open."
+              "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending."
             ]
           },
           {
             "id": "W3.3",
             "title": "Card repayment provider validation",
             "acceptance": "Match eligible source by canonical bank/provider metadata, not string-prefix guesses, with card debt limits.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "PR #189 Web financialProviders providerId/legacy matching replaces guessed account-prefix eligibility, with bank mismatch and account override regression tests; reanchored onto post-#186 develop for new CI."
+              "PR #189 Web financialProviders providerId/legacy matching replaces guessed account-prefix eligibility, with bank mismatch and account override regression tests; reanchored onto post-#186 develop for new CI.",
+              "W3.3 PR #189 providerId/overrides and Web legacy provider matcher plus per-card as-of debt caps merged to develop as 245218298f0333658376f2816039ace7f8924a51; all four exact-head Android/Tracking/UI emulator gates passed. No backend or release changes."
             ]
           },
           {
@@ -921,7 +924,7 @@
         ]
       }
     ],
-    "next_action": "Validate W3.2 transaction-rule pure matching fixtures on exact-head CI, then integrate only at new-event creation after W3.1 #190 is complete, never rewriting stored history; continue W2.4 safe deletion UI separately. No release.",
+    "next_action": "Validate W3.2 PR #191 Web rule matching and new-event-only integration with four exact-head gates, merge if green; continue W3.1 visual/physical statement selection verification and W2.4 guarded irreversible card lifecycle. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 191,
     "current_subtask": "W3.2",

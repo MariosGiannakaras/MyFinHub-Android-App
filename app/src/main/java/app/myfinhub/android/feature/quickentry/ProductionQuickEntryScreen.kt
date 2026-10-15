@@ -317,6 +317,18 @@ fun ProductionQuickEntryScreen(
                 }
             }
 
+            if (state.kind == QuickEntryKind.CARD_PAYMENT && state.creditStatements.isNotEmpty()) {
+                CompactChoice(
+                    label = "Δήλωση πιστωτικής (προαιρετικά)",
+                    selectedId = state.statementId,
+                    choices = listOf("" to "Χωρίς σύνδεση με δήλωση") +
+                        state.creditStatements.filter { it.cardId == state.cardId }
+                            .map { it.id to it.label },
+                    onSelected = { onAction(QuickEntryAction.StatementChanged(it)) },
+                    searchable = true,
+                )
+            }
+
             if (state.kind.usesCategory) {
                 CompactChoice(
                     label = "Κατηγορία",

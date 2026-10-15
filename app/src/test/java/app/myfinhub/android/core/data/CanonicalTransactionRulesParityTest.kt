@@ -30,7 +30,7 @@ class CanonicalTransactionRulesParityTest {
     ))
 
     private fun fixture(vararg rules: JsonObject): CanonicalFinanceDocument {
-        val base = obj("""{"seed":{"accounts":[]},"state":{
+        val base = obj("""{"seed":{"accounts":[{"id":"bank-main","name":"Main","kind":"bank"}]},"state":{
           "settings":{"expenseCategories":["Άλλο"],"incomeCategories":["Μισθός"]},
           "events":[{"id":"history","kind":"expense","note":"market","category":"Άλλο"}]
         }}""")
@@ -91,6 +91,37 @@ class CanonicalTransactionRulesParityTest {
         assertEquals("Μισθός",applied.string("category"))
         assertEquals("Αυτόματη σημείωση",applied.string("note"))
         assertEquals("Τρόφιμα",data.applyCanonicalTransactionRules(event(kind="refund")).string("category"))
+    }
+
+    @Test fun rulesApplyOnNewExpenseOnceAndQueuedMutationReplaysWithoutChangingHistory() {
+        val data = fixture(rule("market-food",1))
+        val mutation = createCanonicalTransactionEntryMutation(
+            data, CanonicalTransactionEntryDraft(
+                kind = "expense", date = "2026-10-15", amount = 12.0,
+                accountId = "bank-main", note = "Corner Market", category = "Άλλο",
+            ), "stable-expense-1", "2026-10-15T10:00:00Z",
+        )
+        val result = mutation.apply(data)
+        assertEquals("Τρόφιμα",result.canonicalEvents().first { it.id == "stable-expense-1" }.category)
+        assertEquals("Άλλο",(result.state.array("events").first() as JsonObject).string("category"))
+        assertEquals(result.raw,mutation.apply(result).raw)
+    }
+
+    @Test fun accountMatchedIncomeNoteOnlyRuleRunsBeforeDefaultNoteFallback() {
+        val noteRule = rule("account-income-note",1,
+            match=obj("""{"accountId":"bank-main"}"""),
+            action=obj("""{"note":"Αυτόματη σημείωση"}"""))
+        val data = fixture(noteRule)
+        val mutation = createCanonicalTransactionEntryMutation(
+            data, CanonicalTransactionEntryDraft(
+                kind = "income", date = "2026-10-15", amount = 100.0,
+                accountId = "bank-main", note = "", category = "Μισθός",
+            ), "stable-income-1", "2026-10-15T10:00:00Z",
+        )
+        val result = mutation.apply(data)
+        val income = result.canonicalEvents().first { it.id == "stable-income-1" }
+        assertEquals("Μισθός",income.category)
+        assertEquals("Αυτόματη σημείωση",income.note)
     }
 
     @Test fun disabledRulesAndTransfersHaveNoEffect() {

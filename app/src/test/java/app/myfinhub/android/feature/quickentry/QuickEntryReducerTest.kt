@@ -8,6 +8,29 @@ import org.junit.Test
 
 class QuickEntryReducerTest {
     @Test
+    fun selectedCreditStatementIsExplicitAndClearsOnCardOrDateChanges() {
+        val statement = QuickEntryStatementOption("stmt-one", "card-credit", "Δήλωση", 35.0)
+        val state = QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            amountText = "20",
+            creditStatements = listOf(statement),
+        )
+        val selected = reduceQuickEntry(state, QuickEntryAction.StatementChanged("stmt-one"))
+        assertEquals("stmt-one", selected.statementId)
+        assertNull(reduceQuickEntry(selected, QuickEntryAction.Save).validationMessage)
+        assertEquals("", reduceQuickEntry(selected, QuickEntryAction.CardChanged("other-card")).statementId)
+        assertEquals("", reduceQuickEntry(selected, QuickEntryAction.DateChanged("2026-10-01")).statementId)
+        assertEquals(
+            "Η πληρωμή ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης.",
+            reduceQuickEntry(selected.copy(amountText = "36"), QuickEntryAction.Save).validationMessage,
+        )
+        assertEquals(
+            "Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.",
+            reduceQuickEntry(selected.copy(statementId = "wrong"), QuickEntryAction.Save).validationMessage,
+        )
+    }
+
+    @Test
     fun contextualPrimaryAccount_becomesSourceWhenChangingToTransferOrCardPayment() {
         val state = QuickEntryUiState().copy(
             kind = QuickEntryKind.EXPENSE,
