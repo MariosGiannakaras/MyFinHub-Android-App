@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 unified event builder #194 and W4.1 recurring cadence/Plan/offline status #195 merged with 4/4 exact-head checks. W4.1 UI lifecycle remains open. W4.2 new consolidated Web 30/60/90 forecast projection, warning accounts, source attribution, Plan comparison windows and golden tests pending full exact-head CI. W2.4 permanent-delete UI disabled. No release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 #194 and W4.2 forecast engine #196 merged with four exact-head gates; W4.1 #195 recurring Web lifecycle core merged. Consolidated PR #197 adds native Plan recurring management with guarded pause/stop/reactivate, real 30/60/90 account-portfolio comparison and risk warnings, and golden/Compose tests. W4.1/W4.2 remain partial pending final exact-head CI and physical S24 acceptance; W2.4 destructive card-delete UI disabled. No release.",
     "next": [
-      "Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release."
+      "Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-2-forecast-consolidated-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 completed; W4.1 #195 merged but native actions open; W4.2 multi-source 30/60/90 draft ready for one CI batch. W2.4 destructive UI disabled.",
+    "branch": "android/w4-1-recurring-native-actions-batch-20261015",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 and W4.2 engine #196 merged; #197 real recurring lifecycle UI plus Web forecast detail staged, awaiting four exact-head CI checks. W2.4 permanent delete disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -837,7 +837,8 @@
             "status": "in_progress",
             "evidence": [
               "W4.1 consolidated recurring batch staged behind W3.4 #194: one canonical seed/override/custom identity source, active/paused/stopped status, monthly/yearly cadence, short-month/leap clamp, current-month paid-history schedule, effective monthly total, Plan read-only integration, owner-requested seeded/custom pause/stop/restore through canonical revision mutation, 8 Kotlin golden/integration/lifecycle tests. New branch no open PR/CI yet; not completed.",
-              "W4.1 PR #195 Web recurring custom/overrides/cadence/Plan and offline recurring status pending codec merged to develop as 3353e07bbe6a2f4e9e33e75e128bb18148c53e5c, 4/4 exact-head gates successful. Further native lifecycle UI/signoff needed."
+              "W4.1 PR #195 Web recurring custom/overrides/cadence/Plan and offline recurring status pending codec merged to develop as 3353e07bbe6a2f4e9e33e75e128bb18148c53e5c, 4/4 exact-head gates successful. Further native lifecycle UI/signoff needed.",
+              "W4.1 pending PR #197: native recurring lifecycle Compose UI and route with 48dp accessible pause/stop/reactivate actions bound to FinanceProductViewModel guarded canonical status mutation/offline replay. Paused/stopped seeded/custom/override account projection and unit/emulator test. No physical S24 acceptance claimed."
             ]
           },
           {
@@ -847,7 +848,8 @@
             "status": "in_progress",
             "evidence": [
               "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending.",
-              "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required."
+              "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required.",
+              "W4.2 #196 merged 4/4 CI as 54c6ddeda6e6463341b3fe441ef768e7cb8d851d; #197 adds Plan forecast real Compose 30/60/90 Web portfolio summary, low/negative and omission warnings, including privacy masking. Preserved first-use no-account windows; W4.2 remains partial visual/device acceptance pending."
             ]
           },
           {
@@ -937,10 +939,10 @@
         ]
       }
     ],
-    "next_action": "Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.",
+    "next_action": "Validate one consolidated W4.1/W4.2 PR #197 on exact-head 4/4 CI, inspect real Compose images and merge only after green results. Continue remaining W3.1/W3.2 financial parity and W2.4 guarded deletion safety in larger batches; owner physical S24 signoff separately. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 196,
-    "current_subtask": "W4.2",
+    "pr": 197,
+    "current_subtask": "W4.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

@@ -26,6 +26,8 @@ import app.myfinhub.android.core.data.PendingMutationSyncState
 import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
+import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
+import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
@@ -419,6 +421,17 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             return
         }
         applyMutation(mutation)
+    }
+
+    /** Mutates the canonical recurring record through the guarded/offline replay pipeline. */
+    fun setRecurringStatus(recurringId: String, status: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (status !in setOf("active", "paused", "stopped")) return
+        val recurring = ready.projection.document.allCanonicalRecurringItems()
+            .firstOrNull { it.id == recurringId } ?: return
+        if (recurring.effectiveStatus == status) return
+        applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
     fun saveOverallBudget(monthlyLimitText: String, alertThresholdText: String) {

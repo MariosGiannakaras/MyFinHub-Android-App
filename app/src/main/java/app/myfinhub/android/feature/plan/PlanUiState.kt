@@ -27,6 +27,14 @@ enum class PlannedFlow { OBLIGATION, INCOME, TRANSFER }
 
 enum class PlannedUrgency { OVERDUE, THIS_WEEK, LATER }
 
+data class RecurringManageItem(
+    val id: String,
+    val title: String,
+    val amount: Double,
+    val status: String,
+    val nextDueDateIso: String = "",
+)
+
 data class BudgetDraft(
     val monthlyLimitText: String = "",
     val alertThresholdText: String = "80",
@@ -54,11 +62,17 @@ data class ForecastWindow(
     val expectedIncome: Double,
     val expectedOutflow: Double,
     val balanceDeltaFromThirtyDays: Double,
+    val projectedPortfolio: Double = 0.0,
+    val minimumPortfolio: Double = 0.0,
+    val accountsWithLowBalance: Int = 0,
+    val accountsWithNegativeBalance: Int = 0,
+    val omittedSourceCount: Int = 0,
 )
 
 /** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */
 data class PlanUiState(
     val items: List<PlannedItem> = emptyList(),
+    val recurringManageItems: List<RecurringManageItem> = emptyList(),
     val budget: BudgetDraft = BudgetDraft(),
     val categoryBudgets: List<CategoryBudget> = emptyList(),
     val rules: List<PlanningRule> = emptyList(),

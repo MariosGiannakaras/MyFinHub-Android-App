@@ -55,6 +55,7 @@ import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
+import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
@@ -137,6 +138,7 @@ internal fun MyFinHubAppContent(
     onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
+    onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     planMutationInFlight: Boolean = false,
     planMutationBlocked: Boolean = false,
     insightsState: InsightsUiState = InsightsUiState(),
@@ -468,6 +470,15 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onOpenForecast = { planBackStack.pushIfNew(AppRoute.PlanForecast) },
                         onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
+                        onOpenRecurring = { planBackStack.pushIfNew(AppRoute.PlanRecurring) },
+                    )
+                }
+                entry<AppRoute.PlanRecurring> {
+                    CanonicalRecurringManagementScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onStatusChanged = onSetRecurringStatus,
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
                 entry<AppRoute.PlanForecast> {
