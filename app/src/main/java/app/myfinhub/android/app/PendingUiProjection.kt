@@ -145,7 +145,7 @@ private fun pendingCardChangeMessage(
                 }.getOrNull()
                 if (card != null) {
                     val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
-                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί διαγραφή · ${intent.syncState.pendingStatusLabel()}"
+                    linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί αρχειοθέτηση · ${intent.syncState.pendingStatusLabel()}"
                 }
             }
             PendingMutationKind.RESTORE_CARD -> {

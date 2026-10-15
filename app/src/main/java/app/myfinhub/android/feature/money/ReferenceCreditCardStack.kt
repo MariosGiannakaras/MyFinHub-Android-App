@@ -296,7 +296,7 @@ fun CreditCardStack(
         if (deletingId != null) return
         deleteArmedId = null
         deleteProgress = 0f
-        statusMessage = "Η διαγραφή της κάρτας ξεκίνησε"
+        statusMessage = "Η αρχειοθέτηση της κάρτας ξεκίνησε"
         deletingId = cardId
         scope.launch {
             // Keep the canonical card in the projected list until the approved shred/collapse
@@ -607,7 +607,7 @@ private fun ReferenceCardFace(
                 }
                 if (isTop) {
                     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        ReferenceActionButton(label = "Διαγραφή κάρτας", onClick = onDeleteRequested) {
+                        ReferenceActionButton(label = "Αρχειοθέτηση κάρτας", onClick = onDeleteRequested) {
                             ReferenceTrashGlyph(visual.text)
                         }
                     }
@@ -889,9 +889,9 @@ private fun ReferenceDeleteConfirmation(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Διαγραφή κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε το κόκκινο χειριστήριο μέχρι τέρμα δεξιά. Η ενέργεια δεν αναιρείται.",
+                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα μπορεί να επανέλθει· το ιστορικό διατηρείται. Τα ασφαλή στοιχεία θα καθαριστούν.",
                     color = Color.White.copy(alpha = .76f),
                     fontSize = 9.sp,
                 )
@@ -914,7 +914,7 @@ private fun ReferenceDeleteConfirmation(
                         onProgress(requested.coerceIn(0f, 1f))
                         true
                     }
-                    contentDescription = "Σύρε για οριστική διαγραφή"
+                    contentDescription = "Σύρε για αρχειοθέτηση κάρτας"
                 }
                 .onPreviewKeyEvent { event ->
                     if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -963,7 +963,7 @@ private fun ReferenceDeleteConfirmation(
                     .background(Brush.horizontalGradient(listOf(Color(0x55FF5469), Color(0xCCFF3552)))),
             )
             Text(
-                "ΣΥΡΕ ΓΙΑ ΔΙΑΓΡΑΦΗ",
+                "ΣΥΡΕ ΓΙΑ ΑΡΧΕΙΟΘΕΤΗΣΗ",
                 color = Color.White.copy(alpha = .82f - progress * .35f),
                 fontSize = 9.sp,
                 fontWeight = FontWeight.ExtraBold,

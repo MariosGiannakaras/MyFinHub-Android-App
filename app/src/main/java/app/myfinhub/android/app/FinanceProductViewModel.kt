@@ -327,8 +327,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (normalizedCardId.isBlank() || ready.projection.document.canonicalCards().none { it.id == normalizedCardId && it.active }) {
             mutableNotices.tryEmit(
                 UserNotice(
-                    message = "Η κάρτα δεν είναι πλέον διαθέσιμη για διαγραφή.",
-                    details = "Ενέργεια: Διαγραφή κάρτας\nΚατηγορία: INVALID_CARD_STATE",
+                    message = "Η κάρτα δεν είναι πλέον διαθέσιμη για αρχειοθέτηση.",
+                    details = "Ενέργεια: Αρχειοθέτηση κάρτας\nΚατηγορία: INVALID_CARD_STATE",
                     diagnosticCode = "MFH-APP-INVALID_CARD_STATE",
                 ),
             )
@@ -1005,7 +1005,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
-                PendingMutationKind.DEACTIVATE_CARD -> "Διαγραφή κάρτας"
+                PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
                 PendingMutationKind.PERMANENTLY_DELETE_CARD -> "Οριστική διαγραφή κάρτας"
                 PendingMutationKind.COMPLETE_CARD_SECRET_CLEANUP -> "Καθαρισμός ασφαλών στοιχείων κάρτας"

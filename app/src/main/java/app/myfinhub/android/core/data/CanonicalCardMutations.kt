@@ -86,7 +86,7 @@ data class DeactivateCanonicalCard(
     val cardId: String,
     val nowIso: String,
 ) : CanonicalFinanceMutation {
-    override val description: String = "Διαγραφή κάρτας"
+    override val description: String = "Αρχειοθέτηση κάρτας"
 
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(cardId.isNotBlank()) { "Απαιτείται αναγνωριστικό κάρτας." }
@@ -235,7 +235,6 @@ private fun CanonicalFinanceDocument.legacyCreditOwnerForDeletion(): String? {
         compareBy<Pair<String, String>> { it.second }.thenBy { it.first }
     )?.first
 }
-
 
 /**
  * Web withCardSecretCleanupComplete parity.
