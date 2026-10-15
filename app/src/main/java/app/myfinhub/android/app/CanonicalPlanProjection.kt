@@ -6,6 +6,7 @@ import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.activeCanonicalRecurringItems
+import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
@@ -21,6 +22,7 @@ import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlannedUrgency
+import app.myfinhub.android.feature.plan.RecurringManageItem
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -76,8 +78,18 @@ internal fun projectCanonicalPlanState(
     val webForecasts = listOf(30, 60, 90).map { document.cashFlowForecast(today, it) }
     val webThirty = webForecasts.first().projectedPortfolio
 
+    val management = document.allCanonicalRecurringItems().map { recurring ->
+        RecurringManageItem(
+            id = recurring.id,
+            title = recurring.name,
+            amount = recurring.amount,
+            status = recurring.effectiveStatus,
+            nextDueDateIso = document.nextCanonicalRecurringDate(recurring, today)?.toString().orEmpty(),
+        )
+    }
     return PlanUiState(
         items = items,
+        recurringManageItems = management,
         forecastWindows = webForecasts.map { f ->
             app.myfinhub.android.feature.plan.ForecastWindow(
                 days = f.horizonDays,
