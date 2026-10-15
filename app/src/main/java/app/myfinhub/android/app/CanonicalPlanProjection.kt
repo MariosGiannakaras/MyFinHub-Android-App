@@ -75,8 +75,12 @@ internal fun projectCanonicalPlanState(
     val startBalance = document.availableMoney(today.toString())
     val monthlyFlow = document.monthlyFlow(month.toString())
     // Web portfolio windows remain a separate projection from the existing H7 spendable headline.
-    val webForecasts = listOf(30, 60, 90).map { document.cashFlowForecast(today, it) }
-    val webThirty = webForecasts.first().projectedPortfolio
+    val webForecasts = if (document.canonicalAccounts().any { it.kind != "credit" }) {
+        listOf(30, 60, 90).map { document.cashFlowForecast(today, it) }
+    } else {
+        emptyList()
+    }
+    val webThirty = webForecasts.firstOrNull()?.projectedPortfolio ?: 0.0
 
     val management = document.allCanonicalRecurringItems().map { recurring ->
         RecurringManageItem(

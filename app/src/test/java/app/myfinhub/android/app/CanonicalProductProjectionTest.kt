@@ -101,7 +101,9 @@ class CanonicalProductProjectionTest {
         assertTrue(projection.planState.budgetMonthLabel.contains("2026"))
         assertTrue(projection.planState.categoryBudgets.isEmpty())
         assertTrue(projection.planState.rules.isEmpty())
-        assertTrue(projection.planState.forecastWindows.isEmpty())
+        assertEquals(listOf(30, 60, 90), projection.planState.forecastWindows.map { it.days })
+        assertEquals(0.0, projection.planState.forecastWindows.first().balanceDeltaFromThirtyDays, 0.001)
+        assertTrue(projection.planState.forecastWindows.all { it.expectedOutflow >= 0.0 })
         projection.planState.items.forEach { item ->
             assertEquals("", item.category)
             assertEquals("", item.accountLabel)

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks in pending W4.2 base. W4.1 next consolidated native screen enables guarded pause/stop/reactivate for custom and overridden recurring via server-authoritative mutation pipeline, plus Compose and golden tests. W4.2 #196 still running exact-head gates and not merged; W2.4 permanent card delete UI remains disabled. No release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 unified event builder #194 and W4.1 recurring cadence/Plan/offline status #195 merged with 4/4 exact-head checks. W4.1 UI lifecycle remains open. W4.2 new consolidated Web 30/60/90 forecast projection, warning accounts, source attribution, Plan comparison windows and golden tests pending full exact-head CI. W2.4 permanent-delete UI disabled. No release.",
     "next": [
-      "Finish W4.2 #196 exact-head CI and merge if all four gates pass. Then reanchor and open this batched W4.1 native recurring management/status actions with one final CI round, review real screen visuals and device acceptance. Keep card delete disabled; no release."
+      "Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-1-recurring-native-actions-batch-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.2 #196 in CI, W4.1 native manage screen/actions/test staged behind it to avoid duplicate CI. W2.4 permanent delete disabled.",
+    "branch": "android/w4-2-forecast-consolidated-20261015",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 completed; W4.1 #195 merged but native actions open; W4.2 multi-source 30/60/90 draft ready for one CI batch. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -837,8 +837,7 @@
             "status": "in_progress",
             "evidence": [
               "W4.1 consolidated recurring batch staged behind W3.4 #194: one canonical seed/override/custom identity source, active/paused/stopped status, monthly/yearly cadence, short-month/leap clamp, current-month paid-history schedule, effective monthly total, Plan read-only integration, owner-requested seeded/custom pause/stop/restore through canonical revision mutation, 8 Kotlin golden/integration/lifecycle tests. New branch no open PR/CI yet; not completed.",
-              "W4.1 PR #195 Web recurring custom/overrides/cadence/Plan and offline recurring status pending codec merged to develop as 3353e07bbe6a2f4e9e33e75e128bb18148c53e5c, 4/4 exact-head gates successful. Further native lifecycle UI/signoff needed.",
-              "Staged W4.1 native lifecycle screen on top of pending W4.2 #196, using canonical project Plan Manage rows across active/paused/stopped seeded/overridden/custom records; owner controls guarded in FinanceProductViewModel -> SetCanonicalRecurringStatus -> durable sync/offline codec. Focused production Compose and golden projection fixtures. No PR/CI until W4.2 merged, no complete/physical signoff claimed."
+              "W4.1 PR #195 Web recurring custom/overrides/cadence/Plan and offline recurring status pending codec merged to develop as 3353e07bbe6a2f4e9e33e75e128bb18148c53e5c, 4/4 exact-head gates successful. Further native lifecycle UI/signoff needed."
             ]
           },
           {
@@ -848,7 +847,7 @@
             "status": "in_progress",
             "evidence": [
               "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending.",
-              "Staged after W4.2 #196: real Plan forecast detail now compares Web 30/60/90 portfolio projections separately from H7 30-day spendable headline, shows minima/first low-negative warnings and omitted-source counts with privacy masking; Compose instrumentation for all three windows. New batch held without PR/CI until W4.2 integration."
+              "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required."
             ]
           },
           {
@@ -938,10 +937,10 @@
         ]
       }
     ],
-    "next_action": "Finish W4.2 #196 exact-head CI and merge if all four gates pass. Then reanchor and open this batched W4.1 native recurring management/status actions with one final CI round, review real screen visuals and device acceptance. Keep card delete disabled; no release.",
+    "next_action": "Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
-    "current_subtask": "W4.1",
+    "pr": 196,
+    "current_subtask": "W4.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

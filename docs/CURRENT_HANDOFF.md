@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations and 9/24 completed subtasks in pending W4.2 base. W4.1 next consolidated native screen enables guarded pause/stop/reactivate for custom and overridden recurring via server-authoritative mutation pipeline, plus Compose and golden tests. W4.2 #196 still running exact-head gates and not merged; W2.4 permanent card delete UI remains disabled. No release.
+Web parity 1/6 implementations and 9/24 completed subtasks. W3.4 unified event builder #194 and W4.1 recurring cadence/Plan/offline status #195 merged with 4/4 exact-head checks. W4.1 UI lifecycle remains open. W4.2 new consolidated Web 30/60/90 forecast projection, warning accounts, source attribution, Plan comparison windows and golden tests pending full exact-head CI. W2.4 permanent-delete UI disabled. No release.
 
 ## Immediate work
 
-- Finish W4.2 #196 exact-head CI and merge if all four gates pass. Then reanchor and open this batched W4.1 native recurring management/status actions with one final CI round, review real screen visuals and device acceptance. Keep card delete disabled; no release.
+- Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations and 9/24 completed subtasks in pending W4.2 base.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w4-1-recurring-native-actions-batch-20261015
-Current W4.1: Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.2 #196 in CI, W4.1 native manage screen/actions/test staged behind it to avoid duplicate CI. W2.4 permanent delete disabled.
+Issue #155, PR #196, branch android/w4-2-forecast-consolidated-20261015
+Current W4.2: Verified 1/6 implementations · 9/24 subtasks. W3.4 #194 completed; W4.1 #195 merged but native actions open; W4.2 multi-source 30/60/90 draft ready for one CI batch. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish W4.2 #196 exact-head CI and merge if all four gates pass. Then reanchor and open this batched W4.1 native recurring management/status actions with one final CI round, review real screen visuals and device acceptance. Keep card delete disabled; no release.
+Next Validate W4.2 30/60/90 Web portfolio forecast and Plan comparison windows via all four exact-head gates; fix as a single correction batch if required, then review UI before replacing current 30-day spendable headline. Continue W4.1 native lifecycle UI and W2.4 safe deletion separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
