@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.plan
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -27,8 +28,8 @@ class RecurringManagementComposeTest {
                 onStatusChanged={id,status -> calls += id to status})
         } }
         rule.onNodeWithText("Παύση").performClick()
-        rule.onNodeWithText("Διακοπή")[0].performClick()
-        rule.onNodeWithText("Επανενεργοποίηση")[0].performClick()
+        rule.onAllNodesWithText("Διακοπή")[0].performClick()
+        rule.onAllNodesWithText("Επανενεργοποίηση")[0].performClick()
         rule.runOnIdle {
             assertEquals("active" to "paused",calls[0])
             assertEquals("active" to "stopped",calls[1])
