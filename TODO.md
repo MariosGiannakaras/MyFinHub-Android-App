@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
+- [ ] Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #199, branch android/w4-3-loans-lending-savings-20261015
-Current W4.3: Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 merged 4/4; #199 reanchored for as-of loans/lending/Pay & Save and native Money surfaces/golden tests, pending full exact-head CI. W2.4 destructive deletion UI disabled.
+Issue #155, PR #0, branch android/w4-3-savings-goals-history-20261015
+Current W4.3: Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.3 #199 in CI; multi-goal as-of Savings UI staged behind it without extra PR/CI. W2.4 irreversible card deletion disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.
+Next Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

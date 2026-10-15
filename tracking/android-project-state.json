@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198 budgets/return/split/fractional threshold merged with 4/4 exact-head CI; #199 consolidates as-of loans/lending and Pay & Save projection, real Money detail rows and golden/Compose tests pending new exact-head CI. W4.1 #195/#197 and W4.2 #196/#197 integrated but physical S24 acceptance remains pending; W2.4 permanent card deletion disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 9/24 subtasks. W4.3 #199 as-of loans/lending/Pay & Save in full CI; staged next read-only Web multi-goal Savings completion with deadline/history and real native Compose UI, no PR/CI to avoid overlap. Full CRUD deferred until owner+AAL2/canonical offline mutation codecs are proven. W2.4 destructive card-delete UI remains disabled; no release.",
     "next": [
-      "Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release."
+      "Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-3-loans-lending-savings-20261015",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #198 merged 4/4; #199 reanchored for as-of loans/lending/Pay & Save and native Money surfaces/golden tests, pending full exact-head CI. W2.4 destructive deletion UI disabled.",
+    "branch": "android/w4-3-savings-goals-history-20261015",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks in unmerged base. W4.3 #199 in CI; multi-goal as-of Savings UI staged behind it without extra PR/CI. W2.4 irreversible card deletion disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -865,7 +865,8 @@
               "Actual official Compose renderer successfully updated only the 3 reviewed budget light/dark/150% golden PNG refs and removed the one-off workflow in the same bot commit e0756ee. Follow-on GitHub connector code/test commit adds stable rounded 0.50–0.99 queued budget replay threshold comparison and legacy/fraction UI golden; final nonbot exact-head CI required.",
               "Compatibility hardening before W4.3 merge: legacy never-sent/needs-review overall budget alerts 1–100% remain reconstructible; on reapply Web canonical clamps .50–.99, reconciler recognizes either historical accepted whole percent or normalized fraction to avoid duplicate ambiguous offline writes. Regression test handles old 25% and 100%, no unsafe financial mutation replay.",
               "W4.3 #198 Web category budgets/net refunds/reviewed split/canonical fractional threshold merged to develop as 90656e8074db3da7e5547f5e3e301221f1128c74 after four exact-head gates.",
-              "W4.3 consolidated PR #199 reanchored on post-#198 develop: Web as-of loans/self-loan returns, per-person lending and unattributed receivables, Pay & Save/manual/cash sources, real Money loan/lending/savings screen rows, 3 domain+1 integration golden unit tests and production Compose tests; all exact-head CI and physical S24 acceptance pending."
+              "W4.3 consolidated PR #199 reanchored on post-#198 develop: Web as-of loans/self-loan returns, per-person lending and unattributed receivables, Pay & Save/manual/cash sources, real Money loan/lending/savings screen rows, 3 domain+1 integration golden unit tests and production Compose tests; all exact-head CI and physical S24 acceptance pending.",
+              "W4.3 next branch stages Web SavingsGoal read-only multi-goal progress and historical deadlines: all canonical eligible savings accounts including bank savings with positive balance clamp, no fabricated assignment or mutation, real Savings UI and golden+Compose tests. Held without PR/CI behind #199 exact-head integration."
             ]
           },
           {
@@ -948,9 +949,9 @@
         ]
       }
     ],
-    "next_action": "Validate one consolidated W4.3 #199 as-of loan/lending/Pay & Save and Money-screen batch with 4/4 exact-head CI. Fix failures in one correction batch. Continue remaining savings goals, debt controls and W3.1/W3.2 Web parity; physical S24 acceptance separate. No release.",
+    "next_action": "Merge #199 only after four exact-head gates, then reanchor the staged multi-goal Savings UI/golden batch on develop and run one full CI checkpoint. Continue durable savings-goal CRUD only after secure offline replay support; preserve H7 Home cash+payroll-only. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 199,
+    "pr": 0,
     "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
