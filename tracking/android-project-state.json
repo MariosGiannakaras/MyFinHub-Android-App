@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14",
+  "updated_at": "2026-10-15",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 secure card cleanup PR #184 merged (server-confirmed deletion marker, safe post-restart purge/retry/ACK), but overall W2.4 remains in progress. Follow-up AAL2 marker-only routing hardening unmerged; irreversible delete UI disabled. W3.1 historical card debt/payment allocation remains partial; no release or S24 physical owner signoff.",
+    "summary": "Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable post-commit card-secret cleanup #184 and owner+AAL2 server-marker-only hardening #187 are merged with four exact-head gates each; permanent-delete UI remains disabled pending end-to-end destructive confirmation and device acceptance. W3.1 statement dates #182 are merged; credit chronology/legacy ownership PR #188 is reanchored for exact-head CI, and purchase-cycle event preparation PR #186 remains separate. No release.",
     "next": [
-      "Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release."
+      "Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-tracker-vault-progress-20261015",
-    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.",
+    "branch": "android/w3-1-credit-history-order-20261015",
+    "checkpoint": "Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -761,7 +761,8 @@
               "PR #183 merged to Android develop c0e1c42abfa3ec73463f25bbc28c836853389acd after all four exact-head checks passed: reversible archive/restore no longer purges encrypted card secrets; atomic committed-only server purge guard owner+AAL2 enforced. Durable W2.4 orchestrator PR #184 still unmerged.",
               "PR #184 reanchored to merged #183 and canonical handoff #185: confirmed server marker only, crash/restart resumption and ACK only after owner+AAL2 atomic vault plus legacy local vault success. Emulator failure fixtures verify local secrets survive server rejection and explicit retry. Exact-head CI required; irreversible delete UI remains disabled.",
               "PR #184 durable server-confirmed secret cleanup orchestrator merged to develop as 4a69a352390cd7284c1b5fd204ec40740f6e8602 with four exact-head CI/screenshot/emulator gates green; W2.4 still pending UI/complete acceptance.",
-              "Follow-up hardening branch removes obsolete one-shot secret purge emissions, gates the sole persistent server marker cleanup route on active AAL2 session, and tests sequential durable markers; draft pending CI."
+              "Follow-up hardening branch removes obsolete one-shot secret purge emissions, gates the sole persistent server marker cleanup route on active AAL2 session, and tests sequential durable markers; draft pending CI.",
+              "W2.4 PR #187 owner+AAL2 marker-only purge hardening merged to develop as 804869e54088462004a3df5f6e1b6e612dadfcb0 after four exact-head gates passed; permanent-delete UI remains disabled pending safe end-to-end verification."
             ]
           }
         ]
@@ -780,7 +781,8 @@
               "PR #169 rebased to post-W2.1 develop; read-only Web credit-statement as-of/status and linkage projection with tests pending exact-head CI; no finance writes.",
               "Read-only Web statement views/status/as-of/unlinked projection PR #169 merged to develop 273fef9ce2e5023e87469b6704fd338ea8f48c17 after four exact-head checks passed. W3.1 remains partial pending legacy card attribution and payment allocation acceptance.",
               "Draft PR #182 adds pure Web-parity credit statement period boundaries (closing/due/open; next-cycle vs include closing, short month/leap-year) and rejects fractional card billing day metadata. Requires exact-head CI and integration with W3.2 event assignment, no finance mutation or release.",
-              "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete."
+              "PR #182 pure Web credit statement billing date boundaries/last-day/leap-year fixture merged to develop f9408c5c8e3be87f539f7c5a9a9cafdcedefb078 with four exact-head checks; payment allocation and legacy debt ownership remain incomplete.",
+              "W3.1 PR #188 reanchored on post-#187 develop: canonical statement chronology and oldest legacy credit owner golden fixtures; new exact-head CI pending, repayment selection still incomplete."
             ]
           },
           {
@@ -912,10 +914,10 @@
         ]
       }
     ],
-    "next_action": "Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release.",
+    "next_action": "Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 185,
-    "current_subtask": "W2.4",
+    "pr": 188,
+    "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

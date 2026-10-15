@@ -31,18 +31,23 @@ fun CanonicalFinanceDocument.creditStatementViews(
     cardId: String,
     asOf: String,
 ): List<CanonicalCreditStatementView> {
-    val linkedStatementIds = state.array("events")
+    // Preserve the single canonical event parser for money/kind semantics, but match Web's
+    // creditStatementEvents ordering: date, createdAt, ID. The JSON array is not a timeline.
+    val eventMetadata = state.array("events")
         .mapNotNull { raw ->
             val event = raw as? JsonObject ?: return@mapNotNull null
             val id = event.string("id") ?: return@mapNotNull null
-            val linkedId = event.string("statementId") ?: return@mapNotNull null
-            id to linkedId
+            id to (event.string("statementId") to event.string("createdAt").orEmpty())
         }
         .toMap()
     val events = canonicalEvents().filter { event ->
         event.date <= asOf && event.kind in setOf("card_purchase", "card_payment") &&
-            linkedStatementIds.containsKey(event.id)
-    }.groupBy { event -> linkedStatementIds[event.id].orEmpty() }
+            eventMetadata[event.id]?.first != null
+    }.sortedWith(
+        compareBy<CanonicalEvent> { it.date }
+            .thenBy { eventMetadata[it.id]?.second.orEmpty() }
+            .thenBy(CanonicalEvent::id),
+    ).groupBy { event -> eventMetadata[event.id]?.first.orEmpty() }
 
     return state.array("creditStatements").mapNotNull { raw ->
         val record = raw as? JsonObject ?: return@mapNotNull null

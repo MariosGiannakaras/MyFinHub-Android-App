@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release.
+- [ ] Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
-Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
+Issue #155, PR #188, branch android/w3-1-credit-history-order-20261015
+Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release.
+Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
