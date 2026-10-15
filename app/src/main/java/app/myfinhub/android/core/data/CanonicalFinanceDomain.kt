@@ -67,6 +67,8 @@ data class CanonicalEvent(
     val savingAmount: Double,
     val receivableDelta: Double,
     val creditDelta: Double,
+    /** Web treats missing/null savingAmount differently from an explicit numeric zero. */
+    val savingAmountWasProvided: Boolean = false,
 )
 
 data class CanonicalScheduledItem(
@@ -211,6 +213,7 @@ fun CanonicalFinanceDocument.canonicalEvents(): List<CanonicalEvent> =
             },
             parts = event.array("parts").mapNotNull parts@{ rawPart -> rawPart.toSplitPart() },
             savingAmount = event.number("savingAmount") ?: 0.0,
+            savingAmountWasProvided = event.number("savingAmount") != null,
             receivableDelta = event.number("receivableDelta") ?: 0.0,
             creditDelta = event.number("creditDelta") ?: 0.0,
         )
@@ -461,7 +464,7 @@ private fun eventFlowImpact(event: CanonicalEvent): FlowImpact = when (event.kin
     "income" -> FlowImpact(income = event.amount)
     "expense", "card_purchase" -> FlowImpact(expense = event.amount)
     "split" -> FlowImpact(expense = event.parts.sumOf { it.amount })
-    "saving_cash_offset" -> FlowImpact(saving = if (event.savingAmount != 0.0) event.savingAmount else event.amount)
+    "saving_cash_offset" -> FlowImpact(saving = if (event.savingAmountWasProvided) event.savingAmount else event.amount)
     "refund" -> FlowImpact(expense = -event.amount, refund = event.amount)
     else -> FlowImpact()
 }

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 #189 provider repayment and W3.2 #191 new-event transaction-rule core merged with four exact-head checks; W3.2 remains partial. W3.1 #190 explicit statement repayments merged and #192 native picker Compose instrumentation reanchored after #191, pending current CI/device visual validation. W2.4 irreversible card-delete UI remains disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 #189 completed; W3.2 #191 new-event rules and #193 explicit-zero savings parity merged with four exact-head checks each, full W3.2 still open. W3.1 #190 selected credit repayments merged; batched #192 now includes Compose instrumentation, due/closed/open priority, Greek labels, paid/foreign filtering and golden projections pending fresh full CI. W2.4 irreversible card deletion remains disabled. No release.",
     "next": [
-      "Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release."
+      "Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w3-1-statement-selector-compose-20261015",
-    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 merged, additional classification pending. W3.1 #190 merged, selector Compose PR #192 reanchored awaiting CI/visual. W2.4 permanent delete disabled.",
+    "checkpoint": "Verified 1/6 implementations · 8/24 subtasks. W3.2 #191/#193 merged; #192 batched selector UI/projection/Compose tests reanchored after #193 pending final exact-head CI. W2.4 permanent delete disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -788,7 +788,7 @@
               "PR #186 deterministic card purchase statement-cycle creation/reuse and valid explicit linkage at canonical append/replay boundary merged to develop 94fe67007a12bc5ac111d5ea59341036857330a8, with all four exact-head checks successful. W3.1 payment selection still open.",
               "PR #190 explicit user-selected credit statement repayment Quick Entry UI and canonical mutation branch reanchored after #189 provider matcher; previously one unit test incorrectly rebuilt a new payment after its original statement was partially settled; fixed to replay the original stable mutation. Fresh exact-head CI required before merge.",
               "W3.1 #190 selected statement repayment and provider integration merged to develop as 84122c3c120ef98ea0a87d73a21c6d46a79310d7 after four exact-head checks; native statement-selector fresh screenshot and S24 physical acceptance remain pending; W3.1 still in_progress.",
-              "W3.1 PR #192 real Compose credit statement picker instrumentation, linked statement selection and explicit unlinked option: initial test had incompatible assertion import, corrected; reanchored after W3.2 #191. New exact-head CI pending, no S24 physical acceptance claimed."
+              "Batched W3.1 #192 post-#193: native Compose selector accessibility/emulator test, due>closed>open priority, Greek status/due/remaining option labels, omit paid and cross-card options, preserve explicit user choice; golden projection vectors added. Fresh exact-head CI pending; no physical S24 acceptance inferred."
             ]
           },
           {
@@ -798,7 +798,8 @@
             "status": "in_progress",
             "evidence": [
               "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending.",
-              "W3.2 PR #191 pure Web rule matching and native new-event-only application merged to develop as 9139c8fd7c764b4fc92f59dbb990da884b6d1f43 after four exact-head CI/screenshot/emulator gates; broader W3.2 still in_progress."
+              "W3.2 follow-on pure projection: Web flowImpactEvent savingAmount ?? amount preserves explicit 0, whereas Android previously treated 0 as absent and overcounted savings. Add numeric presence tracking to CanonicalEvent plus missing/null/explicit-zero/positive golden fixtures. Independent draft; exact-head CI pending.",
+              "W3.2 #193 explicit-zero savings flow read-only parity merged to develop dc830f8137ac03815deed7063e799f3f99130cad after 4/4 green checks; W3.2 remains in_progress."
             ]
           },
           {
@@ -926,7 +927,7 @@
         ]
       }
     ],
-    "next_action": "Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.",
+    "next_action": "Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 192,
     "current_subtask": "W3.1",

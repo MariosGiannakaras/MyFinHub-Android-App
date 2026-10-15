@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.
+- [ ] Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #192, branch android/w3-1-statement-selector-compose-20261015
-Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191 merged, additional classification pending. W3.1 #190 merged, selector Compose PR #192 reanchored awaiting CI/visual. W2.4 permanent delete disabled.
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.2 #191/#193 merged; #192 batched selector UI/projection/Compose tests reanchored after #193 pending final exact-head CI. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W3.1 PR #192 native credit statement selector instrumentation at new exact head; merge only after four green checks. Then complete populated-selector real screenshot review, remaining W3.1 statement/history cases and W2.4 end-to-end safe card deletion. Continue remaining W3.2 classification later. No release.
+Next Validate batched W3.1 PR #192 at exact head with all four checks and review actual statement-picker visual evidence. Complete W3.1 device acceptance and W3.2 remaining financial classifications in bigger reviewed batches; keep W2.4 delete UI disabled. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

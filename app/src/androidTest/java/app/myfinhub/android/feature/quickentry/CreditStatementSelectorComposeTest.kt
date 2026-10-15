@@ -61,7 +61,16 @@ class CreditStatementSelectorComposeTest {
                         kind = QuickEntryKind.CARD_PAYMENT,
                         amountText = "15,00",
                         dateText = "2026-10-15",
-                        creditStatements = emptyList(),
+                        creditStatements = listOf(
+                            QuickEntryStatementOption(
+                                id = "other-card", cardId = "another-card",
+                                label = "Foreign card statement", remaining = 90.0,
+                            ),
+                            QuickEntryStatementOption(
+                                id = "already-paid", cardId = "card-credit",
+                                label = "Already paid", remaining = 0.0,
+                            ),
+                        ),
                         dirty = true,
                     ),
                     onAction = {},

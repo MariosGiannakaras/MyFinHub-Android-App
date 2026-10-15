@@ -67,6 +67,50 @@ class QuickEntryCanonicalProjectionTest {
         assertTrue(projected.dirty)
         assertFalse(projected.accounts.any { it.id == "missing-account" })
     }
+    @Test
+    fun paymentSelectorOrdersDueThenClosedThenOpenAndOmitsPaidAndOtherCards() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """
+            {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}]},
+             "state":{"cards":[
+                 {"id":"c1","kind":"credit","active":true,"network":"visa"},
+                 {"id":"c2","kind":"credit","active":true,"network":"mastercard"}
+               ],"creditStatements":[
+                 {"id":"open","cardId":"c1","openDate":"2026-09-26","closeDate":"2026-10-25","dueDate":"2026-11-05"},
+                 {"id":"other","cardId":"c2","openDate":"2026-08-26","closeDate":"2026-09-25","dueDate":"2026-10-05"},
+                 {"id":"closed","cardId":"c1","openDate":"2026-09-06","closeDate":"2026-10-05","dueDate":"2026-10-25"},
+                 {"id":"paid","cardId":"c1","openDate":"2026-07-26","closeDate":"2026-08-25","dueDate":"2026-09-05"},
+                 {"id":"due","cardId":"c1","openDate":"2026-08-26","closeDate":"2026-09-25","dueDate":"2026-10-05"}
+               ],"events":[
+                 {"id":"p-due","kind":"card_purchase","date":"2026-09-15","amount":30,"cardId":"c1","statementId":"due"},
+                 {"id":"p-closed","kind":"card_purchase","date":"2026-10-01","amount":25,"cardId":"c1","statementId":"closed"},
+                 {"id":"p-open","kind":"card_purchase","date":"2026-10-14","amount":50,"cardId":"c1","statementId":"open"},
+                 {"id":"p-paid","kind":"card_purchase","date":"2026-08-15","amount":12,"cardId":"c1","statementId":"paid"},
+                 {"id":"pay-paid","kind":"card_payment","date":"2026-09-01","amount":12,"cardId":"c1","statementId":"paid"},
+                 {"id":"p-other","kind":"card_purchase","date":"2026-09-15","amount":90,"cardId":"c2","statementId":"other"}
+               ]}}
+            """.trimIndent()).jsonObject)
+        val base = QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT, cardId = "c1",
+            dateText = "2026-10-15", statementId = "closed",
+        )
+        val projected = projectQuickEntryState(doc, LocalDate.parse("2026-10-15"), base)
+        assertEquals(listOf("due", "closed", "open"), projected.creditStatements.map { it.id })
+        assertEquals("closed", projected.statementId)
+        assertTrue(projected.creditStatements[0].label.contains("Ληξιπρόθεσμη"))
+        assertTrue(projected.creditStatements[0].label.contains("30,00 €"))
+        assertTrue(projected.creditStatements[1].label.contains("Κλειστή"))
+        assertTrue(projected.creditStatements[2].label.contains("Ανοιχτή"))
+        assertEquals(30.0, projected.creditStatements[0].remaining, 0.001)
+        val wrongCard = projectQuickEntryState(doc, LocalDate.parse("2026-10-15"),
+            base.copy(cardId = "c2", statementId = "due"))
+        assertEquals(listOf("other"), wrongCard.creditStatements.map { it.id })
+        assertEquals("", wrongCard.statementId)
+        val paidAttempt = projectQuickEntryState(doc, LocalDate.parse("2026-10-15"),
+            base.copy(statementId = "paid"))
+        assertEquals("", paidAttempt.statementId)
+    }
+
 }
 
 private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(

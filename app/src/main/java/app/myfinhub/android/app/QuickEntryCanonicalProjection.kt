@@ -89,14 +89,30 @@ internal fun projectQuickEntryState(
         ?: defaultDestinationId
     val selectedCard = base.cardId.takeIf(cardIds::contains) ?: cards.firstOrNull()?.id.orEmpty()
     val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
+    // Web recommendedPayableStatement precedence: due > closed > open.
+    // Only the user may choose a link; never silently allocate a repayment.
     val creditStatements = document.creditStatementViews(selectedCard, selectedAsOf)
         .filter { it.remaining > 0.005 }
+        .sortedWith(compareBy<app.myfinhub.android.core.data.CanonicalCreditStatementView> {
+            when (it.status) {
+                "due" -> 0
+                "closed" -> 1
+                "open" -> 2
+                else -> 3
+            }
+        }.thenBy { it.dueDate }.thenBy { it.closeDate }.thenBy { it.id })
         .map { statement ->
+            val statusLabel = when (statement.status) {
+                "due" -> "Ληξιπρόθεσμη"
+                "closed" -> "Κλειστή"
+                else -> "Ανοιχτή"
+            }
             QuickEntryStatementOption(
                 id = statement.id,
                 cardId = statement.cardId,
-                label = statement.closeDate + " · " +
-                    String.format(java.util.Locale.US, "%.2f", statement.remaining) + " €",
+                label = statusLabel + " · " + statement.closeDate +
+                    " · έως " + statement.dueDate + " · " +
+                    String.format(java.util.Locale.forLanguageTag("el-GR"), "%.2f", statement.remaining) + " €",
                 remaining = statement.remaining,
             )
         }
