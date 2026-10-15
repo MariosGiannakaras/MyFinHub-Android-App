@@ -846,7 +846,8 @@
             "acceptance": "Web-equivalent 30/60/90-day projections, loan/recurring/scheduled impacts, low-balance warnings, no double count.",
             "status": "in_progress",
             "evidence": [
-              "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending."
+              "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending.",
+              "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required."
             ]
           },
           {
