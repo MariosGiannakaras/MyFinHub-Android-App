@@ -458,6 +458,33 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            if (state.savingsSources.values.any { kotlin.math.abs(it) > 0.005 }) {
+                item("saving-source-breakdown") {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text("Πηγές αποταμίευσης μήνα",
+                                style = MaterialTheme.typography.titleMedium)
+                            listOf(
+                                "pay_and_save" to "Pay & Save",
+                                "manual_transfer" to "Μεταφορές στην αποταμίευση",
+                                "cash_offset" to "Σύνθετη αποταμίευση",
+                            ).forEach { (key, label) ->
+                                val amount = state.savingsSources[key] ?: 0.0
+                                if (kotlin.math.abs(amount) > 0.005) {
+                                    Row(modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(label)
+                                        MyFinHubAmountText(
+                                            amountVisibilityText(formatCanonicalEuro(amount), amountsVisible),
+                                            FinanceTone.Savings,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (state.savingsGoal == null) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {

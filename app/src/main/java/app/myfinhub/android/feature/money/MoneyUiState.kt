@@ -98,6 +98,7 @@ data class MoneyUiState(
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
     val savingsGoal: Double? = null,
     val savingsCurrent: Double = 0.0,
+    val savingsSources: Map<String, Double> = emptyMap(),
     val loanOutstanding: Double = 0.0,
     val lendingReceivable: Double = 0.0,
     val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
