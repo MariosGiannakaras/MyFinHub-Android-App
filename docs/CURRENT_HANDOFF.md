@@ -55,7 +55,7 @@ Web parity remains 1/6 implementations and 7/24 completed subtasks. W2.4 durable
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #188, branch android/w3-1-credit-history-order-20261015
-Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
+Current W3.1: Verified 1/6 implementations · 7/24 subtasks. W2.4 #184 and #187 merged, UI safety outstanding. W3.1 #182 merged; #188 chronology/legacy owner reanchored pending exact-head CI; #186 statement event preparation draft.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate reanchored PR #188 on exact-head CI, integrate PR #186 only after fresh checks, and finish W2.4 end-to-end permanent-delete safety and S24 owner acceptance before enabling destructive UI. No release.
 
