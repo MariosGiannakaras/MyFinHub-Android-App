@@ -4,13 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
-import app.myfinhub.android.core.data.committedPermanentCardCleanupIds
 import app.myfinhub.android.core.data.confirmedPendingCardSecretCleanupIds
 import app.myfinhub.android.core.data.CompleteCanonicalCardSecretCleanup
 import app.myfinhub.android.core.data.RestoreCanonicalCard
@@ -135,10 +135,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     /** Only confirmed *permanent* deletions may remove card vault secrets.
      * Ordinary reversible archives/restores must retain encrypted card details.
      */
-    private val mutableCommittedPermanentCardCleanupRequests = MutableSharedFlow<String>(extraBufferCapacity = 8)
-    val committedPermanentCardCleanupRequests: SharedFlow<String> =
-        mutableCommittedPermanentCardCleanupRequests.asSharedFlow()
-
     private var currentSession: AuthSession? = null
     private var automaticSyncAllowed = true
     private var lastServerDocument: CanonicalFinanceDocument? = null
@@ -332,7 +328,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
      */
     fun serverConfirmedPendingSecretCleanupIds(): List<String> {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return emptyList()
-        if (!canUseServer() || ready.saving || ready.offline || ready.issue != null ||
+        if (!canUseServer() || currentSession?.assuranceLevel != AssuranceLevel.AAL2 ||
+            ready.saving || ready.offline || ready.issue != null ||
             mutationLaunchInFlight || pendingMutations.isNotEmpty()
         ) return emptyList()
         val server = lastServerDocument ?: return emptyList()
@@ -599,13 +596,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         repository.save(session, candidateDocument)
         when (val saved = repository.state.value) {
             is FinanceSyncState.Ready -> {
-                val committed = pendingMutations.filter { it.intentId in eligibleIds }
                 pendingMutations = pendingMutations.filterNot { it.intentId in eligibleIds }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
-                committedPermanentCardCleanupIds(committed, saved.envelope.document).forEach { cardId ->
-                    mutableCommittedPermanentCardCleanupRequests.emit(cardId)
-                }
                 reconcileCommittedPending(saved.envelope.document)
                 persistLocalSnapshot()
                 renderLocalState(previousProjection, offline = false)
@@ -757,9 +750,6 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 pendingMutations = pendingMutations.filterNot { it.intentId == inFlightIntent.intentId }
                 lastServerDocument = saved.envelope.document
                 recordSuccessfulSync(saved.envelope.lastSavedAt)
-                committedPermanentCardCleanupIds(listOf(inFlightIntent), saved.envelope.document).forEach { cardId ->
-                    mutableCommittedPermanentCardCleanupRequests.emit(cardId)
-                }
                 persistLocalSnapshot()
 
                 var committedProjection = projectCanonicalProduct(
@@ -936,12 +926,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private suspend fun reconcileCommittedPending(serverDocument: CanonicalFinanceDocument) {
         if (pendingMutations.isEmpty()) return
         val remaining = reconcileSatisfiedPendingMutations(serverDocument, pendingMutations)
-        val remainingIds = remaining.map(PendingCanonicalMutationIntent::intentId).toSet()
-        val committed = pendingMutations.filterNot { it.intentId in remainingIds }
         pendingMutations = remaining
-        committedPermanentCardCleanupIds(committed, serverDocument).forEach { cardId ->
-            mutableCommittedPermanentCardCleanupRequests.emit(cardId)
-        }
     }
 
     private suspend fun renderLocalState(

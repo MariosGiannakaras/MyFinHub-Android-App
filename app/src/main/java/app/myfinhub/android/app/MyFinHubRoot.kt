@@ -188,16 +188,13 @@ fun MyFinHubRoot(
             }
         }
     }
-    LaunchedEffect(financeViewModel, cardSecretViewModel) {
-        financeViewModel.committedPermanentCardCleanupRequests.collect { cardId ->
-            cardSecretViewModel.purgeCard(cardId)
-        }
-    }
     // The server-saved finance marker survives process death. Resume vault cleanup only with
     // an online authenticated session and a freshly confirmed profile deletion.
     LaunchedEffect(authState, financeState, cardSecretCleanupState) {
         val authReady = authState as? AuthShellUiState.Ready
-        if (authReady != null && !authReady.offline) {
+        if (authReady != null && !authReady.offline &&
+            authReady.session.assuranceLevel == app.myfinhub.android.core.auth.AssuranceLevel.AAL2
+        ) {
             val pendingIds = financeViewModel.serverConfirmedPendingSecretCleanupIds()
             when (val cleanup = cardSecretCleanupState) {
                 is CardSecretCleanupUiState.Complete -> {
