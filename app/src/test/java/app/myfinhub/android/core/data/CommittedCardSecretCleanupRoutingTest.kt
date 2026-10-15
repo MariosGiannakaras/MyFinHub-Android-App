@@ -50,6 +50,14 @@ class CommittedCardSecretCleanupRoutingTest {
         assertEquals(emptyList<String>(), confirmedPendingCardSecretCleanupIds(document("[]","[]")))
     }
 
+    @Test fun oneAcknowledgedMarkerLeavesOtherPendingCardRetryable() {
+        val first = document("[]", """["deleted-first","deleted-second"]""")
+        assertEquals(listOf("deleted-first","deleted-second"), confirmedPendingCardSecretCleanupIds(first))
+        // Server's acknowledged state, not a lost one-shot notification, drives the next cleanup.
+        val afterAck = document("[]", """["deleted-second"]""")
+        assertEquals(listOf("deleted-second"), confirmedPendingCardSecretCleanupIds(afterAck))
+    }
+
     @Test fun staleDeleteIntentNeverPurgesNewlyRestoredCard() {
         val intent = intent(PermanentlyDeleteCanonicalCard("same-id",now), "delete")
         val nowActive = document("""[{"id":"same-id","kind":"credit","active":true}]""", """["same-id"]""")

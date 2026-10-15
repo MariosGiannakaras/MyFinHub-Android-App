@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+- [ ] Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release.
 
 ## Completed foundations
 
@@ -63,7 +63,7 @@ Evidence-backed current progress, separate from historical September redesign.
 Issue #155, PR #185, branch android/web-parity-tracker-vault-progress-20261015
 Current W2.4: Verified 1/6 implementations · 7/24 subtasks. W2.4 #178 archive copy, #180 ACK, #183 committed-only secure purge route merged. W3.1 #182 statement dates merged. Stacked durable cleanup PR #184 pending exact-head CI.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Rebase and run exact-head tests on PR #184 after merged #183: restore authenticated server-confirmed pending vault cleanup after restart, preserve legacy secrets if server rejects, and ACK only after both secure stores succeed. Permanent-delete UI still disabled; W2.4 remains incomplete. Continue W3.1 allocation/legacy historical debt after cleanup safety; no release.
+Next Validate one-authority AAL2 server-marker card-secret cleanup hardening PR on exact head; do not enable permanent deletion UI until end-to-end destructive-action confirmation, idempotent ACK and device safety are verified. Then complete W2.4 and continue W3.1 legacy debt/payment allocation. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
