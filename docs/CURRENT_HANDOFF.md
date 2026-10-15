@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations and 8/24 evidence-backed completed subtasks. W3.3 Web-equivalent provider-based repayment account validation #189 merged with four green exact-head gates. W3.1 statement chronology/cycles #182/#188/#186 merged; #190 explicit user-selected statement repayment reanchored for new CI and native UI review. W2.4 server-authorized card cleanup #184/#187 merged, irreversible deletion UI disabled pending complete safety/device acceptance. No release.
+Web parity 1/6 implementations and 8/24 completed subtasks. W3.3 bank provider validation #189 and W3.1 selected statement canonical repayments #190 merged with four exact-head checks each. Native statement selector Compose instrumentation is under separate W3.1 visual/accessibility validation; W3.2 parallel Web rule-matching PR #191 in CI. W2.4 irreversible card deletion remains disabled; no release.
 
 ## Immediate work
 
-- Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
+- Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations and 8/24 evidence-backed completed subtasks. W3.3
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #190, branch android/w3-1-statement-payment-selection-20261015
-Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 merged, W2.4 vault cleanup merged but destructive UI disabled. W3.1 #182/#188/#186 merged, #190 statement payment selection reanchored and corrected pending new CI/visual review.
+Issue #155, PR #0, branch android/w3-1-statement-selector-compose-20261015
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.1 #190 merged; selector Compose/accessibility verification isolated in new draft. W3.2 #191 running; W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
+Next Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

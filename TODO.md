@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
+- [ ] Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #190, branch android/w3-1-statement-payment-selection-20261015
-Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.3 #189 merged, W2.4 vault cleanup merged but destructive UI disabled. W3.1 #182/#188/#186 merged, #190 statement payment selection reanchored and corrected pending new CI/visual review.
+Issue #155, PR #0, branch android/w3-1-statement-selector-compose-20261015
+Current W3.1: Verified 1/6 implementations · 8/24 subtasks. W3.1 #190 merged; selector Compose/accessibility verification isolated in new draft. W3.2 #191 running; W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate reanchored PR #190 explicit native statement repayment selector and canonical allocation with all four exact-head gates; review rendered Compose UI before merge. Continue W3.1 final history/payment acceptance and W2.4 card deletion end-to-end safety; no release.
+Next Validate real native credit statement selector Compose instrumentation on exact-head emulator, inspect fresh selected-state screenshot separately, complete W3.1 acceptance without inferring S24 physical approval; continue W3.2 #191 and W2.4 secure deletion. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
