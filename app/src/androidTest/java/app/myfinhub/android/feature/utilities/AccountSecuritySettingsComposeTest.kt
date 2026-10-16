@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performTextInput
 import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +42,35 @@ class AccountSecuritySettingsComposeTest {
         rule.onNodeWithTag("s9_account_new_password").performTextInput("New123!Password")
         rule.onNodeWithTag("s9_account_confirm_password").performTextInput("Different123!")
         rule.onNodeWithTag("s9_account_security_confirm").assertIsNotEnabled()
+    }
+
+    @Test fun validatedMatchingPasswordExplicitlyDispatchesOnlyAfterConfirmation() {
+        val intents = mutableListOf<WebAccountSecurityChange>()
+        rule.setContent { MyFinHubTheme {
+            AccountSecuritySettingsControls(true,false,null) { intents += it }
+        } }
+        rule.onNodeWithTag("s9_account_password_open").performClick()
+        rule.onNodeWithTag("s9_account_current_password").performTextInput("Old123!Password")
+        rule.onNodeWithTag("s9_account_new_password").performTextInput("New123!Password")
+        rule.onNodeWithTag("s9_account_confirm_password").performTextInput("New123!Password")
+        rule.onNodeWithTag("s9_account_security_confirm").performClick()
+        rule.runOnIdle {
+            assertEquals(1,intents.size)
+            val intent = intents.single() as WebAccountSecurityChange.Password
+            assertEquals("Old123!Password",intent.current)
+            assertEquals("New123!Password",intent.replacement)
+            assertFalse(intent.toString().contains(intent.replacement))
+        }
+    }
+
+    @Test fun inFlightServerChangeLocksEditors() {
+        rule.setContent { MyFinHubTheme {
+            AccountSecuritySettingsControls(enabled=true,saving=true,feedback=null) {
+                error("No second submission")
+            }
+        } }
+        rule.onNodeWithTag("s9_account_email_open").assertIsNotEnabled()
+        rule.onNodeWithTag("s9_account_password_open").assertIsNotEnabled()
     }
 
     @Test fun offlineOrUnverifiedSessionDisablesAccountChanges() {
