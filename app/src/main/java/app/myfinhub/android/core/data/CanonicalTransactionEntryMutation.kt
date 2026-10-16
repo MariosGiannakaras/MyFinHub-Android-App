@@ -215,6 +215,11 @@ fun createCanonicalTransactionEntryMutation(
                 val category = part.category.trim()
                 require(category.isNotBlank()) { "Κάθε μέρος του διαχωρισμού χρειάζεται κατηγορία." }
                 val amount = centsToMoney(cents)
+                // Web createEvent rejects split totals outside a safe JS cent integer.
+                // Guard before adding so a malformed oversized split never overflows.
+                require(totalCents <= MAX_SAFE_CANONICAL_CENTS - cents) {
+                    "Το σύνολο των μερών είναι εκτός επιτρεπτού εύρους."
+                }
                 totalCents += cents
                 normalizedParts += JsonObject(buildMap {
                     put("id", JsonPrimitive(part.id))
