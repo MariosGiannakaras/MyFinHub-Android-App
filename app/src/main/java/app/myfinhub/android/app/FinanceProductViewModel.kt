@@ -1253,7 +1253,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                         )
                         mutableNotices.tryEmit(UserNotice(
                             message = "Ο server δεν επιβεβαίωσε την αποσύνδεση της άλλης συσκευής.",
-                            diagnosticCode = "MFH-DEVICE-REVOKE-UNCONFIRMED",
+                            details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: SERVER_UNCONFIRMED",
+                        diagnosticCode = "MFH-DEVICE-REVOKE-UNCONFIRMED",
                         ))
                         return@launch
                     }
@@ -1262,6 +1263,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     )
                     mutableNotices.tryEmit(UserNotice(
                         message = "Η άλλη συσκευή αποσυνδέθηκε.",
+                        details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: SERVER_CONFIRMED",
                         diagnosticCode = "MFH-DEVICE-REVOKED",
                     ))
                 }
@@ -1277,6 +1279,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     } else DeviceSessionsUiSnapshot()
                     mutableNotices.tryEmit(UserNotice(
                         message = "Η αποσύνδεση δεν επιβεβαιώθηκε. Έλεγξε ξανά τις συσκευές.",
+                        details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: RECONCILIATION_REQUIRED",
                         diagnosticCode = "MFH-DEVICE-REVOKE-REVIEW",
                     ))
                 }
