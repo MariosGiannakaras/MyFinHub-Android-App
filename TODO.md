@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate and merge W4.4 #202 only after all four exact-head gates; then reanchor this W5.1 provider ID/account label/card choices + missing-asset fallback coherent batch, review exact UI/screenshots and open a single full CI PR. Defer real dynamic asset fetch until existing API contract/security paths verified. No release.
+- [ ] Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w5-1-provider-identities-batch-20261016
-Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 in exact-head CI; W5.1 eight-provider native identity/cards + neutral asset fallback staged, no PR yet; permanent-delete UI disabled.
+Issue #155, PR #203, branch android/w5-1-provider-identities-batch-20261016
+Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 merged green; W5.1 provider identity/catalog/neutral mark exact-head CI pending; live dynamic integration and S24 signoff remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate and merge W4.4 #202 only after all four exact-head gates; then reanchor this W5.1 provider ID/account label/card choices + missing-asset fallback coherent batch, review exact UI/screenshots and open a single full CI PR. Defer real dynamic asset fetch until existing API contract/security paths verified. No release.
+Next Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
