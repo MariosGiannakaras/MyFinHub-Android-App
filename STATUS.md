@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity remains 1/6 implementations and 9/24 completed subtasks. W5.4 #208 owner+AAL2 redacted read-only server history merged 4/4 exact-head gates. W5.3 #209 consolidated native Web account-security PATCH email/password with explicit confirmation, Unicode Web password policy, AAL2 bearer/session/privacy gating, no local credential cache/offline finance mutation and goldens/Compose tests pending exact-head CI. W5.1 provider artwork, W2.4 permanent card deletion safety and physical S24 acceptance remain outstanding. No release.
+Web parity 1/6 implementations · 9/24 completed subtasks at staged base. W5.3 #209 account-security email/password editor + exact Web PATCH/AAL2 contract in full CI. Next consolidated W6.1 Golden FinanceData scenario staged independently, cross-checking as-of balance/budgets, forecast, goals, loan/lending and stable offline event replay; no PR/CI until #209 merged to avoid duplicate builds. Card permanent-delete UI disabled, no release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/owner+AAL2 session isolation and real native Settings validation with four exact-head Android/Tracking/UI gates, fix one batch if needed. Maintain disabled irreversible card deletion, no SMS or release.
+1. Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #209, branch android/w5-3-account-security-native-batch-20261016
-Current W5.3: Verified 1/6 implementations · 9/24 subtasks. W5.4 #208 merged four gates; W5.3 #209 account email/password security editing and contract tests pending exact-head four gates. No physical S24 signoff; card deletion UI disabled.
+Issue #155, PR #0, branch android/w6-1-cross-client-golden-batch-20261016
+Current W6.1: Verified 1/6 implementations · 9/24 subtasks on staged #209 base. W5.3 #209 in CI; W6.1 integration golden finance scenario staged without PR/CI. No S24 physical approval or release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/owner+AAL2 session isolation and real native Settings validation with four exact-head Android/Tracking/UI gates, fix one batch if needed. Maintain disabled irreversible card deletion, no SMS or release.
+Next Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -62,7 +62,7 @@ Next Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -86,7 +86,7 @@ Next Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/
 - [ ] W5.2 Auth/sync/history consistency — in_progress
 - [ ] W5.3 Card vault and security endpoints — in_progress
 - [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
-- [ ] W6.1 Golden cross-client fixture tests — pending
+- [ ] W6.1 Golden cross-client fixture tests — in_progress
 - [ ] W6.2 Real Compose accessibility/visual verification — pending
 - [ ] W6.3 Exact-head CI, deduplication and tracking handoff — pending
 - [ ] W6.4 Owner physical acceptance and release isolation — pending

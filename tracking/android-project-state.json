@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity remains 1/6 implementations and 9/24 completed subtasks. W5.4 #208 owner+AAL2 redacted read-only server history merged 4/4 exact-head gates. W5.3 #209 consolidated native Web account-security PATCH email/password with explicit confirmation, Unicode Web password policy, AAL2 bearer/session/privacy gating, no local credential cache/offline finance mutation and goldens/Compose tests pending exact-head CI. W5.1 provider artwork, W2.4 permanent card deletion safety and physical S24 acceptance remain outstanding. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks at staged base. W5.3 #209 account-security email/password editor + exact Web PATCH/AAL2 contract in full CI. Next consolidated W6.1 Golden FinanceData scenario staged independently, cross-checking as-of balance/budgets, forecast, goals, loan/lending and stable offline event replay; no PR/CI until #209 merged to avoid duplicate builds. Card permanent-delete UI disabled, no release.",
     "next": [
-      "Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/owner+AAL2 session isolation and real native Settings validation with four exact-head Android/Tracking/UI gates, fix one batch if needed. Maintain disabled irreversible card deletion, no SMS or release."
+      "Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w5-3-account-security-native-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.4 #208 merged four gates; W5.3 #209 account email/password security editing and contract tests pending exact-head four gates. No physical S24 signoff; card deletion UI disabled.",
+    "branch": "android/w6-1-cross-client-golden-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks on staged #209 base. W5.3 #209 in CI; W6.1 integration golden finance scenario staged without PR/CI. No S24 physical approval or release.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -948,8 +948,10 @@
             "id": "W6.1",
             "title": "Golden cross-client fixture tests",
             "acceptance": "Assert account/credit/recurring/savings/categorization and legacy fixture outcomes and revision semantics.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W6.1 staged cross-client anonymized single-FinanceData golden integration matrix after W5.3 #209: historical ledger cash/payroll/savings, net budget/refund, 30/60/90 transfer neutrality, savings goal, as-of loan/lending, Web rules/new canonical event and exact stable offline replay with unknown state preservation. No PR/CI started until W5.3 dependency merges; full 24-case signoff not inferred."
+            ]
           },
           {
             "id": "W6.2",
@@ -975,10 +977,10 @@
         ]
       }
     ],
-    "next_action": "Validate consolidated W5.3 #209 Web account-security PATCH request/receipt/owner+AAL2 session isolation and real native Settings validation with four exact-head Android/Tracking/UI gates, fix one batch if needed. Maintain disabled irreversible card deletion, no SMS or release.",
+    "next_action": "Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 209,
-    "current_subtask": "W5.3",
+    "pr": 0,
+    "current_subtask": "W6.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
