@@ -1247,6 +1247,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 !automaticSyncAllowed) return@launch
             when (result) {
                 is ApiResult.Success -> {
+                    if (result.value.any { it.sessionId == other.sessionId }) {
+                        mutableDeviceSessions.value = DeviceSessionsUiSnapshot(
+                            loaded = true, devices = result.value,
+                        )
+                        mutableNotices.tryEmit(UserNotice(
+                            message = "Ο server δεν επιβεβαίωσε την αποσύνδεση της άλλης συσκευής.",
+                            diagnosticCode = "MFH-DEVICE-REVOKE-UNCONFIRMED",
+                        ))
+                        return@launch
+                    }
                     mutableDeviceSessions.value = DeviceSessionsUiSnapshot(
                         loaded = true, devices = result.value,
                     )
@@ -1256,8 +1266,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                     ))
                 }
                 is ApiResult.Failure -> {
-                    // No optimistic success. Fresh server GET is required after ambiguity.
-                    mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
+                    // Never automatically retry the POST; GET safely reconciles an ambiguous result.
+                    val reconciliation = providerAwareApi.loadDeviceSessions(session)
+                    if (currentSession?.userId != session.userId ||
+                        currentSession?.accessToken != session.accessToken ||
+                        !automaticSyncAllowed) return@launch
+                    val records = (reconciliation as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
+                    mutableDeviceSessions.value = if (records != null) {
+                        DeviceSessionsUiSnapshot(loaded = true, devices = records)
+                    } else DeviceSessionsUiSnapshot()
                     mutableNotices.tryEmit(UserNotice(
                         message = "Η αποσύνδεση δεν επιβεβαιώθηκε. Έλεγξε ξανά τις συσκευές.",
                         diagnosticCode = "MFH-DEVICE-REVOKE-REVIEW",
