@@ -327,6 +327,7 @@ fun MyFinHubRoot(
                             deviceSessions = if (metadataAuthorized) deviceSessions
                                 else DeviceSessionsUiSnapshot(),
                             serverHistory = if (metadataAuthorized) serverHistory else null,
+                            serverHistoryEnabled = metadataAuthorized,
                             serverHistoryLoaded = metadataAuthorized && serverHistoryLoaded,
                             onRefreshServerHistory = { serverHistoryRefresh += 1 },
                             onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
@@ -463,6 +464,7 @@ private fun FinanceProductSurface(
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord>,
     deviceSessions: DeviceSessionsUiSnapshot,
     serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary?,
+    serverHistoryEnabled: Boolean,
     serverHistoryLoaded: Boolean,
     onRefreshServerHistory: () -> Unit,
     onRevokeDeviceSession: (String) -> Unit,
@@ -519,6 +521,7 @@ private fun FinanceProductSurface(
                     financialProviderCatalog = financialProviderCatalog,
                     deviceSessions = deviceSessions,
                     serverHistory = serverHistory,
+                    serverHistoryEnabled = serverHistoryEnabled,
                     serverHistoryLoaded = serverHistoryLoaded,
                     onRefreshServerHistory = onRefreshServerHistory,
                     onRevokeDeviceSession = onRevokeDeviceSession,

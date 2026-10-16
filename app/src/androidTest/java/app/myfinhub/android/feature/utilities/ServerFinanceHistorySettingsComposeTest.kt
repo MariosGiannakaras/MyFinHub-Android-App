@@ -29,7 +29,7 @@ class ServerFinanceHistorySettingsComposeTest {
         rule.setContent { MyFinHubTheme {
             ProductionSettingsScreen(
                 state=FrontendUtilitiesUiState(),onAction={},onBack={},
-                serverHistory=summary,serverHistoryLoaded=true,
+                serverHistory=summary,serverHistoryEnabled=true,serverHistoryLoaded=true,
                 onRefreshServerHistory={},
             )
         } }

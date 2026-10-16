@@ -52,6 +52,7 @@ fun ProductionSettingsScreen(
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
+    serverHistoryEnabled: Boolean = false,
     serverHistoryLoaded: Boolean = false,
     onRefreshServerHistory: () -> Unit = {},
     deviceSessionRevocationInFlight: Boolean = false,
@@ -186,7 +187,7 @@ fun ProductionSettingsScreen(
                 }
             }
 
-            if (serverHistoryLoaded && serverHistory != null) {
+            if (serverHistoryEnabled) {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("s9_server_finance_history")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -198,7 +199,9 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        if (!serverHistory.available) {
+                        if (!serverHistoryLoaded || serverHistory == null) {
+                            Text("Δεν φορτώθηκε ακόμη το ιστορικό. Δοκίμασε ανανέωση.")
+                        } else if (!serverHistory.available) {
                             Text("Το ιστορικό αλλαγών δεν είναι διαθέσιμο.")
                         } else {
                             Text("Διαθέσιμες αναιρέσεις: " + serverHistory.undoDepth +
