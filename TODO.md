@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.
+- [ ] Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #203, branch android/w5-1-provider-identities-batch-20261016
-Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 merged green; W5.1 provider identity/catalog/neutral mark exact-head CI pending; live dynamic integration and S24 signoff remain open.
+Issue #155, PR #204, branch android/w5-1-live-provider-picker-batch-20261016
+Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged 4/4; #204 real dynamic per-user catalog/issuer picker staged for exact-head CI, IBAN/artwork and physical device verification remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.
+Next Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

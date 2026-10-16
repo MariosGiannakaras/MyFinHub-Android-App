@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.4 #202 shared Insights/Activity signed Web finance flow merged after four exact-head gates, remaining W4.4 partial. W5.1 staged eight Web-known provider identity rules, native provider labels and neutral artwork fallback, safe owner+AAL2 dynamic financial provider catalog GET with no external URLs, and golden/Compose tests pending full CI. Dynamic provider selection/IBAN and verified asset retrieval remain outstanding. W2.4 permanent deletion UI disabled; no release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W4.4 #202 signed finance consistency and W5.1 #203 eight Web-known provider identities, owner+AAL2 catalog GET, neutral native marks merged after four exact-head CI checks each. Follow-up W5.1 #204 links the live per-session server catalog into native card issuer picker with cross-user cancellation and validated dynamic IDs, golden Compose tests pending. W5.1 still partial for asset/IBAN/dynamic account state. W2.4 permanent card deletion remains disabled, no release.",
     "next": [
-      "Validate and merge W5.1 #203 if all four exact-head gates pass, then reanchor staged authenticated in-memory dynamic provider picker + session invalidation + Compose tests as one follow-up final CI batch; dynamic verified assets/IBAN still outstanding. No release."
+      "Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w5-1-provider-identities-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 merged green; W5.1 provider identity/catalog/neutral mark exact-head CI pending; live dynamic integration and S24 signoff remain open.",
+    "branch": "android/w5-1-live-provider-picker-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged 4/4; #204 real dynamic per-user catalog/issuer picker staged for exact-head CI, IBAN/artwork and physical device verification remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -899,7 +899,8 @@
               "W5.1 staged Web-known provider identity parity: full eight Web provider IDs (including National/Eurobank/PayPal and Magenta Pay label), Unicode Greek accent alias matching, authoritative explicit providerId precedence and unknown provider guard, provider-neutral readable marks for three brands missing verified assets, and provider-aware Home/Wallet/Plan names plus card picker and Kotlin goldens. Staged behind #202 with no new PR/CI or completed credit.",
               "W5.1 staged live provider catalog transport via existing owner+AAL2 GET /api/account-metadata?resource=financial-providers: strict non-URL ID/name/kind/country/sort/asset-key parsing, reject invalid rows and duplicate IDs, never fetch unverified remote artwork or persist it; MyFinHubApi synthetic fallback and OkHttp requestGate; 3 Kotlin goldens. Not wired into screen state yet and no PR/CI while #202 pending.",
               "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending.",
-              "W5.1 subsequent consolidated UI stage: in-memory authenticated per-user/token catalog StateFlow, refuse AAL1/offline, cancel stale async results on user/token switch, real CardCreate picker incorporates canonical owner-provided dynamic provider IDs with bundled fallback, production Compose goldens. Staged behind #203; no CI/PR or completed credit before #203 integration."
+              "W5.1 PR #203 canonical 8-provider ID/alias metadata, owner+AAL2 read-only catalog, safe no-fake-logo Compose fallback and golden network tests merged as b75359aeeeccdbdf90556db10fafeb331b988b64 after all four exact-head CI gates success; live dynamic picker and IBAN verified assets still pending.",
+              "W5.1 follow-up PR #204 reanchors authenticated per-user/token provider metadata flow, stale-session-cancellation and native card issuer choices with dynamic canonical IDs and safe manual sentinel, Compose tests for custom-ID collision and changed providers. Fresh exact-head CI required; provider artwork/IBAN still open."
             ]
           },
           {
@@ -961,9 +962,9 @@
         ]
       }
     ],
-    "next_action": "Validate and merge W5.1 #203 if all four exact-head gates pass, then reanchor staged authenticated in-memory dynamic provider picker + session invalidation + Compose tests as one follow-up final CI batch; dynamic verified assets/IBAN still outstanding. No release.",
+    "next_action": "Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 203,
+    "pr": 204,
     "current_subtask": "W5.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
