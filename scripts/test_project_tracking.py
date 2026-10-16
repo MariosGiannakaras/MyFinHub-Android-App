@@ -111,5 +111,40 @@ class WebParityTrackingTests(unittest.TestCase):
         tracking.validate_reconciliation(self.state)
         self.assertEqual(tracking.reconciliation_lines(self.state), [])
 
+
+
+class WorkflowGateConsistencyTests(unittest.TestCase):
+    """Protect all four CI PR jobs from mutable checkout drift."""
+
+    def test_gate_jobs_remain_present(self):
+        root = tracking.ROOT / ".github" / "workflows"
+        ci = (root / "android-ci.yml").read_text(encoding="utf-8")
+        ui = (root / "android-ui-quality.yml").read_text(encoding="utf-8")
+        checks = (root / "project-tracking.yml").read_text(encoding="utf-8")
+        self.assertIn("jobs:\n  verify:", ci)
+        self.assertIn("  screenshot-regression:", ui)
+        self.assertIn("  s24-ultra-target-instrumented:", ui)
+        self.assertIn("jobs:\n  verify:", checks)
+        self.assertIn("validateDebugScreenshotTest", ui)
+        self.assertIn("scripts/run-connected-android-tests.sh", ui)
+        self.assertIn("python3 scripts/render_project_tracking.py --check", checks)
+
+    def test_all_four_gates_use_immutable_pull_request_merge_checkout(self):
+        root = tracking.ROOT / ".github" / "workflows"
+        pinned = "uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803"
+        for name in ("android-ci.yml", "android-ui-quality.yml", "project-tracking.yml"):
+            source = (root / name).read_text(encoding="utf-8")
+            self.assertIn("pull_request:", source, name)
+            self.assertIn("cancel-in-progress: true", source, name)
+            self.assertNotIn("ref: ${{ github.head_ref }}", source, name)
+            self.assertIn(pinned, source, name)
+        ui = (root / "android-ui-quality.yml").read_text(encoding="utf-8")
+        screenshot, emulator = ui.split("  s24-ultra-target-instrumented:", 1)
+        for job in (screenshot, emulator):
+            self.assertEqual(job.count(pinned), 1)
+            step = job.split(pinned, 1)[1].split("      - name:", 1)[0]
+            self.assertNotIn("ref:", step)
+            self.assertNotIn("head_ref", step)
+
 if __name__ == "__main__":
     unittest.main()

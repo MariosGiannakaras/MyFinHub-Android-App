@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 secure owner+AAL2 Web account credential editor and W6.1 #210 unified anonymized FinanceData cross-client goldens plus privacy redaction/confirmation tests merged with 4/4 exact-head CI. W6.2 consolidated #211 large-text 150% native Settings/Recurring form controls and scrollable dialog with real Compose tests awaiting one exact-head four-gate CI. W2.4 permanent card-delete UI remains disabled; certified provider artwork and physical S24 owner acceptance outstanding. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W6.2 #211 real 150% font accessibility/Compose regression merged with four gates; physical S24 acceptance pending. W6.3 #212 fixes mutable screenshot Git checkout divergence from Android CI, emulator and tracking and adds regression guards; exact-head CI pending. W2.4 permanent card deletion remains disabled; no release.",
     "next": [
-      "Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred."
+      "Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-2-large-type-security-recurring-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W6.1 #210 merged with four gates, broader goldens open. W6.2 #211 150% font screen/dialog accessibility pending exact-head checks and visual review. W2.4 destructive UI disabled.",
+    "branch": "android/w6-3-immutable-pr-ci-gates-batch-20261016",
+    "checkpoint": "Verified Web parity 1/6 implementations · 9/24 subtasks. W6.2 #211 merged 4/4. W6.3 #212 tests same immutable PR tree across four gates, CI pending; destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -961,15 +961,18 @@
             "acceptance": "S24 light/dark, large text, privacy, screen-reader/touch, account charts/card visuals/credit workspace.",
             "status": "in_progress",
             "evidence": [
-              "W6.2 PR #211 150% font-scale native security password confirmation and recurring-management Compose accessibility regressions plus bounded vertically scrollable credential inputs; real S24 physical owner signoff and actual image review still pending, new exact-head CI required."
+              "W6.2 PR #211 150% font-scale native security password confirmation and recurring-management Compose accessibility regressions plus bounded vertically scrollable credential inputs; real S24 physical owner signoff and actual image review still pending, new exact-head CI required.",
+              "W6.2 #211 large-text account-security and recurring Compose tests merged as db46b69fc14bd9fc5f52b1caf24389bddab8b86a, 4/4 exact-head green; S24 physical approval outstanding."
             ]
           },
           {
             "id": "W6.3",
             "title": "Exact-head CI, deduplication and tracking handoff",
             "acceptance": "Targeted then broader checks, only remove replaced code, update tracker/docs in coherent merged checkpoints.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W6.3 #212 changes screenshot mutable github.head_ref checkout to default immutable PR virtual merge-tree shared by Android CI, emulator and tracking; two Python unit regressions protect four jobs and cancel-on-update. Four exact-head gates pending; no release."
+            ]
           },
           {
             "id": "W6.4",
@@ -981,10 +984,10 @@
         ]
       }
     ],
-    "next_action": "Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.",
+    "next_action": "Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 211,
-    "current_subtask": "W6.2",
+    "pr": 212,
+    "current_subtask": "W6.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
