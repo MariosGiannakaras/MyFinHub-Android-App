@@ -62,7 +62,7 @@ Next Continue W3.2 outstanding canonical event/classification edge cases and W3.
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 2/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
