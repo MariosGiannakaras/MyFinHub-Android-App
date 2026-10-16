@@ -129,7 +129,7 @@ data class CanonicalBudget(
     val alertThreshold: Int?,
 )
 
-private data class FlowImpact(
+internal data class FlowImpact(
     val income: Double = 0.0,
     val expense: Double = 0.0,
     val saving: Double = 0.0,
@@ -419,7 +419,7 @@ fun CanonicalFinanceDocument.cardOutstanding(cardId: String, asOf: String): Doub
 
 fun CanonicalFinanceDocument.settingsObject(): JsonObject = state.obj("settings")
 
-private fun CanonicalFinanceDocument.legacyFlowImpact(tx: CanonicalLegacyTransaction): FlowImpact {
+internal fun CanonicalFinanceDocument.legacyFlowImpact(tx: CanonicalLegacyTransaction): FlowImpact {
     val decision = reviewDecision(tx.id)
     if (decision?.string("status") == "confirmed") {
         when (decision.string("semanticKind")) {
@@ -445,7 +445,7 @@ private fun CanonicalFinanceDocument.legacyFlowImpact(tx: CanonicalLegacyTransac
     }
 }
 
-private fun eventFlowImpact(event: CanonicalEvent): FlowImpact = when (event.kind) {
+internal fun eventFlowImpact(event: CanonicalEvent): FlowImpact = when (event.kind) {
     "income" -> FlowImpact(income = event.amount)
     "expense", "card_purchase" -> FlowImpact(expense = event.amount)
     "split" -> FlowImpact(expense = event.parts.sumOf { it.amount })
@@ -491,7 +491,7 @@ private fun JsonObject.toLegacyTransaction(): CanonicalLegacyTransaction? = Cano
 private fun CanonicalEvent.isSelfLoanReturn(): Boolean =
     kind == "transfer" && Regex("^(?:ΕΠΙΣΤΡΟΦΗ|RETURN)(?:\\s|:|$)", RegexOption.IGNORE_CASE).containsMatchIn(note.trim())
 
-private operator fun FlowImpact.plus(other: FlowImpact): FlowImpact = FlowImpact(
+internal operator fun FlowImpact.plus(other: FlowImpact): FlowImpact = FlowImpact(
     income = income + other.income,
     expense = expense + other.expense,
     saving = saving + other.saving,

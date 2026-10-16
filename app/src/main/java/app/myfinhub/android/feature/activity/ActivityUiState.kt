@@ -34,6 +34,9 @@ data class ActivityItem(
     val typeLabel: String = activityTypeLabel(canonicalKind),
     /** Operation-aware durable state, for example pending edit versus pending deletion. */
     val pendingLabel: String? = null,
+    /** Web flowImpact signed values; null only in isolated UI preview fixtures. */
+    val financeIncomeContribution: Double? = null,
+    val financeExpenseContribution: Double? = null,
 )
 
 data class ActivityCategoryOption(
@@ -161,9 +164,18 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
-            val matchesCategory = exactCategoryIds.isNullOrEmpty() ||
-                (item.categoryContributions?.takeIf { it.isNotEmpty() }?.keys?.any(exactCategoryIds::contains)
-                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in exactCategoryIds))
+            val matchesCategory = exactCategoryIds.isNullOrEmpty() || when {
+                // Production projections always provide signed contribution maps, including
+                // empty maps for transfer/payment/refund-free rows. Never create fake
+                // category drill-down items from mere display categories.
+                isAnalyticsScope && item.categoryContributions != null ->
+                    item.categoryContributions.any { (category, amount) ->
+                        category in exactCategoryIds && kotlin.math.abs(amount) > 0.005
+                    }
+                else -> item.categoryContributions?.takeIf { it.isNotEmpty() }
+                    ?.keys?.any(exactCategoryIds::contains)
+                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in exactCategoryIds)
+            }
             val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&
                     (effectiveDateFrom == null || item.rawDate.take(10) >= effectiveDateFrom) &&
@@ -176,15 +188,15 @@ data class ActivityUiState(
      * Read-only summary for the current search/filter projection. Transfers are intentionally
      * excluded from income/expense/net so the UI never double-counts internal money movement.
      */
-    val visibleIncome: Double = visibleItems
-        .asSequence()
-        .filter { it.kind == ActivityKind.INCOME }
-        .sumOf { it.amount.coerceAtLeast(0.0) }
+    val visibleIncome: Double = visibleItems.sumOf { item ->
+        item.financeIncomeContribution ?: if (item.kind == ActivityKind.INCOME)
+            item.amount.coerceAtLeast(0.0) else 0.0
+    }
 
-    val visibleExpense: Double = visibleItems
-        .asSequence()
-        .filter { it.kind == ActivityKind.EXPENSE || it.kind == ActivityKind.CARD_PAYMENT }
-        .sumOf { kotlin.math.abs(it.amount) }
+    val visibleExpense: Double = visibleItems.sumOf { item ->
+        item.financeExpenseContribution ?: if (item.kind == ActivityKind.EXPENSE ||
+            item.kind == ActivityKind.CARD_PAYMENT) kotlin.math.abs(item.amount) else 0.0
+    }.coerceAtLeast(0.0)
 
     val visibleNet: Double = visibleIncome - visibleExpense
     val visiblePendingCount: Int = visibleItems.count(ActivityItem::pendingSync)
@@ -235,7 +247,11 @@ data class ActivityUiState(
                     item
                 } else {
                     val contribution = exact.sumOf { category -> contributions[category] ?: 0.0 }
-                    if (kotlin.math.abs(contribution) <= 0.005) item else item.copy(amount = -contribution)
+                    if (kotlin.math.abs(contribution) <= 0.005) item else item.copy(
+                        amount = -contribution,
+                        financeIncomeContribution = 0.0,
+                        financeExpenseContribution = contribution,
+                    )
                 }
             },
         )
