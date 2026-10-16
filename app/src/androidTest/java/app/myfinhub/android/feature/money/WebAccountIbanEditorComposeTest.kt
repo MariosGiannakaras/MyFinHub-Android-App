@@ -30,6 +30,7 @@ class WebAccountIbanEditorComposeTest {
                 account=account, activityItems=emptyList(),
                 onBack={}, onOpenActivity={},
                 accountMetadataLoaded=true,
+                amountsVisibleOverride=true,
                 onSaveAccountIban={id,iban -> saved = id to iban},
             )
         } }
@@ -55,6 +56,7 @@ class WebAccountIbanEditorComposeTest {
                 ibanRecord=AccountMetadataRecord(
                     "payroll", "GR1601101250000000012300695", 2, "2026-10-16T08:00:00Z"),
                 accountMetadataLoaded=true,
+                amountsVisibleOverride=true,
                 onSaveAccountIban={id,iban -> saved = id to iban},
             )
         } }
@@ -66,6 +68,22 @@ class WebAccountIbanEditorComposeTest {
         rule.onNodeWithText("Αφαίρεση IBAN").performScrollTo().performClick()
         rule.onAllNodesWithText("Αφαίρεση IBAN")[1].performClick()
         rule.runOnIdle { assertEquals("payroll" to null,saved) }
+    }
+
+    @Test fun hiddenFinancialPrivacyNeverExposesIbanMutationActions() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalAccountDetailScreen(
+                account=account, activityItems=emptyList(),
+                onBack={}, onOpenActivity={},
+                ibanRecord=AccountMetadataRecord(
+                    "payroll", "GR1601101250000000012300695", 2, "2026-10-16T08:00:00Z"),
+                accountMetadataLoaded=true,
+                amountsVisibleOverride=false,
+                onSaveAccountIban={_,_ -> error("Privacy-hidden write") },
+            )
+        } }
+        assertEquals(0,rule.onAllNodesWithText("Αφαίρεση IBAN").fetchSemanticsNodes().size)
+        assertEquals(0,rule.onAllNodesWithText("Αλλαγή IBAN").fetchSemanticsNodes().size)
     }
 
     @Test fun noOwnerMetadataOrHiddenFinancialPrivacySuppressesEditor() {
