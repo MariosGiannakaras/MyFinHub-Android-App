@@ -128,6 +128,7 @@ fun MyFinHubRoot(
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
+    val financialProviderCatalog by financeViewModel.financialProviderCatalog.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
     val cardSecretCleanupState by cardSecretViewModel.cleanupState.collectAsStateWithLifecycle()
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
@@ -289,6 +290,8 @@ fun MyFinHubRoot(
                             state = financeState,
                             accountMetadata = if (metadataAuthorized) accountMetadata else emptyMap(),
                             accountMetadataLoaded = metadataAuthorized && accountMetadataLoaded,
+                            financialProviderCatalog = if (metadataAuthorized)
+                                financialProviderCatalog else emptyList(),
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
                             onRetryLoad = financeViewModel::retryLoad,
@@ -367,6 +370,7 @@ private fun FinanceProductSurface(
     state: FinanceProductState,
     accountMetadata: Map<String, AccountMetadataRecord>,
     accountMetadataLoaded: Boolean,
+    financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord>,
     cardSecretState: CardSecretUiState,
     cardSecretCleanupState: CardSecretCleanupUiState,
     onRetryLoad: () -> Unit,
@@ -413,6 +417,7 @@ private fun FinanceProductSurface(
                     homeState = projection.homeState,
                     accountMetadata = accountMetadata,
                     accountMetadataLoaded = accountMetadataLoaded,
+                    financialProviderCatalog = financialProviderCatalog,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
                     onActivityAction = onActivityAction,
