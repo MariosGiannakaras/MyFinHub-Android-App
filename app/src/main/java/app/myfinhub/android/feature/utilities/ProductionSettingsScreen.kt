@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
+import app.myfinhub.android.core.data.CanonicalTransactionRuleSummary
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
@@ -51,6 +52,7 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
+    transactionRuleSummaries: List<CanonicalTransactionRuleSummary> = emptyList(),
     serverHistory: ServerFinanceHistorySummary? = null,
     serverHistoryEnabled: Boolean = false,
     serverHistoryLoaded: Boolean = false,
@@ -184,6 +186,35 @@ fun ProductionSettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         icon = MyFinHubIcons.Activity,
                     )
+                }
+            }
+
+            if (transactionRuleSummaries.isNotEmpty()) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("s9_transaction_rule_summary")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text("Κανόνες κατηγοριοποίησης",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text("Μόνο ανάγνωση · ενεργοί " +
+                            transactionRuleSummaries.count { it.enabled } + " από " +
+                            transactionRuleSummaries.size.toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        transactionRuleSummaries.take(20).forEachIndexed { index, item ->
+                            Text(
+                                (if (amountsVisible) item.name else "Κανόνας " + (index+1)) +
+                                    " · " + (if (item.enabled) "Ενεργός" else "Ανενεργός"),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                        if (transactionRuleSummaries.size > 20) {
+                            Text("Εμφανίζονται οι πρώτοι 20 κανόνες.",
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
             }
 

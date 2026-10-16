@@ -47,6 +47,7 @@ import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
 import app.myfinhub.android.core.network.AccountMetadataRecord
+import app.myfinhub.android.core.data.transactionRuleSummaries
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.ui.PrivacySafeNoticeHistoryStore
 import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
@@ -527,6 +528,7 @@ private fun FinanceProductSurface(
                     accountMetadataSaving = accountMetadataSaving,
                     financialProviderCatalog = financialProviderCatalog,
                     deviceSessions = deviceSessions,
+                    transactionRuleSummaries = projection.document.transactionRuleSummaries(),
                     serverHistory = serverHistory,
                     serverHistoryEnabled = serverHistoryEnabled,
                     serverHistoryLoaded = serverHistoryLoaded,
