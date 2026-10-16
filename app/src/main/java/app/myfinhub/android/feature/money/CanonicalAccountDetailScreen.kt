@@ -66,10 +66,30 @@ fun CanonicalAccountDetailScreen(
     }
     var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
+    var deletingIban by remember(account?.id) { mutableStateOf(false) }
     var editingIban by remember(account?.id) { mutableStateOf(false) }
     var newIban by remember(account?.id) { mutableStateOf("") }
     val normalizedInput = normalizeIban(newIban)
     val inputValid = normalizedInput != null && isValidIban(normalizedInput)
+    if (deletingIban && account != null && ibanRecord?.iban != null &&
+        accountMetadataLoaded && onSaveAccountIban != null && !accountMetadataSaving) {
+        AlertDialog(
+            onDismissRequest = { deletingIban = false },
+            title = { Text("Επιβεβαίωση αφαίρεσης IBAN") },
+            text = { Text("Θα αφαιρεθεί το IBAN αυτού του λογαριασμού από τα ασφαλή metadata. Δεν θα διαγραφούν κινήσεις ή υπόλοιπα.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        deletingIban = false
+                        onSaveAccountIban(account.id, null)
+                    },
+                ) { Text("Αφαίρεση IBAN") }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingIban = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
     if (editingIban && account != null && accountMetadataLoaded &&
         onSaveAccountIban != null && !accountMetadataSaving) {
         AlertDialog(
@@ -155,6 +175,12 @@ fun CanonicalAccountDetailScreen(
                                     enabled = !accountMetadataSaving,
                                     onClick = { editingIban = true },
                                 ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
+                                if (ibanRecord?.iban != null) {
+                                    TextButton(
+                                        enabled = !accountMetadataSaving,
+                                        onClick = { deletingIban = true },
+                                    ) { Text("Αφαίρεση IBAN") }
+                                }
                             }
                         }
                         MyFinHubAmountText(

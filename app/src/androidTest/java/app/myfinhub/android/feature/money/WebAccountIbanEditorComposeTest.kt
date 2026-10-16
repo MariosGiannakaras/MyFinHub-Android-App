@@ -2,6 +2,8 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -43,6 +45,28 @@ class WebAccountIbanEditorComposeTest {
         rule.runOnIdle {
             assertEquals("payroll" to "GR1601101250000000012300695",saved)
         }
+    }
+
+    @Test fun deletingIbanIsMetadataOnlyAndRequiresExplicitSecondConfirmation() {
+        var saved: Pair<String,String?>? = null
+        rule.setContent { MyFinHubTheme {
+            CanonicalAccountDetailScreen(
+                account=account, activityItems=emptyList(),
+                onBack={}, onOpenActivity={},
+                ibanRecord=AccountMetadataRecord(
+                    "payroll", "GR1601101250000000012300695", 2, "2026-10-16T08:00:00Z"),
+                accountMetadataLoaded=true,
+                onSaveAccountIban={id,iban -> saved = id to iban},
+            )
+        } }
+        rule.onNodeWithText("Αφαίρεση IBAN").performScrollTo().performClick()
+        rule.onNodeWithText("Επιβεβαίωση αφαίρεσης IBAN").assertIsDisplayed()
+        rule.runOnIdle { assertNull(saved) }
+        rule.onNodeWithText("Ακύρωση").performClick()
+        rule.runOnIdle { assertNull(saved) }
+        rule.onNodeWithText("Αφαίρεση IBAN").performScrollTo().performClick()
+        rule.onAllNodesWithText("Αφαίρεση IBAN").onLast().performClick()
+        rule.runOnIdle { assertEquals("payroll" to null,saved) }
     }
 
     @Test fun noOwnerMetadataOrHiddenFinancialPrivacySuppressesEditor() {
