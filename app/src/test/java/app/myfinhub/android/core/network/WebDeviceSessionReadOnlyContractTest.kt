@@ -58,7 +58,7 @@ class WebDeviceSessionReadOnlyContractTest {
             assertEquals("/api/auth/devices",request.url.encodedPath)
             assertEquals("Bearer synthetic-owner",request.headers["Authorization"])
             assertFalse("Cookie" in request.headers.names())
-            assertEquals("""{"action":"revoke","sessionId":"$id"}""",request.body.readUtf8())
+            assertEquals("""{"action":"revoke","sessionId":"$id"}""",request.body!!.utf8())
         }
     }
 
