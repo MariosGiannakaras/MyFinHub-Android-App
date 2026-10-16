@@ -49,4 +49,56 @@ class CanonicalCreditStatementsParityTest {
         assertEquals(emptyList<String>(),doc.unlinkedCreditStatementEventIds("card2"))
         assertNull(doc.recommendedPayableStatement("non-existent","2026-10-14"))
     }
+    @Test fun webHistoricalBlankOrNullStatementLinksRemainVisibleForManualReconciliation() {
+        val historical = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{"events":[
+            {"id":"blank","kind":"card_purchase","date":"2026-10-01","cardId":"card1","statementId":"","amount":20},
+            {"id":"missing","kind":"card_payment","date":"2026-10-02","cardId":"card1","amount":5},
+            {"id":"null","kind":"card_purchase","date":"2026-10-03","cardId":"card1","statementId":null,"amount":3},
+            {"id":"linked","kind":"card_purchase","date":"2026-10-04","cardId":"card1","statementId":"known","amount":10},
+            {"id":"whitespace","kind":"card_payment","date":"2026-10-05","cardId":"card1","statementId":" ","amount":2},
+            {"id":"different-card","kind":"card_purchase","date":"2026-10-06","cardId":"card2","amount":8},
+            {"id":"unrelated","kind":"expense","date":"2026-10-07","cardId":"card1","amount":2}
+          ]}}
+        """.trimIndent()).jsonObject)
+        // JS !event.statementId is true for missing/null/empty, but not a nonempty string.
+        assertEquals(listOf("blank", "missing", "null"),
+            historical.unlinkedCreditStatementEventIds("card1"))
+        assertEquals(listOf("different-card"),
+            historical.unlinkedCreditStatementEventIds("card2"))
+    }
+
+    @Test fun webStatementMoneyRoundingUsesHalfUpRatherThanKotlinTiesToEven() {
+        val historical = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "creditStatements":[
+              {"id":"legacy-fraction","cardId":"card1","openDate":"2026-09-01",
+                "closeDate":"2026-10-25","dueDate":"2026-11-05",
+                "boundaryRule":"next-cycle"}
+            ],
+            "events":[
+              {"id":"purchase","kind":"card_purchase","date":"2026-10-02",
+                "cardId":"card1","statementId":"legacy-fraction","amount":1.125},
+              {"id":"payment","kind":"card_payment","date":"2026-10-03",
+                "cardId":"card1","statementId":"legacy-fraction","amount":0.125},
+              {"id":"future-payment","kind":"card_payment","date":"2026-10-25",
+                "cardId":"card1","statementId":"legacy-fraction","amount":1}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        // Historical imported sub-cent values can be read without changing canonical write rules.
+        // Web roundMoney(1.125) = 1.13, roundMoney(0.125) = 0.13.
+        val beforeFuturePayment = historical.creditStatementViews("card1", "2026-10-14").single()
+        assertEquals(1.13, beforeFuturePayment.purchaseTotal, 0.0000001)
+        assertEquals(0.13, beforeFuturePayment.paymentTotal, 0.0000001)
+        assertEquals(1.0, beforeFuturePayment.remaining, 0.0000001)
+        assertEquals(listOf("payment"), beforeFuturePayment.paymentIds)
+        assertEquals("legacy-fraction",
+            historical.recommendedPayableStatement("card1", "2026-10-14")?.id)
+        val afterPayment = historical.creditStatementViews("card1", "2026-10-26").single()
+        assertEquals(listOf("payment", "future-payment"), afterPayment.paymentIds)
+        assertEquals(0.0, afterPayment.remaining, 0.0000001)
+        assertEquals("paid", afterPayment.status)
+    }
+
 }

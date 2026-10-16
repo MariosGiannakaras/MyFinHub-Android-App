@@ -1,7 +1,7 @@
 package app.myfinhub.android.core.data
 
 import kotlin.math.max
-import kotlin.math.round
+import kotlin.math.floor
 import kotlinx.serialization.json.JsonObject
 
 /** Read-only Web creditStatementViews / recommendedPayableStatement semantics. */
@@ -20,7 +20,14 @@ data class CanonicalCreditStatementView(
     val status: String,
 )
 
-private fun roundCreditMoney(value: Double): Double = round(value * 100.0) / 100.0
+/**
+ * Mirrors Web creditStatements.ts roundMoney:
+ * Math.round((value + Number.EPSILON) * 100) / 100.
+ * Kotlin round() uses ties-to-even, unlike JavaScript Math.round().
+ * This is a read-only historical projection; it does not loosen write validation.
+ */
+private fun roundCreditMoney(value: Double): Double =
+    floor((value + Math.ulp(1.0)) * 100.0 + 0.5) / 100.0
 
 /**
  * Statement linkage is authoritative from the canonical event JSON. The existing
@@ -98,6 +105,6 @@ fun CanonicalFinanceDocument.unlinkedCreditStatementEventIds(cardId: String): Li
         val e = raw as? JsonObject ?: return@mapNotNull null
         if (e.string("cardId") != cardId ||
             e.string("kind") !in setOf("card_purchase", "card_payment") ||
-            e.string("statementId") != null) return@mapNotNull null
+            !e.string("statementId").isNullOrEmpty()) return@mapNotNull null
         e.string("id")
     }
