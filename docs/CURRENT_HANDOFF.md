@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI.
+- Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #218, branch android/w3-2-safe-cents-money-validation-20261016
-Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 Web money.ts safe-cent integer boundary, signed EPSILON rounding and split aggregate overflows staged in PR #218 with cross-client golden tests; 4/4 exact-head gates and merge pending. W3.2 remains partial. W6.1/W6.3 complete; W3.1 physical visuals, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete safeguards open.
+Issue #155, PR #218, branch develop
+Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 Web-safe cent rounding, JS safe-integer money limits, and split aggregate overflow guards merged via #218 after 4/4 green exact-head checks. W3.2 still partial for remaining classification/loan event edge cases. W6.1/W6.3 complete, W3.1 physical visuals, W6.2 real S24, W5.1 certified assets and W2.4 permanent-delete safety pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI.
+Next Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

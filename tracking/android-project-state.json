@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI."
+      "Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-safe-cents-money-validation-20261016",
-    "checkpoint": "Verified 1/6 implementations · 11/24 subtasks. W3.2 Web money.ts safe-cent integer boundary, signed EPSILON rounding and split aggregate overflows staged in PR #218 with cross-client golden tests; 4/4 exact-head gates and merge pending. W3.2 remains partial. W6.1/W6.3 complete; W3.1 physical visuals, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete safeguards open.",
+    "branch": "develop",
+    "checkpoint": "Verified 1/6 implementations · 11/24 subtasks. W3.2 Web-safe cent rounding, JS safe-integer money limits, and split aggregate overflow guards merged via #218 after 4/4 green exact-head checks. W3.2 still partial for remaining classification/loan event edge cases. W6.1/W6.3 complete, W3.1 physical visuals, W6.2 real S24, W5.1 certified assets and W2.4 permanent-delete safety pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -801,7 +801,7 @@
               "W3.2 PR #191: Web transactionRules.ts first-match priority/ID, scopes, income taxonomy isolation and explicit category preservation, applied once at native new-event creation before AppendCanonicalEvent. Replay reuses stabilized event, never reapplies rules to historical or queued events. Golden pure/integrated Kotlin tests; exact-head CI pending.",
               "W3.2 follow-on pure projection: Web flowImpactEvent savingAmount ?? amount preserves explicit 0, whereas Android previously treated 0 as absent and overcounted savings. Add numeric presence tracking to CanonicalEvent plus missing/null/explicit-zero/positive golden fixtures. Independent draft; exact-head CI pending.",
               "W3.2 #193 explicit-zero savings flow read-only parity merged to develop dc830f8137ac03815deed7063e799f3f99130cad after 4/4 green checks; W3.2 remains in_progress.",
-              "PR #218 staged Web src/lib/money.ts safe Number.MAX_SAFE_INTEGER integer-cent cap and signed epsilon Math.round semantics in central Kotlin moneyToCents; prevents unsafe split aggregate before writing. Web-derived 1.005, 2.675, 10.075, signed negative edge goldens, direct entry/split/replay/ledger/category integration. Pending immutable 4/4 checks and merge; W3.2 stays in_progress."
+              "PR #218 Web money.ts signed EPSILON Math.round and Number.MAX_SAFE_INTEGER safe-cent validation, plus safe aggregate split guard, merged to develop as 21ffb23fb442d8c2c762eaea7871bff5d69c701f. Exact-head 9e28c1816e6946289f642add8d275a4545fa3ee0 passed all four checks (Project Tracking, Android CI unit/lint/unsigned optimized bundle, screenshot regression, S24 emulator instrumentation). Web-derived signed 1.005/2.675/10.075, max-safe boundary, entry/replay/ledger/category/split golden tests. W3.2 remains in_progress pending remaining classification and loan event edge validation."
             ]
           },
           {
@@ -989,7 +989,7 @@
         ]
       }
     ],
-    "next_action": "Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI.",
+    "next_action": "Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 218,
     "current_subtask": "W3.2",
