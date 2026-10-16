@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 9/24 completed subtasks. W6.2 #211 real 150% font accessibility/Compose regression merged with four gates; physical S24 acceptance pending. W6.3 #212 fixes mutable screenshot Git checkout divergence from Android CI, emulator and tracking and adds regression guards; exact-head CI pending. W2.4 permanent card deletion remains disabled; no release.
+Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 #212 shared immutable PR merge-tree checkout plus full Android/Tracking/screenshot/emulator validation merged with four exact-head green gates. W6.2 150% Compose snapshot artifacts inspected, but physical S24 owner accessibility/visual approval remains pending. W5.1 certified provider artwork and W2.4 safe card permanent-delete lifecycle remain open; destructive UI disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.
+1. Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
 
 ## Non-negotiable constraints
 
@@ -34,7 +34,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 - Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.
 - The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.
 - A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.
-- docs/UI_2026_REDESIGN_HANDOFF.md is the active redesign specification. Earlier design and rc7 correction plans are historical context, not competing visual acceptance contracts.
+- docs/WEB_ANDROID_RECONCILIATION_PLAN.md is the active Web parity specification. docs/UI_2026_REDESIGN_HANDOFF.md documents the completed September redesign; older rc7 plans are historical, not competing acceptance contracts.
 - Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.
 - Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation.
 
@@ -46,14 +46,14 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 9/24**
+**Implementations: 1/6 · Subtasks: 10/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #212, branch android/w6-3-immutable-pr-ci-gates-batch-20261016
-Current W6.3: Verified Web parity 1/6 implementations · 9/24 subtasks. W6.2 #211 merged 4/4. W6.3 #212 tests same immutable PR tree across four gates, CI pending; destructive UI disabled.
+Issue #155, PR #213, branch android/w6-3-verified-handoff-closeout-20261016
+Current W6.2: Verified 1/6 implementations · 10/24 subtasks. W6.3 #212 merged with 4/4 exact-head checks and screenshot review. W6.2 physical S24/large text/TalkBack acceptance pending; W5.1 verified logos open; permanent-delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.
+Next Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -62,7 +62,7 @@ Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI 
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.3 Exact-head CI, deduplication and tracking handoff (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 1/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -88,7 +88,7 @@ Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI 
 - [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
 - [ ] W6.1 Golden cross-client fixture tests — in_progress
 - [ ] W6.2 Real Compose accessibility/visual verification — in_progress
-- [ ] W6.3 Exact-head CI, deduplication and tracking handoff — in_progress
+- [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
 - [ ] W6.4 Owner physical acceptance and release isolation — pending
 
 ### Blockers

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W6.2 #211 real 150% font accessibility/Compose regression merged with four gates; physical S24 acceptance pending. W6.3 #212 fixes mutable screenshot Git checkout divergence from Android CI, emulator and tracking and adds regression guards; exact-head CI pending. W2.4 permanent card deletion remains disabled; no release.",
+    "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 #212 shared immutable PR merge-tree checkout plus full Android/Tracking/screenshot/emulator validation merged with four exact-head green gates. W6.2 150% Compose snapshot artifacts inspected, but physical S24 owner accessibility/visual approval remains pending. W5.1 certified provider artwork and W2.4 safe card permanent-delete lifecycle remain open; destructive UI disabled. No release.",
     "next": [
-      "Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release."
+      "Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release."
     ]
   },
   "latest_production_candidate": {
@@ -76,7 +76,7 @@
     "Production signing and release are explicitly authorized. Approved signed APK/checksum artifacts may be published through GitHub Releases and the existing private update channel, but signing secrets/keystore material must never be exposed.",
     "The selected Google-supported non-public path is Android Developer Console Limited distribution: keep `app.myfinhub.android` and the enrolled production signing certificate registered, and distribute only to explicitly authorized devices within the plan limit.",
     "A Google Play build, Play Console account, or MCP integration is not required for the selected Limited distribution release path.",
-    "docs/UI_2026_REDESIGN_HANDOFF.md is the active redesign specification. Earlier design and rc7 correction plans are historical context, not competing visual acceptance contracts.",
+    "docs/WEB_ANDROID_RECONCILIATION_PLAN.md is the active Web parity specification. docs/UI_2026_REDESIGN_HANDOFF.md documents the completed September redesign; older rc7 plans are historical, not competing acceptance contracts.",
     "Online finance mutations must use the immediate server write path when connectivity and repository state allow it; no intentional Undo/grace delay may sit in front of an online database update. Durable pending + Undo is for offline/local-only mutations.",
     "Purposeful animations, micro-animations and micro-interactions are required across the owner correction pass, but motion must remain short, accessible, non-blocking and must never delay finance persistence or replace explicit destructive confirmation."
   ],
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-3-immutable-pr-ci-gates-batch-20261016",
-    "checkpoint": "Verified Web parity 1/6 implementations · 9/24 subtasks. W6.2 #211 merged 4/4. W6.3 #212 tests same immutable PR tree across four gates, CI pending; destructive UI disabled.",
+    "branch": "android/w6-3-verified-handoff-closeout-20261016",
+    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W6.3 #212 merged with 4/4 exact-head checks and screenshot review. W6.2 physical S24/large text/TalkBack acceptance pending; W5.1 verified logos open; permanent-delete UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -969,9 +969,10 @@
             "id": "W6.3",
             "title": "Exact-head CI, deduplication and tracking handoff",
             "acceptance": "Targeted then broader checks, only remove replaced code, update tracker/docs in coherent merged checkpoints.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
-              "W6.3 #212 changes screenshot mutable github.head_ref checkout to default immutable PR virtual merge-tree shared by Android CI, emulator and tracking; two Python unit regressions protect four jobs and cancel-on-update. Four exact-head gates pending; no release."
+              "W6.3 #212 changes screenshot mutable github.head_ref checkout to default immutable PR virtual merge-tree shared by Android CI, emulator and tracking; two Python unit regressions protect four jobs and cancel-on-update. Four exact-head gates pending; no release.",
+              "W6.3 #212 consistent immutable GitHub virtual PR merge tree across four gates merged as 9b1bda4a1a13216107de7faa1ac1bb41c31edb9b. Exact head 1ffd8b3811de87ead9f9fbdb04db215338fc2ac2 passed 4/4 full Android, screenshot, emulator and Project Tracking checks; Python workflow regression guards source selection and concurrency. Real Home/Settings/Credit 150% screenshot artifact inspected, physical S24 signoff not inferred."
             ]
           },
           {
@@ -984,10 +985,10 @@
         ]
       }
     ],
-    "next_action": "Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.",
+    "next_action": "Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 212,
-    "current_subtask": "W6.3",
+    "pr": 213,
+    "current_subtask": "W6.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
