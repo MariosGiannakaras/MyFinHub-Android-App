@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
+1. Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #214, branch develop
-Current W6.1: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web-parity loan month-end forecast fix merged via #214 after four green exact-head gates; W4.2 remains partial. W6.3 exact-head CI remains complete; W6.1 edge scenarios, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance are still open.
+Issue #155, PR #216, branch android/w6-1-credit-statement-legacy-goldens-20261016
+Current W6.1: Verified 1/6 implementations · 10/24 subtasks. W6.1 Web credit-statement legacy empty-link and half-cent historical rounding regressions staged in PR #216; immutable-head Android/Tracking/screenshot/S24 CI and merge pending. W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
+Next Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

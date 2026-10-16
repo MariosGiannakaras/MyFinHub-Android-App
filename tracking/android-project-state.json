@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-gate CI validated and complete. W4.2 Web month-end loan forecast correction #214 merged with four green exact-head checks; no phase/subtask completion claimed from this partial fix. W6.1 edge fixture work and W6.2 real S24 owner accessibility/visual acceptance remain pending. W5.1 certified provider artwork and W2.4 safe permanent-delete lifecycle remain open; destructive UI disabled. No release.",
     "next": [
-      "Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release."
+      "Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "develop",
-    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W4.2 Web-parity loan month-end forecast fix merged via #214 after four green exact-head gates; W4.2 remains partial. W6.3 exact-head CI remains complete; W6.1 edge scenarios, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance are still open.",
+    "branch": "android/w6-1-credit-statement-legacy-goldens-20261016",
+    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W6.1 Web credit-statement legacy empty-link and half-cent historical rounding regressions staged in PR #216; immutable-head Android/Tracking/screenshot/S24 CI and merge pending. W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -953,7 +953,8 @@
             "status": "in_progress",
             "evidence": [
               "W6.1 PR #210 one anonymized canonical FinanceData golden integrated fixture: cash/payroll vs savings ledger, refund net budgets, 30/60/90 neutral transfer and scheduled expense, shared multi-goal savings, date-scoped loan/lending, rule-applied new event, stable offline replay preserving unknown Web fields. Native Compose positive account-password confirmation and in-flight double-submit regression plus credential field eviction on privacy/AAL2 lock. Exact-head four gates pending, no completion claimed.",
-              "W6.1 #210 anonymized single FinanceData cross-client ledger/forecast/savings/debt/rules/queued-event replay regression and security editor/privacy clearing merged to develop as 2df0ba3d00d75eee387b6b61ecee5cb369c76b39 after 4/4 exact-head gates. Continue W6.1 remaining edge-case coverage before completed."
+              "W6.1 #210 anonymized single FinanceData cross-client ledger/forecast/savings/debt/rules/queued-event replay regression and security editor/privacy clearing merged to develop as 2df0ba3d00d75eee387b6b61ecee5cb369c76b39 after 4/4 exact-head gates. Continue W6.1 remaining edge-case coverage before completed.",
+              "W6.1 PR #216 staged Web creditStatements.ts read-only money rounding and legacy blank/null statementId parity with golden as-of, payment-selection and orphan reconciliation tests. Unmerged and exact-head checks pending; W6.1 remains in_progress."
             ]
           },
           {
@@ -986,9 +987,9 @@
         ]
       }
     ],
-    "next_action": "Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.",
+    "next_action": "Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 214,
+    "pr": 216,
     "current_subtask": "W6.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
