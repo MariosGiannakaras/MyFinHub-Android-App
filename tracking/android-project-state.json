@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.4 #202 shared Insights/Activity signed Web finance flow merged after four exact-head gates, remaining W4.4 partial. W5.1 staged eight Web-known provider identity rules, native provider labels and neutral artwork fallback, safe owner+AAL2 dynamic financial provider catalog GET with no external URLs, and golden/Compose tests pending full CI. Dynamic provider selection/IBAN and verified asset retrieval remain outstanding. W2.4 permanent deletion UI disabled; no release.",
     "next": [
-      "Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release."
+      "Validate and merge W5.1 #203 if all four exact-head gates pass, then reanchor staged authenticated in-memory dynamic provider picker + session invalidation + Compose tests as one follow-up final CI batch; dynamic verified assets/IBAN still outstanding. No release."
     ]
   },
   "latest_production_candidate": {
@@ -898,7 +898,8 @@
             "evidence": [
               "W5.1 staged Web-known provider identity parity: full eight Web provider IDs (including National/Eurobank/PayPal and Magenta Pay label), Unicode Greek accent alias matching, authoritative explicit providerId precedence and unknown provider guard, provider-neutral readable marks for three brands missing verified assets, and provider-aware Home/Wallet/Plan names plus card picker and Kotlin goldens. Staged behind #202 with no new PR/CI or completed credit.",
               "W5.1 staged live provider catalog transport via existing owner+AAL2 GET /api/account-metadata?resource=financial-providers: strict non-URL ID/name/kind/country/sort/asset-key parsing, reject invalid rows and duplicate IDs, never fetch unverified remote artwork or persist it; MyFinHubApi synthetic fallback and OkHttp requestGate; 3 Kotlin goldens. Not wired into screen state yet and no PR/CI while #202 pending.",
-              "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending."
+              "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending.",
+              "W5.1 subsequent consolidated UI stage: in-memory authenticated per-user/token catalog StateFlow, refuse AAL1/offline, cancel stale async results on user/token switch, real CardCreate picker incorporates canonical owner-provided dynamic provider IDs with bundled fallback, production Compose goldens. Staged behind #203; no CI/PR or completed credit before #203 integration."
             ]
           },
           {
@@ -960,7 +961,7 @@
         ]
       }
     ],
-    "next_action": "Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.",
+    "next_action": "Validate and merge W5.1 #203 if all four exact-head gates pass, then reanchor staged authenticated in-memory dynamic provider picker + session invalidation + Compose tests as one follow-up final CI batch; dynamic verified assets/IBAN still outstanding. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 203,
     "current_subtask": "W5.1",

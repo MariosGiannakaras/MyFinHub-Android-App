@@ -121,6 +121,7 @@ internal fun MyFinHubAppContent(
     onQuickEntryAction: (QuickEntryAction) -> Unit = {},
     quickEntryMutationInFlight: Boolean = false,
     moneyState: MoneyUiState = MoneyUiState(),
+    financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
     cardSecretCleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onCardDetailOpened: (String) -> Unit = {},
@@ -385,6 +386,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.CardCreate> {
                     CanonicalCardCreateScreen(
                         cards = moneyState.cards,
+                        financialProviderCatalog = financialProviderCatalog,
                         onCreate = onCreateCard,
                         onSaveCardDetails = onSaveCardDetails,
                         onBack = { moneyBackStack.removeLastOrNull() },

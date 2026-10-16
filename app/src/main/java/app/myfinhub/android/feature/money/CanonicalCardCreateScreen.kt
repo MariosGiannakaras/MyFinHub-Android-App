@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
@@ -87,6 +88,7 @@ private val cardFormFactorOptions = listOf(
 @Composable
 fun CanonicalCardCreateScreen(
     cards: List<MoneyCard>,
+    financialProviderCatalog: List<FinancialProviderRecord> = emptyList(),
     onCreate: (CardCreateRequest) -> Unit,
     onSaveCardDetails: (String, CharArray, CharArray, CharArray) -> Unit = { _, pan, expiry, cvv ->
         pan.fill('\u0000')
@@ -96,7 +98,7 @@ fun CanonicalCardCreateScreen(
     onBack: () -> Unit,
 ) {
     var nickname by remember { mutableStateOf("") }
-    var selectedProvider by remember { mutableStateOf<FinancialProvider?>(FinancialProvider.PIRAEUS) }
+    var selectedProviderKey by remember { mutableStateOf(FinancialProvider.PIRAEUS.key) }
     var customBank by remember { mutableStateOf("") }
     var kind by remember { mutableStateOf("debit") }
     var network by remember { mutableStateOf("visa") }
@@ -111,7 +113,7 @@ fun CanonicalCardCreateScreen(
     var activePicker by rememberSaveable { mutableStateOf<String?>(null) }
 
     val dirty = nickname.isNotBlank() ||
-        selectedProvider != FinancialProvider.PIRAEUS ||
+        selectedProviderKey != FinancialProvider.PIRAEUS.key ||
         customBank.isNotBlank() ||
         kind != "debit" ||
         network != "visa" ||
@@ -135,10 +137,15 @@ fun CanonicalCardCreateScreen(
         if (cards.any { it.id == id }) onBack()
     }
 
-    val providerOptions = cardProviders.map { CardCreateOption(it.key, it.institutionLabel) } +
-        CardCreateOption("custom", "Άλλος εκδότης")
-    val selectedProviderValue = selectedProvider?.key ?: "custom"
-    val selectedProviderLabel = selectedProvider?.institutionLabel ?: "Άλλος εκδότης"
+    // Server-provided canonical IDs remain data, not an implicit logo or guessed bank name.
+    val providerOptions = (
+        cardProviders.map { CardCreateOption(it.key, it.institutionLabel) } +
+            financialProviderCatalog.map { CardCreateOption(it.id, it.displayName) }
+        ).distinctBy(CardCreateOption::value) + CardCreateOption("custom", "Άλλος εκδότης")
+    val selectedProviderValue = selectedProviderKey
+    val selectedProviderLabel = providerOptions.firstOrNull {
+        it.value == selectedProviderValue
+    }?.label ?: "Άλλος εκδότης"
 
     ScaffoldCardCreate(
         requestBack = requestBack,
@@ -173,7 +180,7 @@ fun CanonicalCardCreateScreen(
                 enabled = submittedId == null,
                 onClick = { activePicker = "provider" },
             )
-            if (selectedProvider == null) {
+            if (selectedProviderKey == "custom") {
                 OutlinedTextField(
                     value = customBank,
                     onValueChange = { customBank = it; validation = null },
@@ -261,7 +268,8 @@ fun CanonicalCardCreateScreen(
                 label = if (submittedId == null) "Δημιουργία κάρτας" else "Αποθήκευση…",
                 onClick = {
                     val normalizedNickname = nickname.trim()
-                    val normalizedBank = selectedProvider?.key ?: customBank.trim()
+                    val normalizedBank = if (selectedProviderKey == "custom") customBank.trim()
+                        else selectedProviderKey
                     val normalizedPan = pan.filter(Char::isDigit)
                     val normalizedExpiry = expiry.trim()
                     val normalizedCvv = cvv.filter(Char::isDigit)
@@ -357,7 +365,7 @@ fun CanonicalCardCreateScreen(
             onDismiss = { activePicker = null },
             onSelect = { value ->
                 when (picker) {
-                    "provider" -> selectedProvider = cardProviders.firstOrNull { it.key == value }
+                    "provider" -> selectedProviderKey = value
                     "kind" -> kind = value
                     "network" -> network = value
                     "form_factor" -> formFactor = value

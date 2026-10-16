@@ -34,6 +34,7 @@ import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
+import app.myfinhub.android.core.network.FinancialProviderRecord
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
@@ -119,12 +120,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         initialValue = connectivityObserver.current(),
     )
 
-    private val repository = FinanceRepository(
-        OkHttpMyFinHubApi(
-            configuration = AppConfiguration.fromBuildConfig(),
-            client = NetworkClientFactory.create(),
-        ),
+    private val providerAwareApi = OkHttpMyFinHubApi(
+        configuration = AppConfiguration.fromBuildConfig(),
+        client = NetworkClientFactory.create(),
     )
+    private val repository = FinanceRepository(providerAwareApi)
+    private val mutableFinancialProviderCatalog = MutableStateFlow<List<FinancialProviderRecord>>(emptyList())
+    /** In-memory, per-auth-session read-only provider metadata. Never persisted as finance data. */
+    val financialProviderCatalog: StateFlow<List<FinancialProviderRecord>> =
+        mutableFinancialProviderCatalog.asStateFlow()
     private val localStore = EncryptedFinanceLocalStore(application)
 
     private val mutableLastSuccessfulSync = MutableStateFlow<String?>(null)
@@ -147,12 +151,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var mutationLaunchInFlight = false
     private var loadJob: Job? = null
     private var mutationJob: Job? = null
+    private var providerCatalogJob: Job? = null
 
     init {
         viewModelScope.launch {
             networkStatus.drop(1).collect { status ->
                 if (status != NetworkStatus.ONLINE || !automaticSyncAllowed || currentSession == null) return@collect
                 val ready = mutableState.value as? FinanceProductState.Ready
+                if (mutableFinancialProviderCatalog.value.isEmpty()) {
+                    currentSession?.let(::refreshFinancialProviderCatalog)
+                }
                 if (reloadWhenOnline || ready?.offline == true || pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
                     loadFresh(preserveUi = true)
                 }
@@ -170,6 +178,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         currentSession = session
         automaticSyncAllowed = allowAutomaticSync
+        if (previous?.userId != session.userId || previous.accessToken != session.accessToken ||
+            mutableFinancialProviderCatalog.value.isEmpty()) {
+            refreshFinancialProviderCatalog(session)
+        }
 
         val ready = mutableState.value as? FinanceProductState.Ready
         if (previous?.userId == session.userId && ready != null) {
@@ -185,6 +197,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun clear() {
         cancelOperations()
         currentSession = null
+        providerCatalogJob?.cancel()
+        providerCatalogJob = null
+        mutableFinancialProviderCatalog.value = emptyList()
         automaticSyncAllowed = true
         lastServerDocument = null
         pendingMutations = emptyList()
@@ -1145,6 +1160,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     private fun cancelOperations() {
+        providerCatalogJob?.cancel()
+        providerCatalogJob = null
+        mutableFinancialProviderCatalog.value = emptyList()
         loadJob?.cancel()
         mutationJob?.cancel()
         loadJob = null
@@ -1161,6 +1179,24 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val current = mutableState.value as? FinanceProductState.Ready ?: return
         if (current.saving || current.issue != null) return
         mutableState.value = transform(current)
+    }
+
+    /**
+     * Optional metadata transport is strictly bound to a single authenticated owner session.
+     * A slow response for a prior user/token can never repopulate the next account's picker.
+     */
+    private fun refreshFinancialProviderCatalog(session: AuthSession) {
+        providerCatalogJob?.cancel()
+        mutableFinancialProviderCatalog.value = emptyList()
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        providerCatalogJob = viewModelScope.launch {
+            val result = providerAwareApi.loadFinancialProviders(session)
+            if (currentSession?.userId != session.userId ||
+                currentSession?.accessToken != session.accessToken ||
+                !automaticSyncAllowed) return@launch
+            mutableFinancialProviderCatalog.value =
+                (result as? ApiResult.Success<List<FinancialProviderRecord>>)?.value.orEmpty()
+        }
     }
 
     private fun canUseServer(): Boolean =
