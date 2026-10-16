@@ -34,6 +34,23 @@ class WebDynamicFinancialProviderPickerComposeTest {
         compose.onNodeWithText("Νέα Τράπεζα").assertIsDisplayed()
     }
 
+    @Test fun dynamicProviderNamedCustomDoesNotCollideWithManualIssuerSentinel() {
+        val provider = FinancialProviderRecord(
+            id = "custom", displayName = "Custom Verified Bank", shortName = "Custom",
+            providerKind = "bank", countryCode = "GR", sortOrder = 2,
+            logoAssetKey = null, wordmarkAssetKey = null,
+        )
+        compose.setContent { MyFinHubTheme {
+            CanonicalCardCreateScreen(
+                cards = emptyList(), financialProviderCatalog = listOf(provider),
+                onCreate = {}, onBack = {},
+            )
+        } }
+        compose.onNodeWithTag("card_create_provider").performClick()
+        compose.onNodeWithText("Custom Verified Bank").performClick()
+        compose.onNodeWithText("Custom Verified Bank").assertIsDisplayed()
+    }
+
     @Test fun unknownCatalogRendersBundledOptionsInsteadOfUnverifiedThirdPartyMarks() {
         compose.setContent { MyFinHubTheme {
             CanonicalCardCreateScreen(cards = emptyList(), financialProviderCatalog = emptyList(),

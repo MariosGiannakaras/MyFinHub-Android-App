@@ -141,7 +141,7 @@ fun CanonicalCardCreateScreen(
     val providerOptions = (
         cardProviders.map { CardCreateOption(it.key, it.institutionLabel) } +
             financialProviderCatalog.map { CardCreateOption(it.id, it.displayName) }
-        ).distinctBy(CardCreateOption::value) + CardCreateOption("custom", "Άλλος εκδότης")
+        ).distinctBy(CardCreateOption::value) + CardCreateOption("__manual_issuer__", "Άλλος εκδότης")
     val selectedProviderValue = selectedProviderKey
     val selectedProviderLabel = providerOptions.firstOrNull {
         it.value == selectedProviderValue
@@ -180,7 +180,7 @@ fun CanonicalCardCreateScreen(
                 enabled = submittedId == null,
                 onClick = { activePicker = "provider" },
             )
-            if (selectedProviderKey == "custom") {
+            if (selectedProviderKey == "__manual_issuer__") {
                 OutlinedTextField(
                     value = customBank,
                     onValueChange = { customBank = it; validation = null },
@@ -268,7 +268,7 @@ fun CanonicalCardCreateScreen(
                 label = if (submittedId == null) "Δημιουργία κάρτας" else "Αποθήκευση…",
                 onClick = {
                     val normalizedNickname = nickname.trim()
-                    val normalizedBank = if (selectedProviderKey == "custom") customBank.trim()
+                    val normalizedBank = if (selectedProviderKey == "__manual_issuer__") customBank.trim()
                         else selectedProviderKey
                     val normalizedPan = pan.filter(Char::isDigit)
                     val normalizedExpiry = expiry.trim()
