@@ -335,7 +335,8 @@ fun MyFinHubRoot(
                                             session, id, rawIban, revision,
                                         )
                                         val fresh = authViewModel.state.value as? AuthShellUiState.Ready
-                                        if (fresh?.session?.userId != session.userId ||
+                                            ?: return@launch
+                                        if (fresh.session.userId != session.userId ||
                                             fresh.session.accessToken != session.accessToken ||
                                             fresh.offline || metadataSessionKey !=
                                             (session.userId to session.accessToken)) return@launch
@@ -351,7 +352,8 @@ fun MyFinHubRoot(
                                                 accountMetadata = emptyMap()
                                                 val reload = accountMetadataApi.loadAccountMetadata(session)
                                                 val check = authViewModel.state.value as? AuthShellUiState.Ready
-                                                if (check?.session?.userId == session.userId &&
+                                                if (check != null &&
+                                                    check.session.userId == session.userId &&
                                                     check.session.accessToken == session.accessToken &&
                                                     !check.offline) {
                                                     if (reload is ApiResult.Success) {
