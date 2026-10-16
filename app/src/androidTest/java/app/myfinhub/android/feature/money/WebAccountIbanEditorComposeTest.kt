@@ -1,6 +1,6 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -54,6 +54,8 @@ class WebAccountIbanEditorComposeTest {
                 onSaveAccountIban={_,_ -> error("Unauthorized write") },
             )
         } }
-        rule.onNodeWithText("Προσθήκη IBAN").assertDoesNotExist()
+        rule.runOnIdle {
+            assertEquals(0,rule.onAllNodesWithText("Προσθήκη IBAN").fetchSemanticsNodes().size)
+        }
     }
 }
