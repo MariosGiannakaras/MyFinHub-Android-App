@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 9/24 completed subtasks. W4.4 #202 signed finance consistency and W5.1 #203 eight Web-known provider identities, owner+AAL2 catalog GET, neutral native marks merged after four exact-head CI checks each. Follow-up W5.1 #204 links the live per-session server catalog into native card issuer picker with cross-user cancellation and validated dynamic IDs, golden Compose tests pending. W5.1 still partial for asset/IBAN/dynamic account state. W2.4 permanent card deletion remains disabled, no release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.
 
 ## Immediate work
 
-- Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.
+- Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 9/24 completed subtasks. W4.4 #202 signed fina
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #204, branch android/w5-1-live-provider-picker-batch-20261016
-Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged 4/4; #204 real dynamic per-user catalog/issuer picker staged for exact-head CI, IBAN/artwork and physical device verification remain open.
+Issue #155, PR #205, branch android/w5-2-device-sessions-readonly-batch-20261016
+Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.
+Next Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -65,7 +65,7 @@ Next Validate W5.1 #204 live authenticated catalog, canonical dynamic provider c
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
-| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (pending); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
+| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
@@ -87,7 +87,7 @@ Next Validate W5.1 #204 live authenticated catalog, canonical dynamic provider c
 - [ ] W4.3 Savings, loans, lending and budgets — in_progress
 - [ ] W4.4 Transactions and analytics completeness — in_progress
 - [ ] W5.1 Dynamic provider/IBAN/assets contract — in_progress
-- [ ] W5.2 Auth/sync/history consistency — pending
+- [ ] W5.2 Auth/sync/history consistency — in_progress
 - [ ] W5.3 Card vault and security endpoints — pending
 - [ ] W5.4 Settings, backup, rules and ancillary parity — pending
 - [ ] W6.1 Golden cross-client fixture tests — pending

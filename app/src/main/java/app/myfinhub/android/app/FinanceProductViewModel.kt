@@ -35,6 +35,7 @@ import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.FinancialProviderRecord
+import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
@@ -68,6 +69,11 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+data class DeviceSessionsUiSnapshot(
+    val loaded: Boolean = false,
+    val devices: List<DeviceSessionRecord> = emptyList(),
+)
 
 sealed interface FinanceProductState {
     data object Idle : FinanceProductState
@@ -125,6 +131,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         client = NetworkClientFactory.create(),
     )
     private val repository = FinanceRepository(providerAwareApi)
+    private val mutableDeviceSessions = MutableStateFlow(DeviceSessionsUiSnapshot())
+    /** Sensitive per-session metadata is not cached to disk or included in finance revisions. */
+    val deviceSessions: StateFlow<DeviceSessionsUiSnapshot> = mutableDeviceSessions.asStateFlow()
     private val mutableFinancialProviderCatalog = MutableStateFlow<List<FinancialProviderRecord>>(emptyList())
     /** In-memory, per-auth-session read-only provider metadata. Never persisted as finance data. */
     val financialProviderCatalog: StateFlow<List<FinancialProviderRecord>> =
@@ -152,6 +161,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var loadJob: Job? = null
     private var mutationJob: Job? = null
     private var providerCatalogJob: Job? = null
+    private var deviceSessionsJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -161,6 +171,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 if (mutableFinancialProviderCatalog.value.isEmpty()) {
                     currentSession?.let(::refreshFinancialProviderCatalog)
                 }
+                if (!mutableDeviceSessions.value.loaded) currentSession?.let(::refreshDeviceSessions)
                 if (reloadWhenOnline || ready?.offline == true || pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
                     loadFresh(preserveUi = true)
                 }
@@ -182,6 +193,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             mutableFinancialProviderCatalog.value.isEmpty()) {
             refreshFinancialProviderCatalog(session)
         }
+        if (previous?.userId != session.userId || previous.accessToken != session.accessToken ||
+            !mutableDeviceSessions.value.loaded) refreshDeviceSessions(session)
 
         val ready = mutableState.value as? FinanceProductState.Ready
         if (previous?.userId == session.userId && ready != null) {
@@ -200,6 +213,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         providerCatalogJob?.cancel()
         providerCatalogJob = null
         mutableFinancialProviderCatalog.value = emptyList()
+        deviceSessionsJob?.cancel()
+        deviceSessionsJob = null
+        mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         automaticSyncAllowed = true
         lastServerDocument = null
         pendingMutations = emptyList()
@@ -1163,6 +1179,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         providerCatalogJob?.cancel()
         providerCatalogJob = null
         mutableFinancialProviderCatalog.value = emptyList()
+        deviceSessionsJob?.cancel()
+        deviceSessionsJob = null
+        mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         loadJob?.cancel()
         mutationJob?.cancel()
         loadJob = null
@@ -1196,6 +1215,22 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 !automaticSyncAllowed) return@launch
             mutableFinancialProviderCatalog.value =
                 (result as? ApiResult.Success<List<FinancialProviderRecord>>)?.value.orEmpty()
+        }
+    }
+
+    private fun refreshDeviceSessions(session: AuthSession) {
+        deviceSessionsJob?.cancel()
+        mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        deviceSessionsJob = viewModelScope.launch {
+            val fetched = providerAwareApi.loadDeviceSessions(session)
+            if (currentSession?.userId != session.userId ||
+                currentSession?.accessToken != session.accessToken ||
+                !automaticSyncAllowed) return@launch
+            val records = (fetched as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
+            mutableDeviceSessions.value = if (records != null) {
+                DeviceSessionsUiSnapshot(loaded = true, devices = records)
+            } else DeviceSessionsUiSnapshot()
         }
     }
 
