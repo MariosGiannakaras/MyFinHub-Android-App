@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 owner+AAL2 Web account email/password PATCH editor, exact session isolation and Kotlin/Compose tests merged 4/4 green; vault destructive/device acceptance outstanding. Consolidated W6.1 #210 integrates one anonymized canonical Web finance scenario across ledger, refunded budgets, forecast 30/60/90, savings goals, loans/lending and stable replay, plus explicit password confirmation and privacy-lock credential eviction; all exact-head CI pending. W2.4 irreversible card delete UI disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 secure owner+AAL2 Web account credential editor and W6.1 #210 unified anonymized FinanceData cross-client goldens plus privacy redaction/confirmation tests merged with 4/4 exact-head CI. W6.2 consolidated #211 large-text 150% native Settings/Recurring form controls and scrollable dialog with real Compose tests awaiting one exact-head four-gate CI. W2.4 permanent card-delete UI remains disabled; certified provider artwork and physical S24 owner acceptance outstanding. No release.",
     "next": [
-      "Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release."
+      "Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-1-cross-client-golden-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.3 #209 merged 4/4; W6.1 #210 cross-client ledger/budget/forecast/savings/loan/replay integration goldens and privacy-security Compose additions awaiting new CI. Permanent-delete UI disabled; no S24 owner signoff.",
+    "branch": "android/w6-2-large-type-security-recurring-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W6.1 #210 merged with four gates, broader goldens open. W6.2 #211 150% font screen/dialog accessibility pending exact-head checks and visual review. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -951,15 +951,18 @@
             "acceptance": "Assert account/credit/recurring/savings/categorization and legacy fixture outcomes and revision semantics.",
             "status": "in_progress",
             "evidence": [
-              "W6.1 PR #210 one anonymized canonical FinanceData golden integrated fixture: cash/payroll vs savings ledger, refund net budgets, 30/60/90 neutral transfer and scheduled expense, shared multi-goal savings, date-scoped loan/lending, rule-applied new event, stable offline replay preserving unknown Web fields. Native Compose positive account-password confirmation and in-flight double-submit regression plus credential field eviction on privacy/AAL2 lock. Exact-head four gates pending, no completion claimed."
+              "W6.1 PR #210 one anonymized canonical FinanceData golden integrated fixture: cash/payroll vs savings ledger, refund net budgets, 30/60/90 neutral transfer and scheduled expense, shared multi-goal savings, date-scoped loan/lending, rule-applied new event, stable offline replay preserving unknown Web fields. Native Compose positive account-password confirmation and in-flight double-submit regression plus credential field eviction on privacy/AAL2 lock. Exact-head four gates pending, no completion claimed.",
+              "W6.1 #210 anonymized single FinanceData cross-client ledger/forecast/savings/debt/rules/queued-event replay regression and security editor/privacy clearing merged to develop as 2df0ba3d00d75eee387b6b61ecee5cb369c76b39 after 4/4 exact-head gates. Continue W6.1 remaining edge-case coverage before completed."
             ]
           },
           {
             "id": "W6.2",
             "title": "Real Compose accessibility/visual verification",
             "acceptance": "S24 light/dark, large text, privacy, screen-reader/touch, account charts/card visuals/credit workspace.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W6.2 PR #211 150% font-scale native security password confirmation and recurring-management Compose accessibility regressions plus bounded vertically scrollable credential inputs; real S24 physical owner signoff and actual image review still pending, new exact-head CI required."
+            ]
           },
           {
             "id": "W6.3",
@@ -978,10 +981,10 @@
         ]
       }
     ],
-    "next_action": "Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.",
+    "next_action": "Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 210,
-    "current_subtask": "W6.1",
+    "pr": 211,
+    "current_subtask": "W6.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

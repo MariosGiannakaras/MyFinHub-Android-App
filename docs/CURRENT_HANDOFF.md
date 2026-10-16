@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 owner+AAL2 Web account email/password PATCH editor, exact session isolation and Kotlin/Compose tests merged 4/4 green; vault destructive/device acceptance outstanding. Consolidated W6.1 #210 integrates one anonymized canonical Web finance scenario across ledger, refunded budgets, forecast 30/60/90, savings goals, loans/lending and stable replay, plus explicit password confirmation and privacy-lock credential eviction; all exact-head CI pending. W2.4 irreversible card delete UI disabled. No release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 secure owner+AAL2 Web account credential editor and W6.1 #210 unified anonymized FinanceData cross-client goldens plus privacy redaction/confirmation tests merged with 4/4 exact-head CI. W6.2 consolidated #211 large-text 150% native Settings/Recurring form controls and scrollable dialog with real Compose tests awaiting one exact-head four-gate CI. W2.4 permanent card-delete UI remains disabled; certified provider artwork and physical S24 owner acceptance outstanding. No release.
 
 ## Immediate work
 
-- Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.
+- Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 owner+AAL2 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #210, branch android/w6-1-cross-client-golden-batch-20261016
-Current W6.1: Verified 1/6 implementations · 9/24 subtasks. W5.3 #209 merged 4/4; W6.1 #210 cross-client ledger/budget/forecast/savings/loan/replay integration goldens and privacy-security Compose additions awaiting new CI. Permanent-delete UI disabled; no S24 owner signoff.
+Issue #155, PR #211, branch android/w6-2-large-type-security-recurring-batch-20261016
+Current W6.2: Verified 1/6 implementations · 9/24 subtasks. W6.1 #210 merged with four gates, broader goldens open. W6.2 #211 150% font screen/dialog accessibility pending exact-head checks and visual review. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.
+Next Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -66,7 +66,7 @@ Next Validate single consolidated W6.1 #210 cross-client FinanceData/account-sec
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -91,7 +91,7 @@ Next Validate single consolidated W6.1 #210 cross-client FinanceData/account-sec
 - [ ] W5.3 Card vault and security endpoints — in_progress
 - [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
 - [ ] W6.1 Golden cross-client fixture tests — in_progress
-- [ ] W6.2 Real Compose accessibility/visual verification — pending
+- [ ] W6.2 Real Compose accessibility/visual verification — in_progress
 - [ ] W6.3 Exact-head CI, deduplication and tracking handoff — pending
 - [ ] W6.4 Owner physical acceptance and release isolation — pending
 
