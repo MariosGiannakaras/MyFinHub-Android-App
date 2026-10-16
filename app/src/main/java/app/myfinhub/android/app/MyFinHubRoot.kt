@@ -48,6 +48,7 @@ import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.OkHttpMyFinHubApi
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.network.ApiResult
+import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.core.ui.PrivacySafeNoticeHistoryStore
 import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.core.ui.UserNotice
@@ -137,6 +138,9 @@ fun MyFinHubRoot(
     var serverHistoryLoaded by remember { mutableStateOf(false) }
     var serverHistorySessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
     var serverHistoryRefresh by remember { mutableStateOf(0) }
+    var securityWriteJob by remember { mutableStateOf<Job?>(null) }
+    var securitySaving by remember { mutableStateOf(false) }
+    var securityFeedback by remember { mutableStateOf<String?>(null) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
@@ -164,6 +168,10 @@ fun MyFinHubRoot(
     // No disk/cache persistence. A changed, offline or locked session instantly clears values.
     // LaunchedEffect cancels stale network work on session changes.
     LaunchedEffect(authState) {
+        securityWriteJob?.cancel()
+        securityWriteJob = null
+        securitySaving = false
+        securityFeedback = null
         accountMetadataWriteJob?.cancel()
         accountMetadataWriteJob = null
         accountMetadataSaving = false
@@ -337,6 +345,41 @@ fun MyFinHubRoot(
                             serverHistoryEnabled = historyEnabled,
                             serverHistoryLoaded = historyAuthorized && serverHistoryLoaded,
                             onRefreshServerHistory = { serverHistoryRefresh += 1 },
+                            accountSecurityEnabled = historyEnabled &&
+                                activeMetadataSession?.session?.assuranceLevel ==
+                                    app.myfinhub.android.core.auth.AssuranceLevel.AAL2,
+                            accountSecuritySaving = securitySaving,
+                            accountSecurityFeedback = securityFeedback,
+                            onChangeAccountSecurity = { change ->
+                                val authorized = authViewModel.state.value as? AuthShellUiState.Ready
+                                if (!securitySaving && authorized != null && !authorized.offline &&
+                                    authorized.session.assuranceLevel ==
+                                        app.myfinhub.android.core.auth.AssuranceLevel.AAL2) {
+                                    val original = authorized.session
+                                    securitySaving = true
+                                    securityFeedback = null
+                                    securityWriteJob = accountMetadataScope.launch {
+                                        val reply = accountMetadataApi.changeAccountSecurity(original, change)
+                                        val active = authViewModel.state.value as? AuthShellUiState.Ready
+                                            ?: return@launch
+                                        if (active.offline || active.session.userId != original.userId ||
+                                            active.session.accessToken != original.accessToken) return@launch
+                                        securitySaving = false
+                                        securityFeedback = when (reply) {
+                                            is ApiResult.Success -> when (change) {
+                                                is WebAccountSecurityChange.Email ->
+                                                    if (reply.value.emailPendingConfirmation)
+                                                        "Ζητήθηκε αλλαγή email. Ελέγξτε το νέο email για επιβεβαίωση."
+                                                    else "Το email ενημερώθηκε στον server."
+                                                is WebAccountSecurityChange.Password ->
+                                                    "Ο κωδικός ενημερώθηκε στον server. Συνδεθείτε ξανά αν ζητηθεί."
+                                            }
+                                            is ApiResult.Failure ->
+                                                "Η υπηρεσία δεν επιβεβαίωσε την αλλαγή. Επαληθεύστε τη συνεδρία και δοκιμάστε ξανά."
+                                        }
+                                    }
+                                }
+                            },
                             onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
@@ -474,6 +517,10 @@ private fun FinanceProductSurface(
     serverHistoryEnabled: Boolean,
     serverHistoryLoaded: Boolean,
     onRefreshServerHistory: () -> Unit,
+    accountSecurityEnabled: Boolean,
+    accountSecuritySaving: Boolean,
+    accountSecurityFeedback: String?,
+    onChangeAccountSecurity: (WebAccountSecurityChange) -> Unit,
     onRevokeDeviceSession: (String) -> Unit,
     cardSecretState: CardSecretUiState,
     cardSecretCleanupState: CardSecretCleanupUiState,
@@ -531,6 +578,10 @@ private fun FinanceProductSurface(
                     serverHistoryEnabled = serverHistoryEnabled,
                     serverHistoryLoaded = serverHistoryLoaded,
                     onRefreshServerHistory = onRefreshServerHistory,
+                    accountSecurityEnabled = accountSecurityEnabled,
+                    accountSecuritySaving = accountSecuritySaving,
+                    accountSecurityFeedback = accountSecurityFeedback,
+                    onChangeAccountSecurity = onChangeAccountSecurity,
                     onRevokeDeviceSession = onRevokeDeviceSession,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,

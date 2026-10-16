@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
+import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
@@ -55,6 +56,10 @@ fun ProductionSettingsScreen(
     serverHistoryEnabled: Boolean = false,
     serverHistoryLoaded: Boolean = false,
     onRefreshServerHistory: () -> Unit = {},
+    accountSecurityEnabled: Boolean = false,
+    accountSecuritySaving: Boolean = false,
+    accountSecurityFeedback: String? = null,
+    onChangeAccountSecurity: ((WebAccountSecurityChange) -> Unit)? = null,
     deviceSessionRevocationInFlight: Boolean = false,
     onRevokeDeviceSession: ((String) -> Unit)? = null,
     onOpenNoticeHistory: () -> Unit = {},
@@ -309,6 +314,14 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        onChangeAccountSecurity?.let { handler ->
+                            AccountSecuritySettingsControls(
+                                enabled = accountSecurityEnabled && amountsVisible,
+                                saving = accountSecuritySaving,
+                                feedback = accountSecurityFeedback,
+                                onSubmit = handler,
+                            )
+                        }
                         MyFinHubOutlinedAction(
                             label = "Αποσύνδεση",
                             onClick = logout,

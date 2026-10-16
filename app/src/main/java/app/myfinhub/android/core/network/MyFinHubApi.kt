@@ -23,6 +23,13 @@ interface MyFinHubApi {
     ): ApiResult<AccountMetadataRecord> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Owner+AAL2 PATCH Web /api/auth/account; never queued or persisted locally. */
+    suspend fun changeAccountSecurity(
+        session: AuthSession,
+        change: WebAccountSecurityChange,
+    ): ApiResult<WebAccountSecurityReceipt> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     /** Only GET /api/history. No snapshot download, POST undo/redo or offline history cache. */
     suspend fun loadServerFinanceHistory(
         session: AuthSession,
