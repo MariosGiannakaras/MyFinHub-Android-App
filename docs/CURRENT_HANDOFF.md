@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 9/24 completed subtasks. W5.2 #205/#206 owner+AAL2 device listing, deployed Web route and two-step confirmed single-other-device revoke merged with 4/4 exact-head gates; physical S24 security acceptance pending. W5.1 consolidated #207 adds revision-conditional Web IBAN metadata write and real native Account Detail add/edit/confirm-remove with strict identity, per-user response guards and Kotlin/Compose tests pending exact-head CI. Verified provider artwork bindings and W2.4 permanent-delete safety remain open. No release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #207 secure owner+AAL2 IBAN metadata editor/confirmed removal merged with 4/4 exact-head gates; certified provider imagery and S24 owner acceptance outstanding. W5.2 #205/#206 true Web device API and confirmed other-device revocation merged with 4/4 each. W5.4 #208 staged as owner+AAL2 read-only GET /api/history (bounded, redacted history summary in real Settings, privacy mode, session isolation, GET-only refresh) with Kotlin/Compose tests, exact-head CI pending. W2.4 destructive card deletion remains disabled. No release.
 
 ## Immediate work
 
-- Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
+- Validate W5.4 #208 strict Web read-only finance change-history GET contract, exact-session ownership, privacy-aware Settings display, recovery and Compose tests with four exact-head CI gates; merge only if all pass. Continue W5.1 certified imagery and W2.4 safety/physical S24 acceptance separately; no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 9/24 completed subtasks. W5.2 #205/#206 owner+
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #207, branch android/w5-1-secure-iban-edit-consolidated-20261016
-Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W5.2 #206 merged 4/4 with real device GET/POST and confirmed single-device revoke. W5.1 #207 owner/AAL2 conditional IBAN edit and native UI prepared for CI; provider artwork and physical S24 pending.
+Issue #155, PR #208, branch android/w5-4-server-history-readonly-consolidated-20261016
+Current W5.4: Verified 1/6 implementations · 9/24 subtasks. W5.1 #207 IBAN edit merged four gates but artwork/physical acceptance outstanding. W5.4 #208 real Web GET history read-only owner+AAL2, session-isolated Settings and strict goldens pending exact-head CI. W2.4 destructive delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
+Next Validate W5.4 #208 strict Web read-only finance change-history GET contract, exact-session ownership, privacy-aware Settings display, recovery and Compose tests with four exact-head CI gates; merge only if all pass. Continue W5.1 certified imagery and W2.4 safety/physical S24 acceptance separately; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -65,7 +65,7 @@ Next Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native A
 | W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
-| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (pending) |
+| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (pending); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
 | W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (pending); W6.2 Real Compose accessibility/visual verification (pending); W6.3 Exact-head CI, deduplication and tracking handoff (pending); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
@@ -89,7 +89,7 @@ Next Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native A
 - [ ] W5.1 Dynamic provider/IBAN/assets contract — in_progress
 - [ ] W5.2 Auth/sync/history consistency — in_progress
 - [ ] W5.3 Card vault and security endpoints — pending
-- [ ] W5.4 Settings, backup, rules and ancillary parity — pending
+- [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
 - [ ] W6.1 Golden cross-client fixture tests — pending
 - [ ] W6.2 Real Compose accessibility/visual verification — pending
 - [ ] W6.3 Exact-head CI, deduplication and tracking handoff — pending
