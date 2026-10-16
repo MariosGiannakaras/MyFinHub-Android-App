@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 9/24 completed subtasks on the staging base. W6.1 #210 cross-client fixture and credential-privacy regressions in four exact-head CI gates. W6.2 next larger native large-text accessibility batch staged with scrollable password confirmation dialog and 150% font-scale real security/recurring Compose tests, deliberately no PR/CI until #210 merges. W2.4 permanent card deletion disabled, no S24 physical signoff or release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 secure owner+AAL2 Web account credential editor and W6.1 #210 unified anonymized FinanceData cross-client goldens plus privacy redaction/confirmation tests merged with 4/4 exact-head CI. W6.2 consolidated #211 large-text 150% native Settings/Recurring form controls and scrollable dialog with real Compose tests awaiting one exact-head four-gate CI. W2.4 permanent card-delete UI remains disabled; certified provider artwork and physical S24 owner acceptance outstanding. No release.
 
 ## Immediate work
 
-- Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release.
+- Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 9/24 completed subtasks on the staging base. W
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w6-2-large-type-security-recurring-batch-20261016
-Current W6.2: Verified 1/6 implementations · 9/24 subtasks at staged base; W6.1 #210 running; W6.2 native 150% font-scale scrollability and reachability fixes staged without PR/CI. W2.4 destructive UI disabled.
+Issue #155, PR #211, branch android/w6-2-large-type-security-recurring-batch-20261016
+Current W6.2: Verified 1/6 implementations · 9/24 subtasks. W6.1 #210 merged with four gates, broader goldens open. W6.2 #211 150% font screen/dialog accessibility pending exact-head checks and visual review. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release.
+Next Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

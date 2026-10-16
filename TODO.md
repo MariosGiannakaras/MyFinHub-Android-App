@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release.
+- [ ] Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w6-2-large-type-security-recurring-batch-20261016
-Current W6.2: Verified 1/6 implementations · 9/24 subtasks at staged base; W6.1 #210 running; W6.2 native 150% font-scale scrollability and reachability fixes staged without PR/CI. W2.4 destructive UI disabled.
+Issue #155, PR #211, branch android/w6-2-large-type-security-recurring-batch-20261016
+Current W6.2: Verified 1/6 implementations · 9/24 subtasks. W6.1 #210 merged with four gates, broader goldens open. W6.2 #211 150% font screen/dialog accessibility pending exact-head checks and visual review. W2.4 destructive UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release.
+Next Validate W6.2 #211 real Compose 150% font-scale Settings security and Recurring management accessibility with four exact-head UI/Tracking/Android gates; then inspect actual S24-equivalent screenshots and continue provider artwork/permanent-delete safety. No physical approval or release inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
