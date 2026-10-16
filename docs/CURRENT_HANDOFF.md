@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-gate CI validated and complete. W4.2 Web month-end loan forecast correction #214 merged with four green exact-head checks; no phase/subtask completion claimed from this partial fix. W6.1 edge fixture work and W6.2 real S24 owner accessibility/visual acceptance remain pending. W5.1 certified provider artwork and W2.4 safe permanent-delete lifecycle remain open; destructive UI disabled. No release.
+Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.
 
 ## Immediate work
 
-- Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.
+- Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release.
 
 ## Constraints
 
@@ -50,14 +50,14 @@ Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 10/24**
+**Implementations: 1/6 · Subtasks: 11/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #216, branch android/w6-1-credit-statement-legacy-goldens-20261016
-Current W6.1: Verified 1/6 implementations · 10/24 subtasks. W6.1 Web credit-statement legacy empty-link and half-cent historical rounding regressions staged in PR #216; immutable-head Android/Tracking/screenshot/S24 CI and merge pending. W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance remain open.
+Issue #155, PR #216, branch develop
+Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W6.1 merged cross-client golden coverage complete (#210/#216) after four green exact-head checks. W6.3 immutable CI already complete. W3.1 statement selection physical visual review and W3.2 remaining classification edges, W6.2 physical S24, W5.1 certified artwork and W2.4 destructive safety remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.
+Next Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -66,7 +66,7 @@ Next Run all four exact-head gates for W6.1 PR #216; merge only if green, then c
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 1/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 2/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -90,7 +90,7 @@ Next Run all four exact-head gates for W6.1 PR #216; merge only if green, then c
 - [ ] W5.2 Auth/sync/history consistency — in_progress
 - [ ] W5.3 Card vault and security endpoints — in_progress
 - [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
-- [ ] W6.1 Golden cross-client fixture tests — in_progress
+- [x] W6.1 Golden cross-client fixture tests — completed
 - [ ] W6.2 Real Compose accessibility/visual verification — in_progress
 - [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
 - [ ] W6.4 Owner physical acceptance and release isolation — pending

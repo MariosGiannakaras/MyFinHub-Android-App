@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-gate CI validated and complete. W4.2 Web month-end loan forecast correction #214 merged with four green exact-head checks; no phase/subtask completion claimed from this partial fix. W6.1 edge fixture work and W6.2 real S24 owner accessibility/visual acceptance remain pending. W5.1 certified provider artwork and W2.4 safe permanent-delete lifecycle remain open; destructive UI disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release."
+      "Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-1-credit-statement-legacy-goldens-20261016",
-    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W6.1 Web credit-statement legacy empty-link and half-cent historical rounding regressions staged in PR #216; immutable-head Android/Tracking/screenshot/S24 CI and merge pending. W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance remain open.",
+    "branch": "develop",
+    "checkpoint": "Verified 1/6 implementations · 11/24 subtasks. W6.1 merged cross-client golden coverage complete (#210/#216) after four green exact-head checks. W6.3 immutable CI already complete. W3.1 statement selection physical visual review and W3.2 remaining classification edges, W6.2 physical S24, W5.1 certified artwork and W2.4 destructive safety remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -950,11 +950,12 @@
             "id": "W6.1",
             "title": "Golden cross-client fixture tests",
             "acceptance": "Assert account/credit/recurring/savings/categorization and legacy fixture outcomes and revision semantics.",
-            "status": "in_progress",
+            "status": "completed",
             "evidence": [
               "W6.1 PR #210 one anonymized canonical FinanceData golden integrated fixture: cash/payroll vs savings ledger, refund net budgets, 30/60/90 neutral transfer and scheduled expense, shared multi-goal savings, date-scoped loan/lending, rule-applied new event, stable offline replay preserving unknown Web fields. Native Compose positive account-password confirmation and in-flight double-submit regression plus credential field eviction on privacy/AAL2 lock. Exact-head four gates pending, no completion claimed.",
               "W6.1 #210 anonymized single FinanceData cross-client ledger/forecast/savings/debt/rules/queued-event replay regression and security editor/privacy clearing merged to develop as 2df0ba3d00d75eee387b6b61ecee5cb369c76b39 after 4/4 exact-head gates. Continue W6.1 remaining edge-case coverage before completed.",
-              "W6.1 PR #216 staged Web creditStatements.ts read-only money rounding and legacy blank/null statementId parity with golden as-of, payment-selection and orphan reconciliation tests. Unmerged and exact-head checks pending; W6.1 remains in_progress."
+              "PR #216 squash merged to develop a5c9c96a9a7c6135be890743d65543a2f64e4ee4 after all four exact-head Android CI, Project Tracking, screenshot regression and S24 emulator checks succeeded. Explicit Web creditStatements.ts Math.round + EPS historical fractional-cent parity and missing/null/blank legacy link reconciliation are covered by Kotlin goldens, including future-asOf and selected payoff.",
+              "W6.1 acceptance coverage integrated on develop: W1 account/projection Web goldens (#167); credit cycle/history/legacy ownership and payable selection (#186/#190/#192 and #216); recurring cadence/forecast (#195/#197); savings goals and signed flow/category rules (#193/#201/#202); anonymized canonical FinanceData ledger/forecast/savings/debt/rules and stable replay goldens (#210); optimistic revision conflict and NEEDS_REVIEW/no-blind-retry regression in FinanceRepositoryTest / OfflinePendingMutationSemanticsTest. Cross-client fixtures are Web-derived, not a claim of physical S24 acceptance or completion of other W2–W5 subtasks."
             ]
           },
           {
@@ -987,10 +988,10 @@
         ]
       }
     ],
-    "next_action": "Run all four exact-head gates for W6.1 PR #216; merge only if green, then continue cross-client credit/recurring legacy fixture edges and S24 physical review. Keep permanent-delete UI disabled; no release.",
+    "next_action": "Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 216,
-    "current_subtask": "W6.1",
+    "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
