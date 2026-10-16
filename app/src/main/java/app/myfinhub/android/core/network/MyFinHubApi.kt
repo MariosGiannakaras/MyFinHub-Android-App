@@ -12,6 +12,17 @@ interface MyFinHubApi {
     suspend fun loadAccountMetadata(session: AuthSession): ApiResult<Map<String, AccountMetadataRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Owner+AAL2 Web IBAN metadata write, conditional on the exact server record revision.
+     * Separate from finance JSON, never queued offline or logged as an ordinary mutation.
+     */
+    suspend fun updateAccountIban(
+        session: AuthSession,
+        accountId: String,
+        iban: String?,
+        expectedRevision: Long,
+    ): ApiResult<AccountMetadataRecord> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     /** Authenticated owner+AAL2 read of the Web dynamic provider catalog, no asset fetches. */
     suspend fun loadFinancialProviders(session: AuthSession): ApiResult<List<FinancialProviderRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)

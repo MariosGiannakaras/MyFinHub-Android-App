@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release.
+- [ ] Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #206, branch android/w5-2-device-revoke-web-contract-batch-20261016
-Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.2 #205 merged 4/4 but original native path wrong; #206 real GET/POST Web device route and confirmed one-other-device revoke awaiting full CI. W2.4 permanent delete disabled.
+Issue #155, PR #207, branch android/w5-1-secure-iban-edit-consolidated-20261016
+Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W5.2 #206 merged 4/4 with real device GET/POST and confirmed single-device revoke. W5.1 #207 owner/AAL2 conditional IBAN edit and native UI prepared for CI; provider artwork and physical S24 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release.
+Next Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

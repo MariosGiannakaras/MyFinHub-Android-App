@@ -72,6 +72,49 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun updateAccountIban(
+        session: AuthSession,
+        accountId: String,
+        iban: String?,
+        expectedRevision: Long,
+    ): ApiResult<AccountMetadataRecord> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val id = accountId.trim()
+        val normalized = normalizeIban(iban)
+        if (!ACCOUNT_METADATA_ID_REGEX.matches(id) ||
+            expectedRevision < 0L || !isValidIban(normalized)) {
+            return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        }
+        val body = buildJsonObject {
+            put("accountId", JsonPrimitive(id))
+            put("iban", normalized?.let(::JsonPrimitive) ?: kotlinx.serialization.json.JsonNull)
+        }.toString()
+        val request = authenticatedRequest(session, "/api/account-metadata")
+            .header("If-Match", expectedRevision.toString())
+            .put(body.toRequestBody(JSON_MEDIA_TYPE))
+            .build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val payload = json.parseToJsonElement(responseBody).jsonObject
+                val row = payload["record"] as? JsonObject ?: error("Missing record")
+                val returnedId = (row["accountId"] as? JsonPrimitive)?.contentOrNull
+                    ?.takeIf { it == id } ?: error("Mismatched record identity")
+                val revision = (row["revision"] as? JsonPrimitive)?.contentOrNull
+                    ?.toLongOrNull()?.takeIf { it > expectedRevision }
+                    ?: error("Missing or stale revision")
+                val updatedAt = (row["updatedAt"] as? JsonPrimitive)?.contentOrNull
+                    ?.takeIf(String::isNotBlank) ?: error("Missing timestamp")
+                val actualIban = (row["iban"] as? JsonPrimitive)?.contentOrNull
+                if (!isValidIban(actualIban) || normalizeIban(actualIban) != normalized)
+                    error("Mismatched or invalid IBAN")
+                ApiResult.Success(AccountMetadataRecord(
+                    returnedId, normalizeIban(actualIban), revision, updatedAt,
+                ))
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
     override suspend fun loadFinancialProviders(
         session: AuthSession,
     ): ApiResult<List<FinancialProviderRecord>> {
