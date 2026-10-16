@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -69,6 +70,8 @@ import app.myfinhub.android.feature.utilities.AppAppearance
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
 import java.net.URI
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
 
@@ -119,6 +122,9 @@ fun MyFinHubRoot(
         AppAppearance.DARK -> true
     }
 
+    val accountMetadataScope = rememberCoroutineScope()
+    var accountMetadataWriteJob by remember { mutableStateOf<Job?>(null) }
+    var accountMetadataSaving by remember { mutableStateOf(false) }
     val accountMetadataApi = remember {
         OkHttpMyFinHubApi(AppConfiguration.fromBuildConfig(), NetworkClientFactory.create())
     }
@@ -152,6 +158,9 @@ fun MyFinHubRoot(
     // No disk/cache persistence. A changed, offline or locked session instantly clears values.
     // LaunchedEffect cancels stale network work on session changes.
     LaunchedEffect(authState) {
+        accountMetadataWriteJob?.cancel()
+        accountMetadataWriteJob = null
+        accountMetadataSaving = false
         accountMetadata = emptyMap()
         accountMetadataLoaded = false
         metadataSessionKey = null
@@ -308,6 +317,56 @@ fun MyFinHubRoot(
                             onSetRecurringStatus = financeViewModel::setRecurringStatus,
                             onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
                             onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
+                            onSaveAccountIban = { id, rawIban ->
+                                val sessionReady = authViewModel.state.value as? AuthShellUiState.Ready
+                                val ready = financeViewModel.state.value as? FinanceProductState.Ready
+                                val account = ready?.projection?.moneyState?.accounts?.singleOrNull { it.id == id }
+                                val eligible = account?.canonicalKind in setOf("bank", "savings")
+                                if (!accountMetadataSaving && accountMetadataLoaded &&
+                                    metadataSessionKey != null && sessionReady != null &&
+                                    !sessionReady.offline && eligible &&
+                                    metadataSessionKey ==
+                                        (sessionReady.session.userId to sessionReady.session.accessToken)) {
+                                    val session = sessionReady.session
+                                    val revision = accountMetadata[id]?.revision ?: 0L
+                                    accountMetadataSaving = true
+                                    accountMetadataWriteJob = accountMetadataScope.launch {
+                                        val response = accountMetadataApi.updateAccountIban(
+                                            session, id, rawIban, revision,
+                                        )
+                                        val fresh = authViewModel.state.value as? AuthShellUiState.Ready
+                                        if (fresh?.session?.userId != session.userId ||
+                                            fresh.session.accessToken != session.accessToken ||
+                                            fresh.offline || metadataSessionKey !=
+                                            (session.userId to session.accessToken)) return@launch
+                                        accountMetadataSaving = false
+                                        when (response) {
+                                            is ApiResult.Success -> {
+                                                accountMetadata = accountMetadata + (id to response.value)
+                                                snackbarHostState.showSnackbar("Το IBAN ενημερώθηκε με επιβεβαίωση server.")
+                                            }
+                                            is ApiResult.Failure -> {
+                                                // Revision conflict or ambiguous write: no optimistic value.
+                                                accountMetadataLoaded = false
+                                                accountMetadata = emptyMap()
+                                                val reload = accountMetadataApi.loadAccountMetadata(session)
+                                                val check = authViewModel.state.value as? AuthShellUiState.Ready
+                                                if (check?.session?.userId == session.userId &&
+                                                    check.session.accessToken == session.accessToken &&
+                                                    !check.offline) {
+                                                    if (reload is ApiResult.Success) {
+                                                        accountMetadata = reload.value
+                                                        accountMetadataLoaded = true
+                                                    }
+                                                    snackbarHostState.showSnackbar(
+                                                        "Η αλλαγή δεν επιβεβαιώθηκε. Ελέγχθηκαν ξανά τα metadata.")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            accountMetadataSaving = accountMetadataSaving,
                             onCardDetailOpened = cardSecretViewModel::openCard,
                             onCardDetailClosed = cardSecretViewModel::closeCard,
                             onRevealCardSecrets = cardSecretViewModel::reveal,
@@ -388,6 +447,8 @@ private fun FinanceProductSurface(
     onSetRecurringStatus: (String, String) -> Unit,
     onSaveSavingsGoal: (String?, String, String, String?) -> Unit,
     onDeleteSavingsGoal: (String) -> Unit,
+    onSaveAccountIban: (String, String?) -> Unit,
+    accountMetadataSaving: Boolean,
     onCardDetailOpened: (String) -> Unit,
     onCardDetailClosed: (String) -> Unit,
     onRevealCardSecrets: () -> Unit,
@@ -421,6 +482,8 @@ private fun FinanceProductSurface(
                     homeState = projection.homeState,
                     accountMetadata = accountMetadata,
                     accountMetadataLoaded = accountMetadataLoaded,
+                    onSaveAccountIban = onSaveAccountIban,
+                    accountMetadataSaving = accountMetadataSaving,
                     financialProviderCatalog = financialProviderCatalog,
                     deviceSessions = deviceSessions,
                     onHomeAction = onHomeAction,

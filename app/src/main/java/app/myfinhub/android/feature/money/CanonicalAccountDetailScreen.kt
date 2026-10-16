@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.core.network.AccountMetadataRecord
+import app.myfinhub.android.core.network.isValidIban
+import app.myfinhub.android.core.network.normalizeIban
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -52,6 +57,8 @@ fun CanonicalAccountDetailScreen(
     amountsVisibleOverride: Boolean? = null,
     ibanRecord: AccountMetadataRecord? = null,
     accountMetadataLoaded: Boolean = false,
+    onSaveAccountIban: ((String, String?) -> Unit)? = null,
+    accountMetadataSaving: Boolean = false,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember(context) {
@@ -59,6 +66,46 @@ fun CanonicalAccountDetailScreen(
     }
     var storedAmountsVisible by remember(context) { mutableStateOf(AmountVisibilityPreference.read(context)) }
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
+    var editingIban by remember(account?.id) { mutableStateOf(false) }
+    var newIban by remember(account?.id) { mutableStateOf("") }
+    val normalizedInput = normalizeIban(newIban)
+    val inputValid = normalizedInput != null && isValidIban(normalizedInput)
+    if (editingIban && account != null && accountMetadataLoaded &&
+        onSaveAccountIban != null && !accountMetadataSaving) {
+        AlertDialog(
+            onDismissRequest = { editingIban = false; newIban = "" },
+            title = { Text("Ενημέρωση IBAN") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text("Ο IBAN αποθηκεύεται ξεχωριστά από τα οικονομικά δεδομένα και ελέγχεται από τον server.")
+                    OutlinedTextField(
+                        value = newIban,
+                        onValueChange = { if (it.length <= 64) newIban = it },
+                        label = { Text("Νέο IBAN") },
+                        singleLine = true,
+                        isError = newIban.isNotBlank() && !inputValid,
+                    )
+                    if (newIban.isNotBlank() && !inputValid)
+                        Text("Μη έγκυρο IBAN", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = inputValid,
+                    onClick = {
+                        onSaveAccountIban(account.id, normalizedInput)
+                        editingIban = false
+                        newIban = ""
+                    },
+                ) { Text("Αποθήκευση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingIban = false; newIban = "" }) {
+                    Text("Ακύρωση")
+                }
+            },
+        )
+    }
     DisposableEffect(preferences) {
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == AmountVisibilityPreference.KEY) storedAmountsVisible = AmountVisibilityPreference.read(context)
@@ -102,6 +149,13 @@ fun CanonicalAccountDetailScreen(
                         Text("Τρέχον υπόλοιπο", style = MaterialTheme.typography.labelLarge)
                         if (account.canonicalKind == "bank" || account.canonicalKind == "savings") {
                             AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                            if (accountMetadataLoaded && amountsVisible &&
+                                onSaveAccountIban != null) {
+                                TextButton(
+                                    enabled = !accountMetadataSaving,
+                                    onClick = { editingIban = true },
+                                ) { Text(if (ibanRecord?.iban == null) "Προσθήκη IBAN" else "Αλλαγή IBAN") }
+                            }
                         }
                         MyFinHubAmountText(
                             text = if (amountsVisible) formatAccountEuro(account.balance) else "•••• €",
