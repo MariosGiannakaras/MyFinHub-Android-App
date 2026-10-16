@@ -78,8 +78,6 @@ class WebAccountIbanEditorComposeTest {
                 onSaveAccountIban={_,_ -> error("Unauthorized write") },
             )
         } }
-        rule.runOnIdle {
-            assertEquals(0,rule.onAllNodesWithText("Προσθήκη IBAN").fetchSemanticsNodes().size)
-        }
+        assertEquals(0,rule.onAllNodesWithText("Προσθήκη IBAN").fetchSemanticsNodes().size)
     }
 }
