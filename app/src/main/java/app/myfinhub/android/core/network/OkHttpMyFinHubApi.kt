@@ -131,6 +131,50 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun changeAccountSecurity(
+        session: AuthSession,
+        change: WebAccountSecurityChange,
+    ): ApiResult<WebAccountSecurityReceipt> {
+        requestGate(session)?.let { return it }
+        val normalizedEmail = (change as? WebAccountSecurityChange.Email)?.let {
+            normalizedAccountSecurityEmail(it.value)
+                ?: return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        }
+        if (change is WebAccountSecurityChange.Password &&
+            !validAccountSecurityPassword(change.current, change.replacement)) {
+            return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        }
+        val requestBody = buildJsonObject {
+            when (change) {
+                is WebAccountSecurityChange.Email -> {
+                    put("action", JsonPrimitive("email"))
+                    put("email", JsonPrimitive(normalizedEmail!!))
+                }
+                is WebAccountSecurityChange.Password -> {
+                    put("action", JsonPrimitive("password"))
+                    put("currentPassword", JsonPrimitive(change.current))
+                    put("newPassword", JsonPrimitive(change.replacement))
+                }
+            }
+        }.toString()
+        val request = authenticatedRequest(session, "/api/auth/account")
+            .patch(requestBody.toRequestBody(JSON_MEDIA_TYPE)).build()
+        return execute(request) { responseBody ->
+            runCatching {
+                val row = json.parseToJsonElement(responseBody).jsonObject
+                require((row["ok"] as? JsonPrimitive)?.booleanOrNull == true)
+                val pending = (row["pendingEmail"] as? JsonPrimitive)?.contentOrNull
+                val actual = (row["email"] as? JsonPrimitive)?.contentOrNull
+                if (normalizedEmail != null) {
+                    require(pending == normalizedEmail || actual == normalizedEmail)
+                }
+                ApiResult.Success(WebAccountSecurityReceipt(
+                    emailPendingConfirmation = normalizedEmail != null && pending == normalizedEmail,
+                ))
+            }.getOrElse { ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE) }
+        }
+    }
+
     override suspend fun loadServerFinanceHistory(
         session: AuthSession,
     ): ApiResult<ServerFinanceHistorySummary> {
