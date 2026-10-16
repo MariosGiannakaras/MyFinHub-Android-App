@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 #212 shared immutable PR merge-tree checkout plus full Android/Tracking/screenshot/emulator validation merged with four exact-head green gates. W6.2 150% Compose snapshot artifacts inspected, but physical S24 owner accessibility/visual approval remains pending. W5.1 certified provider artwork and W2.4 safe card permanent-delete lifecycle remain open; destructive UI disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-gate CI validated and complete. W4.2 Web month-end loan forecast correction #214 merged with four green exact-head checks; no phase/subtask completion claimed from this partial fix. W6.1 edge fixture work and W6.2 real S24 owner accessibility/visual acceptance remain pending. W5.1 certified provider artwork and W2.4 safe permanent-delete lifecycle remain open; destructive UI disabled. No release.",
     "next": [
-      "Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release."
+      "Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-2-loan-monthend-forecast-parity-20261016",
-    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W4.2 Web forecast month-end loan-day parity correction and golden regressions staged for PR #214; pending immutable-head Android/Tracking/screenshot/S24 gates. W6.2 physical S24 approval, W5.1 verified artwork and W2.4 destructive card-delete acceptance remain outstanding.",
+    "branch": "develop",
+    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W4.2 Web-parity loan month-end forecast fix merged via #214 after four green exact-head gates; W4.2 remains partial. W6.3 exact-head CI remains complete; W6.1 edge scenarios, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance are still open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -852,7 +852,7 @@
               "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required.",
               "W4.2 #196 merged 4/4 CI as 54c6ddeda6e6463341b3fe441ef768e7cb8d851d; #197 adds Plan forecast real Compose 30/60/90 Web portfolio summary, low/negative and omission warnings, including privacy masking. Preserved first-use no-account windows; W4.2 remains partial visual/device acceptance pending.",
               "W4.2 consolidated native risk+omissions and 30/60/90 portfolio comparison #197 merged with four green exact-head checks, physical/visual owner acceptance still outstanding.",
-              "Staged W4.2 Web forecast.ts parity fix for loan installment day preservation after 28/29-day February in PR #214: Kotlin 90-day golden tests for Jan-31, leap February, already-paid cycle and March-31 restoration. Exact-head CI/merge not yet verified; subtask remains in_progress."
+              "PR #214 squash merged to Android develop 05c87e42931f93863cd23970b2dfae134b2149e7 after four exact-head Android CI, Project Tracking, screenshot regression and S24 emulator gates passed. Web `followingMonthlyDate` loan-day renewal parity fixes 31→28/29→31 drift, including a settled billing cycle, with Kotlin goldens. W4.2 remains in_progress pending full forecast/physical acceptance."
             ]
           },
           {
@@ -986,10 +986,10 @@
         ]
       }
     ],
-    "next_action": "Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.",
+    "next_action": "Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 214,
-    "current_subtask": "W4.2",
+    "current_subtask": "W6.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
