@@ -23,11 +23,17 @@ interface MyFinHubApi {
     ): ApiResult<AccountMetadataRecord> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Only GET /api/history. No snapshot download, POST undo/redo or offline history cache. */
+    suspend fun loadServerFinanceHistory(
+        session: AuthSession,
+    ): ApiResult<ServerFinanceHistorySummary> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     /** Authenticated owner+AAL2 read of the Web dynamic provider catalog, no asset fetches. */
     suspend fun loadFinancialProviders(session: AuthSession): ApiResult<List<FinancialProviderRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
-    /** Owner+AAL2 read-only Web /api/device-sessions, no revoke actions or secret caching. */
+    /** Owner+AAL2 read-only Web GET /api/auth/devices, no secret caching. */
     suspend fun loadDeviceSessions(session: AuthSession): ApiResult<List<DeviceSessionRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 

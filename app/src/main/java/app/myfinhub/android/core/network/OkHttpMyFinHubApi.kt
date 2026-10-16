@@ -131,6 +131,18 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun loadServerFinanceHistory(
+        session: AuthSession,
+    ): ApiResult<ServerFinanceHistorySummary> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val request = authenticatedRequest(session, "/api/history").get().build()
+        return execute(request) { body ->
+            parseServerFinanceHistory(body, json)?.let { ApiResult.Success(it) }
+                ?: ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+        }
+    }
+
     override suspend fun loadDeviceSessions(
         session: AuthSession,
     ): ApiResult<List<DeviceSessionRecord>> {
