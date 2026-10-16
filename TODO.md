@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.
+- [ ] Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
 
 ## Completed foundations
 
@@ -56,14 +56,14 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 9/24**
+**Implementations: 1/6 · Subtasks: 10/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #212, branch android/w6-3-immutable-pr-ci-gates-batch-20261016
-Current W6.3: Verified Web parity 1/6 implementations · 9/24 subtasks. W6.2 #211 merged 4/4. W6.3 #212 tests same immutable PR tree across four gates, CI pending; destructive UI disabled.
+Issue #155, PR #213, branch android/w6-3-verified-handoff-closeout-20261016
+Current W6.2: Verified 1/6 implementations · 10/24 subtasks. W6.3 #212 merged with 4/4 exact-head checks and screenshot review. W6.2 physical S24/large text/TalkBack acceptance pending; W5.1 verified logos open; permanent-delete UI disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI gates before merge; then continue real rendered screenshots, W5.1 certified provider artwork and owner physical S24 signoff. Permanent card deletion UI disabled; no release.
+Next Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -72,7 +72,7 @@ Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI 
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 0/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.3 Exact-head CI, deduplication and tracking handoff (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 1/4 | W6.1 Golden cross-client fixture tests (in_progress); W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -98,7 +98,7 @@ Next Validate W6.3 #212 immutable PR merge-tree checkout and four exact-head CI 
 - [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
 - [ ] W6.1 Golden cross-client fixture tests — in_progress
 - [ ] W6.2 Real Compose accessibility/visual verification — in_progress
-- [ ] W6.3 Exact-head CI, deduplication and tracking handoff — in_progress
+- [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
 - [ ] W6.4 Owner physical acceptance and release isolation — pending
 
 ### Blockers
