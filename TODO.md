@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release.
+- [ ] Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #216, branch develop
-Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W6.1 merged cross-client golden coverage complete (#210/#216) after four green exact-head checks. W6.3 immutable CI already complete. W3.1 statement selection physical visual review and W3.2 remaining classification edges, W6.2 physical S24, W5.1 certified artwork and W2.4 destructive safety remain open.
+Issue #155, PR #218, branch android/w3-2-safe-cents-money-validation-20261016
+Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 Web money.ts safe-cent integer boundary, signed EPSILON rounding and split aggregate overflows staged in PR #218 with cross-client golden tests; 4/4 exact-head gates and merge pending. W3.2 remains partial. W6.1/W6.3 complete; W3.1 physical visuals, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete safeguards open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue W3.2 outstanding canonical event/classification edge cases and W3.1 credit-statement visual fidelity checks; retain W6.2 real S24 owner accessibility/visual acceptance as pending, W5.1 logo verification and W2.4 permanent-delete UI disabled. No release.
+Next Run four immutable-head CI/screenshot/S24 emulator/tracking checks on W3.2 PR #218; merge only if green. Continue W3.2 remaining classification/validation parity, W3.1 visual review, W6.2 physical S24 owner acceptance, verified artwork W5.1 and W2.4 guard. No release or permanent-delete UI.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

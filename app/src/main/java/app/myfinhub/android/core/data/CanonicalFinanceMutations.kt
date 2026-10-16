@@ -1,7 +1,7 @@
 package app.myfinhub.android.core.data
 
 import java.time.LocalDate
-import kotlin.math.roundToLong
+import kotlin.math.floor
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -361,9 +361,30 @@ data class UpsertOverallBudget(
     }
 }
 
+/** JavaScript Number.MAX_SAFE_INTEGER: Web money.ts refuses larger cent integers. */
+internal const val MAX_SAFE_CANONICAL_CENTS = 9_007_199_254_740_991L
+
+/**
+ * Web src/lib/money.ts: Math.round((value + sign(value) * Number.EPSILON) * 100).
+ *
+ * Math.round ties toward +infinity (including negative half-cent values); direct
+ * Kotlin roundToLong omits the Web epsilon and can misclassify 1.005 as 1.00.
+ * Compare the fractional part instead of adding 0.5 to the entire floating
+ * value: adding 0.5 at ~2^53 can accidentally change an already-safe integer.
+ * This validation is shared by entry, split, loan and savings mutations.
+ */
 fun moneyToCents(value: Double): Long {
     require(value.isFinite()) { "Το ποσό δεν είναι έγκυρο." }
-    return (value * 100.0).roundToLong()
+    val biased = value + if (value < 0.0) -Math.ulp(1.0) else Math.ulp(1.0)
+    val scaled = biased * 100.0
+    require(scaled.isFinite()) { "Το ποσό είναι εκτός επιτρεπτού εύρους." }
+    val lower = floor(scaled)
+    val rounded = if (scaled - lower >= 0.5) lower + 1.0 else lower
+    require(rounded >= -MAX_SAFE_CANONICAL_CENTS.toDouble() &&
+        rounded <= MAX_SAFE_CANONICAL_CENTS.toDouble()) {
+        "Το ποσό είναι εκτός επιτρεπτού εύρους."
+    }
+    return rounded.toLong()
 }
 
 fun centsToMoney(cents: Long): Double = cents / 100.0
