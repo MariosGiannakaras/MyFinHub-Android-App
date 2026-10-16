@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 owner+AAL2 Web account email/password PATCH editor, exact session isolation and Kotlin/Compose tests merged 4/4 green; vault destructive/device acceptance outstanding. Consolidated W6.1 #210 integrates one anonymized canonical Web finance scenario across ledger, refunded budgets, forecast 30/60/90, savings goals, loans/lending and stable replay, plus explicit password confirmation and privacy-lock credential eviction; all exact-head CI pending. W2.4 irreversible card delete UI disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks on the staging base. W6.1 #210 cross-client fixture and credential-privacy regressions in four exact-head CI gates. W6.2 next larger native large-text accessibility batch staged with scrollable password confirmation dialog and 150% font-scale real security/recurring Compose tests, deliberately no PR/CI until #210 merges. W2.4 permanent card deletion disabled, no S24 physical signoff or release.",
     "next": [
-      "Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release."
+      "Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-1-cross-client-golden-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.3 #209 merged 4/4; W6.1 #210 cross-client ledger/budget/forecast/savings/loan/replay integration goldens and privacy-security Compose additions awaiting new CI. Permanent-delete UI disabled; no S24 owner signoff.",
+    "branch": "android/w6-2-large-type-security-recurring-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks at staged base; W6.1 #210 running; W6.2 native 150% font-scale scrollability and reachability fixes staged without PR/CI. W2.4 destructive UI disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -958,8 +958,10 @@
             "id": "W6.2",
             "title": "Real Compose accessibility/visual verification",
             "acceptance": "S24 light/dark, large text, privacy, screen-reader/touch, account charts/card visuals/credit workspace.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W6.2 large-type/150% real Compose Settings account-password modal and Recurring Management action reachability; explicitly bounded vertically-scrollable credential inputs, no single-row clipping and 48dp recurring controls. Staged behind W6.1 #210 without second PR/CI; no real device or screenshot owner approval claimed."
+            ]
           },
           {
             "id": "W6.3",
@@ -978,10 +980,10 @@
         ]
       }
     ],
-    "next_action": "Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.",
+    "next_action": "Finish W6.1 #210 all exact-head CI gates and merge if green. Reanchor this staged W6.2 large-type Settings/Recurring accessibility batch afterwards; run one full CI cycle and inspect actual real Compose screenshots before calling visual acceptance. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 210,
-    "current_subtask": "W6.1",
+    "pr": 0,
+    "current_subtask": "W6.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
