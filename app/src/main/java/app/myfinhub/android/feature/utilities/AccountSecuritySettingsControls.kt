@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,18 @@ fun AccountSecuritySettingsControls(
     var currentPassword by remember(mode) { mutableStateOf("") }
     var newPassword by remember(mode) { mutableStateOf("") }
     var confirmation by remember(mode) { mutableStateOf("") }
+
+    // Privacy conceal, AAL2 lock or write submission must evict all typed credentials
+    // from the transient editor, not merely hide its dialog for later re-opening.
+    LaunchedEffect(enabled, saving) {
+        if (!enabled || saving) {
+            email = ""
+            currentPassword = ""
+            newPassword = ""
+            confirmation = ""
+            mode = null
+        }
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text("Στοιχεία σύνδεσης", style = MaterialTheme.typography.titleMedium)
