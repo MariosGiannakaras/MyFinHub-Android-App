@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W4.4 #202 signed finance consistency and W5.1 #203 eight Web-known provider identities, owner+AAL2 catalog GET, neutral native marks merged after four exact-head CI checks each. Follow-up W5.1 #204 links the live per-session server catalog into native card issuer picker with cross-user cancellation and validated dynamic IDs, golden Compose tests pending. W5.1 still partial for asset/IBAN/dynamic account state. W2.4 permanent card deletion remains disabled, no release.",
+    "summary": "Web parity 1/6 implementations · 9/24 validated completed subtasks. W5.1 #203 provider catalog contracts merged with 4/4 gates, #204 live card provider picker/volatile per-token isolation in exact-head CI. Parallel W5.2 draft adds read-only secured device-session GET and strict DTO/MockWebServer tests without opening another CI; native device UI and revocation require follow-up. W2.4 card delete remains disabled; no release.",
     "next": [
-      "Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release."
+      "Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w5-1-live-provider-picker-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged 4/4; #204 real dynamic per-user catalog/issuer picker staged for exact-head CI, IBAN/artwork and physical device verification remain open.",
+    "branch": "android/w5-2-device-sessions-readonly-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged, #204 in CI; W5.2 read-only authenticated device session parser/API tests staged without PR/CI. W2.4 permanent delete disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -907,8 +907,10 @@
             "id": "W5.2",
             "title": "Auth/sync/history consistency",
             "acceptance": "AAL2/owner bearer, optimistic revisions, history generation, pending/offline NEEDS_REVIEW, no blind retries.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W5.2 staged owner+AAL2 read-only Web GET /api/device-sessions DTO with UUID/date/count/dup validation and no cookie bearer network leakage, AAL1 fail-before-network and Kotlin MockWebServer golden tests. No UI/revoke/network acceptance claim; held behind W5.1 #204 without PR/CI."
+            ]
           },
           {
             "id": "W5.3",
@@ -962,10 +964,10 @@
         ]
       }
     ],
-    "next_action": "Validate W5.1 #204 live authenticated catalog, canonical dynamic provider card selection and user/token isolation with all four exact-head gates; then finish verified provider assets/IBAN and W5 security/auth parity in consolidated batches. Keep S24 owner acceptance separate, no release.",
+    "next_action": "Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 204,
-    "current_subtask": "W5.1",
+    "pr": 0,
+    "current_subtask": "W5.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

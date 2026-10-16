@@ -88,6 +88,19 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun loadDeviceSessions(
+        session: AuthSession,
+    ): ApiResult<List<DeviceSessionRecord>> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val request = authenticatedRequest(session, "/api/device-sessions").get().build()
+        return execute(request) { body ->
+            val sessions = parseDeviceSessions(body, json)
+                ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+            ApiResult.Success(sessions)
+        }
+    }
+
     override suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,
