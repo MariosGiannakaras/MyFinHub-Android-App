@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 #212 shared immutable PR merge-tree checkout plus full Android/Tracking/screenshot/emulator validation merged with four exact-head green gates. W6.2 150% Compose snapshot artifacts inspected, but physical S24 owner accessibility/visual approval remains pending. W5.1 certified provider artwork and W2.4 safe card permanent-delete lifecycle remain open; destructive UI disabled. No release.",
     "next": [
-      "Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release."
+      "Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w6-3-verified-handoff-closeout-20261016",
-    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W6.3 #212 merged with 4/4 exact-head checks and screenshot review. W6.2 physical S24/large text/TalkBack acceptance pending; W5.1 verified logos open; permanent-delete UI disabled.",
+    "branch": "android/w4-2-loan-monthend-forecast-parity-20261016",
+    "checkpoint": "Verified 1/6 implementations · 10/24 subtasks. W4.2 Web forecast month-end loan-day parity correction and golden regressions staged for PR #214; pending immutable-head Android/Tracking/screenshot/S24 gates. W6.2 physical S24 approval, W5.1 verified artwork and W2.4 destructive card-delete acceptance remain outstanding.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -851,7 +851,8 @@
               "W4.2 consolidated Web forecast.ts read-only 30/60/90 portfolio model: scheduled, recurring and loan installment projections, future event legs, early payment handling, account minimum/first low/negative alerts, omitted invalid links, source counts, five golden Kotlin vectors and Plan windows. H7 spendable headline deliberately unchanged; new exact-head CI pending.",
               "W4.2 first Android CI found two old projection fixture assertions expecting no forecastWindows; updated populated-data test for 30/60/90 Web windows and preserve empty windows only when no non-credit accounts. Tracking check fixed with exact renderer; fresh head 4/4 required.",
               "W4.2 #196 merged 4/4 CI as 54c6ddeda6e6463341b3fe441ef768e7cb8d851d; #197 adds Plan forecast real Compose 30/60/90 Web portfolio summary, low/negative and omission warnings, including privacy masking. Preserved first-use no-account windows; W4.2 remains partial visual/device acceptance pending.",
-              "W4.2 consolidated native risk+omissions and 30/60/90 portfolio comparison #197 merged with four green exact-head checks, physical/visual owner acceptance still outstanding."
+              "W4.2 consolidated native risk+omissions and 30/60/90 portfolio comparison #197 merged with four green exact-head checks, physical/visual owner acceptance still outstanding.",
+              "Staged W4.2 Web forecast.ts parity fix for loan installment day preservation after 28/29-day February in PR #214: Kotlin 90-day golden tests for Jan-31, leap February, already-paid cycle and March-31 restoration. Exact-head CI/merge not yet verified; subtask remains in_progress."
             ]
           },
           {
@@ -985,10 +986,10 @@
         ]
       }
     ],
-    "next_action": "Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.",
+    "next_action": "Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 213,
-    "current_subtask": "W6.2",
+    "pr": 214,
+    "current_subtask": "W4.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
