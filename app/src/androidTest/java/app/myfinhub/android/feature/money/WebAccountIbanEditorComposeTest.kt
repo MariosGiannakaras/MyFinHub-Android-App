@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
@@ -65,7 +64,7 @@ class WebAccountIbanEditorComposeTest {
         rule.onNodeWithText("Ακύρωση").performClick()
         rule.runOnIdle { assertNull(saved) }
         rule.onNodeWithText("Αφαίρεση IBAN").performScrollTo().performClick()
-        rule.onAllNodesWithText("Αφαίρεση IBAN").onLast().performClick()
+        rule.onAllNodesWithText("Αφαίρεση IBAN")[1].performClick()
         rule.runOnIdle { assertEquals("payroll" to null,saved) }
     }
 
