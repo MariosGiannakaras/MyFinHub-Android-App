@@ -135,6 +135,7 @@ fun MyFinHubRoot(
         mutableStateOf<app.myfinhub.android.core.network.ServerFinanceHistorySummary?>(null)
     }
     var serverHistoryLoaded by remember { mutableStateOf(false) }
+    var serverHistorySessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
     var serverHistoryRefresh by remember { mutableStateOf(0) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
@@ -187,11 +188,13 @@ fun MyFinHubRoot(
     LaunchedEffect(authState, serverHistoryRefresh) {
         serverHistory = null
         serverHistoryLoaded = false
+        serverHistorySessionKey = null
         val ready = authState as? AuthShellUiState.Ready
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadServerFinanceHistory(ready.session)) {
                 is ApiResult.Success -> {
                     serverHistory = result.value
+                    serverHistorySessionKey = ready.session.userId to ready.session.accessToken
                     serverHistoryLoaded = true
                 }
                 is ApiResult.Failure -> Unit
@@ -305,6 +308,10 @@ fun MyFinHubRoot(
     val activeMetadataSession = authState as? AuthShellUiState.Ready
     val metadataAuthorized = activeMetadataSession != null && !activeMetadataSession.offline &&
         metadataSessionKey == (activeMetadataSession.session.userId to activeMetadataSession.session.accessToken)
+    val historyEnabled = activeMetadataSession != null && !activeMetadataSession.offline
+    val historyAuthorized = historyEnabled &&
+        serverHistorySessionKey ==
+            (activeMetadataSession?.session?.userId to activeMetadataSession?.session?.accessToken)
 
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
@@ -326,9 +333,9 @@ fun MyFinHubRoot(
                                 financialProviderCatalog else emptyList(),
                             deviceSessions = if (metadataAuthorized) deviceSessions
                                 else DeviceSessionsUiSnapshot(),
-                            serverHistory = if (metadataAuthorized) serverHistory else null,
-                            serverHistoryEnabled = metadataAuthorized,
-                            serverHistoryLoaded = metadataAuthorized && serverHistoryLoaded,
+                            serverHistory = if (historyAuthorized) serverHistory else null,
+                            serverHistoryEnabled = historyEnabled,
+                            serverHistoryLoaded = historyAuthorized && serverHistoryLoaded,
                             onRefreshServerHistory = { serverHistoryRefresh += 1 },
                             onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
                             cardSecretState = cardSecretState,
