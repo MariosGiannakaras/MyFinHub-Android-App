@@ -1,43 +1,88 @@
 package app.myfinhub.android.core.ui
 
+import java.text.Normalizer
 import java.util.Locale
 
+/** Web financialProviders.ts known registry; unknown server providers remain unknown. */
 enum class FinancialProvider(
     val key: String,
     val institutionLabel: String,
     val cardLabel: String,
 ) {
     PIRAEUS("piraeus", "Τράπεζα Πειραιώς", "Piraeus"),
-    REVOLUT("revolut", "Revolut", "Revolut"),
     ALPHA("alpha", "Alpha Bank", "ALPHA BANK"),
-    PAYZY("payzy", "payzy by COSMOTE", "payzy"),
+    NATIONAL("national", "Εθνική Τράπεζα", "NBG"),
+    EUROBANK("eurobank", "Eurobank", "Eurobank"),
+    REVOLUT("revolut", "Revolut", "Revolut"),
     VIVA("viva", "Viva.com", "Viva.com"),
+    PAYZY("payzy", "Magenta Pay", "payzy"),
+    PAYPAL("paypal", "PayPal", "PayPal"),
 }
 
-fun financialProvider(id: String?, name: String?): FinancialProvider? {
-    val text = "${id.orEmpty()} ${name.orEmpty()}".lowercase(Locale.ROOT)
+private fun normalizeProviderName(raw: String): String = Normalizer
+    .normalize(raw.lowercase(Locale.forLanguageTag("el-GR")), Normalizer.Form.NFD)
+    .replace(Regex("\\p{M}+"), "")
+
+/** Web financialProviderId: accent-insensitive aliases for all eight canonical providers. */
+fun financialProviderId(vararg values: String?): String {
+    val text = normalizeProviderName(values.filterNotNull().filter(String::isNotBlank).joinToString(" "))
     return when {
-        "piraeus" in text || "πειραι" in text -> FinancialProvider.PIRAEUS
-        "revolut" in text -> FinancialProvider.REVOLUT
-        "alpha" in text -> FinancialProvider.ALPHA
-        "payzy" in text -> FinancialProvider.PAYZY
-        "viva" in text -> FinancialProvider.VIVA
-        else -> null
+        "piraeus" in text || "πειραι" in text -> "piraeus"
+        "alpha" in text -> "alpha"
+        "national" in text || "nbg" in text || "εθνικ" in text -> "national"
+        "eurobank" in text -> "eurobank"
+        "revolut" in text -> "revolut"
+        "viva" in text -> "viva"
+        "payzy" in text || "magenta pay" in text -> "payzy"
+        "paypal" in text -> "paypal"
+        else -> ""
     }
 }
 
-fun financialAccountDisplayName(accountId: String, canonicalName: String, kind: String): String {
+/** Web providerId is authoritative; do not relabel unknown IDs by a guessed account name. */
+fun accountFinancialProviderId(
+    providerId: String?,
+    provider: String?,
+    accountId: String,
+    accountName: String,
+): String = providerId?.trim()?.takeIf(String::isNotBlank)
+    ?: financialProviderId(provider, accountId, accountName)
+
+/**
+ * Exact providerId takes precedence over fallback bank/name matching.
+ * Null is safe: no fake third-party logo or bank identity for unknown providers.
+ */
+fun financialProvider(id: String?, name: String?, explicitProviderId: String? = null): FinancialProvider? {
+    val key = if (!explicitProviderId.isNullOrBlank()) explicitProviderId.trim()
+        else financialProviderId(id, name)
+    return FinancialProvider.entries.firstOrNull { it.key == key }
+}
+
+fun financialAccountDisplayName(
+    accountId: String,
+    canonicalName: String,
+    kind: String,
+    providerId: String? = null,
+): String {
     if (kind == "cash" || accountId == "cash") return canonicalName.ifBlank { "Μετρητά" }
-    val provider = financialProvider(accountId, canonicalName)
+    val provider = financialProvider(accountId, canonicalName, providerId)
     val trimmed = canonicalName.trim()
     val withoutInstitution = when (provider) {
         FinancialProvider.PIRAEUS -> trimmed
-            .replace(Regex("^(Πειραιώς|Piraeus)\\s+", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("^(Πειραιώς|Piraeus|Τράπεζα Πειραιώς)\\s+", RegexOption.IGNORE_CASE), "")
             .trim()
+            .takeUnless { trimmed.equals("Τράπεζα Πειραιώς", ignoreCase = true) }.orEmpty()
         FinancialProvider.REVOLUT -> trimmed.takeUnless { it.equals("Revolut", ignoreCase = true) }.orEmpty()
         FinancialProvider.ALPHA -> trimmed.takeUnless { it.equals("Alpha Bank", ignoreCase = true) }.orEmpty()
-        FinancialProvider.PAYZY -> trimmed.takeUnless { it.contains("payzy", ignoreCase = true) }.orEmpty()
+        FinancialProvider.NATIONAL -> trimmed.takeUnless {
+            it.equals("Εθνική Τράπεζα", ignoreCase = true) || it.equals("NBG", ignoreCase = true)
+        }.orEmpty()
+        FinancialProvider.EUROBANK -> trimmed.takeUnless { it.equals("Eurobank", ignoreCase = true) }.orEmpty()
+        FinancialProvider.PAYZY -> trimmed.takeUnless {
+            it.contains("payzy", ignoreCase = true) || it.equals("Magenta Pay", ignoreCase = true)
+        }.orEmpty()
         FinancialProvider.VIVA -> trimmed.takeUnless { it.contains("viva", ignoreCase = true) }.orEmpty()
+        FinancialProvider.PAYPAL -> trimmed.takeUnless { it.equals("PayPal", ignoreCase = true) }.orEmpty()
         null -> trimmed
     }
     if (withoutInstitution.isNotBlank()) return withoutInstitution

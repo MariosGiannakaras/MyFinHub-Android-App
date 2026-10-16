@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.3 #198–#201 budget, as-of loans/lending, Pay & Save, multi-goal savings and guarded goal CRUD merged after four exact-head CI gates each; W4.3 remains partial pending owner S24 visual acceptance. W4.4 #202 staged consolidated Insights and Activity Web signed-flow parity/legacy splits, net refunds, explicit-zero savings and accurate category drilldown, pending full exact-head checks. W2.4 irreversible card deletion disabled; no release.",
+    "summary": "Web parity 1/6 implementations and 9/24 completed subtasks. W4.4 #202 shared Insights/Activity signed Web finance flow merged after four exact-head gates, remaining W4.4 partial. W5.1 staged eight Web-known provider identity rules, native provider labels and neutral artwork fallback, safe owner+AAL2 dynamic financial provider catalog GET with no external URLs, and golden/Compose tests pending full CI. Dynamic provider selection/IBAN and verified asset retrieval remain outstanding. W2.4 permanent deletion UI disabled; no release.",
     "next": [
-      "Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release."
+      "Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-unified-insights-ledger-flows-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.3 #201 owner-safe SavingsGoal CRUD merged; W4.4 one financial flow implementation for Insights+Activity and signed category drilldowns staged, exact-head CI pending. W2.4 destructive UI disabled.",
+    "branch": "android/w5-1-provider-identities-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W4.4 #202 merged green; W5.1 provider identity/catalog/neutral mark exact-head CI pending; live dynamic integration and S24 signoff remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -879,7 +879,8 @@
             "acceptance": "Consistent history, filters, categories/drilldowns, edit/delete, comparisons and remaining Web domain flows.",
             "status": "in_progress",
             "evidence": [
-              "W4.4 batched PR #202 consolidates Web signed flow semantics across monthlyFlow/flowBetween/Insights and production Activity rows: explicit zero savingAmount vs missing is preserved, refunds net expense, internal transfers/card repayments/lending omitted from expense, exact category drilldown excludes zero-contribution rows; new cross-domain regression goldens. Exact-head CI not yet confirmed, no completion count claimed."
+              "W4.4 batched PR #202 consolidates Web signed flow semantics across monthlyFlow/flowBetween/Insights and production Activity rows: explicit zero savingAmount vs missing is preserved, refunds net expense, internal transfers/card repayments/lending omitted from expense, exact category drilldown excludes zero-contribution rows; new cross-domain regression goldens. Exact-head CI not yet confirmed, no completion count claimed.",
+              "W4.4 PR #202 shared Web-signed monthlyFlow, Insights/Activity and category drilldowns merged to develop as af755b3842f739ba19507d851c04b3b66482a919 after 4/4 exact-head gates; full W4.4 parity still partial."
             ]
           }
         ]
@@ -893,8 +894,12 @@
             "id": "W5.1",
             "title": "Dynamic provider/IBAN/assets contract",
             "acceptance": "Read canonical providers, metadata, IBAN, logos/wordmarks/card marks and remove hardcoded bank assumptions.",
-            "status": "pending",
-            "evidence": []
+            "status": "in_progress",
+            "evidence": [
+              "W5.1 staged Web-known provider identity parity: full eight Web provider IDs (including National/Eurobank/PayPal and Magenta Pay label), Unicode Greek accent alias matching, authoritative explicit providerId precedence and unknown provider guard, provider-neutral readable marks for three brands missing verified assets, and provider-aware Home/Wallet/Plan names plus card picker and Kotlin goldens. Staged behind #202 with no new PR/CI or completed credit.",
+              "W5.1 staged live provider catalog transport via existing owner+AAL2 GET /api/account-metadata?resource=financial-providers: strict non-URL ID/name/kind/country/sort/asset-key parsing, reject invalid rows and duplicate IDs, never fetch unverified remote artwork or persist it; MyFinHubApi synthetic fallback and OkHttp requestGate; 3 Kotlin goldens. Not wired into screen state yet and no PR/CI while #202 pending.",
+              "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending."
+            ]
           },
           {
             "id": "W5.2",
@@ -955,10 +960,10 @@
         ]
       }
     ],
-    "next_action": "Validate consolidated W4.4 #202 shared signed-flow/Insights/Activity consistency and category drilldown golden tests with four exact-head CI gates; only merge fully green. Then tackle W5.1 provider metadata/API parity, W3.1 credit owner visuals and W2.4 end-to-end safe card deletion; retain physical S24 owner acceptance as distinct blocker. No release.",
+    "next_action": "Validate W5.1 provider identity/owner+AAL2 catalog/neutral marks batch via four exact-head CI gates, merge only when all green; then integrate dynamic catalog into actual UI state, complete IBAN/asset Web parity, and review W5.2/W5.3 security. Keep W2.4 delete disabled. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 202,
-    "current_subtask": "W4.4",
+    "pr": 203,
+    "current_subtask": "W5.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
