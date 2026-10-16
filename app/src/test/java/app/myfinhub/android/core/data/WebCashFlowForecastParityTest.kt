@@ -87,6 +87,32 @@ class WebCashFlowForecastParityTest {
         assertEquals(1100.0,p.projectedPortfolio,0.001)
     }
 
+    @Test fun monthEndLoanForecastRestoresTheThirtyFirstAfterFebruaryInCommonAndLeapYears() {
+        for ((year, february) in listOf(2027 to "2027-02-28", 2028 to "2028-02-29")) {
+            val loan = """{"id":"month-end","name":"Month-end loan","installment":100,
+                "total":600,"installments":6,"day":"31",
+                "firstExpectedDate":"$year-01-31","defaultAccountId":"bank"}"""
+            val projection = document(scheduled="", recurring="", loans=loan, events="")
+                .cashFlowForecast(LocalDate.parse("$year-01-20"), 90)
+            val dates = projection.movements.filter { it.source == "loan" }.map { it.date.toString() }
+            assertEquals(listOf("$year-01-31", february, "$year-03-31"), dates)
+            assertEquals(3, projection.sourceCounts["loan"])
+        }
+    }
+
+    @Test fun settledMonthEndLoanCycleStartsNextMonthWithoutShiftingLaterDueDates() {
+        val loan = """{"id":"month-end","name":"Month-end loan","installment":100,
+            "total":600,"installments":6,"day":"31",
+            "firstExpectedDate":"2027-01-31","defaultAccountId":"bank"}"""
+        val alreadyPaid = """{"id":"loan-paid","kind":"loan_payment","date":"2027-01-31",
+            "loanId":"month-end","amount":100,"installmentCount":1,"legs":[]}"""
+        val projection = document(scheduled="", recurring="", loans=loan, events=alreadyPaid)
+            .cashFlowForecast(LocalDate.parse("2027-01-31"), 90)
+        val dates = projection.movements.filter { it.source == "loan" }.map { it.date.toString() }
+        assertEquals(listOf("2027-02-28", "2027-03-31", "2027-04-30"), dates)
+        assertEquals(3, projection.sourceCounts["loan"])
+    }
+
     @Test fun invalidHorizonRejectedInsteadOfClamped() {
         assertThrows(IllegalArgumentException::class.java) {
             document().cashFlowForecast(today,45)

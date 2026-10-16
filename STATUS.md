@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
+1. Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #213, branch android/w6-3-verified-handoff-closeout-20261016
-Current W6.2: Verified 1/6 implementations · 10/24 subtasks. W6.3 #212 merged with 4/4 exact-head checks and screenshot review. W6.2 physical S24/large text/TalkBack acceptance pending; W5.1 verified logos open; permanent-delete UI disabled.
+Issue #155, PR #214, branch android/w4-2-loan-monthend-forecast-parity-20261016
+Current W4.2: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web forecast month-end loan-day parity correction and golden regressions staged for PR #214; pending immutable-head Android/Tracking/screenshot/S24 gates. W6.2 physical S24 approval, W5.1 verified artwork and W2.4 destructive card-delete acceptance remain outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue W6.2 physical S24 owner review of real Home/Cards/Settings Compose screenshots, large font, privacy and TalkBack; verify W5.1 certified provider artwork without inventing logos. Keep W2.4 permanent-delete UI disabled pending destructive end-to-end safety and owner signoff. No release.
+Next Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

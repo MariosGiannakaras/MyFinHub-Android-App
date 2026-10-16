@@ -36,6 +36,12 @@ private fun LocalDate.afterMonths(count: Int): LocalDate {
 private fun LocalDate.atForecastDay(day: Int) =
     YearMonth.from(this).atDay(min(day, YearMonth.from(this).lengthOfMonth()))
 
+/** Preserve Web's original loan payment day after February/month-end clamping. */
+private fun LocalDate.followingForecastMonthAt(day: Int): LocalDate {
+    val following = YearMonth.from(this).plusMonths(1)
+    return following.atDay(min(day, following.lengthOfMonth()))
+}
+
 /**
  * The portfolio includes every non-credit account (including excluded savings); two valid
  * portfolio legs of a transfer net to zero. Omitted unsafe references are surfaced, not guessed.
@@ -152,12 +158,12 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         var next = if (anchor != null && !anchor.isBefore(asOf)) anchor else
             asOf.atForecastDay(typical).let { if (it.isBefore(asOf)) it.afterMonths(1) else it }
         if (YearMonth.from(next) == YearMonth.from(asOf) &&
-            knownDates.any { YearMonth.from(it) == YearMonth.from(asOf) }) next = next.afterMonths(1)
+            knownDates.any { YearMonth.from(it) == YearMonth.from(asOf) }) next = next.followingForecastMonthAt(typical)
         var count = 0
         while (!next.isAfter(end) && count < left) {
             add("forecast-loan-$loanId-$next-$count", next, "loan", name,
                 listOf(leg(accountId!!, -installment)))
-            next = next.afterMonths(1)
+            next = next.followingForecastMonthAt(typical)
             count++
         }
     }
