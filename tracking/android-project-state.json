@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.2 #205 owner+AAL2 device-session listing merged 4/4, but its GET route did not match deployed Web. Consolidated #206 corrects GET `/api/auth/devices`, adds explicit confirmation for single-other-device POST revocation, guards owner/AAL2/current session and stale-user responses, never queues or retries ambiguous revocation; new Web/Compose tests and exact-head CI pending. W5.1 IBAN/artwork and W2.4 safe permanent deletion remain incomplete. No release.",
     "next": [
-      "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release."
+      "Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w5-2-device-sessions-readonly-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.",
+    "branch": "android/w5-2-device-revoke-web-contract-batch-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.2 #205 merged 4/4 but original native path wrong; #206 real GET/POST Web device route and confirmed one-other-device revoke awaiting full CI. W2.4 permanent delete disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -910,7 +910,9 @@
             "acceptance": "AAL2/owner bearer, optimistic revisions, history generation, pending/offline NEEDS_REVIEW, no blind retries.",
             "status": "in_progress",
             "evidence": [
-              "W5.2 consolidated #205 read-only owner+AAL2 Web device session GET/parser with bad UUID/time/count and AAL1 no-request MockWebServer tests, per-user/token ephemeral state and actual Settings Compose view without raw IDs/revocation; no destructive controls and full exact-head CI pending."
+              "W5.2 consolidated #205 read-only owner+AAL2 Web device session GET/parser with bad UUID/time/count and AAL1 no-request MockWebServer tests, per-user/token ephemeral state and actual Settings Compose view without raw IDs/revocation; no destructive controls and full exact-head CI pending.",
+              "W5.2 #205 read-only device sessions merged to develop as 4e51a73b85d3ccc74fe67ac85e1d46c526800925 with 4/4 exact-head checks; post-merge Web route audit uncovered incorrectly assumed `/api/device-sessions` GET path, not present in deployed Web rewrites.",
+              "W5.2 consolidated #206 corrects native GET to actual Web `/api/auth/devices`, adds bearer+AAL2 single-other-device confirmed POST, UI current-session protection, session/token cancellation, no offline queue or POST retries, GET-only ambiguity reconciliation and Kotlin+Compose tests. Exact-head 4/4 CI pending. S24 physical acceptance not inferred."
             ]
           },
           {
@@ -965,9 +967,9 @@
         ]
       }
     ],
-    "next_action": "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.",
+    "next_action": "Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 205,
+    "pr": 206,
     "current_subtask": "W5.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

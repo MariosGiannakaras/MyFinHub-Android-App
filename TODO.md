@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
+- [ ] Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #205, branch android/w5-2-device-sessions-readonly-batch-20261016
-Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.
+Issue #155, PR #206, branch android/w5-2-device-revoke-web-contract-batch-20261016
+Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.2 #205 merged 4/4 but original native path wrong; #206 real GET/POST Web device route and confirmed one-other-device revoke awaiting full CI. W2.4 permanent delete disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
+Next Validate W5.2 #206 native GET/POST real Web device route, owner+AAL2/UUID, explicit one-device confirmation, safe current-session and ambiguous response guards with all four exact-head CI gates. Merge only green; owner physical S24 acceptance, W5.1 IBAN/assets and W2.4 permanent delete still open. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
