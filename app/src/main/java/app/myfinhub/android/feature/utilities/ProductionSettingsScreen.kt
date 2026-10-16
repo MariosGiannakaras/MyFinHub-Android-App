@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
+import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
@@ -45,6 +46,8 @@ fun ProductionSettingsScreen(
     onBack: () -> Unit,
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
+    deviceSessions: List<DeviceSessionRecord> = emptyList(),
+    deviceSessionsLoaded: Boolean = false,
     onOpenNoticeHistory: () -> Unit = {},
     onOpenDiagnostics: () -> Unit = {},
     onLogout: (() -> Unit)? = null,
@@ -147,6 +150,39 @@ fun ProductionSettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         icon = MyFinHubIcons.Activity,
                     )
+                }
+            }
+
+            if (deviceSessionsLoaded) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("s9_device_sessions")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Text("Συνδεδεμένες συσκευές",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text("Μόνο ανάγνωση · καμία απομακρυσμένη αποσύνδεση από εδώ.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (deviceSessions.isEmpty()) {
+                            Text("Δεν υπάρχουν διαθέσιμες καταγεγραμμένες συσκευές.")
+                        } else deviceSessions.forEach { device ->
+                            Column(modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                Text(device.label, style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    device.platform + (if (device.current) " · Αυτή η συνεδρία" else ""),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Text("Τελευταία δραστηριότητα (UTC): " +
+                                    device.lastSeenAt.take(16).replace('T', ' '),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

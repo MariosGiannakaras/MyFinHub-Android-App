@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.
+- [ ] Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w5-2-device-sessions-readonly-batch-20261016
-Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged, #204 in CI; W5.2 read-only authenticated device session parser/API tests staged without PR/CI. W2.4 permanent delete disabled.
+Issue #155, PR #205, branch android/w5-2-device-sessions-readonly-batch-20261016
+Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.
+Next Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

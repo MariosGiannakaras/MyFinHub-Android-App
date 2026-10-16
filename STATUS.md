@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 9/24 validated completed subtasks. W5.1 #203 provider catalog contracts merged with 4/4 gates, #204 live card provider picker/volatile per-token isolation in exact-head CI. Parallel W5.2 draft adds read-only secured device-session GET and strict DTO/MockWebServer tests without opening another CI; native device UI and revocation require follow-up. W2.4 card delete remains disabled; no release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.
+1. Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w5-2-device-sessions-readonly-batch-20261016
-Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged, #204 in CI; W5.2 read-only authenticated device session parser/API tests staged without PR/CI. W2.4 permanent delete disabled.
+Issue #155, PR #205, branch android/w5-2-device-sessions-readonly-batch-20261016
+Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.
+Next Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

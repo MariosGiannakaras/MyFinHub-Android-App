@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 validated completed subtasks. W5.1 #203 provider catalog contracts merged with 4/4 gates, #204 live card provider picker/volatile per-token isolation in exact-head CI. Parallel W5.2 draft adds read-only secured device-session GET and strict DTO/MockWebServer tests without opening another CI; native device UI and revocation require follow-up. W2.4 card delete remains disabled; no release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.",
     "next": [
-      "Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release."
+      "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w5-2-device-sessions-readonly-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #203 merged, #204 in CI; W5.2 read-only authenticated device session parser/API tests staged without PR/CI. W2.4 permanent delete disabled.",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -900,7 +900,8 @@
               "W5.1 staged live provider catalog transport via existing owner+AAL2 GET /api/account-metadata?resource=financial-providers: strict non-URL ID/name/kind/country/sort/asset-key parsing, reject invalid rows and duplicate IDs, never fetch unverified remote artwork or persist it; MyFinHubApi synthetic fallback and OkHttp requestGate; 3 Kotlin goldens. Not wired into screen state yet and no PR/CI while #202 pending.",
               "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending.",
               "W5.1 PR #203 canonical 8-provider ID/alias metadata, owner+AAL2 read-only catalog, safe no-fake-logo Compose fallback and golden network tests merged as b75359aeeeccdbdf90556db10fafeb331b988b64 after all four exact-head CI gates success; live dynamic picker and IBAN verified assets still pending.",
-              "W5.1 follow-up PR #204 reanchors authenticated per-user/token provider metadata flow, stale-session-cancellation and native card issuer choices with dynamic canonical IDs and safe manual sentinel, Compose tests for custom-ID collision and changed providers. Fresh exact-head CI required; provider artwork/IBAN still open."
+              "W5.1 follow-up PR #204 reanchors authenticated per-user/token provider metadata flow, stale-session-cancellation and native card issuer choices with dynamic canonical IDs and safe manual sentinel, Compose tests for custom-ID collision and changed providers. Fresh exact-head CI required; provider artwork/IBAN still open.",
+              "W5.1 #204 owner-scoped dynamic catalog and production CardCreate issuer picker merged as dee48d3384167e0679dffb5f1d9c67da413a5df3 after all four exact-head gates; W5.1 still pending IBAN/verified asset parity and physical approval."
             ]
           },
           {
@@ -909,7 +910,7 @@
             "acceptance": "AAL2/owner bearer, optimistic revisions, history generation, pending/offline NEEDS_REVIEW, no blind retries.",
             "status": "in_progress",
             "evidence": [
-              "W5.2 staged owner+AAL2 read-only Web GET /api/device-sessions DTO with UUID/date/count/dup validation and no cookie bearer network leakage, AAL1 fail-before-network and Kotlin MockWebServer golden tests. No UI/revoke/network acceptance claim; held behind W5.1 #204 without PR/CI."
+              "W5.2 consolidated #205 read-only owner+AAL2 Web device session GET/parser with bad UUID/time/count and AAL1 no-request MockWebServer tests, per-user/token ephemeral state and actual Settings Compose view without raw IDs/revocation; no destructive controls and full exact-head CI pending."
             ]
           },
           {
@@ -964,9 +965,9 @@
         ]
       }
     ],
-    "next_action": "Complete W5.1 #204 four exact-head gates before merging; then fold staged W5.2 read-only device session support into full native security/setting screen batch, with one final CI and no premature device-session revokes. Keep owner S24 acceptance separate; no release.",
+    "next_action": "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 0,
+    "pr": 205,
     "current_subtask": "W5.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
