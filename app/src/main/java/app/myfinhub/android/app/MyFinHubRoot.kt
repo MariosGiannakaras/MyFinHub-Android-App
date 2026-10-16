@@ -304,6 +304,7 @@ fun MyFinHubRoot(
                                 financialProviderCatalog else emptyList(),
                             deviceSessions = if (metadataAuthorized) deviceSessions
                                 else DeviceSessionsUiSnapshot(),
+                            onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
                             onRetryLoad = financeViewModel::retryLoad,
@@ -436,6 +437,7 @@ private fun FinanceProductSurface(
     accountMetadataLoaded: Boolean,
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord>,
     deviceSessions: DeviceSessionsUiSnapshot,
+    onRevokeDeviceSession: (String) -> Unit,
     cardSecretState: CardSecretUiState,
     cardSecretCleanupState: CardSecretCleanupUiState,
     onRetryLoad: () -> Unit,
@@ -488,6 +490,7 @@ private fun FinanceProductSurface(
                     accountMetadataSaving = accountMetadataSaving,
                     financialProviderCatalog = financialProviderCatalog,
                     deviceSessions = deviceSessions,
+                    onRevokeDeviceSession = onRevokeDeviceSession,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
                     onActivityAction = onActivityAction,

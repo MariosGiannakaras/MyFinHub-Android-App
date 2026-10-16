@@ -36,13 +36,43 @@ class WebDeviceSessionReadOnlyContractTest {
             assertTrue(result is ApiResult.Success)
             val request = server.takeRequest()
             assertEquals("GET", request.method)
-            assertEquals("/api/device-sessions", request.url.encodedPath)
+            assertEquals("/api/auth/devices", request.url.encodedPath)
             assertEquals("Bearer synthetic-owner",request.headers["Authorization"])
             assertFalse("Cookie" in request.headers.names())
             val rows = (result as ApiResult.Success<List<DeviceSessionRecord>>).value
             assertEquals(1,rows.size)
             assertEquals(true,rows.single().current)
             assertEquals("Galaxy S24 Ultra",rows.single().label)
+        }
+    }
+
+    @Test fun remoteRevocationPostsExactWebActionAndUsesFreshServerResponse() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(200).body(payload).build())
+            val id = "5b90719d-65c1-4abc-8299-3e07b192ac11"
+            val result = api(server).revokeOtherDeviceSession(owner, id)
+            assertTrue(result is ApiResult.Success)
+            val request = server.takeRequest()
+            assertEquals("POST",request.method)
+            assertEquals("/api/auth/devices",request.url.encodedPath)
+            assertEquals("Bearer synthetic-owner",request.headers["Authorization"])
+            assertFalse("Cookie" in request.headers.names())
+            assertEquals("""{"action":"revoke","sessionId":"$id"}""",request.body!!.utf8())
+        }
+    }
+
+    @Test fun invalidSessionIdAndUnverifiedOwnerCannotPost() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val client = api(server)
+            val id = "5b90719d-65c1-4abc-8299-3e07b192ac11"
+            assertEquals(ApiFailureKind.MFA_REQUIRED,
+                (client.revokeOtherDeviceSession(owner.copy(assuranceLevel=AssuranceLevel.AAL1),id)
+                    as ApiResult.Failure).kind)
+            assertEquals(ApiFailureKind.INVALID_DATA,
+                (client.revokeOtherDeviceSession(owner,"invalid") as ApiResult.Failure).kind)
+            assertEquals(0,server.requestCount)
         }
     }
 

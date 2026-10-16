@@ -73,6 +73,7 @@ import kotlinx.coroutines.launch
 data class DeviceSessionsUiSnapshot(
     val loaded: Boolean = false,
     val devices: List<DeviceSessionRecord> = emptyList(),
+    val revokingSessionId: String? = null,
 )
 
 sealed interface FinanceProductState {
@@ -162,6 +163,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var mutationJob: Job? = null
     private var providerCatalogJob: Job? = null
     private var deviceSessionsJob: Job? = null
+    private var deviceRevokeJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -186,6 +188,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             lastServerDocument = null
             pendingMutations = emptyList()
             repository.clear()
+        }
+        if (previous?.userId != session.userId || previous.accessToken != session.accessToken) {
+            deviceRevokeJob?.cancel()
+            deviceRevokeJob = null
+            mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         }
         currentSession = session
         automaticSyncAllowed = allowAutomaticSync
@@ -215,6 +222,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         mutableFinancialProviderCatalog.value = emptyList()
         deviceSessionsJob?.cancel()
         deviceSessionsJob = null
+        deviceRevokeJob?.cancel()
+        deviceRevokeJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
         automaticSyncAllowed = true
         lastServerDocument = null
@@ -1218,10 +1227,71 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
+    /** Never queues destructive auth actions offline or silently retries an uncertain POST. */
+    fun revokeConfirmedOtherDeviceSession(targetSessionId: String) {
+        val session = currentSession ?: return
+        val snapshot = mutableDeviceSessions.value
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            !snapshot.loaded || snapshot.revokingSessionId != null ||
+            deviceRevokeJob?.isActive == true) return
+        val other = snapshot.devices.singleOrNull {
+            it.sessionId == targetSessionId && !it.current
+        } ?: return
+        deviceSessionsJob?.cancel()
+        deviceSessionsJob = null
+        mutableDeviceSessions.value = snapshot.copy(revokingSessionId = other.sessionId)
+        deviceRevokeJob = viewModelScope.launch {
+            val result = providerAwareApi.revokeOtherDeviceSession(session, other.sessionId)
+            if (currentSession?.userId != session.userId ||
+                currentSession?.accessToken != session.accessToken ||
+                !automaticSyncAllowed) return@launch
+            when (result) {
+                is ApiResult.Success -> {
+                    if (result.value.any { it.sessionId == other.sessionId }) {
+                        mutableDeviceSessions.value = DeviceSessionsUiSnapshot(
+                            loaded = true, devices = result.value,
+                        )
+                        mutableNotices.tryEmit(UserNotice(
+                            message = "Ο server δεν επιβεβαίωσε την αποσύνδεση της άλλης συσκευής.",
+                            details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: SERVER_UNCONFIRMED",
+                        diagnosticCode = "MFH-DEVICE-REVOKE-UNCONFIRMED",
+                        ))
+                        return@launch
+                    }
+                    mutableDeviceSessions.value = DeviceSessionsUiSnapshot(
+                        loaded = true, devices = result.value,
+                    )
+                    mutableNotices.tryEmit(UserNotice(
+                        message = "Η άλλη συσκευή αποσυνδέθηκε.",
+                        details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: SERVER_CONFIRMED",
+                        diagnosticCode = "MFH-DEVICE-REVOKED",
+                    ))
+                }
+                is ApiResult.Failure -> {
+                    // Never automatically retry the POST; GET safely reconciles an ambiguous result.
+                    val reconciliation = providerAwareApi.loadDeviceSessions(session)
+                    if (currentSession?.userId != session.userId ||
+                        currentSession?.accessToken != session.accessToken ||
+                        !automaticSyncAllowed) return@launch
+                    val records = (reconciliation as? ApiResult.Success<List<DeviceSessionRecord>>)?.value
+                    mutableDeviceSessions.value = if (records != null) {
+                        DeviceSessionsUiSnapshot(loaded = true, devices = records)
+                    } else DeviceSessionsUiSnapshot()
+                    mutableNotices.tryEmit(UserNotice(
+                        message = "Η αποσύνδεση δεν επιβεβαιώθηκε. Έλεγξε ξανά τις συσκευές.",
+                        details = "Ενέργεια: Αποσύνδεση άλλης συσκευής\nΚατάσταση: RECONCILIATION_REQUIRED",
+                        diagnosticCode = "MFH-DEVICE-REVOKE-REVIEW",
+                    ))
+                }
+            }
+        }
+    }
+
     private fun refreshDeviceSessions(session: AuthSession) {
         deviceSessionsJob?.cancel()
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
-        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            deviceRevokeJob?.isActive == true) return
         deviceSessionsJob = viewModelScope.launch {
             val fetched = providerAwareApi.loadDeviceSessions(session)
             if (currentSession?.userId != session.userId ||

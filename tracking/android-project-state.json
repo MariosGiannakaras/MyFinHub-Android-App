@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.",
+    "summary": "Web parity 1/6 implementations · 9/24 completed subtasks. W5.2 #205/#206 owner+AAL2 device listing, deployed Web route and two-step confirmed single-other-device revoke merged with 4/4 exact-head gates; physical S24 security acceptance pending. W5.1 consolidated #207 adds revision-conditional Web IBAN metadata write and real native Account Detail add/edit/confirm-remove with strict identity, per-user response guards and Kotlin/Compose tests pending exact-head CI. Verified provider artwork bindings and W2.4 permanent-delete safety remain open. No release.",
     "next": [
-      "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release."
+      "Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w5-2-device-sessions-readonly-batch-20261016",
-    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.",
+    "branch": "android/w5-1-secure-iban-edit-consolidated-20261016",
+    "checkpoint": "Verified 1/6 implementations · 9/24 subtasks. W5.2 #206 merged 4/4 with real device GET/POST and confirmed single-device revoke. W5.1 #207 owner/AAL2 conditional IBAN edit and native UI prepared for CI; provider artwork and physical S24 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -901,7 +901,8 @@
               "W5.1 provider identity, neutral native marks, owner+AAL2 financial-providers API transport and golden Kotlin/Compose cases reanchored after green #202. Live dynamic-provider UI/IBAN/asset retrieval incomplete; full exact-head CI pending.",
               "W5.1 PR #203 canonical 8-provider ID/alias metadata, owner+AAL2 read-only catalog, safe no-fake-logo Compose fallback and golden network tests merged as b75359aeeeccdbdf90556db10fafeb331b988b64 after all four exact-head CI gates success; live dynamic picker and IBAN verified assets still pending.",
               "W5.1 follow-up PR #204 reanchors authenticated per-user/token provider metadata flow, stale-session-cancellation and native card issuer choices with dynamic canonical IDs and safe manual sentinel, Compose tests for custom-ID collision and changed providers. Fresh exact-head CI required; provider artwork/IBAN still open.",
-              "W5.1 #204 owner-scoped dynamic catalog and production CardCreate issuer picker merged as dee48d3384167e0679dffb5f1d9c67da413a5df3 after all four exact-head gates; W5.1 still pending IBAN/verified asset parity and physical approval."
+              "W5.1 #204 owner-scoped dynamic catalog and production CardCreate issuer picker merged as dee48d3384167e0679dffb5f1d9c67da413a5df3 after all four exact-head gates; W5.1 still pending IBAN/verified asset parity and physical approval.",
+              "W5.1 consolidated #207 stages real owner+AAL2 account-metadata IBAN PUT with If-Match record revision, strict checksum and response ID/revision validation, explicit per-account native add/edit/remove-confirmed controls, session cancellation, no finance data writes/offline retries, MockWebServer and real Compose tests. Reanchored onto post-#206 develop, fresh four exact-head CI pending; asset bindings and S24 acceptance still partial."
             ]
           },
           {
@@ -910,7 +911,10 @@
             "acceptance": "AAL2/owner bearer, optimistic revisions, history generation, pending/offline NEEDS_REVIEW, no blind retries.",
             "status": "in_progress",
             "evidence": [
-              "W5.2 consolidated #205 read-only owner+AAL2 Web device session GET/parser with bad UUID/time/count and AAL1 no-request MockWebServer tests, per-user/token ephemeral state and actual Settings Compose view without raw IDs/revocation; no destructive controls and full exact-head CI pending."
+              "W5.2 consolidated #205 read-only owner+AAL2 Web device session GET/parser with bad UUID/time/count and AAL1 no-request MockWebServer tests, per-user/token ephemeral state and actual Settings Compose view without raw IDs/revocation; no destructive controls and full exact-head CI pending.",
+              "W5.2 #205 read-only device sessions merged to develop as 4e51a73b85d3ccc74fe67ac85e1d46c526800925 with 4/4 exact-head checks; post-merge Web route audit uncovered incorrectly assumed `/api/device-sessions` GET path, not present in deployed Web rewrites.",
+              "W5.2 consolidated #206 corrects native GET to actual Web `/api/auth/devices`, adds bearer+AAL2 single-other-device confirmed POST, UI current-session protection, session/token cancellation, no offline queue or POST retries, GET-only ambiguity reconciliation and Kotlin+Compose tests. Exact-head 4/4 CI pending. S24 physical acceptance not inferred.",
+              "W5.2 #206 corrected real GET/POST `/api/auth/devices` and owner+AAL2 two-step other-device revocation, server-authoritative result/GET-only ambiguity reconciliation merged to develop as bede013232c17e60ae68178fc4ea38e0c77a50a1 after 4/4 exact-head gates; physical S24 acceptance remains pending."
             ]
           },
           {
@@ -965,10 +969,10 @@
         ]
       }
     ],
-    "next_action": "Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.",
+    "next_action": "Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 205,
-    "current_subtask": "W5.2",
+    "pr": 207,
+    "current_subtask": "W5.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

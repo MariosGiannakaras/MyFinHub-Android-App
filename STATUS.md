@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 9/24 completed subtasks. W5.1 #203/#204 Web provider identities and per-token dynamic card catalog integrated after four exact-head gates each; W5.1 asset/IBAN still partial. W5.2 consolidated read-only owner+AAL2 device sessions native Settings projection, per-user volatile guards and server DTO golden network+Compose tests awaiting CI. No revoke actions; W2.4 permanent card deletion disabled. No release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.2 #205/#206 owner+AAL2 device listing, deployed Web route and two-step confirmed single-other-device revoke merged with 4/4 exact-head gates; physical S24 security acceptance pending. W5.1 consolidated #207 adds revision-conditional Web IBAN metadata write and real native Account Detail add/edit/confirm-remove with strict identity, per-user response guards and Kotlin/Compose tests pending exact-head CI. Verified provider artwork bindings and W2.4 permanent-delete safety remain open. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
+1. Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #205, branch android/w5-2-device-sessions-readonly-batch-20261016
-Current W5.2: Verified 1/6 implementations · 9/24 subtasks. W5.1 #204 merged 4/4; W5.2 owner+AAL2 read-only device session Settings integration and golden network/Compose checks pending. W2.4 permanent deletion disabled.
+Issue #155, PR #207, branch android/w5-1-secure-iban-edit-consolidated-20261016
+Current W5.1: Verified 1/6 implementations · 9/24 subtasks. W5.2 #206 merged 4/4 with real device GET/POST and confirmed single-device revoke. W5.1 #207 owner/AAL2 conditional IBAN edit and native UI prepared for CI; provider artwork and physical S24 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W5.2 #205 authenticated read-only device session DTO/Settings screen with four exact-head CI gates; follow up secure logout/revocation only with explicit confirmation and owner physical S24 review. Finish provider asset/IBAN and remaining W3/W4 parity. No release.
+Next Validate W5.1 #207 owner+AAL2 account IBAN conditional PUT, actual native Account Detail editor/add/explicit metadata removal, missing/stale revision and privacy responses at four exact-head CI gates. Keep secure card permanent-delete UI disabled, continue certified provider assets and S24 physical owner signoff. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

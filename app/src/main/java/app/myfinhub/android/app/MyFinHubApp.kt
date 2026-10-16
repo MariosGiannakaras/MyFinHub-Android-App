@@ -125,6 +125,7 @@ internal fun MyFinHubAppContent(
     moneyState: MoneyUiState = MoneyUiState(),
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
     deviceSessions: DeviceSessionsUiSnapshot = DeviceSessionsUiSnapshot(),
+    onRevokeDeviceSession: ((String) -> Unit)? = null,
     cardSecretState: CardSecretUiState = CardSecretUiState.Hidden(),
     cardSecretCleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onCardDetailOpened: (String) -> Unit = {},
@@ -237,6 +238,8 @@ internal fun MyFinHubAppContent(
                         onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },
                         deviceSessions = deviceSessions.devices,
                         deviceSessionsLoaded = deviceSessions.loaded,
+                        deviceSessionRevocationInFlight = deviceSessions.revokingSessionId != null,
+                        onRevokeDeviceSession = onRevokeDeviceSession,
                         onOpenDiagnostics = { homeBackStack.pushIfNew(AppRoute.Diagnostics) },
                         onLogout = onLogout,
                     )

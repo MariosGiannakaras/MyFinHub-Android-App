@@ -136,11 +136,31 @@ class OkHttpMyFinHubApi(
     ): ApiResult<List<DeviceSessionRecord>> {
         val gate = requestGate(session)
         if (gate != null) return gate
-        val request = authenticatedRequest(session, "/api/device-sessions").get().build()
+        val request = authenticatedRequest(session, "/api/auth/devices").get().build()
         return execute(request) { body ->
             val sessions = parseDeviceSessions(body, json)
                 ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
             ApiResult.Success(sessions)
+        }
+    }
+
+    override suspend fun revokeOtherDeviceSession(
+        session: AuthSession,
+        targetSessionId: String,
+    ): ApiResult<List<DeviceSessionRecord>> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val id = targetSessionId.trim()
+        if (!DEVICE_SESSION_ID_REGEX.matches(id)) return ApiResult.Failure(ApiFailureKind.INVALID_DATA)
+        val body = buildJsonObject {
+            put("action", JsonPrimitive("revoke"))
+            put("sessionId", JsonPrimitive(id))
+        }.toString()
+        val request = authenticatedRequest(session, "/api/auth/devices")
+            .post(body.toRequestBody(JSON_MEDIA_TYPE)).build()
+        return execute(request) { responseBody ->
+            parseDeviceSessions(responseBody, json)?.let { ApiResult.Success(it) }
+                ?: ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
         }
     }
 
@@ -392,6 +412,10 @@ class OkHttpMyFinHubApi(
         val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
         val REVISION_REGEX = Regex("^(0|[1-9]\\d*)$")
         val CARD_ID_REGEX = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$")
+        val DEVICE_SESSION_ID_REGEX = Regex(
+            "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            RegexOption.IGNORE_CASE,
+        )
         const val HISTORY_GENERATION_HEADER = "x-rheomiq-history-generation"
     }
 }

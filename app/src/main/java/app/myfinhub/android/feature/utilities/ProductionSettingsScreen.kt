@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +50,8 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
+    deviceSessionRevocationInFlight: Boolean = false,
+    onRevokeDeviceSession: ((String) -> Unit)? = null,
     onOpenNoticeHistory: () -> Unit = {},
     onOpenDiagnostics: () -> Unit = {},
     onLogout: (() -> Unit)? = null,
@@ -58,6 +62,31 @@ fun ProductionSettingsScreen(
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
+    var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
+    val confirmDevice = deviceSessions.singleOrNull {
+        it.sessionId == pendingDeviceRevokeId && !it.current
+    }
+    if (confirmDevice != null && deviceSessionsLoaded &&
+        onRevokeDeviceSession != null && !deviceSessionRevocationInFlight) {
+        AlertDialog(
+            onDismissRequest = { pendingDeviceRevokeId = null },
+            title = { Text("Επιβεβαίωση αποσύνδεσης") },
+            text = { Text("Θα αποσυνδεθεί η συσκευή «" + confirmDevice.label +
+                "». Τα συγχρονισμένα οικονομικά δεδομένα δεν διαγράφονται.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingDeviceRevokeId = null
+                        onRevokeDeviceSession(confirmDevice.sessionId)
+                    },
+                    modifier = Modifier.testTag("s9_device_revoke_confirm"),
+                ) { Text("Αποσύνδεση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDeviceRevokeId = null }) { Text("Ακύρωση") }
+            },
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -161,7 +190,10 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                         )
-                        Text("Μόνο ανάγνωση · καμία απομακρυσμένη αποσύνδεση από εδώ.",
+                        Text(
+                            if (onRevokeDeviceSession != null)
+                                "Αποσύνδεση άλλης συσκευής μόνο με επιβεβαίωση. Η τρέχουσα συνεδρία προστατεύεται."
+                            else "Μόνο ανάγνωση · καμία απομακρυσμένη αποσύνδεση από εδώ.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -180,6 +212,15 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (!device.current && onRevokeDeviceSession != null) {
+                                    MyFinHubOutlinedAction(
+                                        label = "Αποσύνδεση συσκευής",
+                                        onClick = { pendingDeviceRevokeId = device.sessionId },
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("s9_device_revoke_" + device.sessionId),
+                                        enabled = !deviceSessionRevocationInFlight,
+                                    )
+                                }
                             }
                         }
                     }
