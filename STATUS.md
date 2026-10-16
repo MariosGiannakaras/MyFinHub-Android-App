@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 9/24 completed subtasks at staged base. W5.3 #209 account-security email/password editor + exact Web PATCH/AAL2 contract in full CI. Next consolidated W6.1 Golden FinanceData scenario staged independently, cross-checking as-of balance/budgets, forecast, goals, loan/lending and stable offline event replay; no PR/CI until #209 merged to avoid duplicate builds. Card permanent-delete UI disabled, no release.
+Web parity 1/6 implementations · 9/24 completed subtasks. W5.3 #209 owner+AAL2 Web account email/password PATCH editor, exact session isolation and Kotlin/Compose tests merged 4/4 green; vault destructive/device acceptance outstanding. Consolidated W6.1 #210 integrates one anonymized canonical Web finance scenario across ledger, refunded budgets, forecast 30/60/90, savings goals, loans/lending and stable replay, plus explicit password confirmation and privacy-lock credential eviction; all exact-head CI pending. W2.4 irreversible card delete UI disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release.
+1. Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #0, branch android/w6-1-cross-client-golden-batch-20261016
-Current W6.1: Verified 1/6 implementations · 9/24 subtasks on staged #209 base. W5.3 #209 in CI; W6.1 integration golden finance scenario staged without PR/CI. No S24 physical approval or release.
+Issue #155, PR #210, branch android/w6-1-cross-client-golden-batch-20261016
+Current W6.1: Verified 1/6 implementations · 9/24 subtasks. W5.3 #209 merged 4/4; W6.1 #210 cross-client ledger/budget/forecast/savings/loan/replay integration goldens and privacy-security Compose additions awaiting new CI. Permanent-delete UI disabled; no S24 owner signoff.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Close W5.3 #209 with four exact-head CI gates. Reanchor the staged W6.1 cross-client golden matrix after merge and execute a single CI batch; expand remaining unsupported edge cases and physical owner S24 acceptance separately. No release.
+Next Validate single consolidated W6.1 #210 cross-client FinanceData/account-security golden batch with four exact-head CI gates, correct verified regressions together and merge only after green. Continue W5.1 certified provider artwork, W2.4 permanent deletion safety, W6.2 device visuals and real S24 owner acceptance separately. No release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
