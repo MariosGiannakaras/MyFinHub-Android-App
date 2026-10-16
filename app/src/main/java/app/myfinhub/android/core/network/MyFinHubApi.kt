@@ -20,6 +20,12 @@ interface MyFinHubApi {
     suspend fun loadDeviceSessions(session: AuthSession): ApiResult<List<DeviceSessionRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** One explicitly confirmed remote device; neither current-session nor revoke-all. */
+    suspend fun revokeOtherDeviceSession(
+        session: AuthSession, targetSessionId: String,
+    ): ApiResult<List<DeviceSessionRecord>> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     suspend fun saveMutableState(
         session: AuthSession,
         document: CanonicalFinanceDocument,
