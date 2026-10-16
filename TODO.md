@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
+- [ ] Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #214, branch android/w4-2-loan-monthend-forecast-parity-20261016
-Current W4.2: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web forecast month-end loan-day parity correction and golden regressions staged for PR #214; pending immutable-head Android/Tracking/screenshot/S24 gates. W6.2 physical S24 approval, W5.1 verified artwork and W2.4 destructive card-delete acceptance remain outstanding.
+Issue #155, PR #214, branch develop
+Current W6.1: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web-parity loan month-end forecast fix merged via #214 after four green exact-head gates; W4.2 remains partial. W6.3 exact-head CI remains complete; W6.1 edge scenarios, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance are still open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
+Next Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

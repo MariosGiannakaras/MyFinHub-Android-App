@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 #212 shared immutable PR merge-tree checkout plus full Android/Tracking/screenshot/emulator validation merged with four exact-head green gates. W6.2 150% Compose snapshot artifacts inspected, but physical S24 owner accessibility/visual approval remains pending. W5.1 certified provider artwork and W2.4 safe card permanent-delete lifecycle remain open; destructive UI disabled. No release.
+Web parity 1/6 implementations · 10/24 completed subtasks. W6.3 immutable four-gate CI validated and complete. W4.2 Web month-end loan forecast correction #214 merged with four green exact-head checks; no phase/subtask completion claimed from this partial fix. W6.1 edge fixture work and W6.2 real S24 owner accessibility/visual acceptance remain pending. W5.1 certified provider artwork and W2.4 safe permanent-delete lifecycle remain open; destructive UI disabled. No release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
+1. Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #214, branch android/w4-2-loan-monthend-forecast-parity-20261016
-Current W4.2: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web forecast month-end loan-day parity correction and golden regressions staged for PR #214; pending immutable-head Android/Tracking/screenshot/S24 gates. W6.2 physical S24 approval, W5.1 verified artwork and W2.4 destructive card-delete acceptance remain outstanding.
+Issue #155, PR #214, branch develop
+Current W6.1: Verified 1/6 implementations · 10/24 subtasks. W4.2 Web-parity loan month-end forecast fix merged via #214 after four green exact-head gates; W4.2 remains partial. W6.3 exact-head CI remains complete; W6.1 edge scenarios, W6.2 physical S24, W5.1 certified artwork and W2.4 permanent-delete acceptance are still open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #214 against exact immutable head; merge only if all required checks pass. Then resume W6.1 edge fixtures and W6.2 real S24 owner review. Do not expose permanent-delete UI or publish a release.
+Next Continue W6.1 legacy/credit/recurring cross-client golden edge cases and remaining W4.2 parity; seek real S24 owner W6.2 acceptance and verified W5.1 artwork. Keep destructive card-delete UI disabled and do not publish a release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
