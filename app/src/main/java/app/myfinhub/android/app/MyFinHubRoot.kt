@@ -131,6 +131,11 @@ fun MyFinHubRoot(
     var accountMetadata by remember { mutableStateOf<Map<String, AccountMetadataRecord>>(emptyMap()) }
     var accountMetadataLoaded by remember { mutableStateOf(false) }
     var metadataSessionKey by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var serverHistory by remember {
+        mutableStateOf<app.myfinhub.android.core.network.ServerFinanceHistorySummary?>(null)
+    }
+    var serverHistoryLoaded by remember { mutableStateOf(false) }
+    var serverHistoryRefresh by remember { mutableStateOf(0) }
 
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
@@ -171,6 +176,23 @@ fun MyFinHubRoot(
                     accountMetadata = result.value
                     metadataSessionKey = ready.session.userId to ready.session.accessToken
                     accountMetadataLoaded = true
+                }
+                is ApiResult.Failure -> Unit
+            }
+        }
+    }
+
+    // This history is an owner+AAL2 read-only server snapshot; never persisted, and
+    // cancellation on auth/session change prevents cross-account display of history.
+    LaunchedEffect(authState, serverHistoryRefresh) {
+        serverHistory = null
+        serverHistoryLoaded = false
+        val ready = authState as? AuthShellUiState.Ready
+        if (ready != null && !ready.offline) {
+            when (val result = accountMetadataApi.loadServerFinanceHistory(ready.session)) {
+                is ApiResult.Success -> {
+                    serverHistory = result.value
+                    serverHistoryLoaded = true
                 }
                 is ApiResult.Failure -> Unit
             }
@@ -304,6 +326,9 @@ fun MyFinHubRoot(
                                 financialProviderCatalog else emptyList(),
                             deviceSessions = if (metadataAuthorized) deviceSessions
                                 else DeviceSessionsUiSnapshot(),
+                            serverHistory = if (metadataAuthorized) serverHistory else null,
+                            serverHistoryLoaded = metadataAuthorized && serverHistoryLoaded,
+                            onRefreshServerHistory = { serverHistoryRefresh += 1 },
                             onRevokeDeviceSession = financeViewModel::revokeConfirmedOtherDeviceSession,
                             cardSecretState = cardSecretState,
                             cardSecretCleanupState = cardSecretCleanupState,
@@ -437,6 +462,9 @@ private fun FinanceProductSurface(
     accountMetadataLoaded: Boolean,
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord>,
     deviceSessions: DeviceSessionsUiSnapshot,
+    serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary?,
+    serverHistoryLoaded: Boolean,
+    onRefreshServerHistory: () -> Unit,
     onRevokeDeviceSession: (String) -> Unit,
     cardSecretState: CardSecretUiState,
     cardSecretCleanupState: CardSecretCleanupUiState,
@@ -490,6 +518,9 @@ private fun FinanceProductSurface(
                     accountMetadataSaving = accountMetadataSaving,
                     financialProviderCatalog = financialProviderCatalog,
                     deviceSessions = deviceSessions,
+                    serverHistory = serverHistory,
+                    serverHistoryLoaded = serverHistoryLoaded,
+                    onRefreshServerHistory = onRefreshServerHistory,
                     onRevokeDeviceSession = onRevokeDeviceSession,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,

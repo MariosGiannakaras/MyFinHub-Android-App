@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.network.DeviceSessionRecord
+import app.myfinhub.android.core.network.ServerFinanceHistorySummary
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
@@ -50,6 +51,9 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
+    serverHistory: ServerFinanceHistorySummary? = null,
+    serverHistoryLoaded: Boolean = false,
+    onRefreshServerHistory: () -> Unit = {},
     deviceSessionRevocationInFlight: Boolean = false,
     onRevokeDeviceSession: ((String) -> Unit)? = null,
     onOpenNoticeHistory: () -> Unit = {},
@@ -179,6 +183,43 @@ fun ProductionSettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         icon = MyFinHubIcons.Activity,
                     )
+                }
+            }
+
+            if (serverHistoryLoaded && serverHistory != null) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("s9_server_finance_history")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        Text("Ιστορικό αλλαγών στον server",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text("Μόνο ανάγνωση · δεν περιλαμβάνει αντίγραφα οικονομικών δεδομένων.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (!serverHistory.available) {
+                            Text("Το ιστορικό αλλαγών δεν είναι διαθέσιμο.")
+                        } else {
+                            Text("Διαθέσιμες αναιρέσεις: " + serverHistory.undoDepth +
+                                " · Επαναλήψεις: " + serverHistory.redoDepth)
+                            serverHistory.points.takeLast(8).asReversed().forEach { point ->
+                                Text(
+                                    (if (point.current) "Τρέχουσα · " else "") +
+                                        point.createdAt.take(16).replace('T', ' ') +
+                                        " · " + (if (amountsVisible) point.label
+                                            else "Περιγραφή κρυμμένη"),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                        MyFinHubOutlinedAction(
+                            label = "Ανανέωση ιστορικού αλλαγών",
+                            onClick = onRefreshServerHistory,
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s9_history_refresh"),
+                        )
+                    }
                 }
             }
 
