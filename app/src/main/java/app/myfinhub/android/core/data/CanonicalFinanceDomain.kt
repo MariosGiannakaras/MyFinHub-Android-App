@@ -175,16 +175,17 @@ fun CanonicalAccount.isSavingContributionSource(): Boolean =
 
 /** Mirrors web effectiveLegacyTransactions: seed minus deleted, then overrides, then custom. */
 fun CanonicalFinanceDocument.effectiveLegacyTransactions(): List<CanonicalLegacyTransaction> {
-    val seedTransactions = seed.array("transactions").mapNotNull { it as? JsonObject }
-        .associateBy { it.string("id").orEmpty() }
-        .filterKeys(String::isNotBlank)
     val deleted = deletedTransactionIds()
     val overrides = state.obj("overrides")
-    val base = seedTransactions.values.mapNotNull effective@{ raw ->
-        val id = raw.string("id") ?: return@effective null
-        if (id in deleted) return@effective null
-        (overrides[id] as? JsonObject ?: raw).toLegacyTransaction()
-    }
+    // Web effectiveLegacyTransactions filters/maps every seed row before sorting.
+    // Collapsing these to a Map by ID discards historical duplicate source rows
+    // and understates net monthly flow and categorized spending.
+    val base = seed.array("transactions").mapNotNull { it as? JsonObject }
+        .mapNotNull effective@{ raw ->
+            val id = raw.string("id") ?: return@effective null
+            if (id in deleted) return@effective null
+            (overrides[id] as? JsonObject ?: raw).toLegacyTransaction()
+        }
     val custom = state.array("customTransactions").mapNotNull { (it as? JsonObject)?.toLegacyTransaction() }
     return (base + custom).sortedBy(CanonicalLegacyTransaction::date)
 }

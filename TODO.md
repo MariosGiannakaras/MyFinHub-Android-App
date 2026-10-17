@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release.
+- [ ] Run all four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for #224; fix and merge only if green. Continue W3.2 linked loans, classification and remaining W4.3 finance parity, plus W3.1 real-device visuals and W6.2/W6.4 physical owner signoff. W5.1 logos, W2.4 delete UI blocked; no signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #223, branch android/w4-4-insights-signed-net-review-categories-20261017
-Current W3.2: Verified Web parity 1/6 implementations · 11/24 subtasks. W3.2 #220/#221, W4.1/W4.2 #222 merged after 4/4 exact-head gates. W4.4 #223 staged read-only refund-heavy Insights raw net, historical category/empty override fallback and removal of obsolete duplicate planned-items builder; CI pending. W3.2/W4.1/W4.2/W4.4 remain partial; W3.1 real device review, W6.2 physical S24, W5.1 certified artwork and W2.4 deletion UI safety pending.
+Issue #155, PR #224, branch android/w3-2-legacy-duplicate-seed-rows-20261017
+Current W3.2: Web parity verified 1/6 implementations · 11/24 subtasks. W3.2 #220/#221, W4.1/W4.2 #222 and W4.4 #223 merged after 4/4 exact-head CI. W3.2 #224 staged lossless historical repeated seed IDs with Web-equivalent row-level review/override/delete projection and goldens. W3.2/W4.1/W4.2/W4.4 remain incomplete pending additional acceptance. Physical W3.1/W6.2, W5.1 certified artwork and W2.4 permanent card-delete protections outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release.
+Next Run all four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for #224; fix and merge only if green. Continue W3.2 linked loans, classification and remaining W4.3 finance parity, plus W3.1 real-device visuals and W6.2/W6.4 physical owner signoff. W5.1 logos, W2.4 delete UI blocked; no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
