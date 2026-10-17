@@ -184,7 +184,7 @@ fun CanonicalFinanceDocument.canonicalLendingHistory(asOf: String? = null): List
         }
         val accountId = clean(event.string("accountId")).ifEmpty {
             clean(event.string(if (kind == "repayment") "toAccountId" else "fromAccountId"))
-        }.ifEmpty { null }
+        }.takeIf(String::isNotEmpty)
         raw += CanonicalLendingHistoryDraft(
             id, person, eventDate, if (kind == "lending") "lent" else "repaid",
             amount, note, accountId, "event",
