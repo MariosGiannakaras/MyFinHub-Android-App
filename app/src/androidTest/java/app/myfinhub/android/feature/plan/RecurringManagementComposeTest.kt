@@ -37,6 +37,23 @@ class RecurringManagementComposeTest {
         }
     }
 
+    @Test fun duplicateHistoricalIdsRenderWithoutKeyCollisionAndDisableOnlyAmbiguousActions() {
+        val duplicates=state.copy(recurringManageItems=listOf(
+            RecurringManageItem("same","Πάγιο Α",20.0,"active","2026-10-21"),
+            RecurringManageItem("same","Πάγιο Β",30.0,"active","2026-10-22"),
+        ))
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(duplicates,onBack={},
+                onStatusChanged={_,_->error("Duplicate unsafe mutation")},
+                onRecordPayment={ error("Duplicate unsafe payment") })
+        } }
+        rule.onAllNodesWithText("Ιστορικό διπλό ID",substring=true).fetchSemanticsNodes().let {
+            assertEquals(2,it.size)
+        }
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[0].assertIsNotEnabled()
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
+    }
+
     @Test fun blockedMutationCannotEmitStatusChanges() {
         rule.setContent { MyFinHubTheme {
             CanonicalRecurringManagementScreen(state,onBack={},

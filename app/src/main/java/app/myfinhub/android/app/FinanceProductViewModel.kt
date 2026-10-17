@@ -595,7 +595,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (status !in setOf("active", "paused", "stopped")) return
         val recurring = ready.projection.document.allCanonicalRecurringItems()
-            .firstOrNull { it.id == recurringId } ?: return
+            .filter { it.id == recurringId }.singleOrNull() ?: return
         if (recurring.effectiveStatus == status) return
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
