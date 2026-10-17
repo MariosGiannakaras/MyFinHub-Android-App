@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Run four exact-head CI gates on #225, fix in same PR if needed and merge only if green; update persistent tracker after merge, then cover remaining W3.2 event/review edges and W4.3 views. Preserve real S24 acceptance as pending, never expose W2.4 destructive card UI or release.
+- Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #225, branch android/w3-2-w4-3-linked-loan-payments-20261017
-Current W3.2: Web parity 1/6 implementations · 11/24 subtasks. W3.2 #224 merged to develop 010be158 after four green CI gates. #225 stages strict Web loans.ts loanId/installmentCount linked normal event kinds (expense/card_payment/transfer), loan balance/payment plan validation and cross-client goldens. W3.2 and W4.3 remain partial; physical W3.1/W6.2, W5.1 certified artwork, W2.4 delete UI pending.
+Issue #155, PR #226, branch android/w3-2-w4-1-linked-recurring-and-rules-20261017
+Current W3.2: 1/6 complete workstreams · 11/24 accepted subtasks. W3.2/W4.3 loan #225 merged 4/4. #226 Web recurring linked expense, rule fallback, month-end day >31 fixtures and deterministic CVV plaintext-at-rest emulator security assertion (fix for emulator CI failing on probabilistic ciphertext scan). Four exact-head CI gates pending fresh commit. W3.2/W4.1 partial; physical W3.1/W6.2, W5.1 certified assets and W2.4 card delete UI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact-head CI gates on #225, fix in same PR if needed and merge only if green; update persistent tracker after merge, then cover remaining W3.2 event/review edges and W4.3 views. Preserve real S24 acceptance as pending, never expose W2.4 destructive card UI or release.
+Next Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

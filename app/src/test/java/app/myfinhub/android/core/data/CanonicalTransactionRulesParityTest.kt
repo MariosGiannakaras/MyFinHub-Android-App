@@ -124,6 +124,28 @@ class CanonicalTransactionRulesParityTest {
         assertEquals("Αυτόματη σημείωση",income.note)
     }
 
+    @Test fun historicalEmptyExpenseDefaultFallsBackToWebOtherForRulePreviewAndApply() {
+        val food = rule("food",1,match=obj("""{"description":"market","mode":"contains"}"""))
+        val base = fixture(food)
+        val settings = obj("""{"expenseCategories":[""],"incomeCategories":[""]}""")
+        val modified = CanonicalFinanceDocument(JsonObject(base.raw + ("state" to
+            JsonObject(base.state + ("settings" to settings)))))
+        val e = event(kind="expense",category="Άλλο",note="Corner Market")
+        assertEquals(listOf("food"),modified.canonicalMatchingTransactionRuleIds(e))
+        assertEquals("Τρόφιμα",modified.applyCanonicalTransactionRules(e).string("category"))
+        assertEquals("Άλλο",e.string("category"))
+    }
+
+    @Test fun blankRuleDefaultStillRespectsExplicitUserCategoryAndHistory() {
+        val base = fixture(rule("food",1))
+        val settings = obj("""{"expenseCategories":[""],"incomeCategories":["Μισθός"]}""")
+        val doc = CanonicalFinanceDocument(JsonObject(base.raw + ("state" to
+            JsonObject(base.state + ("settings" to settings)))))
+        val e = event(category="Υγεία")
+        assertSame(e,doc.applyCanonicalTransactionRules(e))
+        assertEquals("Άλλο",(doc.state.array("events").single() as JsonObject).string("category"))
+    }
+
     @Test fun disabledRulesAndTransfersHaveNoEffect() {
         val data=fixture(rule("disabled",1,enabled=false))
         val e=event()
