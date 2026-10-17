@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release.
+- Run one exact-head Project Tracking/Android CI/screenshots/S24 emulator set for PR #241 and merge only 4/4 green. Continue W3.2 financial classification, W4.2 actual forecast parity and safe Plan navigation; do not infer real owner S24 accessibility/dark-mode approval. Keep W2.4 permanent-delete UI disabled, no signed release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #240, branch android/w4-2-scheduled-duplicate-identity-guards-20261017
-Current W3.2: Verified Web parity 1/6 workstreams · 11/24 completed subtasks. PR #239 duplicate recurring IDs merged after 4/4 exact-head CI as b8d0b8ae5714f98d03aa2b7ef81e26e2bde53e25. PR #240 stages duplicate scheduled ID ambiguity guards in UI, ViewModel, canonical ledger mutations and offline queue, with new JVM/S24 Compose tests. W3.2/W4.2 incomplete; W3.1 physical statement visuals, W6.2/W6.4 owner phone, W5.1 verified artwork and W2.4 deletion safety pending.
+Issue #155, PR #241, branch android/w4-2-plan-forecast-duplicate-keys-20261017
+Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. W4.2 scheduled mutation+offline duplicate-ID safety #240 merged after 4/4 exact-head CI to develop e9b209f4e5df77395771490408d697bebec7b39e. PR #241 staged duplicate scheduled IDs across root Plan/Forecast Compose lists and urgency partition, with JVM and S24 goldens. W3.2/W4.1–W4.4 remain partial. W3.1 physical statement review, W6.2/W6.4 owner S24, W5.1 provider assets, W2.4 deletion UI and release still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release.
+Next Run one exact-head Project Tracking/Android CI/screenshots/S24 emulator set for PR #241 and merge only 4/4 green. Continue W3.2 financial classification, W4.2 actual forecast parity and safe Plan navigation; do not infer real owner S24 accessibility/dark-mode approval. Keep W2.4 permanent-delete UI disabled, no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

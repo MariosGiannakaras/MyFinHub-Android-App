@@ -105,4 +105,27 @@ class S7PlanSurfaceTest {
         composeRule.onNodeWithTag("s7_budget_limit").assertIsNotEnabled()
         composeRule.onNodeWithTag("s7_budget_threshold").assertIsNotEnabled()
     }
+    @Test
+    fun historicalScheduledDuplicateIdsRemainVisibleWithoutUnsafeForecastActions() {
+        val first = obligation.copy(id = "legacy", title = "Παλαιό Α",
+            dueDateIso = "2026-09-08", urgency = PlannedUrgency.OVERDUE)
+        val second = obligation.copy(id = "legacy", title = "Παλαιό Β",
+            dueDateIso = "2026-10-01", urgency = PlannedUrgency.LATER)
+        val rows = state.copy(items = listOf(first, second))
+        var recorded = false
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalPlanForecastScreen(rows, onBack = {},
+                    onRecordItem = { recorded = true })
+            }
+        }
+        composeRule.onNodeWithTag("s7_forecast_expand").performClick()
+        composeRule.onNodeWithTag("s7_forecast_record_SCHEDULED:legacy_duplicate_0")
+            .performScrollTo().assertIsNotEnabled()
+        composeRule.onNodeWithTag("s7_forecast_record_SCHEDULED:legacy_duplicate_1")
+            .performScrollTo().assertIsNotEnabled()
+        composeRule.runOnIdle { assertEquals(false, recorded) }
+    }
+
+
 }

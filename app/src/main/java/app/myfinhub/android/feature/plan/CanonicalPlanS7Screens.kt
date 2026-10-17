@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -92,10 +93,13 @@ internal fun planUrgentObligations(state: PlanUiState): List<PlannedItem> = stat
         (item.urgency == PlannedUrgency.OVERDUE || item.urgency == PlannedUrgency.THIS_WEEK)
 }
 
-internal fun planRemainingItems(state: PlanUiState): List<PlannedItem> {
-    val urgentKeys = planUrgentObligations(state).mapTo(mutableSetOf(), ::plannedItemSourceKey)
-    return state.items.filterNot { item -> plannedItemSourceKey(item) in urgentKeys }
-}
+internal fun planRemainingItems(state: PlanUiState): List<PlannedItem> =
+    // Do not discard an unrelated historical row with the same source ID when
+    // a different row is urgent. Source IDs are not unique in old Web data.
+    state.items.filterNot { item ->
+        item.flow == PlannedFlow.OBLIGATION &&
+            item.urgency in setOf(PlannedUrgency.OVERDUE, PlannedUrgency.THIS_WEEK)
+    }
 
 internal fun planForecastIncludedItems(state: PlanUiState): List<PlannedItem> {
     val end = state.forecastEndDateIso.toPlanS7DateOrNull() ?: return state.items.filter { it.dueDateIso.isNotBlank() }
@@ -155,7 +159,9 @@ fun CanonicalPlan2026Screen(
                         tone = FinanceTone.Expense,
                     )
                 }
-                items(urgent, key = { "urgent-${plannedItemSourceKey(it)}" }) { item ->
+                itemsIndexed(urgent, key = { index, item ->
+                    "urgent-${plannedItemSourceKey(item)}-row-$index"
+                }) { _, item ->
                     PlanS7Row(item = item, amountsVisible = amountsVisible)
                 }
             }
@@ -217,7 +223,9 @@ fun CanonicalPlan2026Screen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    items(group, key = { "remaining-${plannedItemSourceKey(it)}" }) { item ->
+                    itemsIndexed(group, key = { index, item ->
+                        "remaining-${plannedItemSourceKey(item)}-row-$index"
+                    }) { _, item ->
                         PlanS7Row(item = item, amountsVisible = amountsVisible)
                     }
                 }
@@ -537,8 +545,17 @@ fun CanonicalPlanForecastScreen(
                         }
                     }
                 } else {
-                    items(included, key = { "forecast-${plannedItemSourceKey(it)}" }) { item ->
-                        ForecastS7ItemCard(item = item, amountsVisible = amountsVisible, onRecordItem = onRecordItem)
+                    itemsIndexed(included, key = { index, item ->
+                        "forecast-${plannedItemSourceKey(item)}-row-$index"
+                    }) { index, item ->
+                        val uniqueSource = state.items.count {
+                            it.kind == item.kind && it.id == item.id
+                        } == 1
+                        ForecastS7ItemCard(
+                            item = item, amountsVisible = amountsVisible,
+                            onRecordItem = onRecordItem, recordEnabled = uniqueSource,
+                            tagSuffix = if (uniqueSource) "" else "_duplicate_$index",
+                        )
                     }
                 }
             }
@@ -586,7 +603,11 @@ private fun ForecastS7Metric(
 }
 
 @Composable
-private fun ForecastS7ItemCard(item: PlannedItem, amountsVisible: Boolean, onRecordItem: (PlannedItem) -> Unit) {
+private fun ForecastS7ItemCard(
+    item: PlannedItem, amountsVisible: Boolean,
+    onRecordItem: (PlannedItem) -> Unit,
+    recordEnabled: Boolean = true, tagSuffix: String = "",
+) {
     val tone = planS7Tone(item.flow)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -615,9 +636,17 @@ private fun ForecastS7ItemCard(item: PlannedItem, amountsVisible: Boolean, onRec
                 }
             }
             if (item.flow != PlannedFlow.TRANSFER) {
+                if (!recordEnabled) {
+                    Text(
+                        "Ιστορικό διπλό ID · Καταχώριση μόνο από επαληθευμένη μοναδική εγγραφή",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 TextButton(
+                    enabled = recordEnabled,
                     onClick = { onRecordItem(item) },
-                    modifier = Modifier.testTag("s7_forecast_record_${plannedItemSourceKey(item)}"),
+                    modifier = Modifier.testTag("s7_forecast_record_${plannedItemSourceKey(item)}$tagSuffix"),
                 ) {
                     Text(if (item.flow == PlannedFlow.INCOME) "Καταχώριση εσόδου" else "Καταχώριση πληρωμής")
                 }
