@@ -33,6 +33,7 @@ import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
+import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
@@ -109,7 +110,7 @@ fun projectCanonicalProduct(
     val accounts = document.canonicalAccounts()
     val accountNames = accounts.associate { it.id to it.name }
     val balances = document.accountBalances(asOf)
-    val flow = document.monthlyFlow(month, asOf)
+    val flow = document.canonicalOperationalMonthlyFlow(month, asOf)
     val budget = document.overallBudget(month)
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()

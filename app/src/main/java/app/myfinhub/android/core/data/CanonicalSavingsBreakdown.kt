@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.data
 
+import kotlin.math.max
 import kotlinx.serialization.json.JsonObject
 
 /** Web savings.ts Pay & Save / manual transfer / cash-offset reporting. */
@@ -44,4 +45,32 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
     val sources=linkedMapOf("pay_and_save" to 0.0,"manual_transfer" to 0.0,"cash_offset" to 0.0)
     rows.forEach { sources[it.source]=(sources[it.source] ?: 0.0)+it.amount }
     return CanonicalSavingsBreakdown(rows,sources,sources.values.sum())
+}
+
+/** Web savings.ts operationalMonthlyFlow; used by Web selectMonthlyFlow on Dashboard. */
+fun CanonicalFinanceDocument.canonicalOperationalMonthlyFlow(
+    month: String, asOf: String? = null,
+): CanonicalMonthlyFlow {
+    val base = monthlyFlow(month, asOf)
+    var income = base.income
+    var expense = base.expense
+    var saving = base.saving
+    for (tx in effectiveLegacyTransactions()) {
+        if (!tx.date.startsWith("$month-") ||
+            !payAndSave.containsMatchIn(tx.note + " " + tx.category.orEmpty()) ||
+            (asOf != null && month == asOf.take(7) && tx.date > asOf)
+        ) continue
+        val decision = state.obj("reviewDecisions").obj(tx.id)
+        if (decision.string("status") == "confirmed" &&
+            decision.string("semanticKind") == "saving_cash_offset"
+        ) continue
+        val original = legacyFlowImpact(tx)
+        income -= original.income
+        expense -= original.expense
+        saving += tx.amount
+    }
+    return CanonicalMonthlyFlow(
+        income = max(0.0, income), expense = max(0.0, expense),
+        saving = saving, refunds = base.refunds, net = income - expense,
+    )
 }
