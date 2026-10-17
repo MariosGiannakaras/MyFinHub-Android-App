@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release.
+1. Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #228, branch android/w4-3-loan-payment-confirmation-ui-20261017
-Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 subtasks. #227 linked recurring Quick Entry CTA merged bf99149 after 4/4 immutable CI. W4.3 #228 stages full Loans → review-confirmed payment dialog for normal installment, liability and HELP/self-loan with account/date/count/savings and strict common mutation; unit + emulator UI tests pending. W4.1/W4.3/W3.2 remain partial. W3.1 physical visuals, W6.2 physical owner S24, W5.1 artwork, W2.4 permanent delete guard outstanding.
+Issue #155, PR #228, branch develop
+Current W3.2: Verified Web↔Android parity 1/6 accepted workstreams · 11/24 subtasks. Batched #226 Web recurring/rules/month-end, #227 editable native recurring Quick Entry, #228 reviewed loan/HELP payment screen all merged after 4/4 exact-head CI. Develop 7a97b6e82e71480936b25cce13257d914b89c1b0. W3.2 and W4.1–W4.4 remain partial pending broader acceptance, W3.1 statement physical visual review, W6.2/W6.4 real owner S24 signoff, W5.1 verified provider assets and W2.4 destructive guard pending. No release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release.
+Next Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
