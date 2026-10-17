@@ -46,6 +46,9 @@ internal fun createQuickEntryCanonicalMutation(
         statementId = state.statementId.takeIf {
             state.kind == QuickEntryKind.CARD_PAYMENT && it.isNotBlank()
         },
+        recurringId = state.recurringId.takeIf {
+            state.kind == QuickEntryKind.EXPENSE && it.isNotBlank()
+        },
         actualBalance = actualBalance,
         parts = if (state.kind == QuickEntryKind.SPLIT) {
             state.splitParts.map { part ->

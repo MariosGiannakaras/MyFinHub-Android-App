@@ -94,6 +94,8 @@ internal fun projectCanonicalPlanState(
             amount = recurring.amount,
             status = recurring.effectiveStatus,
             nextDueDateIso = document.nextCanonicalRecurringDate(recurring, today)?.toString().orEmpty(),
+            category = recurring.category,
+            accountId = recurring.accountId,
         )
     }
     return PlanUiState(

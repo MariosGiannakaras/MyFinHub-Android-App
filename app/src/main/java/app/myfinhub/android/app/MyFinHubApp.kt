@@ -511,6 +511,24 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
                         onStatusChanged = onSetRecurringStatus,
+                        onRecordPayment = { item ->
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                quickEntryState.accounts.isNotEmpty()
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
+                                onQuickEntryAction(QuickEntryAction.NoteChanged("Πληρωμή: " + item.title))
+                                onQuickEntryAction(QuickEntryAction.RecurringChanged(
+                                    item.id, item.category,
+                                ))
+                                val account = item.accountId.takeIf { id ->
+                                    quickEntryState.accounts.any { it.id == id }
+                                } ?: quickEntryState.defaultExpenseAccountId
+                                onQuickEntryAction(QuickEntryAction.AccountChanged(account))
+                                planBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
