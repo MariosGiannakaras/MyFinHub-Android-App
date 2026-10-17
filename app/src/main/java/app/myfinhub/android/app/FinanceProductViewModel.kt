@@ -556,9 +556,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun completeScheduled(request: app.myfinhub.android.feature.plan.ScheduledCompletionRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        val scheduled = ready.projection.document.canonicalScheduled().firstOrNull {
-            it.id == request.id && it.status == "pending"
-        } ?: return
+        val scheduled = ready.projection.document.canonicalScheduled()
+            .filter { it.id == request.id }.singleOrNull()
+            ?.takeIf { it.status == "pending" } ?: return
         val valid = app.myfinhub.android.feature.plan.scheduledCompletionAccountIsValid(
             scheduled.kind,ready.projection.document.canonicalAccounts()
                 .filter { it.kind != "credit" }.mapTo(mutableSetOf()) { it.id },
@@ -582,9 +582,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
             status !in setOf("skipped","cancelled")) return
-        if (ready.projection.document.canonicalScheduled().none {
-                it.id == id && it.status == "pending"
-            }) return
+        if (ready.projection.document.canonicalScheduled().filter { it.id == id }
+                .singleOrNull()?.status != "pending") return
         applyMutation(CloseCanonicalScheduledTransaction(
             scheduledId = id, status = status, nowIso = Instant.now().toString(),
         ))

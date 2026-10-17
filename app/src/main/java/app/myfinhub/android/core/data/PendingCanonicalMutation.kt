@@ -193,26 +193,28 @@ data class PendingCanonicalMutationIntent(
         }
         PendingMutationKind.CREATE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
-            val row = document.state.array("scheduled")
-                .filterIsInstance<JsonObject>().firstOrNull { it.string("id") == id }
-            id.isNotBlank() && row != null &&
-                (asMutation() as CreateCanonicalScheduledTransaction).matchesExisting(row)
+            val rows = document.state.array("scheduled")
+                .filterIsInstance<JsonObject>().filter { it.string("id") == id }
+            id.isNotBlank() && rows.size == 1 &&
+                (asMutation() as CreateCanonicalScheduledTransaction).matchesExisting(rows.single())
         }
         PendingMutationKind.COMPLETE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
             val eventId = payload.string("eventId").orEmpty()
-            val row = document.state.array("scheduled")
-                .filterIsInstance<JsonObject>().firstOrNull { it.string("id")==id }
-            id.isNotBlank() && eventId.isNotBlank() &&
-                row?.string("status")=="completed" && row.string("completedEventId")==eventId &&
+            val rows = document.state.array("scheduled")
+                .filterIsInstance<JsonObject>().filter { it.string("id")==id }
+            id.isNotBlank() && eventId.isNotBlank() && rows.size == 1 &&
+                rows.single().string("status")=="completed" &&
+                rows.single().string("completedEventId")==eventId &&
                 document.state.array("events").any { (it as? JsonObject)?.string("id")==eventId }
         }
         PendingMutationKind.CLOSE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
             val expected = payload.string("status")
+            val rows = document.state.array("scheduled").filterIsInstance<JsonObject>()
+                .filter { it.string("id")==id }
             id.isNotBlank() && expected in setOf("skipped","cancelled") &&
-                document.state.array("scheduled").filterIsInstance<JsonObject>()
-                    .any { it.string("id")==id && it.string("status")==expected }
+                rows.size == 1 && rows.single().string("status")==expected
         }
         PendingMutationKind.APPEND_EVENT -> {
             val eventId = appendedEventId.orEmpty()

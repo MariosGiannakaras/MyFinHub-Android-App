@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -109,9 +109,14 @@ fun CanonicalScheduledManagementScreen(
                     ) { Text("Νέα προγραμματισμένη κίνηση") }
                 }
             }
-            items(state.scheduledManageItems, key = { it.id }) { item ->
+            itemsIndexed(state.scheduledManageItems, key = { index, item ->
+                item.id + "#row#" + index
+            }) { index, item ->
+                // Duplicate historical IDs remain visible, never writable.
+                val uniqueId = state.scheduledManageItems.count { it.id == item.id } == 1
+                val rowSuffix = if (uniqueId) "" else "_"+index
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                    .testTag("scheduled_item_" + item.id)) {
+                    .testTag("scheduled_item_" + item.id + rowSuffix)) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(
@@ -125,11 +130,18 @@ fun CanonicalScheduledManagementScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(amountVisibilityText(money.format(item.amount), showAmounts))
+                        if (!uniqueId) {
+                            Text(
+                                "Ιστορικό διπλό ID · Μόνο προβολή, χωρίς πληρωμή ή αλλαγή κατάστασης",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         if(item.status in setOf("due","upcoming")) {
                             Row(modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                                 TextButton(
-                                    enabled = !mutationBlocked,
+                                    enabled = !mutationBlocked && uniqueId,
                                     onClick = {
                                         selected = item
                                         action = "complete"
@@ -145,17 +157,17 @@ fun CanonicalScheduledManagementScreen(
                                         } ?: available.firstOrNull { it!=actualFromAccountId }.orEmpty()
                                     },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
-                                        .testTag("scheduled_complete_" + item.id),
+                                        .testTag("scheduled_complete_" + item.id + rowSuffix),
                                 ) { Text("Καταχώριση") }
-                                TextButton(enabled = !mutationBlocked,
+                                TextButton(enabled = !mutationBlocked && uniqueId,
                                     onClick = { selected=item;action="skipped" },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
-                                        .testTag("scheduled_skip_" + item.id),
+                                        .testTag("scheduled_skip_" + item.id + rowSuffix),
                                 ) { Text("Παράλειψη") }
-                                TextButton(enabled = !mutationBlocked,
+                                TextButton(enabled = !mutationBlocked && uniqueId,
                                     onClick = { selected=item;action="cancelled" },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
-                                        .testTag("scheduled_cancel_" + item.id),
+                                        .testTag("scheduled_cancel_" + item.id + rowSuffix),
                                 ) { Text("Ακύρωση") }
                             }
                         }

@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release."
+      "Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-1-safe-duplicate-recurring-identity-20261017",
-    "checkpoint": "Web parity verified 1/6 workstreams · 11/24 subtasks. #238 loan duplicate guard merged 4/4 exact-head CI. #239 W4.1 recurring duplicate read-only UI + strict mutation guards, now batched with Web cadence labels and service logoAssetKey/source/endDate metadata. Previous S24 large-type test failed because unique-item testTag changed, fixed to preserve original tag for unique IDs. Fresh immutable-head 4-gate CI pending; W4.1 still partial.",
+    "branch": "android/w4-2-scheduled-duplicate-identity-guards-20261017",
+    "checkpoint": "Verified Web parity 1/6 workstreams · 11/24 completed subtasks. PR #239 duplicate recurring IDs merged after 4/4 exact-head CI as b8d0b8ae5714f98d03aa2b7ef81e26e2bde53e25. PR #240 stages duplicate scheduled ID ambiguity guards in UI, ViewModel, canonical ledger mutations and offline queue, with new JVM/S24 Compose tests. W3.2/W4.2 incomplete; W3.1 physical statement visuals, W6.2/W6.4 owner phone, W5.1 verified artwork and W2.4 deletion safety pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -877,7 +877,8 @@
               "PR #231 full native scheduled management UI with new expense/income/transfer scheduling, bank/savings selection, confirm real amount/date, skip/cancel/history, ViewModel queued mutation bridge, Forecast route preventing duplicate unlinked Quick Entry, 1 projection unit + 4 emulator Compose golden tests. Immutable head 0084ce8bf090832cd4b0809ca9b57610464e5371 passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator gates. Merged develop bf85c43d1e45eeb901867ab8dd66cbb6f149829c. W4.2 still partial pending acceptance.",
               "PR #233 strict scheduled ID/account/note/category/createdAt collision detection and pending intent satisfaction reconciliation merged develop 9d75e46b157d70d031fff2540256419d6c396e65. Exact head 9cf4dd70c8fedf2424a8b8412817545e54881efb passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator gates. Five golden regressions; W4.2 remains partial.",
               "PR #234 native scheduled confirmation actual account/transfer route selection and strict ViewModel validation, unit ledger/offline and S24 Compose picker goldens merged develop 0415acbc2c4225884e2cd35b930956c5f438f8b1. Immutable head c75963b02daa1e7fc324e51f616952e81658e0c8 passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24-target emulator. W4.2 partially accepted.",
-              "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial."
+              "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial.",
+              "PR #240 staged read-only duplicate scheduled IDs with safe indexed Compose keys; block ambiguous complete/skip/cancel/create in canonical mutations, ViewModel and durable offline intent reconciliation. JVM & Compose goldens, exact-head CI pending."
             ]
           },
           {
@@ -1016,9 +1017,9 @@
         ]
       }
     ],
-    "next_action": "Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.",
+    "next_action": "Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 239,
+    "pr": 240,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

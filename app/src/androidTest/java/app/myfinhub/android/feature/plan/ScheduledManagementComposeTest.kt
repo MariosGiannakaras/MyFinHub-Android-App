@@ -133,4 +133,25 @@ class ScheduledManagementComposeTest {
         compose.onNodeWithTag("scheduled_skip_bill").assertIsNotEnabled()
         compose.onNodeWithTag("scheduled_cancel_bill").assertIsNotEnabled()
     }
+    @Test fun duplicateScheduledRowsStayVisibleButAllAmbiguousActionsDisabled() {
+        val rows=data.copy(scheduledManageItems=listOf(
+            ScheduledManageItem("duplicate","Παλαιό Α","expense","2026-10-10",30.0,"due",accountId="bank"),
+            ScheduledManageItem("duplicate","Παλαιό Β","expense","2026-10-12",40.0,"upcoming",accountId="bank"),
+            ScheduledManageItem("unique","Μοναδικό","expense","2026-10-11",50.0,"due",accountId="bank"),
+        ))
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(rows,onBack={},
+                onComplete={_->error("Ambiguous completion")},
+                onClose={_,_->error("Ambiguous close")})
+        } }
+        compose.onNodeWithTag("scheduled_item_duplicate_0").assertIsDisplayed()
+        compose.onNodeWithTag("scheduled_item_duplicate_1").assertIsDisplayed()
+        compose.onNodeWithTag("scheduled_complete_duplicate_0").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_complete_duplicate_1").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_skip_duplicate_0").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_cancel_duplicate_1").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_complete_unique").assertIsDisplayed()
+    }
+
+
 }

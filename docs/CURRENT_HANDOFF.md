@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.
+- Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #239, branch android/w4-1-safe-duplicate-recurring-identity-20261017
-Current W3.2: Web parity verified 1/6 workstreams · 11/24 subtasks. #238 loan duplicate guard merged 4/4 exact-head CI. #239 W4.1 recurring duplicate read-only UI + strict mutation guards, now batched with Web cadence labels and service logoAssetKey/source/endDate metadata. Previous S24 large-type test failed because unique-item testTag changed, fixed to preserve original tag for unique IDs. Fresh immutable-head 4-gate CI pending; W4.1 still partial.
+Issue #155, PR #240, branch android/w4-2-scheduled-duplicate-identity-guards-20261017
+Current W3.2: Verified Web parity 1/6 workstreams · 11/24 completed subtasks. PR #239 duplicate recurring IDs merged after 4/4 exact-head CI as b8d0b8ae5714f98d03aa2b7ef81e26e2bde53e25. PR #240 stages duplicate scheduled ID ambiguity guards in UI, ViewModel, canonical ledger mutations and offline queue, with new JVM/S24 Compose tests. W3.2/W4.2 incomplete; W3.1 physical statement visuals, W6.2/W6.4 owner phone, W5.1 verified artwork and W2.4 deletion safety pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.
+Next Run 4 exact-head Project Tracking, Android CI, screenshots, S24 emulator gates for PR #240; resolve failures and merge only 4/4 green. Continue W4.2 scheduled/forecast and W3.2 classification, no W3.1 physical approval or W6.2/S24 owner signoff inferred; keep W2.4 permanent delete UI disabled and no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

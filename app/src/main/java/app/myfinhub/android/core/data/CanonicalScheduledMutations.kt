@@ -54,7 +54,9 @@ data class CreateCanonicalScheduledTransaction(
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(scheduledId.isNotBlank()) { "Απαιτείται αναγνωριστικό προγραμματισμένης κίνησης." }
         val before = document.state.array("scheduled")
-        val existing = before.filterIsInstance<JsonObject>().firstOrNull { it.string("id") == scheduledId }
+        val matches = before.filterIsInstance<JsonObject>().filter { it.string("id") == scheduledId }
+        require(matches.size <= 1) { "Το ID ανήκει σε πολλές ιστορικές κινήσεις." }
+        val existing = matches.singleOrNull()
         if (existing != null) {
             require(matchesExisting(existing)) {
                 "Το αναγνωριστικό προγραμματισμένης κίνησης ανήκει σε διαφορετική καταχώριση."
@@ -105,8 +107,9 @@ data class CompleteCanonicalScheduledTransaction(
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(scheduledId.isNotBlank() && eventId.isNotBlank()) { "Απαιτούνται αναγνωριστικά κίνησης." }
         val rows = document.state.array("scheduled")
-        val index=rows.indexOfFirst { (it as? JsonObject)?.string("id")==scheduledId }
-        require(index>=0) { "Δεν βρέθηκε προγραμματισμένη κίνηση." }
+        val indices=rows.indices.filter { (rows[it] as? JsonObject)?.string("id")==scheduledId }
+        require(indices.size==1) { "Η κίνηση λείπει ή έχει αμφίσημο ID." }
+        val index=indices.single()
         val row=rows[index] as JsonObject
         if (row.string("status")=="completed" && row.string("completedEventId")==eventId &&
             document.state.array("events").any { (it as? JsonObject)?.string("id")==eventId }) return document
@@ -140,8 +143,9 @@ data class CloseCanonicalScheduledTransaction(
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(status in setOf("skipped","cancelled")) { "Μη επιτρεπτή κατάσταση." }
         val rows=document.state.array("scheduled")
-        val index=rows.indexOfFirst { (it as? JsonObject)?.string("id")==scheduledId }
-        require(index>=0) { "Η κίνηση δεν βρέθηκε." }
+        val indices=rows.indices.filter { (rows[it] as? JsonObject)?.string("id")==scheduledId }
+        require(indices.size==1) { "Η κίνηση λείπει ή έχει αμφίσημο ID." }
+        val index=indices.single()
         val original=rows[index] as JsonObject
         if(original.string("status")==status) return document
         require(original.string("status")=="pending") { "Η κίνηση έχει ήδη κλείσει." }
