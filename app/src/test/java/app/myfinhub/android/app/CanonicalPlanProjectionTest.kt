@@ -61,6 +61,25 @@ class CanonicalPlanProjectionTest {
     }
 
     @Test
+    fun scheduledManageRowsExposeHistoryWhileForecastCountsOnlyPending() {
+        val records = """{"id":"completed","dueDate":"2026-09-04","kind":"expense",
+            "amount":25,"accountId":"bank","status":"completed","completedEventId":"evt-1"},
+            {"id":"cancelled","dueDate":"2026-09-02","kind":"expense",
+            "amount":35,"accountId":"bank","status":"cancelled"},
+            {"id":"due","dueDate":"2026-09-08","kind":"expense",
+            "amount":40,"accountId":"bank","status":"pending"}"""
+        val state = projectCanonicalPlanState(withPlanRows(records,""),
+            LocalDate.of(2026,9,10),null)
+        assertEquals(setOf("completed","cancelled","due"),
+            state.scheduledManageItems.map { it.id }.toSet())
+        assertEquals("completed",state.scheduledManageItems.first { it.id=="completed" }.status)
+        assertEquals("cancelled",state.scheduledManageItems.first { it.id=="cancelled" }.status)
+        assertEquals("due",state.scheduledManageItems.first { it.id=="due" }.status)
+        assertEquals(listOf("due"),state.items.map { it.id })
+        assertEquals(40.0,state.forecastObligations,0.001)
+    }
+
+    @Test
     fun sameTitleAmountAndDateAcrossAccounts_doNotSuppressObligations() {
         val scheduled = """{"id":"scheduled","dueDate":"2026-09-12","kind":"expense","amount":100,"note":"Ενοίκιο","accountId":"bank","status":"pending"}"""
         val recurring = """{"id":"rec-one","name":"Ενοίκιο","amount":100,"firstExpectedDate":"2026-09-12","accountId":"savings","active":true},

@@ -32,6 +32,7 @@ sealed interface AppRoute : NavKey {
     @Serializable data object Plan : AppRoute
     @Serializable data object PlanForecast : AppRoute
     @Serializable data object PlanRecurring : AppRoute
+    @Serializable data object PlanScheduled : AppRoute
     @Serializable data object PlanBudgets : AppRoute
     @Serializable data object Insights : AppRoute
 }

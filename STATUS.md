@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run 4 exact-head CI gates on PR #230; fix test/compiler failures in the same PR then merge when all green. Next wire safe scheduled UX and review remaining W3.2/W4.2 cross-client edge goldens, W3.1 physical statement visuals W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 disabled permanent-delete UI; no release.
+1. Run 4 immutable-head CI gates for #231; fix failures within same PR, merge only all green; then audit W3.2/4 scheduled and lending edge cases. Real S24 owner acceptance W3.1/W6.2/W6.4 outstanding, W5.1 provider artwork certification, W2.4 permanent-delete UI stays disabled, no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #230, branch android/w3-2-w4-2-scheduled-lifecycle-lending-asof-20261017
-Current W3.2: Web parity 1/6 workstreams · 11/24 subtasks. #230 staged complete Web scheduled create/complete/skip/cancel canonical replay + date-scoped lending repayment. Initial CI exposed missing durable queued-intent codec and private helper visibility, now fixed with 3 serialized scheduled mutation types, server reconciliation and offline golden. Fresh exact-head CI pending. W3.2/W4.2 partial; real S24/W3.1, W5.1 certified logos, W2.4 deletion UI pending.
+Issue #155, PR #231, branch android/w4-2-native-scheduled-creation-and-confirmation-20261017
+Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 subtasks. W3.2/W4.2 #230 scheduled lifecycle, replayable pending codec and lending as-of merged c76395a1 after four green exact-head CI gates. W4.2 #231 staged native scheduled management/create/confirm/skip/cancel/history, forecast duplicate guard, 5 extra unit/Compose goldens; CI pending. Still partial until broad acceptance, real owner S24 W3.1/W6.2/W6.4, W5.1 certified provider assets and W2.4 delete UI gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run 4 exact-head CI gates on PR #230; fix test/compiler failures in the same PR then merge when all green. Next wire safe scheduled UX and review remaining W3.2/W4.2 cross-client edge goldens, W3.1 physical statement visuals W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 disabled permanent-delete UI; no release.
+Next Run 4 immutable-head CI gates for #231; fix failures within same PR, merge only all green; then audit W3.2/4 scheduled and lending edge cases. Real S24 owner acceptance W3.1/W6.2/W6.4 outstanding, W5.1 provider artwork certification, W2.4 permanent-delete UI stays disabled, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
