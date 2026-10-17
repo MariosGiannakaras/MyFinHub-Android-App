@@ -74,6 +74,31 @@ class ScheduledManagementComposeTest {
         }
     }
 
+    @Test fun scheduledTransferRequiresTwoDifferentAccountsAndNeverPostsImmediately() {
+        val calls=mutableListOf<ScheduledCreateRequest>()
+        val state=data.copy(scheduledAccounts=listOf(
+            ScheduledAccountOption("bank","Μισθοδοσία"),
+            ScheduledAccountOption("save","Αποταμίευση"),
+        ))
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(state,onBack={},
+                onCreate={calls+=it},onComplete={_,_,_->},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_create_open").performClick()
+        compose.onNodeWithTag("scheduled_new_kind_transfer").performClick()
+        compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("50")
+        compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-03")
+        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.runOnIdle {
+            assertEquals(1,calls.size)
+            val request=calls.single()
+            assertEquals("transfer",request.kind)
+            assertEquals("bank",request.fromAccountId)
+            assertEquals("save",request.toAccountId)
+            assertEquals(null,request.accountId)
+        }
+    }
+
     @Test fun blockedMutationCannotPostOrCloseScheduledRecord() {
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(data,onBack={},
