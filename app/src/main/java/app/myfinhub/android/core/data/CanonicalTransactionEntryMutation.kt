@@ -28,6 +28,9 @@ data class CanonicalTransactionEntryDraft(
     val expectedReturnDate: String? = null,
     val cardId: String? = null,
     val statementId: String? = null,
+    // Web FinanceEvent loans.ts: linked payments keep the normal EventKind.
+    val loanId: String? = null,
+    val installmentCount: Int? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -56,6 +59,51 @@ fun createCanonicalTransactionEntryMutation(
     val activeCreditCards = document.canonicalCards()
         .filter { it.active && it.kind == "credit" }
         .associateBy { it.id }
+
+    val loan = draft.loanId?.let { id ->
+        require(id.isNotBlank() && id == id.trim()) { "Διάλεξε υπαρκτό δάνειο." }
+        document.canonicalLoanDefinition(id)
+            ?: throw IllegalArgumentException("Το δάνειο δεν είναι πλέον διαθέσιμο.")
+    }
+    if (loan == null) {
+        require(draft.installmentCount == null) { "Ο αριθμός δόσεων απαιτεί συνδεδεμένο δάνειο." }
+    } else {
+        val self = loan.isOwnLoan()
+        val expectedKind = when {
+            self -> "transfer"
+            loan.string("accountingMode") == "liability-repayment" -> "card_payment"
+            else -> "expense"
+        }
+        require(draft.kind == expectedKind) {
+            "Ο τρόπος εξόφλησης δεν συμφωνεί με το συνδεδεμένο δάνειο."
+        }
+        val debt = document.canonicalLoanBalanceRows(draft.date).firstOrNull {
+            it.id == draft.loanId
+        }?.remaining ?: 0.0
+        require(debt > 0.005) { "Το δάνειο δεν έχει υπόλοιπο προς πληρωμή." }
+        val amount = draft.amount ?: throw IllegalArgumentException("Συμπλήρωσε ποσό δόσης.")
+        val cents = moneyToCents(amount)
+        require(cents > 0 && centsToMoney(cents) <= debt + 0.005) {
+            "Η πληρωμή υπερβαίνει το υπόλοιπο του δανείου."
+        }
+        if (self) {
+            require(draft.installmentCount == null) {
+                "Η επιστροφή προσωπικού δανείου δεν μετρά δόσεις."
+            }
+            require(Regex("^(?:ΕΠΙΣΤΡΟΦΗ|RETURN)(?:\\s|:|$)", RegexOption.IGNORE_CASE)
+                .containsMatchIn(draft.note.trim())) {
+                "Η επιστροφή ΒΟΗΘΕΙΑΣ πρέπει να έχει αναγνωρίσιμη περιγραφή."
+            }
+        } else {
+            val count = draft.installmentCount
+            require(count != null && count > 0) { "Επίλεξε έγκυρο πλήθος δόσεων." }
+            val plan = document.canonicalLoanInstallmentPaymentPlan(draft.loanId!!, count, draft.date)
+                ?: throw IllegalArgumentException("Δεν υπάρχουν διαθέσιμες δόσεις.")
+            require(count == plan.count && cents == moneyToCents(plan.amount)) {
+                "Το ποσό πρέπει να ισούται με τις επιλεγμένες δόσεις."
+            }
+        }
+    }
 
     fun requireAccount(id: String?, message: String): String {
         val normalized = id?.trim().orEmpty()
@@ -109,6 +157,11 @@ fun createCanonicalTransactionEntryMutation(
             require(normalizedFromId != normalizedToId) { "Οι λογαριασμοί πρέπει να είναι διαφορετικοί." }
             if (draft.kind == "withdrawal") {
                 require(eligibleAccounts[normalizedToId]?.kind == "cash") { "Η ανάληψη πρέπει να καταλήγει σε λογαριασμό μετρητών." }
+            }
+            if (loan != null) {
+                require(loan.isOwnLoan() && eligibleAccounts[normalizedToId]?.isSavingsAccount() == true) {
+                    "Η επιστροφή ΒΟΗΘΕΙΑΣ πρέπει να καταλήγει σε αποταμιευτικό λογαριασμό."
+                }
             }
             legs += transactionLedgerLeg(normalizedFromId!!, -amount)
             legs += transactionLedgerLeg(normalizedToId!!, amount)
@@ -170,24 +223,32 @@ fun createCanonicalTransactionEntryMutation(
             normalizedAmount = amount
             val sourceAccountId = requireAccount(draft.fromAccountId, "Διάλεξε υπαρκτό λογαριασμό πληρωμής.")
             normalizedFromId = sourceAccountId
-            val cardId = requireCard(draft.cardId)
-            normalizedCardId = cardId
-            val debt = document.creditDebtForCardAt(cardId, draft.date)
-            require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
-            require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
-            selectedStatementId = draft.statementId?.trim()?.takeIf(String::isNotBlank)
-            selectedStatementId?.let { statementId ->
-                val statement = document.creditStatementViews(cardId, draft.date)
-                    .firstOrNull { it.id == statementId }
-                    ?: throw IllegalArgumentException("Η επιλεγμένη δήλωση δεν ανήκει στην πιστωτική κάρτα.")
-                require(statement.remaining > 0.005) { "Η επιλεγμένη δήλωση έχει ήδη εξοφληθεί." }
-                require(amount <= statement.remaining + 0.01) {
-                    "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
+            if (loan != null) {
+                // Web ContextualQuickAdd liability-repayment uses card_payment with
+                // loanId but intentionally no cardId or card statement allocation.
+                require(draft.cardId == null && draft.statementId == null) {
+                    "Η δόση υποχρέωσης δεν συνδέεται με ξεχωριστή πιστωτική."
                 }
-            }
-            val cardBankId = activeCreditCards[cardId]?.bankId.orEmpty()
-            require(eligibleAccounts[sourceAccountId]?.matchesFinancialProvider(cardBankId) == true) {
-                "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
+            } else {
+                val cardId = requireCard(draft.cardId)
+                normalizedCardId = cardId
+                val debt = document.creditDebtForCardAt(cardId, draft.date)
+                require(debt > 0.005) { "Η συγκεκριμένη κάρτα δεν έχει τρέχουσα οφειλή." }
+                require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
+                selectedStatementId = draft.statementId?.trim()?.takeIf(String::isNotBlank)
+                selectedStatementId?.let { statementId ->
+                    val statement = document.creditStatementViews(cardId, draft.date)
+                        .firstOrNull { it.id == statementId }
+                        ?: throw IllegalArgumentException("Η επιλεγμένη δήλωση δεν ανήκει στην πιστωτική κάρτα.")
+                    require(statement.remaining > 0.005) { "Η επιλεγμένη δήλωση έχει ήδη εξοφληθεί." }
+                    require(amount <= statement.remaining + 0.01) {
+                        "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
+                    }
+                }
+                val cardBankId = activeCreditCards[cardId]?.bankId.orEmpty()
+                require(eligibleAccounts[sourceAccountId]?.matchesFinancialProvider(cardBankId) == true) {
+                    "Η αποπληρωμή πρέπει να γίνει από διαθέσιμο λογαριασμό της ίδιας τράπεζας με την κάρτα."
+                }
             }
             legs += transactionLedgerLeg(sourceAccountId, -amount)
             legs += transactionLedgerLeg(CREDIT_ACCOUNT_ID, amount)
@@ -251,6 +312,8 @@ fun createCanonicalTransactionEntryMutation(
         draft.expectedReturnDate?.trim()?.takeIf(String::isNotBlank)?.let { put("expectedReturnDate", JsonPrimitive(it)) }
         normalizedCardId?.let { put("cardId", JsonPrimitive(it)) }
         selectedStatementId?.let { put("statementId", JsonPrimitive(it)) }
+        draft.loanId?.let { put("loanId", JsonPrimitive(it)) }
+        draft.installmentCount?.let { put("installmentCount", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))
