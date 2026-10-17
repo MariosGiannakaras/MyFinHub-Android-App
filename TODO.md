@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release.
+- [ ] Run four immutable-head CI gates on #234; fix any unit/Compose/compile errors in same PR and merge only if all green. Continue W3.2 finance classification and W4.2 planning UX acceptance. Physical S24 W3.1/W6.2/W6.4, W5.1 verified provider art and W2.4 card delete UI safety remain open. No signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #233, branch android/w4-2-scheduled-idempotence-collision-hardening-20261017
-Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. #230/#231 scheduled lifecycle/UI and #232 historical loan date goldens merged 4/4 exact-head green CI. #233 staged scheduled identity collision and durable offline pending satisfaction integrity with five goldens. W3.2/W4.1–W4.4 remain partial pending broad acceptance. Physical W3.1/W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 card delete safety remain open.
+Issue #155, PR #234, branch android/w4-2-scheduled-actual-payment-account-ui-20261017
+Current W3.2: Verified Web parity 1/6 full workstreams · 11/24 subtasks. W3.2 #232 and scheduled replay #233 merged after 4/4 exact-head CI. W4.2 #234 stages Web scheduledToEvent actual account/from/to overrides in confirmation UI, route and offline replay goldens and Compose regression. CI pending; W3.2/W4.1–W4.4 acceptance partial. Real owner S24 W3.1/W6.2/W6.4, W5.1 approved artwork, W2.4 destructive guard pending; no release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release.
+Next Run four immutable-head CI gates on #234; fix any unit/Compose/compile errors in same PR and merge only if all green. Continue W3.2 finance classification and W4.2 planning UX acceptance. Physical S24 W3.1/W6.2/W6.4, W5.1 verified provider art and W2.4 card delete UI safety remain open. No signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

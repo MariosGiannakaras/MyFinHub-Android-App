@@ -118,6 +118,35 @@ class WebScheduledLendingAsOfLifecycleTest {
         assertTrue(reconcileSatisfiedPendingMutations(paid,listOf(saved,completedIntent)).isEmpty())
     }
 
+    @Test fun completionHonorsActualAccountOverrideAndDurableOfflineReplay() {
+        // A scheduled account may have been closed; Web scheduledToEvent allows
+        // selecting an eligible account when the real transaction is confirmed.
+        val pay=CompleteCanonicalScheduledTransaction(
+            "rent","actual-rent-from-savings","2026-10-17",at,
+            amount=35.0,accountId="savings",
+        )
+        val intent=PendingCanonicalMutationIntent.fromMutation(pay,"rent-override")
+        val paid=intent.asMutation().apply(base)
+        val event=paid.canonicalEvents().first { it.id=="actual-rent-from-savings" }
+        assertEquals("savings",event.legs.single().accountId)
+        assertEquals(-35.0,event.legs.single().amount,0.001)
+        assertEquals(510.0,paid.accountBalances("2026-10-17")["salary"]!!,0.001)
+        assertEquals(165.0,paid.accountBalances("2026-10-17")["savings"]!!,0.001)
+        assertTrue(intent.isSatisfiedBy(paid))
+        assertEquals(paid.raw,intent.asMutation().apply(paid).raw)
+
+        val reverse=CompleteCanonicalScheduledTransaction(
+            "move","actual-savings-to-salary","2026-10-18",at,
+            amount=25.0,fromAccountId="savings",toAccountId="salary",
+        ).apply(base)
+        val legs=reverse.canonicalEvents().first { it.id=="actual-savings-to-salary" }.legs
+        assertEquals(listOf("savings","salary"),legs.map { it.accountId })
+        assertEquals(listOf(-25.0,25.0),legs.map { it.amount })
+        assertEquals(535.0,reverse.accountBalances("2026-10-18")["salary"]!!,0.001)
+        assertEquals(175.0,reverse.accountBalances("2026-10-18")["savings"]!!,0.001)
+        assertEquals(0.0,legs.sumOf { it.amount },0.001)
+    }
+
     @Test fun scheduleCreationRoundsMoneyAndRejectsInvalidDraftsAndCollidingEvents() {
         val intent=CreateCanonicalScheduledTransaction("added",CanonicalScheduledDraft(
             kind="expense",dueDate="2026-10-31",amount=1.005,accountId="salary"

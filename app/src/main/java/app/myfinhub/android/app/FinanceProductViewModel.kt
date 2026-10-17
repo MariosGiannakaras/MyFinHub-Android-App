@@ -33,6 +33,7 @@ import app.myfinhub.android.core.data.CanonicalScheduledDraft
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.core.data.CloseCanonicalScheduledTransaction
 import app.myfinhub.android.core.data.canonicalScheduled
+import app.myfinhub.android.core.data.canonicalAccounts
 
 import app.myfinhub.android.core.data.createCanonicalLoanPaymentMutation
 import app.myfinhub.android.core.data.UpsertCanonicalSavingsGoal
@@ -552,18 +553,27 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     /** A user-confirmed schedule closes the same canonical event it creates. */
-    fun completeScheduled(id: String, date: String, amount: Double) {
+    fun completeScheduled(request: app.myfinhub.android.feature.plan.ScheduledCompletionRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        if (ready.projection.document.canonicalScheduled().none {
-                it.id == id && it.status == "pending"
-            }) return
+        val scheduled = ready.projection.document.canonicalScheduled().firstOrNull {
+            it.id == request.id && it.status == "pending"
+        } ?: return
+        val valid = app.myfinhub.android.feature.plan.scheduledCompletionAccountIsValid(
+            scheduled.kind,ready.projection.document.canonicalAccounts()
+                .filter { it.kind != "credit" }.mapTo(mutableSetOf()) { it.id },
+            request.accountId,request.fromAccountId,request.toAccountId,
+        )
+        if (!valid) return
         applyMutation(CompleteCanonicalScheduledTransaction(
-            scheduledId = id,
+            scheduledId = request.id,
             eventId = "evt-android-${UUID.randomUUID()}",
-            date = date,
+            date = request.date,
             nowIso = Instant.now().toString(),
-            amount = amount,
+            amount = request.amount,
+            accountId = request.accountId,
+            fromAccountId = request.fromAccountId,
+            toAccountId = request.toAccountId,
         ))
     }
 

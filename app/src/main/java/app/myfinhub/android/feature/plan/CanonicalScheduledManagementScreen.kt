@@ -49,7 +49,7 @@ fun CanonicalScheduledManagementScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onCreate: (ScheduledCreateRequest) -> Unit = {},
-    onComplete: (String, String, Double) -> Unit,
+    onComplete: (ScheduledCompletionRequest) -> Unit,
     onClose: (String, String) -> Unit,
     mutationBlocked: Boolean = false,
 ) {
@@ -68,6 +68,11 @@ fun CanonicalScheduledManagementScreen(
     var action by remember { mutableStateOf("complete") }
     var dateText by remember { mutableStateOf(LocalDate.now().toString()) }
     var amountText by remember { mutableStateOf("") }
+    var actualAccountId by remember { mutableStateOf("") }
+    var actualFromAccountId by remember { mutableStateOf("") }
+    var actualToAccountId by remember { mutableStateOf("") }
+    var actualSourceMenu by remember { mutableStateOf(false) }
+    var actualDestinationMenu by remember { mutableStateOf(false) }
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Προγραμματισμένες κινήσεις",
@@ -130,6 +135,14 @@ fun CanonicalScheduledManagementScreen(
                                         action = "complete"
                                         dateText = LocalDate.now().toString()
                                         amountText = item.amount.toString()
+                                        val available=state.scheduledAccounts.map { it.id }
+                                        actualAccountId=item.accountId?.takeIf { it in available }
+                                            ?: available.firstOrNull().orEmpty()
+                                        actualFromAccountId=item.fromAccountId?.takeIf { it in available }
+                                            ?: available.firstOrNull().orEmpty()
+                                        actualToAccountId=item.toAccountId?.takeIf {
+                                            it in available && it!=actualFromAccountId
+                                        } ?: available.firstOrNull { it!=actualFromAccountId }.orEmpty()
                                     },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
                                         .testTag("scheduled_complete_" + item.id),
@@ -243,6 +256,10 @@ fun CanonicalScheduledManagementScreen(
     selected?.let { item ->
         val amount = amountText.replace(',', '.').toDoubleOrNull()
         val dateValid = runCatching { LocalDate.parse(dateText) }.isSuccess
+        val routeValid = scheduledCompletionAccountIsValid(
+            item.kind,state.scheduledAccounts.mapTo(mutableSetOf()) { it.id },
+            actualAccountId,actualFromAccountId,actualToAccountId,
+        )
         AlertDialog(
             onDismissRequest = { if(!mutationBlocked)selected=null },
             title = { Text(when(action) {
@@ -267,16 +284,65 @@ fun CanonicalScheduledManagementScreen(
                             keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Decimal),
                             modifier=Modifier.fillMaxWidth().testTag("scheduled_confirm_amount"),
                         )
+                        // Web scheduledToEvent accepts real account overrides at confirmation.
+                        // The scheduled source is only an initial suggestion, not a binding.
+                        val transfer=item.kind=="transfer"
+                        Box {
+                            TextButton(onClick={actualSourceMenu=true},enabled=!mutationBlocked,
+                                modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)
+                                    .testTag("scheduled_confirm_source")) {
+                                val selectedId=if(transfer)actualFromAccountId else actualAccountId
+                                Text((if(transfer)"Από: " else "Λογαριασμός: ") +
+                                    (state.scheduledAccounts.firstOrNull { it.id==selectedId }?.label
+                                        ?: "Επιλογή"))
+                            }
+                            DropdownMenu(expanded=actualSourceMenu,
+                                onDismissRequest={actualSourceMenu=false}) {
+                                state.scheduledAccounts.forEach { account ->
+                                    DropdownMenuItem(text={Text(account.label)},onClick={
+                                        if(transfer)actualFromAccountId=account.id
+                                        else actualAccountId=account.id
+                                        actualSourceMenu=false
+                                    })
+                                }
+                            }
+                        }
+                        if(transfer) {
+                            Box {
+                                TextButton(onClick={actualDestinationMenu=true},enabled=!mutationBlocked,
+                                    modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)
+                                        .testTag("scheduled_confirm_destination")) {
+                                    Text("Προς: " + (state.scheduledAccounts.firstOrNull {
+                                        it.id==actualToAccountId }?.label ?: "Επιλογή"))
+                                }
+                                DropdownMenu(expanded=actualDestinationMenu,
+                                    onDismissRequest={actualDestinationMenu=false}) {
+                                    state.scheduledAccounts.forEach { account ->
+                                        DropdownMenuItem(text={Text(account.label)},onClick={
+                                            actualToAccountId=account.id
+                                            actualDestinationMenu=false
+                                        })
+                                    }
+                                }
+                            }
+                        }
                     } else Text("Η προγραμματισμένη κίνηση θα κλείσει χωρίς μεταβολή χρημάτων.")
                 }
             },
             confirmButton = {
                 TextButton(
                     enabled = !mutationBlocked &&
-                        (action!="complete" || (dateValid && amount!=null && amount.isFinite() && amount>0)),
+                        (action!="complete" || (dateValid && amount!=null && amount.isFinite() && amount>0 && routeValid)),
                     onClick = {
                         if(action=="complete") {
-                            if(amount!=null && dateValid)onComplete(item.id,dateText,amount)
+                            if(amount!=null && dateValid && routeValid)onComplete(
+                                ScheduledCompletionRequest(
+                                    id=item.id,date=dateText,amount=amount,
+                                    accountId=if(item.kind=="transfer")null else actualAccountId,
+                                    fromAccountId=if(item.kind=="transfer")actualFromAccountId else null,
+                                    toAccountId=if(item.kind=="transfer")actualToAccountId else null,
+                                )
+                            )
                         } else onClose(item.id,action)
                         selected=null
                     },

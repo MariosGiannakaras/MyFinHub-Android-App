@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -17,7 +18,10 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ScheduledManagementComposeTest {
     @get:Rule val compose=createComposeRule()
-    private val data=PlanUiState(scheduledManageItems=listOf(
+    private val data=PlanUiState(scheduledAccounts=listOf(
+        ScheduledAccountOption("bank","Μισθοδοσία"),
+        ScheduledAccountOption("save","Αποταμίευση"),
+    ),scheduledManageItems=listOf(
         ScheduledManageItem("bill","Internet","expense","2026-10-12",35.0,"due",accountId="bank"),
         ScheduledManageItem("done","Rent","expense","2026-10-10",200.0,"completed",accountId="bank"),
     ))
@@ -26,7 +30,7 @@ class ScheduledManagementComposeTest {
         val calls=mutableListOf<Triple<String,String,Double>>()
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(data,onBack={},
-                onComplete={id,date,amount->calls+=Triple(id,date,amount)},onClose={_,_->})
+                onComplete={request->calls+=Triple(request.id,request.date,request.amount)},onClose={_,_->})
         } }
         compose.onNodeWithTag("scheduled_management_root").assertIsDisplayed()
         compose.onNodeWithTag("scheduled_complete_bill").performClick()
@@ -37,11 +41,31 @@ class ScheduledManagementComposeTest {
         compose.runOnIdle { assertEquals(listOf(Triple("bill","2026-10-17",32.5)),calls) }
     }
 
+    @Test fun confirmedPaymentCanChooseDifferentAccountFromOldScheduledSource() {
+        val calls=mutableListOf<ScheduledCompletionRequest>()
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(data,onBack={},
+                onComplete={calls+=it},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_complete_bill").performClick()
+        compose.onNodeWithTag("scheduled_confirm_source").performClick()
+        compose.onNodeWithText("Αποταμίευση").performClick()
+        compose.onNodeWithTag("scheduled_confirm_date").performTextReplacement("2026-10-17")
+        compose.onNodeWithTag("scheduled_confirm_amount").performTextReplacement("32.5")
+        compose.onNodeWithTag("scheduled_confirm_action").performClick()
+        compose.runOnIdle {
+            assertEquals(1,calls.size)
+            assertEquals("bill",calls.single().id)
+            assertEquals("save",calls.single().accountId)
+            assertEquals(32.5,calls.single().amount,0.001)
+        }
+    }
+
     @Test fun skipIsExplicitAndBlockedStateDisablesMutationActions() {
         val calls=mutableListOf<Pair<String,String>>()
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(data,onBack={},
-                onComplete={_,_,_->},onClose={id,status->calls+=id to status})
+                onComplete={_->},onClose={id,status->calls+=id to status})
         } }
         compose.onNodeWithTag("scheduled_skip_bill").performClick()
         compose.runOnIdle { assertEquals(0,calls.size) }
@@ -57,7 +81,7 @@ class ScheduledManagementComposeTest {
         ))
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(state,onBack={},
-                onCreate={requests+=it},onComplete={_,_,_->},onClose={_,_->})
+                onCreate={requests+=it},onComplete={_->},onClose={_,_->})
         } }
         compose.onNodeWithTag("scheduled_create_open").performClick()
         compose.runOnIdle {assertEquals(0,requests.size)}
@@ -82,7 +106,7 @@ class ScheduledManagementComposeTest {
         ))
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(state,onBack={},
-                onCreate={calls+=it},onComplete={_,_,_->},onClose={_,_->})
+                onCreate={calls+=it},onComplete={_->},onClose={_,_->})
         } }
         compose.onNodeWithTag("scheduled_create_open").performClick()
         compose.onNodeWithTag("scheduled_new_kind_transfer").performClick()
@@ -102,7 +126,7 @@ class ScheduledManagementComposeTest {
     @Test fun blockedMutationCannotPostOrCloseScheduledRecord() {
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(data,onBack={},
-                onComplete={_,_,_->error("Blocked")},
+                onComplete={_->error("Blocked")},
                 onClose={_,_->error("Blocked")},mutationBlocked=true)
         } }
         compose.onNodeWithTag("scheduled_complete_bill").assertIsNotEnabled()
