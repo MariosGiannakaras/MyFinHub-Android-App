@@ -33,6 +33,7 @@ import app.myfinhub.android.core.data.CanonicalScheduledDraft
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.core.data.CloseCanonicalScheduledTransaction
 import app.myfinhub.android.core.data.canonicalScheduled
+import app.myfinhub.android.core.data.canonicalAccounts
 
 import app.myfinhub.android.core.data.createCanonicalLoanPaymentMutation
 import app.myfinhub.android.core.data.UpsertCanonicalSavingsGoal
