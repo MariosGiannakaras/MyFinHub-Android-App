@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -56,6 +57,28 @@ class S7DebtSurfaceTest {
         }
         composeRule.onNodeWithText("Καταχώριση επιστροφής").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("lend-1", recorded?.id) }
+    }
+
+    @Test
+    fun settledHistoryDoesNotShowMissingDetailsOrOfferNewRepayment() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalLendingScreen(
+                    state = MoneyUiState(
+                        lendingReceivable = 0.0,
+                        lendingHistory = listOf(
+                            LendingHistoryItem("settled", "Νίκος", "2026-10-11",
+                                "repaid", 40.0, "Ιστορικό επιστροφής", 0.0),
+                        ),
+                    ),
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Ιστορικό δανεικών").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Ιστορικό επιστροφής").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση επιστροφής").assertDoesNotExist()
+        composeRule.onNodeWithText("Δεν υπάρχουν αναλυτικά στοιχεία απαιτήσεων").assertDoesNotExist()
     }
 
     @Test
