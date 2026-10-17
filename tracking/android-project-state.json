@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release."
+      "Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-3-loan-payment-confirmation-ui-20261017",
-    "checkpoint": "Web parity verified 1/6 accepted workstreams · 11/24 subtasks. #227 linked recurring Quick Entry CTA merged bf99149 after 4/4 immutable CI. W4.3 #228 stages full Loans → review-confirmed payment dialog for normal installment, liability and HELP/self-loan with account/date/count/savings and strict common mutation; unit + emulator UI tests pending. W4.1/W4.3/W3.2 remain partial. W3.1 physical visuals, W6.2 physical owner S24, W5.1 artwork, W2.4 permanent delete guard outstanding.",
+    "branch": "develop",
+    "checkpoint": "Verified Web↔Android parity 1/6 accepted workstreams · 11/24 subtasks. Batched #226 Web recurring/rules/month-end, #227 editable native recurring Quick Entry, #228 reviewed loan/HELP payment screen all merged after 4/4 exact-head CI. Develop 7a97b6e82e71480936b25cce13257d914b89c1b0. W3.2 and W4.1–W4.4 remain partial pending broader acceptance, W3.1 statement physical visual review, W6.2/W6.4 real owner S24 signoff, W5.1 verified provider assets and W2.4 destructive guard pending. No release.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -883,7 +883,7 @@
               "W4.3 #201 reanchored goal owner mutation UI: server-authoritative guarded ViewModel, owner-approved Upsert/Delete SavingsGoal metadata only, captured date validation, stable idempotent PendingCanonicalMutation replay and isSatisfiedBy, native create/edit/delete confirmation, hidden privacy progress and domain+emulator tests. Fresh full exact-head CI pending, no completed credit or physical S24 acceptance yet.",
               "W4.3 PR #201 safe SavingsGoal create/edit/delete with guarded canonical optimistic/offline replay and native confirm-before-delete merged to develop as 04ee7ea8b51c3658ad0759fcda43e0824359ebe9 after all four exact-head gates; full W4.3 owner visual/physical acceptance still pending.",
               "PR #225 loan-linked canonical entry validator, installment count/remaining/asOf, strict card_payment liability without cardId, HELP transfer and expense, five golden unit/replay tests. Immutable head 28a6946eb7910d5f18691298e3f255f47c44f8c8 passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Merged develop 101f566e015a5c7e6d6c38ed7e9be7eddb9b057f. W3.2/W4.3 partial.",
-              "PR #228 staged end-to-end loan payment UX from native Loans screen: account/date/count/amount/savings selection, explicit confirm dialog, Web-conformant regular/HELP/liability linked canonical mutation via FinanceProductViewModel offline replay, shared loan remaining/identity projection, unit and Compose instrumentation tests, all destructive/unreviewed shortcuts avoided. Exact-head four CI pending; W4.3 remains partial."
+              "PR #228 actual native Loans-screen review/confirmation dialog with source account, ISO date, installment count, HELP self-loan amount/destination, UI bounds, canonical loanId+installmentCount integration through FinanceProductViewModel single offline-first mutation queue, two unit and two real Compose emulator regressions. Exact immutable head 04c46debe0b7d386b0843008fe6070939a520650 passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator, then squash-merged to develop 7a97b6e82e71480936b25cce13257d914b89c1b0. W4.3 remains partial pending broad savings/budget/loan acceptance."
             ]
           },
           {
@@ -1001,7 +1001,7 @@
         ]
       }
     ],
-    "next_action": "Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release.",
+    "next_action": "Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 228,
     "current_subtask": "W3.2",
