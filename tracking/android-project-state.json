@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-16",
+  "updated_at": "2026-10-17",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release."
+      "Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-2-row-local-duplicate-loan-forecast-20261017",
-    "checkpoint": "Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #241 duplicate Plan/Forecast scheduled rows merged after 4/4 exact-head green CI as 197649c05a35c6fd6eb7861bc694fbecaf13d00c. PR #242 stages W4.2 row-local loan forecast remaining/installments for historical repeated IDs, two goldens and synchronized tracker; CI pending. W3.2/W4.2 still partial; W3.1 real device credit statement visual review, W6.2/W6.4 owner S24, W5.1 assets and W2.4 guarded destructive delete remain outstanding.",
+    "branch": "android/w4-2-forecast-web-edge-batch-20261017",
+    "checkpoint": "Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #242 historical duplicate loan row forecast correction merged develop 1e0d393a96e7a4cea6e58e7cc7a99d43029320e2 after 4/4 exact-head Project Tracking, Android CI, screenshots and S24 emulator checks on b940f8c1fbb19ea63603d93abd207fe886a70a7a. Draft PR #243 batches W4.2 Web forecast edge parity: negative nominal installments cannot invent debits, blank loan account IDs fall back to settings, and read-only projections use remaining installment count even for forgiven debt. JVM golden vectors cover both active duplicate loan rows and 30/60/90 horizons. PR #243 code/tests committed, immutable-head CI not yet validated; W3.2/W4.2 partial. Physical owner S24 reviews, certified provider assets, protected deletion and release remain gated.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -880,7 +880,8 @@
               "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial.",
               "PR #240 Web-compatible historical duplicate scheduled IDs preserved independent read-only Compose rows, canonical create/complete/skip/cancel and offline queue ambiguous-ID rejects. JVM + S24 Compose goldens; immutable head def0497ae38c757cde5a80defa06a69c428fa6fb passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression, S24 emulator. Merged develop e9b209f4e5df77395771490408d697bebec7b39e. W4.2 still partial.",
               "PR #241 read-only duplicate Plan/Forecast historical scheduled row surfaces and safe ambiguous record guards merged as 197649c05a35c6fd6eb7861bc694fbecaf13d00c after 4/4 successful exact-head checks at 1562bf02d7ef8d254660301110fc9e7e8485c4dd. W4.2 remains in progress.",
-              "PR #242 staged row-local duplicate historical loan forecast debt/remaining snapshots. Web forecast.ts preserves repeated loan IDs but Android associateBy(id) previously substituted last row's paid count for every row, omitting or multiplying due payments. Two golden regressions with both orderings; immutable-head CI pending."
+              "PR #242 historical duplicate loan row read-only remaining-installment projections passed 4/4 immutable-head Project Tracking, Android CI unit/lint/unsigned, screenshots and S24 emulator checks on b940f8c1fbb19ea63603d93abd207fe886a70a7a; squash merged develop 1e0d393a96e7a4cea6e58e7cc7a99d43029320e2. W4.2 still partial.",
+              "Draft PR #243 stages consolidated Web forecast loan edge batch: non-positive nominal installments skipped instead of abs() inventing a debit; empty-string loan default account falls back to settings; read-only forecast matches remaining installment counts even when outstanding was forgiven. JVM goldens for duplicate active rows, 30/60/90 horizons, settings fallback, negative installments, forgiven debt. Code/tests committed; CI not yet validated, no release/physical owner acceptance."
             ]
           },
           {
@@ -1019,10 +1020,10 @@
         ]
       }
     ],
-    "next_action": "Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release.",
+    "next_action": "Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 242,
-    "current_subtask": "W3.2",
+    "pr": 243,
+    "current_subtask": "W4.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
