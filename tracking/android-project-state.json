@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release."
+      "Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-w4-2-scheduled-history-and-asof-receivables-20261017",
-    "checkpoint": "Web parity verified 1/6 accepted workstreams · 11/24 completed subtasks. #233 strict scheduled collision/offline sync and #234 confirmed account route/Compose UI merged after 4/4 exact-head CI. #235 staged Web scheduled pending/history chronological order and dated net-worth receivable semantics with six regression tests; CI pending. W3.2/W4.1–W4.4 partial; W3.1 real statement visuals, W6.2/W6.4 physical S24 owner approval, W5.1 certified artwork, W2.4 destructive UI guard pending.",
+    "branch": "android/w3-2-lossless-legacy-loan-rows-20261017",
+    "checkpoint": "Verified 1/6 workstreams · 11/24 subtasks. #235 Web scheduled history ordering and dated net-worth receivables merged to develop 70ca919 after all 4 exact-head checks passed. #236 stages lossless Web duplicate historical seed loan rows/overrides/custom coexistence with 3 goldens. W3.2 and W4.2 partial; W3.1 physical visual review, W6.2/W6.4 owner S24, W5.1 verified artwork, W2.4 permanent delete UI pending. No release.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -809,7 +809,8 @@
               "PR #226 Web recurringId ordinary expense, historical empty category first-rule fallback and day>31 month-end, golden regressions merged develop e987116d4b0546e93e5e93d0358814e351a7e05a. CVV vault emulator false-positive assertion corrected to detect serialized protobuf plaintext values without production keystore changes. Immutable head de6a9f156c8148f3f2363a872ca203acbaec322a passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator. W3.2/W4.1 partial.",
               "PR #230 date-scoped receivable repayment, Web scheduled create/complete/skip/cancel, atomic ledger, three durable offline mutation codecs, fresh as-of and 5 unit/queue goldens. Exact head 94a2400fe4599fbe2118d99810a36c911459ce6b passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Merged develop c76395a1a5435a9152c3f1a4225cea7a3f0114c4. W3.2/W4.2 still partial.",
               "PR #232 Web loan as-of null/undated payment exclusion in loan balance and forecast merged develop fd0632b041fb1d015acb49b0390de4b587449b87. Exact head 0c71a9eaf9696a2c86b4880e20e9d6cde10c6819 passed all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots, and S24 emulator gates. W3.2 partial.",
-              "PR #235 staged Web domain.ts netWorth eventReceivables as-of filter: missing/null finance event dates fail JS date <= asOf, while all-time includes undated legacy deltas. Three golden as-of/all-time finance tests; CI pending, W3.2 remains partial."
+              "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial.",
+              "PR #236 staged Web effectiveLoans/map loan overrides for each original historical loan row, custom loan append and orphan override ignored; Kotlin associateBy previously collapsed duplicate IDs. Three golden cases cover historical repeated IDs, overrides and linked payment application. 4/4 immutable-head CI pending, W3.2 remains partial."
             ]
           },
           {
@@ -871,7 +872,7 @@
               "PR #231 full native scheduled management UI with new expense/income/transfer scheduling, bank/savings selection, confirm real amount/date, skip/cancel/history, ViewModel queued mutation bridge, Forecast route preventing duplicate unlinked Quick Entry, 1 projection unit + 4 emulator Compose golden tests. Immutable head 0084ce8bf090832cd4b0809ca9b57610464e5371 passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator gates. Merged develop bf85c43d1e45eeb901867ab8dd66cbb6f149829c. W4.2 still partial pending acceptance.",
               "PR #233 strict scheduled ID/account/note/category/createdAt collision detection and pending intent satisfaction reconciliation merged develop 9d75e46b157d70d031fff2540256419d6c396e65. Exact head 9cf4dd70c8fedf2424a8b8412817545e54881efb passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator gates. Five golden regressions; W4.2 remains partial.",
               "PR #234 native scheduled confirmation actual account/transfer route selection and strict ViewModel validation, unit ledger/offline and S24 Compose picker goldens merged develop 0415acbc2c4225884e2cd35b930956c5f438f8b1. Immutable head c75963b02daa1e7fc324e51f616952e81658e0c8 passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24-target emulator. W4.2 partially accepted.",
-              "PR #235 staged Web scheduled.ts pending order by dueDate/createdAt vs nonpending history latest updatedAt first, lifecycle projection timestamps and three goldens; CI pending, W4.2 remains partial."
+              "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial."
             ]
           },
           {
@@ -1010,9 +1011,9 @@
         ]
       }
     ],
-    "next_action": "Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release.",
+    "next_action": "Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 235,
+    "pr": 236,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
