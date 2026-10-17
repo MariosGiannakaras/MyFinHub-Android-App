@@ -100,6 +100,8 @@ data class QuickEntryUiState(
     val toAccountId: String = "acc-save",
     val cardId: String = "card-credit",
     val statementId: String = "",
+    /** Explicit Web recurringId linkage. Cleared by Reset or switching transaction kind. */
+    val recurringId: String = "",
     val creditStatements: List<QuickEntryStatementOption> = emptyList(),
     val person: String = "",
     val expectedReturnDateText: String = "",
@@ -155,6 +157,7 @@ sealed interface QuickEntryAction {
     data class ToAccountChanged(val id: String) : QuickEntryAction
     data class CardChanged(val id: String) : QuickEntryAction
     data class StatementChanged(val id: String) : QuickEntryAction
+    data class RecurringChanged(val id: String) : QuickEntryAction
     data class PersonChanged(val value: String) : QuickEntryAction
     data class ExpectedReturnDateChanged(val value: String) : QuickEntryAction
     data class ActualBalanceChanged(val value: String) : QuickEntryAction
@@ -180,6 +183,9 @@ fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickE
     is QuickEntryAction.ToAccountChanged -> state.changed(toAccountId = action.id)
     is QuickEntryAction.CardChanged -> state.changed(cardId = action.id, statementId = "")
     is QuickEntryAction.StatementChanged -> state.changed(statementId = action.id)
+    is QuickEntryAction.RecurringChanged -> state.changed(
+        recurringId = action.id.takeIf { state.kind == QuickEntryKind.EXPENSE }?.trim().orEmpty(),
+    )
     is QuickEntryAction.PersonChanged -> state.changed(person = action.value)
     is QuickEntryAction.ExpectedReturnDateChanged -> state.changed(expectedReturnDateText = action.value)
     is QuickEntryAction.ActualBalanceChanged -> state.changed(actualBalanceText = action.value)
@@ -268,6 +274,7 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         fromAccountId = fromId,
         toAccountId = preferredTo?.id.orEmpty(),
         statementId = "",
+        recurringId = "",
         cardId = state.cardId.takeIf {
             previousKind.needsCard && kind.needsCard && state.creditCards.any { card -> card.id == it }
         } ?: state.creditCards.firstOrNull()?.id.orEmpty(),
@@ -306,6 +313,7 @@ private fun QuickEntryUiState.changed(
     toAccountId: String = this.toAccountId,
     cardId: String = this.cardId,
     statementId: String = this.statementId,
+    recurringId: String = this.recurringId,
     person: String = this.person,
     expectedReturnDateText: String = this.expectedReturnDateText,
     actualBalanceText: String = this.actualBalanceText,
@@ -320,6 +328,7 @@ private fun QuickEntryUiState.changed(
     toAccountId = toAccountId,
     cardId = cardId,
     statementId = statementId,
+    recurringId = recurringId,
     person = person,
     expectedReturnDateText = expectedReturnDateText,
     actualBalanceText = actualBalanceText,
@@ -383,6 +392,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         expectedReturnDateText = "",
         actualBalanceText = "",
         statementId = "",
+        recurringId = "",
         splitParts = defaultSplitParts(state.expenseCategories.firstOrNull()?.name ?: "Άλλο"),
         validationMessage = null,
         savedSummary = null,
@@ -395,6 +405,9 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
 private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
     val date = runCatching { LocalDate.parse(state.dateText) }.getOrNull()
         ?: return state.invalid("Συμπλήρωσε έγκυρη ημερομηνία.")
+    if (state.recurringId.isNotEmpty() && state.kind != QuickEntryKind.EXPENSE) {
+        return state.invalid("Η συνδεδεμένη πληρωμή παγίου πρέπει να είναι έξοδο.")
+    }
 
     if (state.kind != QuickEntryKind.RECONCILIATION) {
         val amount = state.amount

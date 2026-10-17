@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
+import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
@@ -70,7 +71,15 @@ internal fun projectQuickEntryState(
     )
 
     val base = previous ?: QuickEntryUiState(dateText = today.toString())
-    val activeCategories = if (base.kind == QuickEntryKind.INCOME) incomeCategories else expenseCategories
+    val linkedRecurring = document.allCanonicalRecurringItems().firstOrNull {
+        it.id == base.recurringId
+    }
+    // Linked imported subscriptions can legitimately use a category no longer
+    // in the current taxonomy; keep that exact Web category in the edit form.
+    val scopedExpenseCategories = if (linkedRecurring?.category?.isNotBlank() == true &&
+        expenseCategories.none { it.name == linkedRecurring.category }
+    ) expenseCategories + QuickEntryCategoryOption(linkedRecurring.category) else expenseCategories
+    val activeCategories = if (base.kind == QuickEntryKind.INCOME) incomeCategories else scopedExpenseCategories
     val category = base.category.takeIf { current -> activeCategories.any { it.name == current } }
         ?: activeCategories.firstOrNull()?.name.orEmpty()
     val subcategory = base.subcategory.takeIf { value ->
@@ -150,10 +159,11 @@ internal fun projectQuickEntryState(
         cardId = selectedCard,
         statementId = selectedStatementId,
         creditStatements = creditStatements,
+        recurringId = linkedRecurring?.id.orEmpty(),
         splitParts = splitParts,
         accounts = accountOptions,
         creditCards = cards,
-        expenseCategories = expenseCategories,
+        expenseCategories = scopedExpenseCategories,
         incomeCategories = incomeCategories,
         defaultExpenseAccountId = defaultExpenseId,
         defaultIncomeAccountId = defaultIncomeId,
