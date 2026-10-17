@@ -117,7 +117,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         .map { (overrideLoans[it.string("id").orEmpty()] as? JsonObject) ?: it } +
         state.array("customLoans").mapNotNull { it as? JsonObject }
     loans.forEachIndexed { rowIndex, loan ->
-        val loanId = loan.string("id") ?: return@forEachIndexedIndexed
+        val loanId = loan.string("id") ?: return@forEachIndexed
         val name = loan.string("name").orEmpty()
         val totalInstallments = (loan.number("installments") ?: 0.0).toInt().coerceAtLeast(0)
         val installment = abs(loan.number("installment") ?: 0.0)
