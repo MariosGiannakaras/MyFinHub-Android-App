@@ -24,7 +24,7 @@ import app.myfinhub.android.core.data.effectiveLegacyTransactions
 import app.myfinhub.android.core.data.legacyFlowImpact
 import app.myfinhub.android.core.data.eventFlowImpact
 import app.myfinhub.android.core.data.loanOutstanding
-import app.myfinhub.android.core.data.monthlyFlow
+import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
@@ -109,7 +109,9 @@ fun projectCanonicalProduct(
     val accounts = document.canonicalAccounts()
     val accountNames = accounts.associate { it.id to it.name }
     val balances = document.accountBalances(asOf)
-    val flow = document.monthlyFlow(month, asOf)
+    // Web DashboardPage reads selectors.selectMonthlyFlow -> savings.operationalMonthlyFlow.
+    // Pay & Save must not inflate operating expense or income on the Home summary.
+    val flow = document.canonicalOperationalMonthlyFlow(month, asOf)
     val budget = document.overallBudget(month)
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
