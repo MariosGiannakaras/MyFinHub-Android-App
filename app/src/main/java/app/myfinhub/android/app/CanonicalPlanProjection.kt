@@ -11,7 +11,6 @@ import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalScheduled
-import app.myfinhub.android.core.data.monthlyFlow
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.categoryBudgetSpending
@@ -80,7 +79,6 @@ internal fun projectCanonicalPlanState(
             )
         }
     val startBalance = document.availableMoney(today.toString())
-    val monthlyFlow = document.monthlyFlow(month.toString())
     // Web portfolio windows remain a separate projection from the existing H7 spendable headline.
     val webForecasts = if (document.canonicalAccounts().any { it.kind != "credit" }) {
         listOf(30, 60, 90).map { document.cashFlowForecast(today, it) }

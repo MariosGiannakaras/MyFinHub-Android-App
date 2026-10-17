@@ -94,7 +94,12 @@ fun CanonicalFinanceDocument.canonicalTypicalRecurringPaymentDay(item: Canonical
         return (payments.sumOf { it.dayOfMonth }.toDouble() / payments.size)
             .roundToInt().coerceIn(1,31)
     }
-    return dateOnly(item.firstExpectedDate)?.dayOfMonth ?: item.day
+    // Web recurring.ts: a nonempty firstExpectedDate is authoritative for the
+    // typical day, even when it is malformed. Don't silently switch to day.
+    val first = item.firstExpectedDate
+    return if (!first.isNullOrEmpty()) {
+        first.drop(8).take(2).toIntOrNull()?.takeIf { it != 0 }
+    } else item.day
 }
 
 /** Current-month linked payment advances billing, and month/year intervals clamp short months. */

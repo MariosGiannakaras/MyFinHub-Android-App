@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonObject
 
 /** Read-only Web forecast.ts finance projection, not a second state store. */
@@ -107,6 +106,9 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             guard++
         }
     }
+    // Use the same Web loans.ts as-of projections as the Money/Loans screen,
+    // instead of independently parsing billing-day strings and debt baselines.
+    val loanBalances = canonicalLoanBalanceRows(asOf.toString()).associateBy { it.id }
     val overrideLoans = state.obj("loanOverrides")
     val loans = seed.array("loans").mapNotNull { it as? JsonObject }
         .map { (overrideLoans[it.string("id").orEmpty()] as? JsonObject) ?: it } +
@@ -132,24 +134,12 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         val payments = state.array("events").mapNotNull { it as? JsonObject }.filter {
             it.string("loanId") == loanId && it.string("date").orEmpty() <= asOf.toString()
         }
-        val baseline = (loan.number("paidCount") ?: 0.0).toInt() +
-            (state.obj("loanExtra").number(loanId) ?: 0.0).toInt()
-        val linkedCount = payments.sumOf {
-            val count = it.number("installmentCount") ?: 1.0
-            if (count > 0 && count % 1.0 == 0.0) count.toInt() else 1
-        }
-        val left = (totalInstallments - baseline - linkedCount).coerceAtLeast(0)
-        val paid = baseline.coerceIn(0, totalInstallments) * installment +
-            payments.sumOf { (it.number("amount") ?: 0.0).coerceAtLeast(0.0) }
-        val outstanding = ((loan.number("total") ?: totalInstallments * installment) -
-            paid - (loan.number("forgivenAmount") ?: 0.0)).coerceAtLeast(0.0)
+        val balance = loanBalances[loanId] ?: return@forEach
+        val left = balance.remainingInstallments
+        val outstanding = balance.remaining
         if (left <= 0 || outstanding <= 0.005) return@forEach
         val knownDates = payments.mapNotNull { forecastDate(it.string("date")) }
-        val typical = if (knownDates.isNotEmpty())
-            (knownDates.sumOf(LocalDate::getDayOfMonth).toDouble() / knownDates.size)
-                .roundToInt().coerceIn(1, 31)
-        else forecastDate(loan.string("firstExpectedDate"))?.dayOfMonth
-            ?: loan.string("day")?.toIntOrNull()?.takeIf { it in 1..31 }
+        val typical = balance.typicalPaymentDay
         if (typical == null) {
             omitted += "Άγνωστη ημέρα δόσης: $loanId"
             return@forEach
