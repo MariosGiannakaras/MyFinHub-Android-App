@@ -82,7 +82,7 @@ fun CanonicalFinanceDocument.canonicalLendingHistoryRows(asOf: String? = null): 
         val accountId = event.string("accountId").orEmpty().trim().ifEmpty {
             event.string(if (kind == "repayment") "toAccountId" else "fromAccountId")
                 .orEmpty().trim()
-        }.ifEmpty { null }
+        }.takeIf(String::isNotEmpty)
         val note = event.string("note").orEmpty().trim().ifEmpty {
             if (kind == "repayment") "Επιστροφή δανεικών" else "Πλήρωσα για άλλον"
         }
