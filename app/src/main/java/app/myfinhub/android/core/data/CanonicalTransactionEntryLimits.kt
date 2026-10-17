@@ -7,22 +7,13 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 
-/** Desktop-equivalent outstanding balance for one lending person. */
-internal fun CanonicalFinanceDocument.lendingOutstandingForPerson(person: String): Double {
+/** Web lendingOutstandingFor(data, person, asOf): exclude future/undated events for dated validation. */
+internal fun CanonicalFinanceDocument.lendingOutstandingForPerson(
+    person: String, asOf: String? = null,
+): Double {
     val target = person.trim()
-    if (target.isBlank()) return 0.0
-
-    var outstanding = seed.entryArray("lending")
-        .mapNotNull { it as? JsonObject }
-        .filter { it.entryString("person")?.trim() == target }
-        .sumOf { it.entryNumber("outstanding") ?: 0.0 }
-
-    state.entryArray("events")
-        .mapNotNull { it as? JsonObject }
-        .filter { it.entryString("person")?.trim() == target }
-        .forEach { event -> outstanding += event.entryNumber("receivableDelta") ?: 0.0 }
-
-    return outstanding
+    if (target.isEmpty()) return 0.0
+    return canonicalLendingPersonRows(asOf).firstOrNull { it.person == target }?.outstanding ?: 0.0
 }
 
 /**

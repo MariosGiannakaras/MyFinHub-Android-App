@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release.
+1. Run 4 exact-head CI gates on PR #230; fix test/compiler failures in the same PR then merge when all green. Next wire safe scheduled UX and review remaining W3.2/W4.2 cross-client edge goldens, W3.1 physical statement visuals W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 disabled permanent-delete UI; no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #228, branch develop
-Current W3.2: Verified Web↔Android parity 1/6 accepted workstreams · 11/24 subtasks. Batched #226 Web recurring/rules/month-end, #227 editable native recurring Quick Entry, #228 reviewed loan/HELP payment screen all merged after 4/4 exact-head CI. Develop 7a97b6e82e71480936b25cce13257d914b89c1b0. W3.2 and W4.1–W4.4 remain partial pending broader acceptance, W3.1 statement physical visual review, W6.2/W6.4 real owner S24 signoff, W5.1 verified provider assets and W2.4 destructive guard pending. No release.
+Issue #155, PR #230, branch android/w3-2-w4-2-scheduled-lifecycle-lending-asof-20261017
+Current W3.2: Web parity verified 1/6 workstreams · 11/24 completed subtasks. PR #226–#229 merged at develop 974cc360. #230 staged Web scheduled create/complete/skip/cancel strict atomic canonical mutations, replay-safe event IDs and forecast balance goldens, plus Web lending as-of repayment caps excluding future/undated event deltas. Four exact-head CI gates pending; W3.2/W4.2 partial. Physical W3.1/W6.2/W6.4, W5.1 provider artwork, W2.4 delete UI and release acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue W3.2 remaining Web event/classification validation and W4.1 service metadata/W4.2 scheduled forecast/W4.3 loan interactions with cross-client goldens; independently verify W3.1 statement visuals and W6.2 owner physical S24 accessibility/dark/large-text. W5.1 certified provider assets and W2.4 permanent card-delete UI gated off. Do not claim physical device acceptance or publish signed release.
+Next Run 4 exact-head CI gates on PR #230; fix test/compiler failures in the same PR then merge when all green. Next wire safe scheduled UX and review remaining W3.2/W4.2 cross-client edge goldens, W3.1 physical statement visuals W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 disabled permanent-delete UI; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
