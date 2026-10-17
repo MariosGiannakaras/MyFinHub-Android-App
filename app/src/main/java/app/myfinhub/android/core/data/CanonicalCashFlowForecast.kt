@@ -108,42 +108,47 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     }
     // Use the same Web loans.ts as-of projections as the Money/Loans screen,
     // instead of independently parsing billing-day strings and debt baselines.
-    val loanBalances = canonicalLoanBalanceRows(asOf.toString()).associateBy { it.id }
+    // Web forecast.ts iterates each loan row, including historic repeated IDs.
+    // A map by ID wrongly assigns the last duplicate's remaining installments
+    // to every row (or suppresses an unpaid row entirely).
+    val loanBalances = canonicalLoanBalanceRows(asOf.toString())
     val overrideLoans = state.obj("loanOverrides")
     val loans = seed.array("loans").mapNotNull { it as? JsonObject }
         .map { (overrideLoans[it.string("id").orEmpty()] as? JsonObject) ?: it } +
         state.array("customLoans").mapNotNull { it as? JsonObject }
-    loans.forEach { loan ->
-        val loanId = loan.string("id") ?: return@forEach
+    loans.forEachIndexed { rowIndex, loan ->
+        val loanId = loan.string("id") ?: return@forEachIndexed
         val name = loan.string("name").orEmpty()
         val totalInstallments = (loan.number("installments") ?: 0.0).toInt().coerceAtLeast(0)
         val installment = abs(loan.number("installment") ?: 0.0)
-        if (totalInstallments == 0 || installment <= 0.0) return@forEach
+        if (totalInstallments == 0 || installment <= 0.0) return@forEachIndexed
         val self = loan.string("kind") == "self-loan" || loan.string("source") == "self-loan" ||
             Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
                 .containsMatchIn(name + " " + loan.string("provider").orEmpty())
         if (self) {
             omitted += "Εσωτερικό δάνειο χωρίς ουδέτερο λογαριασμό: $loanId"
-            return@forEach
+            return@forEachIndexed
         }
         val accountId = loan.string("defaultAccountId") ?: state.obj("settings").string("defaultLoanAccount")
         if (accountId !in ids) {
             omitted += "Μη διαθέσιμος λογαριασμός δόσης: $loanId"
-            return@forEach
+            return@forEachIndexed
         }
         val payments = state.array("events").mapNotNull { it as? JsonObject }.filter {
             it.string("loanId") == loanId &&
                 it.string("date")?.let { date -> date <= asOf.toString() } == true
         }
-        val balance = loanBalances[loanId] ?: return@forEach
+        // canonicalLoanBalanceRows and the effective source list have identical
+        // row order; tie the financial snapshot to its own row, never its ID.
+        val balance = loanBalances.getOrNull(rowIndex) ?: return@forEachIndexed
         val left = balance.remainingInstallments
         val outstanding = balance.remaining
-        if (left <= 0 || outstanding <= 0.005) return@forEach
+        if (left <= 0 || outstanding <= 0.005) return@forEachIndexed
         val knownDates = payments.mapNotNull { forecastDate(it.string("date")) }
         val typical = balance.typicalPaymentDay
         if (typical == null) {
             omitted += "Άγνωστη ημέρα δόσης: $loanId"
-            return@forEach
+            return@forEachIndexed
         }
         val anchor = forecastDate(loan.string("firstExpectedDate"))
         var next = if (anchor != null && !anchor.isBefore(asOf)) anchor else

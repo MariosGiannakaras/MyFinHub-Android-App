@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Run one exact-head Project Tracking/Android CI/screenshots/S24 emulator set for PR #241 and merge only 4/4 green. Continue W3.2 financial classification, W4.2 actual forecast parity and safe Plan navigation; do not infer real owner S24 accessibility/dark-mode approval. Keep W2.4 permanent-delete UI disabled, no signed release.
+- Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #241, branch android/w4-2-plan-forecast-duplicate-keys-20261017
-Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. W4.2 scheduled mutation+offline duplicate-ID safety #240 merged after 4/4 exact-head CI to develop e9b209f4e5df77395771490408d697bebec7b39e. PR #241 staged duplicate scheduled IDs across root Plan/Forecast Compose lists and urgency partition, with JVM and S24 goldens. W3.2/W4.1–W4.4 remain partial. W3.1 physical statement review, W6.2/W6.4 owner S24, W5.1 provider assets, W2.4 deletion UI and release still pending.
+Issue #155, PR #242, branch android/w4-2-row-local-duplicate-loan-forecast-20261017
+Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #241 duplicate Plan/Forecast scheduled rows merged after 4/4 exact-head green CI as 197649c05a35c6fd6eb7861bc694fbecaf13d00c. PR #242 stages W4.2 row-local loan forecast remaining/installments for historical repeated IDs, two goldens and synchronized tracker; CI pending. W3.2/W4.2 still partial; W3.1 real device credit statement visual review, W6.2/W6.4 owner S24, W5.1 assets and W2.4 guarded destructive delete remain outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one exact-head Project Tracking/Android CI/screenshots/S24 emulator set for PR #241 and merge only 4/4 green. Continue W3.2 financial classification, W4.2 actual forecast parity and safe Plan navigation; do not infer real owner S24 accessibility/dark-mode approval. Keep W2.4 permanent-delete UI disabled, no signed release.
+Next Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
