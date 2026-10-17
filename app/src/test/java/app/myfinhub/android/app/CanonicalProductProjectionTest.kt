@@ -40,11 +40,13 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
-    fun aggregateDebtSurvivesNoVisibleCardsAndIncludesSnapshotDebt() {
+    fun aggregateDebtSurvivesNoVisibleCardsAndResetsSyntheticSnapshotDebtPerWeb() {
+        // Web domain.ts baseSnapshot: synthetic credit-card is forcibly reset to 0;
+        // current ledger legs (200 + 80 - 30) are the only credit liability.
         val projection = projectCanonicalProduct(creditFixture(snapshotDebt = 300.0, cards = ""), LocalDate.of(2026, 9, 10))
         assertTrue(projection.moneyState.cards.isEmpty())
-        assertEquals(550.0, canonicalCreditOutstanding(projection.moneyState), 0.001)
-        assertEquals(450.0, canonicalNetPosition(projection.moneyState), 0.001)
+        assertEquals(250.0, canonicalCreditOutstanding(projection.moneyState), 0.001)
+        assertEquals(750.0, canonicalNetPosition(projection.moneyState), 0.001)
     }
 
     private fun creditFixture(
