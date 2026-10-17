@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release.
+- [ ] Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #235, branch android/w3-2-w4-2-scheduled-history-and-asof-receivables-20261017
-Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 completed subtasks. #233 strict scheduled collision/offline sync and #234 confirmed account route/Compose UI merged after 4/4 exact-head CI. #235 staged Web scheduled pending/history chronological order and dated net-worth receivable semantics with six regression tests; CI pending. W3.2/W4.1–W4.4 partial; W3.1 real statement visuals, W6.2/W6.4 physical S24 owner approval, W5.1 certified artwork, W2.4 destructive UI guard pending.
+Issue #155, PR #237, branch android/prep-w3-2-empty-split-category-web-parity-20261017
+Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. #236 Web duplicated historical seed loan rows/overrides merged to develop 33ef5555 after 4/4 green CI. #237 consolidated Web split empty category to Άλλο, signed net-worth receivables and duplicate historical loan Compose key/unsafe repayment protection with five tests, tracking CI pending on final exact head. W3.2 remains partial; W3.1 statement visuals, W6.2/W6.4 real S24, W5.1 certified art and W2.4 delete UI safety open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release.
+Next Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

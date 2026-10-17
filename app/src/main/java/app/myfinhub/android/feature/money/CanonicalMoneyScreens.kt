@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -667,6 +668,13 @@ fun CanonicalSavingsScreen(
     }
 }
 
+/** Historical duplicate IDs are distinct read-only rows, but never safe payment targets. */
+internal fun canonicalLoanRowKey(loan: LoanItem, index: Int): String = "${loan.id}#row#${index}"
+
+internal fun canonicalLoanPaymentIsUnambiguous(loan: LoanItem, rows: List<LoanItem>): Boolean =
+    rows.count { it.id == loan.id } == 1 &&
+        loan.remaining > 0.005 && (loan.isSelfLoan || loan.remainingInstallments > 0)
+
 @Composable
 fun CanonicalLoansScreen(
     state: MoneyUiState,
@@ -676,7 +684,8 @@ fun CanonicalLoansScreen(
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var selectedLoanId by rememberSaveable { mutableStateOf<String?>(null) }
-    state.loans.firstOrNull { it.id == selectedLoanId }?.let { loan ->
+    state.loans.firstOrNull { it.id == selectedLoanId &&
+        canonicalLoanPaymentIsUnambiguous(it, state.loans) }?.let { loan ->
         CanonicalLoanPaymentDialog(
             loan = loan, accounts = state.accounts,
             onDismiss = { selectedLoanId = null },
@@ -730,7 +739,9 @@ fun CanonicalLoansScreen(
                     }
                 }
             } else {
-                items(state.loans, key = LoanItem::id) { loan ->
+                itemsIndexed(state.loans, key = { index, loan ->
+                    canonicalLoanRowKey(loan, index)
+                }) { _, loan ->
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Row(
@@ -758,13 +769,19 @@ fun CanonicalLoansScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            if (loan.remaining > 0.005 && (loan.isSelfLoan || loan.remainingInstallments > 0)) {
+                            if (canonicalLoanPaymentIsUnambiguous(loan, state.loans)) {
                                 TextButton(
                                     enabled = !mutationBlocked,
                                     onClick = { selectedLoanId = loan.id },
                                     modifier = Modifier.fillMaxWidth()
                                         .testTag("loan_record_payment_" + loan.id),
                                 ) { Text(if (loan.isSelfLoan) "Καταχώριση επιστροφής" else "Πληρωμή δόσης") }
+                            } else if (state.loans.count { it.id == loan.id } > 1) {
+                                Text(
+                                    "Διπλό ιστορικό αναγνωριστικό δανείου · οι πληρωμές απαιτούν μοναδικό ID.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }
