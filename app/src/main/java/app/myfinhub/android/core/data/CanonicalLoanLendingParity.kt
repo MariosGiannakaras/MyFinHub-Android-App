@@ -32,7 +32,7 @@ fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): Lis
         val id = loan.string("id").orEmpty()
         val self = loan.isOwnLoan()
         val events = allEvents.filter { e ->
-            e.string("loanId") == id && (asOf == null || e.string("date").orEmpty() <= asOf) &&
+            e.string("loanId") == id && (asOf == null || e.string("date")?.let { it <= asOf } == true) &&
                 (!self || (e.string("kind") == "transfer" &&
                     Regex("^(?:ΕΠΙΣΤΡΟΦΗ|RETURN)(?:\\s|:|$)", RegexOption.IGNORE_CASE)
                         .containsMatchIn(e.string("note").orEmpty().trim())))
