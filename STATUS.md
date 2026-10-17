@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run all four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for #224; fix and merge only if green. Continue W3.2 linked loans, classification and remaining W4.3 finance parity, plus W3.1 real-device visuals and W6.2/W6.4 physical owner signoff. W5.1 logos, W2.4 delete UI blocked; no signed release.
+1. Run four exact-head CI gates on #225, fix in same PR if needed and merge only if green; update persistent tracker after merge, then cover remaining W3.2 event/review edges and W4.3 views. Preserve real S24 acceptance as pending, never expose W2.4 destructive card UI or release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #224, branch android/w3-2-legacy-duplicate-seed-rows-20261017
-Current W3.2: Web parity verified 1/6 implementations · 11/24 subtasks. W3.2 #220/#221, W4.1/W4.2 #222 and W4.4 #223 merged after 4/4 exact-head CI. W3.2 #224 staged lossless historical repeated seed IDs with Web-equivalent row-level review/override/delete projection and goldens. W3.2/W4.1/W4.2/W4.4 remain incomplete pending additional acceptance. Physical W3.1/W6.2, W5.1 certified artwork and W2.4 permanent card-delete protections outstanding.
+Issue #155, PR #225, branch android/w3-2-w4-3-linked-loan-payments-20261017
+Current W3.2: Web parity 1/6 implementations · 11/24 subtasks. W3.2 #224 merged to develop 010be158 after four green CI gates. #225 stages strict Web loans.ts loanId/installmentCount linked normal event kinds (expense/card_payment/transfer), loan balance/payment plan validation and cross-client goldens. W3.2 and W4.3 remain partial; physical W3.1/W6.2, W5.1 certified artwork, W2.4 delete UI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for #224; fix and merge only if green. Continue W3.2 linked loans, classification and remaining W4.3 finance parity, plus W3.1 real-device visuals and W6.2/W6.4 physical owner signoff. W5.1 logos, W2.4 delete UI blocked; no signed release.
+Next Run four exact-head CI gates on #225, fix in same PR if needed and merge only if green; update persistent tracker after merge, then cover remaining W3.2 event/review edges and W4.3 views. Preserve real S24 acceptance as pending, never expose W2.4 destructive card UI or release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

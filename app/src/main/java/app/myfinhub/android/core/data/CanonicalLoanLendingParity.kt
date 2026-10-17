@@ -14,7 +14,7 @@ data class CanonicalLoanBalanceRow(
     val typicalPaymentDay: Int?,
 )
 
-private fun JsonObject.isOwnLoan(): Boolean =
+internal fun JsonObject.isOwnLoan(): Boolean =
     string("kind") == "self-loan" || string("source") == "self-loan" ||
         Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
             .containsMatchIn(string("name").orEmpty() + " " + string("provider").orEmpty())
