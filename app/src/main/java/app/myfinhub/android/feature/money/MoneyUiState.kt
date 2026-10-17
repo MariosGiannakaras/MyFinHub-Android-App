@@ -98,6 +98,17 @@ data class LendingItem(
     val settled: Boolean = false,
 )
 
+/** Read-only Web lendingHistory row; independent of the aggregate receivable. */
+data class LendingHistoryItem(
+    val id: String,
+    val personLabel: String,
+    val date: String,
+    val action: String,
+    val amount: Double,
+    val note: String,
+    val runningOutstanding: Double,
+)
+
 /**
  * Product-facing money state.
  *
@@ -119,6 +130,7 @@ data class MoneyUiState(
     val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
     val loans: List<LoanItem> = emptyList(),
     val lendingItems: List<LendingItem> = emptyList(),
+    val lendingHistory: List<LendingHistoryItem> = emptyList(),
     val frontendMessage: String? = null,
     /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
     val aggregateCreditOutstanding: Double? = null,
