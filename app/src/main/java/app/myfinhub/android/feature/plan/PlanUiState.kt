@@ -51,6 +51,28 @@ data class ScheduledManageItem(
 
 data class ScheduledAccountOption(val id: String, val label: String)
 
+/** A confirmed scheduled payment selects the actual money route, not a stale scheduled source. */
+data class ScheduledCompletionRequest(
+    val id: String,
+    val date: String,
+    val amount: Double,
+    val accountId: String? = null,
+    val fromAccountId: String? = null,
+    val toAccountId: String? = null,
+)
+
+internal fun scheduledCompletionAccountIsValid(
+    kind: String,
+    availableIds: Set<String>,
+    accountId: String?,
+    fromAccountId: String?,
+    toAccountId: String?,
+): Boolean = if (kind == "transfer") {
+    fromAccountId in availableIds && toAccountId in availableIds && fromAccountId != toAccountId
+} else {
+    accountId in availableIds
+}
+
 data class ScheduledCreateRequest(
     val kind: String,
     val dueDate: String,
