@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run one exact-head 4-gate batch for PR #222; fix if required, merge on all green. Then continue W3.2 remaining classification/event validation and W4.1/W4.2 lifecycle/forecast, physical S24 owner acceptance W6.2/W6.4, W5.1 certified artwork, guarded W2.4 deletion UI disabled. No release."
+      "Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-unified-loan-forecast-recurring-and-home-asof-20261017",
-    "checkpoint": "Verified Web parity 1/6 implementations · 11/24 subtasks. W3.2 deleted override/net/as-of historic classification #221 merged 4/4 green exact-head CI, as did #220. W4.1/W4.2 consistency batch #222 staged: authoritative recurring first anchor, shared loan day/debt in forecast, current Home month cutoff and new golden tests. CI pending; W3.2, W4.1/W4.2 still partial. W3.1 real device visual signoff, W6.2, W5.1 assets, W2.4 delete protection open.",
+    "branch": "android/w4-4-insights-signed-net-review-categories-20261017",
+    "checkpoint": "Verified Web parity 1/6 implementations · 11/24 subtasks. W3.2 #220/#221, W4.1/W4.2 #222 merged after 4/4 exact-head gates. W4.4 #223 staged read-only refund-heavy Insights raw net, historical category/empty override fallback and removal of obsolete duplicate planned-items builder; CI pending. W3.2/W4.1/W4.2/W4.4 remain partial; W3.1 real device review, W6.2 physical S24, W5.1 certified artwork and W2.4 deletion UI safety pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -843,7 +843,7 @@
               "W4.1 PR #195 Web recurring custom/overrides/cadence/Plan and offline recurring status pending codec merged to develop as 3353e07bbe6a2f4e9e33e75e128bb18148c53e5c, 4/4 exact-head gates successful. Further native lifecycle UI/signoff needed.",
               "W4.1 pending PR #197: native recurring lifecycle Compose UI and route with 48dp accessible pause/stop/reactivate actions bound to FinanceProductViewModel guarded canonical status mutation/offline replay. Paused/stopped seeded/custom/override account projection and unit/emulator test. No physical S24 acceptance claimed.",
               "W4.1/4.2 native management and Web forecast 30/60/90 UI PR #197 merged as 2df0e01be3437ab414c8a5a538239f36c0265847, exact-head four checks green; owner physical S24 signoff still pending.",
-              "PR #222 staged Web recurring.ts authoritative firstExpectedDate day parsing: malformed nonempty anchor cannot silently fall back to day, with date/cadence forecast golden regressions. CI pending; W4.1 remains in_progress."
+              "PR #222 Web recurring.ts authoritative firstExpectedDate and invalid-anchor due-day golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator checks. W4.1 still in_progress."
             ]
           },
           {
@@ -857,7 +857,7 @@
               "W4.2 #196 merged 4/4 CI as 54c6ddeda6e6463341b3fe441ef768e7cb8d851d; #197 adds Plan forecast real Compose 30/60/90 Web portfolio summary, low/negative and omission warnings, including privacy masking. Preserved first-use no-account windows; W4.2 remains partial visual/device acceptance pending.",
               "W4.2 consolidated native risk+omissions and 30/60/90 portfolio comparison #197 merged with four green exact-head checks, physical/visual owner acceptance still outstanding.",
               "PR #214 squash merged to Android develop 05c87e42931f93863cd23970b2dfae134b2149e7 after four exact-head Android CI, Project Tracking, screenshot regression and S24 emulator gates passed. Web `followingMonthlyDate` loan-day renewal parity fixes 31→28/29→31 drift, including a settled billing cycle, with Kotlin goldens. W4.2 remains in_progress pending full forecast/physical acceptance.",
-              "PR #222 staged shared loans.ts loan balance/typical day projection across Money and forecast (including Greek legacy day '15η'), Web current-month asOf Home monthly flow, removal of unused Plan month computation, and app cross-surface future event golden. CI pending; W4.2 remains in_progress."
+              "PR #222 shared loan row debt/remaining/typical day across Money and 30/60/90-day forecast and Home current month asOf deadline, removed dead Plan flow and golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact-head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 CI gates. W4.2 still in_progress."
             ]
           },
           {
@@ -886,7 +886,8 @@
             "status": "in_progress",
             "evidence": [
               "W4.4 batched PR #202 consolidates Web signed flow semantics across monthlyFlow/flowBetween/Insights and production Activity rows: explicit zero savingAmount vs missing is preserved, refunds net expense, internal transfers/card repayments/lending omitted from expense, exact category drilldown excludes zero-contribution rows; new cross-domain regression goldens. Exact-head CI not yet confirmed, no completion count claimed.",
-              "W4.4 PR #202 shared Web-signed monthlyFlow, Insights/Activity and category drilldowns merged to develop as af755b3842f739ba19507d851c04b3b66482a919 after 4/4 exact-head gates; full W4.4 parity still partial."
+              "W4.4 PR #202 shared Web-signed monthlyFlow, Insights/Activity and category drilldowns merged to develop as af755b3842f739ba19507d851c04b3b66482a919 after 4/4 exact-head gates; full W4.4 parity still partial.",
+              "PR #223 staged Web-equivalent Insights range net using raw signed expense before display clamping, historical category truthiness/empty reviewed decision fallback and 2 golden regressions, plus removal of 36 lines of unreferenced legacy native PlannedItems builder now replaced by canonical Plan projection. One immutable exact-head CI set pending; W4.4 remains partial."
             ]
           }
         ]
@@ -993,9 +994,9 @@
         ]
       }
     ],
-    "next_action": "Run one exact-head 4-gate batch for PR #222; fix if required, merge on all green. Then continue W3.2 remaining classification/event validation and W4.1/W4.2 lifecycle/forecast, physical S24 owner acceptance W6.2/W6.4, W5.1 certified artwork, guarded W2.4 deletion UI disabled. No release.",
+    "next_action": "Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 222,
+    "pr": 223,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

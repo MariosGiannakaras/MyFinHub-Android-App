@@ -12,7 +12,6 @@ import app.myfinhub.android.core.data.dashboardBalanceChange
 import app.myfinhub.android.core.data.isSavingsAccount
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
-import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.data.canonicalSavingsGoals
@@ -20,7 +19,6 @@ import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.creditDebtForCardAt
-import app.myfinhub.android.core.data.categoryTotals
 import app.myfinhub.android.core.data.categoryContributionsBetween
 import app.myfinhub.android.core.data.effectiveLegacyTransactions
 import app.myfinhub.android.core.data.legacyFlowImpact
@@ -67,9 +65,6 @@ import app.myfinhub.android.feature.money.MoneyUiState
 import app.myfinhub.android.feature.money.VaultState
 import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.PlanUiState
-import app.myfinhub.android.feature.plan.PlannedFlow
-import app.myfinhub.android.feature.plan.PlannedItem
-import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import java.time.LocalDate
 import java.time.YearMonth
@@ -504,41 +499,6 @@ private fun eventActivityKind(kind: String): ActivityKind = when (kind) {
 private fun eventDisplayAmount(event: CanonicalEvent): Double = when (event.kind) {
     "expense", "card_purchase", "split", "lending", "card_payment" -> -event.amount
     else -> event.amount
-}
-
-private fun buildPlannedItems(document: CanonicalFinanceDocument): List<PlannedItem> {
-    val scheduled = document.canonicalScheduled().filter { it.status == "pending" }.map { item ->
-        PlannedItem(
-            id = item.id,
-            title = item.note.ifBlank { scheduledKindLabel(item.kind) },
-            dueLabel = formatDate(item.dueDate),
-            amount = item.amount,
-            kind = PlannedKind.SCHEDULED,
-            flow = when (item.kind) {
-                "income" -> PlannedFlow.INCOME
-                "transfer" -> PlannedFlow.TRANSFER
-                else -> PlannedFlow.OBLIGATION
-            },
-        )
-    }
-    // Canonical RecurringItem represents recurring costs/subscriptions in the shared schema.
-    val recurring = document.seed.array("recurring").mapNotNull { element ->
-        val item = element as? JsonObject ?: return@mapNotNull null
-        if (item.bool("active") == false || item.string("status") in setOf("paused", "stopped")) return@mapNotNull null
-        val id = item.string("id") ?: return@mapNotNull null
-        val due = item.string("firstExpectedDate")?.takeIf(String::isNotBlank)
-            ?: item.number("day")?.toInt()?.let { "Κάθε μήνα, ημέρα $it" }
-            ?: "Επαναλαμβανόμενο"
-        PlannedItem(
-            id = id,
-            title = item.string("name") ?: id,
-            dueLabel = due,
-            amount = item.number("amount") ?: 0.0,
-            kind = PlannedKind.RECURRING,
-            flow = PlannedFlow.OBLIGATION,
-        )
-    }
-    return (scheduled + recurring).sortedBy { it.dueLabel }.take(20)
 }
 
 private fun accountLabel(
