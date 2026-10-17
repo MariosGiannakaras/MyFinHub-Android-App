@@ -219,7 +219,7 @@ fun createCanonicalTransactionEntryMutation(
             normalizedAccountId = requireAccount(draft.accountId, "Διάλεξε υπαρκτό λογαριασμό πίστωσης.")
             val person = draft.person?.trim().orEmpty()
             require(person.isNotBlank()) { "Συμπλήρωσε το πρόσωπο για τα δανεικά." }
-            val outstanding = document.lendingOutstandingForPerson(person)
+            val outstanding = document.lendingOutstandingForPerson(person, draft.date)
             require(outstanding > 0.005) { "Δεν υπάρχει καταγεγραμμένη οφειλή για αυτό το πρόσωπο." }
             require(amount <= outstanding + 0.01) { "Η επιστροφή δεν μπορεί να ξεπερνά την οφειλή του προσώπου." }
             legs += transactionLedgerLeg(normalizedAccountId!!, amount)
