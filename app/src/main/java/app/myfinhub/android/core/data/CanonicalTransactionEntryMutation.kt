@@ -31,6 +31,8 @@ data class CanonicalTransactionEntryDraft(
     // Web FinanceEvent loans.ts: linked payments keep the normal EventKind.
     val loanId: String? = null,
     val installmentCount: Int? = null,
+    // Web recurring.ts and ContextualQuickAdd annotate existing expense events.
+    val recurringId: String? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -102,6 +104,18 @@ fun createCanonicalTransactionEntryMutation(
             require(count == plan.count && cents == moneyToCents(plan.amount)) {
                 "Το ποσό πρέπει να ισούται με τις επιλεγμένες δόσεις."
             }
+        }
+    }
+
+    draft.recurringId?.let { recurringId ->
+        require(recurringId.isNotBlank() && recurringId == recurringId.trim()) {
+            "Διάλεξε υπαρκτό πάγιο."
+        }
+        require(draft.loanId == null && draft.kind == "expense") {
+            "Οι πληρωμές παγίων είναι έξοδα και δεν συνδέονται με δάνειο."
+        }
+        require(document.allCanonicalRecurringItems().any { it.id == recurringId }) {
+            "Το πάγιο δεν είναι πλέον διαθέσιμο."
         }
     }
 
@@ -314,6 +328,7 @@ fun createCanonicalTransactionEntryMutation(
         selectedStatementId?.let { put("statementId", JsonPrimitive(it)) }
         draft.loanId?.let { put("loanId", JsonPrimitive(it)) }
         draft.installmentCount?.let { put("installmentCount", JsonPrimitive(it)) }
+        draft.recurringId?.let { put("recurringId", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))

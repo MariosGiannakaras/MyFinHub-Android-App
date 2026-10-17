@@ -61,7 +61,10 @@ fun CanonicalFinanceDocument.applyCanonicalTransactionRules(event: JsonObject): 
     val kind = event.string("kind").orEmpty()
     val settings = state.obj("settings")
     val defaults = settings.array(if (kind == "income") "incomeCategories" else "expenseCategories")
-    val fallback = (defaults.firstOrNull() as? JsonPrimitive)?.contentOrNull ?: "Άλλο"
+    // Web expenseCategories[0] || 'Άλλο': an empty historical first
+    // category is falsey, not an explicit default that blocks matching rules.
+    val fallback = (defaults.firstOrNull() as? JsonPrimitive)?.contentOrNull
+        ?.takeIf(String::isNotEmpty) ?: "Άλλο"
     val categoryIsDefault = event.string("category").isNullOrEmpty() ||
         event.string("category") == fallback
     val additions = mutableMapOf<String, kotlinx.serialization.json.JsonElement>()
