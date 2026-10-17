@@ -113,7 +113,9 @@ fun CanonicalFinanceDocument.nextCanonicalRecurringDate(
     if (item.recurrenceMonths == 1) {
         if (first != null && first.isAfter(asOf)) return first
         val day = canonicalTypicalRecurringPaymentDay(item)
-        if (day == null || day !in 1..31) return first
+        // Web recurring.ts uses buildDate(Math.min(day, lastDay)): imported
+        // days 32+ intentionally settle on month-end, not disappear from plans.
+        if (day == null || day < 1) return first
         var month = YearMonth.from(asOf)
         var next = month.atDay(min(day,month.lengthOfMonth()))
         if (next.isBefore(asOf) || payments.any {
