@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release.
+- [ ] Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for exact head of draft PR #244; fix failures in the same PR, merge only 4/4 green. Resume W3.2 event/classification and W4.3 savings/lending/budget acceptance; owner S24 physical visual review remains pending, W2.4 permanent-delete UI disabled, no signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #243, branch android/w4-2-forecast-web-edge-batch-20261017
-Current W4.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #242 historical duplicate loan row forecast correction merged develop 1e0d393a96e7a4cea6e58e7cc7a99d43029320e2 after 4/4 exact-head Project Tracking, Android CI, screenshots and S24 emulator checks on b940f8c1fbb19ea63603d93abd207fe886a70a7a. Draft PR #243 batches W4.2 Web forecast edge parity: negative nominal installments cannot invent debits, blank loan account IDs fall back to settings, and read-only projections use remaining installment count even for forgiven debt. JVM golden vectors cover both active duplicate loan rows and 30/60/90 horizons. PR #243 code/tests committed, immutable-head CI not yet validated; W3.2/W4.2 partial. Physical owner S24 reviews, certified provider assets, protected deletion and release remain gated.
+Issue #155, PR #244, branch android/w4-3-lending-history-native-20261017
+Current W4.3: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #243 Web loan forecast legacy eligibility/account fallbacks passed 4/4 exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshots and S24 emulator on 6319c9947f556415cf84b7ff95d32bfcd3baa5ee; merged develop 5a1175bf8df79ef23b8084ca848d092cecfa8629. Draft PR #244 adds read-only Web lendingHistory seeded entries and linked events with chronological per-person running balances, capped repayments/forgiveness, strict date/asOf filtering, native Money history list, JVM goldens and S24 Compose regression. Code/tests staged, four immutable-head gates not yet validated. W3.2/W4.2/W4.3 partial; real S24 owner acceptance, provider artwork, guarded permanent deletion and signed release remain outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release.
+Next Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for exact head of draft PR #244; fix failures in the same PR, merge only 4/4 green. Resume W3.2 event/classification and W4.3 savings/lending/budget acceptance; owner S24 physical visual review remains pending, W2.4 permanent-delete UI disabled, no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
