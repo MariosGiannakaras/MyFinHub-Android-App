@@ -37,6 +37,30 @@ data class RecurringManageItem(
     val accountId: String = "",
 )
 
+data class ScheduledManageItem(
+    val id: String,
+    val title: String,
+    val kind: String,
+    val dueDateIso: String,
+    val amount: Double,
+    val status: String,
+    val accountId: String? = null,
+    val fromAccountId: String? = null,
+    val toAccountId: String? = null,
+)
+
+data class ScheduledAccountOption(val id: String, val label: String)
+
+data class ScheduledCreateRequest(
+    val kind: String,
+    val dueDate: String,
+    val amount: Double,
+    val note: String,
+    val accountId: String?,
+    val fromAccountId: String?,
+    val toAccountId: String?,
+)
+
 data class BudgetDraft(
     val monthlyLimitText: String = "",
     val alertThresholdText: String = "80",
@@ -75,6 +99,8 @@ data class ForecastWindow(
 data class PlanUiState(
     val items: List<PlannedItem> = emptyList(),
     val recurringManageItems: List<RecurringManageItem> = emptyList(),
+    val scheduledManageItems: List<ScheduledManageItem> = emptyList(),
+    val scheduledAccounts: List<ScheduledAccountOption> = emptyList(),
     val budget: BudgetDraft = BudgetDraft(),
     val categoryBudgets: List<CategoryBudget> = emptyList(),
     val rules: List<PlanningRule> = emptyList(),

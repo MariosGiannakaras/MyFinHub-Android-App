@@ -122,6 +122,7 @@ fun CanonicalPlan2026Screen(
     onOpenForecast: () -> Unit,
     onOpenBudget: () -> Unit,
     onOpenRecurring: () -> Unit = {},
+    onOpenScheduled: () -> Unit = {},
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val urgent = planUrgentObligations(state)
@@ -181,6 +182,21 @@ fun CanonicalPlan2026Screen(
                 }
             }
 
+            if (state.scheduledManageItems.isNotEmpty()) {
+                item("scheduled-management") {
+                    MyFinHubActionCard(
+                        onClick = onOpenScheduled,
+                        modifier = Modifier.fillMaxWidth().testTag("s7_scheduled_management_link"),
+                    ) {
+                        MyFinHubSectionHeading(
+                            title = "Προγραμματισμένες κινήσεις",
+                            subtitle = "Επιβεβαίωση, παράλειψη και ιστορικό",
+                            icon = MyFinHubIcons.Plan,
+                            tone = FinanceTone.Neutral,
+                        )
+                    }
+                }
+            }
             if (remaining.isNotEmpty()) {
                 item("remaining-heading") {
                     MyFinHubSectionHeading(
