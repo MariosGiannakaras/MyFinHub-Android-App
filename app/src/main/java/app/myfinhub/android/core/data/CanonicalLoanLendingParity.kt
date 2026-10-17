@@ -117,3 +117,90 @@ fun CanonicalFinanceDocument.canonicalLendingPersonRows(asOf: String? = null): L
         if (amount!=0) amount else collator.compare(a.person,b.person)
     })
 }
+
+/** Read-only Web lending.ts lendingHistory; the running balance starts at zero for
+ * dated history, independent of the potentially undated imported aggregate baseline. */
+data class CanonicalLendingHistoryRow(
+    val id: String,
+    val person: String,
+    val date: String,
+    val action: String,
+    val amount: Double,
+    val note: String,
+    val accountId: String?,
+    val origin: String,
+    val runningOutstanding: Double,
+)
+
+private data class CanonicalLendingHistoryDraft(
+    val id: String, val person: String, val date: String, val action: String,
+    val amount: Double, val note: String, val accountId: String?, val origin: String,
+)
+
+/** Web lendingHistory preserves legacy entry history and dated new lending/repayment events.
+ * Invalid/future dates and non-positive amounts never become invented money movements. */
+fun CanonicalFinanceDocument.canonicalLendingHistory(asOf: String? = null): List<CanonicalLendingHistoryRow> {
+    val raw = mutableListOf<CanonicalLendingHistoryDraft>()
+    val datePattern = Regex("\\d{4}-\\d{2}-\\d{2}")
+    fun clean(value: String?): String = value.orEmpty().trim()
+    fun date(value: String?): String? = clean(value).takeIf { datePattern.matches(it) }
+    fun finiteNumber(obj: JsonObject, name: String): Double =
+        (obj.number(name) ?: 0.0).takeIf(Double::isFinite) ?: 0.0
+
+    seed.array("lending").filterIsInstance<JsonObject>().forEach { legacy ->
+        val person = clean(legacy.string("person"))
+        if (person.isEmpty()) return@forEach
+        legacy.array("entries").forEachIndexed { index, entryRaw ->
+            val entry = entryRaw as? JsonObject ?: return@forEachIndexed
+            val entryDate = date(entry.string("date")) ?: return@forEachIndexed
+            if (asOf != null && entryDate > asOf) return@forEachIndexed
+            val lent = finiteNumber(entry, "lent")
+            val repaid = finiteNumber(entry, "repaid")
+            val forgiven = finiteNumber(entry, "haircut")
+            if (lent > 0.0) raw += CanonicalLendingHistoryDraft(
+                "legacy-$person-$entryDate-$index-lent", person, entryDate,
+                "lent", lent, "Ιστορικό δανεικών", null, "legacy",
+            )
+            if (repaid > 0.0) raw += CanonicalLendingHistoryDraft(
+                "legacy-$person-$entryDate-$index-repaid", person, entryDate,
+                "repaid", repaid, "Ιστορικό επιστροφής", null, "legacy",
+            )
+            if (forgiven > 0.0) raw += CanonicalLendingHistoryDraft(
+                "legacy-$person-$entryDate-$index-forgiven", person, entryDate,
+                "forgiven", forgiven, "Χάρισμα / διαγραφή οφειλής", null, "legacy",
+            )
+        }
+    }
+    state.array("events").filterIsInstance<JsonObject>().forEach { event ->
+        val person = clean(event.string("person"))
+        val eventDate = date(event.string("date")) ?: return@forEach
+        val amount = finiteNumber(event, "amount")
+        val kind = clean(event.string("kind"))
+        if (person.isEmpty() || amount <= 0.0 || (asOf != null && eventDate > asOf)) return@forEach
+        if (kind != "lending" && kind != "repayment") return@forEach
+        val id = clean(event.string("id")).ifEmpty { "event-$person-$eventDate-${raw.size}" }
+        val note = clean(event.string("note")).ifEmpty {
+            if (kind == "repayment") "Επιστροφή δανεικών" else "Πλήρωσα για άλλον"
+        }
+        val accountId = clean(event.string("accountId")).ifEmpty {
+            clean(event.string(if (kind == "repayment") "toAccountId" else "fromAccountId"))
+        }.ifEmpty { null }
+        raw += CanonicalLendingHistoryDraft(
+            id, person, eventDate, if (kind == "lending") "lent" else "repaid",
+            amount, note, accountId, "event",
+        )
+    }
+
+    val balances = mutableMapOf<String, Double>()
+    val chronological = raw.sortedWith(compareBy<CanonicalLendingHistoryDraft> { it.date }.thenBy { it.id })
+    return chronological.map { entry ->
+        val current = balances[entry.person] ?: 0.0
+        val next = if (entry.action == "lent") current + entry.amount
+            else (current - entry.amount).coerceAtLeast(0.0)
+        balances[entry.person] = next
+        CanonicalLendingHistoryRow(
+            entry.id, entry.person, entry.date, entry.action, entry.amount,
+            entry.note, entry.accountId, entry.origin, next,
+        )
+    }.sortedWith(compareByDescending<CanonicalLendingHistoryRow> { it.date }.thenByDescending { it.id })
+}
