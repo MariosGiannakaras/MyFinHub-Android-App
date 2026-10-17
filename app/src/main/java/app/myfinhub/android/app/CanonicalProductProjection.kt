@@ -31,6 +31,7 @@ import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.canonicalLoanBalanceRows
 import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
+import app.myfinhub.android.core.data.canonicalLendingHistory
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
@@ -59,6 +60,7 @@ import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.LoanItem
+import app.myfinhub.android.feature.money.LendingHistoryItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.MoneyCardActivity
@@ -388,6 +390,19 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                     dueLabel = "",
                 )
             },
+        lendingHistory = document.canonicalLendingHistory(asOf).map { row ->
+            LendingHistoryItem(
+                id = row.id,
+                personLabel = row.person,
+                dateIso = row.date,
+                action = row.action,
+                amount = row.amount,
+                note = row.note,
+                accountId = row.accountId,
+                origin = row.origin,
+                runningOutstanding = row.runningOutstanding,
+            )
+        },
         savingsSources = document.canonicalSavingsBreakdown(YearMonth.from(today).toString(), asOf).bySource,
         aggregateCreditOutstanding = globalCreditOutstanding,
         asOfDate = asOf,
