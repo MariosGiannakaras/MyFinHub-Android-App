@@ -83,6 +83,10 @@ data class LoanItem(
     val nextPaymentLabel: String,
     val originalAmount: Double,
     val paused: Boolean = false,
+    val remainingInstallments: Int = 0,
+    val isSelfLoan: Boolean = false,
+    val liabilityRepayment: Boolean = false,
+    val defaultAccountId: String = "",
 )
 
 data class LendingItem(

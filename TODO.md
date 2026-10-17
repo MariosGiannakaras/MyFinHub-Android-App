@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run one four-gate immutable-head CI for #227; batch-fix any failures and merge only 4/4 green. Continue W4.3 linked loan payment UI and W3.2 final parity; physical S24 W6.2/W6.4, W5.1 assets, guarded W2.4 delete UI stay pending, no release.
+- [ ] Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #227, branch android/w4-1-recurring-pay-quickentry-ui-20261017
-Current W3.2: Web parity verified 1/6 workstreams · 11/24 subtasks. W3.2/W4.1 #226 recurring + historical rules + month-end fixed 4/4 CI and merged e987116d. #227 stages actual recurring management CTA to editable linked Quick Entry, safe category/account prefills, scoped recurringId, replay and goldens. W3.2/W4.1 incomplete; W3.1 real-device visuals, W6.2 real S24, W5.1 artwork and W2.4 permanent-delete UI pending.
+Issue #155, PR #228, branch android/w4-3-loan-payment-confirmation-ui-20261017
+Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 subtasks. #227 linked recurring Quick Entry CTA merged bf99149 after 4/4 immutable CI. W4.3 #228 stages full Loans → review-confirmed payment dialog for normal installment, liability and HELP/self-loan with account/date/count/savings and strict common mutation; unit + emulator UI tests pending. W4.1/W4.3/W3.2 remain partial. W3.1 physical visuals, W6.2 physical owner S24, W5.1 artwork, W2.4 permanent delete guard outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one four-gate immutable-head CI for #227; batch-fix any failures and merge only 4/4 green. Continue W4.3 linked loan payment UI and W3.2 final parity; physical S24 W6.2/W6.4, W5.1 assets, guarded W2.4 delete UI stay pending, no release.
+Next Run one exact-head four-gate CI for PR #228, batch-fix any regressions and merge only if 4/4 success. Continue W4.3 richer loan workspace and W3.2 remaining parity plus W3.1 statement visuals. Keep W6.2/W6.4 physical S24 acceptance, W5.1 cert assets, W2.4 permanent delete disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
