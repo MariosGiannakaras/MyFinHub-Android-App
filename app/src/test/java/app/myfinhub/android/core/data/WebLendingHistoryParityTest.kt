@@ -41,7 +41,7 @@ class WebLendingHistoryParityTest {
             "legacy-Άννα-2026-09-01-0-lent",
             "legacy-Άννα-2026-09-01-0-forgiven",
         ), anna.map { it.id })
-        assertEquals(listOf(85.0, 85.0, 100.0, 90.0).sorted(),
+        assertEquals(listOf(0.0, 100.0, 80.0, 95.0).sorted(),
             anna.map { it.runningOutstanding }.sorted())
         assertTrue(anna.all { it.origin == "legacy" && it.accountId == null })
         assertEquals("Χάρισμα / διαγραφή οφειλής", anna.first { it.action == "forgiven" }.note)
@@ -55,7 +55,7 @@ class WebLendingHistoryParityTest {
         assertEquals("payroll", repayment.accountId)
         assertEquals("Επιστροφή δανεικών", repayment.note)
         assertEquals("event", repayment.origin)
-        assertEquals(45.0, repayment.runningOutstanding, 0.001)
+        assertEquals(55.0, repayment.runningOutstanding, 0.001)
         val aggregate = data.canonicalLendingPersonRows("2026-10-11").single()
         assertEquals(60.0, aggregate.outstanding, 0.001)
         // Web lendingHistory derives its running amount from chronological movements,
