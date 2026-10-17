@@ -45,3 +45,40 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
     rows.forEach { sources[it.source]=(sources[it.source] ?: 0.0)+it.amount }
     return CanonicalSavingsBreakdown(rows,sources,sources.values.sum())
 }
+
+/**
+ * Web savings.ts operationalMonthlyFlow, used by Dashboard selectors and reports.
+ * Legacy Pay & Save is a savings mechanism, not an operating expense/income.
+ * Retain the base monthlyFlow API for raw event/ledger accounting and do not
+ * mutate classification or the user's stored finance document.
+ */
+fun CanonicalFinanceDocument.canonicalOperationalMonthlyFlow(
+    month: String,
+    asOf: String? = null,
+): CanonicalMonthlyFlow {
+    val base = monthlyFlow(month, asOf)
+    var income = base.income
+    var expense = base.expense
+    var saving = base.saving
+    effectiveLegacyTransactions().forEach { tx ->
+        if (!tx.date.startsWith("$month-") ||
+            (asOf != null && month == asOf.take(7) && tx.date > asOf) ||
+            !payAndSave.containsMatchIn(tx.note + " " + tx.category.orEmpty())
+        ) return@forEach
+        val decision = state.obj("reviewDecisions")[tx.id] as? JsonObject
+        if (decision?.string("status") == "confirmed" &&
+            decision.string("semanticKind") == "saving_cash_offset"
+        ) return@forEach
+        val original = legacyFlowImpact(tx)
+        income -= original.income
+        expense -= original.expense
+        saving += tx.amount
+    }
+    return CanonicalMonthlyFlow(
+        income = income.coerceAtLeast(0.0),
+        expense = expense.coerceAtLeast(0.0),
+        saving = saving,
+        refunds = base.refunds,
+        net = income - expense,
+    )
+}
