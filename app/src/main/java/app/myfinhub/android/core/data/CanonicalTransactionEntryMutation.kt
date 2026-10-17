@@ -287,8 +287,9 @@ fun createCanonicalTransactionEntryMutation(
             draft.parts.forEach { part ->
                 val cents = moneyToCents(part.amount)
                 require(cents > 0L) { "Κάθε μέρος του διαχωρισμού πρέπει να έχει θετικό ποσό." }
-                val category = part.category.trim()
-                require(category.isNotBlank()) { "Κάθε μέρος του διαχωρισμού χρειάζεται κατηγορία." }
+                // Web ledgerFoundations.ts splitAllocation defaults an empty
+                // trimmed part category to Άλλο, rather than rejecting it.
+                val category = part.category.trim().ifEmpty { "Άλλο" }
                 val amount = centsToMoney(cents)
                 // Web createEvent rejects split totals outside a safe JS cent integer.
                 // Guard before adding so a malformed oversized split never overflows.

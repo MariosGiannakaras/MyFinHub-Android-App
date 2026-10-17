@@ -206,6 +206,34 @@ class CanonicalTransactionEntryMutationTest {
         assertEquals(1, twice.canonicalEvents().count { it.id == "evt-split" })
     }
 
+    @Test
+    fun splitBlankCategoriesDefaultToWebOtherWithoutLosingCentsOrReplaySafety() {
+        val mutation = createCanonicalTransactionEntryMutation(
+            document,
+            CanonicalTransactionEntryDraft(
+                kind = "split", date = "2026-09-02", accountId = "acc-main",
+                parts = listOf(
+                    CanonicalTransactionSplitDraft("fallback-1", "  Καφές  ", "", amount = 1.005),
+                    CanonicalTransactionSplitDraft("fallback-2", " Σνακ ", "  ", amount = 2.675),
+                    CanonicalTransactionSplitDraft("valid", "Market", " Τρόφιμα ", amount = 3.00),
+                ),
+            ),
+            "evt-default-categories",
+            now,
+        )
+        val applied = mutation.apply(document)
+        val event = applied.canonicalEvents().single { it.id == "evt-default-categories" }
+        assertEquals(6.69, event.amount, 0.001)
+        assertEquals(-6.69, event.legs.single().amount, 0.001)
+        assertEquals(listOf("Άλλο", "Άλλο", "Τρόφιμα"),
+            event.parts.map { it.category })
+        assertEquals(listOf("Καφές", "Σνακ", "Market"),
+            event.parts.map { it.label })
+        assertEquals(3.69, applied.categoryTotals("2026-09")["Άλλο"]!!, 0.001)
+        assertEquals(3.00, applied.categoryTotals("2026-09")["Τρόφιμα"]!!, 0.001)
+        assertEquals(applied.raw, mutation.apply(applied).raw)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun lending_rejectsExpectedReturnBeforeTransactionDate() {
         createCanonicalTransactionEntryMutation(

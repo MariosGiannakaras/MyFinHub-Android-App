@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release."
+      "Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-lossless-legacy-loan-rows-20261017",
-    "checkpoint": "Verified 1/6 workstreams · 11/24 subtasks. #235 Web scheduled history ordering and dated net-worth receivables merged to develop 70ca919 after all 4 exact-head checks passed. #236 stages lossless Web duplicate historical seed loan rows/overrides/custom coexistence with 3 goldens. W3.2 and W4.2 partial; W3.1 physical visual review, W6.2/W6.4 owner S24, W5.1 verified artwork, W2.4 permanent delete UI pending. No release.",
+    "branch": "android/prep-w3-2-empty-split-category-web-parity-20261017",
+    "checkpoint": "Verified Web parity 1/6 workstreams · 11/24 subtasks. #236 Web duplicated historical seed loan rows/overrides merged to develop 33ef5555 after 4/4 green CI. #237 consolidated Web split empty category to Άλλο, signed net-worth receivables and duplicate historical loan Compose key/unsafe repayment protection with five tests, tracking CI pending on final exact head. W3.2 remains partial; W3.1 statement visuals, W6.2/W6.4 real S24, W5.1 certified art and W2.4 delete UI safety open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -810,7 +810,8 @@
               "PR #230 date-scoped receivable repayment, Web scheduled create/complete/skip/cancel, atomic ledger, three durable offline mutation codecs, fresh as-of and 5 unit/queue goldens. Exact head 94a2400fe4599fbe2118d99810a36c911459ce6b passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Merged develop c76395a1a5435a9152c3f1a4225cea7a3f0114c4. W3.2/W4.2 still partial.",
               "PR #232 Web loan as-of null/undated payment exclusion in loan balance and forecast merged develop fd0632b041fb1d015acb49b0390de4b587449b87. Exact head 0c71a9eaf9696a2c86b4880e20e9d6cde10c6819 passed all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots, and S24 emulator gates. W3.2 partial.",
               "PR #235 Web scheduled pending/history date ordering and Web as-of net-worth receivables excluding missing/null event dates; six golden regressions, 4/4 exact-head success at 847be104c674a50df29f1464826c596e0300e45b; squash merged develop 70ca919771960f3b38c8cb7038e4a9e6c746b382. W3.2/W4.2 still partial.",
-              "PR #236 staged Web effectiveLoans/map loan overrides for each original historical loan row, custom loan append and orphan override ignored; Kotlin associateBy previously collapsed duplicate IDs. Three golden cases cover historical repeated IDs, overrides and linked payment application. 4/4 immutable-head CI pending, W3.2 remains partial."
+              "PR #236 lossless duplicate seeded loan rows and per-seed overrides: three Web golden tests, immutable head 15b9eb79cf92e246e83d1656375ac9cb237d5a5d passed Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot and S24 emulator 4/4 CI gates. Squash merged develop 33ef5555a7a33808536b0e7fe6b9469933f7f3f8. W3.2 remains partial.",
+              "PR #237 staged Web ledgerFoundations.ts empty/whitespace split category -> Άλλο, signed Web domain.ts historical net-worth receivables (no false max(0) clamp), and Compose duplicate historical loan row key/click safety to guard #236 IDs. Five JVM regressions (splits cents/category, dated net worth, historical duplicate UI IDs); full immutable-head CI pending."
             ]
           },
           {
@@ -1011,9 +1012,9 @@
         ]
       }
     ],
-    "next_action": "Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release.",
+    "next_action": "Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 236,
+    "pr": 237,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
