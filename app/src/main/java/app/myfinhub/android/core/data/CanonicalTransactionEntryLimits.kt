@@ -40,8 +40,11 @@ internal fun CanonicalFinanceDocument.creditDebtForCardAt(cardId: String, asOf: 
         if (kind != "card_purchase" && kind != "card_payment") return@forEach
         if (event.entryString("date").orEmpty() > asOf) return@forEach
 
-        val explicitCardId = event.entryString("cardId")?.trim().orEmpty()
-        val belongsToTarget = if (explicitCardId.isNotBlank()) {
+        // Web cards.ts uses event.cardId truthiness, not trimmed validity:
+        // whitespace is an explicit (orphan) identity and must not become
+        // legacy debt on the oldest card.
+        val explicitCardId = event.entryString("cardId").orEmpty()
+        val belongsToTarget = if (explicitCardId.isNotEmpty()) {
             explicitCardId == target
         } else {
             legacyOwnerId == target
