@@ -538,7 +538,7 @@ private fun FinanceProductSurface(
     onSaveBudget: (String, String) -> Unit,
     onSetRecurringStatus: (String, String) -> Unit,
     onCreateScheduled: (app.myfinhub.android.feature.plan.ScheduledCreateRequest) -> Unit,
-    onCompleteScheduled: (String, String, Double) -> Unit,
+    onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit,
     onCloseScheduled: (String, String) -> Unit,
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit,
     onSaveSavingsGoal: (String?, String, String, String?) -> Unit,

@@ -156,7 +156,7 @@ internal fun MyFinHubAppContent(
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     onCreateScheduled: (ScheduledCreateRequest) -> Unit = {},
-    onCompleteScheduled: (String, String, Double) -> Unit = { _, _, _ -> },
+    onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit = {},
     onCloseScheduled: (String, String) -> Unit = { _, _ -> },
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
     onSaveSavingsGoal: ((String?, String, String, String?) -> Unit)? = null,
