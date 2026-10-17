@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.monthlyFlow
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
