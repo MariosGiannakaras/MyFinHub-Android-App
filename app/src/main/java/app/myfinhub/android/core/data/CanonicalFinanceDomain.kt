@@ -83,6 +83,8 @@ data class CanonicalScheduledItem(
     val fromAccountId: String?,
     val toAccountId: String?,
     val status: String,
+    val createdAt: String = "",
+    val updatedAt: String = "",
 )
 
 data class CanonicalCard(
@@ -235,8 +237,21 @@ fun CanonicalFinanceDocument.canonicalScheduled(): List<CanonicalScheduledItem> 
             fromAccountId = item.string("fromAccountId"),
             toAccountId = item.string("toAccountId"),
             status = item.string("status").orEmpty(),
+            createdAt = item.string("createdAt").orEmpty(),
+            updatedAt = item.string("updatedAt").orEmpty(),
         )
     }
+
+/** Web scheduled.ts: pending by dueDate/createdAt, closed history by latest update. */
+fun CanonicalFinanceDocument.canonicalScheduledManagementOrder(): List<CanonicalScheduledItem> {
+    val all = canonicalScheduled()
+    val pending = all.filter { it.status == "pending" }
+        .sortedWith(compareBy<CanonicalScheduledItem> { it.dueDate }.thenBy { it.createdAt })
+    val history = all.filter { it.status != "pending" }
+        .sortedWith(compareByDescending<CanonicalScheduledItem> { it.updatedAt }
+            .thenBy { it.dueDate }.thenBy { it.createdAt })
+    return pending + history
+}
 
 fun CanonicalFinanceDocument.canonicalCards(): List<CanonicalCard> =
     state.array("cards").mapNotNull cards@{ element ->

@@ -11,6 +11,7 @@ import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalScheduled
+import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
 import app.myfinhub.android.core.data.canonicalLifecycle
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
@@ -112,7 +113,7 @@ internal fun projectCanonicalPlanState(
                     financialAccountDisplayName(account.id,account.name,account.kind,account.providerId),
                 )
             },
-        scheduledManageItems = document.canonicalScheduled().map { row ->
+        scheduledManageItems = document.canonicalScheduledManagementOrder().map { row ->
             ScheduledManageItem(
                 id = row.id,
                 title = row.note.ifBlank { scheduledPlanKindLabel(row.kind) },
