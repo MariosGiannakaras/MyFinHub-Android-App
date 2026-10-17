@@ -38,7 +38,11 @@ class WebRecurringQuickEntryUiBridgeTest {
     @Test fun importedRecurringWithRetiredCategoryIsPreservedOnEditablePayment() {
         val initial = projectQuickEntryState(source,day,null)
         var state = reduceQuickEntry(initial,QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
-        state = reduceQuickEntry(state,QuickEntryAction.RecurringChanged("legacy-cloud"))
+        state = reduceQuickEntry(state,QuickEntryAction.RecurringChanged(
+            "legacy-cloud","Παλιά συνδρομή",
+        ))
+        assertEquals("Παλιά συνδρομή",state.category)
+        assertEquals("Παλιά συνδρομή",state.expenseCategories.last().name)
         state = reduceQuickEntry(state,QuickEntryAction.AmountChanged("19,99"))
         state = reduceQuickEntry(state,QuickEntryAction.NoteChanged("Πληρωμή: Cloud"))
         state = projectQuickEntryState(source,day,state)

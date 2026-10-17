@@ -190,6 +190,15 @@ fun ProductionQuickEntryScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
+            if (state.recurringId.isNotEmpty()) {
+                Text(
+                    text = "Συνδεδεμένη πληρωμή παγίου · " +
+                        state.note.removePrefix("Πληρωμή: ").ifBlank { "Έξοδο" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.testTag("quick_entry_recurring_link"),
+                )
+            }
             Text("Τύπος", style = MaterialTheme.typography.labelLarge)
             Row(
                 modifier = Modifier.fillMaxWidth(),

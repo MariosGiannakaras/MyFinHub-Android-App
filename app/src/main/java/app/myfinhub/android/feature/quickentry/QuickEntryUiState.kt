@@ -157,7 +157,8 @@ sealed interface QuickEntryAction {
     data class ToAccountChanged(val id: String) : QuickEntryAction
     data class CardChanged(val id: String) : QuickEntryAction
     data class StatementChanged(val id: String) : QuickEntryAction
-    data class RecurringChanged(val id: String) : QuickEntryAction
+    /** Carry the Web recurring category even when it was retired from current settings. */
+    data class RecurringChanged(val id: String, val category: String? = null) : QuickEntryAction
     data class PersonChanged(val value: String) : QuickEntryAction
     data class ExpectedReturnDateChanged(val value: String) : QuickEntryAction
     data class ActualBalanceChanged(val value: String) : QuickEntryAction
@@ -183,9 +184,18 @@ fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickE
     is QuickEntryAction.ToAccountChanged -> state.changed(toAccountId = action.id)
     is QuickEntryAction.CardChanged -> state.changed(cardId = action.id, statementId = "")
     is QuickEntryAction.StatementChanged -> state.changed(statementId = action.id)
-    is QuickEntryAction.RecurringChanged -> state.changed(
-        recurringId = action.id.takeIf { state.kind == QuickEntryKind.EXPENSE }?.trim().orEmpty(),
-    )
+    is QuickEntryAction.RecurringChanged -> {
+        val id = action.id.takeIf { state.kind == QuickEntryKind.EXPENSE }?.trim().orEmpty()
+        val category = action.category?.takeIf { id.isNotEmpty() && it.isNotBlank() }
+        val options = if (category != null && state.expenseCategories.none { it.name == category }) {
+            state.expenseCategories + QuickEntryCategoryOption(category)
+        } else state.expenseCategories
+        state.copy(expenseCategories = options).changed(
+            recurringId = id,
+            category = category ?: state.category,
+            subcategory = if (category != null) "" else state.subcategory,
+        )
+    }
     is QuickEntryAction.PersonChanged -> state.changed(person = action.value)
     is QuickEntryAction.ExpectedReturnDateChanged -> state.changed(expectedReturnDateText = action.value)
     is QuickEntryAction.ActualBalanceChanged -> state.changed(actualBalanceText = action.value)

@@ -519,15 +519,13 @@ internal fun MyFinHubAppContent(
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
                                 onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
                                 onQuickEntryAction(QuickEntryAction.NoteChanged("Πληρωμή: " + item.title))
-                                val category = item.category.takeIf { key ->
-                                    quickEntryState.expenseCategories.any { it.name == key }
-                                } ?: quickEntryState.expenseCategories.firstOrNull()?.name.orEmpty()
-                                onQuickEntryAction(QuickEntryAction.CategoryChanged(category))
+                                onQuickEntryAction(QuickEntryAction.RecurringChanged(
+                                    item.id, item.category,
+                                ))
                                 val account = item.accountId.takeIf { id ->
                                     quickEntryState.accounts.any { it.id == id }
                                 } ?: quickEntryState.defaultExpenseAccountId
                                 onQuickEntryAction(QuickEntryAction.AccountChanged(account))
-                                onQuickEntryAction(QuickEntryAction.RecurringChanged(item.id))
                                 planBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
