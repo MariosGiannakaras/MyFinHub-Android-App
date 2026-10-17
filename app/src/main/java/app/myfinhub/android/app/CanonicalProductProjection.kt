@@ -364,7 +364,6 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         loanOutstanding = document.loanOutstanding(asOf),
         lendingReceivable = document.receivableOutstanding(asOf),
         loans = document.canonicalLoanBalanceRows(asOf).map { loan ->
-            val definition = document.canonicalLoanDefinition(loan.id)
             LoanItem(
                 id = loan.id,
                 name = loan.name,
@@ -374,9 +373,9 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 nextPaymentLabel = loan.typicalPaymentDay?.let { "Συνήθης ημέρα πληρωμής: $it" }.orEmpty(),
                 originalAmount = loan.total,
                 remainingInstallments = loan.remainingInstallments,
-                isSelfLoan = definition?.isOwnLoan() == true,
-                liabilityRepayment = definition?.string("accountingMode") == "liability-repayment",
-                defaultAccountId = definition?.string("defaultAccountId").orEmpty(),
+                isSelfLoan = loan.isSelfLoan,
+                liabilityRepayment = loan.isLiabilityRepayment,
+                defaultAccountId = loan.defaultAccountId,
             )
         },
         lendingItems = document.canonicalLendingPersonRows(asOf)
