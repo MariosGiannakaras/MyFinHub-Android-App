@@ -133,6 +133,11 @@ data class SetCanonicalRecurringStatus(
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(recurringId.isNotBlank()) { "Απαιτείται αναγνωριστικό παγίου." }
         require(status in setOf("active", "paused", "stopped")) { "Άγνωστη κατάσταση παγίου." }
+        // A duplicate historical ID would change the first matching source
+        // while leaving other rows inconsistent. Preserve them read-only.
+        require(document.allCanonicalRecurringItems().count { it.id == recurringId } == 1) {
+            "Το πάγιο έχει μη μοναδικό αναγνωριστικό. Η αλλαγή κατάστασης αποκλείστηκε."
+        }
         val custom = document.state.array("recurringCustom")
         val index = custom.indexOfFirst { (it as? JsonObject)?.string("id") == recurringId }
         fun updated(item: JsonObject): JsonObject = JsonObject(item + mapOf(

@@ -16,8 +16,11 @@ fun createCanonicalRecurringPaymentMutation(
     note: String? = null,
 ): CanonicalFinanceMutation {
     require(recurringId.isNotBlank()) { "Διάλεξε υπαρκτό πάγιο." }
-    val item = document.allCanonicalRecurringItems().firstOrNull { it.id == recurringId }
-        ?: throw IllegalArgumentException("Το πάγιο δεν είναι πλέον διαθέσιμο.")
+    // Reusing a repeated historical ID would mark several distinct recurring
+    // schedules paid. Keep those rows visible but reject a new linked payment.
+    val item = document.allCanonicalRecurringItems()
+        .filter { it.id == recurringId }.singleOrNull()
+        ?: throw IllegalArgumentException("Το πάγιο δεν βρέθηκε ή έχει μη μοναδικό ID.")
     val draft = CanonicalTransactionEntryDraft(
         kind = "expense", date = date,
         amount = amount ?: item.amount,

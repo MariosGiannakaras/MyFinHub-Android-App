@@ -114,8 +114,8 @@ fun createCanonicalTransactionEntryMutation(
         require(draft.loanId == null && draft.kind == "expense") {
             "Οι πληρωμές παγίων είναι έξοδα και δεν συνδέονται με δάνειο."
         }
-        require(document.allCanonicalRecurringItems().any { it.id == recurringId }) {
-            "Το πάγιο δεν είναι πλέον διαθέσιμο."
+        require(document.allCanonicalRecurringItems().count { it.id == recurringId } == 1) {
+            "Το πάγιο δεν βρέθηκε ή έχει μη μοναδικό αναγνωριστικό."
         }
     }
 
