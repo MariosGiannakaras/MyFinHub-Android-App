@@ -194,15 +194,9 @@ data class PendingCanonicalMutationIntent(
         PendingMutationKind.CREATE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
             val row = document.state.array("scheduled")
-                .filterIsInstance<JsonObject>().firstOrNull { it.string("id")==id }
+                .filterIsInstance<JsonObject>().firstOrNull { it.string("id") == id }
             id.isNotBlank() && row != null &&
-                row.string("kind")==payload.string("kind") &&
-                row.string("dueDate")==payload.string("dueDate") &&
-                row.number("amount")?.let { actual ->
-                    payload.number("amount")?.let { expected ->
-                        runCatching { moneyToCents(actual)==moneyToCents(expected) }.getOrDefault(false)
-                    }
-                } == true
+                (asMutation() as CreateCanonicalScheduledTransaction).matchesExisting(row)
         }
         PendingMutationKind.COMPLETE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
