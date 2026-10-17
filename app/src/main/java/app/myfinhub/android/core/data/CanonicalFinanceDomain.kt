@@ -439,7 +439,10 @@ fun CanonicalFinanceDocument.receivableOutstanding(asOf: String? = null): Double
         // event.date <= asOf. All-time projection still includes historic rows.
         asOf == null || it.string("date")?.let { date -> date <= asOf } == true
     }.sumOf { it.number("receivableDelta") ?: 0.0 }
-    return max(0.0, legacy + eventDelta)
+    // Web domain.ts netWorth adds legacyOutstandingReceivables and dated
+    // eventReceivables as signed sums. Over-repaid/imported legacy histories may
+    // be negative; clamping here silently inflates the reported net position.
+    return legacy + eventDelta
 }
 
 fun CanonicalFinanceDocument.cardOutstanding(cardId: String, asOf: String): Double = max(
