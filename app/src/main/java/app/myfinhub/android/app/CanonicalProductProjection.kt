@@ -32,6 +32,7 @@ import app.myfinhub.android.core.data.canonicalLoanBalanceRows
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
+import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.feature.activity.ActivityAccountOption
