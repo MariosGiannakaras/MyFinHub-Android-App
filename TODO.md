@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run one exact-head four-gate Project Tracking/Android CI/screenshots/S24 emulator batch for #226; merge only after green and persist evidence. Continue W3.2, W4 recurring and loan activity UI, W3.1 credit statement visuals; keep W6.2 real S24 owner acceptance W6.4 pending, W5.1 verified assets, W2.4 permanent delete UI disabled, no release.
+- [ ] Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #226, branch android/w3-2-w4-1-linked-recurring-and-rules-20261017
-Current W3.2: Web parity verified 1/6 complete workstreams · 11/24 completed subtasks. W3.2/W4.3 linked loan #225 merged after 4/4 exact-head CI; #226 staged Web falsey category defaults and linked recurring expense events, 5 cross-client goldens, CI pending. W3.2/W4.1/W4.3 remain incomplete, W3.1 native visuals, W6.2 physical S24, W5.1 artwork and W2.4 card-delete guard pending.
+Current W3.2: 1/6 complete workstreams · 11/24 accepted subtasks. W3.2/W4.3 loan #225 merged 4/4. #226 Web recurring linked expense, rule fallback, month-end day >31 fixtures and deterministic CVV plaintext-at-rest emulator security assertion (fix for emulator CI failing on probabilistic ciphertext scan). Four exact-head CI gates pending fresh commit. W3.2/W4.1 partial; physical W3.1/W6.2, W5.1 certified assets and W2.4 card delete UI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one exact-head four-gate Project Tracking/Android CI/screenshots/S24 emulator batch for #226; merge only after green and persist evidence. Continue W3.2, W4 recurring and loan activity UI, W3.1 credit statement visuals; keep W6.2 real S24 owner acceptance W6.4 pending, W5.1 verified assets, W2.4 permanent delete UI disabled, no release.
+Next Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

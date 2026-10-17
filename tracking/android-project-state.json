@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run one exact-head four-gate Project Tracking/Android CI/screenshots/S24 emulator batch for #226; merge only after green and persist evidence. Continue W3.2, W4 recurring and loan activity UI, W3.1 credit statement visuals; keep W6.2 real S24 owner acceptance W6.4 pending, W5.1 verified assets, W2.4 permanent delete UI disabled, no release."
+      "Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w3-2-w4-1-linked-recurring-and-rules-20261017",
-    "checkpoint": "Web parity verified 1/6 complete workstreams · 11/24 completed subtasks. W3.2/W4.3 linked loan #225 merged after 4/4 exact-head CI; #226 staged Web falsey category defaults and linked recurring expense events, 5 cross-client goldens, CI pending. W3.2/W4.1/W4.3 remain incomplete, W3.1 native visuals, W6.2 physical S24, W5.1 artwork and W2.4 card-delete guard pending.",
+    "checkpoint": "1/6 complete workstreams · 11/24 accepted subtasks. W3.2/W4.3 loan #225 merged 4/4. #226 Web recurring linked expense, rule fallback, month-end day >31 fixtures and deterministic CVV plaintext-at-rest emulator security assertion (fix for emulator CI failing on probabilistic ciphertext scan). Four exact-head CI gates pending fresh commit. W3.2/W4.1 partial; physical W3.1/W6.2, W5.1 certified assets and W2.4 card delete UI pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -847,7 +847,8 @@
               "W4.1 pending PR #197: native recurring lifecycle Compose UI and route with 48dp accessible pause/stop/reactivate actions bound to FinanceProductViewModel guarded canonical status mutation/offline replay. Paused/stopped seeded/custom/override account projection and unit/emulator test. No physical S24 acceptance claimed.",
               "W4.1/4.2 native management and Web forecast 30/60/90 UI PR #197 merged as 2df0e01be3437ab414c8a5a538239f36c0265847, exact-head four checks green; owner physical S24 signoff still pending.",
               "PR #222 Web recurring.ts authoritative firstExpectedDate and invalid-anchor due-day golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator checks. W4.1 still in_progress.",
-              "PR #226 staged Web ContextualQuickAdd linked recurring payment via ordinary expense with recurringId, no synthetic kind, seeded override/custom identity, date-aware upcoming paid history and 3 golden tests. Strict common entry validator, idempotent replay; CI pending. W4.1 partial."
+              "PR #226 staged Web ContextualQuickAdd linked recurring payment via ordinary expense with recurringId, no synthetic kind, seeded override/custom identity, date-aware upcoming paid history and 3 golden tests. Strict common entry validator, idempotent replay; CI pending. W4.1 partial.",
+              "PR #226 also batches Web recurring.ts month-end clamping for valid historical day >31 instead of returning null; February/March/April golden coverage. CVV vault instrumentation assertion corrected to detect protobuf-encoded plaintext values rather than chance three-digit subsequences in ciphertext after exact S24 test failure; no production security code changed."
             ]
           },
           {
@@ -999,7 +1000,7 @@
         ]
       }
     ],
-    "next_action": "Run one exact-head four-gate Project Tracking/Android CI/screenshots/S24 emulator batch for #226; merge only after green and persist evidence. Continue W3.2, W4 recurring and loan activity UI, W3.1 credit statement visuals; keep W6.2 real S24 owner acceptance W6.4 pending, W5.1 verified assets, W2.4 permanent delete UI disabled, no release.",
+    "next_action": "Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 226,
     "current_subtask": "W3.2",

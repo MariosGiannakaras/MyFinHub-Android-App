@@ -45,7 +45,15 @@ class DataStoreEncryptedCvvVaultTest {
 
         val dataStoreFile = context.filesDir.resolve("datastore/cvv_vault.preferences_pb")
         if (dataStoreFile.exists()) {
-            assertFalse(dataStoreFile.readBytes().containsSubsequence(byteArrayOf('1'.code.toByte(), '2'.code.toByte(), '3'.code.toByte())))
+            // Preferences DataStore stores string values as protobuf field 1
+            // (0x0A) with a length prefix. A bare "123" occurrence anywhere in
+            // random Base64 ciphertext is NOT evidence that CVV was persisted
+            // as a plaintext value; that probabilistic test was flaky on AVD.
+            val encodedPlaintextValue = byteArrayOf(0x0A, 0x03, 0x31, 0x32, 0x33)
+            assertFalse(
+                "CVV must not be persisted as a plaintext protobuf string value",
+                dataStoreFile.readBytes().containsSubsequence(encodedPlaintextValue),
+            )
         }
 
         vault.delete(cardId)

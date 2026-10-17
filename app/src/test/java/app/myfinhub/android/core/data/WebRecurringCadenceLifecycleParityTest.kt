@@ -46,6 +46,23 @@ class WebRecurringCadenceLifecycleParityTest {
             data.nextCanonicalRecurringDate(recurring("custom"),LocalDate.parse("2026-10-15")))
     }
 
+    @Test fun legacyDayAboveThirtyOneClampsToMonthEndAsWebRecurringDoes() {
+        val data=CanonicalFinanceDocument(Json.parseToJsonElement("""
+        {"seed":{"recurring":[
+          {"id":"legacy-day","name":"End of month","amount":35,"day":32,
+           "accountId":"bank","active":true}
+        ]},"state":{"events":[]}}
+        """.trimIndent()).jsonObject)
+        val entry=data.allCanonicalRecurringItems().single()
+        assertEquals(32,data.canonicalTypicalRecurringPaymentDay(entry))
+        assertEquals(LocalDate.parse("2026-02-28"),
+            data.nextCanonicalRecurringDate(entry,LocalDate.parse("2026-02-10")))
+        assertEquals(LocalDate.parse("2026-03-31"),
+            data.nextCanonicalRecurringDate(entry,LocalDate.parse("2026-03-30")))
+        assertEquals(LocalDate.parse("2026-04-30"),
+            data.nextCanonicalRecurringDate(entry,LocalDate.parse("2026-04-01")))
+    }
+
     @Test fun linkedPaymentControlsTypicalDayAndSettlesMonth() {
         assertEquals(5,data.canonicalTypicalRecurringPaymentDay(recurring("paid")))
         assertEquals(LocalDate.parse("2026-11-05"),
