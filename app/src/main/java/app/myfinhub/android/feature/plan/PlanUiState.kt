@@ -35,6 +35,10 @@ data class RecurringManageItem(
     val nextDueDateIso: String = "",
     val category: String = "",
     val accountId: String = "",
+    val cadenceLabel: String = "",
+    // Preserve Web service branding metadata without inventing/embedding logos.
+    val logoAssetKey: String? = null,
+    val source: String? = null,
 )
 
 data class ScheduledManageItem(

@@ -65,8 +65,9 @@ fun CanonicalRecurringManagementScreen(
                                 "active" -> "Ενεργό"
                                 "paused" -> "Σε παύση"
                                 else -> "Διακομμένο"
-                            } + (if (item.nextDueDateIso.isNotBlank())
-                                " · Επόμενο: " + item.nextDueDateIso else ""),
+                            } + item.cadenceLabel.takeIf(String::isNotBlank)?.let { " · " + it }.orEmpty() +
+                                (if (item.nextDueDateIso.isNotBlank())
+                                    " · Επόμενο: " + item.nextDueDateIso else ""),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(amountVisibilityText(currency.format(item.amount), showAmounts),

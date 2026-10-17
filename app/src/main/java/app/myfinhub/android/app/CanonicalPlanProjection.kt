@@ -100,6 +100,9 @@ internal fun projectCanonicalPlanState(
             nextDueDateIso = document.nextCanonicalRecurringDate(recurring, today)?.toString().orEmpty(),
             category = recurring.category,
             accountId = recurring.accountId,
+            cadenceLabel = recurring.cadenceLabel,
+            logoAssetKey = recurring.logoAssetKey,
+            source = recurring.source,
         )
     }
     return PlanUiState(

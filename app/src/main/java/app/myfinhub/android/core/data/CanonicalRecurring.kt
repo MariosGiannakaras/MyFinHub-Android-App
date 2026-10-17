@@ -20,6 +20,8 @@ data class CanonicalRecurringItem(
     val firstExpectedDate: String?,
     val recurrenceUnit: String?,
     val recurrenceInterval: Int,
+    val logoAssetKey: String? = null,
+    val source: String? = null,
 ) {
     val effectiveStatus: String
         get() = if (!active) {
@@ -29,6 +31,15 @@ data class CanonicalRecurringItem(
     val recurrenceMonths: Int
         get() = if (recurrenceUnit == "year") recurrenceInterval * 12 else recurrenceInterval
     val monthlyEquivalent: Double get() = amount / recurrenceMonths
+
+    // Exact Web recurringCadenceLabel wording and fallback interval semantics.
+    val cadenceLabel: String get() = if (recurrenceUnit == "year") {
+        if (recurrenceInterval == 1) "Κάθε χρόνο" else "Κάθε $recurrenceInterval χρόνια"
+    } else when (recurrenceInterval) {
+        1 -> "Κάθε μήνα"
+        6 -> "Κάθε 6 μήνες"
+        else -> "Κάθε $recurrenceInterval μήνες"
+    }
 }
 
 private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
@@ -49,6 +60,8 @@ private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
         firstExpectedDate = string("firstExpectedDate"),
         recurrenceUnit = string("recurrenceUnit"),
         recurrenceInterval = interval,
+        logoAssetKey = string("logoAssetKey"),
+        source = string("source"),
     )
 }
 
