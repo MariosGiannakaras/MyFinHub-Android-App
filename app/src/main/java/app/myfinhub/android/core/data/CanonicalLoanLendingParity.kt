@@ -20,15 +20,17 @@ internal fun JsonObject.isOwnLoan(): Boolean =
             .containsMatchIn(string("name").orEmpty() + " " + string("provider").orEmpty())
 
 fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): List<CanonicalLoanBalanceRow> {
+    // Web effectiveLoans / activeLongTermLoanObligations map each seeded row
+    // through its override and then append all custom rows. An associateBy(id)
+    // silently loses duplicate historic rows and can invent orphan overrides.
+    val overrides = state.obj("loanOverrides")
     val seeded = seed.array("loans").mapNotNull { it as? JsonObject }
-        .associateBy { it.string("id").orEmpty() }.filterKeys(String::isNotBlank).toMutableMap()
-    state.obj("loanOverrides").forEach { (id,v) -> (v as? JsonObject)?.let { seeded[id] = it } }
-    state.array("customLoans").mapNotNull { it as? JsonObject }.forEach { loan ->
-        loan.string("id")?.takeIf(String::isNotBlank)?.let { seeded[it] = loan }
-    }
+        .map { loan -> (overrides[loan.string("id").orEmpty()] as? JsonObject) ?: loan }
+    val customs = state.array("customLoans").mapNotNull { it as? JsonObject }
+    val loans = seeded + customs
     val extras = state.obj("loanExtra")
     val allEvents = state.array("events").mapNotNull { it as? JsonObject }
-    return seeded.values.map { loan ->
+    return loans.map { loan ->
         val id = loan.string("id").orEmpty()
         val self = loan.isOwnLoan()
         val events = allEvents.filter { e ->
