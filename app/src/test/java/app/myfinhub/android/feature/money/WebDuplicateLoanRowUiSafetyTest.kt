@@ -14,7 +14,7 @@ class WebDuplicateLoanRowUiSafetyTest {
 
     @Test fun repeatedHistoricalIdsRenderDistinctRowsWithoutComposeKeyCollisions() {
         val rows=listOf(row("dup"),row("dup"),row("another"),row("dup#row#0"))
-        assertEquals(rows.size,rows.mapIndexed(::canonicalLoanRowKey).distinct().size)
+        assertEquals(rows.size,rows.mapIndexed { index, loan -> canonicalLoanRowKey(loan, index) }.distinct().size)
         assertEquals("dup#row#0",canonicalLoanRowKey(rows.first(),0))
         assertEquals("dup#row#1",canonicalLoanRowKey(rows[1],1))
     }
