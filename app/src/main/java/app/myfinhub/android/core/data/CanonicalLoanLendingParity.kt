@@ -55,8 +55,19 @@ fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): Lis
         }
         val typical = if (eventDays.isNotEmpty()) {
             (eventDays.sum().toDouble() / eventDays.size).roundToInt().coerceIn(1,31)
-        } else loan.string("firstExpectedDate")?.takeLast(2)?.toIntOrNull()
-            ?: loan.string("day")?.toIntOrNull()?.takeIf { it in 1..31 }
+        } else {
+            // Web loans.ts: a present firstExpectedDate takes precedence even
+            // when its day cannot be parsed; don't silently fall back to day.
+            val first = loan.string("firstExpectedDate")
+            if (!first.isNullOrEmpty()) {
+                first.drop(8).take(2).toIntOrNull()?.takeIf { it != 0 }
+            } else {
+                // JS parseInt(day, 10) accepts legacy labels such as "15η".
+                loan.string("day")?.trimStart()
+                    ?.takeWhile { it in '0'..'9' }
+                    ?.toIntOrNull()?.takeIf { it in 1..31 }
+            }
+        }
         CanonicalLoanBalanceRow(
             id,loan.string("name").orEmpty().ifBlank { id },loan.string("provider").orEmpty(),
             loan.number("total") ?: 0.0,installment,outstanding,remainingCount,typical,
@@ -84,8 +95,11 @@ fun CanonicalFinanceDocument.canonicalLendingPersonRows(asOf: String? = null): L
         val person=event.string("person").orEmpty().trim()
         val date=event.string("date").orEmpty().trim()
         val delta=event.number("receivableDelta") ?: 0.0
-        if (person.isEmpty() || delta==0.0 || !date.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) ||
-            (asOf!=null && date>asOf)) return@forEach
+        // Web lendingRows ignores malformed dates only for dated snapshots.
+        // The all-time view still includes a historic receivableDelta with no date.
+        if (person.isEmpty() || delta==0.0 ||
+            (asOf!=null && (!date.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) || date>asOf))
+        ) return@forEach
         val current=rows[person] ?: CanonicalLendingPersonRow(person,0.0,0)
         rows[person]=current.copy(outstanding=current.outstanding+delta,events=current.events+1)
     }

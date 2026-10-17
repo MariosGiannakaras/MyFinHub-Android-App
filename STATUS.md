@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release.
+1. Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #218, branch develop
-Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 Web-safe cent rounding, JS safe-integer money limits, and split aggregate overflow guards merged via #218 after 4/4 green exact-head checks. W3.2 still partial for remaining classification/loan event edge cases. W6.1/W6.3 complete, W3.1 physical visuals, W6.2 real S24, W5.1 certified assets and W2.4 permanent-delete safety pending.
+Issue #155, PR #220, branch android/w3-2-legacy-loan-credit-edge-parity-20261017
+Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 follow-up Web loans.ts legacy day-prefix, lending.ts all-time undated deltas vs as-of and cards.ts explicit whitespace card ID attribution staged in #220. CI/merge pending. W6.1/W6.3 complete; W3.1 physical visual review, W6.2 physical S24, W5.1 approved assets and W2.4 destructive guard remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue W3.2 canonical classification/loan event edge cases and W3.1 real credit statement visual review; preserve real S24 owner W6.2 and W6.4 approvals as unmet. Verify W5.1 provider artwork, retain W2.4 permanent-delete UI disabled, no release.
+Next Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
