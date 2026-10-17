@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Run 4 immutable-head CI gates for #231; fix failures within same PR, merge only all green; then audit W3.2/4 scheduled and lending edge cases. Real S24 owner acceptance W3.1/W6.2/W6.4 outstanding, W5.1 provider artwork certification, W2.4 permanent-delete UI stays disabled, no release.
+- Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #231, branch android/w4-2-native-scheduled-creation-and-confirmation-20261017
-Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 subtasks. W3.2/W4.2 #230 scheduled lifecycle, replayable pending codec and lending as-of merged c76395a1 after four green exact-head CI gates. W4.2 #231 staged native scheduled management/create/confirm/skip/cancel/history, forecast duplicate guard, 5 extra unit/Compose goldens; CI pending. Still partial until broad acceptance, real owner S24 W3.1/W6.2/W6.4, W5.1 certified provider assets and W2.4 delete UI gated.
+Issue #155, PR #232, branch android/w3-2-loan-history-date-validation-20261017
+Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. W3.2/W4.2 scheduled lifecycle #230 merged c76395a1; native scheduled management/create/confirmed payments UI #231 merged bf85c43d after 4/4 immutable-head CI including Compose. #232 staged Web loan as-of missing/null event date exclusion, shared loan/forecast state and goldens; CI pending. W3.2/W4.1–W4.4 partial, real S24 W3.1/W6.2/W6.4, W5.1 approved artwork and W2.4 permanent-delete UI guard pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run 4 immutable-head CI gates for #231; fix failures within same PR, merge only all green; then audit W3.2/4 scheduled and lending edge cases. Real S24 owner acceptance W3.1/W6.2/W6.4 outstanding, W5.1 provider artwork certification, W2.4 permanent-delete UI stays disabled, no release.
+Next Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

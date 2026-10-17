@@ -132,7 +132,8 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             return@forEach
         }
         val payments = state.array("events").mapNotNull { it as? JsonObject }.filter {
-            it.string("loanId") == loanId && it.string("date").orEmpty() <= asOf.toString()
+            it.string("loanId") == loanId &&
+                it.string("date")?.let { date -> date <= asOf.toString() } == true
         }
         val balance = loanBalances[loanId] ?: return@forEach
         val left = balance.remainingInstallments
