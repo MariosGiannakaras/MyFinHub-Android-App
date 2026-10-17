@@ -671,8 +671,21 @@ fun CanonicalSavingsScreen(
 fun CanonicalLoansScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
+    onRecordPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
+    mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var selectedLoanId by rememberSaveable { mutableStateOf<String?>(null) }
+    state.loans.firstOrNull { it.id == selectedLoanId }?.let { loan ->
+        CanonicalLoanPaymentDialog(
+            loan = loan, accounts = state.accounts,
+            onDismiss = { selectedLoanId = null },
+            onConfirm = { date, account, count, amount, savings ->
+                onRecordPayment(loan.id, account, date, count, amount, savings)
+                selectedLoanId = null
+            },
+        )
+    }
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
@@ -744,6 +757,14 @@ fun CanonicalLoansScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                            }
+                            if (loan.remaining > 0.005 && (loan.isSelfLoan || loan.remainingInstallments > 0)) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { selectedLoanId = loan.id },
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("loan_record_payment_" + loan.id),
+                                ) { Text(if (loan.isSelfLoan) "Καταχώριση επιστροφής" else "Πληρωμή δόσης") }
                             }
                         }
                     }

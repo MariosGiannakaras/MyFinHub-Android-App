@@ -27,6 +27,7 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
+import app.myfinhub.android.core.data.createCanonicalLoanPaymentMutation
 import app.myfinhub.android.core.data.UpsertCanonicalSavingsGoal
 import app.myfinhub.android.core.data.DeleteCanonicalSavingsGoal
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
@@ -496,6 +497,34 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (ready.projection.moneyState.savingsGoalItems.none { it.id == goalId }) return
         applyMutation(DeleteCanonicalSavingsGoal(goalId, Instant.now().toString()))
+    }
+
+    /** User-confirmed loan payment uses the existing strict canonical mutation and offline replay. */
+    fun recordLoanPayment(
+        loanId: String, accountId: String, date: String, installments: Int,
+        selfLoanAmount: Double?, savingsAccountId: String?,
+    ) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val mutation = runCatching {
+            createCanonicalLoanPaymentMutation(
+                document = ready.projection.document,
+                loanId = loanId, date = date, accountId = accountId,
+                eventId = "evt-android-${UUID.randomUUID()}",
+                nowIso = Instant.now().toString(),
+                requestedInstallments = installments,
+                selfLoanAmount = selfLoanAmount,
+                savingsAccountId = savingsAccountId,
+            )
+        }.getOrElse {
+            mutableNotices.tryEmit(unexpectedUserNotice(
+                operation = "Καταχώριση πληρωμής δανείου",
+                throwable = it,
+                message = "Η πληρωμή δεν μπόρεσε να προετοιμαστεί.",
+            ))
+            return
+        }
+        applyMutation(mutation)
     }
 
     fun setRecurringStatus(recurringId: String, status: String) {
