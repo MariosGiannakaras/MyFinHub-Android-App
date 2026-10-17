@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release.
+- [ ] Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #242, branch android/w4-2-row-local-duplicate-loan-forecast-20261017
-Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #241 duplicate Plan/Forecast scheduled rows merged after 4/4 exact-head green CI as 197649c05a35c6fd6eb7861bc694fbecaf13d00c. PR #242 stages W4.2 row-local loan forecast remaining/installments for historical repeated IDs, two goldens and synchronized tracker; CI pending. W3.2/W4.2 still partial; W3.1 real device credit statement visual review, W6.2/W6.4 owner S24, W5.1 assets and W2.4 guarded destructive delete remain outstanding.
+Issue #155, PR #243, branch android/w4-2-forecast-web-edge-batch-20261017
+Current W4.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #242 historical duplicate loan row forecast correction merged develop 1e0d393a96e7a4cea6e58e7cc7a99d43029320e2 after 4/4 exact-head Project Tracking, Android CI, screenshots and S24 emulator checks on b940f8c1fbb19ea63603d93abd207fe886a70a7a. Draft PR #243 batches W4.2 Web forecast edge parity: negative nominal installments cannot invent debits, blank loan account IDs fall back to settings, and read-only projections use remaining installment count even for forgiven debt. JVM golden vectors cover both active duplicate loan rows and 30/60/90 horizons. PR #243 code/tests committed, immutable-head CI not yet validated; W3.2/W4.2 partial. Physical owner S24 reviews, certified provider assets, protected deletion and release remain gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify four exact-head Android CI/Project Tracking/screenshot/S24 emulator checks for #242; fix on PR and merge only green. Continue W3.2 classification and W4.2 scheduled/loan forecast, then physical W3.1/W6.2 owner S24 review, W5.1 certified logos, W2.4 permanent-delete UI disabled, no signed release.
+Next Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on PR #243; fix in the same PR and merge only 4/4 green. Continue W3.2 classification and W4.2 scheduling/forecast acceptance. W3.1/W6.2 need real owner S24 review; W2.4 destructive card delete stays disabled, W5.1 artwork pending, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
