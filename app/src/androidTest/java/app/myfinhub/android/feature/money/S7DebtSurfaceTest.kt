@@ -1,5 +1,7 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -39,6 +41,32 @@ class S7DebtSurfaceTest {
         composeRule.onNodeWithText("Δάνεια").assertIsDisplayed()
         composeRule.onNodeWithText("Απαιτήσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Συνολικό υπόλοιπο · χωρίς αναλυτικές εγγραφές").assertIsDisplayed()
+    }
+
+    @Test
+    fun settledLendingHistoryRemainsVisibleWithoutAnUnsafeRepaymentAction() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalLendingScreen(
+                    state = MoneyUiState(
+                        lendingReceivable = 0.0,
+                        lendingHistory = listOf(
+                            LendingHistoryItem("same", "Νίκος", "2026-10-01", "lent", 40.0,
+                                "Ιστορικό δανεικών", origin = "legacy", runningOutstanding = 40.0),
+                            LendingHistoryItem("same", "Νίκος", "2026-10-10", "repaid", 40.0,
+                                "Ιστορικό επιστροφής", origin = "legacy", runningOutstanding = 0.0),
+                        ),
+                    ),
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Ιστορικό δανεικών").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Επιστροφή").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση επιστροφής").assertDoesNotExist()
+        // Both imported rows have the same historic identifier; Compose must
+        // use independent row keys rather than dropping one or crashing.
+        composeRule.onNodeWithText("Δανεισμός").performScrollTo().assertExists()
     }
 
     @Test
