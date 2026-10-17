@@ -28,6 +28,8 @@ data class CanonicalTransactionEntryDraft(
     val expectedReturnDate: String? = null,
     val cardId: String? = null,
     val statementId: String? = null,
+    // Web ContextualQuickAdd recurring payments are regular expense events.
+    val recurringId: String? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -56,6 +58,16 @@ fun createCanonicalTransactionEntryMutation(
     val activeCreditCards = document.canonicalCards()
         .filter { it.active && it.kind == "credit" }
         .associateBy { it.id }
+
+    draft.recurringId?.let { recurringId ->
+        require(recurringId.isNotBlank() && recurringId == recurringId.trim()) {
+            "Διάλεξε υπαρκτό πάγιο."
+        }
+        require(draft.kind == "expense") { "Οι πληρωμές παγίων καταχωρίζονται ως έξοδα." }
+        require(document.allCanonicalRecurringItems().any { it.id == recurringId }) {
+            "Το πάγιο δεν είναι πλέον διαθέσιμο."
+        }
+    }
 
     fun requireAccount(id: String?, message: String): String {
         val normalized = id?.trim().orEmpty()
@@ -251,6 +263,7 @@ fun createCanonicalTransactionEntryMutation(
         draft.expectedReturnDate?.trim()?.takeIf(String::isNotBlank)?.let { put("expectedReturnDate", JsonPrimitive(it)) }
         normalizedCardId?.let { put("cardId", JsonPrimitive(it)) }
         selectedStatementId?.let { put("statementId", JsonPrimitive(it)) }
+        draft.recurringId?.let { put("recurringId", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))
