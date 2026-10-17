@@ -89,6 +89,18 @@ data class LoanItem(
     val defaultAccountId: String = "",
 )
 
+data class LendingHistoryItem(
+    val id: String,
+    val personLabel: String,
+    val dateIso: String,
+    val action: String,
+    val amount: Double,
+    val note: String,
+    val accountId: String? = null,
+    val origin: String,
+    val runningOutstanding: Double,
+)
+
 data class LendingItem(
     val id: String,
     val personLabel: String,
@@ -119,6 +131,7 @@ data class MoneyUiState(
     val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
     val loans: List<LoanItem> = emptyList(),
     val lendingItems: List<LendingItem> = emptyList(),
+    val lendingHistory: List<LendingHistoryItem> = emptyList(),
     val frontendMessage: String? = null,
     /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
     val aggregateCreditOutstanding: Double? = null,
