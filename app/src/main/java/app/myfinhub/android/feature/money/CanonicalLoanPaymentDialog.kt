@@ -19,7 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
+import java.text.NumberFormat
+import java.util.Locale
 import kotlin.math.min
+
+private fun loanMoneyLabel(amount: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
 
 data class CanonicalLoanPaymentPreview(
     val date: String,
@@ -94,7 +99,7 @@ fun CanonicalLoanPaymentDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 Text(loan.name, style = MaterialTheme.typography.titleMedium)
-                Text("Υπόλοιπο: " + formatCanonicalEuro(loan.remaining))
+                Text("Υπόλοιπο: " + loanMoneyLabel(loan.remaining))
                 OutlinedTextField(
                     value = date, onValueChange = { date = it },
                     label = { Text("Ημερομηνία YYYY-MM-DD") },
@@ -134,7 +139,7 @@ fun CanonicalLoanPaymentDialog(
                 }
                 Text(
                     if (review == null) "Έλεγξε τα στοιχεία πριν από την καταχώριση."
-                    else "Προς καταχώριση: " + formatCanonicalEuro(review.shownAmount),
+                    else "Προς καταχώριση: " + loanMoneyLabel(review.shownAmount),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
