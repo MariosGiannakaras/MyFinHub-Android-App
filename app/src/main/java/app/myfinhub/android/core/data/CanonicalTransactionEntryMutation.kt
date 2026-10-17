@@ -79,9 +79,13 @@ fun createCanonicalTransactionEntryMutation(
         require(draft.kind == expectedKind) {
             "Ο τρόπος εξόφλησης δεν συμφωνεί με το συνδεδεμένο δάνειο."
         }
-        val debt = document.canonicalLoanBalanceRows(draft.date).firstOrNull {
-            it.id == draft.loanId
-        }?.remaining ?: 0.0
+        // Repeated historical IDs are valid read-only rows. A new linked event
+        // with that ID would pay every matching row, so fail closed on writes.
+        val matching = document.canonicalLoanBalanceRows(draft.date).filter { it.id == draft.loanId }
+        require(matching.size == 1) {
+            "Το δάνειο έχει μη μοναδικό ιστορικό αναγνωριστικό. Δεν επιτρέπεται νέα πληρωμή."
+        }
+        val debt = matching.single().remaining
         require(debt > 0.005) { "Το δάνειο δεν έχει υπόλοιπο προς πληρωμή." }
         val amount = draft.amount ?: throw IllegalArgumentException("Συμπλήρωσε ποσό δόσης.")
         val cents = moneyToCents(amount)

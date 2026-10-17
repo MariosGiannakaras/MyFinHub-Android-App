@@ -12,6 +12,10 @@ data class CanonicalLoanBalanceRow(
     val id: String, val name: String, val provider: String, val total: Double,
     val installment: Double, val remaining: Double, val remainingInstallments: Int,
     val typicalPaymentDay: Int?,
+    // Row-local metadata; a historical duplicate id must not borrow another row's mode.
+    val isSelfLoan: Boolean = false,
+    val isLiabilityRepayment: Boolean = false,
+    val defaultAccountId: String = "",
 )
 
 internal fun JsonObject.isOwnLoan(): Boolean =
@@ -73,6 +77,8 @@ fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): Lis
         CanonicalLoanBalanceRow(
             id,loan.string("name").orEmpty().ifBlank { id },loan.string("provider").orEmpty(),
             loan.number("total") ?: 0.0,installment,outstanding,remainingCount,typical,
+            self, loan.string("accountingMode") == "liability-repayment",
+            loan.string("defaultAccountId").orEmpty(),
         )
     }
 }

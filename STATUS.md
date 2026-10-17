@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release.
+1. Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #237, branch android/prep-w3-2-empty-split-category-web-parity-20261017
-Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. #236 Web duplicated historical seed loan rows/overrides merged to develop 33ef5555 after 4/4 green CI. #237 consolidated Web split empty category to Άλλο, signed net-worth receivables and duplicate historical loan Compose key/unsafe repayment protection with five tests, tracking CI pending on final exact head. W3.2 remains partial; W3.1 statement visuals, W6.2/W6.4 real S24, W5.1 certified art and W2.4 delete UI safety open.
+Issue #155, PR #238, branch android/w3-2-ambiguous-loan-safe-mutations-and-metadata-20261017
+Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. PR #237 merged to develop 9dab3243 after 4/4 green exact-head CI; source tracker was stale and reconciled in #238. #238 staged historical duplicate loan safety: read-only distinct row metadata + no ambiguous linked financial writes, with golden JVM tests. W3.2 partial; W3.1 physical visuals, W6.2/W6.4 physical owner S24, W5.1 art and W2.4 delete safety still open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one final immutable-head 4-gate CI batch for PR #237 after integrating canonical tracking + Android duplicate loan UI safety. Merge only if 4/4 green; persist verified merge evidence with lightweight tracking PR. Continue W3.2 remaining review/loan edges and W4.2 acceptance. Preserve physical S24 owner signoff, W5.1 provider logos, W2.4 permanent delete UI disabled and no signed release.
+Next Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
