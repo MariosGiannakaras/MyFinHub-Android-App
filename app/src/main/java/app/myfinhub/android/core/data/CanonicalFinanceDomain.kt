@@ -435,7 +435,9 @@ fun CanonicalFinanceDocument.receivableOutstanding(asOf: String? = null): Double
     val legacy = seed.array("lending").mapNotNull { it as? JsonObject }
         .sumOf { it.number("outstanding") ?: 0.0 }
     val eventDelta = state.array("events").mapNotNull { it as? JsonObject }.filter {
-        asOf == null || it.string("date").orEmpty() <= asOf
+        // Web domain.ts eventReceivables: undefined/null dates do not satisfy
+        // event.date <= asOf. All-time projection still includes historic rows.
+        asOf == null || it.string("date")?.let { date -> date <= asOf } == true
     }.sumOf { it.number("receivableDelta") ?: 0.0 }
     return max(0.0, legacy + eventDelta)
 }
