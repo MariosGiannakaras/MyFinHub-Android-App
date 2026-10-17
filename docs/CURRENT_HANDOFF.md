@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.
+- Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.
 
 ## Constraints
 
@@ -55,9 +55,9 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #239, branch android/w4-1-safe-duplicate-recurring-identity-20261017
-Current W3.2: Web parity 1/6 completed workstreams · 11/24 completed subtasks. W3.2 #238 loan duplicate row safety merged develop d7421eda after four successful exact-head gates. #239 staged W4.1 recurring duplicate ID handling: independent read-only rows in native Compose, linked expense and status changes blocked for ambiguous IDs, JVM/Compose golden coverage. CI pending. W3.2/W4.1 incomplete; W3.1 physical credit review, W6.2/W6.4 owner S24, W5.1 artwork, W2.4 delete protection pending.
+Current W3.2: Web parity verified 1/6 workstreams · 11/24 subtasks. #238 loan duplicate guard merged 4/4 exact-head CI. #239 W4.1 recurring duplicate read-only UI + strict mutation guards, now batched with Web cadence labels and service logoAssetKey/source/endDate metadata. Previous S24 large-type test failed because unique-item testTag changed, fixed to preserve original tag for unique IDs. Fresh immutable-head 4-gate CI pending; W4.1 still partial.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.
+Next Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

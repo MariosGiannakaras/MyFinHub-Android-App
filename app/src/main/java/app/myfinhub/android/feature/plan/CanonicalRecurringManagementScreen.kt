@@ -62,7 +62,8 @@ fun CanonicalRecurringManagementScreen(
             }) { index, item ->
                 val uniqueId = state.recurringManageItems.count { it.id == item.id } == 1
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
-                    .testTag("recurring_manage_item_" + item.id + "_" + index)) {
+                    .testTag("recurring_manage_item_" + item.id +
+                        (if (uniqueId) "" else "_" + index))) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(
@@ -70,8 +71,10 @@ fun CanonicalRecurringManagementScreen(
                                 "active" -> "Ενεργό"
                                 "paused" -> "Σε παύση"
                                 else -> "Διακομμένο"
-                            } + (if (item.nextDueDateIso.isNotBlank())
-                                " · Επόμενο: " + item.nextDueDateIso else ""),
+                            } + item.cadenceLabel.takeIf(String::isNotBlank)
+                                ?.let { " · " + it }.orEmpty() +
+                                (if (item.nextDueDateIso.isNotBlank())
+                                    " · Επόμενο: " + item.nextDueDateIso else ""),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(amountVisibilityText(currency.format(item.amount), showAmounts),

@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release."
+      "Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w4-1-safe-duplicate-recurring-identity-20261017",
-    "checkpoint": "Web parity 1/6 completed workstreams · 11/24 completed subtasks. W3.2 #238 loan duplicate row safety merged develop d7421eda after four successful exact-head gates. #239 staged W4.1 recurring duplicate ID handling: independent read-only rows in native Compose, linked expense and status changes blocked for ambiguous IDs, JVM/Compose golden coverage. CI pending. W3.2/W4.1 incomplete; W3.1 physical credit review, W6.2/W6.4 owner S24, W5.1 artwork, W2.4 delete protection pending.",
+    "checkpoint": "Web parity verified 1/6 workstreams · 11/24 subtasks. #238 loan duplicate guard merged 4/4 exact-head CI. #239 W4.1 recurring duplicate read-only UI + strict mutation guards, now batched with Web cadence labels and service logoAssetKey/source/endDate metadata. Previous S24 large-type test failed because unique-item testTag changed, fixed to preserve original tag for unique IDs. Fresh immutable-head 4-gate CI pending; W4.1 still partial.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -856,7 +856,8 @@
               "PR #222 Web recurring.ts authoritative firstExpectedDate and invalid-anchor due-day golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator checks. W4.1 still in_progress.",
               "PR #226 Web recurringId ordinary expense, historical empty category first-rule fallback and day>31 month-end, golden regressions merged develop e987116d4b0546e93e5e93d0358814e351a7e05a. CVV vault emulator false-positive assertion corrected to detect serialized protobuf plaintext values without production keystore changes. Immutable head de6a9f156c8148f3f2363a872ca203acbaec322a passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator. W3.2/W4.1 partial.",
               "PR #227 native recurring management editable payment CTA → Quick Entry, protected recurringId scoped to expense, historical retired category/account, secure clear on kind/reset, context banner and 3 Web-derived end-to-end golden tests. Immutable head 1544096ba04a261db8d316bfa99aacfc6b0d7743 passed all 4 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Squash merged develop bf99149bf66aeba9b15da3dd2ad044d05f6cde99. W4.1 remains partial pending additional lifecycle acceptance.",
-              "PR #239 staged Web recurring historical duplicate ID safety: keep separate source rows, render distinct Compose keys and disable ambiguous linked payment and pause/resume/stop; strict entry/factory/status validators reject duplicate recurring IDs; 3 JVM golden tests and 1 Compose instrumentation test. Exact-head CI pending, W4.1 remains in_progress."
+              "PR #239 staged Web recurring historical duplicate ID safety: keep separate source rows, render distinct Compose keys and disable ambiguous linked payment and pause/resume/stop; strict entry/factory/status validators reject duplicate recurring IDs; 3 JVM golden tests and 1 Compose instrumentation test. Exact-head CI pending, W4.1 remains in_progress.",
+              "PR #239 follow-up folds Web recurringCadenceLabel, logoAssetKey/source/endDate read-only service metadata and golden monthly-equivalent projection into existing duplicate-recurring safety batch. Fixed S24 large-font accessibility regression by retaining original recurring_manage_item_<id> testTags for unique IDs and suffix only for historical duplicates; 4/4 exact-head CI pending fresh commit."
             ]
           },
           {
@@ -1015,7 +1016,7 @@
         ]
       }
     ],
-    "next_action": "Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.",
+    "next_action": "Check four exact-head gates for PR #239 after stable unique-ID testTag + cadence/service metadata fixes; resolve any CI/test failures and merge only on 4/4 green. Continue W3.2/W4.1/W4.2, owner physical W3.1/W6.2/W6.4 and W5.1 artwork, W2.4 permanent-delete UI disabled; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 239,
     "current_subtask": "W3.2",
