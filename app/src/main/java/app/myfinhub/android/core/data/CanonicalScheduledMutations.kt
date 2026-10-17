@@ -22,10 +22,45 @@ data class CreateCanonicalScheduledTransaction(
     val scheduledId: String, val draft: CanonicalScheduledDraft, val nowIso: String,
 ) : CanonicalFinanceMutation {
     override val description: String = "Προγραμματισμός κίνησης"
+
+    /** Only the *same* durable intent may reuse an existing scheduled ID. */
+    internal fun matchesExisting(row: JsonObject): Boolean {
+        val expectedNote = draft.note.trim().ifEmpty { when (draft.kind) {
+            "income" -> "Προγραμματισμένο έσοδο"
+            "transfer" -> "Προγραμματισμένη μεταφορά"
+            else -> "Προγραμματισμένη πληρωμή"
+        } }
+        val sameAmount = row.number("amount")?.let { stored ->
+            runCatching { moneyToCents(stored) == moneyToCents(draft.amount) }.getOrDefault(false)
+        } ?: false
+        return row.string("id") == scheduledId &&
+            row.string("createdAt") == nowIso &&
+            row.string("kind") == draft.kind &&
+            row.string("dueDate") == draft.dueDate &&
+            sameAmount && row.string("note") == expectedNote &&
+            row.string("category").orEmpty() == draft.category.orEmpty().trim() &&
+            row.string("subcategory").orEmpty() == draft.subcategory.orEmpty().trim() &&
+            (if (draft.kind == "transfer") {
+                row.string("fromAccountId") == draft.fromAccountId &&
+                    row.string("toAccountId") == draft.toAccountId &&
+                    row.string("accountId") == null
+            } else {
+                row.string("accountId") == draft.accountId &&
+                    row.string("fromAccountId") == null &&
+                    row.string("toAccountId") == null
+            })
+    }
+
     override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
         require(scheduledId.isNotBlank()) { "Απαιτείται αναγνωριστικό προγραμματισμένης κίνησης." }
         val before = document.state.array("scheduled")
-        if (before.any { (it as? JsonObject)?.string("id") == scheduledId }) return document
+        val existing = before.filterIsInstance<JsonObject>().firstOrNull { it.string("id") == scheduledId }
+        if (existing != null) {
+            require(matchesExisting(existing)) {
+                "Το αναγνωριστικό προγραμματισμένης κίνησης ανήκει σε διαφορετική καταχώριση."
+            }
+            return document
+        }
         require(draft.kind in setOf("income","expense","transfer")) { "Άγνωστος τύπος προγραμματισμένης κίνησης." }
         require(runCatching { LocalDate.parse(draft.dueDate) }.isSuccess) { "Μη έγκυρη ημερομηνία." }
         val cents = moneyToCents(draft.amount)

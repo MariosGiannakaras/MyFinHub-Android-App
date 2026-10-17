@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release."
+      "Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-loan-history-date-validation-20261017",
-    "checkpoint": "Verified Web parity 1/6 workstreams · 11/24 subtasks. W3.2/W4.2 scheduled lifecycle #230 merged c76395a1; native scheduled management/create/confirmed payments UI #231 merged bf85c43d after 4/4 immutable-head CI including Compose. #232 staged Web loan as-of missing/null event date exclusion, shared loan/forecast state and goldens; CI pending. W3.2/W4.1–W4.4 partial, real S24 W3.1/W6.2/W6.4, W5.1 approved artwork and W2.4 permanent-delete UI guard pending.",
+    "branch": "android/w4-2-scheduled-idempotence-collision-hardening-20261017",
+    "checkpoint": "Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. #230/#231 scheduled lifecycle/UI and #232 historical loan date goldens merged 4/4 exact-head green CI. #233 staged scheduled identity collision and durable offline pending satisfaction integrity with five goldens. W3.2/W4.1–W4.4 remain partial pending broad acceptance. Physical W3.1/W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 card delete safety remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -808,7 +808,7 @@
               "PR #225 loan-linked canonical entry validator, installment count/remaining/asOf, strict card_payment liability without cardId, HELP transfer and expense, five golden unit/replay tests. Immutable head 28a6946eb7910d5f18691298e3f255f47c44f8c8 passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Merged develop 101f566e015a5c7e6d6c38ed7e9be7eddb9b057f. W3.2/W4.3 partial.",
               "PR #226 Web recurringId ordinary expense, historical empty category first-rule fallback and day>31 month-end, golden regressions merged develop e987116d4b0546e93e5e93d0358814e351a7e05a. CVV vault emulator false-positive assertion corrected to detect serialized protobuf plaintext values without production keystore changes. Immutable head de6a9f156c8148f3f2363a872ca203acbaec322a passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator. W3.2/W4.1 partial.",
               "PR #230 date-scoped receivable repayment, Web scheduled create/complete/skip/cancel, atomic ledger, three durable offline mutation codecs, fresh as-of and 5 unit/queue goldens. Exact head 94a2400fe4599fbe2118d99810a36c911459ce6b passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Merged develop c76395a1a5435a9152c3f1a4225cea7a3f0114c4. W3.2/W4.2 still partial.",
-              "PR #232 staged Web loans.ts loanPaymentEvents asOf date filtering: missing/null loan payment dates must not silently count as historic paid installments (Kotlin previously coalesced to empty). Shared forecast loan baseline filter also fixed; two Web historical goldens. CI pending; W3.2 remains in_progress."
+              "PR #232 Web loan as-of null/undated payment exclusion in loan balance and forecast merged develop fd0632b041fb1d015acb49b0390de4b587449b87. Exact head 0c71a9eaf9696a2c86b4880e20e9d6cde10c6819 passed all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots, and S24 emulator gates. W3.2 partial."
             ]
           },
           {
@@ -867,7 +867,8 @@
               "PR #222 shared loan row debt/remaining/typical day across Money and 30/60/90-day forecast and Home current month asOf deadline, removed dead Plan flow and golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact-head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 CI gates. W4.2 still in_progress.",
               "PR #230 staged Web scheduled.ts pending lifecycle: replayable creation, completion with real normal income/expense/transfer canonical ledger event + stable IDs, skipped/cancelled no ledger, explicit forecast balance and idempotence golden tests. No UI yet; CI pending.",
               "PR #230 date-scoped receivable repayment, Web scheduled create/complete/skip/cancel, atomic ledger, three durable offline mutation codecs, fresh as-of and 5 unit/queue goldens. Exact head 94a2400fe4599fbe2118d99810a36c911459ce6b passed all 4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Merged develop c76395a1a5435a9152c3f1a4225cea7a3f0114c4. W3.2/W4.2 still partial.",
-              "PR #231 full native scheduled management UI with new expense/income/transfer scheduling, bank/savings selection, confirm real amount/date, skip/cancel/history, ViewModel queued mutation bridge, Forecast route preventing duplicate unlinked Quick Entry, 1 projection unit + 4 emulator Compose golden tests. Immutable head 0084ce8bf090832cd4b0809ca9b57610464e5371 passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator gates. Merged develop bf85c43d1e45eeb901867ab8dd66cbb6f149829c. W4.2 still partial pending acceptance."
+              "PR #231 full native scheduled management UI with new expense/income/transfer scheduling, bank/savings selection, confirm real amount/date, skip/cancel/history, ViewModel queued mutation bridge, Forecast route preventing duplicate unlinked Quick Entry, 1 projection unit + 4 emulator Compose golden tests. Immutable head 0084ce8bf090832cd4b0809ca9b57610464e5371 passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator gates. Merged develop bf85c43d1e45eeb901867ab8dd66cbb6f149829c. W4.2 still partial pending acceptance.",
+              "PR #233 staged strict scheduled ID integrity and offline queue reconciliation against account, memo, category, creation identity (not just amount/date/id). Idempotent replay, cross-account collisions and already-skipped history goldens. Five regression tests; CI pending. W4.2 remains partial."
             ]
           },
           {
@@ -1006,9 +1007,9 @@
         ]
       }
     ],
-    "next_action": "Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release.",
+    "next_action": "Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 232,
+    "pr": 233,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

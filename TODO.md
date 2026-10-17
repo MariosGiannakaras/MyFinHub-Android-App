@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release.
+- [ ] Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #232, branch android/w3-2-loan-history-date-validation-20261017
-Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. W3.2/W4.2 scheduled lifecycle #230 merged c76395a1; native scheduled management/create/confirmed payments UI #231 merged bf85c43d after 4/4 immutable-head CI including Compose. #232 staged Web loan as-of missing/null event date exclusion, shared loan/forecast state and goldens; CI pending. W3.2/W4.1–W4.4 partial, real S24 W3.1/W6.2/W6.4, W5.1 approved artwork and W2.4 permanent-delete UI guard pending.
+Issue #155, PR #233, branch android/w4-2-scheduled-idempotence-collision-hardening-20261017
+Current W3.2: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. #230/#231 scheduled lifecycle/UI and #232 historical loan date goldens merged 4/4 exact-head green CI. #233 staged scheduled identity collision and durable offline pending satisfaction integrity with five goldens. W3.2/W4.1–W4.4 remain partial pending broad acceptance. Physical W3.1/W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 card delete safety remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one 4-gate exact-head CI set for #232, merge only all green, then continue finance event classification and W4.2 user histories. W3.1 physical credit statement visual review W6.2/W6.4 owner S24 approval pending, W5.1 certified logos, W2.4 destructive delete UI disabled, no release.
+Next Run four immutable-head CI gates for #233 and merge only all green. Continue scheduled financial UI, W3.2 date/reconciliation and W4.2 forecast acceptance; never mark real S24 owner or W3.1 visual acceptance from emulator, W5.1 artwork pending, W2.4 permanent-delete UI disabled, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
