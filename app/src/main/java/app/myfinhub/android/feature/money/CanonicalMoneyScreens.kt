@@ -824,7 +824,8 @@ fun CanonicalLendingScreen(
                     }
                 }
             }
-            if (state.lendingItems.isEmpty()) {
+            // Settled people can retain dated history without a current receivable.
+            if (state.lendingItems.isEmpty() && state.lendingHistory.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
