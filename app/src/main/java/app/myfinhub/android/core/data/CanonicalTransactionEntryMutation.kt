@@ -79,9 +79,16 @@ fun createCanonicalTransactionEntryMutation(
         require(draft.kind == expectedKind) {
             "Ο τρόπος εξόφλησης δεν συμφωνεί με το συνδεδεμένο δάνειο."
         }
-        val debt = document.canonicalLoanBalanceRows(draft.date).firstOrNull {
+        // Historical seed/custom rows may share a loanId. A linked payment
+        // would then reduce *every* matching row in Web loanPaymentEvents.
+        // Preserve read-only history but never submit an ambiguous mutation.
+        val matches = document.canonicalLoanBalanceRows(draft.date).filter {
             it.id == draft.loanId
-        }?.remaining ?: 0.0
+        }
+        require(matches.size == 1) {
+            "Το δάνειο έχει μη μοναδικό ιστορικό αναγνωριστικό. Δεν επιτρέπεται νέα πληρωμή."
+        }
+        val debt = matches.single().remaining
         require(debt > 0.005) { "Το δάνειο δεν έχει υπόλοιπο προς πληρωμή." }
         val amount = draft.amount ?: throw IllegalArgumentException("Συμπλήρωσε ποσό δόσης.")
         val cents = moneyToCents(amount)

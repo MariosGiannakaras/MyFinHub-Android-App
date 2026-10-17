@@ -28,7 +28,9 @@ fun CanonicalFinanceDocument.canonicalLoanInstallmentPaymentPlan(
 ): CanonicalLoanInstallmentPaymentPlan? {
     val loan = canonicalLoanDefinition(loanId) ?: return null
     if (loan.isOwnLoan()) return null
-    val row = canonicalLoanBalanceRows(asOf).firstOrNull { it.id == loanId } ?: return null
+    val matching = canonicalLoanBalanceRows(asOf).filter { it.id == loanId }
+    // Never quote a payment plan for a loanId linked to multiple source rows.
+    val row = matching.singleOrNull() ?: return null
     if (row.remainingInstallments <= 0 || row.remaining <= 0.0) return null
     val count = min(row.remainingInstallments, max(1, requestedCount))
     val paidCount = (loan.number("installments") ?: 0.0).toInt() - row.remainingInstallments
@@ -59,6 +61,9 @@ fun createCanonicalLoanPaymentMutation(
     require(loanId.isNotBlank()) { "Επίλεξε υπαρκτό δάνειο." }
     val loan = document.canonicalLoanDefinition(loanId)
         ?: throw IllegalArgumentException("Το δάνειο δεν είναι πλέον διαθέσιμο.")
+    require(document.canonicalLoanBalanceRows(date).count { it.id == loanId } == 1) {
+        "Το δάνειο έχει μη μοναδικό αναγνωριστικό. Επίλεξε εγγραφή με μοναδικό ID."
+    }
     val name = loan.string("name").orEmpty().ifBlank { loanId }
     val draft = if (loan.isOwnLoan()) {
         val target = savingsAccountId ?: document.canonicalAccounts()
