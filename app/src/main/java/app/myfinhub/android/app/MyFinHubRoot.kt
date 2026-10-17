@@ -392,6 +392,7 @@ fun MyFinHubRoot(
                             onQuickEntryAction = financeViewModel::onQuickEntryAction,
                             onSaveBudget = financeViewModel::saveOverallBudget,
                             onSetRecurringStatus = financeViewModel::setRecurringStatus,
+                            onRecordLoanPayment = financeViewModel::recordLoanPayment,
                             onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
                             onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
                             onSaveAccountIban = { id, rawIban ->
@@ -533,6 +534,7 @@ private fun FinanceProductSurface(
     onQuickEntryAction: (app.myfinhub.android.feature.quickentry.QuickEntryAction) -> Unit,
     onSaveBudget: (String, String) -> Unit,
     onSetRecurringStatus: (String, String) -> Unit,
+    onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit,
     onSaveSavingsGoal: (String?, String, String, String?) -> Unit,
     onDeleteSavingsGoal: (String) -> Unit,
     onSaveAccountIban: (String, String?) -> Unit,
@@ -608,6 +610,7 @@ private fun FinanceProductSurface(
                     planState = projection.planState,
                     onSaveBudget = onSaveBudget,
                     onSetRecurringStatus = onSetRecurringStatus,
+                    onRecordLoanPayment = onRecordLoanPayment,
                     onSaveSavingsGoal = onSaveSavingsGoal,
                     onDeleteSavingsGoal = onDeleteSavingsGoal,
                     planMutationInFlight = state.saving,

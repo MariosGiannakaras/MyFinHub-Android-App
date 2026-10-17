@@ -29,6 +29,8 @@ import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.canonicalLoanBalanceRows
+import app.myfinhub.android.core.data.canonicalLoanDefinition
+import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
@@ -362,6 +364,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
         loanOutstanding = document.loanOutstanding(asOf),
         lendingReceivable = document.receivableOutstanding(asOf),
         loans = document.canonicalLoanBalanceRows(asOf).map { loan ->
+            val definition = document.canonicalLoanDefinition(loan.id)
             LoanItem(
                 id = loan.id,
                 name = loan.name,
@@ -370,6 +373,10 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 monthlyPayment = loan.installment,
                 nextPaymentLabel = loan.typicalPaymentDay?.let { "Συνήθης ημέρα πληρωμής: $it" }.orEmpty(),
                 originalAmount = loan.total,
+                remainingInstallments = loan.remainingInstallments,
+                isSelfLoan = definition?.isOwnLoan() == true,
+                liabilityRepayment = definition?.string("accountingMode") == "liability-repayment",
+                defaultAccountId = definition?.string("defaultAccountId").orEmpty(),
             )
         },
         lendingItems = document.canonicalLendingPersonRows(asOf)
