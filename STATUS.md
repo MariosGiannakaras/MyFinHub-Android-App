@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run one exact-head 4-gate batch for PR #222; fix if required, merge on all green. Then continue W3.2 remaining classification/event validation and W4.1/W4.2 lifecycle/forecast, physical S24 owner acceptance W6.2/W6.4, W5.1 certified artwork, guarded W2.4 deletion UI disabled. No release.
+1. Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #222, branch android/w4-unified-loan-forecast-recurring-and-home-asof-20261017
-Current W3.2: Verified Web parity 1/6 implementations · 11/24 subtasks. W3.2 deleted override/net/as-of historic classification #221 merged 4/4 green exact-head CI, as did #220. W4.1/W4.2 consistency batch #222 staged: authoritative recurring first anchor, shared loan day/debt in forecast, current Home month cutoff and new golden tests. CI pending; W3.2, W4.1/W4.2 still partial. W3.1 real device visual signoff, W6.2, W5.1 assets, W2.4 delete protection open.
+Issue #155, PR #223, branch android/w4-4-insights-signed-net-review-categories-20261017
+Current W3.2: Verified Web parity 1/6 implementations · 11/24 subtasks. W3.2 #220/#221, W4.1/W4.2 #222 merged after 4/4 exact-head gates. W4.4 #223 staged read-only refund-heavy Insights raw net, historical category/empty override fallback and removal of obsolete duplicate planned-items builder; CI pending. W3.2/W4.1/W4.2/W4.4 remain partial; W3.1 real device review, W6.2 physical S24, W5.1 certified artwork and W2.4 deletion UI safety pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one exact-head 4-gate batch for PR #222; fix if required, merge on all green. Then continue W3.2 remaining classification/event validation and W4.1/W4.2 lifecycle/forecast, physical S24 owner acceptance W6.2/W6.4, W5.1 certified artwork, guarded W2.4 deletion UI disabled. No release.
+Next Run one immutable-head Android/Project Tracking/screenshot/S24 emulator CI set for #223; merge only 4/4 green and persist evidence. Continue W3.2 remaining date/classification/event edge cases and W4 lifecycle and forecasting acceptance; no real S24 device signoff inferred; keep permanent card-delete UI disabled, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

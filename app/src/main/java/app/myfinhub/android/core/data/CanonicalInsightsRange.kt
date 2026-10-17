@@ -26,6 +26,9 @@ fun CanonicalFinanceDocument.flowBetween(
         expense = max(0.0, aggregate.expense),
         saving = aggregate.saving,
         refunds = aggregate.refund,
+        // Match Web domain.ts monthlyFlow: net uses raw expense, not the
+        // non-negative expense displayed by Insights.
+        net = aggregate.income - aggregate.expense,
     )
 }
 
@@ -48,7 +51,7 @@ fun CanonicalFinanceDocument.categoryContributionsBetween(
 
     val contributions = mutableListOf<CategoryContribution>()
     fun add(transactionId: String, category: String?, amount: Double) {
-        val key = category?.takeIf(String::isNotBlank) ?: "Άλλο"
+        val key = category?.takeIf(String::isNotEmpty) ?: "Άλλο"
         contributions += CategoryContribution(transactionId, key, amount)
     }
 
@@ -72,7 +75,8 @@ fun CanonicalFinanceDocument.categoryContributionsBetween(
             } else {
                 val impact = legacyFlowImpact(tx)
                 if (impact.expense != 0.0) {
-                    add(tx.id, decision?.string("category") ?: tx.category, impact.expense)
+                    add(tx.id, decision?.string("category")?.takeIf(String::isNotEmpty)
+                        ?: tx.category, impact.expense)
                 }
             }
         }

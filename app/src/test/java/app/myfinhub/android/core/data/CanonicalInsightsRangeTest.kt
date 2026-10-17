@@ -58,6 +58,52 @@ class CanonicalInsightsRangeTest {
     }
 
     @Test
+    fun refundHeavyRangeKeepsSignedRawNetWhileDisplayingNonnegativeExpense() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"transactions":[
+            {"id":"review","date":"2026-10-02","type":"expense","amount":40,
+             "category":"Τρόφιμα"}
+          ]},"state":{"reviewDecisions":{
+            "review":{"status":"confirmed","semanticKind":"refund","category":""}
+          },"events":[
+            {"id":"income","kind":"income","date":"2026-10-03","amount":100},
+            {"id":"refund","kind":"refund","date":"2026-10-04","amount":90,
+             "category":"Τρόφιμα"}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val month = doc.monthlyFlow("2026-10")
+        val range = doc.flowBetween("2026-10-01","2026-10-31")
+        assertEquals(100.0,range.income,0.001)
+        assertEquals(0.0,range.expense,0.001)
+        assertEquals(230.0,range.net,0.001)
+        assertEquals(130.0,range.refunds,0.001)
+        assertEquals(month,range)
+        val contributions = doc.categoryContributionsBetween("2026-10-01","2026-10-31")
+        assertEquals(listOf("review","refund"),contributions.map { it.transactionId })
+        assertEquals(listOf("Τρόφιμα","Τρόφιμα"),contributions.map { it.category })
+        assertEquals(listOf(-40.0,-90.0),contributions.map { it.amount })
+    }
+
+    @Test
+    fun whitespaceCategoryRemainsHistoricalKeyButExplicitEmptyDecisionFallsBack() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"transactions":[
+            {"id":"legacy","date":"2026-10-02","type":"expense","amount":10,
+             "category":"Αρχική"}
+          ]},"state":{"reviewDecisions":{
+            "legacy":{"status":"confirmed","semanticKind":"expense","category":""}
+          },"events":[
+            {"id":"space","kind":"expense","date":"2026-10-03","amount":5,
+             "category":" "}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val rows = doc.categoryContributionsBetween("2026-10-01","2026-10-31")
+        assertEquals(listOf("Αρχική"," "),rows.map { it.category })
+        assertEquals(10.0,doc.categoryTotalsBetween("2026-10-01","2026-10-31")["Αρχική"]!!,0.001)
+        assertEquals(5.0,doc.categoryTotalsBetween("2026-10-01","2026-10-31")[" "]!!,0.001)
+    }
+
+    @Test
     fun monthAndDateScopeShareExactWebFlowForExplicitZeroSavingAndReviewedSplit() {
         val data = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{"transactions":[
