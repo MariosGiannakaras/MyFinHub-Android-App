@@ -824,7 +824,7 @@ fun CanonicalLendingScreen(
                     }
                 }
             }
-            if (state.lendingItems.isEmpty()) {
+            if (state.lendingItems.isEmpty() && state.lendingHistory.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -866,6 +866,64 @@ fun CanonicalLendingScreen(
                             TextButton(onClick = { onRecordRepayment(item) }) {
                                 Text("Καταχώριση επιστροφής")
                             }
+                        }
+                    }
+                }
+
+            }
+            if (state.lendingHistory.isNotEmpty()) {
+                item {
+                    MyFinHubSectionHeading(
+                        title = "Ιστορικό δανεικών",
+                        subtitle = "Χρονολογικές χρεώσεις και επιστροφές · μόνο για ανάγνωση",
+                        icon = MyFinHubIcons.Income,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                // Historical imported people/entries may reuse Web row IDs. Keep each
+                // occurrence independently keyed without changing finance identity.
+                itemsIndexed(state.lendingHistory, key = { index, row ->
+                    "lending-history-$index-${row.id}"
+                }) { _, row ->
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        when (row.action) {
+                                            "lent" -> "Δανεισμός"
+                                            "repaid" -> "Επιστροφή"
+                                            "forgiven" -> "Διαγραφή οφειλής"
+                                            else -> "Κίνηση δανεικών"
+                                        },
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    Text(
+                                        "${row.personLabel} · ${row.dateIso}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                MyFinHubAmountText(
+                                    text = amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
+                                    tone = if (row.action == "lent") FinanceTone.Expense else FinanceTone.Income,
+                                )
+                            }
+                            Text(
+                                row.note,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Αθροιστικό υπόλοιπο ιστορικού: " +
+                                    amountVisibilityText(formatCanonicalEuro(row.runningOutstanding), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
