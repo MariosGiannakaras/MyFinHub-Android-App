@@ -33,6 +33,7 @@ fun CanonicalRecurringManagementScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onStatusChanged: (String, String) -> Unit,
+    onRecordPayment: (RecurringManageItem) -> Unit = {},
     mutationBlocked: Boolean = false,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
@@ -71,6 +72,14 @@ fun CanonicalRecurringManagementScreen(
                         Text(amountVisibilityText(currency.format(item.amount), showAmounts),
                             style = MaterialTheme.typography.bodyMedium)
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            // Explicitly opens the editable canonical Quick Entry form.
+                            // No financial event is created until its Save action.
+                            TextButton(
+                                enabled = !mutationBlocked,
+                                onClick = { onRecordPayment(item) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("recurring_record_payment_" + item.id),
+                            ) { Text("Καταχώριση πληρωμής") }
                             TextButton(
                                 enabled = !mutationBlocked,
                                 onClick = {

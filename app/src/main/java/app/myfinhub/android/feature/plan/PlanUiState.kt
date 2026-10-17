@@ -33,6 +33,8 @@ data class RecurringManageItem(
     val amount: Double,
     val status: String,
     val nextDueDateIso: String = "",
+    val category: String = "",
+    val accountId: String = "",
 )
 
 data class BudgetDraft(

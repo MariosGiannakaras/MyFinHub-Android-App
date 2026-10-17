@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
+- [ ] Run one four-gate immutable-head CI for #227; batch-fix any failures and merge only 4/4 green. Continue W4.3 linked loan payment UI and W3.2 final parity; physical S24 W6.2/W6.4, W5.1 assets, guarded W2.4 delete UI stay pending, no release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #226, branch android/w3-2-w4-1-linked-recurring-and-rules-20261017
-Current W3.2: 1/6 complete workstreams · 11/24 accepted subtasks. W3.2/W4.3 loan #225 merged 4/4. #226 Web recurring linked expense, rule fallback, month-end day >31 fixtures and deterministic CVV plaintext-at-rest emulator security assertion (fix for emulator CI failing on probabilistic ciphertext scan). Four exact-head CI gates pending fresh commit. W3.2/W4.1 partial; physical W3.1/W6.2, W5.1 certified assets and W2.4 card delete UI pending.
+Issue #155, PR #227, branch android/w4-1-recurring-pay-quickentry-ui-20261017
+Current W3.2: Web parity verified 1/6 workstreams · 11/24 subtasks. W3.2/W4.1 #226 recurring + historical rules + month-end fixed 4/4 CI and merged e987116d. #227 stages actual recurring management CTA to editable linked Quick Entry, safe category/account prefills, scoped recurringId, replay and goldens. W3.2/W4.1 incomplete; W3.1 real-device visuals, W6.2 real S24, W5.1 artwork and W2.4 permanent-delete UI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify fresh immutable-head four-gate CI for #226 after vault assertion/month-end fix; merge only green. Continue W3.2/W4 recurrence/loan UI, S24 real owner signoff W6.2/W6.4, W5.1 certified artwork, W2.4 delete gate; no release.
+Next Run one four-gate immutable-head CI for #227; batch-fix any failures and merge only 4/4 green. Continue W4.3 linked loan payment UI and W3.2 final parity; physical S24 W6.2/W6.4, W5.1 assets, guarded W2.4 delete UI stay pending, no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
