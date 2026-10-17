@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release.
+1. Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #235, branch android/w3-2-w4-2-scheduled-history-and-asof-receivables-20261017
-Current W3.2: Web parity verified 1/6 accepted workstreams · 11/24 completed subtasks. #233 strict scheduled collision/offline sync and #234 confirmed account route/Compose UI merged after 4/4 exact-head CI. #235 staged Web scheduled pending/history chronological order and dated net-worth receivable semantics with six regression tests; CI pending. W3.2/W4.1–W4.4 partial; W3.1 real statement visuals, W6.2/W6.4 physical S24 owner approval, W5.1 certified artwork, W2.4 destructive UI guard pending.
+Issue #155, PR #236, branch android/w3-2-lossless-legacy-loan-rows-20261017
+Current W3.2: Verified 1/6 workstreams · 11/24 subtasks. #235 Web scheduled history ordering and dated net-worth receivables merged to develop 70ca919 after all 4 exact-head checks passed. #236 stages lossless Web duplicate historical seed loan rows/overrides/custom coexistence with 3 goldens. W3.2 and W4.2 partial; W3.1 physical visual review, W6.2/W6.4 owner S24, W5.1 verified artwork, W2.4 permanent delete UI pending. No release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four immutable-head Project Tracking/Android CI/screenshot/S24 emulator checks on #235, fix any failures in same PR, merge only green. Continue W3.2 remaining historical event and W4.2 scheduling acceptance; no physical S24 owner approval assumed. W3.1 credit statement visuals, W5.1 licensed provider artwork, W2.4 permanent-delete UI disabled and no signed release.
+Next Verify four exact-head Project Tracking/Android CI/screenshots/S24 emulator gates for PR #236, merge only 4/4 green. Continue remaining W3.2 classification and W4.2 plans/forecast; physical S24 W3.1/W6.2/W6.4, certified W5.1 provider art and safe W2.4 delete gate remain open. No signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
