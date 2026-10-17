@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release."
+      "Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-ambiguous-loan-safe-mutations-and-metadata-20261017",
-    "checkpoint": "Verified Web parity 1/6 workstreams · 11/24 subtasks. PR #237 merged to develop 9dab3243 after 4/4 green exact-head CI; source tracker was stale and reconciled in #238. #238 staged historical duplicate loan safety: read-only distinct row metadata + no ambiguous linked financial writes, with golden JVM tests. W3.2 partial; W3.1 physical visuals, W6.2/W6.4 physical owner S24, W5.1 art and W2.4 delete safety still open.",
+    "branch": "android/w4-1-safe-duplicate-recurring-identity-20261017",
+    "checkpoint": "Web parity 1/6 completed workstreams · 11/24 completed subtasks. W3.2 #238 loan duplicate row safety merged develop d7421eda after four successful exact-head gates. #239 staged W4.1 recurring duplicate ID handling: independent read-only rows in native Compose, linked expense and status changes blocked for ambiguous IDs, JVM/Compose golden coverage. CI pending. W3.2/W4.1 incomplete; W3.1 physical credit review, W6.2/W6.4 owner S24, W5.1 artwork, W2.4 delete protection pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -813,7 +813,7 @@
               "PR #236 lossless duplicate seeded loan rows and per-seed overrides: three Web golden tests, immutable head 15b9eb79cf92e246e83d1656375ac9cb237d5a5d passed Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot and S24 emulator 4/4 CI gates. Squash merged develop 33ef5555a7a33808536b0e7fe6b9469933f7f3f8. W3.2 remains partial.",
               "PR #237 staged Web ledgerFoundations.ts empty/whitespace split category -> Άλλο, signed Web domain.ts historical net-worth receivables (no false max(0) clamp), and Compose duplicate historical loan row key/click safety to guard #236 IDs. Five JVM regressions (splits cents/category, dated net worth, historical duplicate UI IDs); full immutable-head CI pending.",
               "PR #237 verified and merged into develop 9dab3243e87761a322f36f33cfd0149e43e16c78, after four green exact-head checks at 8d92118b9ea2375e8c7eaf582b6d57c11ff054b7: Web split category fallback, signed receivable and duplicate loan Compose keys. W3.2 remains open.",
-              "PR #238 staged unique-ID financial guard: duplicate historical loan rows remain distinct and retain their own self-loan/liability/default-account metadata, but native canonical loan-linked payment quote, factory and forged entry all reject ambiguous loan IDs. Web-derived core and app golden coverage; exact-head CI pending."
+              "PR #238 historical duplicate loan row-local metadata and fail-closed ambiguous linked loan writes merged develop d7421edad8f1964134a53895d7c000f3faf72f6a. Immutable head 251c0c6cb593c98dc5e809f9f1c38a3628db8161 passed all four Android CI unit/lint/optimized unsigned build, Project Tracking, screenshot regression and S24 emulator checks. W3.2 still partially open."
             ]
           },
           {
@@ -855,7 +855,8 @@
               "W4.1/4.2 native management and Web forecast 30/60/90 UI PR #197 merged as 2df0e01be3437ab414c8a5a538239f36c0265847, exact-head four checks green; owner physical S24 signoff still pending.",
               "PR #222 Web recurring.ts authoritative firstExpectedDate and invalid-anchor due-day golden tests merged to develop d742304a1bcaf06b006bdf0a7ffa6e1d044f6e05. Exact head 0e0c6c985ae780aa76101ced9c08b58058affa5d passed all 4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator checks. W4.1 still in_progress.",
               "PR #226 Web recurringId ordinary expense, historical empty category first-rule fallback and day>31 month-end, golden regressions merged develop e987116d4b0546e93e5e93d0358814e351a7e05a. CVV vault emulator false-positive assertion corrected to detect serialized protobuf plaintext values without production keystore changes. Immutable head de6a9f156c8148f3f2363a872ca203acbaec322a passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshots and S24 emulator. W3.2/W4.1 partial.",
-              "PR #227 native recurring management editable payment CTA → Quick Entry, protected recurringId scoped to expense, historical retired category/account, secure clear on kind/reset, context banner and 3 Web-derived end-to-end golden tests. Immutable head 1544096ba04a261db8d316bfa99aacfc6b0d7743 passed all 4 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Squash merged develop bf99149bf66aeba9b15da3dd2ad044d05f6cde99. W4.1 remains partial pending additional lifecycle acceptance."
+              "PR #227 native recurring management editable payment CTA → Quick Entry, protected recurringId scoped to expense, historical retired category/account, secure clear on kind/reset, context banner and 3 Web-derived end-to-end golden tests. Immutable head 1544096ba04a261db8d316bfa99aacfc6b0d7743 passed all 4 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks. Squash merged develop bf99149bf66aeba9b15da3dd2ad044d05f6cde99. W4.1 remains partial pending additional lifecycle acceptance.",
+              "PR #239 staged Web recurring historical duplicate ID safety: keep separate source rows, render distinct Compose keys and disable ambiguous linked payment and pause/resume/stop; strict entry/factory/status validators reject duplicate recurring IDs; 3 JVM golden tests and 1 Compose instrumentation test. Exact-head CI pending, W4.1 remains in_progress."
             ]
           },
           {
@@ -1014,9 +1015,9 @@
         ]
       }
     ],
-    "next_action": "Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release.",
+    "next_action": "Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 238,
+    "pr": 239,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

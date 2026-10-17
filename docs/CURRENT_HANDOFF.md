@@ -27,7 +27,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 ## Immediate work
 
-- Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release.
+- Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #238, branch android/w3-2-ambiguous-loan-safe-mutations-and-metadata-20261017
-Current W3.2: Verified Web parity 1/6 workstreams · 11/24 subtasks. PR #237 merged to develop 9dab3243 after 4/4 green exact-head CI; source tracker was stale and reconciled in #238. #238 staged historical duplicate loan safety: read-only distinct row metadata + no ambiguous linked financial writes, with golden JVM tests. W3.2 partial; W3.1 physical visuals, W6.2/W6.4 physical owner S24, W5.1 art and W2.4 delete safety still open.
+Issue #155, PR #239, branch android/w4-1-safe-duplicate-recurring-identity-20261017
+Current W3.2: Web parity 1/6 completed workstreams · 11/24 completed subtasks. W3.2 #238 loan duplicate row safety merged develop d7421eda after four successful exact-head gates. #239 staged W4.1 recurring duplicate ID handling: independent read-only rows in native Compose, linked expense and status changes blocked for ambiguous IDs, JVM/Compose golden coverage. CI pending. W3.2/W4.1 incomplete; W3.1 physical credit review, W6.2/W6.4 owner S24, W5.1 artwork, W2.4 delete protection pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check all four exact-head Android CI, Project Tracking, screenshot and S24 emulator gates for #238 and merge only when green. Continue W3.2/W4 Web parity and scheduled lifecycle validation; retain W3.1 real credit visuals, W6.2/W6.4 owner S24, W5.1 certified provider artwork, W2.4 destructive card delete UI disabled. No signed release.
+Next Check four immutable-head CI gates for #239; merge only 4/4 green and persist verified tracker. Continue W3.2/W4.1 and W4.2 service/forecast Web parity, real S24 physical review W3.1/W6.2/W6.4, W5.1 certified logos and W2.4 permanently disabled destructive card UI; no release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

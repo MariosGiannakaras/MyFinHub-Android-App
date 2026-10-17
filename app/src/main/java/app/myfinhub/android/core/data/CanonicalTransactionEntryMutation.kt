@@ -118,8 +118,10 @@ fun createCanonicalTransactionEntryMutation(
         require(draft.loanId == null && draft.kind == "expense") {
             "Οι πληρωμές παγίων είναι έξοδα και δεν συνδέονται με δάνειο."
         }
-        require(document.allCanonicalRecurringItems().any { it.id == recurringId }) {
-            "Το πάγιο δεν είναι πλέον διαθέσιμο."
+        // Duplicated historical recurring IDs remain read-only. A linked
+        // expense would mark all rows with this identity as paid.
+        require(document.allCanonicalRecurringItems().count { it.id == recurringId } == 1) {
+            "Το πάγιο δεν βρέθηκε ή έχει μη μοναδικό αναγνωριστικό."
         }
     }
 
