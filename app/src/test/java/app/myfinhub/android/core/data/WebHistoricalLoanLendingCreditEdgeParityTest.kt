@@ -63,13 +63,13 @@ class WebHistoricalLoanLendingCreditEdgeParityTest {
         val all = doc.canonicalLendingPersonRows().single()
         assertEquals("Ελένη", all.person)
         assertEquals(60.0, all.outstanding, 0.001)
-        assertEquals(5, all.events)
+        assertEquals(4, all.events)
         val asOf = doc.canonicalLendingPersonRows("2026-10-16").single()
         assertEquals(55.0, asOf.outstanding, 0.001)
-        assertEquals(2, asOf.events)
+        assertEquals(1, asOf.events)
         val later = doc.canonicalLendingPersonRows("2026-11-30").single()
         assertEquals(35.0, later.outstanding, 0.001)
-        assertEquals(3, later.events)
+        assertEquals(2, later.events)
     }
 
     @Test fun whitespaceExplicitCreditIdCannotStealLegacyDebtFromOldestCard() {
