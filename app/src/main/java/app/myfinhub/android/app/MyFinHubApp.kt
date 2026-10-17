@@ -58,6 +58,7 @@ import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
 import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
 import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
+import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
@@ -154,6 +155,7 @@ internal fun MyFinHubAppContent(
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
+    onCreateScheduled: (ScheduledCreateRequest) -> Unit = {},
     onCompleteScheduled: (String, String, Double) -> Unit = { _, _, _ -> },
     onCloseScheduled: (String, String) -> Unit = { _, _ -> },
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
@@ -544,6 +546,7 @@ internal fun MyFinHubAppContent(
                     CanonicalScheduledManagementScreen(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
+                        onCreate = onCreateScheduled,
                         onComplete = onCompleteScheduled,
                         onClose = onCloseScheduled,
                         mutationBlocked = planMutationInFlight || planMutationBlocked,

@@ -49,6 +49,31 @@ class ScheduledManagementComposeTest {
         compose.runOnIdle { assertEquals(listOf("bill" to "skipped"),calls) }
     }
 
+    @Test fun creatingScheduledExpenseRequiresExplicitDetailsAndConfirmation() {
+        val requests=mutableListOf<ScheduledCreateRequest>()
+        val state=data.copy(scheduledAccounts=listOf(
+            ScheduledAccountOption("bank","Μισθοδοσία"),
+            ScheduledAccountOption("save","Αποταμίευση"),
+        ))
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(state,onBack={},
+                onCreate={requests+=it},onComplete={_,_,_->},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_create_open").performClick()
+        compose.runOnIdle {assertEquals(0,requests.size)}
+        compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-15")
+        compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("40.5")
+        compose.onNodeWithTag("scheduled_new_note").performTextReplacement("Κινητό")
+        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.runOnIdle {
+            assertEquals(1,requests.size)
+            assertEquals("expense",requests.single().kind)
+            assertEquals("bank",requests.single().accountId)
+            assertEquals(40.5,requests.single().amount,0.001)
+            assertEquals("2026-11-15",requests.single().dueDate)
+        }
+    }
+
     @Test fun blockedMutationCannotPostOrCloseScheduledRecord() {
         compose.setContent { MyFinHubTheme {
             CanonicalScheduledManagementScreen(data,onBack={},

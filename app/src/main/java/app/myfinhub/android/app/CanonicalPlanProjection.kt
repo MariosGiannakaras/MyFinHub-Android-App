@@ -27,6 +27,7 @@ import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlannedUrgency
 import app.myfinhub.android.feature.plan.RecurringManageItem
 import app.myfinhub.android.feature.plan.ScheduledManageItem
+import app.myfinhub.android.feature.plan.ScheduledAccountOption
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -103,6 +104,14 @@ internal fun projectCanonicalPlanState(
     return PlanUiState(
         items = items,
         recurringManageItems = management,
+        scheduledAccounts = document.canonicalAccounts()
+            .filter { it.kind != "credit" }
+            .map { account ->
+                ScheduledAccountOption(
+                    account.id,
+                    financialAccountDisplayName(account.id,account.name,account.kind,account.providerId),
+                )
+            },
         scheduledManageItems = document.canonicalScheduled().map { row ->
             ScheduledManageItem(
                 id = row.id,

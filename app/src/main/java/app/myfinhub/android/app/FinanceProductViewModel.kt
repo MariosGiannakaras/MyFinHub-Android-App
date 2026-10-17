@@ -28,6 +28,9 @@ import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
 import app.myfinhub.android.core.data.CompleteCanonicalScheduledTransaction
+import app.myfinhub.android.core.data.CreateCanonicalScheduledTransaction
+import app.myfinhub.android.core.data.CanonicalScheduledDraft
+import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.core.data.CloseCanonicalScheduledTransaction
 import app.myfinhub.android.core.data.canonicalScheduled
 
@@ -529,6 +532,23 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             return
         }
         applyMutation(mutation)
+    }
+
+    /** Saving a future schedule does not yet create a ledger event. */
+    fun createScheduled(request: ScheduledCreateRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        applyMutation(CreateCanonicalScheduledTransaction(
+            scheduledId = "sch-android-${UUID.randomUUID()}",
+            nowIso = Instant.now().toString(),
+            draft = CanonicalScheduledDraft(
+                kind = request.kind, dueDate = request.dueDate,
+                amount = request.amount, note = request.note,
+                accountId = request.accountId,
+                fromAccountId = request.fromAccountId,
+                toAccountId = request.toAccountId,
+            ),
+        ))
     }
 
     /** A user-confirmed schedule closes the same canonical event it creates. */
