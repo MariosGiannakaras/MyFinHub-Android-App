@@ -27,6 +27,10 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
+import app.myfinhub.android.core.data.CompleteCanonicalScheduledTransaction
+import app.myfinhub.android.core.data.CloseCanonicalScheduledTransaction
+import app.myfinhub.android.core.data.canonicalScheduled
+
 import app.myfinhub.android.core.data.createCanonicalLoanPaymentMutation
 import app.myfinhub.android.core.data.UpsertCanonicalSavingsGoal
 import app.myfinhub.android.core.data.DeleteCanonicalSavingsGoal
@@ -525,6 +529,35 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             return
         }
         applyMutation(mutation)
+    }
+
+    /** A user-confirmed schedule closes the same canonical event it creates. */
+    fun completeScheduled(id: String, date: String, amount: Double) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (ready.projection.document.canonicalScheduled().none {
+                it.id == id && it.status == "pending"
+            }) return
+        applyMutation(CompleteCanonicalScheduledTransaction(
+            scheduledId = id,
+            eventId = "evt-android-${UUID.randomUUID()}",
+            date = date,
+            nowIso = Instant.now().toString(),
+            amount = amount,
+        ))
+    }
+
+    /** Skipping/cancelling never writes money and uses durable offline replay. */
+    fun closeScheduled(id: String, status: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            status !in setOf("skipped","cancelled")) return
+        if (ready.projection.document.canonicalScheduled().none {
+                it.id == id && it.status == "pending"
+            }) return
+        applyMutation(CloseCanonicalScheduledTransaction(
+            scheduledId = id, status = status, nowIso = Instant.now().toString(),
+        ))
     }
 
     fun setRecurringStatus(recurringId: String, status: String) {

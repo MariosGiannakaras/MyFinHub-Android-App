@@ -56,6 +56,8 @@ import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
 import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
+import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
+import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
@@ -152,6 +154,8 @@ internal fun MyFinHubAppContent(
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
+    onCompleteScheduled: (String, String, Double) -> Unit = { _, _, _ -> },
+    onCloseScheduled: (String, String) -> Unit = { _, _ -> },
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
     onSaveSavingsGoal: ((String?, String, String, String?) -> Unit)? = null,
     onDeleteSavingsGoal: ((String) -> Unit)? = null,
@@ -507,6 +511,7 @@ internal fun MyFinHubAppContent(
                         onOpenForecast = { planBackStack.pushIfNew(AppRoute.PlanForecast) },
                         onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
                         onOpenRecurring = { planBackStack.pushIfNew(AppRoute.PlanRecurring) },
+                        onOpenScheduled = { planBackStack.pushIfNew(AppRoute.PlanScheduled) },
                     )
                 }
                 entry<AppRoute.PlanRecurring> {
@@ -535,15 +540,30 @@ internal fun MyFinHubAppContent(
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
+                entry<AppRoute.PlanScheduled> {
+                    CanonicalScheduledManagementScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onComplete = onCompleteScheduled,
+                        onClose = onCloseScheduled,
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
+                    )
+                }
                 entry<AppRoute.PlanForecast> {
                     CanonicalPlanForecastScreen(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
                         onRecordItem = { item ->
-                            val actions = plannedItemQuickEntryPrefillActions(item, quickEntryState)
-                            if (actions.isNotEmpty()) {
-                                actions.forEach(onQuickEntryAction)
-                                planBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (item.kind == PlannedKind.SCHEDULED) {
+                                // Never create an unrelated Quick Entry event and leave
+                                // the scheduled charge pending in the forecast.
+                                planBackStack.pushIfNew(AppRoute.PlanScheduled)
+                            } else {
+                                val actions = plannedItemQuickEntryPrefillActions(item, quickEntryState)
+                                if (actions.isNotEmpty()) {
+                                    actions.forEach(onQuickEntryAction)
+                                    planBackStack.pushIfNew(AppRoute.QuickEntry)
+                                }
                             }
                         },
                     )

@@ -11,6 +11,7 @@ import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalScheduled
+import app.myfinhub.android.core.data.canonicalLifecycle
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.categoryBudgetSpending
@@ -25,6 +26,7 @@ import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlannedUrgency
 import app.myfinhub.android.feature.plan.RecurringManageItem
+import app.myfinhub.android.feature.plan.ScheduledManageItem
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -101,6 +103,19 @@ internal fun projectCanonicalPlanState(
     return PlanUiState(
         items = items,
         recurringManageItems = management,
+        scheduledManageItems = document.canonicalScheduled().map { row ->
+            ScheduledManageItem(
+                id = row.id,
+                title = row.note.ifBlank { scheduledPlanKindLabel(row.kind) },
+                kind = row.kind,
+                dueDateIso = row.dueDate,
+                amount = row.amount,
+                status = row.canonicalLifecycle(today.toString()),
+                accountId = row.accountId,
+                fromAccountId = row.fromAccountId,
+                toAccountId = row.toAccountId,
+            )
+        },
         forecastWindows = webForecasts.map { f ->
             app.myfinhub.android.feature.plan.ForecastWindow(
                 days = f.horizonDays,

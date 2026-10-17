@@ -392,6 +392,8 @@ fun MyFinHubRoot(
                             onQuickEntryAction = financeViewModel::onQuickEntryAction,
                             onSaveBudget = financeViewModel::saveOverallBudget,
                             onSetRecurringStatus = financeViewModel::setRecurringStatus,
+                            onCompleteScheduled = financeViewModel::completeScheduled,
+                            onCloseScheduled = financeViewModel::closeScheduled,
                             onRecordLoanPayment = financeViewModel::recordLoanPayment,
                             onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
                             onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
