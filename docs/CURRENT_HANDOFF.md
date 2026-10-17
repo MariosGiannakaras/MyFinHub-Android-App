@@ -55,7 +55,7 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client go
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #230, branch android/w3-2-w4-2-scheduled-lifecycle-lending-asof-20261017
-Current W3.2: Web parity verified 1/6 workstreams · 11/24 completed subtasks. PR #226–#229 merged at develop 974cc360. #230 staged Web scheduled create/complete/skip/cancel strict atomic canonical mutations, replay-safe event IDs and forecast balance goldens, plus Web lending as-of repayment caps excluding future/undated event deltas. Four exact-head CI gates pending; W3.2/W4.2 partial. Physical W3.1/W6.2/W6.4, W5.1 provider artwork, W2.4 delete UI and release acceptance pending.
+Current W3.2: Web parity 1/6 workstreams · 11/24 subtasks. #230 staged complete Web scheduled create/complete/skip/cancel canonical replay + date-scoped lending repayment. Initial CI exposed missing durable queued-intent codec and private helper visibility, now fixed with 3 serialized scheduled mutation types, server reconciliation and offline golden. Fresh exact-head CI pending. W3.2/W4.2 partial; real S24/W3.1, W5.1 certified logos, W2.4 deletion UI pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Run 4 exact-head CI gates on PR #230; fix test/compiler failures in the same PR then merge when all green. Next wire safe scheduled UX and review remaining W3.2/W4.2 cross-client edge goldens, W3.1 physical statement visuals W6.2/W6.4 owner S24, W5.1 certified logos and W2.4 disabled permanent-delete UI; no release.
 

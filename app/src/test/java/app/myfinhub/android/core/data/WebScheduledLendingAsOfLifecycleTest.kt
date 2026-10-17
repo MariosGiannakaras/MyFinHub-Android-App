@@ -92,6 +92,32 @@ class WebScheduledLendingAsOfLifecycleTest {
         }
     }
 
+    @Test fun durableOfflineScheduledIntentsRoundTripAndReconcileWithServer() {
+        val create=CreateCanonicalScheduledTransaction("offline-created",CanonicalScheduledDraft(
+            kind="expense",dueDate="2026-10-30",amount=25.0,accountId="salary"
+        ),at)
+        val saved=PendingCanonicalMutationIntent.fromMutation(create,"local-create")
+        assertEquals(PendingMutationKind.CREATE_SCHEDULED,saved.kind)
+        val server=saved.asMutation().apply(base)
+        assertEquals(server.raw,create.apply(base).raw)
+        assertTrue(saved.isSatisfiedBy(server))
+        val complete=CompleteCanonicalScheduledTransaction("offline-created","offline-paid",
+            "2026-10-30",at)
+        val completedIntent=PendingCanonicalMutationIntent.fromMutation(complete,"local-complete")
+        assertEquals(PendingMutationKind.COMPLETE_SCHEDULED,completedIntent.kind)
+        val paid=completedIntent.asMutation().apply(server)
+        assertEquals("completed",paid.canonicalScheduled().first { it.id=="offline-created" }.status)
+        assertTrue(completedIntent.isSatisfiedBy(paid))
+        assertEquals(paid.raw,complete.apply(paid).raw)
+        val skip=CloseCanonicalScheduledTransaction("bonus","skipped",at)
+        val skipped=PendingCanonicalMutationIntent.fromMutation(skip,"local-skip")
+        assertEquals(PendingMutationKind.CLOSE_SCHEDULED,skipped.kind)
+        assertTrue(skipped.isSatisfiedBy(skipped.asMutation().apply(base)))
+        assertEquals(2,reconcileSatisfiedPendingMutations(
+            server,listOf(saved,completedIntent,skipped)).size)
+        assertTrue(reconcileSatisfiedPendingMutations(paid,listOf(saved,completedIntent)).isEmpty())
+    }
+
     @Test fun scheduleCreationRoundsMoneyAndRejectsInvalidDraftsAndCollidingEvents() {
         val intent=CreateCanonicalScheduledTransaction("added",CanonicalScheduledDraft(
             kind="expense",dueDate="2026-10-31",amount=1.005,accountId="salary"

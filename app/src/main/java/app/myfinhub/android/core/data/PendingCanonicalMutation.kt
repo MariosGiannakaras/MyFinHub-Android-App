@@ -27,6 +27,9 @@ enum class PendingMutationKind {
     PERMANENTLY_DELETE_CARD,
     COMPLETE_CARD_SECRET_CLEANUP,
     SET_RECURRING_STATUS,
+    CREATE_SCHEDULED,
+    COMPLETE_SCHEDULED,
+    CLOSE_SCHEDULED,
     UPSERT_SAVINGS_GOAL,
     DELETE_SAVINGS_GOAL,
 }
@@ -72,6 +75,36 @@ data class PendingCanonicalMutationIntent(
         )
         PendingMutationKind.SET_RECURRING_STATUS -> SetCanonicalRecurringStatus(
             recurringId = payload.string("recurringId").orEmpty(),
+            status = payload.string("status").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.CREATE_SCHEDULED -> CreateCanonicalScheduledTransaction(
+            scheduledId = payload.string("scheduledId").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+            draft = CanonicalScheduledDraft(
+                kind = payload.string("kind").orEmpty(),
+                dueDate = payload.string("dueDate").orEmpty(),
+                amount = payload.number("amount") ?: Double.NaN,
+                note = payload.string("note").orEmpty(),
+                category = payload.string("category"),
+                subcategory = payload.string("subcategory"),
+                accountId = payload.string("accountId"),
+                fromAccountId = payload.string("fromAccountId"),
+                toAccountId = payload.string("toAccountId"),
+            ),
+        )
+        PendingMutationKind.COMPLETE_SCHEDULED -> CompleteCanonicalScheduledTransaction(
+            scheduledId = payload.string("scheduledId").orEmpty(),
+            eventId = payload.string("eventId").orEmpty(),
+            date = payload.string("date").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+            amount = payload.number("amount"),
+            accountId = payload.string("accountId"),
+            fromAccountId = payload.string("fromAccountId"),
+            toAccountId = payload.string("toAccountId"),
+        )
+        PendingMutationKind.CLOSE_SCHEDULED -> CloseCanonicalScheduledTransaction(
+            scheduledId = payload.string("scheduledId").orEmpty(),
             status = payload.string("status").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
         )
@@ -157,6 +190,35 @@ data class PendingCanonicalMutationIntent(
                 .firstOrNull { it.id == id }?.effectiveStatus
             id.isNotBlank() && expected in setOf("active", "paused", "stopped") &&
                 (actual == null || actual == expected)
+        }
+        PendingMutationKind.CREATE_SCHEDULED -> {
+            val id = payload.string("scheduledId").orEmpty()
+            val row = document.state.array("scheduled")
+                .filterIsInstance<JsonObject>().firstOrNull { it.string("id")==id }
+            id.isNotBlank() && row != null &&
+                row.string("kind")==payload.string("kind") &&
+                row.string("dueDate")==payload.string("dueDate") &&
+                row.number("amount")?.let { actual ->
+                    payload.number("amount")?.let { expected ->
+                        runCatching { moneyToCents(actual)==moneyToCents(expected) }.getOrDefault(false)
+                    }
+                } == true
+        }
+        PendingMutationKind.COMPLETE_SCHEDULED -> {
+            val id = payload.string("scheduledId").orEmpty()
+            val eventId = payload.string("eventId").orEmpty()
+            val row = document.state.array("scheduled")
+                .filterIsInstance<JsonObject>().firstOrNull { it.string("id")==id }
+            id.isNotBlank() && eventId.isNotBlank() &&
+                row?.string("status")=="completed" && row.string("completedEventId")==eventId &&
+                document.state.array("events").any { (it as? JsonObject)?.string("id")==eventId }
+        }
+        PendingMutationKind.CLOSE_SCHEDULED -> {
+            val id = payload.string("scheduledId").orEmpty()
+            val expected = payload.string("status")
+            id.isNotBlank() && expected in setOf("skipped","cancelled") &&
+                document.state.array("scheduled").filterIsInstance<JsonObject>()
+                    .any { it.string("id")==id && it.string("status")==expected }
         }
         PendingMutationKind.APPEND_EVENT -> {
             val eventId = appendedEventId.orEmpty()
@@ -286,6 +348,43 @@ data class PendingCanonicalMutationIntent(
                     "nowIso" to JsonPrimitive(mutation.nowIso),
                 )),
                 syncState = syncState,
+            )
+            is CreateCanonicalScheduledTransaction -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.CREATE_SCHEDULED,
+                payload = JsonObject(buildMap {
+                    put("scheduledId", JsonPrimitive(mutation.scheduledId))
+                    put("kind", JsonPrimitive(mutation.draft.kind))
+                    put("dueDate", JsonPrimitive(mutation.draft.dueDate))
+                    put("amount", JsonPrimitive(mutation.draft.amount))
+                    put("note", JsonPrimitive(mutation.draft.note))
+                    mutation.draft.category?.let { put("category", JsonPrimitive(it)) }
+                    mutation.draft.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    mutation.draft.accountId?.let { put("accountId", JsonPrimitive(it)) }
+                    mutation.draft.fromAccountId?.let { put("fromAccountId", JsonPrimitive(it)) }
+                    mutation.draft.toAccountId?.let { put("toAccountId", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is CompleteCanonicalScheduledTransaction -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.COMPLETE_SCHEDULED,
+                payload = JsonObject(buildMap {
+                    put("scheduledId", JsonPrimitive(mutation.scheduledId))
+                    put("eventId", JsonPrimitive(mutation.eventId))
+                    put("date", JsonPrimitive(mutation.date))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.amount?.let { put("amount", JsonPrimitive(it)) }
+                    mutation.accountId?.let { put("accountId", JsonPrimitive(it)) }
+                    mutation.fromAccountId?.let { put("fromAccountId", JsonPrimitive(it)) }
+                    mutation.toAccountId?.let { put("toAccountId", JsonPrimitive(it)) }
+                }), syncState = syncState,
+            )
+            is CloseCanonicalScheduledTransaction -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.CLOSE_SCHEDULED,
+                payload = JsonObject(mapOf(
+                    "scheduledId" to JsonPrimitive(mutation.scheduledId),
+                    "status" to JsonPrimitive(mutation.status),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
             )
             is AppendCanonicalEvent -> PendingCanonicalMutationIntent(
                 intentId = intentId,

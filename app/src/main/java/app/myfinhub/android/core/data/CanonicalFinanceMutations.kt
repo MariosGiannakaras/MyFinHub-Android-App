@@ -410,7 +410,7 @@ fun equalExpenseSplit(
     }
 }
 
-private fun CanonicalFinanceDocument.withMutableState(
+internal fun CanonicalFinanceDocument.withMutableState(
     newState: JsonObject,
     nowIso: String,
 ): CanonicalFinanceDocument = CanonicalFinanceDocument(
