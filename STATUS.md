@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release.
+1. Run one exact-head CI set for W3.2 #221; merge on 4/4 green, record verified canonical handoff, and continue unaddressed classification/date/finance parity. No physical S24 acceptance claim, no permanent card-delete UI or release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #220, branch android/w3-2-legacy-loan-credit-edge-parity-20261017
-Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 follow-up Web loans.ts legacy day-prefix, lending.ts all-time undated deltas vs as-of and cards.ts explicit whitespace card ID attribution staged in #220. CI/merge pending. W6.1/W6.3 complete; W3.1 physical visual review, W6.2 physical S24, W5.1 approved assets and W2.4 destructive guard remain open.
+Issue #155, PR #221, branch android/w3-2-deleted-override-asof-flow-parity-20261017
+Current W3.2: Verified 1/6 implementations · 11/24 subtasks. W3.2 Web loans/lending/credit legacy #220 merged with 4/4 green exact-head checks. Consolidated W3.2 Web domain deleted-override ledger, raw-net/refunds, as-of flow/category, historical idless splits and category ranking staged in #221; CI pending. W3.2 stays in_progress; physical W3.1/W6.2, W5.1 certified artwork and W2.4 deletion UI remain open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release.
+Next Run one exact-head CI set for W3.2 #221; merge on 4/4 green, record verified canonical handoff, and continue unaddressed classification/date/finance parity. No physical S24 acceptance claim, no permanent card-delete UI or release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

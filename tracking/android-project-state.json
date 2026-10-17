@@ -14,7 +14,7 @@
     "status": "in_progress",
     "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W6.1 cross-client golden coverage now completed after merged #216 (four exact-head green gates), alongside completed W6.3 immutable CI. W3.2 remaining classification edges and W3.1 native credit statement visual review are next. W6.2 physical S24 accessibility/visual acceptance, W5.1 certified provider artwork and W2.4 permanent-delete safe lifecycle remain pending; destructive UI disabled. No release.",
     "next": [
-      "Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release."
+      "Run one exact-head CI set for W3.2 #221; merge on 4/4 green, record verified canonical handoff, and continue unaddressed classification/date/finance parity. No physical S24 acceptance claim, no permanent card-delete UI or release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-legacy-loan-credit-edge-parity-20261017",
-    "checkpoint": "Verified 1/6 implementations · 11/24 subtasks. W3.2 follow-up Web loans.ts legacy day-prefix, lending.ts all-time undated deltas vs as-of and cards.ts explicit whitespace card ID attribution staged in #220. CI/merge pending. W6.1/W6.3 complete; W3.1 physical visual review, W6.2 physical S24, W5.1 approved assets and W2.4 destructive guard remain open.",
+    "branch": "android/w3-2-deleted-override-asof-flow-parity-20261017",
+    "checkpoint": "Verified 1/6 implementations · 11/24 subtasks. W3.2 Web loans/lending/credit legacy #220 merged with 4/4 green exact-head checks. Consolidated W3.2 Web domain deleted-override ledger, raw-net/refunds, as-of flow/category, historical idless splits and category ranking staged in #221; CI pending. W3.2 stays in_progress; physical W3.1/W6.2, W5.1 certified artwork and W2.4 deletion UI remain open.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -802,7 +802,8 @@
               "W3.2 follow-on pure projection: Web flowImpactEvent savingAmount ?? amount preserves explicit 0, whereas Android previously treated 0 as absent and overcounted savings. Add numeric presence tracking to CanonicalEvent plus missing/null/explicit-zero/positive golden fixtures. Independent draft; exact-head CI pending.",
               "W3.2 #193 explicit-zero savings flow read-only parity merged to develop dc830f8137ac03815deed7063e799f3f99130cad after 4/4 green checks; W3.2 remains in_progress.",
               "PR #218 Web money.ts signed EPSILON Math.round and Number.MAX_SAFE_INTEGER safe-cent validation, plus safe aggregate split guard, merged to develop as 21ffb23fb442d8c2c762eaea7871bff5d69c701f. Exact-head 9e28c1816e6946289f642add8d275a4545fa3ee0 passed all four checks (Project Tracking, Android CI unit/lint/unsigned optimized bundle, screenshot regression, S24 emulator instrumentation). Web-derived signed 1.005/2.675/10.075, max-safe boundary, entry/replay/ledger/category/split golden tests. W3.2 remains in_progress pending remaining classification and loan event edge validation.",
-              "PR #220 staged (not merged) Web-derived read-only legacy compatibility: parseInt-style Greek loan billing day with firstExpectedDate priority, all-time undated lending delta vs as-of exclusion, and explicit whitespace card identity vs legacy attribution. Golden unit regressions added; immutable CI pending; W3.2 remains partial."
+              "PR #220 historical Web loan, as-of lending, and explicit credit identity legacy fixtures merged to develop as 3c5d07f301e132d765a29bad977542b40910c611. Exact head bd2e098f52215d51a14eed0caf77a8f72b393399 passed 4/4 CI gates (Project Tracking, Android CI, screenshots, S24 emulator). W3.2 remains in progress.",
+              "PR #221 staged read-only Web domain parity: deletion wins over stale legacy override when reconciling snapshot deltas, zero synthetic credit account as Web, refund-heavy net uses raw expense before clamping, as-of monthly flow/categories, legacy reviewed split without part IDs, descending category analytics rank. Regression fixture and same-commit tracker. Merge only after 4/4 exact-head CI."
             ]
           },
           {
@@ -990,9 +991,9 @@
         ]
       }
     ],
-    "next_action": "Run single exact-head 4-gate batch for #220 and merge only if all green; continue remaining W3.2 classification/loan edge parity and W3.1 visuals. Preserve W6.2 physical owner signoff, W5.1 certified artwork, W2.4 delete UI disabled, and no release.",
+    "next_action": "Run one exact-head CI set for W3.2 #221; merge on 4/4 green, record verified canonical handoff, and continue unaddressed classification/date/finance parity. No physical S24 acceptance claim, no permanent card-delete UI or release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 220,
+    "pr": 221,
     "current_subtask": "W3.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

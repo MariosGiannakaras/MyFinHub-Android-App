@@ -118,9 +118,9 @@ data class CanonicalMonthlyFlow(
     val expense: Double,
     val saving: Double,
     val refunds: Double,
-) {
-    val net: Double get() = income - expense
-}
+    // Web monthlyFlow computes net from the raw expense before visual zero-clamping.
+    val net: Double = income - expense,
+)
 
 data class CanonicalBudget(
     val id: String?,
@@ -284,7 +284,8 @@ fun CanonicalFinanceDocument.accountBalances(asOf: String): Map<String, Double> 
     val balances = snapshot?.obj("balances")?.mapValues { (_, value) ->
         (value as? JsonPrimitive)?.doubleOrNull ?: 0.0
     }?.toMutableMap() ?: canonicalAccounts().associate { it.id to 0.0 }.toMutableMap()
-    balances.putIfAbsent(CREDIT_ACCOUNT_ID, 0.0)
+    // Web baseSnapshot always resets the synthetic credit liability account.
+    balances[CREDIT_ACCOUNT_ID] = 0.0
 
     val seedTransactions = seed.array("transactions").mapNotNull { it as? JsonObject }
         .associateBy { it.string("id").orEmpty() }
@@ -306,6 +307,8 @@ fun CanonicalFinanceDocument.accountBalances(asOf: String): Map<String, Double> 
 
     deletedTransactionIds().forEach { id -> seedTransactions[id]?.let { applyLegacy(it, -1.0) } }
     state.obj("overrides").forEach { (id, value) ->
+        // Web legacyDeltaAgainstSeed: deletion wins over any stale override.
+        if (id in deletedTransactionIds()) return@forEach
         seedTransactions[id]?.let { applyLegacy(it, -1.0) }
         (value as? JsonObject)?.let { applyLegacy(it, 1.0) }
     }
@@ -322,9 +325,10 @@ fun CanonicalFinanceDocument.availableMoney(asOf: String): Double {
         .sumOf { balances[it.id] ?: 0.0 }
 }
 
-fun CanonicalFinanceDocument.monthlyFlow(month: String): CanonicalMonthlyFlow {
+fun CanonicalFinanceDocument.monthlyFlow(month: String, asOf: String? = null): CanonicalMonthlyFlow {
     val start = "$month-01"
-    val end = "$month-31"
+    // Web limits only the current requested month; other months stay complete.
+    val end = if (asOf != null && month == asOf.take(7)) asOf else "$month-31"
     var aggregate = FlowImpact()
     effectiveLegacyTransactions().filter { it.date in start..end }.forEach { tx ->
         aggregate += legacyFlowImpact(tx)
@@ -337,15 +341,17 @@ fun CanonicalFinanceDocument.monthlyFlow(month: String): CanonicalMonthlyFlow {
         expense = max(0.0, aggregate.expense),
         saving = aggregate.saving,
         refunds = aggregate.refund,
+        net = aggregate.income - aggregate.expense,
     )
 }
 
-fun CanonicalFinanceDocument.categoryTotals(month: String): Map<String, Double> {
+fun CanonicalFinanceDocument.categoryTotals(month: String, asOf: String? = null): Map<String, Double> {
     val start = "$month-01"
-    val end = "$month-31"
+    val end = if (asOf != null && month == asOf.take(7)) asOf else "$month-31"
     val totals = linkedMapOf<String, Double>()
     fun add(category: String?, amount: Double) {
-        val key = category?.takeIf(String::isNotBlank) ?: "Άλλο"
+        // Web uses (category || "Άλλο"), so whitespace remains a historical key.
+        val key = category?.takeIf(String::isNotEmpty) ?: "Άλλο"
         totals[key] = (totals[key] ?: 0.0) + amount
     }
 
@@ -365,7 +371,10 @@ fun CanonicalFinanceDocument.categoryTotals(month: String): Map<String, Double> 
             }
         } else {
             val impact = legacyFlowImpact(tx)
-            if (impact.expense != 0.0) add(decision?.string("category") ?: tx.category, impact.expense)
+            if (impact.expense != 0.0) add(
+                decision?.string("category")?.takeIf(String::isNotEmpty) ?: tx.category,
+                impact.expense,
+            )
         }
     }
     canonicalEvents().filter { it.date in start..end }.forEach { event ->
@@ -376,7 +385,10 @@ fun CanonicalFinanceDocument.categoryTotals(month: String): Map<String, Double> 
             if (impact.expense != 0.0) add(event.category, impact.expense)
         }
     }
-    return totals.mapValues { (_, amount) -> max(0.0, amount) }.filterValues { it > 0.005 }
+    // Web categoryTotals ranks positive category totals in descending value order.
+    return totals.mapValues { (_, amount) -> max(0.0, amount) }
+        .filterValues { it > 0.005 }
+        .toList().sortedByDescending { it.second }.toMap()
 }
 
 fun CanonicalFinanceDocument.overallBudget(month: String): CanonicalBudget? {
@@ -466,7 +478,9 @@ private fun CanonicalFinanceDocument.deletedTransactionIds(): Set<String> = when
 private fun JsonElement.toSplitPart(): CanonicalSplitPart? {
     val part = this as? JsonObject ?: return null
     return CanonicalSplitPart(
-        id = part.string("id") ?: return null,
+        // Historical reviewed split parts may lack an id; Web still counts them.
+        // Write-time canonical split validation remains strict.
+        id = part.string("id").orEmpty(),
         label = part.string("label").orEmpty(),
         category = part.string("category") ?: "Άλλο",
         subcategory = part.string("subcategory"),
