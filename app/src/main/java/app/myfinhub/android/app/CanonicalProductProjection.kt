@@ -29,12 +29,9 @@ import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
 import app.myfinhub.android.core.data.canonicalLoanBalanceRows
-import app.myfinhub.android.core.data.canonicalLoanDefinition
-import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
-import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.core.ui.financialProvider
 import app.myfinhub.android.feature.activity.ActivityAccountOption
