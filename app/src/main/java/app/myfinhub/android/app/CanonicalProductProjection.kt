@@ -112,7 +112,7 @@ fun projectCanonicalProduct(
     val accounts = document.canonicalAccounts()
     val accountNames = accounts.associate { it.id to it.name }
     val balances = document.accountBalances(asOf)
-    val flow = document.monthlyFlow(month)
+    val flow = document.monthlyFlow(month, asOf)
     val budget = document.overallBudget(month)
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
