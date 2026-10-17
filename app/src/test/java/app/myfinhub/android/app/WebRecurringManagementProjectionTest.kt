@@ -14,7 +14,7 @@ class WebRecurringManagementProjectionTest {
         val data = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"recurring":[
              {"id":"monthly","name":"Internet","active":true,"accountId":"bank",
-              "amount":24,"day":17,"logoAssetKey":"internet-provider","source":"seed"},
+              "amount":24,"day":17,"logoAssetKey":"internet-provider","source":"seed","endDate":"2027-12-31"},
              {"id":"half","name":"Insurance","active":true,"accountId":"bank",
               "amount":120,"day":20,"recurrenceUnit":"month","recurrenceInterval":6},
              {"id":"yearly","name":"Streaming","active":true,"accountId":"bank",
@@ -29,6 +29,7 @@ class WebRecurringManagementProjectionTest {
             plan.recurringManageItems.map { it.cadenceLabel })
         assertEquals("internet-provider",plan.recurringManageItems.first().logoAssetKey)
         assertEquals("seed",plan.recurringManageItems.first().source)
+        assertEquals("2027-12-31",plan.recurringManageItems.first().endDateIso)
         assertEquals(84.0,data.canonicalRecurringMonthlyTotal(),0.001)
     }
 

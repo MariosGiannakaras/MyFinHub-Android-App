@@ -103,6 +103,7 @@ internal fun projectCanonicalPlanState(
             cadenceLabel = recurring.cadenceLabel,
             logoAssetKey = recurring.logoAssetKey,
             source = recurring.source,
+            endDateIso = recurring.endDate,
         )
     }
     return PlanUiState(

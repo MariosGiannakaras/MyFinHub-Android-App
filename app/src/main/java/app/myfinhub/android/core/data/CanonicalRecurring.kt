@@ -22,6 +22,7 @@ data class CanonicalRecurringItem(
     val recurrenceInterval: Int,
     val logoAssetKey: String? = null,
     val source: String? = null,
+    val endDate: String? = null,
 ) {
     val effectiveStatus: String
         get() = if (!active) {
@@ -62,6 +63,7 @@ private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
         recurrenceInterval = interval,
         logoAssetKey = string("logoAssetKey"),
         source = string("source"),
+        endDate = string("endDate"),
     )
 }
 

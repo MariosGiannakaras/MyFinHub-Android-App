@@ -39,6 +39,7 @@ data class RecurringManageItem(
     // Preserve Web service branding metadata without inventing/embedding logos.
     val logoAssetKey: String? = null,
     val source: String? = null,
+    val endDateIso: String? = null,
 )
 
 data class ScheduledManageItem(
