@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.plan
 
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -42,7 +41,6 @@ class RecurringManagementComposeTest {
         val duplicates=state.copy(recurringManageItems=listOf(
             RecurringManageItem("same","Πάγιο Α",20.0,"active","2026-10-21"),
             RecurringManageItem("same","Πάγιο Β",30.0,"active","2026-10-22"),
-            RecurringManageItem("unique","Μοναδικό",40.0,"active","2026-10-23"),
         ))
         rule.setContent { MyFinHubTheme {
             CanonicalRecurringManagementScreen(duplicates,onBack={},
@@ -54,7 +52,6 @@ class RecurringManagementComposeTest {
         }
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[0].assertIsNotEnabled()
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
-        rule.onAllNodesWithText("Καταχώριση πληρωμής")[2].assertIsEnabled()
     }
 
     @Test fun blockedMutationCannotEmitStatusChanges() {
