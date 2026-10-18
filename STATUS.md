@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #249 Web income-linked monthly savings target and full prior-month comparison passed all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on 490eaf77ebf637ace0598b9833dd8e1e7e20ad50; squash merged develop c82ccdbf540c913453fa7a25b38ba82e13d202dc. Draft PR #250 stages Web five-point savings actual-vs-target month trend (days 1/8/15/22/month end), privacy masking, chart accessibility, date cutoffs and JVM/Compose goldens. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; physical owner S24 signoff, certified provider assets, permanent card deletion and signed release remain gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #250 five-point Web savings actual-vs-income-goal chart, real monthly source/date cutoff, privacy and accessibility with JVM/S24 Compose golden regressions passed all four immutable-head Project Tracking, Android CI unit/lint/unsigned release, screenshot regression and S24 emulator gates at ff986b4ab04a2ac4daebb366049e096c532a1342; squash merged develop 9e91a529be18b6a1f80b04d45015d92b00bb9435. Draft PR #251 stages read-only Web transaction-rule visibility in Android Settings: ordered and paused/enabled rules, invalid-account/category indicators, 24-first-page UI, no finance mutations, JVM and S24 Compose tests. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; physical S24 owner approval, certified provider art, guarded permanent card deletion and signed release remain gated.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression, and S24 emulator gates for immutable final head of draft PR #250; repair and merge only when 4/4 successful. Resume W3.2 event/classification parity and comprehensive W4.3 acceptance after integration. Do not infer physical S24 owner signoff; no signed release, SMS import, destructive card UI, or Web/backend/schema changes.
+1. Validate the exact-head Project Tracking, Android CI unit/lint/optimized unsigned build, screenshot regression and S24 emulator gates on draft PR #251; fix failures within the same PR and merge only after 4/4 green. Resume W3.2 transaction-rule classification acceptance and W4.3 savings/budget acceptance. No physical owner signoff by inference; no signed release, SMS import, destructive card UI, Web/backend/schema changes.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #250, branch android/w4-3-native-monthly-savings-trend-20261018
-Current W4.3: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #248 explicit Web manual_transfer savings provenance passed all four exact-head CI gates and merged develop 5f4f2576e13072eb78913afb25121a238c1e6e08. PR #249 native Web savingsTargetRate monthly income-linked goals, current saved/target progress, previous completed-month comparison, JVM goldens and S24 Compose regression passed all four Project Tracking, Android CI unit/lint/unsigned release, screenshot and S24 emulator gates at immutable head 490eaf77ebf637ace0598b9833dd8e1e7e20ad50; squash merged develop c82ccdbf540c913453fa7a25b38ba82e13d202dc. Draft PR #250 rebases previously staged Web SavingsPage five-point actual/goal cumulative plot onto merged develop, supplies privacy hiding, accessible chart description, as-of/leap/previous-period goldens and native Compose. Four CI gates pending at exact final head. W4.3 partial and no physical owner S24 acceptance, backend/Web changes, or signed release.
+Issue #155, PR #251, branch android/w3-2-native-settings-rules-overview-20261018
+Current W3.2: Verified Web parity 1/6 implementations · 11/24 subtasks. PR #249 monthly income-linked savings goal and previous-month comparison merged develop c82ccdbf540c913453fa7a25b38ba82e13d202dc after all four exact-head CI gates. PR #250 savings monthly five-point actual-vs-goal chart with as-of and leap-month goldens, amount privacy and S24 Compose passed 4/4 immutable head ff986b4ab04a2ac4daebb366049e096c532a1342; squash merged develop 9e91a529be18b6a1f80b04d45015d92b00bb9435. Draft PR #251 native Settings read-only Web transaction-rule overview ordered priority/ID, enabled vs paused counts, Web 24-rule page, known missing-account/category/subcategory warnings, criteria/actions/scopes; production Plan and Settings wiring, JVM Web-parity goldens and S24 Compose regressions staged. Four exact-head CI gates pending; no editor/mutation/rewrite of existing ledger events. W3.2 and W4.3 remain partial. No physical device acceptance, signed release or Web/backend/schema modification.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression, and S24 emulator gates for immutable final head of draft PR #250; repair and merge only when 4/4 successful. Resume W3.2 event/classification parity and comprehensive W4.3 acceptance after integration. Do not infer physical S24 owner signoff; no signed release, SMS import, destructive card UI, or Web/backend/schema changes.
+Next Validate the exact-head Project Tracking, Android CI unit/lint/optimized unsigned build, screenshot regression and S24 emulator gates on draft PR #251; fix failures within the same PR and merge only after 4/4 green. Resume W3.2 transaction-rule classification acceptance and W4.3 savings/budget acceptance. No physical owner signoff by inference; no signed release, SMS import, destructive card UI, Web/backend/schema changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
