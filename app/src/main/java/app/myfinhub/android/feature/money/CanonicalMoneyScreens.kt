@@ -1,11 +1,13 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -522,6 +528,79 @@ fun CanonicalSavingsScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                    }
+                }
+            }
+            if (state.savingsMonthlyTrend != null && state.savingsMonthlyTarget != null) {
+                item("savings-month-trend") {
+                    val trend = state.savingsMonthlyTrend
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("savings_month_trend_card"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text("Εξέλιξη αποταμίευσης μήνα",
+                                style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Πραγματική αποταμίευση (συνεχής) · Στόχος (διακεκομμένη)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (amountsVisible) {
+                                // A read-only Web five-point chart; never expose hidden
+                                // balances through the shape while privacy is enabled.
+                                val actualColor = MaterialTheme.colorScheme.primary
+                                val targetColor = MaterialTheme.colorScheme.tertiary
+                                Canvas(
+                                    modifier = Modifier.fillMaxWidth().height(112.dp)
+                                        .testTag("savings_month_trend_chart"),
+                                ) {
+                                    val count = trend.days.size
+                                    if (count >= 2 && trend.scaleMax > 0.0) {
+                                        val topPad = 8.dp.toPx()
+                                        val height = (size.height - topPad * 2).coerceAtLeast(1f)
+                                        val scale = trend.scaleMax
+                                        fun line(values: List<Double>): Path = Path().apply {
+                                            values.forEachIndexed { index, value ->
+                                                val x = size.width * index / (count - 1)
+                                                val clipped = (value / scale).coerceIn(0.0, 1.0)
+                                                val y = topPad + height * (1f - clipped.toFloat())
+                                                if (index == 0) moveTo(x, y) else lineTo(x, y)
+                                            }
+                                        }
+                                        drawPath(
+                                            path = line(trend.target),
+                                            color = targetColor,
+                                            style = Stroke(
+                                                width = 2.dp.toPx(),
+                                                pathEffect = PathEffect.dashPathEffect(
+                                                    floatArrayOf(8.dp.toPx(), 5.dp.toPx()),
+                                                ),
+                                            ),
+                                        )
+                                        drawPath(
+                                            path = line(trend.actual),
+                                            color = actualColor,
+                                            style = Stroke(width = 2.5.dp.toPx()),
+                                        )
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    trend.days.forEach { day ->
+                                        Text(day.toString(),style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    "Το γράφημα είναι κρυμμένο μαζί με τα οικονομικά ποσά.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
