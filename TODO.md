@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates at exact final head of draft PR #253; fix same PR, merge only when all four successful. Continue W3.2 classification parity, W4.3 functional savings/budget acceptance; no invented physical S24 owner approval, signed release, SMS import, permanent destructive card action, or Web/backend/schema changes.
+- [ ] Validate draft PR #254 four immutable-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix same PR and merge only after all four success; then continue W4.1 recurring lifecycle/Web management edge parity and W4.3 finance budgets. No Web/backend/schema change, SMS import, release/signature or physical S24 owner approval inferred.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #253, branch android/w3-2-locale-rules-pagination-20261018
-Current W3.2: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #250 Web monthly actual/goal savings trend with privacy and accessibility and JVM/S24 Compose goldens passed 4/4 immutable head ff986b4ab04a2ac4daebb366049e096c532a1342 and merged develop 9e91a529be18b6a1f80b04d45015d92b00bb9435. PR #251 canonical read-only Web transaction rules in production Android Settings, priority/ID order, enabled/paused/invalid account/category/subcategory flags, Web condition/action/scope labels and first-page 24, tests, passed Project Tracking + Android CI + screenshot immediately; S24 emulator installer SDK ZipFile unknown archive infra failure repaired by rerunning only failed job; final 4/4 immutable head dca291354158e8d810783681b46f0291dc1a1dda green; squash merged develop bf5f7cdce37d328f0ab3c11f1e99d59f60e2e553. Duplicate untracked PR #252 closed. Draft PR #253 reanchors Web locale-aware equal-priority Greek rule-ID first-match semantics in engine and Settings, adds 24-row explicit pagination, JVM goldens + S24 Compose. Four exact-head CI pending. W3.2 partial; no financial ledger mutation, backend/Web or schema change, signed release, physical S24 owner acceptance.
+Issue #155, PR #254, branch android/w4-1-recurring-due-order-payment-history-20261018
+Current W4.1: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #251 native Web transaction rules in Settings merged bf5f7cdce37d328f0ab3c11f1e99d59f60e2e553 after 4/4 exact-head gates. PR #253 Web JS localeCompare Greek equal-priority rule IDs across matching and overview, explicit 24-at-a-time Settings list, JVM and S24 Compose goldens passed 4/4 immutable head e97843e7cfd8371f524e669140252e98b895452a and squash merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. Draft PR #254 native recurring management now projects Web recurringUpcoming active next due date/name ordering, inactive canonical original order, stored linked payments count/last payment date/typical day and optional service end/renewal, with historical duplicated ID action guard intact, JVM canonical goldens and Compose read-only metadata test. All four exact-head CI gates pending; no physical S24 owner signoff or signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates at exact final head of draft PR #253; fix same PR, merge only when all four successful. Continue W3.2 classification parity, W4.3 functional savings/budget acceptance; no invented physical S24 owner approval, signed release, SMS import, permanent destructive card action, or Web/backend/schema changes.
+Next Validate draft PR #254 four immutable-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix same PR and merge only after all four success; then continue W4.1 recurring lifecycle/Web management edge parity and W4.3 finance budgets. No Web/backend/schema change, SMS import, release/signature or physical S24 owner approval inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
