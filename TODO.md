@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release.
+- [ ] Verify all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #257; fix same PR and merge only at 4/4. Resume W4.3 category budget and analytics parity, W4.4 transaction drilldowns without duplicating finance stores. No physical S24 owner signoff, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #256, branch android/w4-2-forecast-source-transparency-20261019
-Current W4.2: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #254 Web recurring upcoming due-date order, linked payment history and service renewal metadata passed 4/4 CI, squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. PR #255 Web-safe payer account fallback and active-only recurring payment route, no-account UI fail closed, five JVM and two Compose regressions passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21; squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. Draft PR #256 adds actual Web forecast sourceCounts for scheduled/recurring/loan/dated_event, exact omitted reason array per 30/60/90 day horizon, disclosure UI and JVM production projection plus Compose tests; not yet verified by four exact-head CI gates. W4.2 partially accepted, no physical S24 owner signoff or signed release.
+Issue #155, PR #257, branch android/w4-3-category-budget-web-details-20261019
+Current W4.3: Web parity 1/6 implementations · 11/24 completed subtasks. PR #255 Web eligible non-credit recurring payment route passed 4/4 immutable-head and merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. PR #256 Web forecast 30/60/90 sources and omitted reasons JVM/projection + Compose accepted all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 70b35ddc5958113319980b5557f0909a4b706122; squash merged develop fb744e15fa46aa9ca6dc58e1e015e3edd9a87dac. Draft PR #257 read-only Web category budgets negative raw refunds vs zero-clamped used, remaining/overage status, first 24 plus explicit incremental pagination, repeated historical budget identity safe Compose keys, golden JVM projection and S24 Compose test. Four exact-head gates pending; W4.3 partial and no physical owner S24 signoff or signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release.
+Next Verify all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #257; fix same PR and merge only at 4/4. Resume W4.3 category budget and analytics parity, W4.4 transaction drilldowns without duplicating finance stores. No physical S24 owner signoff, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
