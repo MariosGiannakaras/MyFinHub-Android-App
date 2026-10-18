@@ -67,11 +67,11 @@ class RecurringManagementComposeTest {
                 onStatusChanged={_,_->error("read-only metadata mutation")},
             )
         } }
-        rule.onNodeWithText("Καταγεγραμμένες πληρωμές: 3", substring=true)
+        rule.onAllNodesWithText("Καταγεγραμμένες πληρωμές: 3", substring=true)
             .fetchSemanticsNodes().let { assertEquals(1,it.size) }
-        rule.onNodeWithText("Τελευταία: 2026-10-08", substring=true)
+        rule.onAllNodesWithText("Τελευταία: 2026-10-08", substring=true)
             .fetchSemanticsNodes().let { assertEquals(1,it.size) }
-        rule.onNodeWithText("Λήξη/ανανέωση: 2027-01-08").fetchSemanticsNodes()
+        rule.onAllNodesWithText("Λήξη/ανανέωση: 2027-01-08").fetchSemanticsNodes()
             .let { assertEquals(1,it.size) }
     }
 
