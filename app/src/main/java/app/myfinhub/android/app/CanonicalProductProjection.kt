@@ -33,6 +33,7 @@ import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
+import app.myfinhub.android.core.data.canonicalSavingsHistoryPresentation
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
@@ -58,6 +59,7 @@ import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
+import app.myfinhub.android.feature.money.SavingsHistoryItem
 import app.myfinhub.android.feature.money.LoanItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
@@ -112,6 +114,7 @@ fun projectCanonicalProduct(
     // Web DashboardPage reads selectors.selectMonthlyFlow -> savings.operationalMonthlyFlow.
     // Pay & Save must not inflate operating expense or income on the Home summary.
     val flow = document.canonicalOperationalMonthlyFlow(month, asOf)
+    val currentSavingsBreakdown = document.canonicalSavingsBreakdown(month, asOf)
     val budget = document.overallBudget(month)
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
@@ -390,7 +393,18 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                     dueLabel = "",
                 )
             },
-        savingsSources = document.canonicalSavingsBreakdown(YearMonth.from(today).toString(), asOf).bySource,
+        savingsSources = currentSavingsBreakdown.bySource,
+        // Web SavingsPage mobile uses the latest 12 dated rows, preserving
+        // duplicate historical IDs and a distinct primary user note/source.
+        savingsHistory = currentSavingsBreakdown.rows.take(12).map { row ->
+            val display = canonicalSavingsHistoryPresentation(row)
+            SavingsHistoryItem(
+                id = row.id, date = row.date, amount = row.amount,
+                primary = display.primary, sourceLabel = display.sourceLabel,
+                hasUserNote = display.hasUserNote, origin = row.origin,
+                fromAccountId = row.fromAccountId, toAccountId = row.toAccountId,
+            )
+        },
         aggregateCreditOutstanding = globalCreditOutstanding,
         asOfDate = asOf,
     )

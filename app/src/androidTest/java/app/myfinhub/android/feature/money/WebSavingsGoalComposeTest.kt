@@ -12,6 +12,23 @@ import org.junit.Test
 /** The production savings surface renders two genuine goals and historic deadlines. */
 class WebSavingsGoalComposeTest {
     @get:Rule val rule=createComposeRule()
+    @Test fun webSavingsHistoryShowsDistinctSameIdRowsAndPrefersRealUserNotes() {
+        val state = MoneyUiState(
+            savingsHistory = listOf(
+                SavingsHistoryItem("duplicate", "2026-10-11", 12.0,
+                    "Νέο σχόλιο", "Μεταφορά στην αποταμίευση", true, "event"),
+                SavingsHistoryItem("duplicate", "2026-10-10", 0.0,
+                    "Pay & Save", "Pay & Save", false, "legacy"),
+            ),
+        )
+        rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        rule.onNodeWithTag("savings_history_row_0").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Νέο σχόλιο").assertIsDisplayed()
+        rule.onNodeWithTag("savings_history_row_1").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Pay & Save").assertIsDisplayed()
+        rule.onNodeWithText("Πρόσφατη αποταμίευση").performScrollTo().assertIsDisplayed()
+    }
+
     @Test fun savingsGoalsShowIndependentTargetsAndDoNotPresentUnsupportedMutationButtons() {
         val state=MoneyUiState(
             savingsCurrent=240.0,

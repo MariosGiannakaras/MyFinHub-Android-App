@@ -66,6 +66,19 @@ data class SavingsGoalItem(
     val deadlinePast: Boolean,
 )
 
+/** Web savings.ts read-only monthly history (not mutation identities). */
+data class SavingsHistoryItem(
+    val id: String,
+    val date: String,
+    val amount: Double,
+    val primary: String,
+    val sourceLabel: String,
+    val hasUserNote: Boolean,
+    val origin: String,
+    val fromAccountId: String? = null,
+    val toAccountId: String? = null,
+)
+
 data class SavingsPlan(
     val name: String = "Ταμείο ασφαλείας",
     val targetAmountText: String,
@@ -125,6 +138,7 @@ data class MoneyUiState(
     val savingsGoalItems: List<SavingsGoalItem> = emptyList(),
     val savingsCurrent: Double = 0.0,
     val savingsSources: Map<String, Double> = emptyMap(),
+    val savingsHistory: List<SavingsHistoryItem> = emptyList(),
     val loanOutstanding: Double = 0.0,
     val lendingReceivable: Double = 0.0,
     val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
