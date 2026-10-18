@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.financialProviderForAccount
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
@@ -178,7 +178,7 @@ fun CanonicalMoneyScreen(
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    val provider = financialProvider(account.id, account.institution ?: account.name)
+                                    val provider = financialProviderForAccount(account.id, account.institution ?: account.name, account.providerId)
                                     if (provider != null) {
                                         MyFinHubProviderMark(provider, modifier = Modifier.size(34.dp), contentDescription = provider.institutionLabel)
                                     } else {

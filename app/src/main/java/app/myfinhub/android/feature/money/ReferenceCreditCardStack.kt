@@ -91,7 +91,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import app.myfinhub.android.R
 import app.myfinhub.android.core.ui.FinancialProvider
-import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.financialProviderForCard
 import app.myfinhub.android.designsystem.MyFinHubProviderMark
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.delay
@@ -698,7 +698,7 @@ private fun ReferenceSurfaceDecoration(visual: ReferenceCardVisual) {
 
 @Composable
 private fun ReferenceBrandMark(visual: ReferenceCardVisual, card: MoneyCard) {
-    val provider = financialProvider(card.bankId, visual.label)
+    val provider = financialProviderForCard(card.bankId, visual.label)
     if (provider == null) {
         Text(
             visual.label,

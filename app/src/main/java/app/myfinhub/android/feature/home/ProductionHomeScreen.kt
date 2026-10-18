@@ -39,7 +39,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.financialProviderForAccount
 import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.FinancialProvider
@@ -576,7 +576,7 @@ private fun HomeAccountIdentity(account: HomeAccount, modifier: Modifier = Modif
 
 @Composable
 private fun HomeAccountIdentityMark(account: HomeAccount) {
-    val provider = financialProvider(account.providerId ?: account.id, account.institution ?: account.name)
+    val provider = financialProviderForAccount(account.id, account.institution ?: account.name, account.providerId)
     if (provider != null) {
         // Piraeus' actual dark-blue mark needs a light contrasting surface in dark mode.
         // Never tint or recolor the bank's approved logo asset.

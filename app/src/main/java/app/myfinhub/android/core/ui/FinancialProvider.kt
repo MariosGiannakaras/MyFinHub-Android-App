@@ -58,6 +58,21 @@ fun financialProvider(id: String?, name: String?, explicitProviderId: String? = 
     return FinancialProvider.entries.firstOrNull { it.key == key }
 }
 
+/**
+ * A present canonical providerId is authoritative. Do not show a known-bank
+ * mark when a custom/unknown provider happens to contain another bank's
+ * name in its descriptive account label.
+ */
+fun financialProviderForAccount(
+    accountId: String,
+    displayOrInstitution: String?,
+    providerId: String?,
+): FinancialProvider? = financialProvider(accountId,displayOrInstitution,providerId)
+
+/** Card bankId is an explicit canonical ownership key when nonblank. */
+fun financialProviderForCard(bankId: String, nickname: String?): FinancialProvider? =
+    financialProvider(bankId,nickname,bankId.takeIf(String::isNotBlank))
+
 fun financialAccountDisplayName(
     accountId: String,
     canonicalName: String,
