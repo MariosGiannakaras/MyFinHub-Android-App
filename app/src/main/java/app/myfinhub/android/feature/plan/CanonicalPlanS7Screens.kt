@@ -519,6 +519,89 @@ fun CanonicalPlanForecastScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            if (window.movementPreviews.isNotEmpty()) {
+                                var showMovements by rememberSaveable(window.days, "movements") {
+                                    mutableStateOf(false)
+                                }
+                                TextButton(
+                                    onClick = { showMovements = !showMovements },
+                                    modifier = Modifier.testTag(
+                                        "s7_forecast_movements_toggle_" + window.days,
+                                    ),
+                                ) {
+                                    Text(
+                                        if (showMovements) "Απόκρυψη γνωστών ροών"
+                                        else "Επόμενες γνωστές ροές (" +
+                                            window.movementPreviews.size + ")",
+                                    )
+                                }
+                                if (showMovements) {
+                                    window.movementPreviews.forEachIndexed { index, movement ->
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth().testTag(
+                                                "s7_forecast_movement_" + window.days + "_" + index,
+                                            ),
+                                            verticalArrangement = Arrangement.spacedBy(
+                                                MyFinHubSpacing.xs,
+                                            ),
+                                        ) {
+                                            Text(
+                                                movement.label + " · " + movement.dateIso,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                            )
+                                            val sourceText = when (movement.source) {
+                                                "scheduled" -> "Προγραμματισμένο"
+                                                "recurring" -> "Πάγιο"
+                                                "loan" -> "Δόση"
+                                                else -> "Μελλοντική εγγραφή"
+                                            }
+                                            Text(
+                                                sourceText + " · " + amountVisibilityText(
+                                                    formatPlanS7Euro(movement.portfolioDelta),
+                                                    amountsVisible,
+                                                ),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            if (window.accountRisks.isNotEmpty()) {
+                                var showRisks by rememberSaveable(window.days, "account-risks") {
+                                    mutableStateOf(false)
+                                }
+                                TextButton(
+                                    onClick = { showRisks = !showRisks },
+                                    modifier = Modifier.testTag(
+                                        "s7_forecast_account_risks_toggle_" + window.days,
+                                    ),
+                                ) {
+                                    Text(
+                                        (if (showRisks) "Απόκρυψη" else "Λεπτομέρειες") +
+                                            " κινδύνου λογαριασμών (" +
+                                            window.accountRisks.size + ")",
+                                    )
+                                }
+                                if (showRisks) {
+                                    window.accountRisks.forEachIndexed { index, account ->
+                                        Text(
+                                            account.name +
+                                                (account.firstNegativeDateIso?.let {
+                                                    " · Αρνητικό από " + it
+                                                } ?: account.firstLowDateIso?.let {
+                                                    " · Χαμηλό από " + it
+                                                }.orEmpty()),
+                                            modifier = Modifier.testTag(
+                                                "s7_forecast_account_risk_" + window.days +
+                                                    "_" + index,
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            }
                             if (window.omittedSourceCount > 0) {
                                 var showOmitted by rememberSaveable(window.days) {
                                     mutableStateOf(false)

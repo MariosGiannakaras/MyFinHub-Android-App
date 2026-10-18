@@ -47,6 +47,13 @@ class WebForecastTransparencyProjectionParityTest {
             assertEquals(canonical.sourceCounts,window.sourceCounts)
             assertEquals(canonical.omitted,window.omittedWarnings)
             assertEquals(canonical.omitted.size,window.omittedSourceCount)
+            assertEquals(canonical.movements.take(8).map { it.id },
+                window.movementPreviews.map { it.id })
+            assertEquals(canonical.movements.take(8).map { it.portfolioDelta },
+                window.movementPreviews.map { it.portfolioDelta })
+            assertEquals(canonical.accounts.filter {
+                it.firstLowDate != null || it.firstNegativeDate != null
+            }.map { it.accountId },window.accountRisks.map { it.id })
             assertEquals(canonical.projectedPortfolio,window.projectedPortfolio,0.001)
         }
         val first=ui.forecastWindows.first()

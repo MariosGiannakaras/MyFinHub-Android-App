@@ -32,6 +32,8 @@ import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlannedUrgency
 import app.myfinhub.android.feature.plan.RecurringManageItem
+import app.myfinhub.android.feature.plan.ForecastMovementPreview
+import app.myfinhub.android.feature.plan.ForecastAccountRisk
 import app.myfinhub.android.feature.plan.ScheduledManageItem
 import app.myfinhub.android.feature.plan.ScheduledAccountOption
 import java.time.LocalDate
@@ -153,6 +155,29 @@ internal fun projectCanonicalPlanState(
                 omittedSourceCount = f.omitted.size,
                 omittedWarnings = f.omitted,
                 sourceCounts = f.sourceCounts,
+                movementPreviews = f.movements.take(8).map { movement ->
+                    ForecastMovementPreview(
+                        id = movement.id,
+                        dateIso = movement.date.toString(),
+                        label = movement.label,
+                        source = movement.source,
+                        portfolioDelta = movement.portfolioDelta,
+                    )
+                },
+                accountRisks = f.accounts
+                    .filter { it.firstLowDate != null || it.firstNegativeDate != null }
+                    .map { risk ->
+                        val sourceAccount = document.canonicalAccounts()
+                            .firstOrNull { it.id == risk.accountId }
+                        ForecastAccountRisk(
+                            id = risk.accountId,
+                            name = sourceAccount?.let {
+                                financialAccountDisplayName(it.id, it.name, it.kind, it.providerId)
+                            } ?: risk.accountId,
+                            firstLowDateIso = risk.firstLowDate?.toString(),
+                            firstNegativeDateIso = risk.firstNegativeDate?.toString(),
+                        )
+                    },
             )
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.

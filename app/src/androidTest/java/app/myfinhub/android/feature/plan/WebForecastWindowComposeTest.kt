@@ -42,6 +42,46 @@ class WebForecastWindowComposeTest {
         rule.onNodeWithText("2 κινήσεις παραλείφθηκαν",substring=true).assertIsDisplayed()
     }
 
+    @Test fun nextEightKnownMovementsAndAccountRisksCanBeExpandedReadOnly() {
+        val state = PlanUiState(
+            forecastWindows = listOf(
+                ForecastWindow(
+                    days = 30, label = "30 ημέρες",
+                    expectedIncome = 0.0, expectedOutflow = 0.0,
+                    balanceDeltaFromThirtyDays = 0.0,
+                    movementPreviews = listOf(
+                        ForecastMovementPreview(
+                            id="forecast-recurring-internet-2026-10-20",
+                            dateIso="2026-10-20", label="Internet", source="recurring",
+                            portfolioDelta=-30.0,
+                        ),
+                    ),
+                    accountRisks = listOf(
+                        ForecastAccountRisk(
+                            id="payroll", name="Μισθοδοσία",
+                            firstLowDateIso="2026-10-23",
+                            firstNegativeDateIso="2026-10-28",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(state, onBack={})
+        } }
+        rule.onNodeWithTag("s7_forecast_movements_toggle_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_movement_30_0")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Internet · 2026-10-20").assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_account_risks_toggle_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_account_risk_30_0")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Μισθοδοσία · Αρνητικό από 2026-10-28")
+            .assertIsDisplayed()
+    }
+
     @Test fun sourceProvenanceAndOmissionsAreExpandableWithoutSyntheticMovements() {
         val state = PlanUiState(
             forecastWindows = listOf(

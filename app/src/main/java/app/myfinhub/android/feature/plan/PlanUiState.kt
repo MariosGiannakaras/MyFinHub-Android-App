@@ -113,6 +113,23 @@ data class PlanningRule(
     val warning: String? = null,
 )
 
+/** Display-only Web forecast movement; no synthetic finance event is created. */
+data class ForecastMovementPreview(
+    val id: String,
+    val dateIso: String,
+    val label: String,
+    val source: String,
+    val portfolioDelta: Double,
+)
+
+/** Portfolio risk directly from Web forecast's account-level first-low dates. */
+data class ForecastAccountRisk(
+    val id: String,
+    val name: String,
+    val firstLowDateIso: String?,
+    val firstNegativeDateIso: String?,
+)
+
 data class ForecastWindow(
     val days: Int,
     val label: String,
@@ -126,6 +143,8 @@ data class ForecastWindow(
     val omittedSourceCount: Int = 0,
     val omittedWarnings: List<String> = emptyList(),
     val sourceCounts: Map<String, Int> = emptyMap(),
+    val movementPreviews: List<ForecastMovementPreview> = emptyList(),
+    val accountRisks: List<ForecastAccountRisk> = emptyList(),
 )
 
 /** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */
