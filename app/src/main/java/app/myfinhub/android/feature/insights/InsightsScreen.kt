@@ -110,7 +110,7 @@ fun InsightsScreen(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                             Text(
-                                "Μεγαλύτερες επαναλαμβανόμενες δαπάνες",
+                                "Μεγαλύτερες δαπάνες ανά περιγραφή",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
                             )
