@@ -26,6 +26,14 @@ data class InsightCategory(
     val sourceCategories: List<String> = listOf(name),
 )
 
+data class InsightCategoryMomentum(
+    val name: String,
+    val currentAmount: Double,
+    val previousAmount: Double,
+    /** Web returns null for a new nonzero baseline, 0.0 for two zero values. */
+    val relativeChange: Double?,
+)
+
 data class InsightCounterparty(
     val title: String,
     val category: String,
@@ -61,6 +69,8 @@ data class InsightPeriodScope(
     val categories: List<InsightCategory>,
     /** Web Reports counterparties are monthly, not sliding-window summaries. */
     val counterparties: List<InsightCounterparty> = emptyList(),
+    /** Web Reports categoryMomentum compares complete calendar months. */
+    val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
 )
 
 data class InsightsUiState(

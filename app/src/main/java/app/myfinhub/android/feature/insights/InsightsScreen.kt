@@ -148,6 +148,60 @@ fun InsightsScreen(
                     }
                 }
             }
+            if (scope.categoryMomentum.isNotEmpty()) {
+                item("category-momentum") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("insights_category_momentum"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text(
+                                "Μεταβολές κατηγοριών",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Τρέχων μήνας έναντι ολόκληρου προηγούμενου · ανά υποκατηγορία",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            scope.categoryMomentum.forEachIndexed { index, row ->
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("insights_momentum_row_" + index),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(row.name, style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        "Τώρα: " +
+                                            amountVisibilityText(
+                                                formatEuro(row.currentAmount), amountsVisible,
+                                            ) + " · προηγούμενος: " +
+                                            amountVisibilityText(
+                                                formatEuro(row.previousAmount), amountsVisible,
+                                            ),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                    Text(
+                                        row.relativeChange?.let { delta ->
+                                            (if (delta > 0.0) "+" else "") +
+                                                (delta * 100.0).roundToInt() + "%"
+                                        } ?: "Νέα βάση",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.testTag("insights_momentum_change_" + index),
+                                    )
+                                }
+                                if (index < scope.categoryMomentum.lastIndex) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,
