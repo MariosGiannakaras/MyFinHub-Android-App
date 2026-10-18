@@ -24,7 +24,7 @@ import app.myfinhub.android.core.data.effectiveLegacyTransactions
 import app.myfinhub.android.core.data.legacyFlowImpact
 import app.myfinhub.android.core.data.eventFlowImpact
 import app.myfinhub.android.core.data.loanOutstanding
-import app.myfinhub.android.core.data.monthlyFlow
+import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.receivableOutstanding
@@ -32,7 +32,6 @@ import app.myfinhub.android.core.data.canonicalLoanBalanceRows
 import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
-import app.myfinhub.android.core.data.canonicalLendingHistoryRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
@@ -61,7 +60,6 @@ import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.LoanItem
 import app.myfinhub.android.feature.money.LendingItem
-import app.myfinhub.android.feature.money.LendingHistoryItem
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.MoneyCardActivity
 import app.myfinhub.android.feature.money.MoneyCardActivityKind
@@ -111,7 +109,9 @@ fun projectCanonicalProduct(
     val accounts = document.canonicalAccounts()
     val accountNames = accounts.associate { it.id to it.name }
     val balances = document.accountBalances(asOf)
-    val flow = document.monthlyFlow(month, asOf)
+    // Web DashboardPage reads selectors.selectMonthlyFlow -> savings.operationalMonthlyFlow.
+    // Pay & Save must not inflate operating expense or income on the Home summary.
+    val flow = document.canonicalOperationalMonthlyFlow(month, asOf)
     val budget = document.overallBudget(month)
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
@@ -390,17 +390,6 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                     dueLabel = "",
                 )
             },
-        lendingHistory = document.canonicalLendingHistoryRows(asOf).map { history ->
-            LendingHistoryItem(
-                id = history.id,
-                personLabel = history.person,
-                date = history.date,
-                action = history.action,
-                amount = history.amount,
-                note = history.note,
-                runningOutstanding = history.runningOutstanding,
-            )
-        },
         savingsSources = document.canonicalSavingsBreakdown(YearMonth.from(today).toString(), asOf).bySource,
         aggregateCreditOutstanding = globalCreditOutstanding,
         asOfDate = asOf,

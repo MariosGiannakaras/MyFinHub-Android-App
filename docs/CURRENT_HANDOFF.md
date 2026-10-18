@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #243 loan forecast parity merged with four exact-head green gates; PR #244 stages native read-only Web lending history, golden JVM and S24 Compose tests. W3.2 classification, W4.2 forecast and W4.3 lending/budget remain partial. W3.1/W6.2 real owner S24 visual review, W5.1 certified provider assets, W2.4 guarded permanent card deletion and release acceptance remain gated. No release.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #244 native read-only Web lending history and settled Money display passed all four immutable-head gates and squash merged to develop ec7db48a25d6dbb40c2106097f71f374cc16d14a. Draft PR #246 stages Web operational Pay & Save reporting parity on Home and Insights, signed refund-heavy net, month cutoffs, rolling comparisons and golden JVM tests. W3.2/W4.2/W4.3/W4.4 remain partial; W3.1/W6.2 owner S24 visual review, W5.1 provider artwork, W2.4 guarded permanent card deletion and signed release remain gated.
 
 ## Immediate work
 
-- Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for exact head of draft PR #244; fix failures in the same PR, merge only 4/4 green. Resume W3.2 event/classification and W4.3 savings/lending/budget acceptance; owner S24 physical visual review remains pending, W2.4 permanent-delete UI disabled, no signed release.
+- Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #246; fix and merge only when all four are green. Resume W3.2 event classification and W4.1/W4.3 acceptance gaps afterward. Physical S24 owner review, certified assets and protected card deletion remain pending; no signed release or SMS import.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. PR #243 loan forecas
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #244, branch android/w4-3-lending-history-native-20261017
-Current W4.3: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #243 Web loan forecast legacy eligibility/account fallbacks passed 4/4 exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshots and S24 emulator on 6319c9947f556415cf84b7ff95d32bfcd3baa5ee; merged develop 5a1175bf8df79ef23b8084ca848d092cecfa8629. Draft PR #244 adds read-only Web lendingHistory seeded entries and linked events with chronological per-person running balances, capped repayments/forgiveness, strict date/asOf filtering, native Money history list, JVM goldens and S24 Compose regression. Code/tests staged, four immutable-head gates not yet validated. W3.2/W4.2/W4.3 partial; real S24 owner acceptance, provider artwork, guarded permanent deletion and signed release remain outstanding.
+Issue #155, PR #246, branch android/w4-4-operational-home-reports-20261018
+Current W4.4: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #243 Web loan forecast parity merged develop 5a1175bf8df79ef23b8084ca848d092cecfa8629 with 4/4 exact-head gates. PR #244 historical Web lendingHistory, native settled read-only Money detail, JVM goldens and S24 Compose regression passed Project Tracking, Android CI, screenshots and emulator at exact head d580000385cd2118a80083f8c0e5749ea10d05cc and squash merged develop ec7db48a25d6dbb40c2106097f71f374cc16d14a. Draft PR #246 Web operationalMonthlyFlow parity on Home and Insights, signed refund-heavy net, month cutoff, rolling comparison and JVM goldens committed at ca2ccd22081b42e3393bdd29a4a4cbd0c1151a11. Exact final-head CI pending; W4.4 remains partial. Owner physical S24 review, guarded card deletion, signed release and shared Web/backend/schema remain unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for exact head of draft PR #244; fix failures in the same PR, merge only 4/4 green. Resume W3.2 event/classification and W4.3 savings/lending/budget acceptance; owner S24 physical visual review remains pending, W2.4 permanent-delete UI disabled, no signed release.
+Next Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #246; fix and merge only when all four are green. Resume W3.2 event classification and W4.1/W4.3 acceptance gaps afterward. Physical S24 owner review, certified assets and protected card deletion remain pending; no signed release or SMS import.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

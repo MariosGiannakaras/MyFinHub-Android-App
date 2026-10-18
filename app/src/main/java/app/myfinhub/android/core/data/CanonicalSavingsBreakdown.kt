@@ -45,3 +45,57 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
     rows.forEach { sources[it.source]=(sources[it.source] ?: 0.0)+it.amount }
     return CanonicalSavingsBreakdown(rows,sources,sources.values.sum())
 }
+
+/**
+ * Web savings.ts operationalMonthlyFlow and reports selectors.
+ * Ledger monthlyFlow / flowBetween stay unmodified for canonical accounting.
+ * Web first adjusts RAW signed expense then clamps only the public displayed
+ * expense; using monthlyFlow.expense (already clamped) corrupts refund-heavy net.
+ */
+private fun CanonicalFinanceDocument.operationalizeFlow(
+    base: CanonicalMonthlyFlow,
+    start: String,
+    end: String,
+): CanonicalMonthlyFlow {
+    var income = base.income
+    var expense = base.income - base.net // recover signed raw expense before display clamping
+    var saving = base.saving
+    effectiveLegacyTransactions()
+        .filter { it.date in start..end && payAndSave.containsMatchIn(it.note + " " + it.category.orEmpty()) }
+        .forEach { tx ->
+            val decision = state.obj("reviewDecisions")[tx.id] as? JsonObject
+            if (decision?.string("status") == "confirmed" &&
+                decision.string("semanticKind") == "saving_cash_offset"
+            ) return@forEach
+            val original = legacyFlowImpact(tx)
+            income -= original.income
+            expense -= original.expense
+            saving += tx.amount
+        }
+    return CanonicalMonthlyFlow(
+        income = income.coerceAtLeast(0.0),
+        expense = expense.coerceAtLeast(0.0),
+        saving = saving,
+        refunds = base.refunds,
+        net = income - expense,
+    )
+}
+
+/** DashboardPage and ReportsPage read Web operational monthly financial totals. */
+fun CanonicalFinanceDocument.canonicalOperationalMonthlyFlow(
+    month: String,
+    asOf: String? = null,
+): CanonicalMonthlyFlow {
+    val end = if (asOf != null && asOf.startsWith("$month-")) asOf else "$month-31"
+    return operationalizeFlow(monthlyFlow(month, asOf), "$month-01", end)
+}
+
+/** Native 30/90-day and equal-window comparisons use the identical savings semantics. */
+fun CanonicalFinanceDocument.canonicalOperationalFlowBetween(
+    startInclusive: String,
+    endInclusive: String,
+): CanonicalMonthlyFlow {
+    val base = flowBetween(startInclusive, endInclusive)
+    return if (endInclusive < startInclusive) base
+        else operationalizeFlow(base, startInclusive, endInclusive)
+}
