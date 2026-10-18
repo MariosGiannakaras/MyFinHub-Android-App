@@ -523,8 +523,9 @@ internal fun MyFinHubAppContent(
                         onBack = { planBackStack.removeLastOrNull() },
                         onStatusChanged = onSetRecurringStatus,
                         onRecordPayment = { item ->
+                            val eligibleAccount = recurringQuickEntryAccountChoice(item, quickEntryState)
                             if (!planMutationInFlight && !planMutationBlocked &&
-                                quickEntryState.accounts.isNotEmpty()
+                                item.status == "active" && eligibleAccount != null
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
@@ -533,14 +534,14 @@ internal fun MyFinHubAppContent(
                                 onQuickEntryAction(QuickEntryAction.RecurringChanged(
                                     item.id, item.category,
                                 ))
-                                val account = item.accountId.takeIf { id ->
-                                    quickEntryState.accounts.any { it.id == id }
-                                } ?: quickEntryState.defaultExpenseAccountId
-                                onQuickEntryAction(QuickEntryAction.AccountChanged(account))
+                                onQuickEntryAction(QuickEntryAction.AccountChanged(eligibleAccount))
                                 planBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
+                        paymentAccountAvailable = quickEntryState.accounts.any {
+                            it.kind != "credit" && it.id.isNotBlank()
+                        },
                     )
                 }
                 entry<AppRoute.PlanScheduled> {
