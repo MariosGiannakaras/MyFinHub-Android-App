@@ -1,11 +1,14 @@
 package app.myfinhub.android.core.data
 
+import java.text.Collator
+import java.util.Locale
 import kotlinx.serialization.json.JsonObject
 
 /** Web savings.ts Pay & Save / manual transfer / cash-offset reporting. */
 data class CanonicalSavingsHistoryRow(
     val id: String, val date: String, val amount: Double,
     val source: String, val note: String, val origin: String,
+    val fromAccountId: String? = null, val toAccountId: String? = null,
 )
 data class CanonicalSavingsBreakdown(
     val rows: List<CanonicalSavingsHistoryRow>,
@@ -23,7 +26,7 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
         included(it.date) && payAndSave.containsMatchIn(it.note + " " + it.category.orEmpty())
     }.map { tx ->
         CanonicalSavingsHistoryRow(tx.id,tx.date,tx.amount,"pay_and_save",
-            tx.note.ifBlank { "Pay & Save" },"legacy")
+            tx.note.ifEmpty { "Pay & Save" },"legacy",tx.fromAccountId,tx.toAccountId)
     }
     val events = state.array("events").mapNotNull { it as? JsonObject }.filter {
         it.string("kind")=="saving_cash_offset" && included(it.string("date").orEmpty())
@@ -38,6 +41,7 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
             id=e.string("id").orEmpty(),date=e.string("date").orEmpty(),
             amount=e.number("savingAmount") ?: (e.number("amount") ?: 0.0),
             source=source,note=note,origin="event",
+            fromAccountId=e.string("fromAccountId"),toAccountId=e.string("toAccountId"),
         )
     }
     val rows=(legacy+events).sortedWith(compareByDescending<CanonicalSavingsHistoryRow> { it.date }.thenByDescending { it.id })
@@ -98,4 +102,35 @@ fun CanonicalFinanceDocument.canonicalOperationalFlowBetween(
     val base = flowBetween(startInclusive, endInclusive)
     return if (endInclusive < startInclusive) base
         else operationalizeFlow(base, startInclusive, endInclusive)
+}
+
+/** Web savings.ts savingsHistoryPresentation: genuine notes lead; generic mechanism
+ * labels are shown once rather than being mistaken for user-written comments. */
+data class CanonicalSavingsHistoryPresentation(
+    val primary: String,
+    val sourceLabel: String,
+    val hasUserNote: Boolean,
+)
+
+fun canonicalSavingsHistoryPresentation(row: CanonicalSavingsHistoryRow): CanonicalSavingsHistoryPresentation {
+    val sourceLabel = when (row.source) {
+        "pay_and_save" -> "Pay & Save"
+        "manual_transfer" -> "Μεταφορά στην αποταμίευση"
+        else -> "Σύνθετη αποταμίευση"
+    }
+    val knownNotes = when (row.source) {
+        "pay_and_save" -> listOf("Pay & Save")
+        "manual_transfer" -> listOf("Μεταφορά στην άκρη", "Μεταφορά στην αποταμίευση")
+        else -> listOf("Σύνθετη αποταμίευση", "Σύνθετη αποταμίευση με μετρητά")
+    }
+    val note = row.note.trim()
+    val collator = Collator.getInstance(Locale.forLanguageTag("el-GR")).apply {
+        strength = Collator.PRIMARY
+    }
+    val hasUserNote = note.isNotEmpty() && knownNotes.none { collator.compare(it, note) == 0 }
+    return CanonicalSavingsHistoryPresentation(
+        primary = if (hasUserNote) note else sourceLabel,
+        sourceLabel = sourceLabel,
+        hasUserNote = hasUserNote,
+    )
 }

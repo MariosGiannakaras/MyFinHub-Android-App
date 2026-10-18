@@ -507,6 +507,49 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            if (state.savingsHistory.isNotEmpty()) {
+            item("savings-history-heading") {
+                MyFinHubSectionHeading(
+                    title = "Πρόσφατη αποταμίευση",
+                    subtitle = "Έως 12 τελευταίες κινήσεις του μήνα · μόνο για ανάγνωση",
+                    icon = MyFinHubIcons.Savings,
+                    tone = FinanceTone.Savings,
+                )
+            }
+                // Web history may contain duplicate legacy IDs. Compose identity is
+                // presentation-only: never expose any row as an unsafe mutation target.
+                itemsIndexed(state.savingsHistory, key = { index, row ->
+                    "savings-history-$index-${row.origin}-${row.id}"
+                }) { index, row ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("savings_history_row_$index"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(row.primary, style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        row.date + " · " +
+                                            if (row.hasUserNote) "Τύπος: ${row.sourceLabel}"
+                                            else "Χωρίς ξεχωριστό σχόλιο",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                MyFinHubAmountText(
+                                    amountVisibilityText(formatCanonicalEuro(row.amount), amountsVisible),
+                                    FinanceTone.Savings,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             if (onSaveGoal != null) {
                 item("savings-goal-add") {
                     TextButton(

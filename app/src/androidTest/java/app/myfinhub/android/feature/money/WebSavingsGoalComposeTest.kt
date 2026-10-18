@@ -12,6 +12,23 @@ import org.junit.Test
 /** The production savings surface renders two genuine goals and historic deadlines. */
 class WebSavingsGoalComposeTest {
     @get:Rule val rule=createComposeRule()
+    @Test fun webSavingsHistoryShowsDistinctSameIdRowsAndPrefersRealUserNotes() {
+        val state = MoneyUiState(
+            savingsHistory = listOf(
+                SavingsHistoryItem("duplicate", "2026-10-11", 12.0,
+                    "Νέο σχόλιο", "Μεταφορά στην αποταμίευση", true, "event"),
+                SavingsHistoryItem("duplicate", "2026-10-10", 0.0,
+                    "Pay & Save", "Pay & Save", false, "legacy"),
+            ),
+        )
+        rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        rule.onNodeWithTag("savings_history_row_0").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Νέο σχόλιο").assertIsDisplayed()
+        rule.onNodeWithTag("savings_history_row_1").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Pay & Save").assertIsDisplayed()
+        rule.onNodeWithText("Πρόσφατη αποταμίευση").performScrollTo().assertIsDisplayed()
+    }
+
     @Test fun savingsGoalsShowIndependentTargetsAndDoNotPresentUnsupportedMutationButtons() {
         val state=MoneyUiState(
             savingsCurrent=240.0,
@@ -21,6 +38,8 @@ class WebSavingsGoalComposeTest {
             ),
         )
         rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        // No synthetic history placeholder should disturb a genuinely empty savings month.
+        rule.onNodeWithText("Πρόσφατη αποταμίευση").assertDoesNotExist()
         rule.onNodeWithTag("savings_goal_old").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Η υπάρχουσα προθεσμία έχει παρέλθει:",substring=true)
             .performScrollTo().assertIsDisplayed()

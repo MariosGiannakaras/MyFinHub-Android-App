@@ -41,5 +41,10 @@ class WebLoanLendingSavingsMoneyProjectionTest {
         assertEquals(11.0,product.moneyState.savingsSources["pay_and_save"]!!,0.001)
         assertEquals(13.0,product.moneyState.savingsSources["manual_transfer"]!!,0.001)
         assertTrue(product.moneyState.savingsSources.values.sum() > 0.0)
+        assertEquals(listOf("saving-transfer","old-saving"), product.moneyState.savingsHistory.map { it.id })
+        assertEquals(listOf("Μεταφορά στην αποταμίευση","Pay & Save"),
+            product.moneyState.savingsHistory.map { it.primary })
+        assertTrue(product.moneyState.savingsHistory.none { it.hasUserNote })
+        assertEquals(13.0,product.moneyState.savingsHistory.first().amount,0.001)
     }
 }
