@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion.
+- [ ] Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #255, branch android/w4-1-recurring-safe-pay-accounts-20261018
-Current W4.1: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #253 Web Greek locale-aware equal-priority rule first-match + 24-item native pagination passed 4/4 and merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. PR #254 Web recurringUpcoming active due-ordered/Greek named and inactive original order, linked recurringPayments count/latest/typical day, expiry/renewal native S24 Compose metadata and Web-derived JVM goldens passed all 4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 0975258759ee430917623791190262d65483d2ca; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. Draft PR #255 new native linked recurring Quick Entry source selection matches Web recurringAccountChoice: selected eligible item account, default eligible expense account, first non-credit available; malformed/credit-only lists fail closed, paused/stopped disallowed in both UI and route. 5 JVM account-goldens and 2 Compose goldens staged. Four exact-head CI gates pending, physical S24 owner acceptance not implied.
+Issue #155, PR #256, branch android/w4-2-forecast-source-transparency-20261019
+Current W4.2: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #254 Web recurring upcoming due-date order, linked payment history and service renewal metadata passed 4/4 CI, squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. PR #255 Web-safe payer account fallback and active-only recurring payment route, no-account UI fail closed, five JVM and two Compose regressions passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21; squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. Draft PR #256 adds actual Web forecast sourceCounts for scheduled/recurring/loan/dated_event, exact omitted reason array per 30/60/90 day horizon, disclosure UI and JVM production projection plus Compose tests; not yet verified by four exact-head CI gates. W4.2 partially accepted, no physical S24 owner signoff or signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion.
+Next Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

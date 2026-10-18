@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-18",
+  "updated_at": "2026-10-19",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #254 recurring Web next-due/date then Greek-name ordering, inactive original sequence, linked payment count/latest date/typical day and renewal metadata with JVM and S24 Compose regressions passed 4/4 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 0975258759ee430917623791190262d65483d2ca; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. Draft PR #255 enforces active-only recurring payment and valid non-credit account routing, Web recurringAccountChoice preference/fallback, no-account fail-closed UI with 5 JVM and 2 Compose regression tests. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; physical owner S24 acceptance, provider artwork, guarded permanent card deletion and signed release still gated.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #255 linked recurring Quick Entry eligible non-credit item/default/first Web account fallback, no-credit/empty-account fail closed, paused/stopped payment gating in production callback and Compose, 5 JVM and 2 S24 Compose goldens passed 4/4 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21; squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. Draft PR #256 presents canonical Web forecast four source counts and precise omitted[] reasons across 30/60/90 horizons with JVM/Compose regression. W3.2/W4.1/W4.2/W4.3/W4.4 partial; real S24 owner signoff, provider imagery, guarded permanent card deletion and signed release gated.",
     "next": [
-      "Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion."
+      "Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-1-recurring-safe-pay-accounts-20261018",
-    "checkpoint": "Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #253 Web Greek locale-aware equal-priority rule first-match + 24-item native pagination passed 4/4 and merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. PR #254 Web recurringUpcoming active due-ordered/Greek named and inactive original order, linked recurringPayments count/latest/typical day, expiry/renewal native S24 Compose metadata and Web-derived JVM goldens passed all 4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 0975258759ee430917623791190262d65483d2ca; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. Draft PR #255 new native linked recurring Quick Entry source selection matches Web recurringAccountChoice: selected eligible item account, default eligible expense account, first non-credit available; malformed/credit-only lists fail closed, paused/stopped disallowed in both UI and route. 5 JVM account-goldens and 2 Compose goldens staged. Four exact-head CI gates pending, physical S24 owner acceptance not implied.",
+    "branch": "android/w4-2-forecast-source-transparency-20261019",
+    "checkpoint": "Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #254 Web recurring upcoming due-date order, linked payment history and service renewal metadata passed 4/4 CI, squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. PR #255 Web-safe payer account fallback and active-only recurring payment route, no-account UI fail closed, five JVM and two Compose regressions passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21; squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. Draft PR #256 adds actual Web forecast sourceCounts for scheduled/recurring/loan/dated_event, exact omitted reason array per 30/60/90 day horizon, disclosure UI and JVM production projection plus Compose tests; not yet verified by four exact-head CI gates. W4.2 partially accepted, no physical S24 owner signoff or signed release.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -861,7 +861,7 @@
               "PR #239 staged Web recurring historical duplicate ID safety: keep separate source rows, render distinct Compose keys and disable ambiguous linked payment and pause/resume/stop; strict entry/factory/status validators reject duplicate recurring IDs; 3 JVM golden tests and 1 Compose instrumentation test. Exact-head CI pending, W4.1 remains in_progress.",
               "PR #239 follow-up folds Web recurringCadenceLabel, logoAssetKey/source/endDate read-only service metadata and golden monthly-equivalent projection into existing duplicate-recurring safety batch. Fixed S24 large-font accessibility regression by retaining original recurring_manage_item_<id> testTags for unique IDs and suffix only for historical duplicates; 4/4 exact-head CI pending fresh commit.",
               "PR #254 Web recurringUpcoming active due/date and Greek-name ordering, inactive stored original order, recurringPayments count/last date/typical day and service expiry/renewal metadata in native management; preserved duplicate historical IDs without unsafe mutations. Corrected Compose matcher's build invocation, JVM and S24 Compose tests passed immutable head 0975258759ee430917623791190262d65483d2ca across Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator 4/4; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. W4.1 remains partial.",
-              "Draft PR #255 Web recurringAccountChoice real eligible non-credit payer route with item/default/first fallback, fail closed on empty or credit-only lists, active-only payment gating both production callback and Compose, historical duplicate-ID guards preserved. Five JVM and two S24 Compose regressions staged; four exact-head CI gates pending; no completion credit or physical owner device signoff."
+              "PR #255 Web recurringAccountChoice eligible item/default/first non-credit payer fallback, no-account/credit-only fail closed, paused/stopped payment blocked in production and Compose, preserved historic duplicate ID ambiguity gate; five JVM + two S24 Compose regressions passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21. Squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. W4.1 remains partial."
             ]
           },
           {
@@ -885,7 +885,8 @@
               "PR #240 Web-compatible historical duplicate scheduled IDs preserved independent read-only Compose rows, canonical create/complete/skip/cancel and offline queue ambiguous-ID rejects. JVM + S24 Compose goldens; immutable head def0497ae38c757cde5a80defa06a69c428fa6fb passed 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression, S24 emulator. Merged develop e9b209f4e5df77395771490408d697bebec7b39e. W4.2 still partial.",
               "PR #241 read-only duplicate Plan/Forecast historical scheduled row surfaces and safe ambiguous record guards merged as 197649c05a35c6fd6eb7861bc694fbecaf13d00c after 4/4 successful exact-head checks at 1562bf02d7ef8d254660301110fc9e7e8485c4dd. W4.2 remains in progress.",
               "PR #242 historical duplicate loan row read-only remaining-installment projections passed 4/4 immutable-head Project Tracking, Android CI unit/lint/unsigned, screenshots and S24 emulator checks on b940f8c1fbb19ea63603d93abd207fe886a70a7a; squash merged develop 1e0d393a96e7a4cea6e58e7cc7a99d43029320e2. W4.2 still partial.",
-              "PR #243 Web forecast loan edge parity (non-positive installment, blank configured account fallback, remaining-count eligibility incl forgiven debt, repeated active loan IDs across 30/60/90 horizons) passed exact-head 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator gates on 6319c9947f556415cf84b7ff95d32bfcd3baa5ee. Squash merged develop 5a1175bf8df79ef23b8084ca848d092cecfa8629. W4.2 remains partial."
+              "PR #243 Web forecast loan edge parity (non-positive installment, blank configured account fallback, remaining-count eligibility incl forgiven debt, repeated active loan IDs across 30/60/90 horizons) passed exact-head 4/4 Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator gates on 6319c9947f556415cf84b7ff95d32bfcd3baa5ee. Squash merged develop 5a1175bf8df79ef23b8084ca848d092cecfa8629. W4.2 remains partial.",
+              "Draft PR #256 Web forecast sourceCounts map for scheduled/recurring/loan/future dated events, exact per-horizon omitted[] reasons, explicit read-only expandable disclosure; production projection JVM test matches cashFlowForecast for 30/60/90 and preserves raw FinanceData, S24 Compose reveal regression staged. Immutable-head four CI gates pending; no completion credit or physical S24 signoff."
             ]
           },
           {
@@ -1030,10 +1031,10 @@
         ]
       }
     ],
-    "next_action": "Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion.",
+    "next_action": "Verify all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #256; repair same PR and merge only after 4/4 successful. Continue W4.2 forecast parity and W4.3 budget/reporting details while CI executes. No physical owner acceptance inferred, unauthorized finance changes, Web/backend/schema edits, SMS import or release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 255,
-    "current_subtask": "W4.1",
+    "pr": 256,
+    "current_subtask": "W4.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
