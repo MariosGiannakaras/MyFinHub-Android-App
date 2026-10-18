@@ -103,6 +103,51 @@ fun InsightsScreen(
                     amountsVisible = amountsVisible,
                 )
             }
+            if (scope.counterparties.isNotEmpty()) {
+                item("counterparties") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_counterparties"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text(
+                                "Μεγαλύτερες δαπάνες ανά περιγραφή",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Ανά περιγραφή και κατηγορία · τρέχων μήνας",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            scope.counterparties.forEachIndexed { index, row ->
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("insights_counterparty_" + index),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(row.title, style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        row.category + " · " + row.count + " κινήσεις · " +
+                                            "τελευταία " + row.lastDateIso,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Text(
+                                        amountVisibilityText(formatEuro(row.amount), amountsVisible) +
+                                            (row.share?.let {
+                                                " · " + (it * 100.0).roundToInt() + "%"
+                                            } ?: ""),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                if (index < scope.counterparties.lastIndex) {
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,

@@ -3,11 +3,13 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
+import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
+import app.myfinhub.android.feature.insights.InsightCounterparty
 import app.myfinhub.android.feature.insights.InsightPeriodScope
 import app.myfinhub.android.feature.insights.InsightsComparison
 import app.myfinhub.android.feature.insights.InsightsUiState
@@ -127,6 +129,15 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        counterparties = if (id == INSIGHTS_PERIOD_MONTH)
+            document.canonicalReportExpenseCounterparties(
+                month = YearMonth.from(end).toString(), asOf = end.toString(),
+            ).map { row ->
+                InsightCounterparty(
+                    row.title,row.category,row.amount,row.share,row.count,row.lastDate,
+                )
+            }
+        else emptyList(),
     )
 }
 

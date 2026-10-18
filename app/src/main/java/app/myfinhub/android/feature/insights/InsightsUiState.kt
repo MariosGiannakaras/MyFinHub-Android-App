@@ -26,6 +26,15 @@ data class InsightCategory(
     val sourceCategories: List<String> = listOf(name),
 )
 
+data class InsightCounterparty(
+    val title: String,
+    val category: String,
+    val amount: Double,
+    val share: Double?,
+    val count: Int,
+    val lastDateIso: String,
+)
+
 data class InsightsComparison(
     val currentLabel: String,
     val previousLabel: String,
@@ -50,6 +59,8 @@ data class InsightPeriodScope(
     val contextLabel: String,
     val comparison: InsightsComparison,
     val categories: List<InsightCategory>,
+    /** Web Reports counterparties are monthly, not sliding-window summaries. */
+    val counterparties: List<InsightCounterparty> = emptyList(),
 )
 
 data class InsightsUiState(
