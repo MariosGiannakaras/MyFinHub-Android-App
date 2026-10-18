@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performClick
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
 import org.junit.Test
@@ -39,5 +40,34 @@ class WebForecastWindowComposeTest {
         rule.onNodeWithText("Προσοχή:",substring=true).performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("s7_forecast_portfolio_90").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("2 κινήσεις παραλείφθηκαν",substring=true).assertIsDisplayed()
+    }
+
+    @Test fun sourceProvenanceAndOmissionsAreExpandableWithoutSyntheticMovements() {
+        val state = PlanUiState(
+            forecastWindows = listOf(
+                ForecastWindow(
+                    days = 30, label = "30 ημέρες", expectedIncome = 0.0,
+                    expectedOutflow = 0.0, balanceDeltaFromThirtyDays = 0.0,
+                    sourceCounts = mapOf("scheduled" to 1,"recurring" to 2,
+                        "loan" to 1,"dated_event" to 0),
+                    omittedSourceCount = 2,
+                    omittedWarnings = listOf(
+                        "Το πάγιο Α δεν προβλήθηκε επειδή λείπει ημερομηνία.",
+                        "Η δόση Β δεν προβλήθηκε επειδή λείπει λογαριασμός.",
+                    ),
+                ),
+            ),
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(state,onBack={})
+        } }
+        rule.onNodeWithText("Πηγές πρόβλεψης:", substring=true)
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_omitted_toggle_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithText("Το πάγιο Α δεν προβλήθηκε", substring=true)
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Η δόση Β δεν προβλήθηκε", substring=true)
+            .performScrollTo().assertIsDisplayed()
     }
 }
