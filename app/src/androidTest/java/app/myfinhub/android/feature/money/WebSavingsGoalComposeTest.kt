@@ -48,6 +48,26 @@ class WebSavingsGoalComposeTest {
         rule.onNodeWithText("Πρόοδος στόχου: 22%").assertIsDisplayed()
     }
 
+    @Test fun savingsMonthlyTrendIsIndependentOfAccountBalances() {
+        val state = MoneyUiState(
+            savingsMonthlyTarget = app.myfinhub.android.core.data.CanonicalSavingsMonthlyTargetSnapshot(
+                month = "2026-10", income = 200.0, saved = 11.0,
+                targetRate = 0.25, targetAmount = 50.0, progressPercent = 22.0,
+                previousMonthSaved = 20.0,
+            ),
+            savingsMonthlyTrend = app.myfinhub.android.core.data.CanonicalSavingsMonthlyTrend(
+                month = "2026-10",
+                days = listOf(1,8,15,22,31),
+                actual = listOf(0.0,3.0,11.0,11.0,11.0),
+                target = listOf(50.0/31,50.0*8/31,50.0*15/31,50.0*22/31,50.0),
+                scaleMax = 50.0,
+            ),
+        )
+        rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        rule.onNodeWithTag("savings_month_trend_card").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Εξέλιξη αποταμίευσης μήνα").assertIsDisplayed()
+    }
+
     @Test fun savingsGoalsShowIndependentTargetsAndDoNotPresentUnsupportedMutationButtons() {
         val state=MoneyUiState(
             savingsCurrent=240.0,
