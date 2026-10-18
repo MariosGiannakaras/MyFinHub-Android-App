@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #257; fix same PR and merge only at 4/4. Resume W4.3 category budget and analytics parity, W4.4 transaction drilldowns without duplicating finance stores. No physical S24 owner signoff, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
+- [ ] Check all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #258; fix same PR, merge only after 4/4. Resume W4.4 reports/category momentum and transaction drilldown parity, W5 settings/provider assets; do not falsely infer physical S24 owner acceptance, signed release, SMS import, Web/backend/schema changes or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #257, branch android/w4-3-category-budget-web-details-20261019
-Current W4.3: Web parity 1/6 implementations · 11/24 completed subtasks. PR #255 Web eligible non-credit recurring payment route passed 4/4 immutable-head and merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. PR #256 Web forecast 30/60/90 sources and omitted reasons JVM/projection + Compose accepted all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 70b35ddc5958113319980b5557f0909a4b706122; squash merged develop fb744e15fa46aa9ca6dc58e1e015e3edd9a87dac. Draft PR #257 read-only Web category budgets negative raw refunds vs zero-clamped used, remaining/overage status, first 24 plus explicit incremental pagination, repeated historical budget identity safe Compose keys, golden JVM projection and S24 Compose test. Four exact-head gates pending; W4.3 partial and no physical owner S24 signoff or signed release.
+Issue #155, PR #258, branch android/w4-4-web-expense-counterparties-20261019
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #256 forecast 30/60/90 source/omission transparency passed 4/4 and merged develop fb744e15fa46aa9ca6dc58e1e015e3edd9a87dac. PR #257 Web category budget net raw refund and zero-clamped used, remaining/overage, 24-page pagination, duplicate historical ID guard, JVM and S24 Compose tests; first S24 run failed from off-screen LazyColumn more-button test; test uses performScrollToIndex(25), final immutable head 51a2203ce4ba3b949b403a41a7f0e0abd251a3fb passed all four Project Tracking, Android CI unit/lint/unsigned release, screenshots and S24 emulator, squash merged develop 12c85381eb1b29858138f9a8644d5a9cd539c186. Draft PR #258 native Insights monthly Web reportExpenseCounterparties positive expense grouping by Greek case-folded title/category, date cutoff, reviewed legacy semantics, event split categories, top-five full-denominator shares and privacy masking. Three domain JVM goldens, one projection JVM and S24 Compose regression staged. All four exact-head CI gates pending; W4.4 remains partial and no physical owner device signoff.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #257; fix same PR and merge only at 4/4. Resume W4.3 category budget and analytics parity, W4.4 transaction drilldowns without duplicating finance stores. No physical S24 owner signoff, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
+Next Check all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #258; fix same PR, merge only after 4/4. Resume W4.4 reports/category momentum and transaction drilldown parity, W5 settings/provider assets; do not falsely infer physical S24 owner acceptance, signed release, SMS import, Web/backend/schema changes or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
