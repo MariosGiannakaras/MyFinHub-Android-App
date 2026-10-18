@@ -33,6 +33,33 @@ class WebFinancialProviderIdentityParityTest {
         assertNull(financialProvider("non-bank-wallet","Unknown"))
     }
 
+    @Test fun productionAccountMarksNeverImpersonateBankWhenExplicitProviderIsCustom() {
+        assertNull(financialProviderForAccount(
+            "piraeus-payroll", "Piraeus Savings", "custom-wallet",
+        ))
+        assertNull(financialProviderForAccount(
+            "revolut-main", "Revolut", "other-bank",
+        ))
+        assertEquals(FinancialProvider.ALPHA,financialProviderForAccount(
+            "piraeus-payroll", "Πειραιώς", "alpha",
+        ))
+        // Older canonical accounts without providerId may still use Web aliases.
+        assertEquals(FinancialProvider.PIRAEUS,financialProviderForAccount(
+            "piraeus-payroll", "Πειραιώς", null,
+        ))
+    }
+
+    @Test fun cardMarksRespectExplicitBankIdAndUnknownIdsStayNeutral() {
+        assertNull(financialProviderForCard("custom-bank", "Piraeus Bank"))
+        assertEquals(FinancialProvider.REVOLUT,financialProviderForCard(
+            "revolut", "Piraeus", 
+        ))
+        // Legacy card lacking ownership key retains documented name fallback.
+        assertEquals(FinancialProvider.ALPHA,financialProviderForCard(
+            "", "Alpha Bank",
+        ))
+    }
+
     @Test fun realAccountNamesPreserveSemanticsWithoutDuplicatedProviderName() {
         assertEquals("Αποταμιευτικός",
             financialAccountDisplayName("acc-savings","Εθνική Τράπεζα","savings","national"))
