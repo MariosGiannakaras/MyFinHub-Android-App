@@ -7,6 +7,9 @@ import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.activeCanonicalRecurringItems
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
+import app.myfinhub.android.core.data.canonicalWebRecurringManagementOrder
+import app.myfinhub.android.core.data.canonicalRecurringPaymentHistory
+import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
@@ -93,7 +96,8 @@ internal fun projectCanonicalPlanState(
     }
     val webThirty = webForecasts.firstOrNull()?.projectedPortfolio ?: 0.0
 
-    val management = document.allCanonicalRecurringItems().map { recurring ->
+    val management = document.canonicalWebRecurringManagementOrder(today).map { recurring ->
+        val payments = document.canonicalRecurringPaymentHistory(recurring.id)
         RecurringManageItem(
             id = recurring.id,
             title = recurring.name,
@@ -106,6 +110,9 @@ internal fun projectCanonicalPlanState(
             logoAssetKey = recurring.logoAssetKey,
             source = recurring.source,
             endDateIso = recurring.endDate,
+            paymentCount = payments.paymentCount,
+            lastPaymentDateIso = payments.lastPaymentDateIso,
+            typicalPaymentDay = document.canonicalTypicalRecurringPaymentDay(recurring),
         )
     }
     return PlanUiState(

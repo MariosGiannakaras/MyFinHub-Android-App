@@ -1,5 +1,7 @@
 package app.myfinhub.android.core.data
 
+import java.text.Collator
+import java.util.Locale
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.math.min
@@ -92,6 +94,52 @@ private fun LocalDate.addRecurringMonths(months: Int): LocalDate {
 
 private fun dateOnly(raw: String?): LocalDate? =
     raw?.takeIf(String::isNotBlank)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+
+/** Web recurringPayments(data, item.id): all linked events, latest-first.
+ * Invalid dates cannot enter canonical date calculations; retain all valid
+ * payments and never rewrite or delete original historical event records.
+ */
+data class CanonicalRecurringPaymentHistory(
+    val paymentCount: Int,
+    val lastPaymentDateIso: String?,
+)
+
+fun CanonicalFinanceDocument.canonicalRecurringPaymentHistory(id: String): CanonicalRecurringPaymentHistory {
+    val dates = recurringPaymentDates(id)
+    return CanonicalRecurringPaymentHistory(dates.size, dates.firstOrNull()?.toString())
+}
+
+/**
+ * Web recurringUpcoming sorts active entries by next due date and then by
+ * localized name; inactive entries follow their historical stored order.
+ * Return the original identity-bearing objects, including duplicate IDs:
+ * display stays independent and existing mutation guards remain in effect.
+ */
+fun CanonicalFinanceDocument.canonicalWebRecurringManagementOrder(
+    asOf: LocalDate,
+): List<CanonicalRecurringItem> {
+    val indexed = allCanonicalRecurringItems().withIndex().toList()
+    val collator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
+    val active = indexed.filter { it.value.effectiveStatus == "active" }
+        .map { indexedItem ->
+            Triple(
+                indexedItem,
+                nextCanonicalRecurringDate(indexedItem.value, asOf)?.toString() ?: "9999",
+                indexedItem.value.name,
+            )
+        }
+        .sortedWith(Comparator { a, b ->
+            val due = a.second.compareTo(b.second)
+            if (due != 0) due
+            else {
+                val name = collator.compare(a.third, b.third)
+                if (name != 0) name else a.first.index.compareTo(b.first.index)
+            }
+        })
+        .map { it.first.value }
+    val inactive = indexed.filter { it.value.effectiveStatus != "active" }.map { it.value }
+    return active + inactive
+}
 
 private fun CanonicalFinanceDocument.recurringPaymentDates(id: String): List<LocalDate> =
     state.array("events").mapNotNull { raw ->

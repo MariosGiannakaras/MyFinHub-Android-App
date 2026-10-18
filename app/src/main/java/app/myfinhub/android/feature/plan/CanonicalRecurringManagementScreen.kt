@@ -75,10 +75,27 @@ fun CanonicalRecurringManagementScreen(
                                 ?.let { " · " + it }.orEmpty() +
                                 (if (item.nextDueDateIso.isNotBlank())
                                     " · Επόμενο: " + item.nextDueDateIso else ""),
+
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(amountVisibilityText(currency.format(item.amount), showAmounts),
                             style = MaterialTheme.typography.bodyMedium)
+                        if (item.paymentCount > 0) {
+                            Text(
+                                "Καταγεγραμμένες πληρωμές: " + item.paymentCount +
+                                    (item.lastPaymentDateIso?.let { " · Τελευταία: " + it }.orEmpty()) +
+                                    (item.typicalPaymentDay?.let { " · Συνήθης ημέρα: " + it }.orEmpty()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (!item.endDateIso.isNullOrBlank()) {
+                            Text(
+                                "Λήξη/ανανέωση: " + item.endDateIso,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         if (!uniqueId) {
                             Text(
                                 "Ιστορικό διπλό ID · Μόνο προβολή, χωρίς αλλαγές ή πληρωμή",
