@@ -2,8 +2,8 @@ package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.categoryTotalsBetween
-import app.myfinhub.android.core.data.flowBetween
-import app.myfinhub.android.core.data.monthlyFlow
+import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
+import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
@@ -71,9 +71,9 @@ internal fun projectCanonicalInsightsState(
     val trend = (3L downTo 0L).map { offset -> currentMonth.minusMonths(offset) }.map { month ->
         val partial = month == currentMonth && today.dayOfMonth < currentMonth.lengthOfMonth()
         val flow = if (month == currentMonth) {
-            document.flowBetween(month.atDay(1).toString(), currentEnd.toString())
+            document.canonicalOperationalFlowBetween(month.atDay(1).toString(), currentEnd.toString())
         } else {
-            document.monthlyFlow(month.toString())
+            document.canonicalOperationalMonthlyFlow(month.toString())
         }
         TrendPoint(
             label = insightsMonthLabel(month),
@@ -110,8 +110,8 @@ private fun buildInsightsScope(
     check(ChronoUnit.DAYS.between(start, end) == ChronoUnit.DAYS.between(comparisonStart, comparisonEnd)) {
         "Insight comparison windows must contain the same number of days"
     }
-    val current = document.flowBetween(start.toString(), end.toString())
-    val previous = document.flowBetween(comparisonStart.toString(), comparisonEnd.toString())
+    val current = document.canonicalOperationalFlowBetween(start.toString(), end.toString())
+    val previous = document.canonicalOperationalFlowBetween(comparisonStart.toString(), comparisonEnd.toString())
     return InsightPeriodScope(
         id = id,
         label = label,
