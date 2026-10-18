@@ -103,6 +103,10 @@ data class CategoryBudget(
     val alertThresholdText: String = "80",
     val spent: Double,
     val enabled: Boolean = true,
+    /** Web budgetProgress: refunds may produce negative raw net, but used is floored at zero. */
+    val rawSpent: Double = spent,
+    val remaining: Double = 0.0,
+    val status: String = "ok",
 )
 
 data class PlanningRule(

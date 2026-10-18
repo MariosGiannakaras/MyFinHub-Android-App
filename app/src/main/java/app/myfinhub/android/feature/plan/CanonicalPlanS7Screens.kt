@@ -709,6 +709,9 @@ fun CanonicalBudget2026Screen(
     var localError by rememberSaveable { mutableStateOf<String?>(null) }
     var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
     var saveRequested by rememberSaveable { mutableStateOf(false) }
+    // Web's budget editor displays the first 24 records, then reveals 24 more
+    // on demand. Never silently hide historical category budgets.
+    var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -874,19 +877,27 @@ fun CanonicalBudget2026Screen(
                 item("budget-categories-heading") {
                     MyFinHubSectionHeading(
                         title = "Όρια ανά κατηγορία",
-                        subtitle = "Πραγματικές κατηγοριοποιημένες δαπάνες του μήνα",
+                        subtitle = "Πραγματικές κατηγοριοποιημένες δαπάνες του μήνα · επιστροφές μειώνουν τη χρήση",
                         icon = MyFinHubIcons.Savings,
                         tone = FinanceTone.Neutral,
                     )
                 }
-                items(state.categoryBudgets, key = { "category-budget-" + it.id }) { budget ->
+                itemsIndexed(
+                    state.categoryBudgets.take(visibleCategoryBudgetLimit),
+                    key = { index, budget -> "category-budget-" + budget.id + "#" + index },
+                ) { index, budget ->
                     MyFinHubSectionCard(
-                        modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_" + budget.id),
+                        modifier = Modifier.fillMaxWidth().testTag(
+                            "s7_category_budget_" + budget.id +
+                                (if (state.categoryBudgets.count { it.id == budget.id } == 1)
+                                    "" else "_duplicate_" + index),
+                        ),
                     ) {
                         val limit = budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0
                         val used = budget.spent.coerceAtLeast(0.0)
                         val threshold = (budget.alertThresholdText.toDoubleOrNull() ?: 80.0) / 100.0
                         val ratio = if (limit > 0.0) used / limit else 0.0
+                        val remaining = limit - used
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
                             Text(
@@ -898,6 +909,22 @@ fun CanonicalBudget2026Screen(
                                 progress = { ratio.toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            Text(
+                                (if (remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
+                                    amountVisibilityText(formatPlanS7Euro(abs(remaining)), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("s7_category_budget_remaining_" + index),
+                            )
+                            if (budget.rawSpent < 0.0) {
+                                Text(
+                                    "Καθαρό αποτέλεσμα επιστροφών: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.rawSpent), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("s7_category_budget_refunds_" + index),
+                                )
+                            }
                             if (ratio > 1.0 || ratio >= threshold) {
                                 Text(
                                     if (ratio > 1.0) "Υπέρβαση ορίου" else "Κοντά στο όριο",
@@ -905,6 +932,18 @@ fun CanonicalBudget2026Screen(
                                     color = MaterialTheme.colorScheme.tertiary,
                                 )
                             }
+                        }
+                    }
+                }
+                if (state.categoryBudgets.size > visibleCategoryBudgetLimit) {
+                    item("budget-categories-more") {
+                        TextButton(
+                            onClick = { visibleCategoryBudgetLimit += 24 },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s7_category_budget_more"),
+                        ) {
+                            Text("Προβολή περισσότερων · " +
+                                (state.categoryBudgets.size - visibleCategoryBudgetLimit) + " ακόμη")
                         }
                     }
                 }
