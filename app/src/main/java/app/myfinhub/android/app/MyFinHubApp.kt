@@ -539,6 +539,9 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
+                        paymentAccountAvailable = quickEntryState.accounts.any {
+                            it.kind != "credit" && it.id.isNotBlank()
+                        },
                     )
                 }
                 entry<AppRoute.PlanScheduled> {

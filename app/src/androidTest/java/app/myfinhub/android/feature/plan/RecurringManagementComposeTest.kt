@@ -68,6 +68,19 @@ class RecurringManagementComposeTest {
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[2].assertIsNotEnabled()
     }
 
+    @Test fun noEligibleNonCreditAccountDisablesPaymentActionInsteadOfNoOp() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state.copy(recurringManageItems=state.recurringManageItems.take(1)),
+                onBack={},
+                onStatusChanged={_,_->error("unexpected")},
+                paymentAccountAvailable=false,
+                onRecordPayment={error("No available account")},
+            )
+        } }
+        rule.onNodeWithText("Καταχώριση πληρωμής").assertIsNotEnabled()
+    }
+
     @Test fun blockedMutationCannotEmitStatusChanges() {
         rule.setContent { MyFinHubTheme {
             CanonicalRecurringManagementScreen(state,onBack={},
