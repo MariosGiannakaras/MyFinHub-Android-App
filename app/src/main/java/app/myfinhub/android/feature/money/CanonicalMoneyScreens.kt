@@ -824,7 +824,8 @@ fun CanonicalLendingScreen(
                     }
                 }
             }
-            if (state.lendingItems.isEmpty()) {
+            // Settled people can retain dated history without a current receivable.
+            if (state.lendingItems.isEmpty() && state.lendingHistory.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -866,6 +867,56 @@ fun CanonicalLendingScreen(
                             TextButton(onClick = { onRecordRepayment(item) }) {
                                 Text("Καταχώριση επιστροφής")
                             }
+                        }
+                    }
+                }
+            }
+            if (state.lendingHistory.isNotEmpty()) {
+                item {
+                    MyFinHubSectionHeading(
+                        title = "Ιστορικό δανεικών",
+                        subtitle = "Καταγεγραμμένες χορηγήσεις, επιστροφές και διαγραφές",
+                        icon = MyFinHubIcons.Income,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                // Web history can contain independent historical rows with repeated IDs.
+                // Identity is render-only; never use a history list key as a mutation target.
+                itemsIndexed(
+                    items = state.lendingHistory,
+                    key = { index, row -> "lending-history-$index-${row.id}" },
+                ) { _, history ->
+                    val typeLabel = when (history.action) {
+                        "lent" -> "Έδωσα"
+                        "repaid" -> "Επιστροφή"
+                        "forgiven" -> "Διαγραφή απαίτησης"
+                        else -> "Κίνηση"
+                    }
+                    val tone = if (history.action == "lent") FinanceTone.Expense else FinanceTone.Income
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(
+                                "${history.personLabel} · ${history.date}",
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Text(
+                                typeLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (history.note.isNotBlank()) {
+                                Text(history.note, style = MaterialTheme.typography.bodySmall)
+                            }
+                            MyFinHubAmountText(
+                                text = amountVisibilityText(formatCanonicalEuro(history.amount), amountsVisible),
+                                tone = tone,
+                            )
+                            Text(
+                                "Ιστορικό υπόλοιπο κινήσεων: " +
+                                    amountVisibilityText(formatCanonicalEuro(history.runningOutstanding), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
