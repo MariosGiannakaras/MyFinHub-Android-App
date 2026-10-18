@@ -247,6 +247,7 @@ internal fun MyFinHubAppContent(
                     ProductionSettingsScreen(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
+                        transactionRules = planState.rules,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
                         noticeHistoryCount = noticeHistory.size,
