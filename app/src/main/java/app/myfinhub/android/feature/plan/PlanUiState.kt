@@ -124,6 +124,8 @@ data class ForecastWindow(
     val accountsWithLowBalance: Int = 0,
     val accountsWithNegativeBalance: Int = 0,
     val omittedSourceCount: Int = 0,
+    val omittedWarnings: List<String> = emptyList(),
+    val sourceCounts: Map<String, Int> = emptyMap(),
 )
 
 /** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */

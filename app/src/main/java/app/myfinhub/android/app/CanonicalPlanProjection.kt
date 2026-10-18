@@ -151,6 +151,8 @@ internal fun projectCanonicalPlanState(
                 accountsWithLowBalance = f.accounts.count { it.firstLowDate != null },
                 accountsWithNegativeBalance = f.accounts.count { it.firstNegativeDate != null },
                 omittedSourceCount = f.omitted.size,
+                omittedWarnings = f.omitted,
+                sourceCounts = f.sourceCounts,
             )
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.
