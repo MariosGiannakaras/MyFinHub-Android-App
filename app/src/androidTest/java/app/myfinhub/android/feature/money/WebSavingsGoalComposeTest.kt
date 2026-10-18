@@ -29,6 +29,25 @@ class WebSavingsGoalComposeTest {
         rule.onNodeWithText("Πρόσφατη αποταμίευση").performScrollTo().assertIsDisplayed()
     }
 
+    @Test fun productionMonthlyTargetShowsAmountAndHistoricalComparison() {
+        val state = MoneyUiState(
+            savingsMonthlyTarget = app.myfinhub.android.core.data.CanonicalSavingsMonthlyTargetSnapshot(
+                month = "2026-10",
+                income = 200.0,
+                saved = 11.0,
+                targetRate = 0.25,
+                targetAmount = 50.0,
+                progressPercent = 22.0,
+                previousMonthSaved = 20.0,
+            ),
+        )
+        rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        rule.onNodeWithTag("savings_month_target").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Στόχος αποταμίευσης μήνα").assertIsDisplayed()
+        rule.onNodeWithText("25% των πραγματικών εσόδων").assertIsDisplayed()
+        rule.onNodeWithText("Πρόοδος στόχου: 22%").assertIsDisplayed()
+    }
+
     @Test fun savingsGoalsShowIndependentTargetsAndDoNotPresentUnsupportedMutationButtons() {
         val state=MoneyUiState(
             savingsCurrent=240.0,

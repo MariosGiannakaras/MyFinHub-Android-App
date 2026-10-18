@@ -33,6 +33,7 @@ import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
+import app.myfinhub.android.core.data.webSavingsMonthlyTargetSnapshot
 import app.myfinhub.android.core.data.canonicalSavingsHistoryPresentation
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
@@ -394,6 +395,7 @@ val activityItems = buildActivityItems(legacy, events, accountNames, eventChrono
                 )
             },
         savingsSources = currentSavingsBreakdown.bySource,
+        savingsMonthlyTarget = document.webSavingsMonthlyTargetSnapshot(month, asOf),
         // Web SavingsPage mobile uses the latest 12 dated rows, preserving
         // duplicate historical IDs and a distinct primary user note/source.
         savingsHistory = currentSavingsBreakdown.rows.take(12).map { row ->

@@ -480,6 +480,52 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            state.savingsMonthlyTarget?.let { performance ->
+                item("savings-month-target") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("savings_month_target"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text("Στόχος αποταμίευσης μήνα",
+                                style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                if (performance.targetRate > 0.0)
+                                    "${kotlin.math.round(performance.targetRate * 100).toInt()}% των πραγματικών εσόδων"
+                                else "Δεν έχει οριστεί ποσοστιαίος στόχος",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Αποταμίευση μήνα: " +
+                                    amountVisibilityText(formatCanonicalEuro(performance.saved), amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                if (performance.targetAmount > 0.0)
+                                    "Ποσό στόχου: " +
+                                        amountVisibilityText(formatCanonicalEuro(performance.targetAmount), amountsVisible)
+                                else "Δεν υπάρχουν καταγεγραμμένα έσοδα για χρηματικό στόχο.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            performance.progressPercent?.let { percent ->
+                                if (amountsVisible) LinearProgressIndicator(
+                                    progress = { (percent / 100.0).toFloat().coerceIn(0f, 1f) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                Text("Πρόοδος στόχου: ${kotlin.math.round(percent).toInt()}%",
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text(
+                                "Αποταμίευση προηγούμενου μήνα: " +
+                                    amountVisibilityText(formatCanonicalEuro(performance.previousMonthSaved), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
             if (state.savingsSources.values.any { kotlin.math.abs(it) > 0.005 }) {
                 item("saving-source-breakdown") {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
