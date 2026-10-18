@@ -28,6 +28,20 @@ class WebFinancialProviderCatalogTest {
         assertTrue(decoded[1].toString().contains("logoUrl").not())
     }
 
+    @Test fun GreekAccentsUseWebLocaleComparisonInsideEqualSortOrder() {
+        val decoded = parseFinancialProviderCatalog("""
+          {"providers":[
+            {"id":"zeta","displayName":"Ζήτα","shortName":"Z",
+             "providerKind":"bank","sortOrder":1},
+            {"id":"alpha-greek","displayName":"Άλφα","shortName":"A",
+             "providerKind":"bank","sortOrder":1},
+            {"id":"first","displayName":"Ωμέγα","shortName":"O",
+             "providerKind":"bank","sortOrder":0}
+          ]}
+        """.trimIndent())!!
+        assertEquals(listOf("first","alpha-greek","zeta"),decoded.map { it.id })
+    }
+
     @Test fun malformedCatalogAndUnknownKindsFailClosedWithoutInventedProviders() {
         assertNull(parseFinancialProviderCatalog("{}"))
         assertNull(parseFinancialProviderCatalog("""{"providers":[]}"""))

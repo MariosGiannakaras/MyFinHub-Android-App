@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.myfinhub.android.core.ui.financialProvider
+import app.myfinhub.android.core.ui.financialProviderForCard
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -69,7 +69,7 @@ fun CanonicalCardDetailScreen(
     var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
-    val provider = card?.let { financialProvider(it.bankId, it.nickname) }
+    val provider = card?.let { financialProviderForCard(it.bankId, it.nickname) }
     val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
     val availableCredit = card?.limit?.takeIf { isCredit && it > 0.0 }?.let { limit ->
         (limit - card.currentBalance.coerceAtLeast(0.0)).coerceAtLeast(0.0)
@@ -355,7 +355,7 @@ private fun CardPickerSheet(
         ) {
             Text("Επίλεξε κάρτα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             cards.forEach { option ->
-                val optionProvider = financialProvider(option.bankId, option.nickname)
+                val optionProvider = financialProviderForCard(option.bankId, option.nickname)
                 Surface(
                     onClick = { onSelect(option.id) },
                     modifier = Modifier.fillMaxWidth().testTag("card_picker_${option.id}"),
