@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.network
 
+import java.text.Collator
 import java.util.Locale
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -58,8 +59,14 @@ internal fun parseFinancialProviderCatalog(body: String, json: Json = Json): Lis
         if (value("wordmarkAssetKey")?.isNotBlank() == true && wordmark == null) return@mapNotNull null
         FinancialProviderRecord(id,displayName,shortName,kind,country,sortOrder,logo,wordmark)
     }
+    // The Web's localeCompare('el') applies within equal sortOrder groups.
+    // Lowercase Unicode ordinal comparison misorders accented Greek providers.
+    val collator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
     return parsed.distinctBy(FinancialProviderRecord::id)
-        .sortedWith(compareBy<FinancialProviderRecord> { it.sortOrder }
-            .thenBy { it.displayName.lowercase(Locale.forLanguageTag("el-GR")) })
+        .sortedWith(Comparator { left, right ->
+            val priority = left.sortOrder.compareTo(right.sortOrder)
+            if (priority != 0) priority
+            else collator.compare(left.displayName, right.displayName)
+        })
         .takeIf { it.isNotEmpty() }
 }
