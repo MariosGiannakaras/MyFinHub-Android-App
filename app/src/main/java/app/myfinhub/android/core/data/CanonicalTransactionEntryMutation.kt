@@ -33,6 +33,8 @@ data class CanonicalTransactionEntryDraft(
     val installmentCount: Int? = null,
     // Web recurring.ts and ContextualQuickAdd annotate existing expense events.
     val recurringId: String? = null,
+    /** Web SavingsPage SavingSource; null preserves historical draft behavior. */
+    val savingSource: String? = null,
     val actualBalance: Double? = null,
     val parts: List<CanonicalTransactionSplitDraft> = emptyList(),
 )
@@ -54,6 +56,12 @@ fun createCanonicalTransactionEntryMutation(
     val eventDate = runCatching { LocalDate.parse(draft.date) }
         .getOrElse { throw IllegalArgumentException("Η ημερομηνία δεν είναι έγκυρη.") }
     require(draft.kind in SUPPORTED_TRANSACTION_ENTRY_KINDS) { "Ο τύπος κίνησης δεν υποστηρίζεται." }
+    // Provenance is first-class Web finance data, never inferred from a user note on new writes.
+    // Reject malformed sources here instead of persisting events that alter source reporting.
+    require(draft.savingSource == null ||
+        (draft.kind == "saving_cash_offset" &&
+            draft.savingSource in setOf("pay_and_save", "manual_transfer", "cash_offset"))
+    ) { "Η πηγή αποταμίευσης δεν είναι έγκυρη για αυτή την κίνηση." }
 
     val eligibleAccounts = document.canonicalAccounts()
         .filter { it.kind != "credit" }
@@ -336,6 +344,7 @@ fun createCanonicalTransactionEntryMutation(
         draft.loanId?.let { put("loanId", JsonPrimitive(it)) }
         draft.installmentCount?.let { put("installmentCount", JsonPrimitive(it)) }
         draft.recurringId?.let { put("recurringId", JsonPrimitive(it)) }
+        draft.savingSource?.let { put("savingSource", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))
         put("savingAmount", JsonPrimitive(savingAmount))
