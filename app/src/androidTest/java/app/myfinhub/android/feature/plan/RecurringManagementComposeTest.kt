@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -73,6 +74,31 @@ class RecurringManagementComposeTest {
             .fetchSemanticsNodes().let { assertEquals(1,it.size) }
         rule.onAllNodesWithText("Λήξη/ανανέωση: 2027-01-08").fetchSemanticsNodes()
             .let { assertEquals(1,it.size) }
+    }
+
+    @Test fun onlyActiveRecurringEntriesCanOpenPaymentForm() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state, onBack={},
+                onStatusChanged={_,_->error("unexpected lifecycle mutation")},
+                onRecordPayment={error("Do not trigger payment during eligibility assertions")},
+            )
+        } }
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[0].assertIsEnabled()
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[2].assertIsNotEnabled()
+    }
+
+    @Test fun noEligibleNonCreditAccountDisablesPaymentAction() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state.copy(recurringManageItems=state.recurringManageItems.take(1)),
+                onBack={},onStatusChanged={_,_->error("unexpected")},
+                paymentAccountAvailable=false,
+                onRecordPayment={error("No eligible account")},
+            )
+        } }
+        rule.onNodeWithText("Καταχώριση πληρωμής").assertIsNotEnabled()
     }
 
     @Test fun blockedMutationCannotEmitStatusChanges() {
