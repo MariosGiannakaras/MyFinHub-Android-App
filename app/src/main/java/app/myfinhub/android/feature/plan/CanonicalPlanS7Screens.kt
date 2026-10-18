@@ -504,13 +504,50 @@ fun CanonicalPlanForecastScreen(
                                     color = MaterialTheme.colorScheme.error,
                                 )
                             }
+                            if (window.sourceCounts.values.any { it > 0 }) {
+                                val labels = listOf(
+                                    "scheduled" to "προγραμματισμένες",
+                                    "recurring" to "πάγια",
+                                    "loan" to "δόσεις",
+                                    "dated_event" to "μελλοντικές",
+                                )
+                                Text(
+                                    "Πηγές πρόβλεψης: " + labels.joinToString(" · ") { (key, label) ->
+                                        label + " " + (window.sourceCounts[key] ?: 0)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             if (window.omittedSourceCount > 0) {
+                                var showOmitted by rememberSaveable(window.days) {
+                                    mutableStateOf(false)
+                                }
                                 Text(
                                     window.omittedSourceCount.toString() +
                                         " κινήσεις παραλείφθηκαν λόγω ελλιπών στοιχείων.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.tertiary,
                                 )
+                                if (window.omittedWarnings.isNotEmpty()) {
+                                    TextButton(
+                                        onClick = { showOmitted = !showOmitted },
+                                        modifier = Modifier.testTag(
+                                            "s7_forecast_omitted_toggle_" + window.days,
+                                        ),
+                                    ) {
+                                        Text(if (showOmitted) "Απόκρυψη αιτιών" else "Αιτίες παράλειψης")
+                                    }
+                                    if (showOmitted) {
+                                        window.omittedWarnings.forEachIndexed { index, reason ->
+                                            Text(
+                                                "${index + 1}. " + reason,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
