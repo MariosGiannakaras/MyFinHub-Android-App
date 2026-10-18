@@ -61,6 +61,16 @@ class CanonicalTransactionRulesParityTest {
         assertEquals("Τρόφιμα",data.applyCanonicalTransactionRules(e).string("category"))
     }
 
+    @Test fun equalPriorityGreekIdsUseWebLocaleComparisonRatherThanCodePointOrdering() {
+        val data = fixture(
+            rule("Ζήτα",10, action=obj("""{"category":"Δεύτερη"}""")),
+            rule("άλφα",10, action=obj("""{"category":"Πρώτη"}""")),
+        )
+        val event = event()
+        assertEquals(listOf("άλφα","Ζήτα"),data.canonicalMatchingTransactionRuleIds(event))
+        assertEquals("Πρώτη",data.applyCanonicalTransactionRules(event).string("category"))
+    }
+
     @Test fun explicitCategoryAndHistoricalEventsRemainUntouched() {
         val data = fixture(rule("food",1))
         val snapshot = data.state.array("events")

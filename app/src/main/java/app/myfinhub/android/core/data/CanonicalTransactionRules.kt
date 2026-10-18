@@ -1,5 +1,6 @@
 package app.myfinhub.android.core.data
 
+import java.text.Collator
 import java.util.Locale
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -46,8 +47,15 @@ private fun CanonicalFinanceDocument.matchingCanonicalRules(event: JsonObject): 
             if (account.isNotEmpty() && accountId != account) return@filter false
             description.isNotEmpty() || merchant.isNotEmpty() || account.isNotEmpty()
         }
-        .sortedWith(compareBy<JsonObject> { it.number("priority") ?: Double.POSITIVE_INFINITY }
-            .thenBy { it.string("id").orEmpty() })
+        // Web uses String.localeCompare for equal priorities, not UTF-16
+        // ordinal sorting (which misorders accented Greek and mixed-case IDs).
+        .sortedWith(Comparator { a, b ->
+            val priority = (a.number("priority") ?: Double.POSITIVE_INFINITY)
+                .compareTo(b.number("priority") ?: Double.POSITIVE_INFINITY)
+            if (priority != 0) priority
+            else Collator.getInstance(transactionRuleLocale)
+                .compare(a.string("id").orEmpty(), b.string("id").orEmpty())
+        })
 }
 
 /** Web previewTransactionRules: matching rule IDs sorted by priority then stable ID. */
