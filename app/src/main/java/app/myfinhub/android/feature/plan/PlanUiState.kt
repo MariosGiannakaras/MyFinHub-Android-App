@@ -40,6 +40,9 @@ data class RecurringManageItem(
     val logoAssetKey: String? = null,
     val source: String? = null,
     val endDateIso: String? = null,
+    val paymentCount: Int = 0,
+    val lastPaymentDateIso: String? = null,
+    val typicalPaymentDay: Int? = null,
 )
 
 data class ScheduledManageItem(

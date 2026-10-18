@@ -54,6 +54,27 @@ class RecurringManagementComposeTest {
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
     }
 
+    @Test fun historicalPaymentCountLastDateAndServiceEndAreReadOnlyMetadata() {
+        val item=RecurringManageItem(
+            id="history",title="Ρεύμα",amount=65.0,status="active",
+            nextDueDateIso="2026-11-08",paymentCount=3,
+            lastPaymentDateIso="2026-10-08",typicalPaymentDay=8,
+            endDateIso="2027-01-08",
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                PlanUiState(recurringManageItems=listOf(item)),onBack={},
+                onStatusChanged={_,_->error("read-only metadata mutation")},
+            )
+        } }
+        rule.onAllNodesWithText("Καταγεγραμμένες πληρωμές: 3", substring=true)
+            .fetchSemanticsNodes().let { assertEquals(1,it.size) }
+        rule.onAllNodesWithText("Τελευταία: 2026-10-08", substring=true)
+            .fetchSemanticsNodes().let { assertEquals(1,it.size) }
+        rule.onAllNodesWithText("Λήξη/ανανέωση: 2027-01-08").fetchSemanticsNodes()
+            .let { assertEquals(1,it.size) }
+    }
+
     @Test fun blockedMutationCannotEmitStatusChanges() {
         rule.setContent { MyFinHubTheme {
             CanonicalRecurringManagementScreen(state,onBack={},

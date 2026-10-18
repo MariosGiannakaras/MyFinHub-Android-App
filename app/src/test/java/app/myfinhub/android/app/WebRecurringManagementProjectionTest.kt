@@ -25,7 +25,11 @@ class WebRecurringManagementProjectionTest {
           ]},"state":{"events":[]}}
         """.trimIndent()).jsonObject)
         val plan=projectCanonicalPlanState(data,LocalDate.parse("2026-10-17"),null)
-        assertEquals(listOf("Κάθε μήνα","Κάθε 6 μήνες","Κάθε χρόνο","Κάθε μήνα"),
+        // Web recurringUpcoming now orders active first by real next due date;
+        // unanchored non-monthly rows have no next due date and sort last.
+        assertEquals(listOf("monthly","yearly","half","invalid"),
+            plan.recurringManageItems.map { it.id })
+        assertEquals(listOf("Κάθε μήνα","Κάθε χρόνο","Κάθε 6 μήνες","Κάθε μήνα"),
             plan.recurringManageItems.map { it.cadenceLabel })
         assertEquals("internet-provider",plan.recurringManageItems.first().logoAssetKey)
         assertEquals("seed",plan.recurringManageItems.first().source)
@@ -47,10 +51,11 @@ class WebRecurringManagementProjectionTest {
           }}
         """.trimIndent()).jsonObject)
         val state=projectCanonicalPlanState(data,LocalDate.parse("2026-10-15"),null)
-        assertEquals(listOf("seed","custom","stopped"),state.recurringManageItems.map { it.id })
-        assertEquals(listOf("paused","active","stopped"),state.recurringManageItems.map { it.status })
-        assertEquals("",state.recurringManageItems.first().nextDueDateIso)
-        assertEquals("2026-10-20",state.recurringManageItems[1].nextDueDateIso)
+        // Web: active upcoming first, then inactive source order (seed before custom).
+        assertEquals(listOf("custom","seed","stopped"),state.recurringManageItems.map { it.id })
+        assertEquals(listOf("active","paused","stopped"),state.recurringManageItems.map { it.status })
+        assertEquals("2026-10-20",state.recurringManageItems.first().nextDueDateIso)
+        assertEquals("",state.recurringManageItems[1].nextDueDateIso)
         assertEquals(listOf("custom"),state.items.filter {
             it.kind == app.myfinhub.android.feature.plan.PlannedKind.RECURRING
         }.map { it.id })
