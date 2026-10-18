@@ -34,6 +34,7 @@ import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
 import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.core.update.LocalUpdateController
+import app.myfinhub.android.feature.plan.PlanningRule
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
@@ -50,6 +51,7 @@ fun ProductionSettingsScreen(
     onBack: () -> Unit,
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
+    transactionRules: List<PlanningRule> = emptyList(),
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -189,6 +191,61 @@ fun ProductionSettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         icon = MyFinHubIcons.Activity,
                     )
+                }
+            }
+
+            if (transactionRules.isNotEmpty()) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("s9_transaction_rules")) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Text("Αυτόματη ταξινόμηση",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Κανόνες νέων κινήσεων · μόνο προβολή στο Android. " +
+                                "Η σειρά και η επεξεργασία διαχειρίζονται από το Web. " +
+                                "Το υπάρχον ιστορικό δεν αλλάζει.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            "${transactionRules.size} σύνολο · " +
+                                "${transactionRules.count { it.enabled }} ενεργοί · " +
+                                "${transactionRules.count { !it.enabled }} σε παύση · " +
+                                "${transactionRules.count { it.warning != null }} χρειάζονται έλεγχο",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        // Web renders 24 rules per page. Avoid materializing
+                        // thousands of Composables in a vertical scroll Column.
+                        transactionRules.take(24).forEachIndexed { index, rule ->
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_transaction_rule_$index"),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text("${index + 1}. ${rule.title}",
+                                    style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    rule.warning ?: if (rule.enabled) "Ενεργός" else "Σε παύση",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (rule.warning != null) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(rule.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (index < 23 && index < transactionRules.lastIndex)
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        if (transactionRules.size > 24) Text(
+                            "Εμφανίζονται οι πρώτοι 24 από ${transactionRules.size} κανόνες.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 
