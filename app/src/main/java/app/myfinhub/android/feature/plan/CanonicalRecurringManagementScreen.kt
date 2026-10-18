@@ -90,7 +90,7 @@ fun CanonicalRecurringManagementScreen(
                             // Explicitly opens the editable canonical Quick Entry form.
                             // No financial event is created until its Save action.
                             TextButton(
-                                enabled = !mutationBlocked && uniqueId,
+                                enabled = !mutationBlocked && uniqueId && item.status == "active",
                                 onClick = { onRecordPayment(item) },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                     .testTag("recurring_record_payment_" + item.id),

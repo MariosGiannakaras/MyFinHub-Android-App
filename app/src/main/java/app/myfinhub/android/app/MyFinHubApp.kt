@@ -525,7 +525,7 @@ internal fun MyFinHubAppContent(
                         onRecordPayment = { item ->
                             val eligibleAccount = recurringQuickEntryAccountChoice(item, quickEntryState)
                             if (!planMutationInFlight && !planMutationBlocked &&
-                                eligibleAccount != null
+                                item.status == "active" && eligibleAccount != null
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))

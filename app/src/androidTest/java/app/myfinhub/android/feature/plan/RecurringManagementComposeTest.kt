@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -52,6 +53,19 @@ class RecurringManagementComposeTest {
         }
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[0].assertIsNotEnabled()
         rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
+    }
+
+    @Test fun pausedAndStoppedEntriesNeverExposePaymentMutation() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state, onBack={},
+                onStatusChanged={_,_->error("unexpected lifecycle mutation")},
+                onRecordPayment={ error("paused/stopped payment must remain blocked") },
+            )
+        } }
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[0].assertIsEnabled()
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[1].assertIsNotEnabled()
+        rule.onAllNodesWithText("Καταχώριση πληρωμής")[2].assertIsNotEnabled()
     }
 
     @Test fun blockedMutationCannotEmitStatusChanges() {
