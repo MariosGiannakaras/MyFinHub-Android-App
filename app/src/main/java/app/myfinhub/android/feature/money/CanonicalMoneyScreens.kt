@@ -507,6 +507,7 @@ fun CanonicalSavingsScreen(
                     }
                 }
             }
+            if (state.savingsHistory.isNotEmpty()) {
             item("savings-history-heading") {
                 MyFinHubSectionHeading(
                     title = "Πρόσφατη αποταμίευση",
@@ -515,15 +516,6 @@ fun CanonicalSavingsScreen(
                     tone = FinanceTone.Savings,
                 )
             }
-            if (state.savingsHistory.isEmpty()) {
-                item("savings-history-empty") {
-                    Text(
-                        "Δεν υπάρχουν κινήσεις αποταμίευσης για αυτή την περίοδο.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
                 // Web history may contain duplicate legacy IDs. Compose identity is
                 // presentation-only: never expose any row as an unsafe mutation target.
                 itemsIndexed(state.savingsHistory, key = { index, row ->

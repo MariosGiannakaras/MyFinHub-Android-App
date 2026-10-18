@@ -38,6 +38,8 @@ class WebSavingsGoalComposeTest {
             ),
         )
         rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
+        // No synthetic history placeholder should disturb a genuinely empty savings month.
+        rule.onNodeWithText("Πρόσφατη αποταμίευση").assertDoesNotExist()
         rule.onNodeWithTag("savings_goal_old").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Η υπάρχουσα προθεσμία έχει παρέλθει:",substring=true)
             .performScrollTo().assertIsDisplayed()
