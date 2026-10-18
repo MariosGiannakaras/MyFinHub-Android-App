@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performClick
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
@@ -35,8 +36,10 @@ class WebCategoryBudgetComposeTest {
             .performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("s7_category_budget_remaining_0")
             .assertIsDisplayed()
-        rule.onNodeWithTag("s7_category_budget_more")
-            .performScrollTo().performClick()
+        // The 25th LazyColumn item is initially beyond the composed viewport.
+        // Scroll the LazyList by index so Compose materializes the button.
+        rule.onNodeWithTag("s7_budget_root").performScrollToIndex(25)
+        rule.onNodeWithTag("s7_category_budget_more").performClick()
         rule.onNodeWithTag("s7_category_budget_25")
             .performScrollTo().assertIsDisplayed()
     }
