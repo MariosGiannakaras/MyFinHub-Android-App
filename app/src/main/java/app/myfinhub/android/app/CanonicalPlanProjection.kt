@@ -17,11 +17,13 @@ import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.categoryBudgetSpending
 import app.myfinhub.android.core.data.webBudgetProgress
+import app.myfinhub.android.core.data.canonicalTransactionRuleOverview
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.CategoryBudget
 import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlanningRule
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
@@ -142,6 +144,15 @@ internal fun projectCanonicalPlanState(
                 accountsWithLowBalance = f.accounts.count { it.firstLowDate != null },
                 accountsWithNegativeBalance = f.accounts.count { it.firstNegativeDate != null },
                 omittedSourceCount = f.omitted.size,
+            )
+        },
+        // Read-only Web Settings > Rules. Existing history is never rewritten.
+        rules = document.canonicalTransactionRuleOverview().map { entry ->
+            PlanningRule(
+                id = entry.id, title = entry.name,
+                description = "Όταν " + entry.condition + " · Τότε " +
+                    entry.action + " · " + entry.scopeLabel,
+                enabled = entry.enabled, warning = entry.invalidReason,
             )
         },
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
