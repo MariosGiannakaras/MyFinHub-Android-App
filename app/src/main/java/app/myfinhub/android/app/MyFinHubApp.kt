@@ -168,6 +168,23 @@ internal fun MyFinHubAppContent(
     noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
     onLogout: (() -> Unit)? = null,
 ) {
+    // Display server-owned provider names only for exact canonical provider IDs.
+    // Never use a matching label as a surrogate owner ID or load an unverified URL.
+    val homeProviderState = remember(homeState, financialProviderCatalog) {
+        homeState.copy(accounts = homeState.accounts.map { account ->
+            account.copy(institution = canonicalCatalogProviderName(
+                account.providerId, account.institution, financialProviderCatalog,
+            ))
+        })
+    }
+    val moneyProviderState = remember(moneyState, financialProviderCatalog) {
+        moneyState.copy(accounts = moneyState.accounts.map { account ->
+            account.copy(institution = canonicalCatalogProviderName(
+                account.providerId, account.institution, financialProviderCatalog,
+            ))
+        })
+    }
+
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
     var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }
     var insightsPeriodId by rememberSaveable { mutableStateOf(insightsState.defaultPeriodId) }
@@ -203,7 +220,7 @@ internal fun MyFinHubAppContent(
             entryProvider = entryProvider {
                 entry<AppRoute.Home> {
                     ProductionHomeScreen(
-                        state = homeState,
+                        state = homeProviderState,
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
                         onAction = onHomeAction,
@@ -363,7 +380,7 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.Money> {
                     CanonicalWalletScreen(
-                        state = moneyState,
+                        state = moneyProviderState,
                         accountsRequest = walletAccountsRequest,
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         accountMetadata = accountMetadata,
@@ -393,7 +410,7 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.AccountDetail> { route ->
-                    val account = moneyState.accounts.firstOrNull { it.id == route.accountId }
+                    val account = moneyProviderState.accounts.firstOrNull { it.id == route.accountId }
                     CanonicalAccountDetailScreen(
                         account = account,
                         ibanRecord = accountMetadata[route.accountId],
@@ -413,7 +430,7 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.NetPosition> {
                     CanonicalNetPositionScreen(
-                        state = moneyState,
+                        state = moneyProviderState,
                         onBack = { moneyBackStack.removeLastOrNull() },
                     )
                 }
