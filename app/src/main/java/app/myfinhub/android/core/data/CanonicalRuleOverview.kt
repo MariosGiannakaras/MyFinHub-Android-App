@@ -1,5 +1,7 @@
 package app.myfinhub.android.core.data
 
+import java.text.Collator
+import java.util.Locale
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -33,9 +35,14 @@ fun CanonicalFinanceDocument.canonicalTransactionRuleOverview(): List<CanonicalR
         "imported" to "εισαγωγή",
         "review" to "επιβεβαίωση από έλεγχο",
     )
+    val idCollator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
     return state.array("transactionRules").mapNotNull { it as? JsonObject }
-        .sortedWith(compareBy<JsonObject> { it.number("priority") ?: Double.POSITIVE_INFINITY }
-            .thenBy { it.string("id").orEmpty() })
+        .sortedWith(Comparator { a,b ->
+            val priority = (a.number("priority") ?: Double.POSITIVE_INFINITY)
+                .compareTo(b.number("priority") ?: Double.POSITIVE_INFINITY)
+            if (priority != 0) priority
+            else idCollator.compare(a.string("id").orEmpty(),b.string("id").orEmpty())
+        })
         .map { rule ->
             val match = rule.obj("match")
             val action = rule.obj("action")

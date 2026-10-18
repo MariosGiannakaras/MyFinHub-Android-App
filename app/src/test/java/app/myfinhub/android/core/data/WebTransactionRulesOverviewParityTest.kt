@@ -44,6 +44,25 @@ class WebTransactionRulesOverviewParityTest {
         assertNotNull(rules.last().invalidReason)
     }
 
+    @Test fun overviewAndMatchingUseLocaleOrderForEqualGreekPriorities() {
+        val rules=Json.parseToJsonElement("""
+            {"seed":{},"state":{"settings":{},"transactionRules":[
+                {"id":"Ζήτα","name":"Zeta","priority":5,"enabled":true,
+                 "scopes":["manual"],"match":{"description":"shop"},"action":{"note":"B"}},
+                {"id":"άλφα","name":"Alpha","priority":5,"enabled":true,
+                 "scopes":["manual"],"match":{"description":"shop"},"action":{"note":"A"}}
+            ]}}
+        """.trimIndent()).jsonObject
+        val document=CanonicalFinanceDocument(rules)
+        assertEquals(listOf("άλφα","Ζήτα"),
+            document.canonicalTransactionRuleOverview().map { it.id })
+        val event=Json.parseToJsonElement(
+            """{"kind":"expense","source":"user","note":"shop"}"""
+        ).jsonObject
+        assertEquals(listOf("άλφα","Ζήτα"),
+            document.canonicalMatchingTransactionRuleIds(event))
+    }
+
     @Test fun invalidRuleFlagsDoNotRewriteExistingTransactions() {
         val before=doc.raw
         val rows=doc.canonicalTransactionRuleOverview()
