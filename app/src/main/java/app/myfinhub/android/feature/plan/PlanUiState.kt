@@ -107,6 +107,7 @@ data class PlanningRule(
     val title: String,
     val description: String,
     val enabled: Boolean,
+    val warning: String? = null,
 )
 
 data class ForecastWindow(
