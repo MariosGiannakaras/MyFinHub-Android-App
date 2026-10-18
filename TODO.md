@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator on draft PR #260; fix same PR and merge only when 4/4 green. Continue W5.1 dynamic provider metadata and approved art contracts without remote URL assumptions; continue W4.4 drilldowns and W5.2 session consistency. No physical owner acceptance, signed release, SMS import, destructive card deletion or Web/backend/schema changes.
+- [ ] Check all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #261; fix on same PR and merge only after all four green. Continue W5.1 trusted provider asset visual binding/metadata and W5.2 owner session sync consistency in separate coherent batches. No Web/backend/schema edits, physical signoff inference, SMS import, signed release or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #260, branch android/w5-1-provider-brand-identity-20261019
-Current W5.1: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #258 month-to-date Web expense counterparties grouping, privacy and financial golden vectors passed four gates and merged develop 21e4932bab39fe25219e0946bd52f0361f222e95. PR #259 Web categoryMomentum top-ten subcategory month comparison, split/refund/legacy impact, future cutoff, full prior-month comparison and null new-category baseline, native Insights, JVM domain/production projection and S24 Compose regressions passed all four exact-head gates at 5f30c9abff628b503dfa4e491ffb0aa260e0d7b1; squash merged develop 3c71a366ad01c8e6f77f167bfaa93fd66bc65df5. Draft PR #260 fixes explicit owner providerId over misleading known-bank account labels and canonical card bankId over nickname across native Home/Wallet/account/card mark surfaces, plus exact Web Greek locale tie order in dynamic owner provider catalog, JVM golden tests. Four immutable-final-head CI gates pending, no physical Galaxy S24 owner approval, no external artwork rendering or signed release.
+Issue #155, PR #261, branch android/w5-1-live-provider-catalog-labels-20261019
+Current W5.1: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #259 Web categoryMomentum monthly subcategory comparisons, split/refund/date semantics and JVM/S24 Compose golden tests passed 4/4 and squash merged develop 3c71a366ad01c8e6f77f167bfaa93fd66bc65df5. PR #260 enforces canonical providerId/bankId over misleading labels in Home/Wallet/card marks, Greek localeCompare financial catalog ties and JVM tests passed all four Project Tracking, Android CI unit/lint/unsigned release, screenshot and S24 emulator immutable-head gates at 6d841a11331b2a93093c8854b59fbbf69b61b170; squash merged develop fafce821bc0fe502834eb2354c9c9f8672f59ac2. Draft PR #261 projects exact-match AAL2 owner dynamic provider catalog display names to Home, Wallet, account detail and net position while preserving canonical unknown ID fallback and approved local marks; JVM goldens, no finance history rewrite or external artwork URLs. Four exact-head CI gates pending, provider certified assets and physical S24 owner approval still gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator on draft PR #260; fix same PR and merge only when 4/4 green. Continue W5.1 dynamic provider metadata and approved art contracts without remote URL assumptions; continue W4.4 drilldowns and W5.2 session consistency. No physical owner acceptance, signed release, SMS import, destructive card deletion or Web/backend/schema changes.
+Next Check all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #261; fix on same PR and merge only after all four green. Continue W5.1 trusted provider asset visual binding/metadata and W5.2 owner session sync consistency in separate coherent batches. No Web/backend/schema edits, physical signoff inference, SMS import, signed release or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
