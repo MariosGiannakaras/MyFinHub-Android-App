@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #246 Web Pay & Save operational Home and Insights parity passed all four exact-head Project Tracking, Android CI unit/lint/unsigned, screenshot regression and S24 emulator gates on 9f88d0ea58ecce4ab94725073b58e5bedb9af410; squash merged develop 70bfbd8fdf9c534b5bea832f21799fa5d86f33e6. Draft PR #247 stages native read-only monthly savings history with notes/sources, privacy masking, duplicate-safe Compose and Web goldens. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; W3.1/W6.2 physical S24 acceptance, W5.1 provider assets, W2.4 permanent card deletion and signed release remain gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #247 native Web savings history and note/source display passed 4/4 immutable-head Project Tracking, Android CI unit/lint/unsigned release, screenshots and S24 emulator gates on f4094a1273214d2267eac32297a9763ade909dcd; squash merged develop 818b44f1b34fbeb92d39850648f714d1f1fc242a. Draft PR #248 fixes native Quick Entry saving provenance as explicit Web manual_transfer rather than misclassified cash_offset with replay-safe golden regressions. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; real S24 owner visual acceptance, provider artwork, guarded permanent card deletion and release remain gated.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #247; repair failures within the same PR, merge only after 4/4 green. Resume W3.2 event/classification parity and remaining W4.3 savings/budget acceptance. No signed release, SMS import, destructive card UI, Web/backend changes or physical owner signoff by inference.
+1. Validate exact final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for draft PR #248; fix within the same PR, merge only if all four successful. Resume W3.2 classification and W4.3 savings/budget end-to-end acceptance; owner physical S24 review, certified provider assets, permanent card deletion and signed release remain gated. No SMS import or Web/backend/schema modification.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #247, branch android/w4-3-native-savings-history-web-20261018
-Current W4.3: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #244 Web lending history merged develop ec7db48a25d6dbb40c2106097f71f374cc16d14a after all four exact-head gates. PR #246 Web operational Pay & Save Home/Insights, signed net, month cutoff/30/90-day comparisons and JVM goldens passed Project Tracking, Android CI unit/lint/unsigned, screenshot regression, S24 emulator at head 9f88d0ea58ecce4ab94725073b58e5bedb9af410; squash merged develop 70bfbd8fdf9c534b5bea832f21799fa5d86f33e6. Draft PR #247 adds Web `savingsHistoryPresentation` and 12 latest current-month Pay & Save/manual/cash savings rows to native Savings, preserves optional routing identifiers, explicit zero-saving, custom notes, duplicate historic IDs and amount privacy, with domain, Money and S24 Compose regressions. Code/tests staged; 4/4 final-head CI pending. No finance mutation, schema, signed release, or owner physical acceptance.
+Issue #155, PR #248, branch android/w4-3-savings-source-quick-entry-20261018
+Current W4.3: Verified Web parity 1/6 accepted workstreams · 11/24 subtasks. PR #246 Web operational Pay & Save Home/Insights projections merged develop 70bfbd8fdf9c534b5bea832f21799fa5d86f33e6 with all four exact-head gates. PR #247 native Web savingsHistoryPresentation + 12 current-month note/source entries, stable duplicate historical row keys and privacy, JVM Money and S24 Compose goldens passed Project Tracking, Android CI unit/lint/unsigned release, screenshot regression and S24 emulator 4/4 at immutable head f4094a1273214d2267eac32297a9763ade909dcd; squash merged develop 818b44f1b34fbeb92d39850648f714d1f1fc242a. Draft PR #248 enforces and writes explicit canonical Web SavingSource=manual_transfer for native Quick Entry SAVING bank-to-savings transactions, retains legacy inference, rejects malformed source/kind and tests note, dates, savings totals, exactly-once replay. Code/tests staged, final-head CI pending. W4.3 remains partial; no production finance edits, backend/schema, owner physical signoff, or signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #247; repair failures within the same PR, merge only after 4/4 green. Resume W3.2 event/classification parity and remaining W4.3 savings/budget acceptance. No signed release, SMS import, destructive card UI, Web/backend changes or physical owner signoff by inference.
+Next Validate exact final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator for draft PR #248; fix within the same PR, merge only if all four successful. Resume W3.2 classification and W4.3 savings/budget end-to-end acceptance; owner physical S24 review, certified provider assets, permanent card deletion and signed release remain gated. No SMS import or Web/backend/schema modification.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
