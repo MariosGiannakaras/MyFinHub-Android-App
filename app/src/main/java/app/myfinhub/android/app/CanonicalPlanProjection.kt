@@ -172,6 +172,9 @@ internal fun projectCanonicalPlanState(
                     monthlyLimitText = row.limit.toPlainPlanMoney(),
                     alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
                     spent = row.used,
+                    rawSpent = row.rawUsed,
+                    remaining = row.remaining,
+                    status = row.status,
                 )
             },
         budget = BudgetDraft(
