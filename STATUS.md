@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #253 Web locale-aware Greek equal-priority rule ID first-match ordering across event classification/Settings and explicit 24-rule pagination passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator on e97843e7cfd8371f524e669140252e98b895452a; squash merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. Draft PR #254 stages Web active recurring upcoming due-date then Greek-name ordering, original inactive/paused/stopped order, linked payment count/last date/typical day and service end-date display with JVM/Compose regressions. W3.2/W4.1/W4.2/W4.3/W4.4 partial; physical S24 owner acceptance, certified provider artwork, guarded permanent card deletion and signed release remain gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #254 recurring Web next-due/date then Greek-name ordering, inactive original sequence, linked payment count/latest date/typical day and renewal metadata with JVM and S24 Compose regressions passed 4/4 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 0975258759ee430917623791190262d65483d2ca; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. Draft PR #255 enforces active-only recurring payment and valid non-credit account routing, Web recurringAccountChoice preference/fallback, no-account fail-closed UI with 5 JVM and 2 Compose regression tests. W3.2/W4.1/W4.2/W4.3/W4.4 remain partial; physical owner S24 acceptance, provider artwork, guarded permanent card deletion and signed release still gated.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #254 four immutable-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix same PR and merge only after all four success; then continue W4.1 recurring lifecycle/Web management edge parity and W4.3 finance budgets. No Web/backend/schema change, SMS import, release/signature or physical S24 owner approval inferred.
+1. Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #254, branch android/w4-1-recurring-due-order-payment-history-20261018
-Current W4.1: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #251 native Web transaction rules in Settings merged bf5f7cdce37d328f0ab3c11f1e99d59f60e2e553 after 4/4 exact-head gates. PR #253 Web JS localeCompare Greek equal-priority rule IDs across matching and overview, explicit 24-at-a-time Settings list, JVM and S24 Compose goldens passed 4/4 immutable head e97843e7cfd8371f524e669140252e98b895452a and squash merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. Draft PR #254 native recurring management now projects Web recurringUpcoming active next due date/name ordering, inactive canonical original order, stored linked payments count/last payment date/typical day and optional service end/renewal, with historical duplicated ID action guard intact, JVM canonical goldens and Compose read-only metadata test. All four exact-head CI gates pending; no physical S24 owner signoff or signed release.
+Issue #155, PR #255, branch android/w4-1-recurring-safe-pay-accounts-20261018
+Current W4.1: Verified Web parity 1/6 implementations · 11/24 completed subtasks. PR #253 Web Greek locale-aware equal-priority rule first-match + 24-item native pagination passed 4/4 and merged develop e6792a506f0253acc2358f4b74f295d2e172f1b1. PR #254 Web recurringUpcoming active due-ordered/Greek named and inactive original order, linked recurringPayments count/latest/typical day, expiry/renewal native S24 Compose metadata and Web-derived JVM goldens passed all 4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 0975258759ee430917623791190262d65483d2ca; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. Draft PR #255 new native linked recurring Quick Entry source selection matches Web recurringAccountChoice: selected eligible item account, default eligible expense account, first non-credit available; malformed/credit-only lists fail closed, paused/stopped disallowed in both UI and route. 5 JVM account-goldens and 2 Compose goldens staged. Four exact-head CI gates pending, physical S24 owner acceptance not implied.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #254 four immutable-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix same PR and merge only after all four success; then continue W4.1 recurring lifecycle/Web management edge parity and W4.3 finance budgets. No Web/backend/schema change, SMS import, release/signature or physical S24 owner approval inferred.
+Next Validate exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #255; fix same PR and merge only if four successful. Continue W4.1 payment/recurring acceptance and W4.3 savings/budget category parity. No physical owner S24 signoff inferred, no signed release, SMS import, Web/backend/schema changes, or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
