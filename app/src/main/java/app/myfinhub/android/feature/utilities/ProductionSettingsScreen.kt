@@ -75,6 +75,7 @@ fun ProductionSettingsScreen(
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
+    var visibleRuleCount by remember(transactionRules) { mutableStateOf(24) }
     val confirmDevice = deviceSessions.singleOrNull {
         it.sessionId == pendingDeviceRevokeId && !it.current
     }
@@ -218,7 +219,7 @@ fun ProductionSettingsScreen(
                         )
                         // Web renders 24 rules per page. Avoid materializing
                         // thousands of Composables in a vertical scroll Column.
-                        transactionRules.take(24).forEachIndexed { index, rule ->
+                        transactionRules.take(visibleRuleCount).forEachIndexed { index, rule ->
                             Column(
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("s9_transaction_rule_$index"),
@@ -237,14 +238,21 @@ fun ProductionSettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            if (index < 23 && index < transactionRules.lastIndex)
+                            if (index < visibleRuleCount - 1 && index < transactionRules.lastIndex)
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
-                        if (transactionRules.size > 24) Text(
-                            "Εμφανίζονται οι πρώτοι 24 από ${transactionRules.size} κανόνες.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        if (transactionRules.size > visibleRuleCount) {
+                            MyFinHubOutlinedAction(
+                                label = "Εμφάνιση περισσότερων κανόνων (" +
+                                    (transactionRules.size - visibleRuleCount) + ")",
+                                onClick = {
+                                    visibleRuleCount = (visibleRuleCount + 24)
+                                        .coerceAtMost(transactionRules.size)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_transaction_rules_more"),
+                            )
+                        }
                     }
                 }
             }
