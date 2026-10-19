@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #263; repair same PR and merge only if four successful. Continue W5.4 settings/history completeness and W5.2 read-only session/sync consistency. No physical device signoff, Web/backend/schema changes, SMS import, destructive permanent card delete or signed release.
+- [ ] Verify exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator gates on draft PR #264; repair and merge only after 4/4 green. Continue W5.2 owner/bearer/AAL session and offline reconciliation parity, W5.1 certified provider visual assets; no silent retries of NEEDS_REVIEW, Web/backend/schema edits, SMS import, destructive permanent card deletion, new signed release or invented physical owner acceptance.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #263, branch android/w5-4-server-history-readonly-pagination-20261019
-Current W5.4: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #261 live owner provider labels passed all four immutable-head gates and merged develop 46ae58d0dcb6838ecf35ca34d11ddb1c9c110098. PR #262 owner+AAL2 IBAN Unicode whitespace and If-Match MockWebServer parity passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at exact head 18ce3d0884881fab886237116100e95fba57fcd7; squash merged develop fd3655d2a76d8350958c0bd7bd5b7363e4ecaf21. Draft PR #263 read-only Web server history summary exposes latest-first 24-page progressive older rows instead of silent last-eight cutoff; server generation/revision reset, explicitly independent canUndo/canRedo flags, counts, masked labels; no actual Undo/Redo or finance snapshots, JVM and S24 Compose regression tests staged. Four exact-head CI gates pending, W5.4 partially accepted, physical S24 owner review not inferred.
+Issue #155, PR #264, branch android/w5-2-session-authorization-boundary-20261019
+Current W5.2: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #262 Web owner IBAN Unicode whitespace passed 4/4 and merged develop fd3655d2a76d8350958c0bd7bd5b7363e4ecaf21. PR #263 read-only Web GET /api/history, 24-by-24 latest-first browsing and server revision reset, separate canUndo/canRedo, empty and read-only privacy tests passed all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at a6d3c701293a06033c10eead8f9259e8deff38ed, squash merged develop d696f2418df1fde70b9816eee2d1b33fe86f3404. Draft PR #264 cancels stale FinanceProductViewModel reads/mutations when owner, bearer or AAL changes (including same owner/same token assurance transitions), drops only transient repository authority and forces safe re-fetch while preserving same-owner server-accepted encrypted cache and NEEDS_REVIEW mutation intents. Seven JVM boundary goldens; four exact-head CI gates pending, W5.2 partial and no physical Galaxy S24 owner acceptance.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #263; repair same PR and merge only if four successful. Continue W5.4 settings/history completeness and W5.2 read-only session/sync consistency. No physical device signoff, Web/backend/schema changes, SMS import, destructive permanent card delete or signed release.
+Next Verify exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator gates on draft PR #264; repair and merge only after 4/4 green. Continue W5.2 owner/bearer/AAL session and offline reconciliation parity, W5.1 certified provider visual assets; no silent retries of NEEDS_REVIEW, Web/backend/schema edits, SMS import, destructive permanent card deletion, new signed release or invented physical owner acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
