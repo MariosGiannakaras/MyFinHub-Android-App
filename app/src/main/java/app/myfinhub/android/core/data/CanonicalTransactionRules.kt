@@ -13,41 +13,58 @@ private val ruleEventKinds = setOf("expense", "refund", "income", "card_purchase
 private fun normalizeRuleText(value: String?): String =
     value.orEmpty().trim().lowercase(transactionRuleLocale)
 
-private fun CanonicalFinanceDocument.matchingCanonicalRules(event: JsonObject): List<JsonObject> {
+/** Web transactionRuleMatchingEvents forces only this rule enabled for history previews. */
+internal fun canonicalRuleMatchesEvent(
+    rule: JsonObject,
+    event: JsonObject,
+    ignoreEnabled: Boolean = false,
+): Boolean {
     val kind = event.string("kind").orEmpty()
-    if (kind !in ruleEventKinds) return emptyList()
+    if (kind !in ruleEventKinds || (!ignoreEnabled && rule.bool("enabled") != true))
+        return false
     val scope = when (event.string("source")) {
         "migration" -> "imported"
         "review" -> "review"
         else -> "manual"
     }
+    if (rule.array("scopes").none { (it as? JsonPrimitive)?.contentOrNull == scope })
+        return false
+    val action = rule.obj("action")
+    if (kind == "income" &&
+        (!action.string("category").isNullOrEmpty() || !action.string("subcategory").isNullOrEmpty())
+    ) return false
+    val match = rule.obj("match")
     val note = normalizeRuleText(event.string("note"))
+    val description = normalizeRuleText(match.string("description"))
+    val merchant = normalizeRuleText(match.string("merchant"))
+    val account = match.string("accountId").orEmpty().trim()
     val accountId = event.string("accountId")?.takeIf(String::isNotEmpty)
         ?: event.string("fromAccountId").orEmpty()
+    if (description.isNotEmpty()) {
+        val matched = if (match.string("mode") == "equals") note == description
+            else note.contains(description)
+        if (!matched) return false
+    }
+    if (merchant.isNotEmpty() && !note.contains(merchant)) return false
+    if (account.isNotEmpty() && accountId != account) return false
+    return description.isNotEmpty() || merchant.isNotEmpty() || account.isNotEmpty()
+}
+
+/**
+ * Web transactionRuleMatchingEvents counts only state.events, irrespective
+ * of rule.enabled, by previewing this one rule as enabled. Never applies
+ * any rule to historic activity or includes seeded legacy transactions.
+ */
+fun CanonicalFinanceDocument.canonicalHistoricalRuleMatchCount(rule: JsonObject): Int =
+    state.array("events").filterIsInstance<JsonObject>().count { event ->
+        canonicalRuleMatchesEvent(rule, event, ignoreEnabled = true)
+    }
+
+private fun CanonicalFinanceDocument.matchingCanonicalRules(event: JsonObject): List<JsonObject> {
     val idCollator = Collator.getInstance(transactionRuleLocale)
     return state.array("transactionRules")
         .filterIsInstance<JsonObject>()
-        .filter { rule ->
-            if (rule.bool("enabled") != true ||
-                rule.array("scopes").none { (it as? JsonPrimitive)?.contentOrNull == scope }
-            ) return@filter false
-            val action = rule.obj("action")
-            if (kind == "income" &&
-                (!action.string("category").isNullOrEmpty() || !action.string("subcategory").isNullOrEmpty())
-            ) return@filter false
-            val match = rule.obj("match")
-            val description = normalizeRuleText(match.string("description"))
-            val merchant = normalizeRuleText(match.string("merchant"))
-            val account = match.string("accountId").orEmpty().trim()
-            if (description.isNotEmpty()) {
-                val matched = if (match.string("mode") == "equals") note == description
-                    else note.contains(description)
-                if (!matched) return@filter false
-            }
-            if (merchant.isNotEmpty() && !note.contains(merchant)) return@filter false
-            if (account.isNotEmpty() && accountId != account) return@filter false
-            description.isNotEmpty() || merchant.isNotEmpty() || account.isNotEmpty()
-        }
+        .filter { rule -> canonicalRuleMatchesEvent(rule, event) }
         // Web uses String.localeCompare for equal priorities, not UTF-16
         // ordinal sorting (which misorders accented Greek and mixed-case IDs).
         .sortedWith(Comparator { a, b ->

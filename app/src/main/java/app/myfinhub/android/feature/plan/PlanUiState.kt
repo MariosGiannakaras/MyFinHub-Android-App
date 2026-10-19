@@ -115,6 +115,7 @@ data class PlanningRule(
     val description: String,
     val enabled: Boolean,
     val warning: String? = null,
+    val historicalMatchCount: Int = 0,
 )
 
 data class ForecastWindow(
