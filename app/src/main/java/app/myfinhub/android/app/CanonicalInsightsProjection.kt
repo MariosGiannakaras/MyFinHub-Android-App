@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
