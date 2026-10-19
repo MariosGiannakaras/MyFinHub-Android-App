@@ -39,6 +39,25 @@ data class InsightCategoryMomentum(
     val relativeChange: Double?,
 )
 
+/** Web reports.ts reportInsightModel month-specific signals, not rolling intervals. */
+data class InsightMonthlyReportSignals(
+    val incomeChange: Double?,
+    val expenseChange: Double?,
+    val savingChange: Double?,
+    val netFlow: Double,
+    val savingsRate: Double?,
+    val previousSavingsRate: Double?,
+    val trailingExpenseAverage: Double,
+    val expenseVsTrailingAverage: Double?,
+    val recurringMonthlyTotal: Double,
+    val recurringBurden: Double?,
+    val topCategoryName: String?,
+    val topCategoryAmount: Double?,
+    val topCategoryShare: Double?,
+    val topCategoryChange: Double?,
+    val sufficientExpenseHistory: Boolean,
+)
+
 data class InsightCounterparty(
     val title: String,
     val category: String,
@@ -91,6 +110,7 @@ data class InsightPeriodScope(
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
     /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
     val loanBurden: InsightsLoanBurden? = null,
+    val monthlyReportSignals: InsightMonthlyReportSignals? = null,
 )
 
 data class InsightsUiState(
