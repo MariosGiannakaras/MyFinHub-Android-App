@@ -81,6 +81,18 @@ class AccountMetadataApiContractTest {
         assertEquals(null, compactIban("not-an-iban"))
     }
 
+    @Test
+    fun unicodeBankStatementWhitespaceMatchesWebNormalizationAndChecksum() {
+        val expected = "GR1601101250000000012300695"
+        val formatted = "GR16\u00A00110\u202F1250\u20070000\uFEFF0001 2300\t695"
+        assertEquals(expected,normalizeIban(formatted))
+        assertTrue(isValidIban(formatted))
+        assertEquals("GR16 •••• •••• •••• 0695",compactIban(formatted))
+        assertEquals(null,normalizeIban("\u00A0\u202F\uFEFF\u2007"))
+        assertTrue(isValidIban("\u00A0\u202F\uFEFF"))
+        assertFalse(isValidIban("GR16\u00A00110 1250 0000 0001 2300 694"))
+    }
+
     private fun configuration(server: MockWebServer) = AppConfiguration(
         myFinHubApiBaseUrl = server.url("/").toString().removeSuffix("/"),
         supabaseUrl = "https://project.supabase.test",
