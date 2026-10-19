@@ -72,19 +72,25 @@ internal fun projectCanonicalInsightsState(
         contextLabel = "Κυλιόμενο διάστημα 90 ημερών",
     )
 
-    val trend = (3L downTo 0L).map { offset -> currentMonth.minusMonths(offset) }.map { month ->
+    // Web ReportsPage: reportFlowSeries(data, month, 6, asOf) + cumulativeSeries.
+    var cumulativeNet = 0.0
+    val trend = (5L downTo 0L).map { offset -> currentMonth.minusMonths(offset) }.map { month ->
         val partial = month == currentMonth && today.dayOfMonth < currentMonth.lengthOfMonth()
         val flow = if (month == currentMonth) {
             document.canonicalOperationalFlowBetween(month.atDay(1).toString(), currentEnd.toString())
         } else {
             document.canonicalOperationalMonthlyFlow(month.toString())
         }
+        cumulativeNet += flow.income - flow.expense
         TrendPoint(
             label = insightsMonthLabel(month),
             income = flow.income,
             expense = flow.expense,
             isPartial = partial,
             periodDetail = if (partial) "έως ${insightsDayMonthLabel(today)}" else null,
+            monthIso = month.toString(),
+            saving = flow.saving,
+            cumulativeNet = cumulativeNet,
         )
     }
     val completedMonthSpend = trend.filterNot(TrendPoint::isPartial).map(TrendPoint::expense)
