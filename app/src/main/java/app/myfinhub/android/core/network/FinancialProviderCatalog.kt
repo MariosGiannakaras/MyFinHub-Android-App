@@ -148,6 +148,7 @@ internal fun parseFinancialProviderCatalog(
                     asset["sizeBytes"] !is kotlinx.serialization.json.JsonNull &&
                     (sizeBytes == null || sizeBytes < 0 || sizeBytes > 2_097_152))
                     return@mapNotNull null
+                if (trustedAssets.any { it.assetKey == key }) return@mapNotNull null
                 trustedAssets += TrustedProviderAssetReference(key,role,variant,url,mimeType,sizeBytes)
             }
             val assetKeys=trustedAssets.map { it.assetKey }.toSet()
@@ -163,6 +164,11 @@ internal fun parseFinancialProviderCatalog(
                     ?: return@mapNotNull null
                 val assetKey=b("assetKey")?.takeIf(assetKeys::contains)
                     ?: return@mapNotNull null
+                // A bound "card-mark" must never substitute a "logo" asset, even
+                // when a compromised response declares a valid assetKey.
+                if (trustedAssets.none { it.assetKey == assetKey && it.role == role } ||
+                    trustedBindings.any { it.role == role && it.variant == variant }
+                ) return@mapNotNull null
                 trustedBindings += TrustedProviderAssetBinding(role,variant,assetKey)
             }
         }
