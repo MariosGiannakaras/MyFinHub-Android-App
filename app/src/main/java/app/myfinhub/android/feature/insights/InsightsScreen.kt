@@ -202,6 +202,52 @@ fun InsightsScreen(
                     }
                 }
             }
+            if (scope.monthlyRates != null) {
+                item("report-monthly-rates") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_monthly_rates"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text(
+                                "Μηνιαίοι δείκτες",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Ποσοστό αποταμίευσης: " +
+                                    (scope.monthlyRates.savingsRate?.let {
+                                        (it * 100.0).roundToInt().toString() + "%"
+                                    } ?: "—") +
+                                    " · προηγούμενος μήνας: " +
+                                    (scope.monthlyRates.previousSavingsRate?.let {
+                                        (it * 100.0).roundToInt().toString() + "%"
+                                    } ?: "—"),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.testTag("insights_savings_rate"),
+                            )
+                            Text(
+                                "Μέσο έξοδο 3 πλήρων μηνών: " +
+                                    amountVisibilityText(
+                                        formatEuro(scope.monthlyRates.trailingExpenseAverage),
+                                        amountsVisible,
+                                    ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("insights_trailing_expense_average"),
+                            )
+                            Text(
+                                "Τρέχουσα δαπάνη έναντι μέσου: " +
+                                    (scope.monthlyRates.expenseVsTrailingAverage?.let {
+                                        (if (it > 0.0) "+" else "") +
+                                            (it * 100.0).roundToInt() + "%"
+                                    } ?: "Χωρίς προηγούμενη βάση"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,

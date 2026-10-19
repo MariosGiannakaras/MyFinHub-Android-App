@@ -11,6 +11,7 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
+import app.myfinhub.android.feature.insights.InsightMonthlyRates
 import app.myfinhub.android.feature.insights.InsightCategoryMomentum
 import app.myfinhub.android.feature.insights.InsightPeriodScope
 import app.myfinhub.android.feature.insights.InsightsComparison
@@ -122,6 +123,28 @@ private fun buildInsightsScope(
     }
     val current = document.canonicalOperationalFlowBetween(start.toString(), end.toString())
     val previous = document.canonicalOperationalFlowBetween(comparisonStart.toString(), comparisonEnd.toString())
+    // Web reportInsightModel compares a month-to-date numerator to THREE
+    // complete previous calendar months (not three equivalent-day windows).
+    val rates = if (id == INSIGHTS_PERIOD_MONTH) {
+        val month = YearMonth.from(end)
+        val prior = document.canonicalOperationalMonthlyFlow(month.minusMonths(1).toString())
+        val trailing = (1L..3L).map { offset ->
+            document.canonicalOperationalMonthlyFlow(month.minusMonths(offset).toString()).expense
+        }.average()
+        val savingChange = when {
+            prior.saving == 0.0 && current.saving == 0.0 -> 0.0
+            prior.saving == 0.0 -> null
+            else -> (current.saving - prior.saving) / kotlin.math.abs(prior.saving)
+        }
+        InsightMonthlyRates(
+            savingsRate = if (current.income > 0) current.saving / current.income else null,
+            previousSavingsRate = if (prior.income > 0) prior.saving / prior.income else null,
+            trailingExpenseAverage = trailing,
+            expenseVsTrailingAverage = if (trailing > 0)
+                (current.expense - trailing) / trailing else null,
+            savingChange = savingChange,
+        )
+    } else null
     return InsightPeriodScope(
         id = id,
         label = label,
@@ -137,6 +160,7 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        monthlyRates = rates,
         categoryMomentum = if (id == INSIGHTS_PERIOD_MONTH)
             document.canonicalReportCategoryMomentum(
                 month = YearMonth.from(end).toString(), asOf = end.toString(),

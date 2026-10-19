@@ -48,6 +48,15 @@ data class InsightCounterparty(
     val lastDateIso: String,
 )
 
+/** Web reportInsightModel: month-to-date savings and expense trend health. */
+data class InsightMonthlyRates(
+    val savingsRate: Double?,
+    val previousSavingsRate: Double?,
+    val trailingExpenseAverage: Double,
+    val expenseVsTrailingAverage: Double?,
+    val savingChange: Double?,
+)
+
 data class InsightsComparison(
     val currentLabel: String,
     val previousLabel: String,
@@ -76,6 +85,7 @@ data class InsightPeriodScope(
     val counterparties: List<InsightCounterparty> = emptyList(),
     /** Web Reports categoryMomentum compares complete calendar months. */
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
+    val monthlyRates: InsightMonthlyRates? = null,
 )
 
 data class InsightsUiState(
