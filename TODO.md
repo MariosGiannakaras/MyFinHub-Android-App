@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #271; fix same PR and merge after all four pass. Then continue W4.4 Reports cumulative timeline/detailed drilldown, W5.4 settings and W5.2 session parity without competing noisy CI. No physical owner S24 acceptance, unauthorized signed release, Web/backend/schema edits, SMS import or permanent card deletion.
+- [ ] Validate final exact-head four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #272. Fix same PR and merge after 4/4 green; continue W4.3 loan obligations/report coverage, W5.2 and W5.4 parity independently without noisy parallel PR CI. No physical S24 owner signoff assumed, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #271, branch android/w4-4-six-month-flow-series-20261019
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #269 FinanceRepository owner-session stale async read/write generation guard passed 4/4 and merged develop 76f11360ded2672a4e379081bae26be9c078542a. PR #270 native read-only canonical Web rule historical matching-event preview counts for enabled/paused scopes and shared first-match matcher passed all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at fe8a0acf0275c4be5ba4308cced3101eea0c27ec; squash merged develop fd4849e26b1668369ef268b268e91bf9c3d14f26. Draft PR #271 native six-month Web Reports reportFlowSeries with canonical income, expense, saving and cumulative net, across-year chronological identities, current month as-of cutoff, responsive S24 chart and six-row privacy-aware accessible text fallback; JVM and S24 Compose regressions staged. Final four CI gates pending, W4.4 partial; real owner physical S24 signoff and signed release not inferred.
+Issue #155, PR #272, branch android/w4-3-web-loan-burden-20261019
+Current W4.3: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #270 rules historical matching counts passed 4/4 and merged develop fd4849e26b1668369ef268b268e91bf9c3d14f26. PR #271 Web Reports six calendar-month income/expense/saving, cumulative net and cross-year as-of parity, responsive native S24 chart and six-row privacy-aware accessible detail with JVM/Compose regressions passed all 4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 8ca5640b81ef60376b401f6f1b54b7b89bbcbc50; squash merged develop 706100193c12349df8c03067368206070c8d6dcd. Draft PR #272 implements Web reportLoanBurden active long-term next installment, remaining balance/installments as-of, explicit longTermRecurring opt-out, short/self exclusion, historical duplicate identity read-only, Greek typical due-day/name sorting, native monthly Insights privacy UI, domain/projection JVM and Compose goldens; immutable-head 4 CI gates pending. W4.3 remains partial, real owner S24 acceptance and signed release not inferred.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #271; fix same PR and merge after all four pass. Then continue W4.4 Reports cumulative timeline/detailed drilldown, W5.4 settings and W5.2 session parity without competing noisy CI. No physical owner S24 acceptance, unauthorized signed release, Web/backend/schema edits, SMS import or permanent card deletion.
+Next Validate final exact-head four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates of draft PR #272. Fix same PR and merge after 4/4 green; continue W4.3 loan obligations/report coverage, W5.2 and W5.4 parity independently without noisy parallel PR CI. No physical S24 owner signoff assumed, signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

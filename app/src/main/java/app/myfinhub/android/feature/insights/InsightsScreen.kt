@@ -202,6 +202,53 @@ fun InsightsScreen(
                     }
                 }
             }
+            if (scope.loanBurden != null && scope.loanBurden.count > 0) {
+                item("loan-burden") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_loan_burden"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text(
+                                "Επόμενες δόσεις δανείων",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Ενεργά μακροχρόνια δάνεια · συνολική επόμενη δόση: " +
+                                    amountVisibilityText(
+                                        formatEuro(scope.loanBurden.total), amountsVisible,
+                                    ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.testTag("insights_loan_burden_total"),
+                            )
+                            scope.loanBurden.rows.forEachIndexed { index, row ->
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("insights_loan_burden_row_" + index),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(row.name, style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        "Επόμενη: " +
+                                            amountVisibilityText(
+                                                formatEuro(row.nextAmount), amountsVisible,
+                                            ) + " · Υπόλοιπο: " +
+                                            amountVisibilityText(
+                                                formatEuro(row.outstanding), amountsVisible,
+                                            ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                    Text(
+                                        "Εναπομείνασες δόσεις: " + row.remainingInstallments,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,
