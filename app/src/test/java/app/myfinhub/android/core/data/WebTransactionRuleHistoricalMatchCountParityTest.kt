@@ -55,6 +55,30 @@ class WebTransactionRuleHistoricalMatchCountParityTest {
         assertEquals(original,document.raw)
     }
 
+    @Test fun historicalMatchCountIncludesImportedAndReviewOnlyWhenRuleScopeAllowsThem() {
+        val doc=CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"transactionRules":[
+            {"id":"review","name":"Review", "enabled":true,"priority":0,
+             "scopes":["review"],"match":{"description":"market"},
+             "action":{"note":"reviewed"}},
+            {"id":"import","name":"Imported", "enabled":false,"priority":1,
+             "scopes":["imported"],"match":{"description":"market"},
+             "action":{"category":"Τρόφιμα"}}
+          ],"events":[
+            {"id":"r1","kind":"expense","source":"review","date":"2026-10-09",
+             "amount":1,"note":"market"},
+            {"id":"i1","kind":"expense","source":"migration","date":"2026-10-09",
+             "amount":1,"note":"market"},
+            {"id":"m1","kind":"expense","date":"2026-10-09",
+             "amount":1,"note":"market"}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val before=doc.raw
+        val list=doc.canonicalTransactionRuleOverview()
+        assertEquals(listOf(1,1),list.map { it.historicalMatchCount })
+        assertEquals(before,doc.raw)
+    }
+
     @Test fun disabledRuleStillExcludedFromFirstMatchSubmission() {
         val newEntry=Json.parseToJsonElement("""
           {"kind":"expense","note":"market","accountId":"cash","amount":12}
