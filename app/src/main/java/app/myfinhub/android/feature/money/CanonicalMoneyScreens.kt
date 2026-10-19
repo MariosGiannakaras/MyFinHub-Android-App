@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +52,9 @@ import app.myfinhub.android.designsystem.MyFinHubHeroMetric
 import app.myfinhub.android.designsystem.MyFinHubHeroValue
 import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubProviderMark
+import app.myfinhub.android.designsystem.MyFinHubCertifiedProviderMark
+import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
+import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -178,8 +182,21 @@ fun CanonicalMoneyScreen(
                                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
+                                    val ownerRecord=LocalFinancialProviderCatalog.current.firstOrNull {
+                                        it.id == account.providerId
+                                    }
+                                    val tone=if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
+                                        "dark" else "light"
+                                    val certified=ownerRecord?.certifiedBrandAsset("logo",tone)
                                     val provider = financialProviderForAccount(account.id, account.institution ?: account.name, account.providerId)
-                                    if (provider != null) {
+                                    if (ownerRecord != null && certified != null) {
+                                        MyFinHubCertifiedProviderMark(
+                                            providerId=ownerRecord.id,asset=certified,
+                                            fallbackLabel=ownerRecord.shortName,
+                                            modifier=Modifier.size(34.dp),
+                                            contentDescription=ownerRecord.displayName,
+                                        )
+                                    } else if (provider != null) {
                                         MyFinHubProviderMark(provider, modifier = Modifier.size(34.dp), contentDescription = provider.institutionLabel)
                                     } else {
                                         MyFinHubIconBadge(

@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,9 @@ import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubProviderMark
+import app.myfinhub.android.designsystem.MyFinHubCertifiedProviderMark
+import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
+import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -70,6 +74,10 @@ fun CanonicalCardDetailScreen(
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
     val provider = card?.let { financialProviderForCard(it.bankId, it.nickname) }
+    val ownerCatalog = LocalFinancialProviderCatalog.current
+    val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
+    val certifiedRecord = ownerCatalog.firstOrNull { it.id == card?.bankId }
+    val certifiedLogo = certifiedRecord?.certifiedBrandAsset("logo", surfaceTone)
     val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
     val availableCredit = card?.limit?.takeIf { isCredit && it > 0.0 }?.let { limit ->
         (limit - card.currentBalance.coerceAtLeast(0.0)).coerceAtLeast(0.0)
@@ -109,7 +117,14 @@ fun CanonicalCardDetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (provider != null) {
+                        if (certifiedRecord != null && certifiedLogo != null) {
+                            MyFinHubCertifiedProviderMark(
+                                providerId=certifiedRecord.id,asset=certifiedLogo,
+                                fallbackLabel=certifiedRecord.shortName,
+                                modifier=Modifier.size(40.dp),
+                                contentDescription=certifiedRecord.displayName,
+                            )
+                        } else if (provider != null) {
                             MyFinHubProviderMark(provider, modifier = Modifier.size(40.dp), contentDescription = provider.institutionLabel)
                         } else {
                             MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Transfer, null)
@@ -344,6 +359,11 @@ private fun CardPickerSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
+    // The picker is a separate composable, not lexically nested in the
+    // selected-card details scope; resolve its own session catalog and tone.
+    val ownerCatalog = LocalFinancialProviderCatalog.current
+    val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
+        "dark" else "light"
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
@@ -356,6 +376,8 @@ private fun CardPickerSheet(
             Text("Επίλεξε κάρτα", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             cards.forEach { option ->
                 val optionProvider = financialProviderForCard(option.bankId, option.nickname)
+                val optionRecord = ownerCatalog.firstOrNull { it.id == option.bankId }
+                val optionCertified = optionRecord?.certifiedBrandAsset("logo", surfaceTone)
                 Surface(
                     onClick = { onSelect(option.id) },
                     modifier = Modifier.fillMaxWidth().testTag("card_picker_${option.id}"),
@@ -367,7 +389,13 @@ private fun CardPickerSheet(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (optionProvider != null) {
+                        if (optionRecord != null && optionCertified != null) {
+                            MyFinHubCertifiedProviderMark(
+                                providerId=optionRecord.id,asset=optionCertified,
+                                fallbackLabel=optionRecord.shortName,
+                                modifier=Modifier.size(40.dp), contentDescription=null,
+                            )
+                        } else if (optionProvider != null) {
                             MyFinHubProviderMark(optionProvider, modifier = Modifier.size(40.dp), contentDescription = null)
                         } else {
                             MyFinHubIconBadge(MyFinHubIcons.Card, FinanceTone.Neutral, null)
