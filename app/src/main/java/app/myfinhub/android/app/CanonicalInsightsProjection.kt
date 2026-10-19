@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
+import app.myfinhub.android.core.data.canonicalReportPrimaryAccountSeries
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
@@ -13,6 +14,9 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
+import app.myfinhub.android.feature.insights.InsightsPrimaryAccountSeries
+import app.myfinhub.android.feature.insights.InsightsPrimaryAccountMonth
+import app.myfinhub.android.feature.home.HomePrimaryRole
 import app.myfinhub.android.feature.insights.InsightsLoanObligation
 import app.myfinhub.android.feature.insights.InsightCategoryMomentum
 import app.myfinhub.android.feature.insights.InsightPeriodScope
@@ -140,6 +144,35 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        primaryAccountSeries = if (id == INSIGHTS_PERIOD_MONTH) {
+            val accounts = document.canonicalAccounts()
+            val primary = primaryHomeRoles(accounts)
+            val payrollId = primary[HomePrimaryRole.PAYROLL]
+            val savingsId = primary[HomePrimaryRole.SAVINGS]
+            if (payrollId == null && savingsId == null) null else {
+                val ids = listOfNotNull(payrollId, savingsId).distinct()
+                val rows = document.canonicalReportPrimaryAccountSeries(
+                    month = YearMonth.from(end).toString(),
+                    accountIds = ids, asOf = end.toString(),
+                )
+                InsightsPrimaryAccountSeries(
+                    payrollLabel = payrollId?.let { accountId ->
+                        accounts.firstOrNull { it.id == accountId }?.name
+                    },
+                    savingsLabel = savingsId?.let { accountId ->
+                        accounts.firstOrNull { it.id == accountId }?.name
+                    },
+                    months = rows.map { row ->
+                        InsightsPrimaryAccountMonth(
+                            monthIso = row.monthIso,
+                            cutoffDateIso = row.cutoffDateIso,
+                            payrollBalance = payrollId?.let { row.balances[it] ?: 0.0 },
+                            savingsBalance = savingsId?.let { row.balances[it] ?: 0.0 },
+                        )
+                    },
+                )
+            }
+        } else null,
         loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {
             val source = document.canonicalReportLoanBurden(asOf = end.toString())
             InsightsLoanBurden(
