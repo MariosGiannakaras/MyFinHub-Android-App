@@ -359,6 +359,11 @@ private fun CardPickerSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
+    // The picker is a separate composable, not lexically nested in the
+    // selected-card details scope; resolve its own session catalog and tone.
+    val ownerCatalog = LocalFinancialProviderCatalog.current
+    val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f)
+        "dark" else "light"
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
