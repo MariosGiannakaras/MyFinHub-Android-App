@@ -41,6 +41,23 @@ class WebReportLoanBurdenParityTest {
         assertEquals(before,doc.raw)
     }
 
+    @Test fun historicalDuplicateLoanIdsRemainTwoReadOnlyRows() {
+        val duplicate=CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"loans":[
+            {"id":"repeat","name":"Ζήτα","total":1200,"installment":100,
+             "installments":12,"day":"10"},
+            {"id":"repeat","name":"Άλφα","total":2400,"installment":200,
+             "installments":12,"day":"10"}
+          ]},"state":{"events":[],"settings":{}}}
+        """.trimIndent()).jsonObject)
+        val before=duplicate.raw
+        val rows=duplicate.canonicalReportLoanBurden().rows
+        assertEquals(2,rows.size)
+        assertEquals(listOf("Άλφα","Ζήτα"),rows.map { it.name })
+        assertEquals(300.0,rows.sumOf { it.amount },0.001)
+        assertEquals(before,duplicate.raw)
+    }
+
     @Test fun datedFutureLoanPaymentsAreNotCountedBeforeTheyOccur() {
         val early=doc.canonicalReportLoanBurden("2026-10-19")
         val later=doc.canonicalReportLoanBurden("2026-10-24")
