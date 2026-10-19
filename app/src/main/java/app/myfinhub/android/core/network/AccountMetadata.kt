@@ -15,7 +15,11 @@ data class AccountMetadataRecord(
 
 /** Equivalent to Web normalizeIban and isValidIban; null means no IBAN configured. */
 internal fun normalizeIban(raw: String?): String? =
-    raw?.replace(Regex("\\s+"), "")?.uppercase(Locale.ROOT)?.ifBlank { null }
+    raw?.filterNot { ch ->
+        // Web /\\s+/g includes NBSP/narrow NBSP and Unicode BOM; JVM \\s
+        // without UNICODE_CHARACTER_CLASS does not, corrupting pasted IBANs.
+        ch.isWhitespace() || Character.isSpaceChar(ch) || ch == '\uFEFF'
+    }?.uppercase(Locale.ROOT)?.ifBlank { null }
 
 internal fun isValidIban(raw: String?): Boolean {
     val value = normalizeIban(raw) ?: return true
