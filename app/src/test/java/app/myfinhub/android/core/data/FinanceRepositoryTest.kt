@@ -5,6 +5,8 @@ import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.MyFinHubApi
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -124,6 +126,130 @@ class FinanceRepositoryTest {
 
         val state = repository.state.value as FinanceSyncState.Error
         assertEquals(ApiFailureKind.MALFORMED_RESPONSE, state.failure.kind)
+    }
+
+    @Test
+    fun logoutDuringRead_neverResurrectsOldOwnerFinanceState() = runBlocking {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val api = FakeFinanceApi(
+            load = {
+                entered.complete(Unit)
+                release.await()
+                ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved"))
+            },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+        val pending = launch { repository.load(session) }
+        entered.await()
+        repository.clear()
+        release.complete(Unit)
+        pending.join()
+        assertTrue(repository.state.value is FinanceSyncState.Empty)
+    }
+
+    @Test
+    fun logoutDuringWrite_neverPublishesAnOldOwnerRevision() = runBlocking {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val api = FakeFinanceApi(
+            load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
+            save = {
+                entered.complete(Unit)
+                release.await()
+                ApiResult.Success(CanonicalWriteReceipt("8", "after-logout"))
+            },
+        )
+        val repository = repository(api)
+        repository.load(session)
+        val pending = launch { repository.save(session, document) }
+        entered.await()
+        repository.clear()
+        release.complete(Unit)
+        pending.join()
+        assertTrue(repository.state.value is FinanceSyncState.Empty)
+        assertEquals(1, api.saveCalls)
+    }
+
+    @Test
+    fun newestReadWins_evenWhenOlderRequestCompletesLater() = runBlocking {
+        val firstEntered = CompletableDeferred<Unit>()
+        val firstRelease = CompletableDeferred<Unit>()
+        var calls = 0
+        val api = FakeFinanceApi(
+            load = {
+                calls += 1
+                if (calls == 1) {
+                    firstEntered.complete(Unit)
+                    firstRelease.await()
+                    ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "old"))
+                } else {
+                    ApiResult.Success(CanonicalFinanceEnvelope(document, "9", "new"))
+                }
+            },
+            save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
+        )
+        val repository = repository(api)
+        val older = launch { repository.load(session) }
+        firstEntered.await()
+        repository.load(session)
+        firstRelease.complete(Unit)
+        older.join()
+        assertEquals("9", (repository.state.value as FinanceSyncState.Ready).envelope.revision)
+        assertEquals(2, api.loadCalls)
+    }
+
+    @Test
+    fun concurrentSaves_neverSendTwoWritesAgainstSameRevision() = runBlocking {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val api = FakeFinanceApi(
+            load = { ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "saved")) },
+            save = {
+                entered.complete(Unit)
+                release.await()
+                ApiResult.Success(CanonicalWriteReceipt("8", "saved"))
+            },
+        )
+        val repository = repository(api)
+        repository.load(session)
+        val first = launch { repository.save(session, document) }
+        entered.await()
+        repository.save(session, document)
+        release.complete(Unit)
+        first.join()
+        assertEquals(1, api.saveCalls)
+        assertEquals("8", (repository.state.value as FinanceSyncState.Ready).envelope.revision)
+    }
+
+    @Test
+    fun supersededWriteCannotOverrideNewerServerLoad() = runBlocking {
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        var loadNumber = 0
+        val api = FakeFinanceApi(
+            load = {
+                loadNumber += 1
+                ApiResult.Success(CanonicalFinanceEnvelope(
+                    document, if (loadNumber == 1) "7" else "9", "saved",
+                ))
+            },
+            save = {
+                entered.complete(Unit)
+                release.await()
+                ApiResult.Success(CanonicalWriteReceipt("8", "stale"))
+            },
+        )
+        val repository = repository(api)
+        repository.load(session)
+        val oldWrite = launch { repository.save(session, document) }
+        entered.await()
+        repository.load(session)
+        release.complete(Unit)
+        oldWrite.join()
+        assertEquals("9", (repository.state.value as FinanceSyncState.Ready).envelope.revision)
+        assertEquals(1, api.saveCalls)
     }
 
     private fun repository(api: FakeFinanceApi) = FinanceRepository(
