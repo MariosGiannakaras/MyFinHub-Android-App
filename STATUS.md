@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #261 owner+AAL2 financial-provider catalog displayName resolved strictly by canonical providerId in production native Home, Wallet, account details and net position without unverified remote asset rendering, JVM identity goldens passed exact-head four Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot and S24 emulator gates at 933470ee766a1160a9faa58f45bdec6f176c709a; squash merged develop 46ae58d0dcb6838ecf35ca34d11ddb1c9c110098. Draft PR #262 matches Web normalizeIban JavaScript Unicode whitespace including NBSP/narrow NBSP/figure space/BOM before checksum, masking and owner revision-guarded metadata write; Kotlin and MockWebServer goldens staged. W3.2/W4.1–W4.4/W5.1 partial; certified provider assets, guarded permanent card deletion, physical S24 owner acceptance and signed release gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #262 Web JavaScript IBAN Unicode whitespace normalization including NBSP/narrow NBSP/figure space/BOM before checksum/mask/owner+AAL2 If-Match update with JVM and MockWebServer goldens passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 18ce3d0884881fab886237116100e95fba57fcd7; squash merged develop fd3655d2a76d8350958c0bd7bd5b7363e4ecaf21. Draft PR #263 expands read-only Web server finance history from fixed last-eight to 24-by-24 older rows, revision/generation reset, current/undo/redo summary flags, JVM + S24 Compose privacy-safe regressions. W3.2/W4.1–W4.4/W5.1/W5.4 partial; physical S24 owner acceptance, certified provider assets, guarded permanent card deletion and new signed release gated.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #262; fix on same PR and merge only after 4/4. Continue W5.1 actual provider asset visual binding/metadata and W5.2 owner session sync consistency without parallel noisy CI. Preserve finance history, no Web/backend/schema edits, SMS import, permanent card deletion, signed release or inferred physical owner approval.
+1. Validate all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #263; repair same PR and merge only if four successful. Continue W5.4 settings/history completeness and W5.2 read-only session/sync consistency. No physical device signoff, Web/backend/schema changes, SMS import, destructive permanent card delete or signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #262, branch android/w5-1-iban-unicode-web-parity-20261019
-Current W5.1: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #260 canonical providerId/bankId authority in Home/Wallet/cards and Greek locale owner catalog sorting passed 4/4 and merged develop fafce821bc0fe502834eb2354c9c9f8672f59ac2. PR #261 owner+AAL2 dynamic financial provider exact ID displayName on native Home/Wallet/account detail/net position and JVM identity tests passed all four immutable-head Project Tracking, Android CI optimized unsigned release/unit/lint, screenshot regression and S24 emulator at 933470ee766a1160a9faa58f45bdec6f176c709a; squash merged develop 46ae58d0dcb6838ecf35ca34d11ddb1c9c110098. Draft PR #262 Unicode whitespace normalization of IBAN matches Web /\\s+/g for NBSP, narrow NBSP, figure space, U+FEFF and tabs before checksum, account IBAN mask and revision-protected owner+AAL2 API write; Kotlin and MockWebServer parity regressions staged. Four exact-head gates pending; W5.1 partial, physical S24 approval, certified dynamic artwork and release signing not inferred.
+Issue #155, PR #263, branch android/w5-4-server-history-readonly-pagination-20261019
+Current W5.4: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #261 live owner provider labels passed all four immutable-head gates and merged develop 46ae58d0dcb6838ecf35ca34d11ddb1c9c110098. PR #262 owner+AAL2 IBAN Unicode whitespace and If-Match MockWebServer parity passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at exact head 18ce3d0884881fab886237116100e95fba57fcd7; squash merged develop fd3655d2a76d8350958c0bd7bd5b7363e4ecaf21. Draft PR #263 read-only Web server history summary exposes latest-first 24-page progressive older rows instead of silent last-eight cutoff; server generation/revision reset, explicitly independent canUndo/canRedo flags, counts, masked labels; no actual Undo/Redo or finance snapshots, JVM and S24 Compose regression tests staged. Four exact-head CI gates pending, W5.4 partially accepted, physical S24 owner review not inferred.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #262; fix on same PR and merge only after 4/4. Continue W5.1 actual provider asset visual binding/metadata and W5.2 owner session sync consistency without parallel noisy CI. Preserve finance history, no Web/backend/schema edits, SMS import, permanent card deletion, signed release or inferred physical owner approval.
+Next Validate all four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks of draft PR #263; repair same PR and merge only if four successful. Continue W5.4 settings/history completeness and W5.2 read-only session/sync consistency. No physical device signoff, Web/backend/schema changes, SMS import, destructive permanent card delete or signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
