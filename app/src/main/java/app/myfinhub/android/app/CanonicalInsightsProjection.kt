@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
+import app.myfinhub.android.core.data.canonicalReportCreditPortfolio
 import app.myfinhub.android.core.data.canonicalReportInsightSignals
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
@@ -14,6 +15,8 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
+import app.myfinhub.android.feature.insights.InsightsCreditPortfolio
+import app.myfinhub.android.feature.insights.InsightsCreditCardRow
 import app.myfinhub.android.feature.insights.InsightMonthlyReportSignals
 import app.myfinhub.android.feature.insights.InsightsLoanObligation
 import app.myfinhub.android.feature.insights.InsightCategoryMomentum
@@ -163,6 +166,21 @@ private fun buildInsightsScope(
                 topCategoryShare = row.topCategory?.share,
                 topCategoryChange = row.topCategory?.change,
                 sufficientExpenseHistory = row.sufficientExpenseHistory,
+            )
+        } else null,
+        creditPortfolio = if (id == INSIGHTS_PERIOD_MONTH) {
+            val source = document.canonicalReportCreditPortfolio(asOf = end.toString())
+            InsightsCreditPortfolio(
+                activeCards = source.activeCards, totalCards = source.totalCards,
+                debt = source.debt, limit = source.limit, available = source.available,
+                usage = source.usage,
+                rows = source.cards.map { card ->
+                    InsightsCreditCardRow(
+                        id = card.id, nickname = card.nickname, bankId = card.bankId,
+                        active = card.active, debt = card.debt, limit = card.limit,
+                        available = card.available, usage = card.usage,
+                    )
+                },
             )
         } else null,
         loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {

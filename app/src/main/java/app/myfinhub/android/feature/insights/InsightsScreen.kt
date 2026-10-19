@@ -207,6 +207,57 @@ fun InsightsScreen(
                     }
                 }
             }
+            if (scope.creditPortfolio != null && scope.creditPortfolio.totalCards > 0) {
+                item("credit-portfolio") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_credit_portfolio"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text("Εικόνα πιστωτικών καρτών",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Ενεργές " + scope.creditPortfolio.activeCards +
+                                    " / σύνολο " + scope.creditPortfolio.totalCards +
+                                    " · χρήση " + (scope.creditPortfolio.usage * 100).roundToInt() + "%",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Οφειλή: " +
+                                    amountVisibilityText(formatEuro(scope.creditPortfolio.debt), amountsVisible) +
+                                    " · συνολικό ενεργό όριο: " +
+                                    amountVisibilityText(formatEuro(scope.creditPortfolio.limit), amountsVisible) +
+                                    " · διαθέσιμο: " +
+                                    amountVisibilityText(formatEuro(scope.creditPortfolio.available), amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.testTag("insights_credit_portfolio_total"),
+                            )
+                            scope.creditPortfolio.rows.forEachIndexed { index, card ->
+                                Column(modifier = Modifier.fillMaxWidth()
+                                    .testTag("insights_credit_portfolio_row_" + index),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                    Text(card.nickname.ifEmpty { "Πιστωτική κάρτα" } +
+                                        (if (card.active) "" else " · αρχειοθετημένη"),
+                                        style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        "Οφειλή: " +
+                                            amountVisibilityText(formatEuro(card.debt), amountsVisible) +
+                                            " · όριο: " +
+                                            amountVisibilityText(formatEuro(card.limit), amountsVisible) +
+                                            " · διαθέσιμο: " +
+                                            amountVisibilityText(formatEuro(card.available), amountsVisible),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                if (index < scope.creditPortfolio.rows.lastIndex) {
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             if (scope.loanBurden != null && scope.loanBurden.count > 0) {
                 item("loan-burden") {
                     MyFinHubSectionCard(

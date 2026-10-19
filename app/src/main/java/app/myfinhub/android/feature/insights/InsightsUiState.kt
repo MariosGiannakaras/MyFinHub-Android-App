@@ -67,6 +67,27 @@ data class InsightCounterparty(
     val lastDateIso: String,
 )
 
+data class InsightsCreditCardRow(
+    val id: String,
+    val nickname: String,
+    val bankId: String,
+    val active: Boolean,
+    val debt: Double,
+    val limit: Double,
+    val available: Double,
+    val usage: Double,
+)
+
+data class InsightsCreditPortfolio(
+    val activeCards: Int,
+    val totalCards: Int,
+    val debt: Double,
+    val limit: Double,
+    val available: Double,
+    val usage: Double,
+    val rows: List<InsightsCreditCardRow>,
+)
+
 data class InsightsLoanObligation(
     val id: String,
     val name: String,
@@ -110,6 +131,8 @@ data class InsightPeriodScope(
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
     /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
     val loanBurden: InsightsLoanBurden? = null,
+    /** Web creditPortfolioSnapshot includes archived debt, but only active limits. */
+    val creditPortfolio: InsightsCreditPortfolio? = null,
     val monthlyReportSignals: InsightMonthlyReportSignals? = null,
 )
 
