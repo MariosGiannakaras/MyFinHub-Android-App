@@ -192,8 +192,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
 
     fun attachSession(session: AuthSession, allowAutomaticSync: Boolean = true) {
         val previous = currentSession
-        if (previous != null && previous.userId != session.userId) {
+        // A refreshed bearer for the SAME owner is still a new authorization
+        // boundary. An old in-flight GET/POST must never satisfy or block the
+        // new token's load. Stable queued writes are already stored locally;
+        // an interrupted network write remains NEEDS_REVIEW until reconciled.
+        if (financeSessionAuthorizationChanged(previous, session)) {
             cancelOperations()
+            repository.clear()
+            reloadWhenOnline = true
+        }
+        if (previous != null && previous.userId != session.userId) {
             lastServerDocument = null
             pendingMutations = emptyList()
             repository.clear()
