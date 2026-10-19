@@ -16,6 +16,7 @@ data class CanonicalRuleOverview(
     val action: String,
     val scopeLabel: String,
     val invalidReason: String?,
+    val historicalMatchCount: Int = 0,
 )
 
 fun CanonicalFinanceDocument.canonicalTransactionRuleOverview(): List<CanonicalRuleOverview> {
@@ -96,6 +97,7 @@ fun CanonicalFinanceDocument.canonicalTransactionRuleOverview(): List<CanonicalR
                 action = effects.joinToString(" · ").ifBlank { "λείπει ενέργεια" },
                 scopeLabel = scopeLabel,
                 invalidReason = warning,
+                historicalMatchCount = canonicalHistoricalRuleMatchCount(rule),
             )
         }
 }

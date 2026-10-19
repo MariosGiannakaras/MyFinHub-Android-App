@@ -17,7 +17,8 @@ class SettingsTransactionRulesOverviewComposeTest {
     @Test fun existingRulesAreReadOnlyAndWarningsVisible() {
         val entries=listOf(
             PlanningRule("active","Μάρκετ",
-                "Όταν market · Τότε Τρόφιμα",true),
+                "Όταν market · Τότε Τρόφιμα",true,
+                historicalMatchCount=2),
             PlanningRule("paused","Παλιός",
                 "Όταν petrol · Τότε Άλλο",false,
                 "Ο λογαριασμός της συνθήκης δεν είναι πλέον διαθέσιμος."),
@@ -32,6 +33,8 @@ class SettingsTransactionRulesOverviewComposeTest {
         }
         rule.onNodeWithText("Αυτόματη ταξινόμηση").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("s9_transaction_rule_1").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Ιστορικές αντιστοιχίσεις: 2", substring=true)
+            .performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Ο λογαριασμός της συνθήκης δεν είναι πλέον διαθέσιμος.")
             .assertIsDisplayed()
         rule.onNodeWithText("Διαγραφή κανόνα").assertDoesNotExist()

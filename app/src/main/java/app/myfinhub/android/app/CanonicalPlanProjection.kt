@@ -162,6 +162,7 @@ internal fun projectCanonicalPlanState(
                 description = "Όταν " + entry.condition + " · Τότε " +
                     entry.action + " · " + entry.scopeLabel,
                 enabled = entry.enabled, warning = entry.invalidReason,
+                historicalMatchCount = entry.historicalMatchCount,
             )
         },
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
