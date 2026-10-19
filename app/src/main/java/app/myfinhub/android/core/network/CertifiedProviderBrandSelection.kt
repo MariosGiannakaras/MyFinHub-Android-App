@@ -47,7 +47,7 @@ internal fun FinancialProviderRecord.certifiedBrandAsset(
             }).firstOrNull()
 
     fun byKey(requestedRole: String, key: String?): TrustedProviderAssetReference? =
-        trustedAssets.firstOrNull { it.role == requestedRole && it.assetKey == key }
+        trustedAssets.firstOrNull { it.role == requestedRole && it.assetKey == key && rank(it) != null }
 
     fun logo(): TrustedProviderAssetReference? =
         bound("logo") ?: legacy("logo") ?: byKey("logo", logoAssetKey)

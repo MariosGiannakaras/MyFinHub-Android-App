@@ -41,6 +41,16 @@ class WebCertifiedProviderBrandSelectionTest {
         assertNull(p.certifiedBrandAsset("other","light"))
     }
 
+    @Test fun legacyDefaultAssetKeyCannotResurrectOppositeThemeArtwork() {
+        val record=parse(
+            asset("logo-old","logo","dark") + "," +
+                asset("wordmark-old","wordmark","dark"),
+        )!!
+        assertNull(record.certifiedBrandAsset("logo","light"))
+        assertNull(record.certifiedBrandAsset("wordmark","light"))
+        assertEquals("logo-old",record.certifiedBrandAsset("logo","dark")?.assetKey)
+    }
+
     @Test fun cardMarksFallbackToCertifiedWordmarkThenLogo() {
         val assets=listOf(
             asset("alpha-logo","logo","universal"),
