@@ -183,9 +183,9 @@ class FinanceRepositoryTest {
                 if (calls == 1) {
                     firstEntered.complete(Unit)
                     firstRelease.await()
-                    ApiResult.Success(CanonicalFinanceEnvelope(document, "old", "old"))
+                    ApiResult.Success(CanonicalFinanceEnvelope(document, "7", "old"))
                 } else {
-                    ApiResult.Success(CanonicalFinanceEnvelope(document, "new", "new"))
+                    ApiResult.Success(CanonicalFinanceEnvelope(document, "9", "new"))
                 }
             },
             save = { ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE) },
@@ -196,7 +196,7 @@ class FinanceRepositoryTest {
         repository.load(session)
         firstRelease.complete(Unit)
         older.join()
-        assertEquals("new", (repository.state.value as FinanceSyncState.Ready).envelope.revision)
+        assertEquals("9", (repository.state.value as FinanceSyncState.Ready).envelope.revision)
         assertEquals(2, api.loadCalls)
     }
 
