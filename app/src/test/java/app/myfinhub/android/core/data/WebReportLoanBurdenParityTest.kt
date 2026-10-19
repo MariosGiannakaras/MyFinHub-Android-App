@@ -18,7 +18,7 @@ class WebReportLoanBurdenParityTest {
          "total":2400,"installment":200,"installments":12,"day":"4"},
         {"id":"disabled","name":"Disabled","total":2000,
          "installment":100,"installments":20,"day":"3"},
-        {"id":"small","name":"Μικρό υπόλοιπο","total":1150,
+        {"id":"small","name":"Μικρό υπόλοιπο","total":2900,
          "installment":250,"installments":12,"paidCount":11,"day":"10"}
       ]},"state":{"settings":{},"loanOverrides":{
         "disabled":{"id":"disabled","name":"Disabled","total":2000,
