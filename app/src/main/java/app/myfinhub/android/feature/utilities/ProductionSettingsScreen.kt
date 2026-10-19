@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
+import app.myfinhub.android.core.network.visibleServerFinanceHistoryPoints
 import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.feature.plan.PlanningRule
@@ -76,6 +77,11 @@ fun ProductionSettingsScreen(
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
     var visibleRuleCount by remember(transactionRules) { mutableStateOf(24) }
+    // Read-only history paging is scoped to the exact generation/revision.
+    // A server refresh with a different revision resets the viewed window.
+    var visibleServerHistoryCount by remember(
+        serverHistory?.generation, serverHistory?.financeRevision,
+    ) { mutableStateOf(24) }
     val confirmDevice = deviceSessions.singleOrNull {
         it.sessionId == pendingDeviceRevokeId && !it.current
     }
@@ -274,16 +280,59 @@ fun ProductionSettingsScreen(
                         } else if (!serverHistory.available) {
                             Text("Το ιστορικό αλλαγών δεν είναι διαθέσιμο.")
                         } else {
-                            Text("Διαθέσιμες αναιρέσεις: " + serverHistory.undoDepth +
-                                " · Επαναλήψεις: " + serverHistory.redoDepth)
-                            serverHistory.points.takeLast(8).asReversed().forEach { point ->
+                            Text("Ιστορικό γενιάς " + serverHistory.generation +
+                                " · αναθεώρηση " + serverHistory.financeRevision,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text("Αναίρεση: " +
+                                (if (serverHistory.canUndo) "διαθέσιμη" else "μη διαθέσιμη") +
+                                " (" + serverHistory.undoDepth + ")" +
+                                " · Επανάληψη: " +
+                                (if (serverHistory.canRedo) "διαθέσιμη" else "μη διαθέσιμη") +
+                                " (" + serverHistory.redoDepth + ")",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            if (serverHistory.points.isEmpty()) {
                                 Text(
-                                    (if (point.current) "Τρέχουσα · " else "") +
-                                        point.createdAt.take(16).replace('T', ' ') +
-                                        " · " + (if (amountsVisible) point.label
-                                            else "Περιγραφή κρυμμένη"),
+                                    "Δεν υπάρχουν καταγεγραμμένες αλλαγές.",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+                            } else {
+                                val visiblePoints = visibleServerFinanceHistoryPoints(
+                                    serverHistory, visibleServerHistoryCount,
+                                )
+                                Text("Προβολή " + visiblePoints.size +
+                                    " από " + serverHistory.points.size + " αλλαγές",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("s9_history_page_info"),
+                                )
+                                visiblePoints.forEachIndexed { index, point ->
+                                    Text(
+                                        (if (point.current) "Τρέχουσα · " else "") +
+                                            point.createdAt.take(16).replace('T', ' ') +
+                                            " · " + (if (amountsVisible) point.label
+                                                else "Περιγραφή κρυμμένη"),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.testTag("s9_history_row_" + index),
+                                    )
+                                }
+                                if (visiblePoints.size < serverHistory.points.size) {
+                                    TextButton(
+                                        onClick = {
+                                            visibleServerHistoryCount =
+                                                (visibleServerHistoryCount + 24)
+                                                    .coerceAtMost(serverHistory.points.size)
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("s9_history_more"),
+                                    ) {
+                                        Text("Προβολή παλαιότερων αλλαγών · " +
+                                            (serverHistory.points.size - visiblePoints.size) +
+                                            " ακόμη")
+                                    }
+                                }
                             }
                         }
                         MyFinHubOutlinedAction(
