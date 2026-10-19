@@ -30,11 +30,11 @@ class ServerFinanceHistorySettingsComposeTest {
                 )
             },
         )
-        var summary by androidx.compose.runtime.mutableStateOf(history("22"))
+        val summary = androidx.compose.runtime.mutableStateOf(history("22"))
         rule.setContent { MyFinHubTheme {
             ProductionSettingsScreen(
                 state=FrontendUtilitiesUiState(),onAction={},onBack={},
-                serverHistory=summary,serverHistoryEnabled=true,serverHistoryLoaded=true,
+                serverHistory=summary.value,serverHistoryEnabled=true,serverHistoryLoaded=true,
                 onRefreshServerHistory={},
             )
         } }
@@ -45,7 +45,7 @@ class ServerFinanceHistorySettingsComposeTest {
         rule.onNodeWithTag("s9_history_page_info").performScrollTo()
         rule.onNodeWithText("Προβολή 26 από 26 αλλαγές").assertIsDisplayed()
         rule.onNodeWithTag("s9_history_row_25").performScrollTo().assertIsDisplayed()
-        rule.runOnIdle { summary=history("23") }
+        rule.runOnIdle { summary.value=history("23") }
         rule.onNodeWithTag("s9_history_page_info").performScrollTo()
         rule.onNodeWithText("Προβολή 24 από 26 αλλαγές").assertIsDisplayed()
     }
