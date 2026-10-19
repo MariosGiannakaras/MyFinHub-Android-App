@@ -41,6 +41,22 @@ class WebReportCreditPortfolioParityTest {
         assertEquals(original,doc.raw)
     }
 
+    @Test fun absentActiveFieldAndExplicitNullLimitMatchWebLegacySemantics() {
+        val legacy=CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"settings":{"creditLimit":600},"cards":[
+            {"id":"missing-active","kind":"credit","nickname":"Default",
+             "creditLimit":null,"createdAt":"2026-01-01T00:00:00Z"},
+            {"id":"missing-limit","kind":"credit","nickname":"Fallback",
+             "createdAt":"2026-02-01T00:00:00Z"}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val snapshot=legacy.canonicalReportCreditPortfolio("2026-10-19")
+        assertEquals(2,snapshot.activeCards)
+        assertEquals(0.0,snapshot.cards.first { it.id=="missing-active" }.limit,0.001)
+        assertEquals(600.0,snapshot.cards.first { it.id=="missing-limit" }.limit,0.001)
+        assertEquals(600.0,snapshot.limit,0.001)
+    }
+
     @Test fun noCardsOrOnlyArchivedDoNotFakeAvailableCredit() {
         val none=CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{},"state":{"settings":{"creditLimit":500},"cards":[],"events":[]}}
