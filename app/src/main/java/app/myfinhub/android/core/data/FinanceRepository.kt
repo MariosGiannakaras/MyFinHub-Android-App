@@ -43,67 +43,109 @@ class FinanceRepository(
     private val mutableState = MutableStateFlow<FinanceSyncState>(FinanceSyncState.Empty)
     val state: StateFlow<FinanceSyncState> = mutableState.asStateFlow()
 
+    /**
+     * Guards the in-memory finance envelope against stale asynchronous responses.
+     * Logout/owner change may call clear() while a read or write is suspended.
+     * Only the latest operation started in this repository may publish a result.
+     * Never store bearer credentials or finance records in this synchronization gate.
+     */
+    private val stateGate = Any()
+    private var stateEpoch: Long = 0L
+    private var activeWriteEpoch: Long? = null
+
     suspend fun load(session: AuthSession) {
-        mutableState.value = FinanceSyncState.Loading
-        mutableState.value = when (val result = loadWithRetry(session)) {
+        val epoch = synchronized(stateGate) {
+            stateEpoch += 1
+            mutableState.value = FinanceSyncState.Loading
+            stateEpoch
+        }
+        val nextState = when (val result = loadWithRetry(session)) {
             is ApiResult.Success -> {
-                val integrityIssue = CanonicalDataIntegrity.validateEnvelope(result.value)
-                if (integrityIssue == null) {
+                if (CanonicalDataIntegrity.validateEnvelope(result.value) == null) {
                     FinanceSyncState.Ready(result.value)
                 } else {
-                    FinanceSyncState.Error(
-                        ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE),
-                    )
+                    FinanceSyncState.Error(ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE))
                 }
             }
             is ApiResult.Failure -> FinanceSyncState.Error(result)
         }
+        synchronized(stateGate) {
+            // A newer load, save, clear or owner transition takes precedence.
+            if (stateEpoch == epoch) mutableState.value = nextState
+        }
     }
 
     suspend fun save(session: AuthSession, document: CanonicalFinanceDocument) {
-        val current = mutableState.value as? FinanceSyncState.Ready ?: return
-        val expectedRevision = current.envelope.revision
-        if (CanonicalDataIntegrity.validateDocument(document) != null) {
-            mutableState.value = FinanceSyncState.Error(
-                failure = ApiResult.Failure(ApiFailureKind.INVALID_DATA),
-                recoverableEnvelope = current.envelope,
-            )
-            return
-        }
-
-        // Writes deliberately execute once. Ambiguous transport failures are reconciled by reloading
-        // the server revision before replaying the stable mutation intent at the ViewModel boundary.
-        when (val result = safeApiCall { api.saveMutableState(session, document, expectedRevision) }) {
-            is ApiResult.Success -> {
-                val envelope = CanonicalFinanceEnvelope(
-                    document = document,
-                    revision = result.value.revision,
-                    lastSavedAt = result.value.lastSavedAt,
-                )
-                mutableState.value = if (CanonicalDataIntegrity.validateEnvelope(envelope) == null) {
-                    FinanceSyncState.Ready(envelope)
-                } else {
+        // No two write requests may reuse the same optimistic server revision.
+        // An overlapping save returns without sending, rather than blind replay.
+        val started = synchronized(stateGate) {
+            val ready = mutableState.value as? FinanceSyncState.Ready
+            if (ready == null || activeWriteEpoch != null) null else {
+                stateEpoch += 1
+                activeWriteEpoch = stateEpoch
+                stateEpoch to ready.envelope
+            }
+        } ?: return
+        val (epoch, baseline) = started
+        try {
+            val nextState: FinanceSyncState =
+                if (CanonicalDataIntegrity.validateDocument(document) != null) {
                     FinanceSyncState.Error(
-                        failure = ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE),
-                        recoverableEnvelope = current.envelope,
+                        failure = ApiResult.Failure(ApiFailureKind.INVALID_DATA),
+                        recoverableEnvelope = baseline,
                     )
+                } else {
+                    // Exactly one transport attempt. Ambiguous responses must be reconciled by
+                    // loading the server; never retry a possibly accepted money write.
+                    when (val result = safeApiCall {
+                        api.saveMutableState(session, document, baseline.revision)
+                    }) {
+                        is ApiResult.Success -> {
+                            val envelope = CanonicalFinanceEnvelope(
+                                document = document,
+                                revision = result.value.revision,
+                                lastSavedAt = result.value.lastSavedAt,
+                            )
+                            if (CanonicalDataIntegrity.validateEnvelope(envelope) == null) {
+                                FinanceSyncState.Ready(envelope)
+                            } else {
+                                FinanceSyncState.Error(
+                                    failure = ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE),
+                                    recoverableEnvelope = baseline,
+                                )
+                            }
+                        }
+                        is ApiResult.Failure -> {
+                            if (result.kind == ApiFailureKind.REVISION_CONFLICT) {
+                                FinanceSyncState.Conflict(
+                                    localDocument = document,
+                                    expectedRevision = baseline.revision,
+                                )
+                            } else {
+                                FinanceSyncState.Error(result, recoverableEnvelope = baseline)
+                            }
+                        }
+                    }
+                }
+            synchronized(stateGate) {
+                // Ignore an old account's or old generation's response after clear/reload.
+                if (stateEpoch == epoch && activeWriteEpoch == epoch) {
+                    mutableState.value = nextState
                 }
             }
-            is ApiResult.Failure -> {
-                mutableState.value = if (result.kind == ApiFailureKind.REVISION_CONFLICT) {
-                    FinanceSyncState.Conflict(
-                        localDocument = document,
-                        expectedRevision = expectedRevision,
-                    )
-                } else {
-                    FinanceSyncState.Error(result, recoverableEnvelope = current.envelope)
-                }
+        } finally {
+            synchronized(stateGate) {
+                if (activeWriteEpoch == epoch) activeWriteEpoch = null
             }
         }
     }
 
     fun clear() {
-        mutableState.value = FinanceSyncState.Empty
+        synchronized(stateGate) {
+            stateEpoch += 1
+            activeWriteEpoch = null
+            mutableState.value = FinanceSyncState.Empty
+        }
     }
 
     private suspend fun loadWithRetry(session: AuthSession): ApiResult<CanonicalFinanceEnvelope> {
