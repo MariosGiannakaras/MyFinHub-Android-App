@@ -96,6 +96,11 @@ fun InsightsScreen(
             item("spending-comparison") {
                 SpendingComparisonCard(scope = scope, largeFont = largeFont, amountsVisible = amountsVisible)
             }
+            if (scope.monthlyReportSignals != null) {
+                item("monthly-report-signals") {
+                    MonthlyReportSignalsCard(scope.monthlyReportSignals, amountsVisible)
+                }
+            }
             item("categories") {
                 CategoryCompositionCard(
                     scope = scope,
@@ -344,6 +349,68 @@ private fun ComparisonFact(label: String, value: String, modifier: Modifier = Mo
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.micro)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+/** Ratios follow Web reportInsightModel; money is always covered by amount privacy. */
+@Composable
+private fun MonthlyReportSignalsCard(
+    signals: InsightMonthlyReportSignals,
+    amountsVisible: Boolean,
+) {
+    fun percentage(value: Double?): String =
+        value?.let { (if (it > 0.0) "+" else "") + (it * 100.0).roundToInt() + "%" }
+            ?: "Χωρίς προηγούμενη βάση"
+
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_monthly_report_signals")) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text("Δείκτες μήνα", style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold)
+            Text("Web Reports · ο τρέχων μήνας μπορεί να είναι μερικός",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ComparisonFact(
+                "Καθαρή ροή εσόδων − εξόδων",
+                amountVisibilityText(formatSignedEuro(signals.netFlow), amountsVisible),
+                Modifier.testTag("insights_report_net_flow"),
+            )
+            ComparisonFact(
+                "Ρυθμός αποταμίευσης · προηγούμενος",
+                percentage(signals.savingsRate) + " · " + percentage(signals.previousSavingsRate),
+                Modifier.testTag("insights_report_savings_rate"),
+            )
+            ComparisonFact(
+                "Μεταβολή εσόδων / εξόδων / αποταμίευσης",
+                percentage(signals.incomeChange) + " / " +
+                    percentage(signals.expenseChange) + " / " +
+                    percentage(signals.savingChange),
+            )
+            ComparisonFact(
+                "Μέσος όρος εξόδων 3 προηγούμενων μηνών",
+                amountVisibilityText(
+                    formatEuro(signals.trailingExpenseAverage), amountsVisible,
+                ) + " · " +
+                    (if (signals.sufficientExpenseHistory) {
+                        percentage(signals.expenseVsTrailingAverage)
+                    } else "Χωρίς ιστορικό εξόδων"),
+                Modifier.testTag("insights_report_trailing_expense"),
+            )
+            ComparisonFact(
+                "Μηνιαία ισοδύναμα πάγια · επιβάρυνση εσόδων",
+                amountVisibilityText(formatEuro(signals.recurringMonthlyTotal), amountsVisible) +
+                    " · " + percentage(signals.recurringBurden),
+                Modifier.testTag("insights_report_recurring_burden"),
+            )
+            if (signals.topCategoryName != null && signals.topCategoryAmount != null) {
+                ComparisonFact(
+                    "Μεγαλύτερη υποκατηγορία · " + signals.topCategoryName,
+                    amountVisibilityText(formatEuro(signals.topCategoryAmount), amountsVisible) +
+                        " · " + percentage(signals.topCategoryShare) +
+                        " · μεταβολή " + percentage(signals.topCategoryChange),
+                    Modifier.testTag("insights_report_top_category"),
+                )
+            }
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
+import app.myfinhub.android.core.data.canonicalReportInsightSignals
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
@@ -13,6 +14,7 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
+import app.myfinhub.android.feature.insights.InsightMonthlyReportSignals
 import app.myfinhub.android.feature.insights.InsightsLoanObligation
 import app.myfinhub.android.feature.insights.InsightCategoryMomentum
 import app.myfinhub.android.feature.insights.InsightPeriodScope
@@ -140,6 +142,29 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        monthlyReportSignals = if (id == INSIGHTS_PERIOD_MONTH) {
+            val row = document.canonicalReportInsightSignals(
+                month = YearMonth.from(end).toString(),
+                asOf = end.toString(),
+            )
+            InsightMonthlyReportSignals(
+                incomeChange = row.incomeChange,
+                expenseChange = row.expenseChange,
+                savingChange = row.savingChange,
+                netFlow = row.netFlow,
+                savingsRate = row.savingsRate,
+                previousSavingsRate = row.previousSavingsRate,
+                trailingExpenseAverage = row.trailingExpenseAverage,
+                expenseVsTrailingAverage = row.expenseVsTrailingAverage,
+                recurringMonthlyTotal = row.recurringMonthlyTotal,
+                recurringBurden = row.recurringBurden,
+                topCategoryName = row.topCategory?.name,
+                topCategoryAmount = row.topCategory?.amount,
+                topCategoryShare = row.topCategory?.share,
+                topCategoryChange = row.topCategory?.change,
+                sufficientExpenseHistory = row.sufficientExpenseHistory,
+            )
+        } else null,
         loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {
             val source = document.canonicalReportLoanBurden(asOf = end.toString())
             InsightsLoanBurden(
