@@ -243,6 +243,14 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                Text(
+                                    "Ιστορικές αντιστοιχίσεις: " +
+                                        rule.historicalMatchCount +
+                                        " · καμία παλιά κίνηση δεν τροποποιείται",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("s9_transaction_rule_matches_$index"),
+                                )
                             }
                             if (index < visibleRuleCount - 1 && index < transactionRules.lastIndex)
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
