@@ -73,7 +73,7 @@ class CanonicalInsightsProjectionTest {
     @Test
     fun averageMonthlySpend_excludesPartialCurrentMonth() {
         val state = projectCanonicalInsightsState(comparisonFixture(), LocalDate.of(2026, 9, 10))
-        assertEquals(1_000.0 / 3.0, state.averageMonthlySpend, 0.001)
+        assertEquals(1_000.0 / 5.0, state.averageMonthlySpend, 0.001)
         assertEquals(120.0, state.periodScope(INSIGHTS_PERIOD_MONTH).categories.single { it.name == "Τρόφιμα" }.amount, 0.001)
     }
 }

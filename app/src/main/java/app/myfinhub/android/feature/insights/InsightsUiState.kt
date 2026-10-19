@@ -16,6 +16,11 @@ data class TrendPoint(
     val expense: Double,
     val isPartial: Boolean = false,
     val periodDetail: String? = null,
+    /** Web reporting calendar identity, including the year boundary. */
+    val monthIso: String = "",
+    val saving: Double = 0.0,
+    /** Cumulative reportFlowSeries income minus displayed expense. */
+    val cumulativeNet: Double = 0.0,
 )
 
 data class InsightCategory(

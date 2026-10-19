@@ -205,7 +205,7 @@ fun InsightsScreen(
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,
-                    points = state.monthlyTrend.takeLast(4),
+                    points = state.monthlyTrend.takeLast(6),
                     averageMonthlySpend = state.averageMonthlySpend,
                     expanded = detailsExpanded,
                     onToggle = { detailsExpanded = !detailsExpanded },
@@ -453,13 +453,27 @@ private fun AnalysisDetailsCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    points.joinToString(" · ") { point ->
-                        "${point.label}: έσοδα ${amountVisibilityText(formatEuro(point.income), amountsVisible)}, έξοδα ${amountVisibilityText(formatEuro(point.expense), amountsVisible)}"
-                    },
+                    "Εξαμηνιαία σωρευτική ροή · έσοδα μείον έξοδα, χωρίς διπλή προσθήκη αποταμίευσης",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.testTag("insights_chart_text_alternative"),
                 )
+                Column(
+                    modifier = Modifier.testTag("insights_chart_text_alternative"),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    points.forEachIndexed { index, point ->
+                        val month = point.monthIso.ifBlank { point.label }
+                        Text(
+                            "$month: έσοδα ${amountVisibilityText(formatEuro(point.income), amountsVisible)}" +
+                                " · έξοδα ${amountVisibilityText(formatEuro(point.expense), amountsVisible)}" +
+                                " · αποταμίευση ${amountVisibilityText(formatEuro(point.saving), amountsVisible)}" +
+                                " · σωρευτικά ${amountVisibilityText(formatSignedEuro(point.cumulativeNet), amountsVisible)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("insights_six_month_row_" + index),
+                        )
+                    }
+                }
             }
         }
     }
@@ -513,11 +527,15 @@ private fun MonthlyFlowChart(points: List<TrendPoint>, amountsVisible: Boolean) 
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                     )
-                    MyFinHubAmountText(
-                        text = amountVisibilityText(formatSignedEuro(point.income - point.expense), amountsVisible),
-                        tone = if (point.income >= point.expense) FinanceTone.Income else FinanceTone.Expense,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+                    // Six full currency labels would overlap on a compact S24
+                    // screen; all values remain in the accessible monthly text.
+                    if (points.size <= 4) {
+                        MyFinHubAmountText(
+                            text = amountVisibilityText(formatSignedEuro(point.income - point.expense), amountsVisible),
+                            tone = if (point.income >= point.expense) FinanceTone.Income else FinanceTone.Expense,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
             }
         }
