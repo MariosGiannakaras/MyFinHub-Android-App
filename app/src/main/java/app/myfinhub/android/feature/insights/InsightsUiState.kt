@@ -43,6 +43,20 @@ data class InsightCounterparty(
     val lastDateIso: String,
 )
 
+data class InsightsLoanObligation(
+    val id: String,
+    val name: String,
+    val nextAmount: Double,
+    val outstanding: Double,
+    val remainingInstallments: Int,
+)
+
+data class InsightsLoanBurden(
+    val total: Double,
+    val count: Int,
+    val rows: List<InsightsLoanObligation>,
+)
+
 data class InsightsComparison(
     val currentLabel: String,
     val previousLabel: String,
@@ -71,6 +85,8 @@ data class InsightPeriodScope(
     val counterparties: List<InsightCounterparty> = emptyList(),
     /** Web Reports categoryMomentum compares complete calendar months. */
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
+    /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
+    val loanBurden: InsightsLoanBurden? = null,
 )
 
 data class InsightsUiState(

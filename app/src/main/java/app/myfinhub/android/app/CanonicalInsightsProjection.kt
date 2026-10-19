@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
+import app.myfinhub.android.core.data.canonicalReportLoanBurden
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
@@ -11,6 +12,8 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
+import app.myfinhub.android.feature.insights.InsightsLoanBurden
+import app.myfinhub.android.feature.insights.InsightsLoanObligation
 import app.myfinhub.android.feature.insights.InsightCategoryMomentum
 import app.myfinhub.android.feature.insights.InsightPeriodScope
 import app.myfinhub.android.feature.insights.InsightsComparison
@@ -131,6 +134,17 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {
+            val source = document.canonicalReportLoanBurden(asOf = end.toString())
+            InsightsLoanBurden(
+                total = source.total, count = source.count,
+                rows = source.rows.map { row ->
+                    InsightsLoanObligation(
+                        row.id, row.name, row.amount, row.outstanding, row.remainingInstallments,
+                    )
+                },
+            )
+        } else null,
         categoryMomentum = if (id == INSIGHTS_PERIOD_MONTH)
             document.canonicalReportCategoryMomentum(
                 month = YearMonth.from(end).toString(), asOf = end.toString(),
