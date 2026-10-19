@@ -93,6 +93,28 @@ class AccountMetadataApiContractTest {
         assertFalse(isValidIban("GR16\u00A00110 1250 0000 0001 2300 694"))
     }
 
+    @Test
+    fun unicodeWhitespaceIbanWriteUsesNormalizedPayloadWithExpectedRevision() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            server.enqueue(MockResponse.Builder().code(200).body("""
+              {"record":{"accountId":"payroll",
+                "iban":"GR1601101250000000012300695",
+                "revision":5,"updatedAt":"2026-10-19T01:00:00Z"}}
+            """.trimIndent()).build())
+            val client = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
+            val response = client.updateAccountIban(owner,"payroll",
+                "GR16\\u00A00110\\u202F1250 0000 0001 2300 695",4)
+            assertTrue(response is ApiResult.Success)
+            val request=server.takeRequest()
+            assertEquals("4",request.headers["If-Match"])
+            val json=kotlinx.serialization.json.Json.parseToJsonElement(
+                request.body!!.utf8()).jsonObject
+            assertEquals("GR1601101250000000012300695",
+                json["iban"]?.toString()?.trim('"'))
+        }
+    }
+
     private fun configuration(server: MockWebServer) = AppConfiguration(
         myFinHubApiBaseUrl = server.url("/").toString().removeSuffix("/"),
         supabaseUrl = "https://project.supabase.test",
