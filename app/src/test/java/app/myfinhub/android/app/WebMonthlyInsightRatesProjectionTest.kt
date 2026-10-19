@@ -37,6 +37,10 @@ class WebMonthlyInsightRatesProjectionTest {
         assertEquals(100.0,rates.trailingExpenseAverage,0.001)
         assertEquals(2.0,rates.expenseVsTrailingAverage!!,0.0001)
         assertEquals((100.0-45.0)/45.0,rates.savingChange!!,0.0001)
+        assertEquals((1000.0-900.0)/900.0,rates.incomeChange!!,0.0001)
+        assertEquals(0.5,rates.expenseChange!!,0.0001)
+        assertEquals(0.0,rates.recurringBurden!!,0.0001)
+        org.junit.Assert.assertTrue(rates.sufficientExpenseHistory)
         assertNull(view.periodScope(INSIGHTS_PERIOD_30_DAYS).monthlyRates)
         assertEquals(before,document.raw)
     }
@@ -50,6 +54,10 @@ class WebMonthlyInsightRatesProjectionTest {
         assertNull(rates.savingsRate)
         assertNull(rates.previousSavingsRate)
         assertNull(rates.expenseVsTrailingAverage)
+        assertNull(rates.recurringBurden)
+        assertEquals(0.0,rates.incomeChange!!,0.001)
+        assertEquals(0.0,rates.expenseChange!!,0.001)
+        org.junit.Assert.assertFalse(rates.sufficientExpenseHistory)
         assertEquals(0.0,rates.trailingExpenseAverage,0.001)
         assertEquals(0.0,rates.savingChange!!,0.001)
     }

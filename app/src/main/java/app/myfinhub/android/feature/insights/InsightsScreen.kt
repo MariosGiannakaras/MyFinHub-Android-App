@@ -226,6 +226,28 @@ fun InsightsScreen(
                                 modifier = Modifier.testTag("insights_savings_rate"),
                             )
                             Text(
+                                "Μεταβολή εσόδων: " +
+                                    (scope.monthlyRates.incomeChange?.let {
+                                        (if (it > 0.0) "+" else "") +
+                                            (it * 100.0).roundToInt() + "%"
+                                    } ?: "Νέα βάση") +
+                                    " · εξόδων: " +
+                                    (scope.monthlyRates.expenseChange?.let {
+                                        (if (it > 0.0) "+" else "") +
+                                            (it * 100.0).roundToInt() + "%"
+                                    } ?: "Νέα βάση"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Επιβάρυνση παγίων ως προς έσοδα: " +
+                                    (scope.monthlyRates.recurringBurden?.let {
+                                        (it * 100.0).roundToInt().toString() + "%"
+                                    } ?: "—"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
                                 "Μέσο έξοδο 3 πλήρων μηνών: " +
                                     amountVisibilityText(
                                         formatEuro(scope.monthlyRates.trailingExpenseAverage),

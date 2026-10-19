@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
+import app.myfinhub.android.core.data.canonicalRecurringMonthlyTotal
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_30_DAYS
@@ -131,18 +132,26 @@ private fun buildInsightsScope(
         val trailing = (1L..3L).map { offset ->
             document.canonicalOperationalMonthlyFlow(month.minusMonths(offset).toString()).expense
         }.average()
-        val savingChange = when {
-            prior.saving == 0.0 && current.saving == 0.0 -> 0.0
-            prior.saving == 0.0 -> null
-            else -> (current.saving - prior.saving) / kotlin.math.abs(prior.saving)
-        }
+        fun relativeChange(currentValue: Double, previousValue: Double): Double? =
+            if (previousValue == 0.0) {
+                if (currentValue == 0.0) 0.0 else null
+            } else (currentValue - previousValue) / kotlin.math.abs(previousValue)
+        val recurring = document.canonicalRecurringMonthlyTotal()
         InsightMonthlyRates(
             savingsRate = if (current.income > 0) current.saving / current.income else null,
             previousSavingsRate = if (prior.income > 0) prior.saving / prior.income else null,
             trailingExpenseAverage = trailing,
             expenseVsTrailingAverage = if (trailing > 0)
                 (current.expense - trailing) / trailing else null,
-            savingChange = savingChange,
+            savingChange = relativeChange(current.saving, prior.saving),
+            incomeChange = relativeChange(current.income, prior.income),
+            expenseChange = relativeChange(current.expense, prior.expense),
+            recurringBurden = if (current.income > 0) recurring / current.income else null,
+            sufficientExpenseHistory = (1L..3L).any { offset ->
+                document.canonicalOperationalMonthlyFlow(
+                    month.minusMonths(offset).toString(),
+                ).expense > 0.0
+            },
         )
     } else null
     return InsightPeriodScope(

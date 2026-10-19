@@ -55,6 +55,10 @@ data class InsightMonthlyRates(
     val trailingExpenseAverage: Double,
     val expenseVsTrailingAverage: Double?,
     val savingChange: Double?,
+    val incomeChange: Double? = null,
+    val expenseChange: Double? = null,
+    val recurringBurden: Double? = null,
+    val sufficientExpenseHistory: Boolean = false,
 )
 
 data class InsightsComparison(
