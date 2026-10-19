@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify four exact-final-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator gates on draft PR #270; fix on same PR and merge only after 4/4 green. Continue W5.4 settings/rules/backup parity and W5.2 owner/session safety without duplicating network write attempts. No physical owner acceptance inferred, signed release, SMS import, Web/backend/schema changes or permanent card deletion.
+- [ ] Validate immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #271; fix same PR and merge after all four pass. Then continue W4.4 Reports cumulative timeline/detailed drilldown, W5.4 settings and W5.2 session parity without competing noisy CI. No physical owner S24 acceptance, unauthorized signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #270, branch android/w5-4-rules-historical-match-count-20261019
-Current W5.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #268 certified provider card-front surface/luminance marks accepted 4/4 and merged develop e79e183812fe9981b196fc7fbff9a1aa9ef9500c. PR #269 FinanceRepository stale load/save/clear generation exclusion, duplicate concurrent save revision barrier, no blind money write retry with five coroutine/JVM goldens passed all 4 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 95f3cc21aaceba90ce79a5839b8d6acb2f197d5b, squash merged develop 76f11360ded2672a4e379081bae26be9c078542a. Draft PR #270 Web Rules matchingEvents existing events-only counts (including paused forced enabled as in Web preview), shared matcher for scopes source/manual/review/migration, income taxonomy, Greek note and account, read-only native Settings and JVM/Compose goldens. Four final-head CI gates pending. W5.4 partial; no real owner S24 acceptance or signed release.
+Issue #155, PR #271, branch android/w4-4-six-month-flow-series-20261019
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #269 FinanceRepository owner-session stale async read/write generation guard passed 4/4 and merged develop 76f11360ded2672a4e379081bae26be9c078542a. PR #270 native read-only canonical Web rule historical matching-event preview counts for enabled/paused scopes and shared first-match matcher passed all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at fe8a0acf0275c4be5ba4308cced3101eea0c27ec; squash merged develop fd4849e26b1668369ef268b268e91bf9c3d14f26. Draft PR #271 native six-month Web Reports reportFlowSeries with canonical income, expense, saving and cumulative net, across-year chronological identities, current month as-of cutoff, responsive S24 chart and six-row privacy-aware accessible text fallback; JVM and S24 Compose regressions staged. Final four CI gates pending, W4.4 partial; real owner physical S24 signoff and signed release not inferred.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify four exact-final-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator gates on draft PR #270; fix on same PR and merge only after 4/4 green. Continue W5.4 settings/rules/backup parity and W5.2 owner/session safety without duplicating network write attempts. No physical owner acceptance inferred, signed release, SMS import, Web/backend/schema changes or permanent card deletion.
+Next Validate immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #271; fix same PR and merge after all four pass. Then continue W4.4 Reports cumulative timeline/detailed drilldown, W5.4 settings and W5.2 session parity without competing noisy CI. No physical owner S24 acceptance, unauthorized signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
