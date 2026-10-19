@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -93,6 +94,9 @@ import app.myfinhub.android.R
 import app.myfinhub.android.core.ui.FinancialProvider
 import app.myfinhub.android.core.ui.financialProviderForCard
 import app.myfinhub.android.designsystem.MyFinHubProviderMark
+import app.myfinhub.android.designsystem.MyFinHubCertifiedProviderMark
+import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
+import app.myfinhub.android.core.network.certifiedBrandAsset
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -698,6 +702,19 @@ private fun ReferenceSurfaceDecoration(visual: ReferenceCardVisual) {
 
 @Composable
 private fun ReferenceBrandMark(visual: ReferenceCardVisual, card: MoneyCard) {
+    // Per Web, card-mark tone is the CARD'S own surface, not the application theme.
+    val record = LocalFinancialProviderCatalog.current.firstOrNull { it.id == card.bankId }
+    val cardTone = if ((visual.colors.firstOrNull()?.luminance() ?: 1f) < 0.5f) "dark" else "light"
+    val certified = record?.certifiedBrandAsset("card-mark", cardTone)
+    if (record != null && certified != null) {
+        MyFinHubCertifiedProviderMark(
+            providerId = record.id, asset = certified,
+            fallbackLabel = record.shortName,
+            modifier = Modifier.height(27.dp).widthIn(max = 92.dp),
+            contentDescription = record.displayName,
+        )
+        return
+    }
     val provider = financialProviderForCard(card.bankId, visual.label)
     if (provider == null) {
         Text(
