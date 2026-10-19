@@ -104,7 +104,7 @@ class AccountMetadataApiContractTest {
             """.trimIndent()).build())
             val client = OkHttpMyFinHubApi(configuration(server), OkHttpClient())
             val response = client.updateAccountIban(owner,"payroll",
-                "GR16\\u00A00110\\u202F1250 0000 0001 2300 695",4)
+                "GR16\u00A00110\u202F1250 0000 0001 2300 695",4)
             assertTrue(response is ApiResult.Success)
             val request=server.takeRequest()
             assertEquals("4",request.headers["If-Match"])
