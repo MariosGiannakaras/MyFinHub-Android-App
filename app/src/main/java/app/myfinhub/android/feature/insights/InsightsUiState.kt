@@ -67,6 +67,19 @@ data class InsightCounterparty(
     val lastDateIso: String,
 )
 
+data class InsightsPrimaryAccountMonth(
+    val monthIso: String,
+    val cutoffDateIso: String,
+    val payrollBalance: Double?,
+    val savingsBalance: Double?,
+)
+
+data class InsightsPrimaryAccountSeries(
+    val payrollLabel: String?,
+    val savingsLabel: String?,
+    val months: List<InsightsPrimaryAccountMonth>,
+)
+
 data class InsightsLoanObligation(
     val id: String,
     val name: String,
@@ -110,6 +123,8 @@ data class InsightPeriodScope(
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
     /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
     val loanBurden: InsightsLoanBurden? = null,
+    /** Web primaryAccountSeries: six month-end payroll and savings balances. */
+    val primaryAccountSeries: InsightsPrimaryAccountSeries? = null,
     val monthlyReportSignals: InsightMonthlyReportSignals? = null,
 )
 
