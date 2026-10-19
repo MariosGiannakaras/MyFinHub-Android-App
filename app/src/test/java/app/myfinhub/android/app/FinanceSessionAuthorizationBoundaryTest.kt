@@ -30,6 +30,17 @@ class FinanceSessionAuthorizationBoundaryTest {
             userId="owner-2",
         )))
     }
+    @Test fun sameBearerDowngradedAssuranceCancelsPreviouslyPrivilegedFetches() {
+        assertTrue(financeSessionAuthorizationChanged(first,first.copy(
+            assuranceLevel=AssuranceLevel.AAL1,
+        )))
+    }
+    @Test fun sameBearerUpgradedAssuranceUsesNewAuthorizationBoundary() {
+        assertTrue(financeSessionAuthorizationChanged(first.copy(
+            assuranceLevel=AssuranceLevel.AAL1,
+        ),first))
+    }
+
     @Test fun rotatingSameOwnerBearerStillIsBoundaryIfAssuranceChanges() {
         assertTrue(financeSessionAuthorizationChanged(first,first.copy(
             accessToken="synthetic-rotated-aal1",assuranceLevel=AssuranceLevel.AAL1,

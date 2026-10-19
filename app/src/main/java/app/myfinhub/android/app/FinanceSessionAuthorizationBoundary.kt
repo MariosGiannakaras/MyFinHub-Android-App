@@ -11,5 +11,6 @@ internal fun financeSessionAuthorizationChanged(
     incoming: AuthSession,
 ): Boolean = previous != null && (
     previous.userId != incoming.userId ||
-        previous.accessToken != incoming.accessToken
+        previous.accessToken != incoming.accessToken ||
+        previous.assuranceLevel != incoming.assuranceLevel
 )
