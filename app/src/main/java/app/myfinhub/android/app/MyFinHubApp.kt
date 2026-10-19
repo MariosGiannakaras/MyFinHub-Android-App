@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,6 +22,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.ActivityEditScreen
@@ -212,6 +214,7 @@ internal fun MyFinHubAppContent(
     }
 
     val navigationContent: @Composable () -> Unit = {
+        CompositionLocalProvider(LocalFinancialProviderCatalog provides financialProviderCatalog) {
         NavDisplay(
             backStack = activeBackStack,
             onBack = {
@@ -625,6 +628,7 @@ internal fun MyFinHubAppContent(
                 }
             },
         )
+        }
     }
 
     val activeRoute = activeBackStack.lastOrNull() as? AppRoute

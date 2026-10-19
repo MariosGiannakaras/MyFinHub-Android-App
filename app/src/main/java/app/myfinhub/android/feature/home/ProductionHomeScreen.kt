@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -52,6 +53,9 @@ import app.myfinhub.android.designsystem.MyFinHubIconBadge
 import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubProviderMark
+import app.myfinhub.android.designsystem.MyFinHubCertifiedProviderMark
+import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
+import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -576,6 +580,20 @@ private fun HomeAccountIdentity(account: HomeAccount, modifier: Modifier = Modif
 
 @Composable
 private fun HomeAccountIdentityMark(account: HomeAccount) {
+    // Only exact owner-assigned provider IDs can select downloaded artwork.
+    // Never guess logos from a bank-name substring or allow foreign image hosts.
+    val record = LocalFinancialProviderCatalog.current.firstOrNull { it.id == account.providerId }
+    val tone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
+    val asset = record?.certifiedBrandAsset("logo", tone)
+    if (record != null && asset != null) {
+        MyFinHubCertifiedProviderMark(
+            providerId = record.id, asset = asset,
+            fallbackLabel = record.shortName,
+            modifier = Modifier.size(36.dp),
+            contentDescription = record.displayName,
+        )
+        return
+    }
     val provider = financialProviderForAccount(account.id, account.institution ?: account.name, account.providerId)
     if (provider != null) {
         // Piraeus' actual dark-blue mark needs a light contrasting surface in dark mode.
