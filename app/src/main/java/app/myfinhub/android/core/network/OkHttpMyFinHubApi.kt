@@ -125,7 +125,7 @@ class OkHttpMyFinHubApi(
             .get()
             .build()
         return execute(request) { responseBody ->
-            val providers = parseFinancialProviderCatalog(responseBody, json)
+            val providers = parseFinancialProviderCatalog(responseBody, json, configuration.supabaseUrl)
                 ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
             ApiResult.Success(providers)
         }
