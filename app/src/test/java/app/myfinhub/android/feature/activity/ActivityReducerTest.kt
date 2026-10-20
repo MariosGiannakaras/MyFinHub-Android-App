@@ -30,6 +30,50 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
+        val originals = (0 until 1000).map { index ->
+            ActivityItem(
+                id = "event-$index", dateLabel = "20 Οκτ",
+                rawDate = "2026-10-20", kind = ActivityKind.EXPENSE,
+                title = "Κίνηση $index", subtitle = "δοκιμή",
+                amount = -5.0, accountLabel = "Μετρητά", category = "Άλλο",
+            )
+        }
+        val scope = ActivityUiState(items = originals)
+        assertEquals(1, scope.visibleSections.size)
+        assertEquals("2026-10-20", scope.visibleSections.single().date)
+        assertEquals(originals.map { it.id },
+            scope.visibleSections.single().items.map { it.id })
+        assertEquals(originals, scope.items)
+    }
+
+    @Test
+    fun groupingNeverMergesNoncontiguousDatesAndPreservesLegacyDateLabelFallback() {
+        val originals = listOf(
+            ActivityItem(
+                "first", "Σήμερα", ActivityKind.EXPENSE,
+                "Πρώτη", "", -1.0, "Μετρητά", null,
+                rawDate = "2026-10-20",
+            ),
+            ActivityItem(
+                "middle", "Χθες", ActivityKind.EXPENSE,
+                "Δεύτερη", "", -2.0, "Μετρητά", null,
+                rawDate = "",
+            ),
+            ActivityItem(
+                "last", "Σήμερα", ActivityKind.EXPENSE,
+                "Τρίτη", "", -3.0, "Μετρητά", null,
+                rawDate = "2026-10-20",
+            ),
+        )
+        val scope = ActivityUiState(items = originals)
+        assertEquals(listOf("2026-10-20", "Χθες", "2026-10-20"),
+            scope.visibleSections.map { it.date })
+        assertEquals(listOf("first", "middle", "last"),
+            scope.visibleSections.flatMap { it.items }.map { it.id })
+    }
+
+    @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
 

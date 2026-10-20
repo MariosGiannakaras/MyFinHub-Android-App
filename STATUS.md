@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #281 certified provider and recurring artwork common anonymous bounded network client with no credentials/cookies, redirects, persistent cache or per-image new connection pools, 10s connect/read/write and 15s call timeouts, existing trusted HTTPS origin and 2MiB/bitmap validation unchanged; JVM transport-policy tests passed all 4 immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks at 9b6d1584ccbb816ac9e8f69db49257904013b4ae; squash merged develop 58d30c90db06112384f933b4643501184fcc0376. Draft PR #282 fixes actual Activity S3 ledger/read-detail transfer route text replacing literal p/a placeholders for archived/missing canonical account IDs with real `accountLabel` endpoints and default note fallback; JVM and S24 Compose tests. W3.2/W4.1–W4.4/W5.1/W5.2/W5.4 remain partial; owner physical S24 approval, guarded card deletion and signed release gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #282 actual Activity ledger/detail historical transfer identities use canonical rendered account names instead of literal `p/a` placeholders, preserve resolved-ID priority and malformed-route note fallback; JVM, Compose, Project Tracking, optimized Android CI, screenshot and S24 emulator checks all passed at ce3f788dc79ebfc8f2fcebf1b5c60322ecd9da49; squash merged develop 19c7fd2cb980b371de8b3f7eaf3078934a49c204. Draft PR #283 stages linear-time same-day Activity grouping and large-history/legacy-date JVM regressions; immutable-head CI currently pending. W4.4 remains partial; physical owner S24 approval, card deletion and a new signed release are not accepted.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #282; repair on same PR and merge only if 4/4 successful. Continue W4.4 activity history/transfer/filter correctness and W5.1 owner-provider artwork acceptance. No unsupported physical device signoff, signed release, backend/Web/schema modifications, SMS import or financial state edits.
+1. Validate immutable final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator gates for draft PR #283; repair on the same PR and merge only on 4/4 success. Continue unresolved W4.4 history/filter and other Web parity subtasks in subsequent coherent checkpoints. Do not infer physical S24 approval or sign/release; no Web/backend/schema, SMS import, card deletion or finance mutation.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #282, branch android/w4-4-canonical-historical-transfer-route-20261020
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #280 trusted provider asset roles/light-dark explicit binding passed 4/4 and merged develop cf3f506a61b6ff24073697634a534183d49d31d0. PR #281 common anonymous certified artwork transport for provider and recurring logos, no API bearer/cookies/cache/redirect, bounded calls and JVM policy tests passed 4/4 immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 9b6d1584ccbb816ac9e8f69db49257904013b4ae; squash merged develop 58d30c90db06112384f933b4643501184fcc0376. Draft PR #282 Activity ledger/detail production route fixes literal `Από p → Προς a` bug when original archived account IDs are unknown, reads canonical `accountLabel` parsed Greek/ASCII arrow with true bank names, prioritizes resolved IDs, restores original note on malformed routes. JVM and native S24 Compose goldens staged, four final-head CI gates pending; W4.4 remains partial, no physical owner S24 signoff.
+Issue #155, PR #283, branch android/w4-4-activity-linear-day-grouping-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #281 anonymous trusted service/provider image transport passed 4/4 and merged develop 58d30c90db06112384f933b4643501184fcc0376. PR #282 correct historical S3 Activity transfer routes and detail names plus JVM and real Compose tests passed 4/4 exact-head at ce3f788dc79ebfc8f2fcebf1b5c60322ecd9da49 and squash merged develop 19c7fd2cb980b371de8b3f7eaf3078934a49c204. Draft PR #283 groups canonical ledger rows by contiguous date in O(n) instead of repeated quadratic list copying, with 1000-event and legacy day-group JVM assertions; four exact-final-head CI gates pending, no physical acceptance.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #282; repair on same PR and merge only if 4/4 successful. Continue W4.4 activity history/transfer/filter correctness and W5.1 owner-provider artwork acceptance. No unsupported physical device signoff, signed release, backend/Web/schema modifications, SMS import or financial state edits.
+Next Validate immutable final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator gates for draft PR #283; repair on the same PR and merge only on 4/4 success. Continue unresolved W4.4 history/filter and other Web parity subtasks in subsequent coherent checkpoints. Do not infer physical S24 approval or sign/release; no Web/backend/schema, SMS import, card deletion or finance mutation.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
