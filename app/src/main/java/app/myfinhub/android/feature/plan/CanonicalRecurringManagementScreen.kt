@@ -79,7 +79,9 @@ fun CanonicalRecurringManagementScreen(
                             // The asset is a verified session-only reference to the exact
                             // recurring ID. Duplicate historical IDs remain text-only.
                             val asset = serviceAssetCatalog.firstOrNull {
-                                it.recurringId == item.id
+                                it.recurringId == item.id &&
+                                    (item.logoAssetKey.isNullOrBlank() ||
+                                        it.assetKey == item.logoAssetKey)
                             }.takeIf { uniqueId }
                             if (asset != null) {
                                 MyFinHubCertifiedRecurringServiceMark(
