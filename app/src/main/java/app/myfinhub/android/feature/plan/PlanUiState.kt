@@ -6,6 +6,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/** Read-only Web reviewSuggestions for unresolved legacy classifications. */
+data class PlanningReviewSuggestion(
+    val transactionId: String,
+    val dateIso: String,
+    val semanticKind: String,
+    val confidence: String,
+    val reason: String,
+)
+
 data class PlannedItem(
     val id: String,
     val title: String,
@@ -142,6 +151,7 @@ data class PlanUiState(
     val budget: BudgetDraft = BudgetDraft(),
     val categoryBudgets: List<CategoryBudget> = emptyList(),
     val rules: List<PlanningRule> = emptyList(),
+    val legacyReviewSuggestions: List<PlanningReviewSuggestion> = emptyList(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
     val forecastStartDateIso: String = "",

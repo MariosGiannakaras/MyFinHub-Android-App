@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
+import app.myfinhub.android.core.data.canonicalWebDailyExpenseSeries
 import app.myfinhub.android.core.data.canonicalOperationalReportSnapshot
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
 import app.myfinhub.android.core.data.canonicalReportCreditPortfolio
@@ -17,6 +18,7 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
+import app.myfinhub.android.feature.insights.InsightsDailyExpense
 import app.myfinhub.android.feature.insights.InsightsOperationalAccountBalance
 import app.myfinhub.android.feature.insights.InsightsOperationalReport
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
@@ -153,6 +155,14 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        dailyExpenses = if (id == INSIGHTS_PERIOD_MONTH)
+            document.canonicalWebDailyExpenseSeries(
+                month = YearMonth.from(end).toString(),
+                asOf = end.toString(),
+            ).map { point ->
+                InsightsDailyExpense(point.dayLabel, point.value)
+            }
+        else emptyList(),
         operationalReport = if (id == INSIGHTS_PERIOD_MONTH) {
             val snapshot = document.canonicalOperationalReportSnapshot(
                 month = YearMonth.from(end).toString(),

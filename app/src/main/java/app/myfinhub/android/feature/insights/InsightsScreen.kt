@@ -111,6 +111,11 @@ fun InsightsScreen(
                     PrimaryAccountSeriesCard(scope.primaryAccountSeries, amountsVisible)
                 }
             }
+            if (scope.dailyExpenses.isNotEmpty()) {
+                item("daily-expenses") {
+                    DailyExpenseSeriesCard(scope, amountsVisible)
+                }
+            }
             item("categories") {
                 CategoryCompositionCard(
                     scope = scope,
@@ -611,6 +616,70 @@ private fun PrimaryAccountSeriesCard(
                 }
                 if (index < series.months.lastIndex) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyExpenseSeriesCard(
+    scope: InsightPeriodScope,
+    amountsVisible: Boolean,
+) {
+    var showAll by rememberSaveable(scope.id, scope.endDate) { mutableStateOf(false) }
+    val rows = if (showAll) scope.dailyExpenses else scope.dailyExpenses.takeLast(10)
+    val scale = scope.dailyExpenses.maxOfOrNull { it.amount }?.coerceAtLeast(0.0) ?: 0.0
+    MyFinHubSectionCard(
+        modifier = Modifier.fillMaxWidth().testTag("insights_daily_expenses"),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text(
+                "Ημερήσια έξοδα",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "Καθαρά έξοδα ανά ημέρα · οι επιστροφές μειώνουν τη χρήση",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            rows.forEachIndexed { index, row ->
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("insights_daily_expense_" + row.dayLabel),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text("Ημέρα " + row.dayLabel, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            amountVisibilityText(formatEuro(row.amount), amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    LinearProgressIndicator(
+                        progress = {
+                            if (scale > 0.0) (row.amount / scale).toFloat().coerceIn(0f, 1f)
+                            else 0f
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            if (scope.dailyExpenses.size > 10) {
+                TextButton(
+                    onClick = { showAll = !showAll },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("insights_daily_expense_more"),
+                ) {
+                    Text(
+                        if (showAll) "Τελευταίες 10 ημέρες"
+                        else "Όλες οι ημέρες με κινήσεις (" +
+                            scope.dailyExpenses.size + ")",
+                    )
                 }
             }
         }

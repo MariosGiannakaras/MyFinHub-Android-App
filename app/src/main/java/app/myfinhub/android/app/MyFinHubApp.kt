@@ -273,6 +273,7 @@ internal fun MyFinHubAppContent(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
                         transactionRules = planState.rules,
+                        legacyReviewSuggestions = planState.legacyReviewSuggestions,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
                         noticeHistoryCount = noticeHistory.size,

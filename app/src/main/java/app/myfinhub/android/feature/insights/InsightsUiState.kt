@@ -73,6 +73,12 @@ data class InsightsOperationalReport(
     val accountBalances: List<InsightsOperationalAccountBalance>,
 )
 
+/** Web dailyExpenseSeries; each day has an independent net expense floor at zero. */
+data class InsightsDailyExpense(
+    val dayLabel: String,
+    val amount: Double,
+)
+
 data class InsightCounterparty(
     val title: String,
     val category: String,
@@ -156,6 +162,7 @@ data class InsightPeriodScope(
     val counterparties: List<InsightCounterparty> = emptyList(),
     /** Web Reports categoryMomentum compares complete calendar months. */
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
+    val dailyExpenses: List<InsightsDailyExpense> = emptyList(),
     /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
     val loanBurden: InsightsLoanBurden? = null,
     /** Web credit portfolio uses month end/as-of, not the rolling window. */

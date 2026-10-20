@@ -36,6 +36,7 @@ import app.myfinhub.android.core.network.visibleServerFinanceHistoryPoints
 import app.myfinhub.android.core.network.WebAccountSecurityChange
 import app.myfinhub.android.core.update.LocalUpdateController
 import app.myfinhub.android.feature.plan.PlanningRule
+import app.myfinhub.android.feature.plan.PlanningReviewSuggestion
 import app.myfinhub.android.designsystem.MyFinHubBackButton
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubIcons
@@ -53,6 +54,7 @@ fun ProductionSettingsScreen(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
+    legacyReviewSuggestions: List<PlanningReviewSuggestion> = emptyList(),
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -77,6 +79,7 @@ fun ProductionSettingsScreen(
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
     var visibleRuleCount by remember(transactionRules) { mutableStateOf(24) }
+    var visibleReviewCount by remember(legacyReviewSuggestions) { mutableStateOf(12) }
     // Read-only history paging is scoped to the exact generation/revision.
     // A server refresh with a different revision resets the viewed window.
     var visibleServerHistoryCount by remember(
@@ -265,6 +268,74 @@ fun ProductionSettingsScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("s9_transaction_rules_more"),
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (legacyReviewSuggestions.isNotEmpty()) {
+                MyFinHubSectionCard(
+                    modifier = Modifier.fillMaxWidth().testTag("s9_legacy_review_queue"),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                        Text(
+                            "Εκκρεμείς έλεγχοι παλιών κινήσεων",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            "Οι προτάσεις προκύπτουν από τις σημειώσεις του Web. " +
+                                "Δεν αποτελούν βεβαιωμένες κατηγορίες και καμία εγγραφή " +
+                                "δεν αλλάζει αυτόματα.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            legacyReviewSuggestions.size.toString() +
+                                " κινήσεις χρειάζονται έλεγχο · " +
+                                legacyReviewSuggestions.count { it.confidence == "high" } +
+                                " υψηλής ένδειξης",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        legacyReviewSuggestions.take(visibleReviewCount).forEachIndexed { index, row ->
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_legacy_review_" + index),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(
+                                    row.dateIso + " · " + when (row.confidence) {
+                                        "high" -> "Ισχυρή ένδειξη"
+                                        "medium" -> "Χρειάζεται επιβεβαίωση"
+                                        else -> "Χαμηλή ένδειξη"
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                                Text(
+                                    row.reason,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (index < legacyReviewSuggestions.lastIndex &&
+                                index < visibleReviewCount - 1) {
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant,
+                                )
+                            }
+                        }
+                        if (legacyReviewSuggestions.size > visibleReviewCount) {
+                            MyFinHubOutlinedAction(
+                                label = "Περισσότερες προτάσεις ελέγχου (" +
+                                    (legacyReviewSuggestions.size - visibleReviewCount) + ")",
+                                onClick = {
+                                    visibleReviewCount = (visibleReviewCount + 12)
+                                        .coerceAtMost(legacyReviewSuggestions.size)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_legacy_review_more"),
                             )
                         }
                     }
