@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #278 Web note-based split suggestions opt-in only for cents-exact 2–12 expense portions, rejecting mixed income/refund/saving/transfer/reconciliation and preserving manually edited drafts; JVM and S24 Compose golden tests passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator at a883b6d6e848eef5a9700113bad9de883d898acb; squash merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858. Draft PR #279 restores stale canonical handoff and adds Web Rules JVM goldens for income category exclusion, note-only rule precedence and accountId/fromAccountId ordering; 4 immutable-head CI gates pending. W3.2/W4.1–W4.4/W5.1/W5.2/W5.4 remain partial; owner physical S24 acceptance, certified provider graphics, permanent card deletion and signed release gated.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #279 Web Rules income/category exclusion, note-only precedence and accountId/fromAccountId matching guardrail JVM goldens with canonical handoff passed immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator 4/4 at dbbe022385d8f14709457169505702c39065c0a3, squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. Draft PR #280 adds strict role-specific, explicit theme and universal fallback resolution of previously trusted-origin Web financial provider asset bindings; no cross-role asset substitution or untrusted image loading, with JVM regressions. W3.2/W4.1–W4.4/W5.1/W5.2/W5.4 partial; owner physical S24 approval, permanent card deletion and signed release gated.
 
 ## Immediate work
 
-- Run four exact-head Project Tracking, Android CI, screenshot regression and S24 emulator gates on draft PR #279, fix same PR and merge only after all successes. Continue W3.2 classification and W5 provider integration in cohesive batches; don't repeat completed #278. Preserve Web/backend/schema, historical finance state, SMS exclusion, no signed release or inferred owner physical S24 signoff.
+- Validate draft PR #280 at immutable final head with all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates. Merge only after 4/4; then advance W5.1 owner-certified provider asset binding and W3.2 semantics with measured tests. No release signing, physical S24 owner signoff inference, Web/backend/schema change or SMS import.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. PR #278 Web note-bas
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #279, branch android/w3-2-post-278-guardrail-20261020
-Current W3.2: PR #278 split suggestion Web semantics expense-only, 2–12 cents-exact and explicit opt-in with failing-closed mixed kinds and manual edits; final head a883b6d6e848eef5a9700113bad9de883d898acb passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator, squash merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858. Draft PR #279 tests Web rule guards: cannot classify income into expense taxonomy, note-only income may match, accountId outranks fromAccountId; canonical issue/tracker/generated handoff updated. Immutable-head CI pending. Web parity 1/6 and 11/24; no physical S24 signoff.
+Issue #155, PR #280, branch android/w5-1-provider-safe-asset-binding-metadata-20261020
+Current W5.1: PR #278 Web split-suggestion opt-in expense-only 2–12 exact cents and mixed-kind fail-closed passed 4/4 and merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858. PR #279 income/category matching safety, note-only priority, payer identity guards and updated handoff passed immutable head dbbe022385d8f14709457169505702c39065c0a3 all four Project Tracking/Android CI/screenshots/S24 emulator and squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. Draft PR #280 Web provider catalog role/theme bound artwork resolver chooses exact light/dark then universal, strictly filters different asset role/unbound keys; existing authenticated origin-validated assets only; JVM explicit theme and cross-role regression goldens staged, 4 gates pending. Web parity 1/6 and 11/24; physical device acceptance and signing not implied.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact-head Project Tracking, Android CI, screenshot regression and S24 emulator gates on draft PR #279, fix same PR and merge only after all successes. Continue W3.2 classification and W5 provider integration in cohesive batches; don't repeat completed #278. Preserve Web/backend/schema, historical finance state, SMS exclusion, no signed release or inferred owner physical S24 signoff.
+Next Validate draft PR #280 at immutable final head with all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates. Merge only after 4/4; then advance W5.1 owner-certified provider asset binding and W3.2 semantics with measured tests. No release signing, physical S24 owner signoff inference, Web/backend/schema change or SMS import.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
