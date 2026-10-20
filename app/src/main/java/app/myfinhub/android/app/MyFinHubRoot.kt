@@ -145,6 +145,7 @@ fun MyFinHubRoot(
     val authState by authViewModel.state.collectAsStateWithLifecycle()
     val financeState by financeViewModel.state.collectAsStateWithLifecycle()
     val financialProviderCatalog by financeViewModel.financialProviderCatalog.collectAsStateWithLifecycle()
+    val recurringServiceAssets by financeViewModel.recurringServiceAssets.collectAsStateWithLifecycle()
     val deviceSessions by financeViewModel.deviceSessions.collectAsStateWithLifecycle()
     val cardSecretState by cardSecretViewModel.state.collectAsStateWithLifecycle()
     val cardSecretCleanupState by cardSecretViewModel.cleanupState.collectAsStateWithLifecycle()
@@ -339,6 +340,8 @@ fun MyFinHubRoot(
                             accountMetadataLoaded = metadataAuthorized && accountMetadataLoaded,
                             financialProviderCatalog = if (metadataAuthorized)
                                 financialProviderCatalog else emptyList(),
+                            recurringServiceAssets = if (metadataAuthorized)
+                                recurringServiceAssets else emptyList(),
                             deviceSessions = if (metadataAuthorized) deviceSessions
                                 else DeviceSessionsUiSnapshot(),
                             serverHistory = if (historyAuthorized) serverHistory else null,
@@ -516,6 +519,7 @@ private fun FinanceProductSurface(
     accountMetadata: Map<String, AccountMetadataRecord>,
     accountMetadataLoaded: Boolean,
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord>,
+    recurringServiceAssets: List<app.myfinhub.android.core.network.RecurringServiceAssetRecord>,
     deviceSessions: DeviceSessionsUiSnapshot,
     serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary?,
     serverHistoryEnabled: Boolean,
@@ -581,6 +585,7 @@ private fun FinanceProductSurface(
                     onSaveAccountIban = onSaveAccountIban,
                     accountMetadataSaving = accountMetadataSaving,
                     financialProviderCatalog = financialProviderCatalog,
+                    recurringServiceAssets = recurringServiceAssets,
                     deviceSessions = deviceSessions,
                     serverHistory = serverHistory,
                     serverHistoryEnabled = serverHistoryEnabled,

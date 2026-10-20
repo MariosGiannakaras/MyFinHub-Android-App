@@ -2,6 +2,8 @@ package app.myfinhub.android.feature.plan
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -14,10 +16,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.designsystem.MyFinHubBackButton
+import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
+import app.myfinhub.android.designsystem.MyFinHubCertifiedRecurringServiceMark
 import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -38,6 +43,7 @@ fun CanonicalRecurringManagementScreen(
     paymentAccountAvailable: Boolean = true,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
+    val serviceAssetCatalog = LocalRecurringServiceAssets.current
     val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
     Scaffold(topBar = {
         MyFinHubScreenHeader(
@@ -66,7 +72,31 @@ fun CanonicalRecurringManagementScreen(
                     .testTag("recurring_manage_item_" + item.id +
                         (if (uniqueId) "" else "_" + index))) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        Text(item.title, style = MaterialTheme.typography.titleMedium)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // The asset is a verified session-only reference to the exact
+                            // recurring ID. Duplicate historical IDs remain text-only.
+                            val asset = serviceAssetCatalog.firstOrNull {
+                                it.recurringId == item.id
+                            }.takeIf { uniqueId }
+                            if (asset != null) {
+                                MyFinHubCertifiedRecurringServiceMark(
+                                    asset = asset,
+                                    fallbackLabel = item.title,
+                                    modifier = Modifier.size(36.dp).testTag(
+                                        "recurring_service_mark_" + item.id,
+                                    ),
+                                    contentDescription = null,
+                                )
+                            }
+                            Text(
+                                item.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                         Text(
                             when (item.status) {
                                 "active" -> "Ενεργό"

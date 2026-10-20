@@ -23,6 +23,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
+import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.ActivityEditScreen
@@ -129,6 +130,7 @@ internal fun MyFinHubAppContent(
     quickEntryMutationInFlight: Boolean = false,
     moneyState: MoneyUiState = MoneyUiState(),
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
+    recurringServiceAssets: List<app.myfinhub.android.core.network.RecurringServiceAssetRecord> = emptyList(),
     deviceSessions: DeviceSessionsUiSnapshot = DeviceSessionsUiSnapshot(),
     serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary? = null,
     serverHistoryEnabled: Boolean = false,
@@ -214,7 +216,10 @@ internal fun MyFinHubAppContent(
     }
 
     val navigationContent: @Composable () -> Unit = {
-        CompositionLocalProvider(LocalFinancialProviderCatalog provides financialProviderCatalog) {
+        CompositionLocalProvider(
+            LocalFinancialProviderCatalog provides financialProviderCatalog,
+            LocalRecurringServiceAssets provides recurringServiceAssets,
+        ) {
         NavDisplay(
             backStack = activeBackStack,
             onBack = {
