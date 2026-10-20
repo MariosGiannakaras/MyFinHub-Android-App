@@ -6,6 +6,7 @@ import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
+import app.myfinhub.android.core.data.canonicalReportCreditPortfolio
 import app.myfinhub.android.core.data.canonicalReportPrimaryAccountSeries
 import app.myfinhub.android.core.data.canonicalReportInsightSignals
 import app.myfinhub.android.core.data.canonicalReportCategoryMomentum
@@ -16,6 +17,8 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
+import app.myfinhub.android.feature.insights.InsightsCreditCardSnapshot
+import app.myfinhub.android.feature.insights.InsightsCreditPortfolio
 import app.myfinhub.android.feature.insights.InsightsPrimaryAccountSeries
 import app.myfinhub.android.feature.insights.InsightsPrimaryAccountMonth
 import app.myfinhub.android.feature.home.HomePrimaryRole
@@ -198,6 +201,25 @@ private fun buildInsightsScope(
                     },
                 )
             }
+        } else null,
+        creditPortfolio = if (id == INSIGHTS_PERIOD_MONTH) {
+            val snapshot = document.canonicalReportCreditPortfolio(end.toString())
+            InsightsCreditPortfolio(
+                activeCards = snapshot.activeCards,
+                totalCards = snapshot.totalCards,
+                debt = snapshot.debt,
+                limit = snapshot.limit,
+                available = snapshot.available,
+                usage = snapshot.usage,
+                cards = snapshot.cards.map { row ->
+                    InsightsCreditCardSnapshot(
+                        id = row.id, label = row.nickname.ifBlank { "Πιστωτική κάρτα" },
+                        active = row.active,
+                        debt = row.debt, limit = row.limit,
+                        available = row.available, usage = row.usage,
+                    )
+                },
+            )
         } else null,
         loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {
             val source = document.canonicalReportLoanBurden(asOf = end.toString())
