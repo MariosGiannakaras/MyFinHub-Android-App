@@ -371,7 +371,9 @@ private fun OperationalReportCard(
             OperationalReportAmountLine("Πιστωτικές · διαθέσιμο όριο", report.creditAvailable, amountsVisible)
             Text(
                 "Ενεργές πιστωτικές: " + report.activeCreditCards + " · χρήση: " +
-                    (report.creditUsage * 100.0).roundToInt() + "%",
+                    (if (amountsVisible)
+                        (report.creditUsage * 100.0).roundToInt().toString() + "%"
+                    else "••••"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
