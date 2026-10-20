@@ -603,11 +603,15 @@ fun ActivityReadDetailScreen(
                                 verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                             ) {
                                 Text(part.displayLabel, style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    part.categoryPath,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                // An unlabeled part already uses the category path as its
+                                // primary title; don't duplicate it in the same row.
+                                if (part.displayLabel != part.categoryPath) {
+                                    Text(
+                                        part.categoryPath,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                             Text(
                                 amountVisibilityText(
