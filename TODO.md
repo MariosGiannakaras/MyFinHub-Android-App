@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #284 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator checks. Correct only on the same PR, merge to develop solely if all four succeed. Continue the remaining W4.4 and other Web parity gaps; keep signed release, owner physical approval, Web/backend/schema changes, SMS import, permanent card deletion and finance mutations out of scope.
+- [ ] Validate draft PR #285 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks, fixing on the same PR and merging only after 4/4 success. Continue remaining W4.4 and other Web parity subtasks. No physical owner S24 acceptance, signed release, backend/Web/schema changes, SMS import, permanent card deletion or finance history mutations.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #284, branch android/w4-4-unique-activity-section-keys-20261020
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #282 historical Activity transfer route identity passed 4/4 and merged 19c7fd2cb980b371de8b3f7eaf3078934a49c204. PR #283 O(n) contiguous canonical Activity day grouping, 1,000-event JVM + legacy/noncontiguous date regression passed exact-head Project Tracking, Android CI, screenshots and S24 emulator at e5531ffcc73d35b17584eac63eb2a397fe2c4994, squash merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. Draft PR #284 corrects distinct LazyColumn month/day keys when the same date appears in separate canonical sections; production Compose regression staged, exact-head CI pending. W4.4 still incomplete.
+Issue #155, PR #285, branch android/w4-4-signed-refund-operational-flow-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #283 canonical O(n) Activity date grouping passed 4/4 and merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. PR #284 fixed duplicate LazyColumn header keys on noncontiguous repeated dates/months with production Compose regression, passed 4/4 immutable-head Project Tracking, Android CI, screenshot and S24 emulator at 03547e553e406a27b719ff0ff2dc8e15cb1588f7, squash merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. Draft PR #285 implements Web-matching signed negative expense from refunds and canonical-kind fallback for Activity visible flow, with JVM tests; four final-head gates pending and W4.4 still partial.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #284 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator checks. Correct only on the same PR, merge to develop solely if all four succeed. Continue the remaining W4.4 and other Web parity gaps; keep signed release, owner physical approval, Web/backend/schema changes, SMS import, permanent card deletion and finance mutations out of scope.
+Next Validate draft PR #285 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks, fixing on the same PR and merging only after 4/4 success. Continue remaining W4.4 and other Web parity subtasks. No physical owner S24 acceptance, signed release, backend/Web/schema changes, SMS import, permanent card deletion or finance history mutations.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

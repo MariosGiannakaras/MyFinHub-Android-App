@@ -188,15 +188,22 @@ data class ActivityUiState(
      * Read-only summary for the current search/filter projection. Transfers are intentionally
      * excluded from income/expense/net so the UI never double-counts internal money movement.
      */
+    // Follow Web flowImpactEvent/flowImpactLegacy. Refunds reduce expenses (and can
+    // make a narrowly filtered expense total negative); card repayments/transfers
+    // are not spending. Real canonical rows carry explicit signed contributions,
+    // while the kind-aware fallback also keeps isolated UI fixtures faithful.
     val visibleIncome: Double = visibleItems.sumOf { item ->
-        item.financeIncomeContribution ?: if (item.kind == ActivityKind.INCOME)
+        item.financeIncomeContribution ?: if (item.canonicalKind == "income")
             item.amount.coerceAtLeast(0.0) else 0.0
     }
 
     val visibleExpense: Double = visibleItems.sumOf { item ->
-        item.financeExpenseContribution ?: if (item.kind == ActivityKind.EXPENSE ||
-            item.kind == ActivityKind.CARD_PAYMENT) kotlin.math.abs(item.amount) else 0.0
-    }.coerceAtLeast(0.0)
+        item.financeExpenseContribution ?: when (item.canonicalKind) {
+            "expense", "card_purchase", "split" -> kotlin.math.abs(item.amount)
+            "refund" -> -kotlin.math.abs(item.amount)
+            else -> 0.0
+        }
+    }
 
     val visibleNet: Double = visibleIncome - visibleExpense
     val visiblePendingCount: Int = visibleItems.count(ActivityItem::pendingSync)
