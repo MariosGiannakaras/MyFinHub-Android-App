@@ -124,6 +124,48 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun analyticsRemainderOnlyShowsNonzeroNetContributionAndEmptyMembershipMatchesNothing() {
+        fun row(id: String, category: String, signed: Map<String, Double>) = ActivityItem(
+            id, "20 Οκτ", ActivityKind.EXPENSE, id, "", -50.0, "Μετρητά", category,
+            rawDate = "2026-10-20", categoryContributions = signed,
+        )
+        val state = ActivityUiState(items = listOf(
+            row("cancelled", "Α", mapOf("Α" to 12.0, "Β" to -12.0)),
+            row("real", "Α", mapOf("Α" to 20.0, "Β" to -5.0)),
+            row("unrelated", "Α", emptyMap()),
+        ))
+        val scope = state.forCategories(listOf("Α", "Β"), "Λοιπά", "2026-10-01", "2026-10-31")
+        assertEquals(listOf("real"), scope.visibleItems.map { it.id })
+        assertEquals(-15.0, scope.visibleItems.single().amount, 0.001)
+        assertEquals(15.0, scope.visibleExpense, 0.001)
+        assertEquals(listOf("cancelled", "real", "unrelated"), state.items.map { it.id })
+
+        val noCategories = state.forCategories(emptyList(), "Λοιπά", "2026-10-01", "2026-10-31")
+        assertTrue(noCategories.visibleItems.isEmpty())
+        assertEquals(0.0, noCategories.visibleNet, 0.001)
+    }
+
+    @Test
+    fun accountFilterIncludesAllCanonicalLedgerLegAccountsAndKeepsExplicitEndpoints() {
+        val state = ActivityUiState(items = listOf(
+            ActivityItem(
+                "leg-only", "20 Οκτ", ActivityKind.TRANSFER, "Μεταφορά", "", 50.0,
+                "Μετρητά → Μισθοδοσία", null, rawDate = "2026-10-20",
+                legAccountIds = linkedSetOf("cash", "payroll"),
+            ),
+            ActivityItem(
+                "source", "20 Οκτ", ActivityKind.EXPENSE, "Καφές", "", -5.0,
+                "Μετρητά", "Έξοδα", rawDate = "2026-10-20", accountId = "cash",
+            ),
+        ))
+        assertEquals(listOf("leg-only", "source"),
+            state.copy(accountFilterId = "cash").visibleItems.map { it.id })
+        assertEquals(listOf("leg-only"),
+            state.copy(accountFilterId = "payroll").visibleItems.map { it.id })
+        assertTrue(state.copy(accountFilterId = "credit-card").visibleItems.isEmpty())
+    }
+
+    @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
 

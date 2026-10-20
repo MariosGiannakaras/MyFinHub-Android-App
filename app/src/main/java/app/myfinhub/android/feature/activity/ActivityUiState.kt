@@ -37,6 +37,8 @@ data class ActivityItem(
     /** Web flowImpact signed values; null only in isolated UI preview fixtures. */
     val financeIncomeContribution: Double? = null,
     val financeExpenseContribution: Double? = null,
+    /** Every real asset account named in event ledger legs; excludes synthetic credit-card debt. */
+    val legAccountIds: Set<String> = emptySet(),
 )
 
 data class ActivityCategoryOption(
@@ -150,7 +152,8 @@ data class ActivityUiState(
             val matchesAccount = accountFilterId == null ||
                 item.accountId == accountFilterId ||
                 item.fromAccountId == accountFilterId ||
-                item.toAccountId == accountFilterId
+                item.toAccountId == accountFilterId ||
+                item.legAccountIds.contains(accountFilterId)
             val searchableAmount = item.amount.toString()
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
@@ -164,17 +167,21 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
-            val matchesCategory = exactCategoryIds.isNullOrEmpty() || when {
-                // Production projections always provide signed contribution maps, including
-                // empty maps for transfer/payment/refund-free rows. Never create fake
-                // category drill-down items from mere display categories.
+            val selectedCategories = exactCategoryIds.orEmpty()
+            val matchesCategory = when {
+                // An analytics row with no underlying identities must not open the entire
+                // ledger. Main-ledger filters are intentionally separate.
+                selectedCategories.isEmpty() -> !isAnalyticsScope
+                // Analytics "Λοιπά" can group multiple signed categories. If a single
+                // transaction's exact selected parts cancel, it contributes nothing to
+                // this drill-down and must not show its unrelated full amount.
                 isAnalyticsScope && item.categoryContributions != null ->
-                    item.categoryContributions.any { (category, amount) ->
-                        category in exactCategoryIds && kotlin.math.abs(amount) > 0.005
-                    }
+                    kotlin.math.abs(selectedCategories.sumOf { category ->
+                        item.categoryContributions[category] ?: 0.0
+                    }) > 0.005
                 else -> item.categoryContributions?.takeIf { it.isNotEmpty() }
-                    ?.keys?.any(exactCategoryIds::contains)
-                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in exactCategoryIds)
+                    ?.keys?.any(selectedCategories::contains)
+                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in selectedCategories)
             }
             val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&

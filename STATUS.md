@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #284 corrected duplicate date-only LazyColumn header keys for disjoint month/day Activity sections after O(n) grouping, with a real production Compose scroll regression; exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24-target emulator gates passed at 03547e553e406a27b719ff0ff2dc8e15cb1588f7 and squash merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. Draft PR #285 reconciles Web signed refund flow with native Activity visible income/expense/net projections: keep negative expense when refunds exceed purchases, use exact canonical kinds for fallback, and never count card payments or transfers as spending. Focused JVM parity regression staged; four immutable-head CI gates pending, W4.4 remains in_progress and no owner physical acceptance.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #285 Web-exact signed refund expense/net and canonical flow-kind fallbacks passed Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator 4/4 at 2218f67d9075a15d30a66e8f2d950188e3a91c94, squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft PR #286 addresses two remaining real Activity filters: event bank account identity/selection derived from all canonical event ledger legs (excluding synthetic credit-card debt), and exact net category-contribution/empty-member semantics for analytics "Λοιπά" drilldowns. JVM projection/reducer vectors staged; final-head CI pending, W4.4 remains partial and no owner physical signoff.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #285 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks, fixing on the same PR and merging only after 4/4 success. Continue remaining W4.4 and other Web parity subtasks. No physical owner S24 acceptance, signed release, backend/Web/schema changes, SMS import, permanent card deletion or finance history mutations.
+1. Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #285, branch android/w4-4-signed-refund-operational-flow-20261020
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #283 canonical O(n) Activity date grouping passed 4/4 and merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. PR #284 fixed duplicate LazyColumn header keys on noncontiguous repeated dates/months with production Compose regression, passed 4/4 immutable-head Project Tracking, Android CI, screenshot and S24 emulator at 03547e553e406a27b719ff0ff2dc8e15cb1588f7, squash merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. Draft PR #285 implements Web-matching signed negative expense from refunds and canonical-kind fallback for Activity visible flow, with JVM tests; four final-head gates pending and W4.4 still partial.
+Issue #155, PR #286, branch android/w4-4-ledger-legs-and-exact-analytics-scope-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #284 repeat-day/month Compose keys passed 4/4 and merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. PR #285 signed refunds and canonical operational Activity flow passed 4/4 immutable final-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft PR #286: event ledger leg-only account attribution/filter and analytics exact net contributor empty/cancelled category-scope correction, JVM integration + reducer tests pending all four CI checks. W4.4 remains in_progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #285 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks, fixing on the same PR and merging only after 4/4 success. Continue remaining W4.4 and other Web parity subtasks. No physical owner S24 acceptance, signed release, backend/Web/schema changes, SMS import, permanent card deletion or finance history mutations.
+Next Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
