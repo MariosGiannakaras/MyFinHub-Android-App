@@ -39,6 +39,8 @@ data class ActivityItem(
     val financeExpenseContribution: Double? = null,
     /** Every real asset account named in event ledger legs; excludes synthetic credit-card debt. */
     val legAccountIds: Set<String> = emptySet(),
+    /** Web TransactionsPage distinguishes historic imported rows from canonical events. */
+    val isLegacyTransaction: Boolean = false,
 )
 
 data class ActivityCategoryOption(
@@ -104,13 +106,17 @@ data class ActivityUiState(
 ) {
     val isAnalyticsScope: Boolean = categoryFilter != null || !categoryFilterIds.isNullOrEmpty()
 
+    // Web TransactionsPage: available taxonomy paths plus historic *display*
+    // labels. The main ledger is different from category analytics contribution
+    // drill-downs: a split belongs under "Επιμέρους κατηγορίες" in the ledger.
     val availableCategories: List<String> = buildList {
-        expenseCategories.forEach { add(it.name) }
-        incomeCategories.forEach { add(it.name) }
-        items.forEach { item ->
-            item.category?.takeIf(String::isNotBlank)?.let(::add)
-            item.categoryContributions?.keys?.filter(String::isNotBlank)?.forEach(::add)
+        (expenseCategories + incomeCategories).forEach { option ->
+            add(option.name)
+            option.subcategories.forEach { subcategory ->
+                add("${option.name} › $subcategory")
+            }
         }
+        items.forEach { item -> add(item.webLedgerCategoryLabel()) }
     }.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
 
     val typeOptions: List<ActivityTypeOption> = buildList {
@@ -138,8 +144,7 @@ data class ActivityUiState(
     val visibleItems: List<ActivityItem> = run {
         val needle = query.trim()
         val normalizedNumericNeedle = needle.replace(',', '.')
-        val exactCategory = if (isAnalyticsScope) categoryFilter else ledgerCategoryFilter
-        val exactCategoryIds = if (isAnalyticsScope) categoryFilterIds else exactCategory?.let(::setOf)
+        val selectedAnalyticsCategories = categoryFilterIds.orEmpty()
         val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
         val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
         items.filter { item ->
@@ -167,21 +172,20 @@ data class ActivityUiState(
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
                 searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
-            val selectedCategories = exactCategoryIds.orEmpty()
             val matchesCategory = when {
-                // An analytics row with no underlying identities must not open the entire
-                // ledger. Main-ledger filters are intentionally separate.
-                selectedCategories.isEmpty() -> !isAnalyticsScope
-                // Analytics "Λοιπά" can group multiple signed categories. If a single
-                // transaction's exact selected parts cancel, it contributes nothing to
-                // this drill-down and must not show its unrelated full amount.
-                isAnalyticsScope && item.categoryContributions != null ->
-                    kotlin.math.abs(selectedCategories.sumOf { category ->
+                !isAnalyticsScope -> ledgerCategoryFilter == null ||
+                    item.webLedgerCategoryLabel() == ledgerCategoryFilter
+                // Exact analytics category IDs always use *signed* financial
+                // contributions, never the presentation path from the ledger.
+                selectedAnalyticsCategories.isEmpty() -> false
+                item.categoryContributions != null ->
+                    kotlin.math.abs(selectedAnalyticsCategories.sumOf { category ->
                         item.categoryContributions[category] ?: 0.0
                     }) > 0.005
-                else -> item.categoryContributions?.takeIf { it.isNotEmpty() }
-                    ?.keys?.any(selectedCategories::contains)
-                    ?: ((item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in selectedCategories)
+                // Only legacy synthetic preview rows without canonical contribution
+                // metadata may use their original category for this read-only view.
+                else -> (item.category?.takeIf(String::isNotBlank) ?: "Άλλο") in
+                    selectedAnalyticsCategories
             }
             val matchesDate = (effectiveDateFrom == null && effectiveDateTo == null) ||
                 (item.rawDate.length >= 10 &&
@@ -366,6 +370,25 @@ fun ActivityItem.supportsCategoryEdit(): Boolean = canonicalKind in setOf(
     "repayment",
     "card_purchase",
 )
+
+/** Exact Web TransactionsPage categoryLabel/categoryPath for main-ledger filters. */
+internal fun ActivityItem.webLedgerCategoryLabel(): String {
+    if (canonicalKind == "split") return "Επιμέρους κατηγορίες"
+    val selectedCategory = category?.takeIf(String::isNotBlank)
+        ?: if (isLegacyTransaction) "Άλλο" else canonicalKind
+    if (selectedCategory == canonicalKind) return when (canonicalKind) {
+        "refund" -> "Επιστροφή χρημάτων"
+        "lending" -> "Δανεικά προς άλλον"
+        "repayment" -> "Επιστροφή δανεικών"
+        "card_purchase" -> "Αγορά με πιστωτική"
+        "card_payment" -> "Εξόφληση πιστωτικής"
+        "reconciliation" -> "Διόρθωση υπολοίπου"
+        "split" -> "Σύνθετη κίνηση"
+        else -> activityTypeLabel(canonicalKind)
+    }
+    return if (subcategory.isNullOrEmpty()) selectedCategory
+    else "$selectedCategory › $subcategory"
+}
 
 internal fun activityTypeLabel(canonicalKind: String): String = when (canonicalKind) {
     "expense" -> "Έξοδο"

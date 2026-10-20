@@ -100,6 +100,38 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun productionLedgerCategoryFiltersUseWebLegacyAndEventLabelsAndPaths() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"imported","date":"2026-10-10","type":"expense","amount":9,
+                 "accountId":"cash","note":"Ιστορικό"},
+                {"id":"historic-sub","date":"2026-10-11","type":"expense","amount":4,
+                 "accountId":"cash","category":"Τρόφιμα","subcategory":"Καφές"}
+              ]},"state":{"events":[
+                {"id":"refund","date":"2026-10-12","kind":"refund","amount":5},
+                {"id":"split","date":"2026-10-13","kind":"split","amount":20,
+                 "parts":[{"category":"Τρόφιμα","amount":8},
+                          {"category":"Μεταφορές","amount":12}]}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 20)).activityState
+        assertTrue(state.items.first { it.id == "imported" }.isLegacyTransaction)
+        assertFalse(state.items.first { it.id == "refund" }.isLegacyTransaction)
+        assertEquals(listOf("historic-sub"),
+            state.copy(ledgerCategoryFilter = "Τρόφιμα › Καφές").visibleItems.map { it.id })
+        assertEquals(listOf("imported"),
+            state.copy(ledgerCategoryFilter = "Άλλο").visibleItems.map { it.id })
+        assertEquals(listOf("refund"),
+            state.copy(ledgerCategoryFilter = "Επιστροφή χρημάτων").visibleItems.map { it.id })
+        assertEquals(listOf("split"),
+            state.copy(ledgerCategoryFilter = "Επιμέρους κατηγορίες").visibleItems.map { it.id })
+        assertEquals(listOf("split", "historic-sub"),
+            state.forCategory("Τρόφιμα", "2026-10-01", "2026-10-31")
+                .visibleItems.map { it.id })
+    }
+
+    @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(
             document = canonicalFixture(),

@@ -317,6 +317,64 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun mainLedgerCategoryUsesWebDisplayPathsNotAnalyticsSplitContributions() {
+        val state = ActivityUiState(
+            expenseCategories = listOf(ActivityCategoryOption("Τρόφιμα", listOf("Καφές", "Γεύμα"))),
+            items = listOf(
+                ActivityItem("coffee", "20 Οκτ", ActivityKind.EXPENSE, "Καφές", "",
+                    -3.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-20",
+                    subcategory = "Καφές", categoryContributions = mapOf("Τρόφιμα" to 3.0)),
+                ActivityItem("parent", "20 Οκτ", ActivityKind.EXPENSE, "Αγορά", "",
+                    -10.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-20",
+                    categoryContributions = mapOf("Τρόφιμα" to 10.0)),
+                ActivityItem("split", "20 Οκτ", ActivityKind.EXPENSE, "Κατανομή", "",
+                    -30.0, "Μετρητά", "Διαχωρισμός", rawDate = "2026-10-20",
+                    canonicalKind = "split", categoryContributions = mapOf("Τρόφιμα" to 12.0, "Άλλο" to 18.0)),
+                ActivityItem("refund", "20 Οκτ", ActivityKind.INCOME, "Επιστροφή", "",
+                    4.0, "Μετρητά", null, rawDate = "2026-10-20",
+                    canonicalKind = "refund", categoryContributions = mapOf("Τρόφιμα" to -4.0)),
+                ActivityItem("legacy", "20 Οκτ", ActivityKind.EXPENSE, "Εισαγωγή", "",
+                    -5.0, "Μετρητά", null, rawDate = "2026-10-20",
+                    isLegacyTransaction = true, categoryContributions = emptyMap()),
+            ),
+        )
+        assertTrue("Τρόφιμα › Καφές" in state.availableCategories)
+        assertTrue("Τρόφιμα › Γεύμα" in state.availableCategories)
+        assertTrue("Επιμέρους κατηγορίες" in state.availableCategories)
+        assertTrue("Επιστροφή χρημάτων" in state.availableCategories)
+        assertTrue("Άλλο" in state.availableCategories)
+        assertFalse("Διαχωρισμός" in state.availableCategories)
+        assertEquals(listOf("coffee"),
+            state.copy(ledgerCategoryFilter = "Τρόφιμα › Καφές").visibleItems.map { it.id })
+        assertEquals(listOf("parent"),
+            state.copy(ledgerCategoryFilter = "Τρόφιμα").visibleItems.map { it.id })
+        assertEquals(listOf("split"),
+            state.copy(ledgerCategoryFilter = "Επιμέρους κατηγορίες").visibleItems.map { it.id })
+        assertEquals(listOf("refund"),
+            state.copy(ledgerCategoryFilter = "Επιστροφή χρημάτων").visibleItems.map { it.id })
+        assertEquals(listOf("legacy"),
+            state.copy(ledgerCategoryFilter = "Άλλο").visibleItems.map { it.id })
+        // Analytics still drills into the exact part amounts rather than ledger labels.
+        val analytics = state.forCategory("Τρόφιμα", "2026-10-01", "2026-10-31")
+        assertEquals(listOf("coffee", "parent", "split", "refund"),
+            analytics.visibleItems.map { it.id })
+    }
+
+    @Test
+    fun analyticsNeverUsesDisplayCategoryWhenCanonicalContributionsAreExplicitlyEmpty() {
+        val row = ActivityItem(
+            "transfer", "20 Οκτ", ActivityKind.TRANSFER, "Μεταφορά", "",
+            25.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-20",
+            categoryContributions = emptyMap(),
+        )
+        val ledger = ActivityUiState(items = listOf(row))
+        assertEquals(listOf("transfer"),
+            ledger.copy(ledgerCategoryFilter = "Τρόφιμα").visibleItems.map { it.id })
+        assertTrue(ledger.forCategory("Τρόφιμα", "2026-10-01", "2026-10-31")
+            .visibleItems.isEmpty())
+    }
+
+    @Test
     fun ledgerFilters_areExactInclusiveAndIndependentlyRemovable() {
         val items = listOf(
             ActivityItem("food-main", "10 Σεπ", ActivityKind.EXPENSE, "Αγορά", "", -10.0, "Κύριος", "Τρόφιμα",
