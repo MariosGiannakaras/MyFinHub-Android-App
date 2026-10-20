@@ -64,6 +64,42 @@ class CanonicalProductProjectionTest {
     """.trimIndent()).jsonObject)
 
     @Test
+    fun eventLegOnlyAccountAttributionMatchesWebTransactionAccountFilterAndLabels() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[
+              {"id":"cash","kind":"cash","name":"Μετρητά"},
+              {"id":"payroll","kind":"bank","name":"Μισθοδοσία"},
+              {"id":"savings","kind":"bank","name":"Αποταμίευση"}
+            ]},"state":{"events":[
+              {"id":"leg-transfer","kind":"transfer","date":"2026-10-16","amount":40,
+               "legs":[{"accountId":"cash","amount":-40},{"accountId":"payroll","amount":40}]},
+              {"id":"card-pay","kind":"card_payment","date":"2026-10-17","amount":15,
+               "legs":[{"accountId":"payroll","amount":-15},{"accountId":"credit-card","amount":15}]},
+              {"id":"explicit-route","kind":"transfer","date":"2026-10-18","amount":10,
+               "fromAccountId":"payroll","toAccountId":"savings",
+               "legs":[{"accountId":"payroll","amount":-10},{"accountId":"savings","amount":10}]}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val ledger = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 20)).activityState
+        val transfer = ledger.items.first { it.id == "leg-transfer" }
+        assertEquals(setOf("cash", "payroll"), transfer.legAccountIds)
+        assertEquals("Μετρητά → Μισθοδοσία", transfer.accountLabel)
+        assertEquals(listOf("leg-transfer"),
+            ledger.copy(accountFilterId = "cash").visibleItems.map { it.id })
+        assertEquals(listOf("explicit-route", "card-pay", "leg-transfer"),
+            ledger.copy(accountFilterId = "payroll").visibleItems.map { it.id })
+
+        val payment = ledger.items.first { it.id == "card-pay" }
+        assertEquals("Μισθοδοσία", payment.accountLabel)
+        assertEquals(setOf("payroll"), payment.legAccountIds)
+        assertFalse(payment.legAccountIds.contains("credit-card"))
+        val explicit = ledger.items.first { it.id == "explicit-route" }
+        assertEquals("Μισθοδοσία → Αποταμίευση", explicit.accountLabel)
+        assertEquals(listOf("explicit-route"),
+            ledger.copy(accountFilterId = "savings").visibleItems.map { it.id })
+    }
+
+    @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(
             document = canonicalFixture(),

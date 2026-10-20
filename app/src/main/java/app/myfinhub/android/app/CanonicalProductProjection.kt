@@ -481,6 +481,17 @@ private fun buildActivityItems(
             ))
         }
         events.forEachIndexed { index, event ->
+            // Web TransactionsPage uses each event's canonical ledger legs when
+            // identifying its accounts; accountId/from/to may all be absent.
+            val legAccounts = event.legs.map { it.accountId }
+                .filter { it.isNotBlank() && it != "credit-card" }.distinct()
+            val displayedAccounts = when {
+                event.fromAccountId != null && event.toAccountId != null ->
+                    accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames)
+                legAccounts.isNotEmpty() ->
+                    legAccounts.joinToString(" → ") { accountNames[it] ?: it }
+                else -> accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames)
+            }
             add(ActivitySortRow(
                 date = event.date,
                 chronology = eventChronology[event.id].orEmpty().ifBlank { event.date },
@@ -492,7 +503,7 @@ private fun buildActivityItems(
                     title = event.category ?: event.note.ifBlank { eventKindLabel(event.kind) },
                     subtitle = event.note.ifBlank { eventKindLabel(event.kind) },
                     amount = eventDisplayAmount(event),
-                    accountLabel = accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames),
+                    accountLabel = displayedAccounts,
                     category = event.category,
                     subcategory = event.subcategory,
                     note = event.note,
@@ -504,6 +515,7 @@ private fun buildActivityItems(
                     cardLabel = event.cardId?.let(cardLabels::get),
                     canonicalKind = event.kind,
                     typeLabel = activityTypeLabel(event.kind),
+                    legAccountIds = legAccounts.toSet(),
                 ),
             ))
         }
