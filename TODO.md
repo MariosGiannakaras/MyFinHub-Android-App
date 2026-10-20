@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation.
+- [ ] Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #286, branch android/w4-4-ledger-legs-and-exact-analytics-scope-20261020
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #284 repeat-day/month Compose keys passed 4/4 and merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. PR #285 signed refunds and canonical operational Activity flow passed 4/4 immutable final-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft PR #286: event ledger leg-only account attribution/filter and analytics exact net contributor empty/cancelled category-scope correction, JVM integration + reducer tests pending all four CI checks. W4.4 remains in_progress.
+Issue #155, PR #287, branch android/w4-4-exact-web-ledger-categories-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #285 signed refunds passed all four exact-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. PR #286 canonical event leg account filters and exact nonzero Analytics «Λοιπά» passed 4/4 immutable-head gates at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7, squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 brings Web exact main-ledger category presentation paths, archived categories, and split-label-vs-analytics parity, with JVM canonical projection/reducer golden assertions; exact-head CI pending. W4.4 still incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation.
+Next Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

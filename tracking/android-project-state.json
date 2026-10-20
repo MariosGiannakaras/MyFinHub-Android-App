@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #285 Web-exact signed refund expense/net and canonical flow-kind fallbacks passed Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator 4/4 at 2218f67d9075a15d30a66e8f2d950188e3a91c94, squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft PR #286 addresses two remaining real Activity filters: event bank account identity/selection derived from all canonical event ledger legs (excluding synthetic credit-card debt), and exact net category-contribution/empty-member semantics for analytics \"Λοιπά\" drilldowns. JVM projection/reducer vectors staged; final-head CI pending, W4.4 remains partial and no owner physical signoff.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #286 fixed canonical event leg-based account filters/labels and nonzero exact Analytics «Λοιπά» category contributions; all four exact-head Project Tracking, optimized Android CI, screenshot and S24 emulator passed at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7; squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 reconciles Web TransactionsPage main-ledger category filtering: explicit category › subcategory paths, split grouped display label instead of its financial part tags, history-only labels, Web event-kind labels, while keeping signed Analytics contributor drilldowns isolated. Adds JVM reducer and actual canonical projection parity fixtures. Four final-head CI gates pending, W4.4 remains partial.",
     "next": [
-      "Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation."
+      "Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-ledger-legs-and-exact-analytics-scope-20261020",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #284 repeat-day/month Compose keys passed 4/4 and merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. PR #285 signed refunds and canonical operational Activity flow passed 4/4 immutable final-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft PR #286: event ledger leg-only account attribution/filter and analytics exact net contributor empty/cancelled category-scope correction, JVM integration + reducer tests pending all four CI checks. W4.4 remains in_progress.",
+    "branch": "android/w4-4-exact-web-ledger-categories-20261020",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #285 signed refunds passed all four exact-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. PR #286 canonical event leg account filters and exact nonzero Analytics «Λοιπά» passed 4/4 immutable-head gates at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7, squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 brings Web exact main-ledger category presentation paths, archived categories, and split-label-vs-analytics parity, with JVM canonical projection/reducer golden assertions; exact-head CI pending. W4.4 still incomplete.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -941,7 +941,8 @@
               "Draft PR #283 implements linear contiguous date section grouping preserving canonical order and immutable rows; JVM test covers 1000 same-day transactions, disjoint repeated dates, missing raw dates and retained PR #282 transfer regressions; unvalidated until four exact-head CI gates.",
               "PR #283 canonical O(n) contiguous Activity grouping was validated with four exact-final-head gates at e5531ffcc73d35b17584eac63eb2a397fe2c4994 and squash merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. Draft PR #284 stages a fix for repeated noncontiguous day/month LazyColumn header key collisions plus production Compose scroll regression; not validated or accepted yet.",
               "PR #284 disjoint day/month Compose header-key fix passed all 4 immutable-head checks at 03547e553e406a27b719ff0ff2dc8e15cb1588f7 and squash merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. Draft #285 addresses signed Web refund expense/net and exact canonical fallback with JVM golden tests; no acceptance credit until all final-head CI gates pass.",
-              "PR #285 signed refunds/canonical flow-kind Activity projection passed all four immutable-final-head CI checks at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft #286 implements leg-only canonical event account membership/display and exact net/empty analytics category scope with JVM projection/reducer regressions; no acceptance credit before full CI."
+              "PR #285 signed refunds/canonical flow-kind Activity projection passed all four immutable-final-head CI checks at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft #286 implements leg-only canonical event account membership/display and exact net/empty analytics category scope with JVM projection/reducer regressions; no acceptance credit before full CI.",
+              "PR #286 canonical leg-only event account identity/filter and exact signed Analytics «Λοιπά» scope passed 4/4 checks at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7 and squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 stages Web-accurate main ledger display-category/subcategory-path taxonomy distinct from Analytics signed category contributions, canonical projection and reducer tests pending; no completion credit."
             ]
           }
         ]
@@ -1063,9 +1064,9 @@
         ]
       }
     ],
-    "next_action": "Validate draft PR #286 all four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; repair on same PR and merge only when 4/4 green. Continue remaining W4.4 and other Web parity subtasks. Do not claim physical owner S24 signoff or signed release; no Web/backend/schema edits, SMS import, permanent card deletion or finance mutation.",
+    "next_action": "Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 286,
+    "pr": 287,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

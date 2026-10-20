@@ -477,6 +477,7 @@ private fun buildActivityItems(
                     toAccountId = tx.toAccountId,
                     canonicalKind = tx.type,
                     typeLabel = activityTypeLabel(tx.type),
+                    isLegacyTransaction = true,
                 ),
             ))
         }
