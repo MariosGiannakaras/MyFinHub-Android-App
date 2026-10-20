@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #281; fix on same PR and merge only if 4/4 success. Continue W5.1 dynamic provider visual identity and W5.4 service asset transport plus outstanding Web parity without noisy concurrent CI. No physical owner S24 signoff, signed release, Web/backend/schema edits, SMS import or financial state modifications.
+- [ ] Run all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #282; repair on same PR and merge only if 4/4 successful. Continue W4.4 activity history/transfer/filter correctness and W5.1 owner-provider artwork acceptance. No unsupported physical device signoff, signed release, backend/Web/schema modifications, SMS import or financial state edits.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #281, branch android/w5-1-shared-anonymous-certified-image-transport-20261020
-Current W5.1: Web parity 1/6 implementations · 11/24 completed subtasks. PR #279 Web Rules classification precedence guardrails and canonical handoff passed 4/4 at dbbe022385d8f14709457169505702c39065c0a3, squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. PR #280 trusted-origin financial provider strict role and theme binding exact light/dark then universal, no other roles, JVM tests passed 4/4 exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot and S24 emulator at b77b10f3d2a280ff02bc666b610ebb6e0cfb6cc4 and squash merged develop cf3f506a61b6ff24073697634a534183d49d31d0. Draft PR #281 certified public provider/recurring artwork shares one bounded anonymous OkHttp client, no cookies, credentials, disk cache, redirects or connection pool per image; JVM assertions of transport; four exact-head CI gates pending. No physical owner S24 signoff, certified actual artwork acceptance or new signed release.
+Issue #155, PR #282, branch android/w4-4-canonical-historical-transfer-route-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #280 trusted provider asset roles/light-dark explicit binding passed 4/4 and merged develop cf3f506a61b6ff24073697634a534183d49d31d0. PR #281 common anonymous certified artwork transport for provider and recurring logos, no API bearer/cookies/cache/redirect, bounded calls and JVM policy tests passed 4/4 immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator at 9b6d1584ccbb816ac9e8f69db49257904013b4ae; squash merged develop 58d30c90db06112384f933b4643501184fcc0376. Draft PR #282 Activity ledger/detail production route fixes literal `Από p → Προς a` bug when original archived account IDs are unknown, reads canonical `accountLabel` parsed Greek/ASCII arrow with true bank names, prioritizes resolved IDs, restores original note on malformed routes. JVM and native S24 Compose goldens staged, four final-head CI gates pending; W4.4 remains partial, no physical owner S24 signoff.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #281; fix on same PR and merge only if 4/4 success. Continue W5.1 dynamic provider visual identity and W5.4 service asset transport plus outstanding Web parity without noisy concurrent CI. No physical owner S24 signoff, signed release, Web/backend/schema edits, SMS import or financial state modifications.
+Next Run all four final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates on draft PR #282; repair on same PR and merge only if 4/4 successful. Continue W4.4 activity history/transfer/filter correctness and W5.1 owner-provider artwork acceptance. No unsupported physical device signoff, signed release, backend/Web/schema modifications, SMS import or financial state edits.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

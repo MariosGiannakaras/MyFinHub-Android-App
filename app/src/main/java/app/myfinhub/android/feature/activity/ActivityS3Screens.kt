@@ -81,7 +81,7 @@ internal fun activityTransferRouteLabel(
     if (!from.isNullOrBlank() && !to.isNullOrBlank()) return "Από $from → Προς $to"
 
     val route = item.accountLabel.replace("->", "→").split("→", limit = 2).map(String::trim)
-    if (route.size == 2 && route.all(String::isNotBlank)) return "Από p → Προς a"
+    if (route.size == 2 && route.all(String::isNotBlank)) return "Από ${route[0]} → Προς ${route[1]}"
     return item.subtitle
 }
 
