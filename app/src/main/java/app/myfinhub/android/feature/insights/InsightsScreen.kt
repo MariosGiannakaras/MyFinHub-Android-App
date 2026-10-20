@@ -259,6 +259,69 @@ fun InsightsScreen(
                     }
                 }
             }
+            if (scope.creditPortfolio != null && scope.creditPortfolio.totalCards > 0) {
+                item("credit-portfolio") {
+                    val portfolio = scope.creditPortfolio
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_credit_portfolio"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text(
+                                "Πιστωτικές κάρτες · συνολική εικόνα",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                "Ενεργές " + portfolio.activeCards + "/" + portfolio.totalCards +
+                                    " · περιλαμβάνονται οι οφειλές αρχειοθετημένων",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Οφειλή: " +
+                                    amountVisibilityText(formatEuro(portfolio.debt), amountsVisible) +
+                                    " · Όριο: " +
+                                    amountVisibilityText(formatEuro(portfolio.limit), amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.testTag("insights_credit_portfolio_totals"),
+                            )
+                            Text(
+                                "Διαθέσιμο: " +
+                                    amountVisibilityText(formatEuro(portfolio.available), amountsVisible) +
+                                    " · Χρήση: " + (portfolio.usage * 100.0).roundToInt() + "%",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            portfolio.cards.forEachIndexed { index, card ->
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("insights_credit_card_snapshot_" + index),
+                                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                                ) {
+                                    Text(
+                                        card.label + (if (card.active) "" else " · Αρχειοθετημένη"),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                    Text(
+                                        "Οφειλή: " +
+                                            amountVisibilityText(formatEuro(card.debt), amountsVisible) +
+                                            " · Όριο: " +
+                                            amountVisibilityText(formatEuro(card.limit), amountsVisible),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                    Text(
+                                        "Διαθέσιμο: " +
+                                            amountVisibilityText(formatEuro(card.available), amountsVisible) +
+                                            " · Χρήση: " +
+                                            (card.usage * 100.0).roundToInt() + "%",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,

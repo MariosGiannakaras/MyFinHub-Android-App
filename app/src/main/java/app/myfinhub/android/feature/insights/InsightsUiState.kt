@@ -80,6 +80,26 @@ data class InsightsPrimaryAccountSeries(
     val months: List<InsightsPrimaryAccountMonth>,
 )
 
+/** Exact Web Reports creditPortfolioSnapshot/creditCardSnapshots, including archived debt. */
+data class InsightsCreditCardSnapshot(
+    val id: String,
+    val label: String,
+    val active: Boolean,
+    val debt: Double,
+    val limit: Double,
+    val available: Double,
+    val usage: Double,
+)
+data class InsightsCreditPortfolio(
+    val activeCards: Int,
+    val totalCards: Int,
+    val debt: Double,
+    val limit: Double,
+    val available: Double,
+    val usage: Double,
+    val cards: List<InsightsCreditCardSnapshot>,
+)
+
 data class InsightsLoanObligation(
     val id: String,
     val name: String,
@@ -123,6 +143,8 @@ data class InsightPeriodScope(
     val categoryMomentum: List<InsightCategoryMomentum> = emptyList(),
     /** Web reportLoanBurden is an as-of liability, not a per-period cash flow. */
     val loanBurden: InsightsLoanBurden? = null,
+    /** Web credit portfolio uses month end/as-of, not the rolling window. */
+    val creditPortfolio: InsightsCreditPortfolio? = null,
     /** Web primaryAccountSeries: six month-end payroll and savings balances. */
     val primaryAccountSeries: InsightsPrimaryAccountSeries? = null,
     val monthlyReportSignals: InsightMonthlyReportSignals? = null,
