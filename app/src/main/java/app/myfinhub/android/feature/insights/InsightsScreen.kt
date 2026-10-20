@@ -96,6 +96,11 @@ fun InsightsScreen(
             item("spending-comparison") {
                 SpendingComparisonCard(scope = scope, largeFont = largeFont, amountsVisible = amountsVisible)
             }
+            if (scope.operationalReport != null) {
+                item("operational-snapshot") {
+                    OperationalReportCard(scope.operationalReport, amountsVisible)
+                }
+            }
             if (scope.monthlyReportSignals != null) {
                 item("monthly-report-signals") {
                     MonthlyReportSignalsCard(scope.monthlyReportSignals, amountsVisible)
@@ -333,6 +338,82 @@ fun InsightsScreen(
                 )
             }
         }
+    }
+}
+
+
+@Composable
+private fun OperationalReportCard(
+    report: InsightsOperationalReport,
+    amountsVisible: Boolean,
+) {
+    var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    MyFinHubSectionCard(
+        modifier = Modifier.fillMaxWidth().testTag("insights_operational_report"),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text(
+                "Οικονομική εικόνα μήνα",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "Απαιτήσεις και πιστωτικό όριο δεν είναι διαθέσιμα μετρητά",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OperationalReportAmountLine("Έσοδα", report.income, amountsVisible)
+            OperationalReportAmountLine("Έξοδα", report.expense, amountsVisible)
+            OperationalReportAmountLine("Αποταμίευση", report.saving, amountsVisible)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            OperationalReportAmountLine("Πιστωτικές · οφειλή", report.creditDebt, amountsVisible)
+            OperationalReportAmountLine("Πιστωτικές · όριο ενεργών", report.creditLimit, amountsVisible)
+            OperationalReportAmountLine("Πιστωτικές · διαθέσιμο όριο", report.creditAvailable, amountsVisible)
+            Text(
+                "Ενεργές πιστωτικές: " + report.activeCreditCards + " · χρήση: " +
+                    (report.creditUsage * 100.0).roundToInt() + "%",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OperationalReportAmountLine("Απαιτήσεις από τρίτους", report.receivables, amountsVisible)
+            OperationalReportAmountLine("Μηνιαία πάγια", report.recurring, amountsVisible)
+            OperationalReportAmountLine("Αποταμίευση περιόδου", report.savingsTotal, amountsVisible)
+            OperationalReportAmountLine("Μηνιαίος προϋπολογισμός", report.budget, amountsVisible)
+            OperationalReportAmountLine("Υπόλοιπο προϋπολογισμού", report.budgetRemaining, amountsVisible)
+            if (report.accountBalances.isNotEmpty()) {
+                TextButton(
+                    onClick = { detailsExpanded = !detailsExpanded },
+                    modifier = Modifier.testTag("insights_operational_accounts_toggle"),
+                ) {
+                    Text(if (detailsExpanded) "Απόκρυψη λογαριασμών" else "Υπόλοιπα λογαριασμών")
+                }
+                if (detailsExpanded) {
+                    report.accountBalances.forEachIndexed { index, account ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("insights_operational_account_" + index),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(account.label, modifier = Modifier.weight(1f))
+                            Text(amountVisibilityText(formatEuro(account.balance), amountsVisible))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OperationalReportAmountLine(
+    title: String, value: Double, amountsVisible: Boolean,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(title, modifier = Modifier.weight(1f))
+        Text(amountVisibilityText(formatEuro(value), amountsVisible))
     }
 }
 
