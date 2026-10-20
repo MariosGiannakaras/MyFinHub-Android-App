@@ -11,7 +11,7 @@ class WebRecurringServiceAssetCatalogTest {
     private val key="service-asset-"+"abcdef012345abcdef012345"
     private val base="$host/storage/v1/object/public/recurring-service-assets/services/$key.png"
     private fun response(url: String = base, mime: String = "image/png", file: String = "$key.png") = """
-        {"assets":[{"assetKey":"cover-1","recurringId":"internet","url":"$url",
+        {"assets":[{"assetKey":"$key","recurringId":"internet","url":"$url",
          "fileName":"$file","mimeType":"$mime","sizeBytes":12345,
          "updatedAt":"2026-10-19T09:00:00Z"}]}
     """.trimIndent()
@@ -53,6 +53,6 @@ class WebRecurringServiceAssetCatalogTest {
         assertNull(parseRecurringServiceAssetCatalog(
             response().replace("12345","2500000"),host))
         assertNull(parseRecurringServiceAssetCatalog(
-            response().replace("\"cover-1\"","\"../evil\""),host))
+            response().replace("\"$key\"","\"../evil\""),host))
     }
 }

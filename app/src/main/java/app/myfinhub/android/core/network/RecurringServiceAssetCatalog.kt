@@ -91,7 +91,7 @@ internal fun parseRecurringServiceAssetCatalog(
         // generated service-asset-<uuid> storage basename.
         val fileName = str("fileName")?.takeIf {
             it.isNotBlank() && it.length <= 255 &&
-                '/' !in it && '\\' !in it && it.none(Char::isISOControl)
+                '/' !in it && '\\' !in it && it.none { character -> character.isISOControl() }
         } ?: return null
         val rawUrl = str("url") ?: return null
         val url = trustedRecurringServiceAssetUrl(rawUrl,trustedSupabaseOrigin) ?: return null
