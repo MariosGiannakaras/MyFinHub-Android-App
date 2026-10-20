@@ -201,17 +201,25 @@ data class ActivityUiState(
     val visibleNet: Double = visibleIncome - visibleExpense
     val visiblePendingCount: Int = visibleItems.count(ActivityItem::pendingSync)
 
-    /** Input order is already canonical newest-first; grouping must never reorder rows. */
+    /**
+     * Keep the original canonical newest-first row order and *contiguous* day
+     * boundaries (even for malformed out-of-order history). Build each day's
+     * mutable list once, rather than copying an ever-growing immutable list per
+     * transaction, which was quadratic for long real-bank activity days.
+     */
     val visibleSections: List<ActivitySection> = buildList {
-        visibleItems.forEach { item ->
+        var currentDate: String? = null
+        var currentItems = mutableListOf<ActivityItem>()
+        for (item in visibleItems) {
             val key = item.rawDate.take(10).ifBlank { item.dateLabel }
-            val last = lastOrNull()
-            if (last?.date == key) {
-                this[lastIndex] = last.copy(items = last.items + item)
-            } else {
-                add(ActivitySection(key, listOf(item)))
+            if (currentDate != null && currentDate != key) {
+                add(ActivitySection(currentDate, currentItems.toList()))
+                currentItems = mutableListOf()
             }
+            currentDate = key
+            currentItems.add(item)
         }
+        if (currentDate != null) add(ActivitySection(currentDate, currentItems.toList()))
     }
 
     val selectedItem: ActivityItem? = items.firstOrNull { it.id == selectedId }
