@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate immutable final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator gates for draft PR #283; repair on the same PR and merge only on 4/4 success. Continue unresolved W4.4 history/filter and other Web parity subtasks in subsequent coherent checkpoints. Do not infer physical S24 approval or sign/release; no Web/backend/schema, SMS import, card deletion or finance mutation.
+- [ ] Validate PR #284 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator checks. Correct only on the same PR, merge to develop solely if all four succeed. Continue the remaining W4.4 and other Web parity gaps; keep signed release, owner physical approval, Web/backend/schema changes, SMS import, permanent card deletion and finance mutations out of scope.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #283, branch android/w4-4-activity-linear-day-grouping-20261020
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #281 anonymous trusted service/provider image transport passed 4/4 and merged develop 58d30c90db06112384f933b4643501184fcc0376. PR #282 correct historical S3 Activity transfer routes and detail names plus JVM and real Compose tests passed 4/4 exact-head at ce3f788dc79ebfc8f2fcebf1b5c60322ecd9da49 and squash merged develop 19c7fd2cb980b371de8b3f7eaf3078934a49c204. Draft PR #283 groups canonical ledger rows by contiguous date in O(n) instead of repeated quadratic list copying, with 1000-event and legacy day-group JVM assertions; four exact-final-head CI gates pending, no physical acceptance.
+Issue #155, PR #284, branch android/w4-4-unique-activity-section-keys-20261020
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #282 historical Activity transfer route identity passed 4/4 and merged 19c7fd2cb980b371de8b3f7eaf3078934a49c204. PR #283 O(n) contiguous canonical Activity day grouping, 1,000-event JVM + legacy/noncontiguous date regression passed exact-head Project Tracking, Android CI, screenshots and S24 emulator at e5531ffcc73d35b17584eac63eb2a397fe2c4994, squash merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. Draft PR #284 corrects distinct LazyColumn month/day keys when the same date appears in separate canonical sections; production Compose regression staged, exact-head CI pending. W4.4 still incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate immutable final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator gates for draft PR #283; repair on the same PR and merge only on 4/4 success. Continue unresolved W4.4 history/filter and other Web parity subtasks in subsequent coherent checkpoints. Do not infer physical S24 approval or sign/release; no Web/backend/schema, SMS import, card deletion or finance mutation.
+Next Validate PR #284 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator checks. Correct only on the same PR, merge to develop solely if all four succeed. Continue the remaining W4.4 and other Web parity gaps; keep signed release, owner physical approval, Web/backend/schema changes, SMS import, permanent card deletion and finance mutations out of scope.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
