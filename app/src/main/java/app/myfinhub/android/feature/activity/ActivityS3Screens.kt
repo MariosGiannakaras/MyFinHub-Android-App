@@ -226,9 +226,9 @@ fun ActivityLedgerScreen(
                         val monthKey = section.date.take(7)
                         val previousMonth = state.visibleSections.getOrNull(sectionIndex - 1)?.date?.take(7)
                         if (sectionIndex == 0 || monthKey != previousMonth) {
-                            item(key = "month-$monthKey") { S3ActivityMonthHeader(section.date) }
+                            item(key = "month-$sectionIndex-$monthKey") { S3ActivityMonthHeader(section.date) }
                         }
-                        item(key = "day-${section.date}") { S3ActivityDayHeader(section.date) }
+                        item(key = "day-$sectionIndex-${section.date}") { S3ActivityDayHeader(section.date) }
                         items(section.items, key = ActivityItem::id) { item ->
                             ActivityFlatLedgerRow(
                                 item = item,
