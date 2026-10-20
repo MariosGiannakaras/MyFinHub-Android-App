@@ -22,6 +22,7 @@ import app.myfinhub.android.core.data.categoryBudgetSpending
 import app.myfinhub.android.core.data.webBudgetProgress
 import app.myfinhub.android.core.data.canonicalTransactionRuleOverview
 import app.myfinhub.android.core.data.canonicalLegacyReviewSuggestions
+import app.myfinhub.android.core.data.canonicalWebFrequentDescriptions
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.feature.plan.BudgetDraft
@@ -29,6 +30,7 @@ import app.myfinhub.android.feature.plan.CategoryBudget
 import app.myfinhub.android.feature.plan.PlanUiState
 import app.myfinhub.android.feature.plan.PlanningRule
 import app.myfinhub.android.feature.plan.PlanningReviewSuggestion
+import app.myfinhub.android.feature.plan.PlanningFrequentDescription
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
@@ -158,6 +160,9 @@ internal fun projectCanonicalPlanState(
             )
         },
         // Read-only Web transaction review queue; never classify or mutate old rows by inference.
+        frequentExpenseDescriptions = document.canonicalWebFrequentDescriptions().map { row ->
+            PlanningFrequentDescription(label = row.label, count = row.count)
+        },
         legacyReviewSuggestions = document.canonicalLegacyReviewSuggestions().map { row ->
             PlanningReviewSuggestion(
                 transactionId = row.transactionId,

@@ -384,6 +384,8 @@ internal fun MyFinHubAppContent(
                             onAction = onQuickEntryAction,
                             onBack = { activeBackStack.removeLastOrNull() },
                             mutationInFlight = quickEntryMutationInFlight,
+                            frequentExpenseDescriptions =
+                                planState.frequentExpenseDescriptions.map { it.label to it.count },
                         )
                     }
                 }

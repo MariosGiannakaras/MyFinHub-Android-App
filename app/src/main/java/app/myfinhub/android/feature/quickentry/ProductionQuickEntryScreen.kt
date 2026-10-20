@@ -108,6 +108,7 @@ fun ProductionQuickEntryScreen(
     onAction: (QuickEntryAction) -> Unit,
     onBack: () -> Unit,
     mutationInFlight: Boolean = false,
+    frequentExpenseDescriptions: List<Pair<String, Int>> = emptyList(),
 ) {
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
@@ -418,6 +419,38 @@ fun ProductionQuickEntryScreen(
                 )
             }
 
+            if (state.kind == QuickEntryKind.EXPENSE && state.note.isBlank() &&
+                frequentExpenseDescriptions.isNotEmpty()) {
+                var historyExpanded by rememberSaveable { mutableStateOf(false) }
+                TextButton(
+                    onClick = { historyExpanded = !historyExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("quick_entry_frequent_descriptions_toggle"),
+                ) {
+                    Text(
+                        if (historyExpanded) "Απόκρυψη συχνών περιγραφών"
+                        else "Συχνές περιγραφές από το ιστορικό",
+                    )
+                }
+                if (historyExpanded) {
+                    Text(
+                        "Επιλογή μόνο της περιγραφής · το ποσό, η κατηγορία και ο λογαριασμός δεν αλλάζουν.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    frequentExpenseDescriptions.take(8).forEachIndexed { index, row ->
+                        MyFinHubOutlinedAction(
+                            label = row.first + " · " + row.second + " κινήσεις",
+                            onClick = {
+                                onAction(QuickEntryAction.NoteChanged(row.first))
+                                noteExpanded = true
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("quick_entry_frequent_description_" + index),
+                        )
+                    }
+                }
+            }
             TextButton(onClick = { noteExpanded = !noteExpanded }) {
                 Text(if (noteExpanded) "Απόκρυψη σημείωσης" else "Προσθήκη σημείωσης")
             }
