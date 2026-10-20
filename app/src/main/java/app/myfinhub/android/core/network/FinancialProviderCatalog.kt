@@ -188,3 +188,22 @@ internal fun parseFinancialProviderCatalog(
         })
         .takeIf { it.isNotEmpty() }
 }
+
+/**
+ * Web financialProviders: choose a role-specific explicit light/dark binding,
+ * then universal; never substitute another role, provider, or unrelated image.
+ * The returned URL was previously validated against the configured trusted
+ * Supabase public provider-asset origin during catalog parsing.
+ */
+internal fun FinancialProviderRecord.boundAssetForTheme(
+    role: String,
+    darkTheme: Boolean,
+): TrustedProviderAssetReference? {
+    if (role !in providerAssetRoles) return null
+    val requested = if (darkTheme) "dark" else "light"
+    val binding = trustedBindings.firstOrNull { it.role == role && it.variant == requested }
+        ?: trustedBindings.firstOrNull { it.role == role && it.variant == "universal" }
+    return binding?.let { bound ->
+        trustedAssets.firstOrNull { it.assetKey == bound.assetKey && it.role == role }
+    }
+}

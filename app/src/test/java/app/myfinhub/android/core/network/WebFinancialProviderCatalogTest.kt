@@ -42,6 +42,48 @@ class WebFinancialProviderCatalogTest {
         assertEquals(listOf("first","alpha-greek","zeta"),decoded.map { it.id })
     }
 
+    @Test fun themeAssetBindingPrefersExplicitRoleAndFallsBackOnlyToUniversal() {
+        val item=FinancialProviderRecord(
+            id="bank",displayName="Test bank",shortName="Test",
+            providerKind="bank",countryCode="GR",sortOrder=1,
+            logoAssetKey=null,wordmarkAssetKey=null,
+            trustedAssets=listOf(
+                TrustedProviderAssetReference("bank-logo-light","logo","light",
+                    "https://safe.invalid/logo-light.png","image/png",100),
+                TrustedProviderAssetReference("bank-logo-universal","logo","universal",
+                    "https://safe.invalid/logo.png","image/png",120),
+                TrustedProviderAssetReference("bank-mark-dark","card-mark","dark",
+                    "https://safe.invalid/card-dark.png","image/png",130),
+            ),
+            trustedBindings=listOf(
+                TrustedProviderAssetBinding("logo","light","bank-logo-light"),
+                TrustedProviderAssetBinding("logo","universal","bank-logo-universal"),
+                TrustedProviderAssetBinding("card-mark","dark","bank-mark-dark"),
+            ),
+        )
+        assertEquals("bank-logo-light",item.boundAssetForTheme("logo",false)?.assetKey)
+        assertEquals("bank-logo-universal",item.boundAssetForTheme("logo",true)?.assetKey)
+        assertEquals("bank-mark-dark",item.boundAssetForTheme("card-mark",true)?.assetKey)
+        assertNull(item.boundAssetForTheme("card-mark",false))
+        assertNull(item.boundAssetForTheme("wordmark",false))
+        assertNull(item.boundAssetForTheme("arbitrary",true))
+    }
+
+    @Test fun crossRoleAssetIdentityMustNotBeUsedEvenInInconsistentCatalog() {
+        val item=FinancialProviderRecord(
+            id="bank",displayName="Bank",shortName="B",providerKind="bank",
+            countryCode=null,sortOrder=0,logoAssetKey=null,wordmarkAssetKey=null,
+            trustedAssets=listOf(
+                TrustedProviderAssetReference("logo","logo","universal",
+                    "https://safe.invalid/logo.png","image/png",100),
+            ),
+            trustedBindings=listOf(
+                TrustedProviderAssetBinding("card-mark","universal","logo"),
+            ),
+        )
+        assertNull(item.boundAssetForTheme("card-mark",true))
+    }
+
     @Test fun malformedCatalogAndUnknownKindsFailClosedWithoutInventedProviders() {
         assertNull(parseFinancialProviderCatalog("{}"))
         assertNull(parseFinancialProviderCatalog("""{"providers":[]}"""))
