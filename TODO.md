@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #278 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator on immutable final head; repair same PR and merge only with 4/4 success. Continue W3.2 reviewed split semantics and W5.1 authenticated provider metadata. No silent conversion of refund/saving/income suggestions to expenses, finance store changes, Web/backend/schema edits, SMS import, physical owner approval or signed release.
+- [ ] Run four exact-head Project Tracking, Android CI, screenshot regression and S24 emulator gates on draft PR #279, fix same PR and merge only after all successes. Continue W3.2 classification and W5 provider integration in cohesive batches; don't repeat completed #278. Preserve Web/backend/schema, historical finance state, SMS exclusion, no signed release or inferred owner physical S24 signoff.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #278, branch android/w3-2-web-expense-split-suggestions-20261020
-Current W3.2: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #276 safe owner+AAL2 recurring artwork passed 4/4 immutable-head and merged develop 65f7204e890d6f5ebfceeeab7f529fe1e2cae837. PR #277 Web operationalReportSnapshot as-of & previous-month finance, cutoff account balances, credit debt/limits incl archived cards, receivables, savings/recurring, budget, privacy-aware native Insights; patched hidden credit usage and S24 scroll, JVM domain/production mapping + Compose tests passed all 4 immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at 42e4d54d467b2dbf820113c61c597fd7d05784af, squash merged develop 7dd0a531cd6323d6d81c1821dabda1a24854a3e0. Draft PR #278 Web suggestSplitParts EUR multi-line semantic parser; native Quick Entry shows explicit suggestion action only for untouched expense split draft with all 2–12 parts expense, allowed category and cents-exact sum. Non-expense kinds and manual edits fail closed; JVM and S24 Compose tests staged, four gates pending. No owner physical S24 signoff.
+Issue #155, PR #279, branch android/w3-2-post-278-guardrail-20261020
+Current W3.2: PR #278 split suggestion Web semantics expense-only, 2–12 cents-exact and explicit opt-in with failing-closed mixed kinds and manual edits; final head a883b6d6e848eef5a9700113bad9de883d898acb passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator, squash merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858. Draft PR #279 tests Web rule guards: cannot classify income into expense taxonomy, note-only income may match, accountId outranks fromAccountId; canonical issue/tracker/generated handoff updated. Immutable-head CI pending. Web parity 1/6 and 11/24; no physical S24 signoff.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #278 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator on immutable final head; repair same PR and merge only with 4/4 success. Continue W3.2 reviewed split semantics and W5.1 authenticated provider metadata. No silent conversion of refund/saving/income suggestions to expenses, finance store changes, Web/backend/schema edits, SMS import, physical owner approval or signed release.
+Next Run four exact-head Project Tracking, Android CI, screenshot regression and S24 emulator gates on draft PR #279, fix same PR and merge only after all successes. Continue W3.2 classification and W5 provider integration in cohesive batches; don't repeat completed #278. Preserve Web/backend/schema, historical finance state, SMS exclusion, no signed release or inferred owner physical S24 signoff.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

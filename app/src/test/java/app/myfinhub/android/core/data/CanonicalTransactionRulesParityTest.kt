@@ -156,6 +156,36 @@ class CanonicalTransactionRulesParityTest {
         assertEquals("Άλλο",(doc.state.array("events").single() as JsonObject).string("category"))
     }
 
+    @Test fun incomeCannotBeRecategorizedByExpenseRuleEvenWhenNoteAlsoMatches() {
+        val categoryRule = rule("expense-category",1,
+            match=obj("""{"description":"salary"}"""),
+            action=obj("""{"category":"Τρόφιμα","note":"Λάθος ταξινόμηση"}"""))
+        val safeIncomeNote = rule("income-note",2,
+            match=obj("""{"description":"salary"}"""),
+            action=obj("""{"note":"Μισθοδοσία"}"""))
+        val doc=fixture(categoryRule,safeIncomeNote)
+        val e=event(kind="income",category="Μισθός",note="Salary October")
+        assertEquals(listOf("income-note"),doc.canonicalMatchingTransactionRuleIds(e))
+        assertEquals("Μισθός",doc.applyCanonicalTransactionRules(e).string("category"))
+        assertEquals("Salary October",doc.applyCanonicalTransactionRules(e).string("note"))
+        assertEquals("Άλλο",(doc.state.array("events").single() as JsonObject).string("category"))
+    }
+
+    @Test fun accountRuleUsesFromAccountOnlyWhenExplicitAccountIsMissingOrEmpty() {
+        val rule=rule("transfer-source",1,
+            match=obj("""{"accountId":"bank-main"}"""),
+            action=obj("""{"note":"Δοκιμή"}"""))
+        val doc=fixture(rule)
+        val base=obj("""{"kind":"expense","source":"user","note":"",
+          "accountId":"","fromAccountId":"bank-main"}""")
+        assertEquals(listOf("transfer-source"),doc.canonicalMatchingTransactionRuleIds(base))
+        val specified=JsonObject(base + ("accountId" to JsonPrimitive("another-account")))
+        assertEquals(emptyList<String>(),doc.canonicalMatchingTransactionRuleIds(specified))
+        assertEquals("Δοκιμή",doc.applyCanonicalTransactionRules(base).string("note"))
+        assertEquals("",base.string("note"))
+        assertEquals(specified,doc.applyCanonicalTransactionRules(specified))
+    }
+
     @Test fun disabledRulesAndTransfersHaveNoEffect() {
         val data=fixture(rule("disabled",1,enabled=false))
         val e=event()
