@@ -101,6 +101,11 @@ fun InsightsScreen(
                     MonthlyReportSignalsCard(scope.monthlyReportSignals, amountsVisible)
                 }
             }
+            if (scope.primaryAccountSeries != null) {
+                item("primary-account-series") {
+                    PrimaryAccountSeriesCard(scope.primaryAccountSeries, amountsVisible)
+                }
+            }
             item("categories") {
                 CategoryCompositionCard(
                     scope = scope,
@@ -409,6 +414,58 @@ private fun MonthlyReportSignalsCard(
                         " · μεταβολή " + percentage(signals.topCategoryChange),
                     Modifier.testTag("insights_report_top_category"),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrimaryAccountSeriesCard(
+    series: InsightsPrimaryAccountSeries,
+    amountsVisible: Boolean,
+) {
+    MyFinHubSectionCard(
+        modifier = Modifier.fillMaxWidth().testTag("insights_primary_account_series"),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            Text(
+                "Εξέλιξη μισθοδοσίας και αποταμίευσης",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                "Υπόλοιπα στο τέλος κάθε ημερολογιακού μήνα · τρέχων έως σήμερα",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            series.months.forEachIndexed { index, month ->
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("insights_primary_account_month_" + index),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                ) {
+                    Text(
+                        month.monthIso + " · έως " + month.cutoffDateIso,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    if (month.payrollBalance != null) {
+                        Text(
+                            (series.payrollLabel ?: "Μισθοδοσία") + ": " +
+                                amountVisibilityText(formatEuro(month.payrollBalance), amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    if (month.savingsBalance != null) {
+                        Text(
+                            (series.savingsLabel ?: "Αποταμίευση") + ": " +
+                                amountVisibilityText(formatEuro(month.savingsBalance), amountsVisible),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+                if (index < series.months.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
             }
         }
     }
