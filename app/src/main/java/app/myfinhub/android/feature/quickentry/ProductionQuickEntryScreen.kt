@@ -396,6 +396,14 @@ fun ProductionQuickEntryScreen(
             ProductionTransactionSemanticsHint(state.kind)
 
             if (state.kind == QuickEntryKind.SPLIT) {
+                if (state.safeWebExpenseSplitSuggestions().isNotEmpty()) {
+                    MyFinHubOutlinedAction(
+                        label = "Πρόταση κατανομής από τη σημείωση",
+                        onClick = { onAction(QuickEntryAction.ApplySuggestedExpenseSplit) },
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("quick_entry_split_suggest"),
+                    )
+                }
                 ProductionSplitEditor(state = state, onAction = onAction)
             }
 

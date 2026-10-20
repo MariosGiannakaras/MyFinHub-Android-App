@@ -162,6 +162,7 @@ sealed interface QuickEntryAction {
     data class PersonChanged(val value: String) : QuickEntryAction
     data class ExpectedReturnDateChanged(val value: String) : QuickEntryAction
     data class ActualBalanceChanged(val value: String) : QuickEntryAction
+    data object ApplySuggestedExpenseSplit : QuickEntryAction
     data object AddSplitPart : QuickEntryAction
     data class RemoveSplitPart(val id: String) : QuickEntryAction
     data class SplitPartLabelChanged(val id: String, val value: String) : QuickEntryAction
@@ -199,6 +200,17 @@ fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickE
     is QuickEntryAction.PersonChanged -> state.changed(person = action.value)
     is QuickEntryAction.ExpectedReturnDateChanged -> state.changed(expectedReturnDateText = action.value)
     is QuickEntryAction.ActualBalanceChanged -> state.changed(actualBalanceText = action.value)
+    QuickEntryAction.ApplySuggestedExpenseSplit -> {
+        val prepared = state.safeWebExpenseSplitSuggestions()
+        if (prepared.isEmpty()) state else state.copy(
+            splitParts = prepared,
+            validationMessage = null,
+            savedSummary = null,
+            persisted = false,
+            pendingSync = false,
+            dirty = true,
+        )
+    }
     QuickEntryAction.AddSplitPart -> addSplitPart(state)
     is QuickEntryAction.RemoveSplitPart -> removeSplitPart(state, action.id)
     is QuickEntryAction.SplitPartLabelChanged -> updateSplitPart(state, action.id) { it.copy(label = action.value) }
