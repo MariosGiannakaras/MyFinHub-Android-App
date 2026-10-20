@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks for draft PR #274; correct errors on same PR and merge only after all four green. Continue W4.4 analytics/drilldowns and W5 settings/providers, keeping monthly cashflow/calculation read-only. No physical owner acceptance assumption, signed release, Web/backend/schema modifications, SMS import or permanent card deletion.
+- [ ] Validate draft PR #275 four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; correct failures on same PR and merge only after all four green. Continue Web Reports operational snapshot + Web card/history drilldowns and provider artwork W5.1. No Web/backend/schema edits, SMS import, historical ledger rewrite, physical owner S24 signoff assumption or signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #274, branch android/w4-4-primary-account-series-20261020
-Current W4.4: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #272 Web long-term loan burden passed 4/4 and merged develop f800a0a5e11ab16922a564fa4e3f3711ea944804. PR #273 Web reportInsightModel monthly full-prior income/expense/saving comparisons, three completed preceding months trailing expense mean, net flow, savings/recurring burden, leading subcategory, correct null/no-income baselines, amount privacy, JVM Web goldens and real S24 Compose test passed four exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator gates at 7ea4dd22d42aaf1cad87f255a01a2ea276031c21; squash merged develop 6fe15dcaeeae03ba81845267615d6802bd646cb0. Draft PR #274 stages canonical Web primaryAccountSeries six chronological payroll/savings account month-end balances, dynamic canonical Home account roles rather than bank IDs, current-month as-of cutoff, missing role safety, amount privacy and JVM/production projection/S24 Compose tests. CI 4/4 gates pending; physical owner S24 signoff and signed release not inferred.
+Issue #155, PR #275, branch android/w4-4-credit-portfolio-report-20261020
+Current W4.4: Web parity 1/6 accepted implementations · 11/24 completed subtasks. PR #273 Web reportInsightModel monthly finance comparisons and savings/recurring ratios passed 4/4 exact-head, merged develop 6fe15dcaeeae03ba81845267615d6802bd646cb0. PR #274 Web primaryAccountSeries six historical payroll/savings month-ends, Web Home dynamic role IDs, current-month as-of, no cash/other banks, S24 privacy-aware table and JVM golden tests passed Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator 4/4 at immutable head 288844bd995eaf9d0df6a3dc68d56ec594d64492; squash merged develop f993f5a4e76cd1c9b762ec90be8b8ac2399b5285. Draft PR #275 Web credit portfolio month-to-date snapshots include archived card debts with active-only limit and available, Web debt-desc/Greek-name card ordering, zero/new-card handling, native Insights read-only masked amounts, unit/projection/S24 Compose tests. Four final-head CI gates pending, no physical S24 owner acceptance or signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator checks for draft PR #274; correct errors on same PR and merge only after all four green. Continue W4.4 analytics/drilldowns and W5 settings/providers, keeping monthly cashflow/calculation read-only. No physical owner acceptance assumption, signed release, Web/backend/schema modifications, SMS import or permanent card deletion.
+Next Validate draft PR #275 four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates; correct failures on same PR and merge only after all four green. Continue Web Reports operational snapshot + Web card/history drilldowns and provider artwork W5.1. No Web/backend/schema edits, SMS import, historical ledger rewrite, physical owner S24 signoff assumption or signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
