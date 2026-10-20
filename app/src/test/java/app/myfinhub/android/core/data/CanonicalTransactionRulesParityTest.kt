@@ -181,7 +181,8 @@ class CanonicalTransactionRulesParityTest {
         assertEquals(listOf("transfer-source"),doc.canonicalMatchingTransactionRuleIds(base))
         val specified=JsonObject(base + ("accountId" to JsonPrimitive("another-account")))
         assertEquals(emptyList<String>(),doc.canonicalMatchingTransactionRuleIds(specified))
-        assertEquals(base,doc.applyCanonicalTransactionRules(base))
+        assertEquals("Δοκιμή",doc.applyCanonicalTransactionRules(base).string("note"))
+        assertEquals("",base.string("note"))
         assertEquals(specified,doc.applyCanonicalTransactionRules(specified))
     }
 
