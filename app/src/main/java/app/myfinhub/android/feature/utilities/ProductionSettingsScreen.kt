@@ -55,6 +55,9 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
     legacyReviewSuggestions: List<PlanningReviewSuggestion> = emptyList(),
+    /** Only unique existing Activity IDs are safe to open, never guessed legacy IDs. */
+    reviewableTransactionIds: Set<String> = emptySet(),
+    onOpenLegacyReview: ((String) -> Unit)? = null,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -318,6 +321,16 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (onOpenLegacyReview != null &&
+                                    row.transactionId in reviewableTransactionIds
+                                ) {
+                                    MyFinHubOutlinedAction(
+                                        label = "Άνοιγμα κίνησης για έλεγχο",
+                                        onClick = { onOpenLegacyReview(row.transactionId) },
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("s9_legacy_review_open_" + index),
+                                    )
+                                }
                             }
                             if (index < legacyReviewSuggestions.lastIndex &&
                                 index < visibleReviewCount - 1) {

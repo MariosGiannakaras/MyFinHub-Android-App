@@ -29,7 +29,7 @@ fun CanonicalFinanceDocument.canonicalWebFrequentDescriptions(
     val colonAmount = Regex(""":\s*[-+]?\d.*$""")
     effectiveLegacyTransactions().forEach { tx ->
         if (tx.type != type) return@forEach
-        val label = tx.note.trim()
+        val label = canonicalWebCleanLegacyNote(tx.note)
             .lineSequence().firstOrNull().orEmpty()
             .replace(colonAmount, "")
             .trim()

@@ -1,6 +1,8 @@
 package app.myfinhub.android.core.data
 
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -21,8 +23,13 @@ private val webLegacyMixedLine = Regex("""\n\s*\+|\n.+:""")
 private val webLegacyCorrection = Regex("""ΔΙ[ΟΌ]ΡΘΩΣ""")
 private val legacyReviewPriority = mapOf("high" to 0, "medium" to 1, "low" to 2)
 
+/** Web Date.toISOString() is fixed 3-digit milliseconds, crucial for snooze comparisons. */
+private val webIsoUtc = DateTimeFormatter.ofPattern(
+    "uuuu-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT,
+).withZone(ZoneOffset.UTC)
+
 fun CanonicalFinanceDocument.canonicalLegacyReviewSuggestions(
-    nowIso: String = Instant.now().toString(),
+    nowIso: String = webIsoUtc.format(Instant.now()),
 ): List<CanonicalLegacyReviewSuggestion> {
     val decisions = state.obj("reviewDecisions")
     val locale = Locale.forLanguageTag("el-GR")
@@ -33,7 +40,7 @@ fun CanonicalFinanceDocument.canonicalLegacyReviewSuggestions(
         if (status == "snoozed" &&
             decision?.string("snoozedUntil")?.let { it > nowIso } == true
         ) return@mapNotNull null
-        val note = tx.note.trim()
+        val note = canonicalWebCleanLegacyNote(tx.note)
         val upper = note.uppercase(locale)
         val mixed = webLegacyMoneyMention.findAll(note).count() >= 2 ||
             webLegacyMixedLine.containsMatchIn(note)

@@ -274,6 +274,14 @@ internal fun MyFinHubAppContent(
                         onAction = onFrontendUtilitiesAction,
                         transactionRules = planState.rules,
                         legacyReviewSuggestions = planState.legacyReviewSuggestions,
+                        reviewableTransactionIds = activityState.items
+                            .groupingBy { it.id }.eachCount()
+                            .filterValues { it == 1 }.keys,
+                        onOpenLegacyReview = { transactionId ->
+                            if (activityState.items.count { it.id == transactionId } == 1) {
+                                homeBackStack.pushIfNew(AppRoute.ActivityDetail(transactionId))
+                            }
+                        },
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
                         noticeHistoryCount = noticeHistory.size,
