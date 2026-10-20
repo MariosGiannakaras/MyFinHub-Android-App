@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import app.myfinhub.android.BuildConfig
 import java.io.ByteArrayOutputStream
-import okhttp3.OkHttpClient
 import okhttp3.Request
 
 /** Anonymous GET to an already owner-certified PUBLIC provider asset.
@@ -24,13 +23,8 @@ internal fun loadCertifiedProviderBitmap(
             .header("Cache-Control","no-store")
             .build()
     }.getOrNull() ?: return null
-    val client=OkHttpClient.Builder()
-        .followRedirects(false)
-        .followSslRedirects(false)
-        .cache(null)
-        .build()
     return runCatching {
-        client.newCall(request).execute().use responseBlock@ { response ->
+        certifiedAssetAnonymousClient.newCall(request).execute().use responseBlock@ { response ->
             if (response.code != 200) return@responseBlock null
             val body=response.body ?: return@responseBlock null
             if (body.contentLength() > 2_097_152L) return@responseBlock null

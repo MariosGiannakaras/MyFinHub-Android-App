@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #280 at immutable final head with all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates. Merge only after 4/4; then advance W5.1 owner-certified provider asset binding and W3.2 semantics with measured tests. No release signing, physical S24 owner signoff inference, Web/backend/schema change or SMS import.
+- [ ] Validate all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #281; fix on same PR and merge only if 4/4 success. Continue W5.1 dynamic provider visual identity and W5.4 service asset transport plus outstanding Web parity without noisy concurrent CI. No physical owner S24 signoff, signed release, Web/backend/schema edits, SMS import or financial state modifications.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #280, branch android/w5-1-provider-safe-asset-binding-metadata-20261020
-Current W5.1: PR #278 Web split-suggestion opt-in expense-only 2–12 exact cents and mixed-kind fail-closed passed 4/4 and merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858. PR #279 income/category matching safety, note-only priority, payer identity guards and updated handoff passed immutable head dbbe022385d8f14709457169505702c39065c0a3 all four Project Tracking/Android CI/screenshots/S24 emulator and squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. Draft PR #280 Web provider catalog role/theme bound artwork resolver chooses exact light/dark then universal, strictly filters different asset role/unbound keys; existing authenticated origin-validated assets only; JVM explicit theme and cross-role regression goldens staged, 4 gates pending. Web parity 1/6 and 11/24; physical device acceptance and signing not implied.
+Issue #155, PR #281, branch android/w5-1-shared-anonymous-certified-image-transport-20261020
+Current W5.1: Web parity 1/6 implementations · 11/24 completed subtasks. PR #279 Web Rules classification precedence guardrails and canonical handoff passed 4/4 at dbbe022385d8f14709457169505702c39065c0a3, squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. PR #280 trusted-origin financial provider strict role and theme binding exact light/dark then universal, no other roles, JVM tests passed 4/4 exact-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot and S24 emulator at b77b10f3d2a280ff02bc666b610ebb6e0cfb6cc4 and squash merged develop cf3f506a61b6ff24073697634a534183d49d31d0. Draft PR #281 certified public provider/recurring artwork shares one bounded anonymous OkHttp client, no cookies, credentials, disk cache, redirects or connection pool per image; JVM assertions of transport; four exact-head CI gates pending. No physical owner S24 signoff, certified actual artwork acceptance or new signed release.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #280 at immutable final head with all four Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates. Merge only after 4/4; then advance W5.1 owner-certified provider asset binding and W3.2 semantics with measured tests. No release signing, physical S24 owner signoff inference, Web/backend/schema change or SMS import.
+Next Validate all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator gates for draft PR #281; fix on same PR and merge only if 4/4 success. Continue W5.1 dynamic provider visual identity and W5.4 service asset transport plus outstanding Web parity without noisy concurrent CI. No physical owner S24 signoff, signed release, Web/backend/schema edits, SMS import or financial state modifications.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
