@@ -44,6 +44,7 @@ import app.myfinhub.android.feature.activity.ActivityAccountOption
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
+import app.myfinhub.android.feature.activity.ActivitySplitPart
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.activityTypeLabel
@@ -517,6 +518,14 @@ private fun buildActivityItems(
                     canonicalKind = event.kind,
                     typeLabel = activityTypeLabel(event.kind),
                     legAccountIds = legAccounts.toSet(),
+                    splitParts = if (event.kind == "split") event.parts.map { part ->
+                        ActivitySplitPart(
+                            label = part.label,
+                            category = part.category,
+                            subcategory = part.subcategory,
+                            amount = part.amount,
+                        )
+                    } else emptyList(),
                 ),
             ))
         }

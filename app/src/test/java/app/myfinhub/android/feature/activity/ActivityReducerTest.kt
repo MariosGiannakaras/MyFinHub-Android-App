@@ -80,6 +80,39 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun splitDetailsRetainCanonicallyNamedPartsAndWebCategoryPaths() {
+        val parts = listOf(
+            ActivitySplitPart("Πρωινός καφές", "Τρόφιμα", "Καφές", 4.80),
+            ActivitySplitPart("  ", "Μεταφορές", null, 15.20),
+            ActivitySplitPart("", "Άλλο", "Διάφορα", 2.0),
+        )
+        assertEquals(listOf("Πρωινός καφές", "Μεταφορές", "Άλλο › Διάφορα"),
+            parts.map { it.displayLabel })
+        assertEquals(listOf("Τρόφιμα › Καφές", "Μεταφορές", "Άλλο › Διάφορα"),
+            parts.map { it.categoryPath })
+        val state = ActivityUiState(items = listOf(
+            ActivityItem("split", "21 Οκτ", ActivityKind.EXPENSE, "Διαχωρισμός",
+                "", -22.0, "Μετρητά", "Διαχωρισμός",
+                canonicalKind = "split", splitParts = parts),
+        ))
+        assertEquals(parts, state.visibleItems.single().splitParts)
+        assertTrue(state.copy(ledgerCategoryFilter = "Επιμέρους κατηγορίες").visibleItems.single().splitParts == parts)
+    }
+
+    @Test
+    fun onlyCanonicalTransfersUseInternalTransferRouteSemantics() {
+        fun item(type: String) = ActivityItem(
+            "row-$type", "21 Οκτ", ActivityKind.TRANSFER, type,
+            "Ενέργεια", 25.0, "Μετρητά", null, canonicalKind = type)
+        assertTrue(item("transfer").isInternalTransfer())
+        listOf("withdrawal", "reconciliation", "saving_cash_offset").forEach {
+            assertFalse(item(it).isInternalTransfer())
+        }
+        assertFalse(ActivityItem("payment", "", ActivityKind.CARD_PAYMENT,
+            "Κάρτα", "", -10.0, "Μισθοδοσία", null).isInternalTransfer())
+    }
+
+    @Test
     fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
         val originals = (0 until 1000).map { index ->
             ActivityItem(
