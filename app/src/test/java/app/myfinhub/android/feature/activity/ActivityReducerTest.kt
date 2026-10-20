@@ -137,6 +137,44 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun transferRoute_fallsBackToRealRenderedAccountLabelsNotLiteralPlaceholders() {
+        val original = ActivityItem(
+            id = "historical-route", dateLabel = "Σήμερα",
+            kind = ActivityKind.TRANSFER, title = "Μεταφορά",
+            subtitle = "Η αρχική περιγραφή", amount = 120.0,
+            accountLabel = "Μετρητά → Μισθοδοσία", category = null,
+            rawDate = "2026-10-20",
+            fromAccountId = "archived-cash", toAccountId = "archived-payroll",
+        )
+        assertEquals(
+            "Από Μετρητά → Προς Μισθοδοσία",
+            activityTransferRouteLabel(original, emptyList()),
+        )
+        assertEquals(
+            "Από Αποταμίευση → Προς Ταμείο",
+            activityTransferRouteLabel(
+                original.copy(accountLabel = "  Αποταμίευση  ->  Ταμείο  "),
+                emptyList(),
+            ),
+        )
+        // A partially missing canonical account must not replace the real
+        // historical route with two fake one-letter account names.
+        assertEquals(
+            "Από Μετρητά → Προς Μισθοδοσία",
+            activityTransferRouteLabel(
+                original,
+                listOf(ActivityAccountOption("archived-cash", "Μετρητά")),
+            ),
+        )
+        assertEquals(
+            "Η αρχική περιγραφή",
+            activityTransferRouteLabel(
+                original.copy(accountLabel = "Μετρητά →   "), emptyList(),
+            ),
+        )
+    }
+
+    @Test
     fun signedAmount_keepsExplicitPositiveAndNegativeSigns() {
         assertTrue(formatSignedEuro(12.5).startsWith("+"))
         assertTrue(formatSignedEuro(-12.5).startsWith("−"))
