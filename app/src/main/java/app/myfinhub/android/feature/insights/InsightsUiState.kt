@@ -58,6 +58,21 @@ data class InsightMonthlyReportSignals(
     val sufficientExpenseHistory: Boolean,
 )
 
+/** Web reports.ts operationalReportSnapshot: month-only read-only aggregates. */
+data class InsightsOperationalAccountBalance(
+    val id: String, val label: String, val balance: Double,
+)
+data class InsightsOperationalReport(
+    val income: Double, val expense: Double, val saving: Double,
+    val previousIncome: Double, val previousExpense: Double,
+    val creditDebt: Double, val creditLimit: Double, val creditUsage: Double,
+    val creditAvailable: Double, val activeCreditCards: Int,
+    val receivables: Double, val recurring: Double,
+    val savingsTotal: Double, val savingsBySource: Map<String, Double>,
+    val budget: Double, val budgetRemaining: Double,
+    val accountBalances: List<InsightsOperationalAccountBalance>,
+)
+
 data class InsightCounterparty(
     val title: String,
     val category: String,
@@ -148,6 +163,7 @@ data class InsightPeriodScope(
     /** Web primaryAccountSeries: six month-end payroll and savings balances. */
     val primaryAccountSeries: InsightsPrimaryAccountSeries? = null,
     val monthlyReportSignals: InsightMonthlyReportSignals? = null,
+    val operationalReport: InsightsOperationalReport? = null,
 )
 
 data class InsightsUiState(

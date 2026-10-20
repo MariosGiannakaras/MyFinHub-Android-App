@@ -5,6 +5,7 @@ import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.canonicalOperationalFlowBetween
 import app.myfinhub.android.core.data.canonicalReportExpenseCounterparties
+import app.myfinhub.android.core.data.canonicalOperationalReportSnapshot
 import app.myfinhub.android.core.data.canonicalReportLoanBurden
 import app.myfinhub.android.core.data.canonicalReportCreditPortfolio
 import app.myfinhub.android.core.data.canonicalReportPrimaryAccountSeries
@@ -16,6 +17,8 @@ import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_90_DAYS
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.insights.InsightCategory
 import app.myfinhub.android.feature.insights.InsightCounterparty
+import app.myfinhub.android.feature.insights.InsightsOperationalAccountBalance
+import app.myfinhub.android.feature.insights.InsightsOperationalReport
 import app.myfinhub.android.feature.insights.InsightsLoanBurden
 import app.myfinhub.android.feature.insights.InsightsCreditCardSnapshot
 import app.myfinhub.android.feature.insights.InsightsCreditPortfolio
@@ -150,6 +153,35 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
+        operationalReport = if (id == INSIGHTS_PERIOD_MONTH) {
+            val snapshot = document.canonicalOperationalReportSnapshot(
+                month = YearMonth.from(end).toString(),
+                asOf = end.toString(),
+            )
+            val labels = document.canonicalAccounts().associate { it.id to it.name }
+            InsightsOperationalReport(
+                income = snapshot.flow.income,
+                expense = snapshot.flow.expense,
+                saving = snapshot.flow.saving,
+                previousIncome = snapshot.previous.income,
+                previousExpense = snapshot.previous.expense,
+                creditDebt = snapshot.creditDebt,
+                creditLimit = snapshot.creditLimit,
+                creditUsage = snapshot.creditUsage,
+                creditAvailable = snapshot.creditAvailable,
+                activeCreditCards = snapshot.creditCards,
+                receivables = snapshot.receivables,
+                recurring = snapshot.recurring,
+                savingsTotal = snapshot.savings.total,
+                savingsBySource = snapshot.savings.bySource,
+                budget = snapshot.budget,
+                budgetRemaining = snapshot.budgetRemaining,
+                accountBalances = snapshot.balances.filterKeys { it != "credit-card" }
+                    .map { (id, amount) ->
+                        InsightsOperationalAccountBalance(id, labels[id] ?: id, amount)
+                    },
+            )
+        } else null,
         monthlyReportSignals = if (id == INSIGHTS_PERIOD_MONTH) {
             val row = document.canonicalReportInsightSignals(
                 month = YearMonth.from(end).toString(),
