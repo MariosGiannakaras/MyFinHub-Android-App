@@ -131,6 +131,21 @@ class OkHttpMyFinHubApi(
         }
     }
 
+    override suspend fun loadRecurringServiceAssets(
+        session: AuthSession,
+    ): ApiResult<List<RecurringServiceAssetRecord>> {
+        val gate = requestGate(session)
+        if (gate != null) return gate
+        val request = authenticatedRequest(
+            session, "/api/account-metadata?resource=recurring-service-assets",
+        ).get().build()
+        return execute(request) { body ->
+            val assets = parseRecurringServiceAssetCatalog(body, configuration.supabaseUrl)
+                ?: return@execute ApiResult.Failure(ApiFailureKind.MALFORMED_RESPONSE)
+            ApiResult.Success(assets)
+        }
+    }
+
     override suspend fun changeAccountSecurity(
         session: AuthSession,
         change: WebAccountSecurityChange,
