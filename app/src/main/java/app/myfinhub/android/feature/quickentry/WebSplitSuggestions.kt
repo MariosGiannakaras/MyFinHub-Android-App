@@ -54,7 +54,10 @@ fun canonicalWebSplitSuggestions(
  */
 fun QuickEntryUiState.safeWebExpenseSplitSuggestions(): List<QuickEntrySplitPartDraft> {
     if (kind != QuickEntryKind.SPLIT ||
-        splitParts.any { it.amountText.isNotBlank() || it.label.isNotBlank() }
+        splitParts.any {
+            it.amountText.isNotBlank() || it.label.isNotBlank() ||
+                it.subcategory.isNotBlank() || it.category != category
+        }
     ) return emptyList()
     if (expenseCategories.none { it.name == category }) return emptyList()
     val suggestions=canonicalWebSplitSuggestions(note,category)
