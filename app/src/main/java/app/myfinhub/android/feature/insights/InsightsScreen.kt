@@ -660,13 +660,17 @@ private fun DailyExpenseSeriesCard(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
-                    LinearProgressIndicator(
-                        progress = {
-                            if (scale > 0.0) (row.amount / scale).toFloat().coerceIn(0f, 1f)
-                            else 0f
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    // Relative chart values can reveal spending patterns even when
+                    // the numeric currency values are concealed by the privacy mode.
+                    if (amountsVisible) {
+                        LinearProgressIndicator(
+                            progress = {
+                                if (scale > 0.0) (row.amount / scale).toFloat().coerceIn(0f, 1f)
+                                else 0f
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
             if (scope.dailyExpenses.size > 10) {
