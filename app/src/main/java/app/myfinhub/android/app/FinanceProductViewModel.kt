@@ -44,6 +44,7 @@ import app.myfinhub.android.core.network.AndroidConnectivityObserver
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
 import app.myfinhub.android.core.network.FinancialProviderRecord
+import app.myfinhub.android.core.network.RecurringServiceAssetRecord
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.NetworkClientFactory
 import app.myfinhub.android.core.network.NetworkStatus
@@ -145,6 +146,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     /** Sensitive per-session metadata is not cached to disk or included in finance revisions. */
     val deviceSessions: StateFlow<DeviceSessionsUiSnapshot> = mutableDeviceSessions.asStateFlow()
     private val mutableFinancialProviderCatalog = MutableStateFlow<List<FinancialProviderRecord>>(emptyList())
+    private val mutableRecurringServiceAssets = MutableStateFlow<List<RecurringServiceAssetRecord>>(emptyList())
+    private var recurringServiceAssetsLoaded = false
+    /** Owner+AAL2 session-only service artwork metadata, never saved in FinanceData. */
+    val recurringServiceAssets: StateFlow<List<RecurringServiceAssetRecord>> =
+        mutableRecurringServiceAssets.asStateFlow()
     /** In-memory, per-auth-session read-only provider metadata. Never persisted as finance data. */
     val financialProviderCatalog: StateFlow<List<FinancialProviderRecord>> =
         mutableFinancialProviderCatalog.asStateFlow()
@@ -171,6 +177,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     private var loadJob: Job? = null
     private var mutationJob: Job? = null
     private var providerCatalogJob: Job? = null
+    private var recurringServiceAssetsJob: Job? = null
     private var deviceSessionsJob: Job? = null
     private var deviceRevokeJob: Job? = null
 
@@ -182,6 +189,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 if (mutableFinancialProviderCatalog.value.isEmpty()) {
                     currentSession?.let(::refreshFinancialProviderCatalog)
                 }
+                if (!recurringServiceAssetsLoaded)
+                    currentSession?.let(::refreshRecurringServiceAssets)
                 if (!mutableDeviceSessions.value.loaded) currentSession?.let(::refreshDeviceSessions)
                 if (reloadWhenOnline || ready?.offline == true || pendingMutations.any { it.syncState == PendingMutationSyncState.NEVER_SENT }) {
                     loadFresh(preserveUi = true)
@@ -218,6 +227,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             refreshFinancialProviderCatalog(session)
         }
         if (previous?.userId != session.userId || previous.accessToken != session.accessToken ||
+            !recurringServiceAssetsLoaded) refreshRecurringServiceAssets(session)
+        if (previous?.userId != session.userId || previous.accessToken != session.accessToken ||
             !mutableDeviceSessions.value.loaded) refreshDeviceSessions(session)
 
         val ready = mutableState.value as? FinanceProductState.Ready
@@ -237,6 +248,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         providerCatalogJob?.cancel()
         providerCatalogJob = null
         mutableFinancialProviderCatalog.value = emptyList()
+        recurringServiceAssetsJob?.cancel()
+        recurringServiceAssetsJob = null
+        mutableRecurringServiceAssets.value = emptyList()
+        recurringServiceAssetsLoaded = false
         deviceSessionsJob?.cancel()
         deviceSessionsJob = null
         deviceRevokeJob?.cancel()
@@ -1290,6 +1305,10 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         providerCatalogJob?.cancel()
         providerCatalogJob = null
         mutableFinancialProviderCatalog.value = emptyList()
+        recurringServiceAssetsJob?.cancel()
+        recurringServiceAssetsJob = null
+        mutableRecurringServiceAssets.value = emptyList()
+        recurringServiceAssetsLoaded = false
         deviceSessionsJob?.cancel()
         deviceSessionsJob = null
         mutableDeviceSessions.value = DeviceSessionsUiSnapshot()
@@ -1326,6 +1345,23 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 !automaticSyncAllowed) return@launch
             mutableFinancialProviderCatalog.value =
                 (result as? ApiResult.Success<List<FinancialProviderRecord>>)?.value.orEmpty()
+        }
+    }
+
+    /** Never accept a delayed metadata response from a previous bearer or owner session. */
+    private fun refreshRecurringServiceAssets(session: AuthSession) {
+        recurringServiceAssetsJob?.cancel()
+        mutableRecurringServiceAssets.value = emptyList()
+        recurringServiceAssetsLoaded = false
+        if (!canUseServer() || session.assuranceLevel != AssuranceLevel.AAL2) return
+        recurringServiceAssetsJob = viewModelScope.launch {
+            val result = providerAwareApi.loadRecurringServiceAssets(session)
+            if (currentSession?.userId != session.userId ||
+                currentSession?.accessToken != session.accessToken ||
+                !automaticSyncAllowed) return@launch
+            recurringServiceAssetsLoaded = result is ApiResult.Success<*>
+            mutableRecurringServiceAssets.value =
+                (result as? ApiResult.Success<List<RecurringServiceAssetRecord>>)?.value.orEmpty()
         }
     }
 

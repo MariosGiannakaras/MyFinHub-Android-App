@@ -40,6 +40,12 @@ interface MyFinHubApi {
     suspend fun loadFinancialProviders(session: AuthSession): ApiResult<List<FinancialProviderRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
 
+    /** Owner+AAL2 service artwork metadata only, strictly scoped to the configured origin. */
+    suspend fun loadRecurringServiceAssets(
+        session: AuthSession,
+    ): ApiResult<List<RecurringServiceAssetRecord>> =
+        ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
+
     /** Owner+AAL2 read-only Web GET /api/auth/devices, no secret caching. */
     suspend fun loadDeviceSessions(session: AuthSession): ApiResult<List<DeviceSessionRecord>> =
         ApiResult.Failure(ApiFailureKind.UNSUPPORTED_IN_SYNTHETIC_MODE)
