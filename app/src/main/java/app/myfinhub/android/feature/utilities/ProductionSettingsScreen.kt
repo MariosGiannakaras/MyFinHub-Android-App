@@ -317,6 +317,20 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                 )
                                 Text(
+                                    "Προτεινόμενη ερμηνεία: " + when (row.semanticKind) {
+                                        "saving_cash_offset" -> "Εσωτερική αποταμίευση"
+                                        "split_required" -> "Μικτή κίνηση για διαχωρισμό"
+                                        "withdrawal" -> "Ανάληψη"
+                                        "card_payment" -> "Εξόφληση πιστωτικής"
+                                        "reconciliation" -> "Διόρθωση υπολοίπου"
+                                        "refund" -> "Επιστροφή αγοράς"
+                                        "iris_context" -> "Αδιευκρίνιστη κίνηση IRIS"
+                                        else -> "Άγνωστη · ανθρώπινος έλεγχος"
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
                                     row.reason,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
