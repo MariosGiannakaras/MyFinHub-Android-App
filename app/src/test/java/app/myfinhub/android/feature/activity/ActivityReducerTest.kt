@@ -30,6 +30,56 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun refundOnlyAndRefundExceedingExpenseKeepSignedWebOperationalTotals() {
+        // Web flowImpactEvent(refund) returns expense=-amount, income=0.
+        val refund = ActivityItem(
+            "refund", "20 Οκτ", ActivityKind.INCOME, "Επιστροφή", "", 30.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-10-20",
+            canonicalKind = "refund",
+            financeIncomeContribution = 0.0,
+            financeExpenseContribution = -30.0,
+        )
+        val refundOnly = ActivityUiState(items = listOf(refund))
+        assertEquals(0.0, refundOnly.visibleIncome, 0.001)
+        assertEquals(-30.0, refundOnly.visibleExpense, 0.001)
+        assertEquals(30.0, refundOnly.visibleNet, 0.001)
+
+        val expense = ActivityItem(
+            "expense", "20 Οκτ", ActivityKind.EXPENSE, "Αγορά", "", -12.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-10-20",
+            financeIncomeContribution = 0.0,
+            financeExpenseContribution = 12.0,
+        )
+        val combined = refundOnly.copy(items = listOf(expense, refund))
+        assertEquals(-18.0, combined.visibleExpense, 0.001)
+        assertEquals(18.0, combined.visibleNet, 0.001)
+        assertEquals(listOf("expense", "refund"), combined.visibleItems.map { it.id })
+    }
+
+    @Test
+    fun fallbackFlowUsesExactWebKindsWithoutTreatingRepaymentsAsExpensesOrRefundsAsIncome() {
+        fun item(id: String, kind: ActivityKind, canonical: String, amount: Double) =
+            ActivityItem(
+                id, "20 Οκτ", kind, canonical, "", amount, "Μετρητά", null,
+                rawDate = "2026-10-20", canonicalKind = canonical,
+            )
+        val state = ActivityUiState(items = listOf(
+            item("expense", ActivityKind.EXPENSE, "expense", -12.0),
+            item("purchase", ActivityKind.EXPENSE, "card_purchase", -8.0),
+            item("split", ActivityKind.EXPENSE, "split", -5.0),
+            item("refund", ActivityKind.INCOME, "refund", 30.0),
+            item("card-payment", ActivityKind.CARD_PAYMENT, "card_payment", -10.0),
+            item("transfer", ActivityKind.TRANSFER, "transfer", 50.0),
+            item("lending", ActivityKind.EXPENSE, "lending", -20.0),
+            item("repayment", ActivityKind.INCOME, "repayment", 10.0),
+            item("income", ActivityKind.INCOME, "income", 100.0),
+        ))
+        assertEquals(100.0, state.visibleIncome, 0.001)
+        assertEquals(-5.0, state.visibleExpense, 0.001)
+        assertEquals(105.0, state.visibleNet, 0.001)
+    }
+
+    @Test
     fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
         val originals = (0 until 1000).map { index ->
             ActivityItem(
