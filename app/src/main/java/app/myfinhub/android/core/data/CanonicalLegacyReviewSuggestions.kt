@@ -31,7 +31,7 @@ fun CanonicalFinanceDocument.canonicalLegacyReviewSuggestions(
         val status = decision?.string("status")
         if (status == "confirmed" || status == "kept") return@mapNotNull null
         if (status == "snoozed" &&
-            decision.string("snoozedUntil")?.let { it > nowIso } == true
+            decision?.string("snoozedUntil")?.let { it > nowIso } == true
         ) return@mapNotNull null
         val note = tx.note.trim()
         val upper = note.uppercase(locale)
