@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #286 fixed canonical event leg-based account filters/labels and nonzero exact Analytics «Λοιπά» category contributions; all four exact-head Project Tracking, optimized Android CI, screenshot and S24 emulator passed at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7; squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 reconciles Web TransactionsPage main-ledger category filtering: explicit category › subcategory paths, split grouped display label instead of its financial part tags, history-only labels, Web event-kind labels, while keeping signed Analytics contributor drilldowns isolated. Adds JVM reducer and actual canonical projection parity fixtures. Four final-head CI gates pending, W4.4 remains partial.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #287 exact Web Activity ledger category labels/paths and independently scoped Analytics contributor filters passed immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator 4/4 at 26f027c371ff389afac76902a23e682da9ffa044; squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft PR #288 restores canonical split transaction part breakdown in read-first Activity details (original category/subcategory, part display label and money, original ordering) and fixes withdrawal/reconciliation/savings offset routes mistakenly described as internal transfers. Focused canonical JVM projections, reducer and real Compose instrumentation staged; four immutable-head gates pending, W4.4 partial and no physical owner acceptance.",
     "next": [
-      "Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation."
+      "Validate draft PR #288 at exact head against Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot renderer and S24 target emulator; correct failures on the same PR, merge only when all four checks pass. Then continue W4.4 and remaining Web parity scope. No physical owner acceptance, signed release, Web/backend/schema edits, SMS import, guarded card deletion or real finance mutations."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-exact-web-ledger-categories-20261020",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #285 signed refunds passed all four exact-head gates at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. PR #286 canonical event leg account filters and exact nonzero Analytics «Λοιπά» passed 4/4 immutable-head gates at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7, squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 brings Web exact main-ledger category presentation paths, archived categories, and split-label-vs-analytics parity, with JVM canonical projection/reducer golden assertions; exact-head CI pending. W4.4 still incomplete.",
+    "branch": "android/w4-4-transaction-split-detail-and-transfer-semantics-20261021",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #287 Web exact ledger category paths/labels and split vs analytics filtering passed 4/4 immutable-head gates at 26f027c371ff389afac76902a23e682da9ffa044 and squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft PR #288 stages actual canonical split parts in Activity details (part label/category/subcategory/amount, ordered), corrects transfer-only route/prose for withdrawal/reconciliation/saving offset, and includes JVM canonical projection + reducer + Compose emulator tests. Four final-head checks pending; W4.4 remains incomplete.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -942,7 +942,8 @@
               "PR #283 canonical O(n) contiguous Activity grouping was validated with four exact-final-head gates at e5531ffcc73d35b17584eac63eb2a397fe2c4994 and squash merged develop 562bb6634a7f906c01bfbe27dcf7e2036088a3d1. Draft PR #284 stages a fix for repeated noncontiguous day/month LazyColumn header key collisions plus production Compose scroll regression; not validated or accepted yet.",
               "PR #284 disjoint day/month Compose header-key fix passed all 4 immutable-head checks at 03547e553e406a27b719ff0ff2dc8e15cb1588f7 and squash merged develop 12264af996315c1b82cc7f241983d1a912c01cbe. Draft #285 addresses signed Web refund expense/net and exact canonical fallback with JVM golden tests; no acceptance credit until all final-head CI gates pass.",
               "PR #285 signed refunds/canonical flow-kind Activity projection passed all four immutable-final-head CI checks at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft #286 implements leg-only canonical event account membership/display and exact net/empty analytics category scope with JVM projection/reducer regressions; no acceptance credit before full CI.",
-              "PR #286 canonical leg-only event account identity/filter and exact signed Analytics «Λοιπά» scope passed 4/4 checks at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7 and squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 stages Web-accurate main ledger display-category/subcategory-path taxonomy distinct from Analytics signed category contributions, canonical projection and reducer tests pending; no completion credit."
+              "PR #286 canonical leg-only event account identity/filter and exact signed Analytics «Λοιπά» scope passed 4/4 checks at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7 and squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 stages Web-accurate main ledger display-category/subcategory-path taxonomy distinct from Analytics signed category contributions, canonical projection and reducer tests pending; no completion credit.",
+              "PR #287 Web main ledger category-path parity passed four immutable-head checks at 26f027c371ff389afac76902a23e682da9ffa044 and squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft #288 canonical split part detail breakdown and transfer-only semantics with JVM projection/reducer and actual Compose UI test staged; no completion credit before CI."
             ]
           }
         ]
@@ -1064,9 +1065,9 @@
         ]
       }
     ],
-    "next_action": "Validate PR #287 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Repair same PR if any test fails; squash merge only on 4/4 success, then continue remaining W4.4 and other Web parity subtasks. Do not infer owner physical Galaxy S24 Ultra acceptance, signed release, Web/backend/schema modifications, permanent card deletion, SMS import or finance history mutation.",
+    "next_action": "Validate draft PR #288 at exact head against Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot renderer and S24 target emulator; correct failures on the same PR, merge only when all four checks pass. Then continue W4.4 and remaining Web parity scope. No physical owner acceptance, signed release, Web/backend/schema edits, SMS import, guarded card deletion or real finance mutations.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 287,
+    "pr": 288,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

@@ -6,6 +6,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/** A canonical split event's original, read-only constituent; never infer parts from totals. */
+data class ActivitySplitPart(
+    val label: String,
+    val category: String,
+    val subcategory: String?,
+    val amount: Double,
+) {
+    val categoryPath: String get() = if (subcategory.isNullOrEmpty()) category else "$category › $subcategory"
+    val displayLabel: String get() = label.trim().ifBlank { categoryPath }
+}
+
 data class ActivityItem(
     val id: String,
     val dateLabel: String,
@@ -41,6 +52,8 @@ data class ActivityItem(
     val legAccountIds: Set<String> = emptySet(),
     /** Web TransactionsPage distinguishes historic imported rows from canonical events. */
     val isLegacyTransaction: Boolean = false,
+    /** Canonical event split parts in server order, not analytics-only aggregates. */
+    val splitParts: List<ActivitySplitPart> = emptyList(),
 )
 
 data class ActivityCategoryOption(
@@ -372,6 +385,9 @@ fun ActivityItem.supportsCategoryEdit(): Boolean = canonicalKind in setOf(
 )
 
 /** Exact Web TransactionsPage categoryLabel/categoryPath for main-ledger filters. */
+/** A transfer route exists only for actual transfers, not withdrawals or corrections. */
+internal fun ActivityItem.isInternalTransfer(): Boolean = canonicalKind == "transfer"
+
 internal fun ActivityItem.webLedgerCategoryLabel(): String {
     if (canonicalKind == "split") return "Επιμέρους κατηγορίες"
     val selectedCategory = category?.takeIf(String::isNotBlank)

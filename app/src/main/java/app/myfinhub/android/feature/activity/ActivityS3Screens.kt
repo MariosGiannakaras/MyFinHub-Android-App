@@ -367,14 +367,14 @@ private fun ActivityFlatLedgerRow(
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
-    val secondary = if (item.kind == ActivityKind.TRANSFER) {
+    val secondary = if (item.isInternalTransfer()) {
         activityTransferRouteLabel(item, accountOptions)
     } else {
         item.note
     }
     val meta = when {
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
-        item.kind == ActivityKind.TRANSFER -> "Εσωτερική μεταφορά"
+        item.isInternalTransfer() -> "Εσωτερική μεταφορά"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
             "${item.typeLabel} · ${item.accountLabel}"
         else -> item.accountLabel
@@ -543,7 +543,7 @@ fun ActivityReadDetailScreen(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier.fillMaxSize().padding(padding).testTag("activity_detail_list"),
                 contentPadding = PaddingValues(
                     horizontal = MyFinHubDesignMetrics.screenHorizontalPadding,
                     vertical = MyFinHubSpacing.md,
@@ -572,8 +572,8 @@ fun ActivityReadDetailScreen(
                 item { ActivityReadField("Ημερομηνία", formatActivityDate(item.rawDate.ifBlank { item.dateLabel })) }
                 item {
                     ActivityReadField(
-                        if (item.kind == ActivityKind.TRANSFER) "Προέλευση / προορισμός" else "Λογαριασμός",
-                        if (item.kind == ActivityKind.TRANSFER) activityTransferRouteLabel(item, accountOptions) else item.accountLabel,
+                        if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
+                        if (item.isInternalTransfer()) activityTransferRouteLabel(item, accountOptions) else item.accountLabel,
                     )
                 }
                 item { ActivityReadField("Κατηγορία", item.category ?: "Χωρίς κατηγορία") }
@@ -581,6 +581,44 @@ fun ActivityReadDetailScreen(
                 item { ActivityReadField("Σημείωση", item.note.ifBlank { "Χωρίς σημείωση" }) }
                 item.cardLabel?.takeIf(String::isNotBlank)?.let { cardLabel ->
                     item { ActivityReadField("Συνδεδεμένη κάρτα", cardLabel) }
+                }
+                if (item.canonicalKind == "split" && item.splitParts.isNotEmpty()) {
+                    item(key = "split-heading") {
+                        Text(
+                            "Ανάλυση σύνθετης κίνησης · ${item.splitParts.size} μέρη",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = MyFinHubSpacing.md),
+                        )
+                    }
+                    items(count = item.splitParts.size, key = { "split-part-$it" }) { index ->
+                        val part = item.splitParts[index]
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = MyFinHubSpacing.sm),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                            ) {
+                                Text(part.displayLabel, style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    part.categoryPath,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Text(
+                                amountVisibilityText(
+                                    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(part.amount),
+                                    amountsVisible,
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
                 }
                 item(key = "actions") {
                     Column(
@@ -606,7 +644,7 @@ fun ActivityReadDetailScreen(
                                 onDelete = { confirmDelete = true },
                             )
                         }
-                        if (item.kind == ActivityKind.TRANSFER) {
+                        if (item.isInternalTransfer()) {
                             Text(
                                 "Η εσωτερική μεταφορά δεν μετρά ως έσοδο ή έξοδο.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -836,7 +874,7 @@ fun ActivityEditScreen(
             ActivityReadField("Ποσό", formatSignedEuro(item.amount))
             ActivityReadField("Τύπος", item.typeLabel)
             ActivityReadField(
-                if (item.kind == ActivityKind.TRANSFER) "Προέλευση / προορισμός" else "Λογαριασμός",
+                if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
                 item.accountLabel,
             )
             Text(

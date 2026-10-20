@@ -132,6 +132,35 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun splitPartDetailProjectionRetainsOriginalServerOrderWithoutTouchingSignedAnalytics() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}]},
+             "state":{"events":[
+               {"id":"split","kind":"split","date":"2026-10-21","amount":30,
+                "parts":[
+                  {"id":"coffee","label":"Σνακ","category":"Τρόφιμα",
+                   "subcategory":"Καφές","amount":8},
+                  {"id":"trip","category":"Μεταφορές","amount":22}
+                ]},
+               {"id":"normal","kind":"expense","date":"2026-10-21","amount":5,
+                "category":"Άλλο"}
+             ]}}
+        """.trimIndent()).jsonObject)
+        val activity = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 21)).activityState
+        val split = activity.items.first { it.id == "split" }
+        assertEquals("split", split.canonicalKind)
+        assertEquals(listOf("Σνακ", "Μεταφορές"), split.splitParts.map { it.displayLabel })
+        assertEquals(listOf("Τρόφιμα › Καφές", "Μεταφορές"), split.splitParts.map { it.categoryPath })
+        assertEquals(listOf(8.0, 22.0), split.splitParts.map { it.amount })
+        assertEquals(30.0, split.financeExpenseContribution!!, 0.001)
+        assertTrue(activity.items.first { it.id == "normal" }.splitParts.isEmpty())
+        val scoped = activity.forCategory("Τρόφιμα", "2026-10-01", "2026-10-31")
+        assertEquals(listOf("split"), scoped.visibleItems.map { it.id })
+        assertEquals(-8.0, scoped.visibleItems.single().amount, 0.001)
+        assertEquals(split.splitParts, scoped.visibleItems.single().splitParts)
+    }
+
+    @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(
             document = canonicalFixture(),
