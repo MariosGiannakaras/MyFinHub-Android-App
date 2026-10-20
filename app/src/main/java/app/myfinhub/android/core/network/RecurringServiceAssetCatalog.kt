@@ -87,16 +87,19 @@ internal fun parseRecurringServiceAssetCatalog(
         val recurringId = str("recurringId")?.takeIf {
             it.isNotBlank() && it.length <= 200
         } ?: return null
+        // Web retains the user's ORIGINAL file name, independent of the
+        // generated service-asset-<uuid> storage basename.
         val fileName = str("fileName")?.takeIf {
-            it == it.substringAfterLast('/') && recurringAssetSuffix.matches(it)
+            it.isNotBlank() && it.length <= 255 &&
+                '/' !in it && '\\' !in it && it.none(Char::isISOControl)
         } ?: return null
-        val ext = fileName.substringAfterLast('.')
-        val mime = str("mimeType")?.takeIf { it == recurringMimeTypes[ext] }
-            ?: return null
         val rawUrl = str("url") ?: return null
         val url = trustedRecurringServiceAssetUrl(rawUrl,trustedSupabaseOrigin) ?: return null
         val urlFile = URI(url).rawPath.substringAfterLast('/')
-        if (urlFile != fileName) return null
+        val suffix = urlFile.substringAfterLast('.')
+        if (urlFile.substringBeforeLast('.') != assetKey) return null
+        val mime = str("mimeType")?.takeIf { it == recurringMimeTypes[suffix] }
+            ?: return null
         val size = (o["sizeBytes"] as? JsonPrimitive)?.longOrNull
             ?.takeIf { it in 1..2_097_152 } ?: return null
         val updatedAt = str("updatedAt")?.takeIf {

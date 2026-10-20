@@ -46,7 +46,10 @@ class WebRecurringServiceAssetCatalogTest {
         assertNull(parseRecurringServiceAssetCatalog(
             response(mime="image/svg+xml"),host))
         assertNull(parseRecurringServiceAssetCatalog(
-            response(file="bad.png"),host))
+            response(file="../bad.png"),host))
+        assertEquals("Netflix logo.png",
+            parseRecurringServiceAssetCatalog(
+                response(file="Netflix logo.png"),host)!!.single().fileName)
         assertNull(parseRecurringServiceAssetCatalog(
             response().replace("12345","2500000"),host))
         assertNull(parseRecurringServiceAssetCatalog(
