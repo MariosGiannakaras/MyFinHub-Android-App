@@ -203,7 +203,7 @@ fun ActivityLedgerScreen(
                                 else "Φίλτρα (${state.activeFilterCount})",
                             )
                         }
-                        if (state.hasActiveListScope) {
+                        if (state.hasActiveListScope && state.visibleItems.isNotEmpty()) {
                             TextButton(
                                 onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
                                 modifier = Modifier.testTag("activity_clear_all"),
@@ -236,7 +236,7 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
-                if (state.hasActiveListScope) {
+                if (state.hasActiveListScope && state.visibleItems.isNotEmpty()) {
                     item(key = "filtered-flow-summary") {
                         Column(
                             modifier = Modifier.fillMaxWidth()
