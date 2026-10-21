@@ -51,11 +51,21 @@ class WebActivityLedgerFlowParityTest {
         val ledger=projection.activityState.copy(
             ledgerDateFrom="2026-10-01",ledgerDateTo="2026-10-16")
         assertEquals(200.0,ledger.visibleIncome,0.001)
-        assertEquals(130.0,ledger.visibleExpense,0.001)
-        assertEquals(70.0,ledger.visibleNet,0.001)
-        assertEquals(doc.flowBetween("2026-10-01","2026-10-16").expense,ledger.visibleExpense,0.001)
-        val pay=ledger.visibleItems.single { it.id=="payment" }
+        // Web TransactionsPage excludes card_purchase/card_payment sourceRows,
+        // but the canonical global flow and category Analytics still include
+        // the card purchase (not the debt repayment).
+        assertEquals(110.0,ledger.visibleExpense,0.001)
+        assertEquals(90.0,ledger.visibleNet,0.001)
+        assertEquals(130.0,doc.flowBetween("2026-10-01","2026-10-16").expense,0.001)
+        assertEquals(20.0,
+            doc.flowBetween("2026-10-01","2026-10-16").expense-ledger.visibleExpense,0.001)
+        assertFalse(ledger.visibleItems.any {
+            it.canonicalKind=="card_purchase" || it.canonicalKind=="card_payment"
+        })
+        val pay=ledger.items.single { it.id=="payment" }
         assertEquals(0.0,pay.financeExpenseContribution!!,0.001)
+        val cardPurchase=ledger.items.single { it.id=="credit-purchase" }
+        assertEquals(20.0,cardPurchase.financeExpenseContribution!!,0.001)
         val refund=ledger.visibleItems.single { it.id=="refund" }
         assertEquals(-30.0,refund.financeExpenseContribution!!,0.001)
         assertEquals(130.0,
@@ -73,6 +83,7 @@ class WebActivityLedgerFlowParityTest {
         assertEquals(-130.0,scoped.visibleNet,0.001)
         assertEquals(130.0,-scoped.visibleItems.sumOf { it.amount },0.001)
         assertFalse(scoped.visibleItems.any { it.canonicalKind=="card_payment" })
-        assertTrue(projection.activityState.visibleItems.any { it.id=="payment" })
+        assertTrue(projection.activityState.items.any { it.id=="payment" })
+        assertFalse(projection.activityState.visibleItems.any { it.id=="payment" })
     }
 }

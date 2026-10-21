@@ -662,8 +662,9 @@ class ActivityReducerTest {
         assertTrue(state.copy(query = "πιστωτικής").visibleItems.isEmpty())
         assertTrue(state.copy(typeFilterId = "card_payment").visibleItems.isEmpty())
         val analytics = state.forCategory("Τρόφιμα", "2026-09-01", "2026-09-30")
-        assertEquals(listOf("purchase"), analytics.visibleItems.map { it.id })
-        assertEquals(25.0, analytics.visibleExpense, 0.001)
+        assertEquals(listOf("purchase", "cash"), analytics.visibleItems.map { it.id })
+        assertEquals(30.0, analytics.visibleExpense, 0.001)
+        assertEquals(25.0, analytics.visibleItems.first().financeExpenseContribution!!, 0.001)
         assertEquals(3, analytics.scopeSourceItems.size)
         // Card-specific read/detail routes still retain original identity.
         assertEquals(cardPurchase, state.uniqueItem("purchase"))
