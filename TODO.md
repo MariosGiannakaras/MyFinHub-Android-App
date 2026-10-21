@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.4 PR #300 legacy transaction display of all persisted accountId/fromAccountId/toAccountId in Web source order (including duplicates/unknowns) and stable Web date/ID ledger sorting, independent of event createdAt; confirm unit/real FinanceData regression, tracking generation, screenshot, S24 emulator and Android optimized unsigned release at immutable final PR head. Fix failures on the same PR, merge to develop only after four green gates; continue remaining W4.4 discrepancies. Progress remains 1/6 implementations · 11/24 subtasks; do not release/sign, alter shared backend, import SMS, permanently delete cards or write production finances.
+- [ ] Run exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator for draft W4.4 PR #301, which fixes read-first transaction detail account route and category labels while retaining synthetic preview wording. Fix any failing checks on the same PR and merge to develop only when all four gates pass. Then continue remaining W4.4 parity, current progress 1/6 implementations · 11/24 subtasks; no backend/Web/schema changes, production signing or publish, SMS import, permanent card deletion or live finance writes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #300, branch android/w4-4-legacy-account-path-ledger-sort-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #298 and #299 both passed 4/4 immutable-head CI and merged develop (current 776c0f77c3b76cd05539861fc24b97897377553f). Draft W4.4 PR #300 repairs imported legacy account label enumeration in canonical source order, plus Web date/ID stable same-day sorting instead of createdAt/source ordinal; preserves duplicate ID safety and full original finance data. JVM, UI screenshot and S24 release gates pending; owner device signoff separate.
+Issue #155, PR #301, branch android/w4-4-read-first-detail-source-parity-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298, #299 and #300 merged with 4/4 final-head gates, current develop a999690523fab347773c2777839d6280d320193f. Draft PR #301 removes real transaction read-first route reconstruction that obscures Web legacy 3-account paths or invents stale event endpoint hints, and renders exact Web ledger category label in real transaction detail. Preview routes preserved, JVM tests staged; Android CI, screenshot and emulator checks pending. Owner physical S24 acceptance separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.4 PR #300 legacy transaction display of all persisted accountId/fromAccountId/toAccountId in Web source order (including duplicates/unknowns) and stable Web date/ID ledger sorting, independent of event createdAt; confirm unit/real FinanceData regression, tracking generation, screenshot, S24 emulator and Android optimized unsigned release at immutable final PR head. Fix failures on the same PR, merge to develop only after four green gates; continue remaining W4.4 discrepancies. Progress remains 1/6 implementations · 11/24 subtasks; do not release/sign, alter shared backend, import SMS, permanently delete cards or write production finances.
+Next Run exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator for draft W4.4 PR #301, which fixes read-first transaction detail account route and category labels while retaining synthetic preview wording. Fix any failing checks on the same PR and merge to develop only when all four gates pass. Then continue remaining W4.4 parity, current progress 1/6 implementations · 11/24 subtasks; no backend/Web/schema changes, production signing or publish, SMS import, permanent card deletion or live finance writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

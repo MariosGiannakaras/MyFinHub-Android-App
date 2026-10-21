@@ -563,6 +563,69 @@ class ActivityReducerTest {
         )
     }
 
+
+    @Test
+    fun canonicalTransferDetailPreservesActualWebAccountPathInsteadOfEndpointHints() {
+        val seed = ActivityItem(
+            "imported", "21 Οκτ", ActivityKind.TRANSFER, "Μεταφορά",
+            "Σημείωση", 15.0, "Μετρητά → Μισθοδοσία → Αποταμίευση", null,
+            fromAccountId = "payroll", toAccountId = "savings",
+            canonicalKind = "transfer", isLegacyTransaction = true,
+            canonicalSourceOrdinal = 0,
+        )
+        val options = listOf(
+            ActivityAccountOption("cash", "Μετρητά"),
+            ActivityAccountOption("payroll", "Μισθοδοσία"),
+            ActivityAccountOption("savings", "Αποταμίευση"),
+        )
+        assertEquals("Μετρητά → Μισθοδοσία → Αποταμίευση",
+            activityTransferRouteLabel(seed, options))
+        // Real events may retain stale from/to hints that disagree with legs.
+        val canonical = seed.copy(
+            id = "event", isLegacyTransaction = false, canonicalSourceOrdinal = 1,
+            accountLabel = "Μετρητά → Μισθοδοσία",
+        )
+        assertEquals("Μετρητά → Μισθοδοσία",
+            activityTransferRouteLabel(canonical, options))
+        assertEquals("—", activityTransferRouteLabel(
+            canonical.copy(accountLabel = "—"), options))
+        // The old helpful From → To form remains only for synthetic previews.
+        assertEquals("Από Μισθοδοσία → Προς Αποταμίευση",
+            activityTransferRouteLabel(
+                seed.copy(isLegacyTransaction = false, canonicalSourceOrdinal = -1),
+                options,
+            ))
+    }
+
+    @Test
+    fun persistedTransactionDetailCategoryMatchesWebLedgerFilters() {
+        val import = ActivityItem(
+            "legacy", "21 Οκτ", ActivityKind.EXPENSE, "Ιστορικό", "", -5.0,
+            "Μετρητά", null, isLegacyTransaction = true, canonicalSourceOrdinal = 0,
+        )
+        val split = import.copy(
+            id = "split", isLegacyTransaction = false, canonicalKind = "split",
+            canonicalSourceOrdinal = 1, category = "Ignored",
+        )
+        val refund = import.copy(
+            id = "refund", isLegacyTransaction = false, canonicalKind = "refund",
+            canonicalSourceOrdinal = 2,
+        )
+        val hierarchy = import.copy(
+            id = "hierarchy", category = "Τρόφιμα", subcategory = "Καφές",
+            isLegacyTransaction = false, canonicalSourceOrdinal = 3,
+        )
+        listOf(import, split, refund, hierarchy).forEach { item ->
+            assertEquals(item.webLedgerCategoryLabel(), activityDetailCategoryLabel(item))
+        }
+        assertEquals("Άλλο", activityDetailCategoryLabel(import))
+        assertEquals("Επιμέρους κατηγορίες", activityDetailCategoryLabel(split))
+        assertEquals("Επιστροφή χρημάτων", activityDetailCategoryLabel(refund))
+        assertEquals("Τρόφιμα › Καφές", activityDetailCategoryLabel(hierarchy))
+        val preview = import.copy(isLegacyTransaction = false, canonicalSourceOrdinal = -1)
+        assertEquals("Χωρίς κατηγορία", activityDetailCategoryLabel(preview))
+    }
+
     @Test
     fun signedAmount_keepsExplicitPositiveAndNegativeSigns() {
         assertTrue(formatSignedEuro(12.5).startsWith("+"))
