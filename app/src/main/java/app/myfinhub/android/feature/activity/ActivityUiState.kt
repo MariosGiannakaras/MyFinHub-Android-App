@@ -276,11 +276,20 @@ data class ActivityUiState(
                 ActivityFilter.INCOME -> item.kind == ActivityKind.INCOME
                 ActivityFilter.TRANSFER -> item.kind == ActivityKind.TRANSFER
             }
-            val matchesAccount = accountFilterId == null ||
-                item.accountId == accountFilterId ||
-                item.fromAccountId == accountFilterId ||
-                item.toAccountId == accountFilterId ||
-                item.legAccountIds.contains(accountFilterId)
+            // Web TransactionsPage: an imported row filters on its persisted
+            // account endpoints; a canonical event filters EXCLUSIVELY on
+            // non-credit ledger legs. Endpoint hints can be stale after review,
+            // so they must not invent account attribution for real events.
+            // Unbacked screenshot fixtures retain their illustrative routes.
+            val matchesAccount = when {
+                accountFilterId == null -> true
+                item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ->
+                    item.accountId == accountFilterId ||
+                        item.fromAccountId == accountFilterId ||
+                        item.toAccountId == accountFilterId ||
+                        item.legAccountIds.contains(accountFilterId)
+                else -> item.legAccountIds.contains(accountFilterId)
+            }
             val matchesQuery = item.matchesWebLedgerSearch(needle)
             val matchesCategory = when {
                 !isAnalyticsScope -> ledgerCategoryFilter == null ||

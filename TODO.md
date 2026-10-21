@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete exact-head validation of corrected W4.4 PR #298 (Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression, S24 emulator). Repair any remaining failures in the same PR, then merge to develop only with all four gates successful. Continue unfinished W4.4 without raising progress beyond 1/6 implementations · 11/24 subtasks until evidence-backed acceptance. No signed release, owner physical S24 signoff, Web/backend/schema change, permanent card deletion, SMS import or live finance writes.
+- [ ] Validate W4.4 PR #299 exact Web TransactionsPage account attribution from canonical non-credit ledger legs, preserving legacy account endpoints and synthetic previews. Run Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target instrumentation once for the batch. Repair any failures on the same PR and merge after all four gates pass; W4.4 remains in_progress (1/6 implementations · 11/24 subtasks). No owner physical acceptance, signed release, Web/backend/schema change, live finance writes, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #298, branch android/w4-4-batch-web-note-search-kind-fidelity-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. Draft PR #298: Web joined Greek transaction search, clean legacy note rendering and exact Web transaction type labels. First CI: tracking/screenshot passed, 2/628 JVM failures (stale historical kind label, card-only option fixture) and 1/163 emulator failures (stale picker label), all corrected in grouped follow-up commit; final exact-head checks pending. Prior PR #297 merged develop 4f959826c427f40e23002b1d1b012231b7ce9dfb. W4.4 partial.
+Issue #155, PR #299, branch android/w4-4-web-leg-account-attribution-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #298 all four exact-head checks passed and merged develop 92bd7137a16c583dd6a7e3bbfaf383fc68ae08b6. Draft W4.4 #299 corrects canonical real event account filtering and labels from ledger legs only; preserves Web legacy endpoint rules and isolated screenshot preview behavior; JVM and actual FinanceData JSON projection regression added. CI, screenshots and S24 emulator still pending; W4.4 incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete exact-head validation of corrected W4.4 PR #298 (Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression, S24 emulator). Repair any remaining failures in the same PR, then merge to develop only with all four gates successful. Continue unfinished W4.4 without raising progress beyond 1/6 implementations · 11/24 subtasks until evidence-backed acceptance. No signed release, owner physical S24 signoff, Web/backend/schema change, permanent card deletion, SMS import or live finance writes.
+Next Validate W4.4 PR #299 exact Web TransactionsPage account attribution from canonical non-credit ledger legs, preserving legacy account endpoints and synthetic previews. Run Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target instrumentation once for the batch. Repair any failures on the same PR and merge after all four gates pass; W4.4 remains in_progress (1/6 implementations · 11/24 subtasks). No owner physical acceptance, signed release, Web/backend/schema change, live finance writes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
