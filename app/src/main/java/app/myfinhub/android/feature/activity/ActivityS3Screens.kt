@@ -203,8 +203,11 @@ fun ActivityLedgerScreen(
                                 else "Φίλτρα (${state.activeFilterCount})",
                             )
                         }
-                        if (state.activeFilterCount > 0) {
-                            TextButton(onClick = { onAction(ActivityAction.ClearFilters) }) {
+                        if (state.hasActiveListScope) {
+                            TextButton(
+                                onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
+                                modifier = Modifier.testTag("activity_clear_all"),
+                            ) {
                                 Text("Καθαρισμός")
                             }
                         }
@@ -233,6 +236,32 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
+                if (state.hasActiveListScope) {
+                    item(key = "filtered-flow-summary") {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("activity_filtered_summary")
+                                .padding(vertical = MyFinHubSpacing.sm),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            Text(
+                                "Βρέθηκαν ${state.visibleItems.size} από ${state.items.size} κινήσεις",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                "Έσοδα: ${amountVisibilityText(formatSignedEuro(state.visibleIncome), amountsVisible)}" +
+                                    " · Έξοδα: ${amountVisibilityText(formatSignedEuro(state.visibleExpense), amountsVisible)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "Καθαρό: ${amountVisibilityText(formatSignedEuro(state.visibleNet), amountsVisible)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
                 if (state.activeFilterCount > 0) {
                     item(key = "scope-summary") {
                         ActivityScopeSummary(state = state, onAction = onAction)
@@ -256,10 +285,7 @@ fun ActivityLedgerScreen(
                             title = "Δεν βρέθηκαν κινήσεις με αυτή την αναζήτηση ή τα φίλτρα.",
                             actionLabel = if (analyticsScope) null else "Καθαρισμός αναζήτησης και φίλτρων",
                             onAction = if (analyticsScope) null else {
-                                {
-                                    onAction(ActivityAction.QueryChanged(""))
-                                    onAction(ActivityAction.ClearFilters)
-                                }
+                                { onAction(ActivityAction.ClearSearchAndFilters) }
                             },
                         )
                     }

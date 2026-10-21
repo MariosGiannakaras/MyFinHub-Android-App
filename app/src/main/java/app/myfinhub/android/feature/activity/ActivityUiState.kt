@@ -146,6 +146,13 @@ data class ActivityUiState(
     val ambiguousIds: Set<String> = items.groupingBy(ActivityItem::id)
         .eachCount().filterValues { it > 1 }.keys
 
+    /** The same exact target check is required at the navigation and durable mutation boundaries. */
+    fun isUniqueMutationTarget(id: String): Boolean = id.isNotBlank() &&
+        id !in ambiguousIds && items.any { it.id == id }
+
+    fun uniqueItem(id: String?): ActivityItem? = id?.takeIf(::isUniqueMutationTarget)
+        ?.let { exact -> items.firstOrNull { it.id == exact } }
+
     // Web TransactionsPage: available taxonomy paths plus historic *display*
     // labels. The main ledger is different from category analytics contribution
     // drill-downs: a split belongs under "Επιμέρους κατηγορίες" in the ledger.
@@ -298,9 +305,7 @@ data class ActivityUiState(
         if (currentDate != null) add(ActivitySection(currentDate, currentItems.toList()))
     }
 
-    val selectedItem: ActivityItem? = selectedId
-        ?.takeUnless(ambiguousIds::contains)
-        ?.let { id -> items.firstOrNull { it.id == id } }
+    val selectedItem: ActivityItem? = uniqueItem(selectedId)
 
     fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> = when (item.canonicalKind) {
         "income" -> incomeCategories
@@ -359,6 +364,8 @@ sealed interface ActivityAction {
         val typeId: String? = null,
     ) : ActivityAction
     data object ClearFilters : ActivityAction
+    /** Web resetFilters: clears query and every ledger filter in one state transition. */
+    data object ClearSearchAndFilters : ActivityAction
     data class RemoveFilter(val field: ActivityFilterField) : ActivityAction
     data class Select(val id: String?) : ActivityAction
     data class SaveEdit(
@@ -393,6 +400,15 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ledgerDateFrom = null,
         ledgerDateTo = null,
     )
+    ActivityAction.ClearSearchAndFilters -> state.copy(
+        query = "",
+        filter = ActivityFilter.ALL,
+        typeFilterId = null,
+        accountFilterId = null,
+        ledgerCategoryFilter = null,
+        ledgerDateFrom = null,
+        ledgerDateTo = null,
+    )
     is ActivityAction.RemoveFilter -> when (action.field) {
         ActivityFilterField.TYPE -> state.copy(filter = ActivityFilter.ALL, typeFilterId = null)
         ActivityFilterField.ACCOUNT -> state.copy(accountFilterId = null)
@@ -400,9 +416,9 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ActivityFilterField.DATE -> state.copy(ledgerDateFrom = null, ledgerDateTo = null)
     }
     is ActivityAction.Select -> state.copy(
-        selectedId = action.id?.takeUnless(state.ambiguousIds::contains),
+        selectedId = action.id?.takeIf(state::isUniqueMutationTarget),
     )
-    is ActivityAction.SaveEdit -> if (action.id in state.ambiguousIds) state else state.copy(
+    is ActivityAction.SaveEdit -> if (!state.isUniqueMutationTarget(action.id)) state else state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) {
                 item.copy(
@@ -422,7 +438,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
             }
         },
     )
-    is ActivityAction.Delete -> if (action.id in state.ambiguousIds) state else state.copy(
+    is ActivityAction.Delete -> if (!state.isUniqueMutationTarget(action.id)) state else state.copy(
         selectedId = state.selectedId.takeUnless { it == action.id },
         items = state.items.filterNot { it.id == action.id },
     )
