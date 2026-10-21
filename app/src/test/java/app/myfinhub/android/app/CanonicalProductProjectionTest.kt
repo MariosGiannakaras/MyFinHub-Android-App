@@ -230,6 +230,80 @@ class CanonicalProductProjectionTest {
     }
 
 
+
+    @Test
+    fun legacyImportedAccountPathUsesAllWebEndpointIdsInOrderIncludingDuplicates() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[
+              {"id":"cash","kind":"cash","name":"Μετρητά"},
+              {"id":"payroll","kind":"bank","name":"Μισθοδοσία"},
+              {"id":"savings","kind":"bank","name":"Αποταμίευση"}
+            ],"transactions":[
+              {"id":"full","date":"2026-10-20","type":"transfer","amount":10,
+               "accountId":"cash","fromAccountId":"payroll","toAccountId":"savings"},
+              {"id":"repeat","date":"2026-10-20","type":"expense","amount":2,
+               "accountId":"cash","fromAccountId":"cash","toAccountId":"cash"},
+              {"id":"gap","date":"2026-10-20","type":"transfer","amount":8,
+               "accountId":"cash","toAccountId":"savings"},
+              {"id":"from-to","date":"2026-10-20","type":"transfer","amount":4,
+               "fromAccountId":"payroll","toAccountId":"savings"},
+              {"id":"none","date":"2026-10-20","type":"expense","amount":1},
+              {"id":"unknown","date":"2026-10-20","type":"transfer","amount":1,
+               "accountId":"","fromAccountId":"foreign","toAccountId":"payroll"}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+            .activityState
+        fun row(id: String) = state.items.single { it.id == id }
+        assertTrue(state.items.all { it.isLegacyTransaction })
+        assertEquals("Μετρητά → Μισθοδοσία → Αποταμίευση", row("full").accountLabel)
+        assertEquals("Μετρητά → Μετρητά → Μετρητά", row("repeat").accountLabel)
+        assertEquals("Μετρητά → Αποταμίευση", row("gap").accountLabel)
+        assertEquals("Μισθοδοσία → Αποταμίευση", row("from-to").accountLabel)
+        assertEquals("—", row("none").accountLabel)
+        assertEquals("foreign → Μισθοδοσία", row("unknown").accountLabel)
+        assertEquals(setOf("full", "repeat", "gap"),
+            state.copy(accountFilterId = "cash").visibleItems.map { it.id }.toSet())
+        assertEquals(setOf("full", "gap", "from-to"),
+            state.copy(accountFilterId = "savings").visibleItems.map { it.id }.toSet())
+        assertEquals(listOf("unknown"),
+            state.copy(accountFilterId = "foreign").visibleItems.map { it.id })
+    }
+
+    @Test
+    fun sameDateLedgerRowsSortByWebIdAndPreserveSourceOrderForRepeatedIds() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"id-b","date":"2026-10-20","type":"expense","amount":2,
+                 "accountId":"cash","note":"legacy-b"},
+                {"id":"dup","date":"2026-10-20","type":"expense","amount":3,
+                 "accountId":"cash","note":"legacy-first"},
+                {"id":"dup","date":"2026-10-20","type":"expense","amount":4,
+                 "accountId":"cash","note":"legacy-second"}
+              ]},"state":{"events":[
+                {"id":"id-z","date":"2026-10-20","kind":"expense","amount":5,
+                 "createdAt":"2026-10-20T07:00:00Z","note":"event-z"},
+                {"id":"id-a","date":"2026-10-20","kind":"expense","amount":6,
+                 "createdAt":"2026-10-20T23:00:00Z","note":"event-a"},
+                {"id":"dup","date":"2026-10-20","kind":"expense","amount":7,
+                 "createdAt":"2026-10-20T12:00:00Z","note":"event-dup"}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+            .activityState
+        assertEquals(listOf("id-z", "id-b", "id-a", "dup", "dup", "dup"),
+            state.visibleItems.map { it.id })
+        assertEquals(listOf("legacy-first", "legacy-second", "event-dup"),
+            state.visibleItems.filter { it.id == "dup" }.map { it.note })
+        assertEquals(setOf("dup"), state.ambiguousIds)
+        assertNull(state.uniqueItem("dup"))
+        assertEquals(listOf("dup", "dup", "dup", "id-a", "id-b", "id-z"),
+            state.copy(sortOldestFirst = true).visibleItems.map { it.id })
+        // Ledger ordering changes only presentation, never canonical money.
+        assertEquals(27.0, state.visibleExpense, 0.001)
+    }
+
     @Test
     fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
