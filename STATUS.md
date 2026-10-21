@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #298 matched Web joined Greek transaction search, legacy threaded notes and canonical type labels; after correcting two unit fixture assertions and one stale S24 label, all four final-head gates passed at 0e54af9b39206c85ae9cafeeb16dad7f3913c231, squash merged develop 92bd7137a16c583dd6a7e3bbfaf383fc68ae08b6. Draft W4.4 PR #299 aligns account filters and account labels of canonical events strictly to non-credit ledger legs rather than potentially stale account/from/to hints, with legacy-preview fallbacks and source-level golden regressions. CI pending, no physical acceptance.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298 matched Web Greek joined search, cleaned imported notes and kind labels, merged develop 92bd7137a16c583dd6a7e3bbfaf383fc68ae08b6 (4/4 gates). W4.4 #299 corrected real canonical event account filter/label attribution from ledger legs only, passed 4/4 immutable-head CI and merged develop 776c0f77c3b76cd05539861fc24b97897377553f. Draft PR #300 now aligns historical source account paths and same-day Web date/ID stable ledger ordering, including duplicate identity and ambiguous mutation safeguards; final CI and physical S24 acceptance still pending.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.4 PR #299 exact Web TransactionsPage account attribution from canonical non-credit ledger legs, preserving legacy account endpoints and synthetic previews. Run Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target instrumentation once for the batch. Repair any failures on the same PR and merge after all four gates pass; W4.4 remains in_progress (1/6 implementations · 11/24 subtasks). No owner physical acceptance, signed release, Web/backend/schema change, live finance writes, SMS import or permanent card deletion.
+1. Validate W4.4 PR #300 legacy transaction display of all persisted accountId/fromAccountId/toAccountId in Web source order (including duplicates/unknowns) and stable Web date/ID ledger sorting, independent of event createdAt; confirm unit/real FinanceData regression, tracking generation, screenshot, S24 emulator and Android optimized unsigned release at immutable final PR head. Fix failures on the same PR, merge to develop only after four green gates; continue remaining W4.4 discrepancies. Progress remains 1/6 implementations · 11/24 subtasks; do not release/sign, alter shared backend, import SMS, permanently delete cards or write production finances.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #299, branch android/w4-4-web-leg-account-attribution-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #298 all four exact-head checks passed and merged develop 92bd7137a16c583dd6a7e3bbfaf383fc68ae08b6. Draft W4.4 #299 corrects canonical real event account filtering and labels from ledger legs only; preserves Web legacy endpoint rules and isolated screenshot preview behavior; JVM and actual FinanceData JSON projection regression added. CI, screenshots and S24 emulator still pending; W4.4 incomplete.
+Issue #155, PR #300, branch android/w4-4-legacy-account-path-ledger-sort-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #298 and #299 both passed 4/4 immutable-head CI and merged develop (current 776c0f77c3b76cd05539861fc24b97897377553f). Draft W4.4 PR #300 repairs imported legacy account label enumeration in canonical source order, plus Web date/ID stable same-day sorting instead of createdAt/source ordinal; preserves duplicate ID safety and full original finance data. JVM, UI screenshot and S24 release gates pending; owner device signoff separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.4 PR #299 exact Web TransactionsPage account attribution from canonical non-credit ledger legs, preserving legacy account endpoints and synthetic previews. Run Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target instrumentation once for the batch. Repair any failures on the same PR and merge after all four gates pass; W4.4 remains in_progress (1/6 implementations · 11/24 subtasks). No owner physical acceptance, signed release, Web/backend/schema change, live finance writes, SMS import or permanent card deletion.
+Next Validate W4.4 PR #300 legacy transaction display of all persisted accountId/fromAccountId/toAccountId in Web source order (including duplicates/unknowns) and stable Web date/ID ledger sorting, independent of event createdAt; confirm unit/real FinanceData regression, tracking generation, screenshot, S24 emulator and Android optimized unsigned release at immutable final PR head. Fix failures on the same PR, merge to develop only after four green gates; continue remaining W4.4 discrepancies. Progress remains 1/6 implementations · 11/24 subtasks; do not release/sign, alter shared backend, import SMS, permanently delete cards or write production finances.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

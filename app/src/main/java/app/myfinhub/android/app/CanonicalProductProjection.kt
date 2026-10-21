@@ -177,7 +177,7 @@ val activityCardLabels = document.canonicalCards().associate { card ->
 }
 val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
 val activityItems = buildActivityItems(
-    legacy, events, accountNames, eventChronology, activityCardLabels, legacyOverrideIds,
+    legacy, events, accountNames, activityCardLabels, legacyOverrideIds,
 ).map { item ->
     val sourceKind = if (item.isLegacyTransaction) "legacy" else "event"
     val signed = if (item.isLegacyTransaction) {
@@ -495,8 +495,6 @@ val activityItems = buildActivityItems(
 
 private data class ActivitySortRow(
     val date: String,
-    val chronology: String,
-    val sourceOrder: Int,
     val item: ActivityItem,
 )
 
@@ -504,7 +502,6 @@ private fun buildActivityItems(
     legacy: List<CanonicalLegacyTransaction>,
     events: List<CanonicalEvent>,
     accountNames: Map<String, String>,
-    eventChronology: List<String>,
     cardLabels: Map<String, String>,
     legacyOverrideIds: Set<String>,
 ): List<ActivityItem> {
@@ -518,8 +515,6 @@ private fun buildActivityItems(
             }
             add(ActivitySortRow(
                 date = tx.date,
-                chronology = tx.date,
-                sourceOrder = index,
                 item = ActivityItem(
                     id = tx.id,
                     dateLabel = formatDate(tx.date),
@@ -527,7 +522,9 @@ private fun buildActivityItems(
                     title = tx.category ?: displayNote.ifBlank { legacyTypeLabel(tx.type) },
                     subtitle = displayNote.ifBlank { legacyTypeLabel(tx.type) },
                     amount = if (tx.type == "expense") -tx.amount else tx.amount,
-                    accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
+                    accountLabel = legacyActivityAccountPath(
+                        tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames,
+                    ),
                     category = tx.category,
                     subcategory = tx.subcategory,
                     note = displayNote,
@@ -556,8 +553,6 @@ private fun buildActivityItems(
                 .ifEmpty { "—" }
             add(ActivitySortRow(
                 date = event.date,
-                chronology = eventChronology.getOrNull(index).orEmpty().ifBlank { event.date },
-                sourceOrder = index,
                 item = ActivityItem(
                     id = event.id,
                     dateLabel = formatDate(event.date),
@@ -591,10 +586,12 @@ private fun buildActivityItems(
             ))
         }
     }
+    // Web TransactionsPage sorts by date, then canonical row ID. Its stable
+    // Array.sort retains original seed-before-event source order when both
+    // keys collide. createdAt/updatedAt belong to other projections (such
+    // as card activity) and must not reorder this transaction ledger.
     return rows.sortedWith(
         compareByDescending<ActivitySortRow> { it.date }
-            .thenByDescending { it.chronology }
-            .thenByDescending { it.sourceOrder }
             .thenByDescending { it.item.id },
     ).map(ActivitySortRow::item)
 }
@@ -610,16 +607,19 @@ private fun eventDisplayAmount(event: CanonicalEvent): Double = when (event.kind
     else -> event.amount
 }
 
-private fun accountLabel(
+/** Web TransactionsPage legacy accountIds is [accountId, from, to].filter(Boolean).
+ * Retain the original order and repeated IDs; neither a route inference nor a
+ * distinct set is equivalent when all three optional fields are populated.
+ */
+private fun legacyActivityAccountPath(
     accountId: String?,
     fromAccountId: String?,
     toAccountId: String?,
     names: Map<String, String>,
-): String = when {
-    fromAccountId != null && toAccountId != null -> "${names[fromAccountId] ?: fromAccountId} → ${names[toAccountId] ?: toAccountId}"
-    accountId != null -> names[accountId] ?: accountId
-    else -> "—"
-}
+): String = listOfNotNull(accountId, fromAccountId, toAccountId)
+    .filter(String::isNotEmpty)
+    .joinToString(" → ") { names[it] ?: it }
+    .ifEmpty { "—" }
 
 private fun accountKindLabel(kind: String): String = when (kind) {
     "cash" -> "Μετρητά"
