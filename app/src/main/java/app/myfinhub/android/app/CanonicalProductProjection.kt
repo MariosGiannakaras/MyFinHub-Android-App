@@ -105,11 +105,16 @@ internal fun canonicalActivityBalanceAtDate(
     if (item.pendingSync) return null
     val date = item.rawDate.take(10)
     if (runCatching { LocalDate.parse(date) }.isFailure) return null
-    val account = sequenceOf(item.accountId, item.fromAccountId, item.toAccountId)
-        .filterNotNull()
-        .firstOrNull { it.isNotBlank() && it != CREDIT_ACCOUNT_ID }
-        ?: item.legAccountIds.firstOrNull { it.isNotBlank() && it != CREDIT_ACCOUNT_ID }
-        ?: return null
+    // Web TransactionsPage derives event accountIds exclusively from actual
+    // ledger legs. Optional accountId/from/to are *legacy* transaction fields
+    // and can disagree with event legs after a reconciliation/import.
+    val account = if (item.isLegacyTransaction) {
+        sequenceOf(item.accountId, item.fromAccountId, item.toAccountId)
+            .filterNotNull().firstOrNull(String::isNotBlank)
+    } else {
+        item.legAccountIds.firstOrNull { it.isNotBlank() && it != CREDIT_ACCOUNT_ID }
+    } ?: return null
+    if (account == CREDIT_ACCOUNT_ID) return null
     if (document.canonicalAccounts().none { it.id == account && it.kind != "credit" }) return null
     return document.accountBalances(date)[account]
 }
@@ -144,11 +149,13 @@ fun projectCanonicalProduct(
     val scheduled = document.canonicalScheduled()
     val events = document.canonicalEvents()
     val legacy = document.effectiveLegacyTransactions()
+    // Never collapse chronology by ID. Real events may share an imported ID
+    // or another event ID; preserve the corresponding raw source ordinal.
     val eventChronology = document.state.array("events").mapNotNull { raw ->
-    val event = raw as? JsonObject ?: return@mapNotNull null
-    val id = event.string("id") ?: return@mapNotNull null
-    id to (event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty())
-}.toMap()
+        val event = raw as? JsonObject ?: return@mapNotNull null
+        if (event.string("id") == null) return@mapNotNull null
+        event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty()
+    }
 // Never key financial metadata by a bare ID. Canonical seed rows can share an
 // ID, and a legacy ID can collide with an event ID. Such a join incorrectly
 // multiplies another row's expense and corrupts Activity/Analytics reports.
@@ -360,10 +367,16 @@ val activityItems = buildActivityItems(
             .associate { card -> card.id to document.creditStatementViews(card.id, asOf) },
         cards = activeCards.map { card ->
             val eventOutstanding = document.creditDebtForCardAt(card.id, asOf)
-            val cardActivity = events
-                .filter { event -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
-                .sortedWith(compareByDescending<CanonicalEvent> { it.date }.thenByDescending { eventChronology[it.id].orEmpty() }.thenByDescending { it.id })
-                .map { event ->
+            // A card may have multiple events sharing an imported ID. Sort
+            // by each event's own source ordinal chronology, not an ID lookup.
+            val cardActivity = events.withIndex()
+                .filter { (_, event) -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
+                .sortedWith(
+                    compareByDescending<IndexedValue<CanonicalEvent>> { it.value.date }
+                        .thenByDescending { eventChronology.getOrNull(it.index).orEmpty() }
+                        .thenByDescending { it.value.id },
+                )
+                .map { (_, event) ->
                     val payment = event.kind == "card_payment"
                     MoneyCardActivity(
                         id = event.id,
@@ -485,7 +498,7 @@ private fun buildActivityItems(
     legacy: List<CanonicalLegacyTransaction>,
     events: List<CanonicalEvent>,
     accountNames: Map<String, String>,
-    eventChronology: Map<String, String>,
+    eventChronology: List<String>,
     cardLabels: Map<String, String>,
     legacyOverrideIds: Set<String>,
 ): List<ActivityItem> {
@@ -537,7 +550,7 @@ private fun buildActivityItems(
             }
             add(ActivitySortRow(
                 date = event.date,
-                chronology = eventChronology[event.id].orEmpty().ifBlank { event.date },
+                chronology = eventChronology.getOrNull(index).orEmpty().ifBlank { event.date },
                 sourceOrder = index,
                 item = ActivityItem(
                     id = event.id,
