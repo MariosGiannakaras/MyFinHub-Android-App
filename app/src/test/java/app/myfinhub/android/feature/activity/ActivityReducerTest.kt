@@ -675,7 +675,8 @@ class ActivityReducerTest {
         val state = ActivityUiState(items = listOf(
             ActivityItem("private", "10 Σεπ", ActivityKind.EXPENSE,
                 "Βιβλίο", "Αγορά βιβλίου", -63.48, "Μετρητά", "Εκπαίδευση",
-                rawDate = "2026-09-10", canonicalSourceOrdinal = 0),
+                rawDate = "2026-09-10", note = "Αγορά βιβλίου",
+                canonicalSourceOrdinal = 0),
         ))
         assertTrue(state.copy(query = "63,48").visibleItems.isEmpty())
         assertTrue(state.copy(query = "63.48").visibleItems.isEmpty())
@@ -713,6 +714,63 @@ class ActivityReducerTest {
 
         assertEquals(listOf("payment"), filtered.visibleItems.map { it.id })
         assertEquals("Πληρωμή κάρτας", filtered.typeOptions.first { it.id == "card_payment" }.label)
+    }
+
+    @Test
+    fun realCanonicalSearchMatchesOnlyWebIndexedFieldsAndNeverAccountDateOrDisplayFallback() {
+        val row = ActivityItem(
+            "real", "21 Οκτ", ActivityKind.EXPENSE,
+            "Αποκλειστικός τίτλος προβολής", "Υπότιτλος παρουσίας",
+            -63.48, "Μυστικός λογαριασμός", "Τρόφιμα",
+            rawDate = "2026-10-21", note = "Καφές συνάντησης",
+            subcategory = "Ροφήματα", canonicalKind = "expense",
+            typeLabel = "Προβολή εξόδων", canonicalSourceOrdinal = 0,
+        )
+        val split = row.copy(id = "split", canonicalKind = "split",
+            category = "Διαχωρισμός", note = "Σύνθετη",
+            splitParts = listOf(ActivitySplitPart("Λεωφορείο", "Μεταφορές", "Εισιτήρια", 8.0)),
+            canonicalSourceOrdinal = 1)
+        val state = ActivityUiState(items = listOf(row, split))
+        listOf("Καφές", "ΣΥΝΑΝΤΗΣΗΣ", "Τρόφιμα", "Ροφήματα", "expense").forEach { q ->
+            assertEquals("query=$q", listOf("real"), state.copy(query = q).visibleItems.map { it.id })
+        }
+        listOf("λεωφορείο", "Μεταφορές", "Εισιτήρια").forEach { q ->
+            assertEquals("query=$q", listOf("split"), state.copy(query = q).visibleItems.map { it.id })
+        }
+        listOf("Μυστικός", "2026-10-21", "21 Οκτ", "Αποκλειστικός",
+            "Υπότιτλος", "Προβολή εξόδων", "Έξοδα", "63.48", "63,48",
+        ).forEach { q ->
+            assertTrue("Not indexed on Web: $q", state.copy(query = q).visibleItems.isEmpty())
+        }
+        assertEquals(listOf("real", "split"), state.visibleItems.map { it.id })
+        assertEquals(-63.48, row.amount, 0.001)
+        // Illustrative previews are intentionally distinct from canonical rows.
+        assertEquals(listOf("real"), state.copy(items = listOf(row.copy(
+            canonicalSourceOrdinal = -1)), query = "Μυστικός").visibleItems.map { it.id })
+    }
+
+    @Test
+    fun greekWebLocaleOrderSortsMainLedgerCategoriesAndTypeLabels() {
+        val types = listOf("Ίριδα", "Ζήτα", "Βήτα", "Άλφα")
+        val records = types.mapIndexed { index, name ->
+            ActivityItem(
+                "event-$index", "21 Οκτ", ActivityKind.EXPENSE, name, "",
+                -1.0, "Μετρητά", name,
+                canonicalKind = "test-$index", typeLabel = name,
+                canonicalSourceOrdinal = index,
+            )
+        }
+        val state = ActivityUiState(items = records)
+        assertEquals(listOf("Άλφα", "Βήτα", "Ζήτα", "Ίριδα"),
+            state.availableCategories)
+        assertEquals(listOf("Άλφα", "Βήτα", "Ζήτα", "Ίριδα"),
+            state.typeOptions.map { it.label })
+        assertEquals(listOf("event-0", "event-1", "event-2", "event-3"),
+            state.visibleItems.map { it.id })
+        assertEquals(listOf("event-1"), state.copy(
+            ledgerCategoryFilter = "Ζήτα").visibleItems.map { it.id })
+        assertEquals(listOf("event-2"), state.copy(
+            typeFilterId = "test-2").visibleItems.map { it.id })
     }
 
     @Test
