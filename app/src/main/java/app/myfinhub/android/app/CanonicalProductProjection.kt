@@ -367,10 +367,16 @@ val activityItems = buildActivityItems(
             .associate { card -> card.id to document.creditStatementViews(card.id, asOf) },
         cards = activeCards.map { card ->
             val eventOutstanding = document.creditDebtForCardAt(card.id, asOf)
-            val cardActivity = events
-                .filter { event -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
-                .sortedWith(compareByDescending<CanonicalEvent> { it.date }.thenByDescending { eventChronology[it.id].orEmpty() }.thenByDescending { it.id })
-                .map { event ->
+            // A card may have multiple events sharing an imported ID. Sort
+            // by each event's own source ordinal chronology, not an ID lookup.
+            val cardActivity = events.withIndex()
+                .filter { (_, event) -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
+                .sortedWith(
+                    compareByDescending<IndexedValue<CanonicalEvent>> { it.value.date }
+                        .thenByDescending { eventChronology.getOrNull(it.index).orEmpty() }
+                        .thenByDescending { it.value.id },
+                )
+                .map { (_, event) ->
                     val payment = event.kind == "card_payment"
                     MoneyCardActivity(
                         id = event.id,
