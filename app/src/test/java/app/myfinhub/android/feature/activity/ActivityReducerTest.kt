@@ -727,7 +727,7 @@ class ActivityReducerTest {
             typeLabel = "Προβολή εξόδων", canonicalSourceOrdinal = 0,
         )
         val split = row.copy(id = "split", canonicalKind = "split",
-            category = "Διαχωρισμός", note = "Σύνθετη",
+            category = "Διαχωρισμός", subcategory = null, note = "Σύνθετη",
             splitParts = listOf(ActivitySplitPart("Λεωφορείο", "Μεταφορές", "Εισιτήρια", 8.0)),
             canonicalSourceOrdinal = 1)
         val state = ActivityUiState(items = listOf(row, split))
