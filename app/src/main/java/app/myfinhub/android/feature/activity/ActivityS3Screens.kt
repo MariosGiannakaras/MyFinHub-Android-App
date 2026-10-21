@@ -78,6 +78,13 @@ internal fun activityTransferRouteLabel(
     item: ActivityItem,
     accountOptions: List<ActivityAccountOption>,
 ): String {
+    // Real Web TransactionsPage details show accountText(row.accountIds),
+    // not a reconstructed from/to transfer route. Using optional endpoint
+    // hints here can erase an imported third account or disagree with actual
+    // canonical event legs. Keep the explicit demo wording for synthetic UI
+    // previews which do not have a persisted source ordinal.
+    if (item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0) return item.accountLabel
+
     val from = item.fromAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
     val to = item.toAccountId?.let { id -> accountOptions.firstOrNull { it.id == id }?.label }
     if (!from.isNullOrBlank() && !to.isNullOrBlank()) return "Από $from → Προς $to"
@@ -86,6 +93,16 @@ internal fun activityTransferRouteLabel(
     if (route.size == 2 && route.all(String::isNotBlank)) return "Από ${route[0]} → Προς ${route[1]}"
     return item.subtitle
 }
+
+/** Match the Web transaction detail's categoryLabel for persisted rows.
+ * Preview-only fixtures retain their stand-alone "Χωρίς κατηγορία" fallback.
+ */
+internal fun activityDetailCategoryLabel(item: ActivityItem): String =
+    if (item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0) {
+        item.webLedgerCategoryLabel()
+    } else {
+        item.category?.takeIf(String::isNotBlank) ?: "Χωρίς κατηγορία"
+    }
 
 internal fun formatSignedEuro(amount: Double): String {
     val formatted = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
@@ -677,7 +694,7 @@ fun ActivityReadDetailScreen(
                         )
                     }
                 }
-                item { ActivityReadField("Κατηγορία", item.category ?: "Χωρίς κατηγορία") }
+                item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
                 if (item.webNoteParts().comment.isNotEmpty()) {
                     item { ActivityReadField("Περιγραφή", item.webNoteParts().title) }
