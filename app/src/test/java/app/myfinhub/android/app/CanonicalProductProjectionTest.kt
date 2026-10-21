@@ -229,6 +229,35 @@ class CanonicalProductProjectionTest {
             ledger.copy(accountFilterId = "savings").visibleItems.map { it.id })
     }
 
+
+    @Test
+    fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[
+              {"id":"cash","kind":"cash","name":"Μετρητά"},
+              {"id":"payroll","kind":"bank","name":"Μισθοδοσία"},
+              {"id":"savings","kind":"bank","name":"Αποταμίευση"}
+            ]},"state":{"events":[
+              {"id":"stale-route","kind":"transfer","date":"2026-10-20","amount":12,
+               "accountId":"savings","fromAccountId":"savings","toAccountId":"savings",
+               "legs":[{"accountId":"cash","amount":-12},{"accountId":"payroll","amount":12}]},
+              {"id":"no-legs","kind":"adjustment","date":"2026-10-19","amount":0,
+               "accountId":"savings","legs":[]}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val activity = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 21)).activityState
+        val transfer = activity.items.first { it.id == "stale-route" }
+        assertEquals(setOf("cash", "payroll"), transfer.legAccountIds)
+        assertEquals("Μετρητά → Μισθοδοσία", transfer.accountLabel)
+        assertEquals("—", activity.items.first { it.id == "no-legs" }.accountLabel)
+        assertEquals(listOf("stale-route"),
+            activity.copy(accountFilterId = "cash").visibleItems.map { it.id })
+        assertEquals(listOf("stale-route"),
+            activity.copy(accountFilterId = "payroll").visibleItems.map { it.id })
+        assertTrue(activity.copy(accountFilterId = "savings").visibleItems.isEmpty())
+        assertEquals(2, activity.visibleItems.size)
+    }
+
     @Test
     fun productionLedgerCategoryFiltersUseWebLegacyAndEventLabelsAndPaths() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""

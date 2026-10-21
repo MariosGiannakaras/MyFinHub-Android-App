@@ -548,13 +548,12 @@ private fun buildActivityItems(
             // identifying its accounts; accountId/from/to may all be absent.
             val legAccounts = event.legs.map { it.accountId }
                 .filter { it.isNotBlank() && it != "credit-card" }.distinct()
-            val displayedAccounts = when {
-                event.fromAccountId != null && event.toAccountId != null ->
-                    accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames)
-                legAccounts.isNotEmpty() ->
-                    legAccounts.joinToString(" → ") { accountNames[it] ?: it }
-                else -> accountLabel(event.accountId, event.fromAccountId, event.toAccountId, accountNames)
-            }
+            // Web TransactionsPage accountText(e.legs): show only actual
+            // non-credit ledger account IDs, even if optional from/to hints
+            // claim another route. Empty real legs display an em dash.
+            val displayedAccounts = legAccounts
+                .joinToString(" → ") { accountNames[it] ?: it }
+                .ifEmpty { "—" }
             add(ActivitySortRow(
                 date = event.date,
                 chronology = eventChronology.getOrNull(index).orEmpty().ifBlank { event.date },

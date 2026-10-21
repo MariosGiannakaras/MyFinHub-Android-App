@@ -387,6 +387,37 @@ class ActivityReducerTest {
         assertTrue(state.copy(accountFilterId = "credit-card").visibleItems.isEmpty())
     }
 
+
+    @Test
+    fun canonicalLedgerAccountFilterDoesNotTrustStaleEventEndpointHints() {
+        val source = ActivityItem(
+            "real", "21 Οκτ", ActivityKind.TRANSFER, "Μεταφορά", "",
+            12.0, "Εμφάνιση", null, rawDate = "2026-10-21",
+            accountId = "savings", fromAccountId = "savings",
+            toAccountId = "savings", legAccountIds = linkedSetOf("cash", "payroll"),
+            canonicalSourceOrdinal = 0,
+        )
+        val missingLegs = source.copy(
+            id = "no-legs", legAccountIds = emptySet(), canonicalSourceOrdinal = 1,
+        )
+        val imported = source.copy(
+            id = "legacy", isLegacyTransaction = true, legAccountIds = emptySet(),
+            canonicalSourceOrdinal = 2,
+        )
+        val preview = source.copy(
+            id = "preview", canonicalSourceOrdinal = -1, legAccountIds = emptySet(),
+        )
+        val state = ActivityUiState(items = listOf(source, missingLegs, imported, preview))
+        assertEquals(listOf("real"),
+            state.copy(accountFilterId = "cash").visibleItems.map { it.id })
+        assertEquals(listOf("real"),
+            state.copy(accountFilterId = "payroll").visibleItems.map { it.id })
+        assertEquals(listOf("legacy", "preview"),
+            state.copy(accountFilterId = "savings").visibleItems.map { it.id })
+        assertEquals(listOf("real", "no-legs", "legacy", "preview"),
+            state.visibleItems.map { it.id })
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
