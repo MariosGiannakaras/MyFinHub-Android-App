@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #296 global Activity exact card-only exclusion, analytics/card history preservation and no monetary search passed immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator 4/4 at b814e96b9070f9839eae799b54fe1d29ed939ecc; squash merged develop c87a5b7ab5a5819bfeb0995ac15ead43a5ea73b0. Draft PR #297 aligns real canonical transaction text search strictly with Web TransactionsPage note/category/subcategory/kind/split-parts, excluding date/account/display-title/type label false matches while preserving preview fixtures. Also uses Greek localeCompare-equivalent Collator for category and exact type filter ordering, with real-document integration, JVM and production Compose regressions. Exact-final-head CI pending; W4.4 still partial, no physical owner acceptance.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #297 Web canonical source-field search and Greek category/type collation passed all 4/4 final-head gates and merged develop 4f959826c427f40e23002b1d1b012231b7ce9dfb. W4.4 draft PR #298 implements source-field-boundary Greek matching, Web cleanNote imported comment presentation and exact canonical event kind labels. New JVM regression tests are staged but not yet executed; no physical S24 acceptance.
 
 ## Immediate work
 
-- Validate draft PR #297 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator; repair failures on the same PR, merge only after all four gates green. Continue grouped W4.4 and remaining parity work with canonical tracker updates, preserve 1/6 and 11/24 until fully accepted. No owner physical S24 signoff, signed releases, Web/backend/schema changes, SMS import, permanent card deletion or live financial data writes.
+- Review W4.4 PR #298 joined-field Greek search, cleaned imported comments and canonical Web type labels. Branch code and regression tests are staged but CI/build/screenshots/S24 emulator are not yet verified. Run the four required exact-head gates only after batching, fix any failures in the same PR and merge when green. Web parity remains 1/6 implementations and 11/24 subtasks; no owner physical acceptance, signing/release, Web/backend/schema changes, live writes, SMS import or permanent card deletion.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. PR #296 global Activ
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #297, branch android/w4-4-batch-exact-web-search-greek-collation-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #296 global ledger card-only exclusion, reporting isolation and money-query privacy passed 4/4 immutable-head gates at b814e96b9070f9839eae799b54fe1d29ed939ecc; merged develop c87a5b7ab5a5819bfeb0995ac15ead43a5ea73b0. Draft #297 enforces exact Web search source fields (note/category/subcategory/canonical kind and split parts) for real transactions, excluding account/date/derived presentation labels and avoiding false matches, and Greek locale-aware category/type selection ordering. JVM + actual JSON projection + Compose checks staged, final head CI pending; W4.4 still open.
+Issue #155, PR #298, branch android/w4-4-batch-web-note-search-kind-fidelity-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #297 passed 4/4 exact-final-head checks f8f87b11be8fd5d8fcb211f4568bde04cff1a037, merged develop 4f959826c427f40e23002b1d1b012231b7ce9dfb. W4.4 draft #298 adds Greek locale-casefolded joined-source-field search, Web cleanNote legacy display and Web ui.ts eventKindLabel labels with focused JVM regressions. CI, screenshot and S24 emulator checks for #298 not yet run; W4.4 partial.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #297 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator; repair failures on the same PR, merge only after all four gates green. Continue grouped W4.4 and remaining parity work with canonical tracker updates, preserve 1/6 and 11/24 until fully accepted. No owner physical S24 signoff, signed releases, Web/backend/schema changes, SMS import, permanent card deletion or live financial data writes.
+Next Review W4.4 PR #298 joined-field Greek search, cleaned imported comments and canonical Web type labels. Branch code and regression tests are staged but CI/build/screenshots/S24 emulator are not yet verified. Run the four required exact-head gates only after batching, fix any failures in the same PR and merge when green. Web parity remains 1/6 implementations and 11/24 subtasks; no owner physical acceptance, signing/release, Web/backend/schema changes, live writes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
