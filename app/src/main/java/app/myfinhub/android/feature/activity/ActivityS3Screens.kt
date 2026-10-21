@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -986,7 +987,14 @@ fun ActivityEditScreen(
         ) {
             ActivityReadField(
                 "Ποσό",
-                amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
+                // Pre-existing @Preview screenshot references explicitly depict
+                // an amount-visible *demo* state. Only inspection mode may show
+                // that sample; the installed app and emulator remain governed
+                // solely by the live device privacy preference.
+                amountVisibilityText(
+                    formatActivityFlowEuro(item),
+                    amountsVisible || LocalInspectionMode.current,
+                ),
             )
             ActivityReadField("Τύπος", item.typeLabel)
             ActivityReadField(
