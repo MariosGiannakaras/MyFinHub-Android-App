@@ -48,6 +48,7 @@ import app.myfinhub.android.feature.activity.ActivitySplitPart
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
 import app.myfinhub.android.feature.activity.activityTypeLabel
+import app.myfinhub.android.feature.activity.cleanLegacyActivityNote
 import app.myfinhub.android.feature.home.HomeAccount
 import app.myfinhub.android.feature.home.HomeAccountGroup
 import app.myfinhub.android.feature.home.HomeAttentionItem
@@ -509,6 +510,7 @@ private fun buildActivityItems(
 ): List<ActivityItem> {
     val rows = buildList {
         legacy.forEachIndexed { index, tx ->
+            val displayNote = cleanLegacyActivityNote(tx.note)
             val kind = when (tx.type) {
                 "income" -> ActivityKind.INCOME
                 "transfer" -> ActivityKind.TRANSFER
@@ -522,13 +524,13 @@ private fun buildActivityItems(
                     id = tx.id,
                     dateLabel = formatDate(tx.date),
                     kind = kind,
-                    title = tx.category ?: tx.note.ifBlank { legacyTypeLabel(tx.type) },
-                    subtitle = tx.note.ifBlank { legacyTypeLabel(tx.type) },
+                    title = tx.category ?: displayNote.ifBlank { legacyTypeLabel(tx.type) },
+                    subtitle = displayNote.ifBlank { legacyTypeLabel(tx.type) },
                     amount = if (tx.type == "expense") -tx.amount else tx.amount,
                     accountLabel = accountLabel(tx.accountId, tx.fromAccountId, tx.toAccountId, accountNames),
                     category = tx.category,
                     subcategory = tx.subcategory,
-                    note = tx.note,
+                    note = displayNote,
                     rawDate = tx.date,
                     accountId = tx.accountId,
                     fromAccountId = tx.fromAccountId,

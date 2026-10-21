@@ -803,4 +803,86 @@ class ActivityReducerTest {
         assertFalse(split.supportsCategoryEdit())
     }
 
+    @Test
+    fun webSearchAllowsJoinedGreekSourceFieldsAndFallbackCategoryLabels() {
+        val base = ActivityItem(
+            "real", "21 Οκτ", ActivityKind.EXPENSE, "Display only", "Visible subtitle",
+            -24.0, "Private bank", "Τρόφιμα", note = "Αγορά", subcategory = "Λαχανικά",
+            canonicalKind = "expense", canonicalSourceOrdinal = 0,
+        )
+        val split = base.copy(
+            id = "split", canonicalKind = "split", note = "Κίνηση",
+            category = "Ignored", subcategory = null, canonicalSourceOrdinal = 1,
+            splitParts = listOf(
+                ActivitySplitPart("Μαύρος", "Καφές", "Πρωινός", 2.0),
+                ActivitySplitPart("Ψωμί", "Αρτοποιείο", null, 3.0),
+            ),
+        )
+        val legacy = base.copy(
+            id = "legacy", isLegacyTransaction = true, category = null,
+            subcategory = null, note = "Παλιό", canonicalSourceOrdinal = 2,
+        )
+        val fallback = base.copy(
+            id = "event", note = "Νέο", category = null, subcategory = null,
+            canonicalKind = "refund", canonicalSourceOrdinal = 3,
+        )
+        val state = ActivityUiState(items = listOf(base, split, legacy, fallback))
+        assertEquals(listOf("real"), state.copy(query = "Αγορά Τρόφιμα").visibleItems.map { it.id })
+        assertEquals(listOf("real"), state.copy(query = "Τρόφιμα Λαχανικά expense").visibleItems.map { it.id })
+        assertEquals(listOf("split"), state.copy(query = "split Μαύρος Καφές").visibleItems.map { it.id })
+        assertEquals(listOf("split"), state.copy(query = "Πρωινός Ψωμί").visibleItems.map { it.id })
+        assertEquals(listOf("split"), state.copy(query = "Κίνηση Διαχωρισμός").visibleItems.map { it.id })
+        assertEquals(listOf("legacy"), state.copy(query = "Παλιό Άλλο").visibleItems.map { it.id })
+        assertEquals(listOf("event"), state.copy(query = "Νέο refund").visibleItems.map { it.id })
+        assertEquals(listOf("real"), state.copy(query = "ΑΓΟΡΆ").visibleItems.map { it.id })
+        assertTrue(state.copy(query = "ΑΓΟΡΑ").visibleItems.isEmpty())
+        assertTrue(state.copy(query = "Private bank").visibleItems.isEmpty())
+        assertTrue(state.copy(query = "24.0").visibleItems.isEmpty())
+    }
+
+    @Test
+    fun legacyThreadedImportNoteUsesWebPresentationOnly() {
+        val original = "[Threaded comment] Export metadata\nComment:\nΑγορά\nReply:\nΠρωινό\n"
+        assertEquals("Αγορά\nΠρωινό", cleanLegacyActivityNote(original))
+        assertEquals("Αγορά\nΠρωινό",
+            cleanLegacyActivityNote("Export header\nComment:\nΑγορά\nReply:\nΠρωινό\n"))
+        assertEquals("Ορατό σχόλιο", cleanLegacyActivityNote(
+            "[Threaded comment] Export metadata\nComment:\nΟρατό σχόλιο"))
+        assertEquals("Απλή σημείωση", cleanLegacyActivityNote("  Απλή σημείωση  "))
+        assertTrue(original.startsWith("[Threaded comment]"))
+    }
+
+    @Test
+    fun webEventKindLabelsMatchAllLedgerTypeSemantics() {
+        val cases = mapOf(
+            "expense" to "Έξοδο",
+            "income" to "Έσοδο",
+            "refund" to "Επιστροφή χρημάτων",
+            "lending" to "Δανεικά προς άλλον",
+            "repayment" to "Επιστροφή δανεικών",
+            "card_purchase" to "Αγορά με πιστωτική",
+            "card_payment" to "Εξόφληση πιστωτικής",
+            "reconciliation" to "Διόρθωση υπολοίπου",
+            "split" to "Σύνθετη κίνηση",
+            "custom_kind" to "custom_kind",
+        )
+        cases.forEach { (kind, label) ->
+            assertEquals("kind=$kind", label, activityTypeLabel(kind))
+            val row = ActivityItem("row", "", ActivityKind.EXPENSE, "Τίτλος", "",
+                5.0, "Μετρητά", null, canonicalKind = kind, canonicalSourceOrdinal = 0)
+            val state = ActivityUiState(items = listOf(row))
+            assertEquals(label, state.items.single().typeLabel)
+            if (kind == "card_purchase" || kind == "card_payment") {
+                // Web TransactionsPage excludes card-only events even from its
+                // type options, while the retained canonical/card detail label
+                // must continue to match the Web kind identity.
+                assertTrue("Card-only kind leaked into main ledger: $kind",
+                    state.webLedgerItems.isEmpty())
+                assertTrue(state.typeOptions.isEmpty())
+            } else {
+                assertEquals(label, state.typeOptions.single().label)
+            }
+        }
+    }
+
 }

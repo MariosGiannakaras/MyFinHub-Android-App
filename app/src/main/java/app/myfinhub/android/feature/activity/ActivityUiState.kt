@@ -110,17 +110,37 @@ internal fun greekActivityLabelOrder(): Comparator<String> {
  * Screenshots with hand-authored preview records have no canonical ordinal;
  * preserve their wider illustrative search behavior without leaking amounts.
  */
+internal fun cleanLegacyActivityNote(note: String): String {
+    // Web format.ts cleanNote; presentation only, never mutate canonical data.
+    val marker = "Comment:\n"
+    if (marker in note) {
+        return note.substringAfter(marker).replace("\nReply:\n", "\n").trim()
+    }
+    return note.replace(
+        Regex("""\[Threaded comment\][\s\S]*?Comment:\n""", RegexOption.IGNORE_CASE),
+        "",
+    ).trim()
+}
+
+private val greekLedgerSearchLocale = Locale.forLanguageTag("el-GR")
+
 internal fun ActivityItem.matchesWebLedgerSearch(needle: String): Boolean {
     if (needle.isBlank()) return true
-    val sourceMatch = note.contains(needle, ignoreCase = true) ||
-        category?.contains(needle, ignoreCase = true) == true ||
-        subcategory?.contains(needle, ignoreCase = true) == true ||
-        canonicalKind.contains(needle, ignoreCase = true) ||
-        splitParts.any { part ->
-            part.label.contains(needle, ignoreCase = true) ||
-                part.category.contains(needle, ignoreCase = true) ||
-                part.subcategory?.contains(needle, ignoreCase = true) == true
-        }
+    // TransactionsPage searches a single space-separated string, allowing
+    // phrases spanning fields. Locale case-folding must preserve accents.
+    val webCategory = when {
+        !isLegacyTransaction && canonicalKind == "split" -> "Διαχωρισμός"
+        !category.isNullOrEmpty() -> category
+        isLegacyTransaction -> "Άλλο"
+        else -> canonicalKind
+    }
+    val parts = splitParts.joinToString(" ") { part ->
+        part.label + " " + part.category + " " + part.subcategory.orEmpty()
+    }
+    val webIndex = listOf(note, webCategory, subcategory.orEmpty(), canonicalKind, parts).joinToString(" ")
+    val sourceMatch = webIndex.lowercase(greekLedgerSearchLocale)
+        .contains(needle.lowercase(greekLedgerSearchLocale))
+    // Synthetic screenshot fixtures intentionally retain their preview search.
     return sourceMatch || (canonicalSourceOrdinal < 0 && (
         title.contains(needle, ignoreCase = true) ||
             subtitle.contains(needle, ignoreCase = true) ||
@@ -131,7 +151,6 @@ internal fun ActivityItem.matchesWebLedgerSearch(needle: String): Boolean {
             rawDate.contains(needle, ignoreCase = true)
     ))
 }
-
 enum class ActivityKind(val label: String) {
     EXPENSE("Έξοδα"),
     INCOME("Έσοδα"),
@@ -512,21 +531,21 @@ internal fun ActivityItem.webLedgerCategoryLabel(): String {
     else "$selectedCategory › $subcategory"
 }
 
+/** Web ui.ts eventKindLabel including its raw-kind fallback. */
 internal fun activityTypeLabel(canonicalKind: String): String = when (canonicalKind) {
     "expense" -> "Έξοδο"
     "income" -> "Έσοδο"
     "transfer" -> "Μεταφορά"
     "saving_cash_offset" -> "Αποταμίευση"
     "withdrawal" -> "Ανάληψη"
-    "refund" -> "Επιστροφή"
-    "lending" -> "Δανεισμός"
-    "repayment" -> "Αποπληρωμή"
-    "card_purchase" -> "Αγορά με κάρτα"
-    "card_payment" -> "Πληρωμή κάρτας"
-    "reconciliation" -> "Συμφωνία υπολοίπου"
-    "split" -> "Σύνθετη αγορά"
-    "adjustment" -> "Προσαρμογή"
-    else -> canonicalKind.ifBlank { "Κίνηση" }
+    "refund" -> "Επιστροφή χρημάτων"
+    "lending" -> "Δανεικά προς άλλον"
+    "repayment" -> "Επιστροφή δανεικών"
+    "card_purchase" -> "Αγορά με πιστωτική"
+    "card_payment" -> "Εξόφληση πιστωτικής"
+    "reconciliation" -> "Διόρθωση υπολοίπου"
+    "split" -> "Σύνθετη κίνηση"
+    else -> canonicalKind
 }
 
 private fun ActivityKind.defaultCanonicalKind(): String = when (this) {

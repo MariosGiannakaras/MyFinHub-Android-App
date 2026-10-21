@@ -26,7 +26,7 @@ class ActivityS3NavigationTest {
         composeRule.onNodeWithText("Φίλτρα κινήσεων").assertIsDisplayed()
         composeRule.onNodeWithText("Τύπος κίνησης").assertIsDisplayed()
         composeRule.onNodeWithText("Όλοι οι τύποι").performClick()
-        composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Εξόφληση πιστωτικής").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("Λογαριασμός").assertIsDisplayed()
         composeRule.onNodeWithText("Κατηγορία").assertIsDisplayed()
         composeRule.onNodeWithText("Από ημερομηνία").assertIsDisplayed()
