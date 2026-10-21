@@ -16,6 +16,32 @@ import org.junit.Test
 class ActivitySplitDetailComposeTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun activityEditReadOnlyAmountNeverLeaksWhenPrivacyIsHidden() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val original = AmountVisibilityPreference.read(context)
+        try {
+            AmountVisibilityPreference.write(context, false)
+            val item = ActivityItem(
+                "hidden-edit", "21 Οκτ", ActivityKind.EXPENSE, "Ιστορική δαπάνη", "",
+                -123.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21",
+            )
+            rule.setContent {
+                MyFinHubTheme {
+                    ActivityEditScreen(
+                        item = item, categoryOptions = emptyList(),
+                        mutationInFlight = false, mutationBlocked = false,
+                        onBack = {}, onSave = { _, _, _, _ -> }, onSaved = {},
+                    )
+                }
+            }
+            rule.onNodeWithText("Ποσό").assertExists()
+            rule.onNodeWithText("•••• €").assertExists()
+            rule.onNodeWithText(formatActivityFlowEuro(item)).assertDoesNotExist()
+        } finally {
+            AmountVisibilityPreference.write(context, original)
+        }
+    }
+
     @Test fun historicalBalanceRendersInRealDetailOnlyWithAmountVisibility() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val original = AmountVisibilityPreference.read(context)

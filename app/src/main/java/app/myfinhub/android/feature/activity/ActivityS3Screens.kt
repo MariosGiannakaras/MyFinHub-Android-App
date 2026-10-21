@@ -857,6 +857,7 @@ fun ActivityEditScreen(
     }
 
     var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }
+    val amountsVisible = rememberAmountVisibilityPreference()
 
     if (item.pendingSync && !saveRequested) {
         Scaffold(
@@ -983,7 +984,10 @@ fun ActivityEditScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            ActivityReadField("Ποσό", formatActivityFlowEuro(item))
+            ActivityReadField(
+                "Ποσό",
+                amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
+            )
             ActivityReadField("Τύπος", item.typeLabel)
             ActivityReadField(
                 if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",

@@ -67,6 +67,31 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun duplicateEventIdsKeepTheirOwnCreatedAtOrderingAndSignedFinancialValues() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}]},
+             "state":{"events":[
+              {"id":"duplicate","date":"2026-10-20","createdAt":"2026-10-20T12:00:00Z",
+               "kind":"expense","amount":9,"note":"newer",
+               "category":"Τρόφιμα","legs":[{"accountId":"cash","amount":-9}]},
+              {"id":"duplicate","date":"2026-10-20","createdAt":"2026-10-20T08:00:00Z",
+               "kind":"expense","amount":3,"note":"older",
+               "category":"Μεταφορές","legs":[{"accountId":"cash","amount":-3}]}
+             ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+            .activityState
+        val rows = state.items.filter { it.id == "duplicate" }
+        assertEquals(listOf("newer", "older"), rows.map { it.note })
+        assertEquals(listOf(0, 1), rows.map { it.canonicalSourceOrdinal })
+        assertEquals(listOf(9.0, 3.0), rows.map { it.financeExpenseContribution })
+        assertEquals(12.0, state.visibleExpense, 0.001)
+        assertEquals(-12.0, state.visibleNet, 0.001)
+        assertEquals(setOf("duplicate"), state.ambiguousIds)
+        assertNull(state.uniqueItem("duplicate"))
+    }
+
+    @Test
     fun historicalBalanceUsesWebExactAccountAndTransactionDateRatherThanToday() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{"accounts":[
@@ -85,26 +110,34 @@ class CanonicalProductProjectionTest {
         """.trimIndent()).jsonObject)
         val row = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
             .activityState.items.first { it.id == "first" }
+        // Web event account IDs come from original ledger legs, never from
+        // stale optional accountId/from/to hints.
         assertEquals(140.0, canonicalActivityBalanceAtDate(document,
-            row.copy(accountId = null, fromAccountId = "cash", toAccountId = "payroll"))!!, 0.001)
-        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
-            row.copy(accountId = null, fromAccountId = "payroll", toAccountId = "cash"))!!, 0.001)
+            row.copy(accountId = "payroll", fromAccountId = "payroll",
+                toAccountId = "cash"))!!, 0.001)
         assertEquals(856.0, canonicalActivityBalanceAtDate(document,
             row.copy(accountId = null, fromAccountId = null, toAccountId = null,
                 legAccountIds = linkedSetOf("credit-card", "payroll")))!!, 0.001)
+        // Legacy imports use the Web's direct accountId, then from/to identity.
         assertEquals(856.0, canonicalActivityBalanceAtDate(document,
-            row.copy(accountId = "payroll", fromAccountId = "cash"))!!, 0.001)
+            row.copy(isLegacyTransaction = true, accountId = "payroll",
+                fromAccountId = "cash"))!!, 0.001)
+        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+            row.copy(isLegacyTransaction = true, accountId = null,
+                fromAccountId = "payroll", toAccountId = "cash"))!!, 0.001)
         assertNull(canonicalActivityBalanceAtDate(document,
             row.copy(accountId = "cash", pendingSync = true)))
         assertNull(canonicalActivityBalanceAtDate(document,
             row.copy(accountId = "cash", rawDate = "not-a-date")))
         assertNull(canonicalActivityBalanceAtDate(document,
-            row.copy(accountId = "unknown")))
+            row.copy(legAccountIds = setOf("unknown"), accountId = "cash")))
+        assertNull(canonicalActivityBalanceAtDate(document,
+            row.copy(legAccountIds = emptySet(), accountId = "cash")))
         assertNull(canonicalActivityBalanceAtDate(document,
             row.copy(accountId = "credit-card", fromAccountId = null, toAccountId = null,
                 legAccountIds = setOf("credit-card"))))
         assertEquals(1_356.0, document.accountBalances("2026-10-21").getValue("payroll"), 0.001)
-        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+        assertEquals(140.0, canonicalActivityBalanceAtDate(document,
             row.copy(accountId = "payroll"))!!, 0.001)
     }
 
