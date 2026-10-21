@@ -157,7 +157,7 @@ class CanonicalProductProjectionTest {
         assertEquals(document.state["events"], removed.state["events"])
         val retainedPurchase = afterProjection.activityState.items.first { it.id == "old-purchase" }
         assertEquals("card_purchase", retainedPurchase.canonicalKind)
-        assertEquals("Αγορά με κάρτα", retainedPurchase.typeLabel)
+        assertEquals("Αγορά με πιστωτική", retainedPurchase.typeLabel)
         assertTrue(afterProjection.activityState.visibleItems.none {
             it.canonicalKind == "card_purchase" || it.canonicalKind == "card_payment"
         })

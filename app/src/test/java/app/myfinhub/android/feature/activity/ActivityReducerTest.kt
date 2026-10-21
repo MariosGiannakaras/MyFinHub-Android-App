@@ -870,7 +870,18 @@ class ActivityReducerTest {
             assertEquals("kind=$kind", label, activityTypeLabel(kind))
             val row = ActivityItem("row", "", ActivityKind.EXPENSE, "Τίτλος", "",
                 5.0, "Μετρητά", null, canonicalKind = kind, canonicalSourceOrdinal = 0)
-            assertEquals(label, ActivityUiState(items = listOf(row)).typeOptions.single().label)
+            val state = ActivityUiState(items = listOf(row))
+            assertEquals(label, state.items.single().typeLabel)
+            if (kind == "card_purchase" || kind == "card_payment") {
+                // Web TransactionsPage excludes card-only events even from its
+                // type options, while the retained canonical/card detail label
+                // must continue to match the Web kind identity.
+                assertTrue("Card-only kind leaked into main ledger: $kind",
+                    state.webLedgerItems.isEmpty())
+                assertTrue(state.typeOptions.isEmpty())
+            } else {
+                assertEquals(label, state.typeOptions.single().label)
+            }
         }
     }
 
