@@ -52,9 +52,30 @@ data class ActivityItem(
     val legAccountIds: Set<String> = emptySet(),
     /** Web TransactionsPage distinguishes historic imported rows from canonical events. */
     val isLegacyTransaction: Boolean = false,
+    /** Whether this imported transaction is represented by a canonical override. */
+    val isLegacyOverridden: Boolean = false,
     /** Canonical event split parts in server order, not analytics-only aggregates. */
     val splitParts: List<ActivitySplitPart> = emptyList(),
 )
+
+/** Web noteParts: first nonblank line is the description; following lines are comments. */
+data class ActivityNoteParts(val title: String, val comment: String)
+
+internal fun ActivityItem.webNoteParts(): ActivityNoteParts {
+    val lines = note.replace("\r\n", "\n").lines()
+        .map { it.trim() }.filter(String::isNotBlank)
+    return ActivityNoteParts(
+        title = lines.firstOrNull() ?: "Χωρίς περιγραφή",
+        comment = lines.drop(1).joinToString("\n"),
+    )
+}
+
+/** Distinguish actual imported rows and their saved review overrides from events. */
+internal fun ActivityItem.legacyHistoryLabel(): String? = when {
+    !isLegacyTransaction -> null
+    isLegacyOverridden -> "Ιστορικό · override"
+    else -> "Ιστορικό"
+}
 
 data class ActivityCategoryOption(
     val name: String,

@@ -73,6 +73,32 @@ class ActivitySplitDetailComposeTest {
         }
     }
 
+    @Test fun multilineImportedNoteAndOverrideAreSeparateInRealReadDetail() {
+        val item = ActivityItem(
+            "imported", "21 Οκτ", ActivityKind.EXPENSE, "Τρόφιμα", "",
+            -12.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21",
+            note = "Πρωινός καφές\\nΣυνάντηση εργασίας".replace("\\n", "\n"),
+            isLegacyTransaction = true, isLegacyOverridden = true,
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityReadDetailScreen(
+                    item = item, accountOptions = emptyList(), mutationBlocked = false,
+                    onBack = {}, onEdit = {}, onDelete = {}, onDeleted = {},
+                )
+            }
+        }
+        rule.onNodeWithTag("activity_detail_list")
+            .performScrollToNode(hasText("Πρωινός καφές"))
+        rule.onNodeWithText("Πρωινός καφές").assertIsDisplayed()
+        rule.onNodeWithTag("activity_detail_list")
+            .performScrollToNode(hasText("Συνάντηση εργασίας"))
+        rule.onNodeWithText("Συνάντηση εργασίας").assertIsDisplayed()
+        rule.onNodeWithTag("activity_detail_list")
+            .performScrollToNode(hasText("Ιστορικό · override"))
+        rule.onNodeWithText("Ιστορικό · override").assertIsDisplayed()
+    }
+
     @Test fun withdrawalDetailIsNeverMislabelledAsInternalTransfer() {
         val activity = ActivityItem(
             "withdrawal", "21 Οκτ", ActivityKind.TRANSFER, "Ανάληψη", "",

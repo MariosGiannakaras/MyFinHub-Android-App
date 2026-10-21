@@ -141,7 +141,10 @@ val activityCardLabels = document.canonicalCards().associate { card ->
     val last4 = card.last4.orEmpty()
     card.id to if (last4.isBlank()) base else "$base • $last4"
 }
-val activityItems = buildActivityItems(legacy, events, accountNames, eventChronology, activityCardLabels).map { item ->
+val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
+val activityItems = buildActivityItems(
+    legacy, events, accountNames, eventChronology, activityCardLabels, legacyOverrideIds,
+).map { item ->
     item.copy(
         categoryContributions = contributionsById[item.id].orEmpty()
             .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } },
@@ -449,6 +452,7 @@ private fun buildActivityItems(
     accountNames: Map<String, String>,
     eventChronology: Map<String, String>,
     cardLabels: Map<String, String>,
+    legacyOverrideIds: Set<String>,
 ): List<ActivityItem> {
     val rows = buildList {
         legacy.forEachIndexed { index, tx ->
@@ -479,6 +483,7 @@ private fun buildActivityItems(
                     canonicalKind = tx.type,
                     typeLabel = activityTypeLabel(tx.type),
                     isLegacyTransaction = true,
+                    isLegacyOverridden = tx.id in legacyOverrideIds,
                 ),
             ))
         }

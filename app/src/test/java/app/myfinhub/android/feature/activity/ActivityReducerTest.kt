@@ -155,6 +155,46 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun webNotePartsPreserveDescriptionAndMultilineCommentWithoutMutatingRawNote() {
+        val original = "  Πρωινός καφές  \\r\\n\\r\\n  Δουλειά  \\n  Πριν το ταξίδι  "
+            .replace("\\r", "\r").replace("\\n", "\n")
+        val item = ActivityItem(
+            "note", "21 Οκτ", ActivityKind.EXPENSE, "Τρόφιμα", original,
+            -3.0, "Μετρητά", "Τρόφιμα", note = original,
+        )
+        val parts = item.webNoteParts()
+        assertEquals("Πρωινός καφές", parts.title)
+        assertEquals("Δουλειά\\nΠριν το ταξίδι".replace("\\n", "\n"), parts.comment)
+        assertEquals(original, item.note)
+        val noNote = item.copy(note = "  \\n  ".replace("\\n", "\n"))
+        assertEquals("Χωρίς περιγραφή", noNote.webNoteParts().title)
+        assertEquals("", noNote.webNoteParts().comment)
+    }
+
+    @Test
+    fun historicalOverrideLabelsAndRealSplitPartsNeverAlterLedgerAmountsOrSelection() {
+        val historical = ActivityItem(
+            "history", "21 Οκτ", ActivityKind.EXPENSE, "Καφές", "",
+            -5.0, "Μετρητά", "Τρόφιμα",
+            isLegacyTransaction = true, isLegacyOverridden = true,
+        )
+        assertEquals("Ιστορικό · override", historical.legacyHistoryLabel())
+        assertEquals("Ιστορικό", historical.copy(isLegacyOverridden = false).legacyHistoryLabel())
+        assertEquals(null, historical.copy(isLegacyTransaction = false).legacyHistoryLabel())
+        val split = historical.copy(
+            id = "split", canonicalKind = "split", isLegacyTransaction = false,
+            splitParts = listOf(
+                ActivitySplitPart("Καφές", "Τρόφιμα", null, 3.0),
+                ActivitySplitPart("Εισιτήριο", "Μεταφορές", null, 2.0),
+            ),
+        )
+        val state = ActivityUiState(items = listOf(historical, split))
+        assertEquals(listOf("history", "split"), state.visibleItems.map { it.id })
+        assertEquals(listOf(-5.0, -5.0), state.visibleItems.map { it.amount })
+        assertEquals(2, split.splitParts.size)
+    }
+
+    @Test
     fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
         val originals = (0 until 1000).map { index ->
             ActivityItem(

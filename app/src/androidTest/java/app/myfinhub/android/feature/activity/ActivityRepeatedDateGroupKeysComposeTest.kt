@@ -15,6 +15,32 @@ import org.junit.Test
 class ActivityRepeatedDateGroupKeysComposeTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun repeatedLegacyIdentifiersRenderAsSeparateRowsWithoutDuplicateLazyKeys() {
+        val state = ActivityUiState(items = listOf(
+            ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,
+                "Πρώτη ίδια ταυτότητα", "", -5.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-21", isLegacyTransaction = true),
+            ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,
+                "Δεύτερη ίδια ταυτότητα", "", -10.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-21", isLegacyTransaction = true),
+            ActivityItem("another", "20 Οκτ", ActivityKind.EXPENSE,
+                "Τρίτη ανεξάρτητη", "", -3.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-20"),
+        ))
+        assertEquals(3, state.visibleItems.size)
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(state = state, onAction = {}, onOpenDetail = {}, onOpenQuickEntry = {})
+            }
+        }
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Δεύτερη ίδια ταυτότητα"))
+        rule.onNodeWithText("Δεύτερη ίδια ταυτότητα").assertIsDisplayed()
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Πρώτη ίδια ταυτότητα"))
+        rule.onNodeWithText("Πρώτη ίδια ταυτότητα").assertIsDisplayed()
+    }
+
     @Test fun disjointSameDayAndMonthSectionsRetainAllRowsInOriginalOrder() {
         fun event(id: String, date: String, title: String) = ActivityItem(
             id = id,
