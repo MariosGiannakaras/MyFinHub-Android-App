@@ -309,7 +309,12 @@ val activityItems = buildActivityItems(
         ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
         ledgerDateFrom = oldActivity?.ledgerDateFrom,
         ledgerDateTo = oldActivity?.ledgerDateTo,
-        typeFilterId = oldActivity?.typeFilterId,
+        // Web transaction type options never include card-only events.
+        // Discard stale pre-parity card filters on reprojection rather than
+        // restoring an invisible selection with permanently empty results.
+        typeFilterId = oldActivity?.typeFilterId?.takeUnless {
+            it == "card_purchase" || it == "card_payment"
+        },
         categoryFilter = oldActivity?.categoryFilter,
         dateFrom = oldActivity?.dateFrom,
         dateTo = oldActivity?.dateTo,

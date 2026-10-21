@@ -18,6 +18,34 @@ import org.junit.Test
 class ActivityRepeatedDateGroupKeysComposeTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun realCardPurchaseAndPaymentDoNotDuplicateCardActivityOnGlobalLedger() {
+        val source = ActivityUiState(items = listOf(
+            ActivityItem("payment", "21 Οκτ", ActivityKind.CARD_PAYMENT,
+                "Καρτοπληρωμή μόνο στην κάρτα", "", -15.0, "Μισθοδοσία", "Κάρτες",
+                rawDate = "2026-10-21", canonicalKind = "card_payment",
+                canonicalSourceOrdinal = 0),
+            ActivityItem("purchase", "20 Οκτ", ActivityKind.EXPENSE,
+                "Καρτοαγορά μόνο στην κάρτα", "", -20.0, "Πιστωτική", "Τρόφιμα",
+                rawDate = "2026-10-20", canonicalKind = "card_purchase",
+                canonicalSourceOrdinal = 1),
+            ActivityItem("expense", "19 Οκτ", ActivityKind.EXPENSE,
+                "Κανονική κίνηση μετρητών", "", -9.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-19", canonicalSourceOrdinal = 2),
+        ))
+        assertEquals(listOf("expense"), source.visibleItems.map { it.id })
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(state = source, onAction = {},
+                    onOpenDetail = {}, onOpenQuickEntry = {})
+            }
+        }
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Κανονική κίνηση μετρητών"))
+        rule.onNodeWithText("Κανονική κίνηση μετρητών").assertIsDisplayed()
+        rule.onNodeWithText("Καρτοπληρωμή μόνο στην κάρτα").assertDoesNotExist()
+        rule.onNodeWithText("Καρτοαγορά μόνο στην κάρτα").assertDoesNotExist()
+    }
+
     @Test fun repeatedLegacyIdentifiersRenderAsSeparateRowsWithoutDuplicateLazyKeys() {
         val state = ActivityUiState(items = listOf(
             ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,

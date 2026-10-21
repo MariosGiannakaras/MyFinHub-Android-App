@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #295 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression, and S24 emulator. Fix failures in the same batched PR and squash merge only on complete 4/4 success. Preserve Web parity 1/6 implementations and 11/24 subtasks until acceptance-backed completion; no physical owner S24 signoff, signing/releases, Web/backend/schema updates, SMS import, permanent guarded card deletion or live finance-history mutations.
+- [ ] Validate draft PR #296 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator. Fix failures on same PR, merge only when 4/4 gates green. Continue grouped W4.4 and remaining Web parity, preserve 1/6 implementations and 11/24 completed subtasks without acceptance-backed closure. No physical S24 signoff, signed release, Web/backend/schema changes, SMS import, permanent guarded card deletion or live financial writes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #295, branch android/w4-4-batch-event-order-ledger-account-privacy-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #294 per-source ordinal canonical Activity/Analytics signed finance attribution passed four immutable-head gates at dd6c527303762fdc7cc4b4c3ebbfea8bd25947d3, merged develop 27562c001b1f95e1bc8f825d5c1b913be2b5c4e6. Draft PR #295 three related parity fixes: duplicate event-ID same-day createdAt chronology by ordinal, event as-of account balance exact Web event leg identity instead of optional stale account hints, and strict amount-privacy masking on edit screen. Real document/JVM regressions plus actual Compose hidden-amount test; CI pending, W4.4 partial.
+Issue #155, PR #296, branch android/w4-4-batch-web-card-history-isolation-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #295 canonical original event chronology, true event-leg as-of balances and edit amount privacy passed all four immutable-head CI gates at a8ac541201536d33e6a45d52b0ed6535e76e3adb, merged develop b49e3f0191cd4810aa13a55c98f1a44a9204abe6. Draft #296 batches Web transaction ledger exact card-only event exclusion, analytics/card-panel preservation, ledger filter taxonomy/types/counters, stale card-type filter reset and no monetary text-search inference with JVM/Compose tests. CI pending; W4.4 remains in_progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #295 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression, and S24 emulator. Fix failures in the same batched PR and squash merge only on complete 4/4 success. Preserve Web parity 1/6 implementations and 11/24 subtasks until acceptance-backed completion; no physical owner S24 signoff, signing/releases, Web/backend/schema updates, SMS import, permanent guarded card deletion or live finance-history mutations.
+Next Validate draft PR #296 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator. Fix failures on same PR, merge only when 4/4 gates green. Continue grouped W4.4 and remaining Web parity, preserve 1/6 implementations and 11/24 completed subtasks without acceptance-backed closure. No physical S24 signoff, signed release, Web/backend/schema changes, SMS import, permanent guarded card deletion or live financial writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
