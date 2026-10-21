@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -248,7 +249,13 @@ fun ActivityLedgerScreen(
                             item(key = "month-$sectionIndex-$monthKey") { S3ActivityMonthHeader(section.date) }
                         }
                         item(key = "day-$sectionIndex-${section.date}") { S3ActivityDayHeader(section.date) }
-                        items(section.items, key = ActivityItem::id) { item ->
+                        // Original legacy seed rows can share an ID. The canonical
+                        // projection retains both (financial totals must not lose
+                        // historic duplicates), so LazyColumn keys must be unique.
+                        itemsIndexed(
+                            section.items,
+                            key = { itemIndex, item -> "row-$sectionIndex-$itemIndex-${item.id}" },
+                        ) { _, item ->
                             ActivityFlatLedgerRow(
                                 item = item,
                                 accountOptions = state.accountOptions,
@@ -386,23 +393,29 @@ private fun ActivityFlatLedgerRow(
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
-    val secondary = if (item.isInternalTransfer()) {
-        activityTransferRouteLabel(item, accountOptions)
-    } else {
-        item.note
+    val noteParts = item.webNoteParts()
+    val secondary = when {
+        item.isInternalTransfer() -> activityTransferRouteLabel(item, accountOptions)
+        item.canonicalKind == "split" && item.splitParts.size >= 2 ->
+            "${item.splitParts.size} μέρη" +
+                (if (item.note.isBlank()) "" else " · ${noteParts.title}")
+        noteParts.comment.isNotEmpty() -> noteParts.comment
+        else -> item.note
     }
     val meta = when {
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
         item.isInternalTransfer() -> "Εσωτερική μεταφορά"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
             "${item.typeLabel} · ${item.accountLabel}"
+        item.isLegacyTransaction ->
+            "${item.accountLabel} · ${item.legacyHistoryLabel()}"
         else -> item.accountLabel
     }
 
     MyFinHubFinanceRow(
         icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
         iconDescription = null,
-        title = item.title,
+        title = if (noteParts.comment.isNotEmpty()) noteParts.title else item.title,
         subtitle = secondary,
         meta = meta,
         amountText = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
@@ -597,7 +610,15 @@ fun ActivityReadDetailScreen(
                 }
                 item { ActivityReadField("Κατηγορία", item.category ?: "Χωρίς κατηγορία") }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
-                item { ActivityReadField("Σημείωση", item.note.ifBlank { "Χωρίς σημείωση" }) }
+                if (item.webNoteParts().comment.isNotEmpty()) {
+                    item { ActivityReadField("Περιγραφή", item.webNoteParts().title) }
+                    item { ActivityReadField("Σχόλιο", item.webNoteParts().comment) }
+                } else {
+                    item { ActivityReadField("Σημείωση", item.note.ifBlank { "Χωρίς σημείωση" }) }
+                }
+                item.legacyHistoryLabel()?.let { label ->
+                    item { ActivityReadField("Προέλευση", label) }
+                }
                 item.cardLabel?.takeIf(String::isNotBlank)?.let { cardLabel ->
                     item { ActivityReadField("Συνδεδεμένη κάρτα", cardLabel) }
                 }

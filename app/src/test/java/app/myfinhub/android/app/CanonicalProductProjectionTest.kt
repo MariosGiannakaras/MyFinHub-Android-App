@@ -8,6 +8,7 @@ import app.myfinhub.android.feature.money.canonicalCreditOutstanding
 import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityFilter
+import app.myfinhub.android.feature.activity.legacyHistoryLabel
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -197,6 +198,37 @@ class CanonicalProductProjectionTest {
         assertEquals(listOf("split"), activity.copy(query = "Πρωινό").visibleItems.map { it.id })
         assertEquals(10.0, activity.visibleExpense, 0.001)
         assertEquals(-10.0, activity.visibleNet, 0.001)
+    }
+
+    @Test
+    fun canonicalLegacyOverrideProvenanceAndDuplicateSeedRowsStayInActivity() {
+        // Web effectiveLegacyTransactions preserves source rows even with
+        // repeated ids, while review override identity must remain visible.
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"duplicated","date":"2026-10-20","type":"expense","amount":5,
+                 "accountId":"cash","note":"Αρχική εγγραφή","category":"Τρόφιμα"},
+                {"id":"duplicated","date":"2026-10-20","type":"expense","amount":5,
+                 "accountId":"cash","note":"Δεύτερη εγγραφή","category":"Τρόφιμα"},
+                {"id":"normal","date":"2026-10-19","type":"income","amount":40,
+                 "accountId":"cash","note":"Μισθός","category":"Μισθός"}
+              ]},"state":{"overrides":{
+                "duplicated":{"id":"duplicated","date":"2026-10-20","type":"expense",
+                  "amount":5,"accountId":"cash","note":"Νεότερη ταξινόμηση",
+                  "category":"Τρόφιμα"}
+              },"events":[{"id":"new","date":"2026-10-21","kind":"income",
+                "amount":1,"note":"Έσοδο"}]}}
+        """.trimIndent()).jsonObject)
+        val activity = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21)).activityState
+        val duplicates = activity.items.filter { it.id == "duplicated" }
+        assertEquals(2, duplicates.size)
+        assertTrue(duplicates.all { it.isLegacyTransaction && it.isLegacyOverridden })
+        assertTrue(duplicates.all { it.legacyHistoryLabel() == "Ιστορικό · override" })
+        assertTrue(activity.items.first { it.id == "normal" }.isLegacyTransaction)
+        assertFalse(activity.items.first { it.id == "normal" }.isLegacyOverridden)
+        assertFalse(activity.items.first { it.id == "new" }.isLegacyTransaction)
+        assertEquals(4, activity.items.size)
     }
 
     @Test

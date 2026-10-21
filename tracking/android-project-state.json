@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #288 canonical split breakdown and transfer-only Activity routes passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7; squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 aligns Web TransactionsPage signed finance flow-driven amount signs/tones for reviewed historic refunds, neutral withdrawals and genuine transfers (raw canonical amounts unchanged), and expands Activity search to exact split part labels/category/subcategory. Real canonical JSON projection, JVM reducer and production Compose regression included; all four final-head CI checks pending. W4.4 partial; no physical owner acceptance.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #289 Web signed flow-driven Activity row/detail/refund semantics and split-part search passed immutable-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at e09bbfcd8d80427c5b165e957db080c511f50280 after fixing privacy-aware Compose test, squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 batches four independent W4.4 parity/correctness fixes in one CI checkpoint: duplicate imported transaction IDs safe Compose LazyColumn keys without deduplication; imported/overridden transaction provenance; Web noteParts multiline description/comment parsing in list/detail; and compact canonical split-part counts in ledger. JVM real canonical projection/reducer and Compose duplicate/history detail regressions included. Four exact final-head CI gates pending, W4.4 partial, physical acceptance pending.",
     "next": [
-      "Validate PR #289 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix failed tests within same PR and merge only when all four checks pass. Continue remaining W4.4 and other Web parity subtasks, preserving 1/6 implementations and 11/24 completed subtasks. No physical owner Galaxy S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanent card deletion or finance history mutation."
+      "Validate draft PR #290 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot baseline and S24 emulator. Fix any issue in same batch PR and merge only if all four pass. Continue additional independent parity fixes in coherent multi-fix batches to reduce redundant CI, not metadata-only commits. Keep Web parity 1/6 implementations and 11/24 subtasks until genuinely completed. No owner physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or real finance mutations."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-split-search-and-signed-ledger-impact-20261021",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #288 canonical split detail and transfer-only labels passed four exact-head gates at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7, squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 restores Web signed flowImpact-driven ledger/detail/edit amount signs and tones for reviewed legacy refunds and neutral transfers, plus full split part label/category/subcategory search. Canonical JSON/projection, reducer and actual Compose emulator tests staged, all four CI checks pending. W4.4 incomplete.",
+    "branch": "android/w4-4-batch-history-identity-notes-and-split-20261021",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #289 signed impact + split search passed four exact-head gates at e09bbfcd8d80427c5b165e957db080c511f50280, squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 one larger batch: duplicate legacy row safe Compose keys, legacy override audit metadata, multiline Web noteParts list/detail, and real split part count ledger subtitle. Actual canonical JSON golden, JVM reducer and 2 production Compose instrumented regressions. Four immutable-final-head checks pending; W4.4 remains in progress.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -944,7 +944,8 @@
               "PR #285 signed refunds/canonical flow-kind Activity projection passed all four immutable-final-head CI checks at 2218f67d9075a15d30a66e8f2d950188e3a91c94 and squash merged develop e7464d7f7df0fbc821c0c5260d8e95cf322446d7. Draft #286 implements leg-only canonical event account membership/display and exact net/empty analytics category scope with JVM projection/reducer regressions; no acceptance credit before full CI.",
               "PR #286 canonical leg-only event account identity/filter and exact signed Analytics «Λοιπά» scope passed 4/4 checks at bf44e5d63b8f2baf2fb8196dc377460d0412a6b7 and squash merged develop bde1b17b1bd90aa02905ff5380e48806358ac4b9. Draft PR #287 stages Web-accurate main ledger display-category/subcategory-path taxonomy distinct from Analytics signed category contributions, canonical projection and reducer tests pending; no completion credit.",
               "PR #287 Web main ledger category-path parity passed four immutable-head checks at 26f027c371ff389afac76902a23e682da9ffa044 and squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft #288 canonical split part detail breakdown and transfer-only semantics with JVM projection/reducer and actual Compose UI test staged; no completion credit before CI.",
-              "PR #288 full canonical split detail and transfer-only Activity labeling passed all four immutable-final-head CI checks at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7, squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 operational flow-driven amount sign/tone and canonical split-part search parity, JVM plus real Compose regressions staged; W4.4 still partial."
+              "PR #288 full canonical split detail and transfer-only Activity labeling passed all four immutable-final-head CI checks at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7, squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 operational flow-driven amount sign/tone and canonical split-part search parity, JVM plus real Compose regressions staged; W4.4 still partial.",
+              "PR #289 signed finance impact and split search passed four immutable-head CI checks at e09bbfcd8d80427c5b165e957db080c511f50280 and squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 groups duplicate-ID safety, historical override provenance, multiline note presentation and split part count into a single checkpoint, with JVM canonical and real Compose tests pending; no completion credit."
             ]
           }
         ]
@@ -1066,9 +1067,9 @@
         ]
       }
     ],
-    "next_action": "Validate PR #289 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix failed tests within same PR and merge only when all four checks pass. Continue remaining W4.4 and other Web parity subtasks, preserving 1/6 implementations and 11/24 completed subtasks. No physical owner Galaxy S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanent card deletion or finance history mutation.",
+    "next_action": "Validate draft PR #290 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot baseline and S24 emulator. Fix any issue in same batch PR and merge only if all four pass. Continue additional independent parity fixes in coherent multi-fix batches to reduce redundant CI, not metadata-only commits. Keep Web parity 1/6 implementations and 11/24 subtasks until genuinely completed. No owner physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or real finance mutations.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 289,
+    "pr": 290,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
