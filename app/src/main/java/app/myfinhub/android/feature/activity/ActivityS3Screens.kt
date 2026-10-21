@@ -95,6 +95,25 @@ internal fun formatSignedEuro(amount: Double): String {
     }
 }
 
+/**
+ * Web TransactionsPage amountPrefix/amountClass derive from flowImpact, not
+ * the original legacy bank type. Reviewed historic expenses can become refunds
+ * or non-operational transfers. Format without changing raw canonical amounts.
+ */
+internal fun formatActivityFlowEuro(item: ActivityItem): String {
+    val income = item.financeIncomeContribution
+    val expense = item.financeExpenseContribution
+    if (income == null || expense == null) return formatSignedEuro(item.amount)
+    val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+        .format(kotlin.math.abs(item.amount))
+    return when {
+        item.canonicalKind == "transfer" -> "↔ $money"
+        income > 0.0 || expense < 0.0 -> "+$money"
+        expense > 0.0 -> "−$money"
+        else -> money
+    }
+}
+
 /** S3 production Activity surface: one dense ledger, one exact filter sheet and no gesture-only actions. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -386,7 +405,7 @@ private fun ActivityFlatLedgerRow(
         title = item.title,
         subtitle = secondary,
         meta = meta,
-        amountText = amountVisibilityText(formatSignedEuro(item.amount), amountsVisible),
+        amountText = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
         tone = tone,
         onClick = onClick,
     )
@@ -552,7 +571,7 @@ fun ActivityReadDetailScreen(
                 item(key = "amount") {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                         MyFinHubAmountText(
-                            text = amountVisibilityText(formatSignedEuro(item.amount), amountsVisible),
+                            text = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
                             tone = item.s3Tone(),
                             style = MaterialTheme.typography.headlineLarge,
                         )
@@ -875,7 +894,7 @@ fun ActivityEditScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            ActivityReadField("Ποσό", formatSignedEuro(item.amount))
+            ActivityReadField("Ποσό", formatActivityFlowEuro(item))
             ActivityReadField("Τύπος", item.typeLabel)
             ActivityReadField(
                 if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
@@ -1023,6 +1042,14 @@ private fun formatActivityDate(raw: String?): String {
 
 private fun ActivityItem.s3Tone(): FinanceTone = when {
     pendingSync -> FinanceTone.Neutral
+    // Use signed canonical flow, not the original import type. A confirmed
+    // expense-as-refund must render positive, while neutral reviews stay neutral.
+    financeIncomeContribution != null && financeExpenseContribution != null -> when {
+        canonicalKind == "transfer" -> FinanceTone.Neutral
+        financeIncomeContribution > 0.0 || financeExpenseContribution < 0.0 -> FinanceTone.Income
+        financeExpenseContribution > 0.0 -> FinanceTone.Expense
+        else -> FinanceTone.Neutral
+    }
     kind == ActivityKind.TRANSFER -> FinanceTone.Neutral
     kind == ActivityKind.EXPENSE -> FinanceTone.Expense
     kind == ActivityKind.INCOME -> FinanceTone.Income

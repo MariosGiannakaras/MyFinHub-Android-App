@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #287 exact Web Activity ledger category labels/paths and independently scoped Analytics contributor filters passed immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator 4/4 at 26f027c371ff389afac76902a23e682da9ffa044; squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft PR #288 restores canonical split transaction part breakdown in read-first Activity details (original category/subcategory, part display label and money, original ordering) and fixes withdrawal/reconciliation/savings offset routes mistakenly described as internal transfers. Focused canonical JVM projections, reducer and real Compose instrumentation staged; four immutable-head gates pending, W4.4 partial and no physical owner acceptance.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #288 canonical split breakdown and transfer-only Activity routes passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7; squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 aligns Web TransactionsPage signed finance flow-driven amount signs/tones for reviewed historic refunds, neutral withdrawals and genuine transfers (raw canonical amounts unchanged), and expands Activity search to exact split part labels/category/subcategory. Real canonical JSON projection, JVM reducer and production Compose regression included; all four final-head CI checks pending. W4.4 partial; no physical owner acceptance.
 
 ## Immediate work
 
-- Validate draft PR #288 at exact head against Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot renderer and S24 target emulator; correct failures on the same PR, merge only when all four checks pass. Then continue W4.4 and remaining Web parity scope. No physical owner acceptance, signed release, Web/backend/schema edits, SMS import, guarded card deletion or real finance mutations.
+- Validate PR #289 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix failed tests within same PR and merge only when all four checks pass. Continue remaining W4.4 and other Web parity subtasks, preserving 1/6 implementations and 11/24 completed subtasks. No physical owner Galaxy S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanent card deletion or finance history mutation.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. PR #287 exact Web Ac
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #288, branch android/w4-4-transaction-split-detail-and-transfer-semantics-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #287 Web exact ledger category paths/labels and split vs analytics filtering passed 4/4 immutable-head gates at 26f027c371ff389afac76902a23e682da9ffa044 and squash merged develop dee201c20f5e7d29fd795411f5cb2d6e0fb5bdfd. Draft PR #288 stages actual canonical split parts in Activity details (part label/category/subcategory/amount, ordered), corrects transfer-only route/prose for withdrawal/reconciliation/saving offset, and includes JVM canonical projection + reducer + Compose emulator tests. Four final-head checks pending; W4.4 remains incomplete.
+Issue #155, PR #289, branch android/w4-4-split-search-and-signed-ledger-impact-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #288 canonical split detail and transfer-only labels passed four exact-head gates at f61707cdd5a1a04d9c94e575d9bdfdbb34a19fa7, squash merged develop 86fc329fbdfb759b5b50f516699c8d1dfac691f9. Draft PR #289 restores Web signed flowImpact-driven ledger/detail/edit amount signs and tones for reviewed legacy refunds and neutral transfers, plus full split part label/category/subcategory search. Canonical JSON/projection, reducer and actual Compose emulator tests staged, all four CI checks pending. W4.4 incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #288 at exact head against Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot renderer and S24 target emulator; correct failures on the same PR, merge only when all four checks pass. Then continue W4.4 and remaining Web parity scope. No physical owner acceptance, signed release, Web/backend/schema edits, SMS import, guarded card deletion or real finance mutations.
+Next Validate PR #289 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix failed tests within same PR and merge only when all four checks pass. Continue remaining W4.4 and other Web parity subtasks, preserving 1/6 implementations and 11/24 completed subtasks. No physical owner Galaxy S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanent card deletion or finance history mutation.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

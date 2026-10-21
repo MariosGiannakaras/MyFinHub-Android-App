@@ -184,6 +184,13 @@ data class ActivityUiState(
                 item.accountLabel.contains(needle, ignoreCase = true) ||
                 item.dateLabel.contains(needle, ignoreCase = true) ||
                 item.rawDate.contains(needle, ignoreCase = true) ||
+                // Web TransactionsPage searches canonical split part names and
+                // taxonomy independently of the parent note/category.
+                item.splitParts.any { part ->
+                    part.label.contains(needle, ignoreCase = true) ||
+                        part.category.contains(needle, ignoreCase = true) ||
+                        part.subcategory?.contains(needle, ignoreCase = true) == true
+                } ||
                 searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
             val matchesCategory = when {
                 !isAnalyticsScope -> ledgerCategoryFilter == null ||

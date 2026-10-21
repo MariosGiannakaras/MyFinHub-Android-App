@@ -43,6 +43,24 @@ class ActivitySplitDetailComposeTest {
         rule.onNodeWithText("Σνακ").assertExists()
     }
 
+    @Test fun reviewedRefundShowsPositiveAmountOnRealDetailEvenWhenOriginalBankExpenseIsNegative() {
+        val refund = ActivityItem(
+            "reviewed", "21 Οκτ", ActivityKind.EXPENSE, "Επιστροφή αγοράς",
+            "", -35.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21",
+            financeIncomeContribution = 0.0, financeExpenseContribution = -35.0,
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityReadDetailScreen(
+                    item = refund, accountOptions = emptyList(), mutationBlocked = false,
+                    onBack = {}, onEdit = {}, onDelete = {}, onDeleted = {},
+                )
+            }
+        }
+        rule.onNodeWithText(formatSignedEuro(35.0)).assertIsDisplayed()
+        rule.onNodeWithText(formatSignedEuro(-35.0)).assertDoesNotExist()
+    }
+
     @Test fun withdrawalDetailIsNeverMislabelledAsInternalTransfer() {
         val activity = ActivityItem(
             "withdrawal", "21 Οκτ", ActivityKind.TRANSFER, "Ανάληψη", "",
