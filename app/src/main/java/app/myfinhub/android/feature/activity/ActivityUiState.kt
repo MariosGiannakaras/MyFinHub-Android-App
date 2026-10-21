@@ -118,6 +118,8 @@ data class ActivitySection(val date: String, val items: List<ActivityItem>)
 data class ActivityUiState(
     val query: String = "",
     val filter: ActivityFilter = ActivityFilter.ALL,
+    /** Read-only ledger sort; Web offers newest/oldest ordering independently of filters. */
+    val sortOldestFirst: Boolean = false,
     val accountFilterId: String? = null,
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
@@ -139,6 +141,10 @@ data class ActivityUiState(
     val dateTo: String? = null,
 ) {
     val isAnalyticsScope: Boolean = categoryFilter != null || !categoryFilterIds.isNullOrEmpty()
+
+    /** Fail closed when a historic import collides with any other transaction ID. */
+    val ambiguousIds: Set<String> = items.groupingBy(ActivityItem::id)
+        .eachCount().filterValues { it > 1 }.keys
 
     // Web TransactionsPage: available taxonomy paths plus historic *display*
     // labels. The main ledger is different from category analytics contribution
@@ -181,7 +187,7 @@ data class ActivityUiState(
         val selectedAnalyticsCategories = categoryFilterIds.orEmpty()
         val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
         val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
-        items.filter { item ->
+        val matching = items.filter { item ->
             val matchesFilter = typeFilterId?.let { item.canonicalKind == it } ?: when (filter) {
                 ActivityFilter.ALL -> true
                 ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE || item.kind == ActivityKind.CARD_PAYMENT
@@ -234,6 +240,17 @@ data class ActivityUiState(
                     (effectiveDateTo == null || item.rawDate.take(10) <= effectiveDateTo))
             matchesFilter && matchesAccount && matchesQuery && matchesCategory && matchesDate
         }
+        // Current Web sorting uses (date, id), ascending or descending. Keep the
+        // canonical newest-first ledger unchanged by default and never reorder
+        // category analytics drill-downs merely because the ledger was toggled.
+        if (sortOldestFirst && !isAnalyticsScope) {
+            matching.sortedWith(compareBy<ActivityItem>(
+                { it.rawDate.take(10).ifBlank { "9999-12-31" } },
+                ActivityItem::id,
+            ))
+        } else {
+            matching
+        }
     }
 
     /**
@@ -281,7 +298,9 @@ data class ActivityUiState(
         if (currentDate != null) add(ActivitySection(currentDate, currentItems.toList()))
     }
 
-    val selectedItem: ActivityItem? = items.firstOrNull { it.id == selectedId }
+    val selectedItem: ActivityItem? = selectedId
+        ?.takeUnless(ambiguousIds::contains)
+        ?.let { id -> items.firstOrNull { it.id == id } }
 
     fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> = when (item.canonicalKind) {
         "income" -> incomeCategories
@@ -298,6 +317,7 @@ data class ActivityUiState(
         return copy(
             query = "",
             filter = ActivityFilter.ALL,
+            sortOldestFirst = false,
             accountFilterId = null,
             selectedId = null,
             ledgerCategoryFilter = null,
@@ -327,6 +347,7 @@ data class ActivityUiState(
 
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
+    data object ToggleSortDirection : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class AccountFilterChanged(val accountId: String?) : ActivityAction
     data class ApplyFilters(
@@ -352,6 +373,8 @@ sealed interface ActivityAction {
 
 fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiState = when (action) {
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
+    ActivityAction.ToggleSortDirection -> if (state.isAnalyticsScope) state
+        else state.copy(sortOldestFirst = !state.sortOldestFirst)
     is ActivityAction.FilterChanged -> state.copy(filter = action.value, typeFilterId = null)
     is ActivityAction.AccountFilterChanged -> state.copy(accountFilterId = action.accountId)
     is ActivityAction.ApplyFilters -> state.copy(
@@ -376,8 +399,10 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ActivityFilterField.CATEGORY -> state.copy(ledgerCategoryFilter = null)
         ActivityFilterField.DATE -> state.copy(ledgerDateFrom = null, ledgerDateTo = null)
     }
-    is ActivityAction.Select -> state.copy(selectedId = action.id)
-    is ActivityAction.SaveEdit -> state.copy(
+    is ActivityAction.Select -> state.copy(
+        selectedId = action.id?.takeUnless(state.ambiguousIds::contains),
+    )
+    is ActivityAction.SaveEdit -> if (action.id in state.ambiguousIds) state else state.copy(
         items = state.items.map { item ->
             if (item.id == action.id) {
                 item.copy(
@@ -397,7 +422,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
             }
         },
     )
-    is ActivityAction.Delete -> state.copy(
+    is ActivityAction.Delete -> if (action.id in state.ambiguousIds) state else state.copy(
         selectedId = state.selectedId.takeUnless { it == action.id },
         items = state.items.filterNot { it.id == action.id },
     )

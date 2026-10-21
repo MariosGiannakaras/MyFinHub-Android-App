@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #289 Web signed flow-driven Activity row/detail/refund semantics and split-part search passed immutable-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at e09bbfcd8d80427c5b165e957db080c511f50280 after fixing privacy-aware Compose test, squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 batches four independent W4.4 parity/correctness fixes in one CI checkpoint: duplicate imported transaction IDs safe Compose LazyColumn keys without deduplication; imported/overridden transaction provenance; Web noteParts multiline description/comment parsing in list/detail; and compact canonical split-part counts in ledger. JVM real canonical projection/reducer and Compose duplicate/history detail regressions included. Four exact final-head CI gates pending, W4.4 partial, physical acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #290 four-fix Activity batch (duplicate imported IDs Compose keys, override provenance, multiline notes, split count) passed all four immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at 198b7d8bc9039504c80aa8374409ab0d0a93c422, squash merged develop a2960ac28eaf8ea5d111e8da348a4bf7e63f66b5. Draft PR #291 batches long-history oldest/newest sort toggle and live visible/total count, Web-style deterministic ascending date+ID ties and default canonical newest-first fallback, projection persistence/analytics isolation, and fail-closed duplicate-ID selection/mass-edit/delete guard with actual S24 Compose and JVM reducer regressions. Four immutable-final-head checks pending. W4.4 partial; no owner physical signoff.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #290 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot baseline and S24 emulator. Fix any issue in same batch PR and merge only if all four pass. Continue additional independent parity fixes in coherent multi-fix batches to reduce redundant CI, not metadata-only commits. Keep Web parity 1/6 implementations and 11/24 subtasks until genuinely completed. No owner physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or real finance mutations.
+1. Validate draft PR #291 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix any failure in the same larger batch PR and merge only on all 4/4 green. Continue grouped 3–5 changes in future parity batches with canonical tracking in each, leaving Web parity 1/6 implementations and 11/24 subtasks until full acceptance. No physical S24 Ultra signoff, signing, Web/backend/schema edits, SMS import, permanent card deletion or finance-history write.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #290, branch android/w4-4-batch-history-identity-notes-and-split-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #289 signed impact + split search passed four exact-head gates at e09bbfcd8d80427c5b165e957db080c511f50280, squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 one larger batch: duplicate legacy row safe Compose keys, legacy override audit metadata, multiline Web noteParts list/detail, and real split part count ledger subtitle. Actual canonical JSON golden, JVM reducer and 2 production Compose instrumented regressions. Four immutable-final-head checks pending; W4.4 remains in progress.
+Issue #155, PR #291, branch android/w4-4-batch-history-sort-duplicate-guard-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #290 four-fix history detail batch passed all four immutable-head checks at 198b7d8bc9039504c80aa8374409ab0d0a93c422 and squash merged develop a2960ac28eaf8ea5d111e8da348a4bf7e63f66b5. Draft PR #291: history date sort oldest/newest and selected count for long ledgers, deterministic ascending tie-break date+ID without mutation, sort persisted through projection and analytics isolated, ambiguous duplicate-ID detail/mass-edit/delete fail-closed safeguards. Kotlin regression and actual S24 Compose toggle test staged, exact-head CI pending; W4.4 remains in_progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #290 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot baseline and S24 emulator. Fix any issue in same batch PR and merge only if all four pass. Continue additional independent parity fixes in coherent multi-fix batches to reduce redundant CI, not metadata-only commits. Keep Web parity 1/6 implementations and 11/24 subtasks until genuinely completed. No owner physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or real finance mutations.
+Next Validate draft PR #291 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator. Fix any failure in the same larger batch PR and merge only on all 4/4 green. Continue grouped 3–5 changes in future parity batches with canonical tracking in each, leaving Web parity 1/6 implementations and 11/24 subtasks until full acceptance. No physical S24 Ultra signoff, signing, Web/backend/schema edits, SMS import, permanent card deletion or finance-history write.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

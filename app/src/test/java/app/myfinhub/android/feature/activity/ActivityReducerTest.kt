@@ -195,6 +195,60 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun longLedgerOldestFirstUsesWebDateAndIdTieBreakWithoutMutatingCanonicalOrder() {
+        val history = listOf(
+            ActivityItem("z", "21 Οκτ", ActivityKind.EXPENSE, "Newest", "", -9.0, "Cash", null,
+                rawDate = "2026-10-21"),
+            ActivityItem("b", "20 Οκτ", ActivityKind.EXPENSE, "Middle B", "", -3.0, "Cash", null,
+                rawDate = "2026-10-20"),
+            ActivityItem("a", "20 Οκτ", ActivityKind.EXPENSE, "Middle A", "", -4.0, "Cash", null,
+                rawDate = "2026-10-20"),
+            ActivityItem("old", "19 Οκτ", ActivityKind.EXPENSE, "Oldest", "", -2.0, "Cash", null,
+                rawDate = "2026-10-19"),
+        )
+        val original = ActivityUiState(items = history)
+        assertEquals(listOf("z", "b", "a", "old"), original.visibleItems.map { it.id })
+        val ascending = reduceActivity(original, ActivityAction.ToggleSortDirection)
+        assertTrue(ascending.sortOldestFirst)
+        assertEquals(listOf("old", "a", "b", "z"), ascending.visibleItems.map { it.id })
+        assertEquals(history, ascending.items)
+        assertEquals(listOf("2026-10-19", "2026-10-20", "2026-10-21"),
+            ascending.visibleSections.map { it.date })
+        assertEquals(listOf("z", "b", "a", "old"),
+            reduceActivity(ascending, ActivityAction.ToggleSortDirection).visibleItems.map { it.id })
+        assertEquals("old", reduceActivity(ascending, ActivityAction.QueryChanged("Oldest"))
+            .visibleItems.single().id)
+        val drilldown = ascending.forCategory("Food", "2026-10-01", "2026-10-31")
+        assertFalse(drilldown.sortOldestFirst)
+        assertEquals(history, original.items)
+    }
+
+    @Test
+    fun collisionsCannotBulkEditDeleteOrSelectTwoImportedTransactionsSharingSameId() {
+        val duplicates = listOf(
+            ActivityItem("dup", "21 Οκτ", ActivityKind.EXPENSE, "Original", "", -4.0,
+                "Cash", "Food", rawDate = "2026-10-21", isLegacyTransaction = true),
+            ActivityItem("dup", "21 Οκτ", ActivityKind.EXPENSE, "Other record", "", -7.0,
+                "Cash", "Food", rawDate = "2026-10-21", isLegacyTransaction = true),
+            ActivityItem("unique", "20 Οκτ", ActivityKind.EXPENSE, "Unique", "", -6.0,
+                "Cash", "Food", rawDate = "2026-10-20"),
+        )
+        val state = ActivityUiState(items = duplicates, selectedId = "dup")
+        assertEquals(setOf("dup"), state.ambiguousIds)
+        assertEquals(null, state.selectedItem)
+        assertEquals(null, reduceActivity(state, ActivityAction.Select("dup")).selectedId)
+        assertEquals(state, reduceActivity(state, ActivityAction.SaveEdit("dup", "changed", "New")))
+        assertEquals(state, reduceActivity(state, ActivityAction.Delete("dup")))
+        assertEquals(17.0, state.visibleExpense, 0.001)
+        val safe = reduceActivity(state, ActivityAction.Select("unique"))
+        assertEquals("unique", safe.selectedItem?.id)
+        assertEquals(listOf("dup", "dup"),
+            reduceActivity(safe, ActivityAction.Delete("unique")).items.map { it.id })
+        assertEquals(setOf("dup"), reduceActivity(state,
+            ActivityAction.ToggleSortDirection).ambiguousIds)
+    }
+
+    @Test
     fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
         val originals = (0 until 1000).map { index ->
             ActivityItem(
