@@ -339,11 +339,29 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
+    /**
+     * Guard the durable canonical mutation boundary, not just the Compose row
+     * or preview reducer. Duplicated import IDs can otherwise edit/delete more
+     * than one original history entry through a deep link or stale back stack.
+     */
+    private fun canMutateActivity(ready: FinanceProductState.Ready, id: String): Boolean {
+        if (ready.projection.activityState.isUniqueMutationTarget(id)) return true
+        mutableNotices.tryEmit(
+            UserNotice(
+                message = "Η κίνηση δεν μπορεί να τροποποιηθεί με ασφάλεια.",
+                details = "Το αναγνωριστικό δεν αντιστοιχεί σε ακριβώς μία διαθέσιμη κίνηση.",
+                diagnosticCode = "MFH-APP-AMBIGUOUS-ACTIVITY-ID",
+            ),
+        )
+        return false
+    }
+
     fun onActivityAction(action: ActivityAction) {
         when (action) {
             is ActivityAction.SaveEdit -> {
                 val ready = mutableState.value as? FinanceProductState.Ready ?: return
                 if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+                if (!canMutateActivity(ready, action.id)) return
                 applyMutation(
                     EditCanonicalActivity(
                         transactionId = action.id,
@@ -366,7 +384,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         val id = transactionId.trim()
-        if (id.isBlank()) return
+        if (!canMutateActivity(ready, id)) return
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
     }
 

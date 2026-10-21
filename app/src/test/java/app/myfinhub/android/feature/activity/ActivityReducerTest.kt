@@ -195,6 +195,59 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun uniqueMutationTargetFailsClosedForRepeatedAndMissingIdsAcrossStateAndReducer() {
+        val duplicate = ActivityItem("same", "21 Οκτ", ActivityKind.EXPENSE,
+            "Διπλό", "", -4.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21")
+        val safe = duplicate.copy(id = "unique", title = "Μοναδικό")
+        val state = ActivityUiState(items = listOf(duplicate, duplicate.copy(amount = -9.0), safe))
+        assertEquals(setOf("same"), state.ambiguousIds)
+        assertFalse(state.isUniqueMutationTarget("same"))
+        assertFalse(state.isUniqueMutationTarget("missing"))
+        assertFalse(state.isUniqueMutationTarget(""))
+        assertTrue(state.isUniqueMutationTarget("unique"))
+        assertEquals(null, state.uniqueItem("same"))
+        assertEquals(null, state.uniqueItem("missing"))
+        assertEquals(null, state.uniqueItem(null))
+        assertEquals(safe, state.uniqueItem("unique"))
+        assertEquals(state, reduceActivity(state, ActivityAction.SaveEdit("same", "x", "y")))
+        assertEquals(state, reduceActivity(state, ActivityAction.Delete("same")))
+        assertEquals(state, reduceActivity(state, ActivityAction.Delete("missing")))
+        assertEquals(1, reduceActivity(state, ActivityAction.Delete("unique")).ambiguousIds.size)
+    }
+
+    @Test
+    fun clearAllSearchAndFiltersMatchesWebResetWithoutDiscardingOriginalItemsOrSort() {
+        val source = ActivityUiState(items = listOf(
+            ActivityItem("a", "21 Οκτ", ActivityKind.EXPENSE, "Καφές", "", -10.0,
+                "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21",
+                financeIncomeContribution = 0.0, financeExpenseContribution = 10.0),
+            ActivityItem("b", "20 Οκτ", ActivityKind.INCOME, "Μισθός", "", 120.0,
+                "Μισθοδοσία", "Εργασία", rawDate = "2026-10-20",
+                financeIncomeContribution = 120.0, financeExpenseContribution = 0.0),
+        ), sortOldestFirst = true)
+        val filtered = source.copy(
+            query = "Καφές", filter = ActivityFilter.EXPENSE,
+            ledgerCategoryFilter = "Τρόφιμα", ledgerDateFrom = "2026-10-21",
+            ledgerDateTo = "2026-10-21", accountFilterId = "cash",
+        )
+        assertTrue(filtered.hasActiveListScope)
+        assertTrue(filtered.visibleItems.isEmpty())
+        val reset = reduceActivity(filtered, ActivityAction.ClearSearchAndFilters)
+        assertEquals("", reset.query)
+        assertEquals(0, reset.activeFilterCount)
+        assertFalse(reset.hasActiveListScope)
+        assertEquals(listOf("b", "a"), reset.visibleItems.map { it.id })
+        assertEquals(source.items, reset.items)
+        assertTrue(reset.sortOldestFirst)
+        assertEquals(120.0, reset.visibleIncome, 0.001)
+        assertEquals(10.0, reset.visibleExpense, 0.001)
+        assertEquals(110.0, reset.visibleNet, 0.001)
+        // Clearing the filter chips alone remains available to callers and
+        // intentionally leaves the search query unchanged.
+        assertEquals("Καφές", reduceActivity(filtered, ActivityAction.ClearFilters).query)
+    }
+
+    @Test
     fun longLedgerOldestFirstUsesWebDateAndIdTieBreakWithoutMutatingCanonicalOrder() {
         val history = listOf(
             ActivityItem("z", "21 Οκτ", ActivityKind.EXPENSE, "Newest", "", -9.0, "Cash", null,

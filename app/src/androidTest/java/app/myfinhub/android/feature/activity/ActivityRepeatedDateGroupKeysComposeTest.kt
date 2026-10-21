@@ -44,6 +44,40 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.onNodeWithText("Πρώτη ίδια ταυτότητα").assertIsDisplayed()
     }
 
+    @Test fun queryOnlyProvidesSafeSignedSummaryAndOneStepClearAction() {
+        val seed = ActivityUiState(items = listOf(
+            ActivityItem("refund", "21 Οκτ", ActivityKind.EXPENSE,
+                "Επιστροφή καφέ", "", -30.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-21", financeIncomeContribution = 0.0,
+                financeExpenseContribution = -30.0),
+            ActivityItem("spend", "20 Οκτ", ActivityKind.EXPENSE,
+                "Αγορά", "", -10.0, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-20", financeIncomeContribution = 0.0,
+                financeExpenseContribution = 10.0),
+        ))
+        var state by androidx.compose.runtime.mutableStateOf(seed.copy(query = "Επιστροφή"))
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(
+                    state = state,
+                    onAction = { action -> state = reduceActivity(state, action) },
+                    onOpenDetail = {}, onOpenQuickEntry = {},
+                )
+            }
+        }
+        rule.onNodeWithTag("activity_filtered_summary").assertExists()
+        rule.onNodeWithText("Βρέθηκαν 1 από 2 κινήσεις").assertIsDisplayed()
+        rule.onNodeWithTag("activity_clear_all").assertExists().performClick()
+        rule.runOnIdle {
+            assertEquals("", state.query)
+            assertEquals(2, state.visibleItems.size)
+            assertEquals(-20.0, state.visibleExpense, 0.001)
+            assertEquals(20.0, state.visibleNet, 0.001)
+        }
+        rule.onNodeWithTag("activity_filtered_summary").assertDoesNotExist()
+        rule.onNodeWithTag("activity_clear_all").assertDoesNotExist()
+    }
+
     @Test fun longLedgerSortToggleChangesRealComposeOrderThroughReducer() {
         val histories = (1..24).map { day ->
             ActivityItem(

@@ -325,11 +325,12 @@ internal fun MyFinHubAppContent(
                     }
                 }
                 entry<AppRoute.ActivityDetail> { route ->
-                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    val item = activityState.uniqueItem(route.eventId)
                     ActivityReadDetailScreen(
                         item = item,
                         accountOptions = activityState.accountOptions,
-                        mutationBlocked = activityMutationBlocked,
+                        mutationBlocked = activityMutationBlocked ||
+                            !activityState.isUniqueMutationTarget(route.eventId),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
                         onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },
@@ -337,12 +338,13 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.ActivityEdit> { route ->
-                    val item = activityState.items.firstOrNull { it.id == route.eventId }
+                    val item = activityState.uniqueItem(route.eventId)
                     ActivityEditScreen(
                         item = item,
                         categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
                         mutationInFlight = activityMutationInFlight,
-                        mutationBlocked = activityMutationBlocked,
+                        mutationBlocked = activityMutationBlocked ||
+                            !activityState.isUniqueMutationTarget(route.eventId),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onSave = { date, note, category, subcategory ->
                             onActivityAction(
