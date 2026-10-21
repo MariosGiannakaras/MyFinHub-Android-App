@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.activity
 
 import java.text.Collator
 import java.util.Locale
+import kotlin.math.roundToInt
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -174,6 +175,25 @@ enum class ActivityFilterField {
 
 data class ActivitySection(val date: String, val items: List<ActivityItem>)
 
+/** Web TransactionsPage full-month summary, independent of native history filters. */
+data class ActivityMonthlyOverview(
+    val month: String,
+    val income: Double,
+    val expense: Double,
+    val net: Double,
+    val transactionCount: Int,
+    val previousIncome: Double,
+    val previousExpense: Double,
+    val previousNet: Double,
+    val previousTransactionCount: Int,
+)
+
+/** Exact Web percentChange: previous month's absolute value is the denominator. */
+internal fun activityMonthPercentChange(current: Double, previous: Double): Int? =
+    if (kotlin.math.abs(previous) > 0.005) {
+        (((current - previous) / kotlin.math.abs(previous)) * 100.0).roundToInt()
+    } else null
+
 data class ActivityUiState(
     val query: String = "",
     val filter: ActivityFilter = ActivityFilter.ALL,
@@ -182,6 +202,7 @@ data class ActivityUiState(
     val accountFilterId: String? = null,
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
+    val monthOverview: ActivityMonthlyOverview? = null,
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
     val accountOptions: List<ActivityAccountOption> = emptyList(),

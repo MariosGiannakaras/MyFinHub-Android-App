@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.accountBalances
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.flowBetween
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.core.data.canonicalFixture
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.feature.home.HomePrimaryRole
@@ -302,6 +303,57 @@ class CanonicalProductProjectionTest {
             state.copy(sortOldestFirst = true).visibleItems.map { it.id })
         // Ledger ordering changes only presentation, never canonical money.
         assertEquals(27.0, state.visibleExpense, 0.001)
+    }
+
+
+    @Test
+    fun fullMonthWebTransactionOverviewUsesOperationalTotalsAndCardExcludedSourceCounts() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"sept-income","date":"2026-09-10","type":"income","amount":80,
+                 "accountId":"cash"},
+                {"id":"oct-income","date":"2026-10-10","type":"income","amount":200,
+                 "accountId":"cash"},
+                {"id":"oct-expense","date":"2026-10-12","type":"expense","amount":40,
+                 "accountId":"cash"},
+                {"id":"oct-future","date":"2026-10-29","type":"expense","amount":30,
+                 "accountId":"cash"},
+                {"id":"november","date":"2026-11-01","type":"expense","amount":99,
+                 "accountId":"cash"}
+              ]},"state":{"events":[
+                {"id":"oct-event","date":"2026-10-20","kind":"income","amount":7},
+                {"id":"sept-event","date":"2026-09-11","kind":"expense","amount":8},
+                {"id":"credit-purchase","date":"2026-10-19","kind":"card_purchase",
+                 "amount":100,"cardId":"card"},
+                {"id":"credit-payment","date":"2026-10-20","kind":"card_payment",
+                 "amount":20,"cardId":"card"}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val projected = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+        val overview = projected.activityState.monthOverview!!
+        val monthFlow = document.canonicalOperationalMonthlyFlow("2026-10")
+        val previousFlow = document.canonicalOperationalMonthlyFlow("2026-09")
+        val throughToday = document.canonicalOperationalMonthlyFlow("2026-10", "2026-10-21")
+        assertEquals("2026-10", overview.month)
+        assertEquals(monthFlow.income, overview.income, 0.001)
+        assertEquals(monthFlow.expense, overview.expense, 0.001)
+        assertEquals(monthFlow.net, overview.net, 0.001)
+        assertEquals(previousFlow.income, overview.previousIncome, 0.001)
+        assertEquals(previousFlow.expense, overview.previousExpense, 0.001)
+        assertEquals(previousFlow.net, overview.previousNet, 0.001)
+        assertEquals(4, overview.transactionCount) // 3 imported + 1 non-card event
+        assertEquals(2, overview.previousTransactionCount)
+        assertTrue("Full Web month includes later actual rows",
+            overview.expense > throughToday.expense)
+        assertEquals(9, projected.activityState.items.size)
+        assertEquals(7, projected.activityState.webLedgerItems.size)
+        val filtered = projected.activityState.copy(
+            query = "oct-income", accountFilterId = "cash", ledgerDateFrom = "2026-10-10",
+            ledgerDateTo = "2026-10-10",
+        )
+        assertEquals(overview, filtered.monthOverview)
+        assertEquals(overview, filtered.forCategory("Λοιπά", "2026-10-01", "2026-10-31").monthOverview)
     }
 
     @Test

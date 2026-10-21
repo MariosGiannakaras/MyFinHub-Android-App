@@ -44,6 +44,7 @@ import app.myfinhub.android.feature.activity.ActivityAccountOption
 import app.myfinhub.android.feature.activity.ActivityCategoryOption
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.ActivityItem
+import app.myfinhub.android.feature.activity.ActivityMonthlyOverview
 import app.myfinhub.android.feature.activity.ActivitySplitPart
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
@@ -299,6 +300,28 @@ val activityItems = buildActivityItems(
         previous = previous?.quickEntryState,
     )
 
+    // Web uses unfiltered full-month operational flow for headline tiles.
+    // Native Android intentionally keeps its multi-month ledger and search.
+    // Do not confuse this independent snapshot with Home's as-of-today flow.
+    val previousLedgerMonth = YearMonth.from(today).minusMonths(1).toString()
+    val currentLedgerFlow = document.canonicalOperationalMonthlyFlow(month)
+    val previousLedgerFlow = document.canonicalOperationalMonthlyFlow(previousLedgerMonth)
+    fun sourceCount(target: String): Int =
+        legacy.count { it.date.startsWith(target) } +
+            events.count { it.date.startsWith(target) &&
+                it.kind != "card_purchase" && it.kind != "card_payment" }
+    val monthOverview = ActivityMonthlyOverview(
+        month = month,
+        income = currentLedgerFlow.income,
+        expense = currentLedgerFlow.expense,
+        net = currentLedgerFlow.net,
+        transactionCount = sourceCount(month),
+        previousIncome = previousLedgerFlow.income,
+        previousExpense = previousLedgerFlow.expense,
+        previousNet = previousLedgerFlow.net,
+        previousTransactionCount = sourceCount(previousLedgerMonth),
+    )
+
     val oldActivity = previous?.activityState
     val activityAccountOptions = accounts
         .filter { it.kind != "credit" }
@@ -326,6 +349,7 @@ val activityItems = buildActivityItems(
             activityItems.count { it.id == id } == 1
         },
         items = activityItems,
+        monthOverview = monthOverview,
         expenseCategories = quickEntry.expenseCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
         incomeCategories = quickEntry.incomeCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
         accountOptions = activityAccountOptions,

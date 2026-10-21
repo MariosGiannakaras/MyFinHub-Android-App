@@ -418,6 +418,17 @@ class ActivityReducerTest {
             state.visibleItems.map { it.id })
     }
 
+
+    @Test
+    fun webMonthlyTrendUsesAbsPreviousAndNearZeroThreshold() {
+        assertEquals(null, activityMonthPercentChange(100.0, 0.0))
+        assertEquals(null, activityMonthPercentChange(100.0, -0.005))
+        assertEquals(50, activityMonthPercentChange(150.0, 100.0))
+        assertEquals(-50, activityMonthPercentChange(50.0, 100.0))
+        assertEquals(200, activityMonthPercentChange(100.0, -100.0))
+        assertEquals(0, activityMonthPercentChange(100.0, 100.0))
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
