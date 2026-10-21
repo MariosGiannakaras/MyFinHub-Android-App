@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #292 final immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression, and S24 emulator; repair within same batch PR and merge only on full 4/4 checks. Continue 3–5 independent parity/security corrections per PR rather than micro-PRs. Do not increment 1/6 implementations or 11/24 subtasks until full acceptance; no physical S24 signoff, signed production release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data mutations.
+- [ ] Validate draft PR #293 immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator; fix on same PR and squash merge only after all 4/4 green. Continue grouped real Web history/analytics parity fixes; keep 1/6 implementations and 11/24 subtasks until whole stages completed. No physical owner signoff, signed release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data writes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #292, branch android/w4-4-batch-production-mutation-guard-filter-summary-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #291 oldest/newest long history, visible/total counts, sort persistence and duplicate-ID reducer protection passed 4/4 at cef927949505a01256ea065b34f94417d9b32281 and squash merged develop ab907122b3340a83bc8d06202bd9287184f9625c. Draft PR #292 extends fail-closed duplicate-ID validation to actual canonical edit/delete FinanceProductViewModel mutation dispatch and direct detail/edit navigation, adds a Web-style single action clearing both search and filters, and signed privacy-safe filtered financial totals even on short ledgers. JVM and Compose coverage staged, exact-head checks pending; W4.4 incomplete.
+Issue #155, PR #293, branch android/w4-4-historical-account-balance-read-detail-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #292 durable mutation safety and signed filtered UX passed all four exact-head gates at 684e3d95e5abfac40df556d98fc2f88695e93b79 and merged develop dc6396037eca5dd13bac3e7b948b18a050a12edd. Draft #293 adds Web exact as-of transaction-date account balance to read-first native detail, first real non-credit account and event legs, skips pending/invalid dates/unknown, masks amount and computes only on opened detail. JVM cross-date golden + production Compose detail test added, CI pending; W4.4 partial.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #292 final immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression, and S24 emulator; repair within same batch PR and merge only on full 4/4 checks. Continue 3–5 independent parity/security corrections per PR rather than micro-PRs. Do not increment 1/6 implementations or 11/24 subtasks until full acceptance; no physical S24 signoff, signed production release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data mutations.
+Next Validate draft PR #293 immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator; fix on same PR and squash merge only after all 4/4 green. Continue grouped real Web history/analytics parity fixes; keep 1/6 implementations and 11/24 subtasks until whole stages completed. No physical owner signoff, signed release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

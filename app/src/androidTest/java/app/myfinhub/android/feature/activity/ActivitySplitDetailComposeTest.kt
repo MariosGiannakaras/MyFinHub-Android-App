@@ -16,6 +16,36 @@ import org.junit.Test
 class ActivitySplitDetailComposeTest {
     @get:Rule val rule = createComposeRule()
 
+    @Test fun historicalBalanceRendersInRealDetailOnlyWithAmountVisibility() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val original = AmountVisibilityPreference.read(context)
+        try {
+            AmountVisibilityPreference.write(context, true)
+            val row = ActivityItem(
+                "payroll-historic", "3 Οκτ", ActivityKind.EXPENSE, "Παλιά πληρωμή", "",
+                -4.0, "Μισθοδοσία", "Τρόφιμα", rawDate = "2026-10-03",
+                accountId = "payroll",
+            )
+            rule.setContent {
+                MyFinHubTheme {
+                    ActivityReadDetailScreen(
+                        item = row, accountOptions = emptyList(), mutationBlocked = false,
+                        onBack = {}, onEdit = {}, onDelete = {}, onDeleted = {},
+                        historicalBalance = 856.0,
+                    )
+                }
+            }
+            rule.onNodeWithTag("activity_detail_list")
+                .performScrollToNode(hasText("Υπόλοιπο λογαριασμού την ημέρα"))
+            rule.onNodeWithText("Υπόλοιπο λογαριασμού την ημέρα").assertIsDisplayed()
+            val amount = java.text.NumberFormat.getCurrencyInstance(
+                java.util.Locale.forLanguageTag("el-GR")).format(856.0)
+            rule.onNodeWithText(amount).assertExists()
+        } finally {
+            AmountVisibilityPreference.write(context, original)
+        }
+    }
+
     @Test fun splitDetailDisplaysCanonicalPartLabelsCategoriesAndAmountsOnScroll() {
         val activity = ActivityItem(
             "split", "21 Οκτ", ActivityKind.EXPENSE, "Σύνθετη αγορά", "",

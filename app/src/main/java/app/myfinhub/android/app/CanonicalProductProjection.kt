@@ -92,6 +92,28 @@ data class CanonicalProductProjection(
     val insightsState: InsightsUiState,
 )
 
+/**
+ * Exact Web TransactionsPage rowBalance: first real account in the event/legacy
+ * ledger, balance from the canonical statement at transaction date inclusive.
+ * Run only for an opened detail: computing for all ledger rows would repeatedly
+ * scan canonical transactions. Pending/invalid/synthetic rows show no balance.
+ */
+internal fun canonicalActivityBalanceAtDate(
+    document: CanonicalFinanceDocument,
+    item: ActivityItem,
+): Double? {
+    if (item.pendingSync) return null
+    val date = item.rawDate.take(10)
+    if (runCatching { LocalDate.parse(date) }.isFailure) return null
+    val account = sequenceOf(item.accountId, item.fromAccountId, item.toAccountId)
+        .filterNotNull()
+        .firstOrNull { it.isNotBlank() && it != CREDIT_ACCOUNT_ID }
+        ?: item.legAccountIds.firstOrNull { it.isNotBlank() && it != CREDIT_ACCOUNT_ID }
+        ?: return null
+    if (document.canonicalAccounts().none { it.id == account && it.kind != "credit" }) return null
+    return document.accountBalances(date)[account]
+}
+
 /** Mirrors web accountSelection: exact daily cash, payroll and savings semantic slots. */
 internal fun primaryHomeRoles(accounts: List<app.myfinhub.android.core.data.CanonicalAccount>): Map<HomePrimaryRole, String> {
     fun choose(test: (app.myfinhub.android.core.data.CanonicalAccount) -> Boolean): String? =

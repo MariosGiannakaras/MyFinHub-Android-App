@@ -122,6 +122,7 @@ internal fun MyFinHubAppContent(
     onSaveAccountIban: ((String, String?) -> Unit)? = null,
     accountMetadataSaving: Boolean = false,
     activityState: ActivityUiState = ActivityUiState(),
+    activityHistoricalBalance: ((app.myfinhub.android.feature.activity.ActivityItem) -> Double?)? = null,
     onActivityAction: (ActivityAction) -> Unit = {},
     activityMutationInFlight: Boolean = false,
     activityMutationBlocked: Boolean = false,
@@ -331,6 +332,7 @@ internal fun MyFinHubAppContent(
                         accountOptions = activityState.accountOptions,
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
+                        historicalBalance = item?.let { activityHistoricalBalance?.invoke(it) },
                         onBack = { activeBackStack.removeLastOrNull() },
                         onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
                         onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },

@@ -598,6 +598,9 @@ private fun FinanceProductSurface(
                     onRevokeDeviceSession = onRevokeDeviceSession,
                     onHomeAction = onHomeAction,
                     activityState = projection.activityState,
+                    activityHistoricalBalance = { item ->
+                        canonicalActivityBalanceAtDate(projection.document, item)
+                    },
                     onActivityAction = onActivityAction,
                     activityMutationInFlight = state.saving,
                     activityMutationBlocked = state.saving || state.issue != null,
