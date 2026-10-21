@@ -1,5 +1,7 @@
 package app.myfinhub.android.feature.activity
 
+import java.text.Collator
+import java.util.Locale
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -94,6 +96,42 @@ data class ActivityTypeOption(
     val label: String,
 )
 
+/** Web localeCompare('el') ordering for taxonomy and type selectors. */
+internal fun greekActivityLabelOrder(): Comparator<String> {
+    val collator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
+    return Comparator { left, right -> collator.compare(left, right) }
+}
+
+/**
+ * Web TransactionsPage search index is exactly:
+ * note + category + subcategory + raw kind + split part label/category/subcategory.
+ * Do not index account names, visible dates, derived titles or display labels:
+ * those are separate presentation fields and cause unexpected false matches.
+ * Screenshots with hand-authored preview records have no canonical ordinal;
+ * preserve their wider illustrative search behavior without leaking amounts.
+ */
+internal fun ActivityItem.matchesWebLedgerSearch(needle: String): Boolean {
+    if (needle.isBlank()) return true
+    val sourceMatch = note.contains(needle, ignoreCase = true) ||
+        category?.contains(needle, ignoreCase = true) == true ||
+        subcategory?.contains(needle, ignoreCase = true) == true ||
+        canonicalKind.contains(needle, ignoreCase = true) ||
+        splitParts.any { part ->
+            part.label.contains(needle, ignoreCase = true) ||
+                part.category.contains(needle, ignoreCase = true) ||
+                part.subcategory?.contains(needle, ignoreCase = true) == true
+        }
+    return sourceMatch || (canonicalSourceOrdinal < 0 && (
+        title.contains(needle, ignoreCase = true) ||
+            subtitle.contains(needle, ignoreCase = true) ||
+            typeLabel.contains(needle, ignoreCase = true) ||
+            kind.label.contains(needle, ignoreCase = true) ||
+            accountLabel.contains(needle, ignoreCase = true) ||
+            dateLabel.contains(needle, ignoreCase = true) ||
+            rawDate.contains(needle, ignoreCase = true)
+    ))
+}
+
 enum class ActivityKind(val label: String) {
     EXPENSE("Έξοδα"),
     INCOME("Έσοδα"),
@@ -168,6 +206,8 @@ data class ActivityUiState(
     }
     val scopeSourceItems: List<ActivityItem> = if (isAnalyticsScope) items else webLedgerItems
 
+    private val greekLabelOrder = greekActivityLabelOrder()
+
     // Web TransactionsPage: available taxonomy paths plus historic *display*
     // labels. The main ledger is different from category analytics contribution
     // drill-downs: a split belongs under "Επιμέρους κατηγορίες" in the ledger.
@@ -179,7 +219,7 @@ data class ActivityUiState(
             }
         }
         webLedgerItems.forEach { item -> add(item.webLedgerCategoryLabel()) }
-    }.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
+    }.distinct().sortedWith(greekLabelOrder)
 
     val typeOptions: List<ActivityTypeOption> = buildList {
         webLedgerItems.forEach { item ->
@@ -192,7 +232,7 @@ data class ActivityUiState(
         }
     }.filter { it.id.isNotBlank() }
         .distinctBy(ActivityTypeOption::id)
-        .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, ActivityTypeOption::label))
+        .sortedWith { left, right -> greekLabelOrder.compare(left.label, right.label) }
 
     val activeFilterCount: Int = if (isAnalyticsScope) 0 else listOf(
         typeFilterId != null || filter != ActivityFilter.ALL,
@@ -222,24 +262,7 @@ data class ActivityUiState(
                 item.fromAccountId == accountFilterId ||
                 item.toAccountId == accountFilterId ||
                 item.legAccountIds.contains(accountFilterId)
-            val matchesQuery = needle.isBlank() ||
-                item.title.contains(needle, ignoreCase = true) ||
-                item.subtitle.contains(needle, ignoreCase = true) ||
-                item.note.contains(needle, ignoreCase = true) ||
-                item.kind.label.contains(needle, ignoreCase = true) ||
-                item.typeLabel.contains(needle, ignoreCase = true) ||
-                item.category?.contains(needle, ignoreCase = true) == true ||
-                item.subcategory?.contains(needle, ignoreCase = true) == true ||
-                item.accountLabel.contains(needle, ignoreCase = true) ||
-                item.dateLabel.contains(needle, ignoreCase = true) ||
-                item.rawDate.contains(needle, ignoreCase = true) ||
-                // Web TransactionsPage searches canonical split part names and
-                // taxonomy independently of the parent note/category.
-                item.splitParts.any { part ->
-                    part.label.contains(needle, ignoreCase = true) ||
-                        part.category.contains(needle, ignoreCase = true) ||
-                        part.subcategory?.contains(needle, ignoreCase = true) == true
-                }
+            val matchesQuery = item.matchesWebLedgerSearch(needle)
             val matchesCategory = when {
                 !isAnalyticsScope -> ledgerCategoryFilter == null ||
                     item.webLedgerCategoryLabel() == ledgerCategoryFilter

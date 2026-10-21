@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #296 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator. Fix failures on same PR, merge only when 4/4 gates green. Continue grouped W4.4 and remaining Web parity, preserve 1/6 implementations and 11/24 completed subtasks without acceptance-backed closure. No physical S24 signoff, signed release, Web/backend/schema changes, SMS import, permanent guarded card deletion or live financial writes.
+- [ ] Validate draft PR #297 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator; repair failures on the same PR, merge only after all four gates green. Continue grouped W4.4 and remaining parity work with canonical tracker updates, preserve 1/6 and 11/24 until fully accepted. No owner physical S24 signoff, signed releases, Web/backend/schema changes, SMS import, permanent card deletion or live financial data writes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #296, branch android/w4-4-batch-web-card-history-isolation-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #295 canonical original event chronology, true event-leg as-of balances and edit amount privacy passed all four immutable-head CI gates at a8ac541201536d33e6a45d52b0ed6535e76e3adb, merged develop b49e3f0191cd4810aa13a55c98f1a44a9204abe6. Draft #296 batches Web transaction ledger exact card-only event exclusion, analytics/card-panel preservation, ledger filter taxonomy/types/counters, stale card-type filter reset and no monetary text-search inference with JVM/Compose tests. CI pending; W4.4 remains in_progress.
+Issue #155, PR #297, branch android/w4-4-batch-exact-web-search-greek-collation-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 completed subtasks. PR #296 global ledger card-only exclusion, reporting isolation and money-query privacy passed 4/4 immutable-head gates at b814e96b9070f9839eae799b54fe1d29ed939ecc; merged develop c87a5b7ab5a5819bfeb0995ac15ead43a5ea73b0. Draft #297 enforces exact Web search source fields (note/category/subcategory/canonical kind and split parts) for real transactions, excluding account/date/derived presentation labels and avoiding false matches, and Greek locale-aware category/type selection ordering. JVM + actual JSON projection + Compose checks staged, final head CI pending; W4.4 still open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft PR #296 exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator. Fix failures on same PR, merge only when 4/4 gates green. Continue grouped W4.4 and remaining Web parity, preserve 1/6 implementations and 11/24 completed subtasks without acceptance-backed closure. No physical S24 signoff, signed release, Web/backend/schema changes, SMS import, permanent guarded card deletion or live financial writes.
+Next Validate draft PR #297 exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot renderer and S24 emulator; repair failures on the same PR, merge only after all four gates green. Continue grouped W4.4 and remaining parity work with canonical tracker updates, preserve 1/6 and 11/24 until fully accepted. No owner physical S24 signoff, signed releases, Web/backend/schema changes, SMS import, permanent card deletion or live financial data writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

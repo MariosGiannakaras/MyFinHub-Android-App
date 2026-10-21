@@ -46,6 +46,34 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.onNodeWithText("Καρτοαγορά μόνο στην κάρτα").assertDoesNotExist()
     }
 
+    @Test fun productionLedgerQueryNeverSearchesPrivateAccountOrDateDisplayFields() {
+        val realRow = ActivityItem(
+            "visible", "21 Οκτ", ActivityKind.EXPENSE, "Μη ευρετηριασμένος τίτλος", "",
+            -11.0, "Ιδιωτικός λογαριασμός", "Τρόφιμα",
+            rawDate = "2026-10-21", note = "Καφές εργασίας",
+            canonicalSourceOrdinal = 0,
+        )
+        var state by androidx.compose.runtime.mutableStateOf(
+            ActivityUiState(items = listOf(realRow), query = "Ιδιωτικός"),
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(
+                    state = state,
+                    onAction = { state = reduceActivity(state, it) },
+                    onOpenDetail = {}, onOpenQuickEntry = {},
+                )
+            }
+        }
+        rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertDoesNotExist()
+        rule.runOnIdle { state = state.copy(query = "Καφές") }
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasText("Μη ευρετηριασμένος τίτλος"))
+        rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertIsDisplayed()
+        rule.runOnIdle { state = state.copy(query = "2026-10-21") }
+        rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertDoesNotExist()
+    }
+
     @Test fun repeatedLegacyIdentifiersRenderAsSeparateRowsWithoutDuplicateLazyKeys() {
         val state = ActivityUiState(items = listOf(
             ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,

@@ -361,6 +361,32 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun realJsonLegacyAndEventSearchMatchesWebNotesAndTaxonomyOnly() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash",
+                "name":"Ιδιωτικός λογαριασμός"}],
+              "transactions":[{"id":"legacy","date":"2026-10-21",
+                "type":"expense","amount":12,"accountId":"cash",
+                "category":"Τρόφιμα","note":"Πρωινό σνακ"}]},
+             "state":{"events":[{"id":"event","date":"2026-10-20",
+                "kind":"expense","amount":7,"category":"Μεταφορές",
+                "note":"Εισιτήριο πορθμείου",
+                "legs":[{"accountId":"cash","amount":-7}]}]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21)).activityState
+        assertEquals(listOf("legacy"),
+            state.copy(query = "Πρωινό").visibleItems.map { it.id })
+        assertEquals(listOf("event"),
+            state.copy(query = "πορθμείου").visibleItems.map { it.id })
+        assertEquals(listOf("event"),
+            state.copy(query = "Μεταφορές").visibleItems.map { it.id })
+        assertTrue(state.copy(query = "Ιδιωτικός λογαριασμός").visibleItems.isEmpty())
+        assertTrue(state.copy(query = "2026-10-21").visibleItems.isEmpty())
+        assertEquals(2, state.webLedgerItems.size)
+        assertEquals(2, state.visibleItems.size)
+    }
+
+    @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(
             document = canonicalFixture(),
