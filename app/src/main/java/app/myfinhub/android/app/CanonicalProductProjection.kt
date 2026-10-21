@@ -141,7 +141,7 @@ val activityCardLabels = document.canonicalCards().associate { card ->
     val last4 = card.last4.orEmpty()
     card.id to if (last4.isBlank()) base else "$base • $last4"
 }
-val legacyOverrideIds = document.state.obj("overrides").keys
+val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
 val activityItems = buildActivityItems(
     legacy, events, accountNames, eventChronology, activityCardLabels, legacyOverrideIds,
 ).map { item ->
