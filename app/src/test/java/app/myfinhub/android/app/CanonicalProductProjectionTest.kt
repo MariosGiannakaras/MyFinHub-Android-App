@@ -1,5 +1,6 @@
 package app.myfinhub.android.app
 
+import app.myfinhub.android.core.data.accountBalances
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.canonicalFixture
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
@@ -19,6 +20,48 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CanonicalProductProjectionTest {
+    @Test
+    fun historicalBalanceUsesWebExactAccountAndTransactionDateRatherThanToday() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[
+              {"id":"cash","kind":"cash","name":"Μετρητά"},
+              {"id":"payroll","kind":"bank","name":"Μισθοδοσία"}],
+              "snapshots":[{"date":"2026-10-01",
+                "balances":{"cash":100,"payroll":900}}]},
+             "state":{"events":[
+              {"id":"first","kind":"transfer","date":"2026-10-03","amount":40,
+               "legs":[{"accountId":"cash","amount":40},{"accountId":"payroll","amount":-40}]},
+              {"id":"second","kind":"expense","date":"2026-10-03","amount":4,
+               "legs":[{"accountId":"payroll","amount":-4}]},
+              {"id":"future","kind":"income","date":"2026-10-11","amount":500,
+               "legs":[{"accountId":"payroll","amount":500}]}
+             ]}}
+        """.trimIndent()).jsonObject)
+        val row = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+            .activityState.items.first { it.id == "first" }
+        assertEquals(140.0, canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = null, fromAccountId = "cash", toAccountId = "payroll"))!!, 0.001)
+        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = null, fromAccountId = "payroll", toAccountId = "cash"))!!, 0.001)
+        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = null, fromAccountId = null, toAccountId = null,
+                legAccountIds = linkedSetOf("credit-card", "payroll")))!!, 0.001)
+        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "payroll", fromAccountId = "cash"))!!, 0.001)
+        assertNull(canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "cash", pendingSync = true)))
+        assertNull(canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "cash", rawDate = "not-a-date")))
+        assertNull(canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "unknown")))
+        assertNull(canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "credit-card", fromAccountId = null, toAccountId = null,
+                legAccountIds = setOf("credit-card"))))
+        assertEquals(1_356.0, document.accountBalances("2026-10-21").getValue("payroll"), 0.001)
+        assertEquals(856.0, canonicalActivityBalanceAtDate(document,
+            row.copy(accountId = "payroll"))!!, 0.001)
+    }
+
     @Test
     fun deactivatingCard_preservesTotalDebtAndDoesNotAssignItToRemainingCard() {
         val document = creditFixture()

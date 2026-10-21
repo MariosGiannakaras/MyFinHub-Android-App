@@ -598,6 +598,7 @@ fun ActivityReadDetailScreen(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onDeleted: () -> Unit,
+    historicalBalance: Double? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
@@ -661,6 +662,19 @@ fun ActivityReadDetailScreen(
                         if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
                         if (item.isInternalTransfer()) activityTransferRouteLabel(item, accountOptions) else item.accountLabel,
                     )
+                }
+                // Web's as-of balance is a read-only daily statement and must
+                // obey the same account privacy preference as transaction amounts.
+                historicalBalance?.takeIf { !item.pendingSync }?.let { balance ->
+                    item(key = "historical-account-balance") {
+                        ActivityReadField(
+                            "Υπόλοιπο λογαριασμού την ημέρα",
+                            amountVisibilityText(
+                                NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(balance),
+                                amountsVisible,
+                            ),
+                        )
+                    }
                 }
                 item { ActivityReadField("Κατηγορία", item.category ?: "Χωρίς κατηγορία") }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
