@@ -266,6 +266,7 @@ val activityItems = buildActivityItems(
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
+        sortOldestFirst = oldActivity?.sortOldestFirst ?: false,
         ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
         ledgerDateFrom = oldActivity?.ledgerDateFrom,
         ledgerDateTo = oldActivity?.ledgerDateTo,
@@ -276,7 +277,9 @@ val activityItems = buildActivityItems(
         accountFilterId = oldActivity?.accountFilterId?.takeIf { selectedId ->
             activityAccountOptions.any { it.id == selectedId }
         },
-        selectedId = oldActivity?.selectedId?.takeIf { id -> activityItems.any { it.id == id } },
+        selectedId = oldActivity?.selectedId?.takeIf { id ->
+            activityItems.count { it.id == id } == 1
+        },
         items = activityItems,
         expenseCategories = quickEntry.expenseCategories.map { ActivityCategoryOption(it.name, it.subcategories) },
         incomeCategories = quickEntry.incomeCategories.map { ActivityCategoryOption(it.name, it.subcategories) },

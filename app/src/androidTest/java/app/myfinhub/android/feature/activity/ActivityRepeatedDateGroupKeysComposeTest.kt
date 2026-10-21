@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performClick
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -39,6 +40,40 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.onNodeWithTag("activity_list")
             .performScrollToNode(hasText("Πρώτη ίδια ταυτότητα"))
         rule.onNodeWithText("Πρώτη ίδια ταυτότητα").assertIsDisplayed()
+    }
+
+    @Test fun longLedgerSortToggleChangesRealComposeOrderThroughReducer() {
+        val histories = (1..24).map { day ->
+            ActivityItem(
+                id = "tx-$day", dateLabel = "Οκτώβριος", kind = ActivityKind.EXPENSE,
+                title = "Κίνηση $day", subtitle = "", amount = -day.toDouble(),
+                accountLabel = "Μετρητά", category = "Άλλο",
+                rawDate = "2026-10-${day.toString().padStart(2, '0')}",
+            )
+        }.asReversed()
+        var state by androidx.compose.runtime.mutableStateOf(ActivityUiState(items = histories))
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(
+                    state = state,
+                    onAction = { action -> state = reduceActivity(state, action) },
+                    onOpenDetail = {}, onOpenQuickEntry = {},
+                )
+            }
+        }
+        rule.onNodeWithTag("activity_sort_toggle").assertExists()
+        rule.onNodeWithTag("activity_sort_toggle").performClick()
+        rule.runOnIdle {
+            assertEquals(true, state.sortOldestFirst)
+            assertEquals("tx-1", state.visibleItems.first().id)
+            assertEquals("tx-24", state.visibleItems.last().id)
+        }
+        rule.onNodeWithText("Παλαιότερες πρώτα").assertExists()
+        rule.onNodeWithTag("activity_sort_toggle").performClick()
+        rule.runOnIdle {
+            assertEquals(false, state.sortOldestFirst)
+            assertEquals("tx-24", state.visibleItems.first().id)
+        }
     }
 
     @Test fun disjointSameDayAndMonthSectionsRetainAllRowsInOriginalOrder() {

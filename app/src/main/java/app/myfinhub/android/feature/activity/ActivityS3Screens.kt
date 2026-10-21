@@ -210,6 +210,29 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
+                // Keep short histories visually compact; expose Web-style date
+                // sorting and total/filtered counts for large real-bank ledgers.
+                if (state.items.size > 20) {
+                    item(key = "history-order-and-count") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                "Εμφανίζονται ${state.visibleItems.size} από ${state.items.size} κινήσεις",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            TextButton(
+                                onClick = { onAction(ActivityAction.ToggleSortDirection) },
+                                modifier = Modifier.testTag("activity_sort_toggle"),
+                            ) {
+                                Text(if (state.sortOldestFirst) "Παλαιότερες πρώτα" else "Νεότερες πρώτα")
+                            }
+                        }
+                    }
+                }
                 if (state.activeFilterCount > 0) {
                     item(key = "scope-summary") {
                         ActivityScopeSummary(state = state, onAction = onAction)
@@ -260,7 +283,10 @@ fun ActivityLedgerScreen(
                                 item = item,
                                 accountOptions = state.accountOptions,
                                 amountsVisible = amountsVisible,
-                                onClick = { onOpenDetail(item.id) },
+                                ambiguousIdentity = item.id in state.ambiguousIds,
+                                onClick = {
+                                    if (item.id !in state.ambiguousIds) onOpenDetail(item.id)
+                                },
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
@@ -390,6 +416,7 @@ private fun ActivityFlatLedgerRow(
     item: ActivityItem,
     accountOptions: List<ActivityAccountOption>,
     amountsVisible: Boolean,
+    ambiguousIdentity: Boolean,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -403,6 +430,7 @@ private fun ActivityFlatLedgerRow(
         else -> item.note
     }
     val meta = when {
+        ambiguousIdentity -> "Διπλό αναγνωριστικό · απαιτεί έλεγχο"
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
         item.isInternalTransfer() -> "Εσωτερική μεταφορά"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
