@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298, #299 and #300 passed all 4/4 immutable-head checks and squash merged into Android develop (latest a999690523fab347773c2777839d6280d320193f). PR #300 restored historic imported account lists and stable Web date/ID same-day ordering. Draft W4.4 PR #301 now propagates the canonical source route unmodified through transaction rows/details (including three-account imports and stale event hints), and matches Web detail category labels for imported, split, refund and hierarchical entries. Focused JVM cases staged; exact-head CI and physical S24 acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#301 passed all four final-head gates and merged Android develop 604666980f6dce565cf5136d2743329f069b7658. #301 restored canonical source account paths and read-first category fidelity. Draft #302 adds Web TransactionsPage independent full-month operational income/expense/net and prior-month percent/count comparisons to native Activity, preserving all-history browsing and active filters. Card-only events remain excluded from transaction counts. Source JSON and percentage regressions staged; CI and owner physical acceptance pending.
 
 ## Immediate work
 
-- Run exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator for draft W4.4 PR #301, which fixes read-first transaction detail account route and category labels while retaining synthetic preview wording. Fix any failing checks on the same PR and merge to develop only when all four gates pass. Then continue remaining W4.4 parity, current progress 1/6 implementations · 11/24 subtasks; no backend/Web/schema changes, production signing or publish, SMS import, permanent card deletion or live finance writes.
+- Validate #302 Web monthly operational flow and previous-month trend/count parity against canonical source, including future-dated current-month events, card-only count exclusion and full native ledger/filter isolation. Require Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator all green at immutable PR head. Correct failures within same PR, then merge; W4.4 incomplete, progress 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema changes, SMS import, permanent card deletion or production finance writes.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298, #299 and #300 passe
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #301, branch android/w4-4-read-first-detail-source-parity-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298, #299 and #300 merged with 4/4 final-head gates, current develop a999690523fab347773c2777839d6280d320193f. Draft PR #301 removes real transaction read-first route reconstruction that obscures Web legacy 3-account paths or invents stale event endpoint hints, and renders exact Web ledger category label in real transaction detail. Preview routes preserved, JVM tests staged; Android CI, screenshot and emulator checks pending. Owner physical S24 acceptance separate.
+Issue #155, PR #302, branch android/w4-4-monthly-ledger-overview-20261021
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298–#301 merged with four final-head green gates through develop 604666980f6dce565cf5136d2743329f069b7658. Draft #302 provides a separate full-month Web operational transaction summary and previous-month comparisons on native Activity without replacing multi-month/filtered ledger, with card-only count exclusion and fixtures. CI/S24/screenshots pending; physical owner approval separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24-target emulator for draft W4.4 PR #301, which fixes read-first transaction detail account route and category labels while retaining synthetic preview wording. Fix any failing checks on the same PR and merge to develop only when all four gates pass. Then continue remaining W4.4 parity, current progress 1/6 implementations · 11/24 subtasks; no backend/Web/schema changes, production signing or publish, SMS import, permanent card deletion or live finance writes.
+Next Validate #302 Web monthly operational flow and previous-month trend/count parity against canonical source, including future-dated current-month events, card-only count exclusion and full native ledger/filter isolation. Require Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator all green at immutable PR head. Correct failures within same PR, then merge; W4.4 incomplete, progress 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema changes, SMS import, permanent card deletion or production finance writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

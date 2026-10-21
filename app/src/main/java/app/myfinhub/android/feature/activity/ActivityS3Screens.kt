@@ -71,6 +71,7 @@ import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -198,6 +199,11 @@ fun ActivityLedgerScreen(
                         ) {
                             Text("Νέα κίνηση")
                         }
+                    }
+                }
+                state.monthOverview?.let { overview ->
+                    item(key = "monthly-overview") {
+                        ActivityMonthlyOverviewSurface(overview, amountsVisible)
                     }
                 }
                 item(key = "search") {
@@ -361,6 +367,71 @@ fun ActivityLedgerScreen(
                     onAction(ActivityAction.ClearFilters)
                     filterSheetOpen = false
                 },
+            )
+        }
+    }
+}
+
+
+/** Unfiltered Web month and previous-month comparisons, separate from
+ * the native long-history filtered amount summary. Hidden totals stay hidden.
+ */
+@Composable
+private fun ActivityMonthlyOverviewSurface(
+    overview: ActivityMonthlyOverview,
+    amountsVisible: Boolean,
+) {
+    val monthLabel = runCatching {
+        YearMonth.parse(overview.month).atDay(1)
+            .format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("el-GR")))
+    }.getOrDefault(overview.month)
+    fun trend(current: Double, previous: Double): String {
+        val change = activityMonthPercentChange(current, previous)
+            ?: return "— έναντι προηγ. μήνα"
+        val arrow = when {
+            change > 0 -> "↑"
+            change < 0 -> "↓"
+            else -> "→"
+        }
+        return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
+    }
+    val countChange = overview.transactionCount - overview.previousTransactionCount
+    val countComparison = if (countChange == 0) "→ ίδιο με προηγ. μήνα"
+        else "${if (countChange > 0) "↑" else "↓"} ${kotlin.math.abs(countChange)} από προηγ. μήνα"
+    Surface(
+        modifier = Modifier.fillMaxWidth()
+            .padding(bottom = MyFinHubSpacing.md)
+            .testTag("activity_monthly_overview"),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier.padding(MyFinHubSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+        ) {
+            Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Έσοδα: ${amountVisibilityText(formatSignedEuro(overview.income), amountsVisible)}" +
+                    " · Έξοδα: ${amountVisibilityText(formatSignedEuro(overview.expense), amountsVisible)}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                "Καθαρό αποτέλεσμα: ${amountVisibilityText(formatSignedEuro(overview.net), amountsVisible)}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (amountsVisible) {
+                Text(
+                    "Έσοδα: ${trend(overview.income, overview.previousIncome)}" +
+                        " · Έξοδα: ${trend(overview.expense, overview.previousExpense)}" +
+                        " · Καθαρό: ${trend(overview.net, overview.previousNet)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                "Συναλλαγές μήνα: ${overview.transactionCount} · $countComparison",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
