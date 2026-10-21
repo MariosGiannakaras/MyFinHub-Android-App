@@ -33,7 +33,14 @@ fun CanonicalFinanceDocument.flowBetween(
 }
 
 /** Exact signed expense contribution: refunds reduce the category total; IDs open full detail. */
-data class CategoryContribution(val transactionId: String, val category: String, val amount: Double)
+data class CategoryContribution(
+    val transactionId: String,
+    val category: String,
+    val amount: Double,
+    /** Physical effectiveLegacyTransactions/canonicalEvents row, not a globally unique ID. */
+    val sourceKind: String = "",
+    val sourceOrdinal: Int = -1,
+)
 
 fun CanonicalFinanceDocument.categoryTotalsBetween(
     startInclusive: String,
@@ -50,14 +57,16 @@ fun CanonicalFinanceDocument.categoryContributionsBetween(
     if (endInclusive < startInclusive) return emptyList()
 
     val contributions = mutableListOf<CategoryContribution>()
-    fun add(transactionId: String, category: String?, amount: Double) {
+    fun add(transactionId: String, category: String?, amount: Double, sourceKind: String, sourceOrdinal: Int) {
         val key = category?.takeIf(String::isNotEmpty) ?: "Άλλο"
-        contributions += CategoryContribution(transactionId, key, amount)
+        contributions += CategoryContribution(transactionId, key, amount, sourceKind, sourceOrdinal)
     }
 
-    effectiveLegacyTransactions()
-        .filter { it.date in startInclusive..endInclusive }
-        .forEach { tx ->
+    // Record the ordinal before the date filter: Activity projection consumes
+    // the full exact same canonical source lists and can match even when IDs
+    // repeat within legacy seed rows, events or across both sources.
+    effectiveLegacyTransactions().forEachIndexed { ordinal, tx ->
+            if (tx.date !in startInclusive..endInclusive) return@forEachIndexed
             val decision = insightsReviewDecision(tx.id)
             if (
                 decision?.string("status") == "confirmed" &&
@@ -68,29 +77,30 @@ fun CanonicalFinanceDocument.categoryContributionsBetween(
                     val part = rawPart as? JsonObject ?: return@forEach
                     val amount = part.number("amount") ?: return@forEach
                     when (part.string("kind") ?: "expense") {
-                        "expense" -> add(tx.id, part.string("category"), amount)
-                        "refund" -> add(tx.id, part.string("category"), -amount)
+                        "expense" -> add(tx.id, part.string("category"), amount, "legacy", ordinal)
+                        "refund" -> add(tx.id, part.string("category"), -amount, "legacy", ordinal)
                     }
                 }
             } else {
                 val impact = legacyFlowImpact(tx)
                 if (impact.expense != 0.0) {
                     add(tx.id, decision?.string("category")?.takeIf(String::isNotEmpty)
-                        ?: tx.category, impact.expense)
+                        ?: tx.category, impact.expense, "legacy", ordinal)
                 }
             }
         }
 
-    canonicalEvents()
-        .filter { it.date in startInclusive..endInclusive }
-        .forEach { event ->
-            if (event.kind == "split") {
-                event.parts.forEach { part -> add(event.id, part.category, part.amount) }
-            } else {
-                val impact = eventFlowImpact(event)
-                if (impact.expense != 0.0) add(event.id, event.category, impact.expense)
+    canonicalEvents().forEachIndexed { ordinal, event ->
+        if (event.date !in startInclusive..endInclusive) return@forEachIndexed
+        if (event.kind == "split") {
+            event.parts.forEach { part -> add(event.id, part.category, part.amount, "event", ordinal) }
+        } else {
+            val impact = eventFlowImpact(event)
+            if (impact.expense != 0.0) {
+                add(event.id, event.category, impact.expense, "event", ordinal)
             }
         }
+    }
 
     return contributions
 }

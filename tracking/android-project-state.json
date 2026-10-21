@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #292 real canonical duplicate-ID mutation guard, direct-route safety and privacy-safe filtered totals passed 4/4 immutable-head CI gates at 684e3d95e5abfac40df556d98fc2f88695e93b79 and squash merged develop dc6396037eca5dd13bac3e7b948b18a050a12edd. Draft PR #293 brings exact Web Transactions historical daily as-of account balance into native Activity read-first detail: first real account in legacy/event leg order, excludes synthetic credit/pending/unknown/invalid dates, uses device-wide amount privacy and lazy per-detail computation (never per-row O(n²) list work). Real canonical multi-day fixture tests and production Compose detail golden staged; final-head CI pending, W4.4 still incomplete.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #293 historical as-of-date account balance in Activity detail passed exact-head 4/4 Project Tracking, Android CI optimized unsigned, screenshots and S24 emulator at e6c061f0aaeec94eda5d4050516adb744539cda0 and squash merged develop d5e223e2685fa3007761b307ad0bf2981e1580c0. Draft PR #294 repairs a confirmed financial projection correctness issue: legacy duplicate IDs and legacy/event ID collisions were joined by bare ID, causing other row amounts and category contributions to overwrite or multiply on Activity/Analytics. New source-kind plus original canonical source ordinal attribution preserves each row's own signed flow, category and date-filter identity without mutating any canonical finance data or disabling duplicate-ID action guards. Golden canonical multi-source date-filter JVM regression tests included; exact-head 4/4 CI pending. W4.4 partial, physical owner signoff pending.",
     "next": [
-      "Validate draft PR #293 immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator; fix on same PR and squash merge only after all 4/4 green. Continue grouped real Web history/analytics parity fixes; keep 1/6 implementations and 11/24 subtasks until whole stages completed. No physical owner signoff, signed release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data writes."
+      "Validate draft PR #294 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator; correct any failures on same PR, merge only 4/4 green. Keep grouped multi-fix parity work and conservative 1/6 implementations, 11/24 subtasks until complete. No physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or live finance history mutations."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-historical-account-balance-read-detail-20261021",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #292 durable mutation safety and signed filtered UX passed all four exact-head gates at 684e3d95e5abfac40df556d98fc2f88695e93b79 and merged develop dc6396037eca5dd13bac3e7b948b18a050a12edd. Draft #293 adds Web exact as-of transaction-date account balance to read-first native detail, first real non-credit account and event legs, skips pending/invalid dates/unknown, masks amount and computes only on opened detail. JVM cross-date golden + production Compose detail test added, CI pending; W4.4 partial.",
+    "branch": "android/w4-4-canonical-row-identity-financial-analytics-20261021",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 completed subtasks. PR #293 Web as-of historical account balance passed four immutable-head CI checks at e6c061f0aaeec94eda5d4050516adb744539cda0, merged develop d5e223e2685fa3007761b307ad0bf2981e1580c0. Draft PR #294 repairs canonical Activity/Analytics duplicate-ID finance attribution: per-source original effective legacy/event ordinal replaces last-write-wins ID maps for each transaction's signed income, expense and exact category contribution; range filtering preserves ordinals and avoids legacy/event collisions; flow reconciliation tests in core and app. No finance writes, W4.4 still in progress. Exact-head CI pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -948,7 +948,8 @@
               "PR #289 signed finance impact and split search passed four immutable-head CI checks at e09bbfcd8d80427c5b165e957db080c511f50280 and squash merged develop 22cb65dd86e4e575422464e1e0eb4faa401f7f57. Draft PR #290 groups duplicate-ID safety, historical override provenance, multiline note presentation and split part count into a single checkpoint, with JVM canonical and real Compose tests pending; no completion credit.",
               "PR #290 multi-fix duplicate historical ID display, override provenance, Web noteParts and canonical split count passed immutable-head 4/4 gates at 198b7d8bc9039504c80aa8374409ab0d0a93c422 and squash merged develop a2960ac28eaf8ea5d111e8da348a4bf7e63f66b5. Draft #291 batches long-ledger oldest/newest Web sorting, total/filtered count, projection/analytics isolation, and fail-closed duplicate-ID mutation/detail guards with JVM and Compose instrumentation; pending gates.",
               "PR #291 long-ledger sort/count and preview duplicate-ID guards passed all 4 immutable-head CI gates at cef927949505a01256ea065b34f94417d9b32281 and squash merged develop ab907122b3340a83bc8d06202bd9287184f9625c. Draft PR #292 batches production mutation dispatch duplicate-ID safety, direct detail/edit route safety, single-step Web reset, and privacy-safe signed filtered flow summary. Kotlin/JVM and real Compose tests pending immutable-head CI; no W4.4 completion credit.",
-              "PR #292 real durable finance mutation ID safeguards and filter totals passed all immutable head CI at 684e3d95e5abfac40df556d98fc2f88695e93b79 and merged develop dc6396037eca5dd13bac3e7b948b18a050a12edd. Draft PR #293 adds exact Web historical as-of-date account balance only on transaction read detail with privacy, non-credit filtering and canonical multi-day/JVM/Compose tests, CI pending; W4.4 not completed."
+              "PR #292 real durable finance mutation ID safeguards and filter totals passed all immutable head CI at 684e3d95e5abfac40df556d98fc2f88695e93b79 and merged develop dc6396037eca5dd13bac3e7b948b18a050a12edd. Draft PR #293 adds exact Web historical as-of-date account balance only on transaction read detail with privacy, non-credit filtering and canonical multi-day/JVM/Compose tests, CI pending; W4.4 not completed.",
+              "PR #293 exact Web as-of account balance passed immutable-head 4/4 CI at e6c061f0aaeec94eda5d4050516adb744539cda0 and merged develop d5e223e2685fa3007761b307ad0bf2981e1580c0. Draft PR #294 fixes signed finance/category analytics attribution for duplicate import IDs, cross legacy/event ID collision, date-bound source-ordinal lookup with canonical financial JVM regressions; pending CI and no W4.4 completion credit."
             ]
           }
         ]
@@ -1070,9 +1071,9 @@
         ]
       }
     ],
-    "next_action": "Validate draft PR #293 immutable-head Project Tracking, Android CI unit/lint/unsigned optimized release, screenshot regression and S24 emulator; fix on same PR and squash merge only after all 4/4 green. Continue grouped real Web history/analytics parity fixes; keep 1/6 implementations and 11/24 subtasks until whole stages completed. No physical owner signoff, signed release, Web/backend/schema changes, SMS import, permanent card deletion or finance-data writes.",
+    "next_action": "Validate draft PR #294 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator; correct any failures on same PR, merge only 4/4 green. Keep grouped multi-fix parity work and conservative 1/6 implementations, 11/24 subtasks until complete. No physical S24 Ultra signoff, signed release, Web/backend/schema edits, SMS import, permanently guarded card deletion or live finance history mutations.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 293,
+    "pr": 294,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
