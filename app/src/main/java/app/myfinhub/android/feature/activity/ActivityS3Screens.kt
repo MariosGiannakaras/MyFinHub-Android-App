@@ -216,7 +216,7 @@ fun ActivityLedgerScreen(
                 }
                 // Keep short histories visually compact; expose Web-style date
                 // sorting and total/filtered counts for large real-bank ledgers.
-                if (state.items.size > 20) {
+                if (state.webLedgerItems.size > 20) {
                     item(key = "history-order-and-count") {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -224,7 +224,7 @@ fun ActivityLedgerScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "Εμφανίζονται ${state.visibleItems.size} από ${state.items.size} κινήσεις",
+                                "Εμφανίζονται ${state.visibleItems.size} από ${state.webLedgerItems.size} κινήσεις",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -246,7 +246,7 @@ fun ActivityLedgerScreen(
                             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
                             Text(
-                                "Βρέθηκαν ${state.visibleItems.size} από ${state.items.size} κινήσεις",
+                                "Βρέθηκαν ${state.visibleItems.size} από ${state.webLedgerItems.size} κινήσεις",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             Text(
@@ -271,7 +271,7 @@ fun ActivityLedgerScreen(
             }
 
             when {
-                state.items.isEmpty() -> {
+                state.scopeSourceItems.isEmpty() -> {
                     item(key = "empty-ledger") {
                         ActivityEmptyState(
                             title = "Δεν υπάρχουν καταχωρισμένες κινήσεις.",

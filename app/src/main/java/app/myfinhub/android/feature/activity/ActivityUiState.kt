@@ -155,6 +155,19 @@ data class ActivityUiState(
     fun uniqueItem(id: String?): ActivityItem? = id?.takeIf(::isUniqueMutationTarget)
         ?.let { exact -> items.firstOrNull { it.id == exact } }
 
+    /**
+     * Web TransactionsPage sourceRows deliberately excludes canonical card_purchase
+     * and card_payment events. Both remain in the canonical document and the
+     * dedicated card activity, and category Analytics must still be able to
+     * drill into purchase contributions. Hand-authored preview rows with no
+     * source ordinal remain visible only as illustrative screen fixtures.
+     */
+    val webLedgerItems: List<ActivityItem> = items.filter { item ->
+        item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ||
+            item.canonicalKind !in setOf("card_purchase", "card_payment")
+    }
+    val scopeSourceItems: List<ActivityItem> = if (isAnalyticsScope) items else webLedgerItems
+
     // Web TransactionsPage: available taxonomy paths plus historic *display*
     // labels. The main ledger is different from category analytics contribution
     // drill-downs: a split belongs under "Επιμέρους κατηγορίες" in the ledger.
@@ -165,15 +178,17 @@ data class ActivityUiState(
                 add("${option.name} › $subcategory")
             }
         }
-        items.forEach { item -> add(item.webLedgerCategoryLabel()) }
+        webLedgerItems.forEach { item -> add(item.webLedgerCategoryLabel()) }
     }.distinct().sortedWith(String.CASE_INSENSITIVE_ORDER)
 
     val typeOptions: List<ActivityTypeOption> = buildList {
-        items.forEach { item ->
+        webLedgerItems.forEach { item ->
             add(ActivityTypeOption(item.canonicalKind, item.typeLabel))
         }
         typeFilterId?.takeIf(String::isNotBlank)?.let { selected ->
-            if (none { it.id == selected }) add(ActivityTypeOption(selected, activityTypeLabel(selected)))
+            if (selected !in setOf("card_purchase", "card_payment") &&
+                none { it.id == selected }
+            ) add(ActivityTypeOption(selected, activityTypeLabel(selected)))
         }
     }.filter { it.id.isNotBlank() }
         .distinctBy(ActivityTypeOption::id)
@@ -192,11 +207,10 @@ data class ActivityUiState(
     // state instance instead of re-filtering every time Compose reads them.
     val visibleItems: List<ActivityItem> = run {
         val needle = query.trim()
-        val normalizedNumericNeedle = needle.replace(',', '.')
         val selectedAnalyticsCategories = categoryFilterIds.orEmpty()
         val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
         val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
-        val matching = items.filter { item ->
+        val matching = scopeSourceItems.filter { item ->
             val matchesFilter = typeFilterId?.let { item.canonicalKind == it } ?: when (filter) {
                 ActivityFilter.ALL -> true
                 ActivityFilter.EXPENSE -> item.kind == ActivityKind.EXPENSE || item.kind == ActivityKind.CARD_PAYMENT
@@ -208,7 +222,6 @@ data class ActivityUiState(
                 item.fromAccountId == accountFilterId ||
                 item.toAccountId == accountFilterId ||
                 item.legAccountIds.contains(accountFilterId)
-            val searchableAmount = item.amount.toString()
             val matchesQuery = needle.isBlank() ||
                 item.title.contains(needle, ignoreCase = true) ||
                 item.subtitle.contains(needle, ignoreCase = true) ||
@@ -226,8 +239,7 @@ data class ActivityUiState(
                     part.label.contains(needle, ignoreCase = true) ||
                         part.category.contains(needle, ignoreCase = true) ||
                         part.subcategory?.contains(needle, ignoreCase = true) == true
-                } ||
-                searchableAmount.contains(normalizedNumericNeedle, ignoreCase = true)
+                }
             val matchesCategory = when {
                 !isAnalyticsScope -> ledgerCategoryFilter == null ||
                     item.webLedgerCategoryLabel() == ledgerCategoryFilter

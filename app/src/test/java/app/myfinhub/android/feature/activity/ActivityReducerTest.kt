@@ -636,6 +636,55 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun actualCardEventsStayOutOfWebLedgerButRemainInSignedAnalytics() {
+        val cardPurchase = ActivityItem("purchase", "10 Σεπ", ActivityKind.EXPENSE,
+            "Αγορά", "", -25.0, "Κάρτα", "Τρόφιμα",
+            rawDate = "2026-09-10", canonicalKind = "card_purchase",
+            canonicalSourceOrdinal = 0, categoryContributions = mapOf("Τρόφιμα" to 25.0),
+            financeIncomeContribution = 0.0, financeExpenseContribution = 25.0)
+        val cardPayment = ActivityItem("payment", "10 Σεπ", ActivityKind.CARD_PAYMENT,
+            "Πληρωμή πιστωτικής", "", -25.0, "Μισθοδοσία", "Κάρτες",
+            rawDate = "2026-09-10", canonicalKind = "card_payment",
+            canonicalSourceOrdinal = 1, financeIncomeContribution = 0.0,
+            financeExpenseContribution = 0.0)
+        val ordinary = ActivityItem("cash", "9 Σεπ", ActivityKind.EXPENSE,
+            "Καφές", "", -5.0, "Μετρητά", "Τρόφιμα",
+            rawDate = "2026-09-09", canonicalSourceOrdinal = 2,
+            financeIncomeContribution = 0.0, financeExpenseContribution = 5.0)
+        val state = ActivityUiState(items = listOf(cardPayment, cardPurchase, ordinary))
+        assertEquals(3, state.items.size)
+        assertEquals(listOf("cash"), state.webLedgerItems.map { it.id })
+        assertEquals(listOf("cash"), state.visibleItems.map { it.id })
+        assertEquals(5.0, state.visibleExpense, 0.001)
+        assertEquals(1, state.scopeSourceItems.size)
+        assertFalse(state.typeOptions.any { it.id in setOf("card_purchase", "card_payment") })
+        assertFalse(state.availableCategories.contains("Κάρτες"))
+        assertTrue(state.copy(query = "πιστωτικής").visibleItems.isEmpty())
+        assertTrue(state.copy(typeFilterId = "card_payment").visibleItems.isEmpty())
+        val analytics = state.forCategory("Τρόφιμα", "2026-09-01", "2026-09-30")
+        assertEquals(listOf("purchase", "cash"), analytics.visibleItems.map { it.id })
+        assertEquals(30.0, analytics.visibleExpense, 0.001)
+        assertEquals(25.0, analytics.visibleItems.first().financeExpenseContribution!!, 0.001)
+        assertEquals(3, analytics.scopeSourceItems.size)
+        // Card-specific read/detail routes still retain original identity.
+        assertEquals(cardPurchase, state.uniqueItem("purchase"))
+    }
+
+    @Test
+    fun amountSearchCannotInferPrivateBalancesThroughHiddenLedgerRows() {
+        val state = ActivityUiState(items = listOf(
+            ActivityItem("private", "10 Σεπ", ActivityKind.EXPENSE,
+                "Βιβλίο", "Αγορά βιβλίου", -63.48, "Μετρητά", "Εκπαίδευση",
+                rawDate = "2026-09-10", canonicalSourceOrdinal = 0),
+        ))
+        assertTrue(state.copy(query = "63,48").visibleItems.isEmpty())
+        assertTrue(state.copy(query = "63.48").visibleItems.isEmpty())
+        assertEquals(listOf("private"), state.copy(query = "βιβλίου").visibleItems.map { it.id })
+        assertEquals(listOf("private"), state.copy(query = "Εκπαίδευση").visibleItems.map { it.id })
+        assertEquals(-63.48, state.items.single().amount, 0.001)
+    }
+
+    @Test
     fun canonicalTypeFilter_distinguishesCardPurchaseFromCardPayment() {
         val state = ActivityUiState(
             items = listOf(
@@ -667,10 +716,14 @@ class ActivityReducerTest {
     }
 
     @Test
-    fun search_acceptsGreekDecimalSeparator() {
+    fun searchDoesNotExposeAmountsAbsentFromWebTextIndex() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.QueryChanged("63,48"))
-
-        assertEquals(listOf("evt-1"), state.visibleItems.map { it.id })
+        // The preview includes a 63.48 transaction, but Web indexes only the
+        // note, kind and taxonomy, not potentially hidden monetary values.
+        assertTrue(state.visibleItems.isEmpty())
+        assertEquals(listOf("evt-1"),
+            reduceActivity(ActivityUiState(), ActivityAction.QueryChanged("τρόφιμα"))
+                .visibleItems.map { it.id })
     }
 
     @Test

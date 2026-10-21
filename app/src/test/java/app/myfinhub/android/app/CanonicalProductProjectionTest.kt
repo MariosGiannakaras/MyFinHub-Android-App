@@ -158,6 +158,11 @@ class CanonicalProductProjectionTest {
         val retainedPurchase = afterProjection.activityState.items.first { it.id == "old-purchase" }
         assertEquals("card_purchase", retainedPurchase.canonicalKind)
         assertEquals("Αγορά με κάρτα", retainedPurchase.typeLabel)
+        assertTrue(afterProjection.activityState.visibleItems.none {
+            it.canonicalKind == "card_purchase" || it.canonicalKind == "card_payment"
+        })
+        assertTrue(after.cards.any { card -> card.activity.any { it.id == "new-purchase" } })
+        assertTrue(after.cards.any { card -> card.activity.any { it.id == "payment" } })
         assertEquals("old", retainedPurchase.cardId)
         assertEquals("Κάρτα", retainedPurchase.cardLabel)
     }
@@ -209,8 +214,10 @@ class CanonicalProductProjectionTest {
         assertEquals("Μετρητά → Μισθοδοσία", transfer.accountLabel)
         assertEquals(listOf("leg-transfer"),
             ledger.copy(accountFilterId = "cash").visibleItems.map { it.id })
-        assertEquals(listOf("explicit-route", "card-pay", "leg-transfer"),
+        assertEquals(listOf("explicit-route", "leg-transfer"),
             ledger.copy(accountFilterId = "payroll").visibleItems.map { it.id })
+        assertEquals(3, ledger.items.size)
+        assertEquals(2, ledger.webLedgerItems.size)
 
         val payment = ledger.items.first { it.id == "card-pay" }
         assertEquals("Μισθοδοσία", payment.accountLabel)
@@ -550,7 +557,7 @@ class CanonicalProductProjectionTest {
         assertEquals("Τρόφιμα", refreshed.activityState.ledgerCategoryFilter)
         assertEquals("2026-08-02", refreshed.activityState.ledgerDateFrom)
         assertEquals("2026-08-22", refreshed.activityState.ledgerDateTo)
-        assertEquals("card_purchase", refreshed.activityState.typeFilterId)
+        assertNull(refreshed.activityState.typeFilterId)
         assertEquals("Τρόφιμα", refreshed.activityState.categoryFilter)
         assertEquals("2026-08-01", refreshed.activityState.dateFrom)
         assertEquals("2026-08-23", refreshed.activityState.dateTo)
