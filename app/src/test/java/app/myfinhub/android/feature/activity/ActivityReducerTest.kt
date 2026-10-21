@@ -731,14 +731,14 @@ class ActivityReducerTest {
             splitParts = listOf(ActivitySplitPart("Λεωφορείο", "Μεταφορές", "Εισιτήρια", 8.0)),
             canonicalSourceOrdinal = 1)
         val state = ActivityUiState(items = listOf(row, split))
-        listOf("Καφές", "ΣΥΝΑΝΤΗΣΗΣ", "Τρόφιμα", "Ροφήματα", "expense").forEach { q ->
+        listOf("Καφές", "ΣΥΝΆΝΤΗΣΗΣ", "Τρόφιμα", "Ροφήματα", "expense").forEach { q ->
             assertEquals("query=$q", listOf("real"), state.copy(query = q).visibleItems.map { it.id })
         }
         listOf("λεωφορείο", "Μεταφορές", "Εισιτήρια").forEach { q ->
             assertEquals("query=$q", listOf("split"), state.copy(query = q).visibleItems.map { it.id })
         }
         listOf("Μυστικός", "2026-10-21", "21 Οκτ", "Αποκλειστικός",
-            "Υπότιτλος", "Προβολή εξόδων", "Έξοδα", "63.48", "63,48",
+            "Υπότιτλος", "Προβολή εξόδων", "Έξοδα", "ΣΥΝΑΝΤΗΣΗΣ", "63.48", "63,48",
         ).forEach { q ->
             assertTrue("Not indexed on Web: $q", state.copy(query = q).visibleItems.isEmpty())
         }
