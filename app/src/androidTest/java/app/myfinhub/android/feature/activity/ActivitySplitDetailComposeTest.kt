@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,6 +43,34 @@ class ActivitySplitDetailComposeTest {
             .performScrollToNode(hasText("Μεταφορές › Εισιτήριο"))
         rule.onNodeWithText("Μεταφορές › Εισιτήριο").assertIsDisplayed()
         rule.onNodeWithText("Σνακ").assertExists()
+    }
+
+    @Test fun reviewedRefundShowsPositiveAmountOnRealDetailEvenWhenOriginalBankExpenseIsNegative() {
+        // Amount visibility defaults to hidden for user privacy. Explicitly
+        // enable it for this display-sign assertion and restore the original
+        // device-local test preference even when an assertion fails.
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val wasVisible = AmountVisibilityPreference.read(context)
+        try {
+            AmountVisibilityPreference.write(context, true)
+            val refund = ActivityItem(
+                "reviewed", "21 Οκτ", ActivityKind.EXPENSE, "Επιστροφή αγοράς",
+                "", -35.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-21",
+                financeIncomeContribution = 0.0, financeExpenseContribution = -35.0,
+            )
+            rule.setContent {
+                MyFinHubTheme {
+                    ActivityReadDetailScreen(
+                        item = refund, accountOptions = emptyList(), mutationBlocked = false,
+                        onBack = {}, onEdit = {}, onDelete = {}, onDeleted = {},
+                    )
+                }
+            }
+            rule.onNodeWithText(formatSignedEuro(35.0)).assertIsDisplayed()
+            rule.onNodeWithText(formatSignedEuro(-35.0)).assertDoesNotExist()
+        } finally {
+            AmountVisibilityPreference.write(context, wasVisible)
+        }
     }
 
     @Test fun withdrawalDetailIsNeverMislabelledAsInternalTransfer() {

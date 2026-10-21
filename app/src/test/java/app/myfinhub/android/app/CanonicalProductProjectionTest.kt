@@ -161,6 +161,45 @@ class CanonicalProductProjectionTest {
     }
 
     @Test
+    fun reviewedLegacyRefundAndZeroImpactWithdrawalUseWebDisplayNotRawExpenseSign() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"refund","type":"expense","date":"2026-10-09",
+                 "amount":35,"accountId":"cash","category":"Τρόφιμα"},
+                {"id":"withdrawal","type":"expense","date":"2026-10-10",
+                 "amount":20,"accountId":"cash","category":"Μετρητά"},
+                {"id":"spend","type":"expense","date":"2026-10-11",
+                 "amount":15,"accountId":"cash","category":"Τρόφιμα"}
+              ]},"state":{"reviewDecisions":{
+                "refund":{"status":"confirmed","semanticKind":"refund"},
+                "withdrawal":{"status":"confirmed","semanticKind":"withdrawal"}
+              },"events":[{"id":"split","kind":"split","date":"2026-10-12","amount":30,
+                "parts":[{"id":"first","label":"Πρωινό","category":"Τρόφιμα",
+                          "subcategory":"Καφές","amount":8},
+                         {"id":"second","label":"Εισιτήριο","category":"Μεταφορές",
+                          "subcategory":"Λεωφορείο","amount":22}]}]}}
+        """.trimIndent()).jsonObject)
+        val activity = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21)).activityState
+        val refund = activity.items.first { it.id == "refund" }
+        assertEquals(-35.0, refund.amount, 0.001)
+        assertEquals(-35.0, refund.financeExpenseContribution!!, 0.001)
+        assertEquals(app.myfinhub.android.feature.activity.formatSignedEuro(35.0),
+            app.myfinhub.android.feature.activity.formatActivityFlowEuro(refund))
+        val withdrawal = activity.items.first { it.id == "withdrawal" }
+        assertEquals(0.0, withdrawal.financeExpenseContribution!!, 0.001)
+        assertEquals(app.myfinhub.android.feature.activity.formatSignedEuro(20.0).removePrefix("+"),
+            app.myfinhub.android.feature.activity.formatActivityFlowEuro(withdrawal))
+        assertEquals(app.myfinhub.android.feature.activity.formatSignedEuro(-15.0),
+            app.myfinhub.android.feature.activity.formatActivityFlowEuro(
+                activity.items.first { it.id == "spend" }))
+        assertEquals(listOf("split"), activity.copy(query = "Λεωφορείο").visibleItems.map { it.id })
+        assertEquals(listOf("split"), activity.copy(query = "Πρωινό").visibleItems.map { it.id })
+        assertEquals(10.0, activity.visibleExpense, 0.001)
+        assertEquals(-10.0, activity.visibleNet, 0.001)
+    }
+
+    @Test
     fun canonicalDocument_projectsAcrossAllProductDestinations() {
         val projection = projectCanonicalProduct(
             document = canonicalFixture(),

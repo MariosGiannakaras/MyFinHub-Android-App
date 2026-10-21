@@ -113,6 +113,48 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun searchIncludesSplitPartLabelsCategoriesAndSubcategories() {
+        val split = ActivityItem(
+            "split", "21 Οκτ", ActivityKind.EXPENSE, "Σύνθετη κίνηση", "",
+            -30.0, "Μετρητά", "Διαχωρισμός", rawDate = "2026-10-21",
+            canonicalKind = "split", splitParts = listOf(
+                ActivitySplitPart("Πρωινό σνακ", "Τρόφιμα", "Καφές", 8.0),
+                ActivitySplitPart("Εισιτήριο", "Μεταφορές", "Λεωφορείο", 22.0),
+            ),
+        )
+        val normal = ActivityItem("normal", "21 Οκτ", ActivityKind.EXPENSE,
+            "Βιβλίο", "", -12.0, "Μετρητά", "Εκπαίδευση", rawDate = "2026-10-21")
+        val state = ActivityUiState(items = listOf(split, normal))
+        listOf("πρωινό", "ΚΑΦΈΣ", "Εισιτήριο", "ΜΕΤΑΦΟΡΈΣ", "λεωφορείο").forEach { value ->
+            assertEquals("query=$value", listOf("split"),
+                state.copy(query = value).visibleItems.map { it.id })
+        }
+        assertEquals(listOf("normal"), state.copy(query = "Εκπαίδευση").visibleItems.map { it.id })
+        assertTrue(state.copy(query = "Εκδρομή").visibleItems.isEmpty())
+        assertEquals(2, state.items.size)
+    }
+
+    @Test
+    fun webFlowDrivenDisplayRefundExpenseNeutralAndTransferPreservesUnderlyingAmount() {
+        fun row(id: String, canonical: String, amount: Double, income: Double, expense: Double) =
+            ActivityItem(id, "21 Οκτ", ActivityKind.EXPENSE, id, "", amount,
+                "Μετρητά", null, canonicalKind = canonical,
+                financeIncomeContribution = income, financeExpenseContribution = expense)
+        val refund = row("refund", "expense", -35.0, 0.0, -35.0)
+        val spend = row("spend", "expense", -15.0, 0.0, 15.0)
+        val neutral = row("neutral", "expense", -20.0, 0.0, 0.0)
+        val transfer = row("transfer", "transfer", 40.0, 0.0, 0.0)
+        assertEquals(formatSignedEuro(35.0), formatActivityFlowEuro(refund))
+        assertEquals(formatSignedEuro(-15.0), formatActivityFlowEuro(spend))
+        assertEquals(formatSignedEuro(20.0).removePrefix("+"), formatActivityFlowEuro(neutral))
+        assertTrue(formatActivityFlowEuro(transfer).startsWith("↔ "))
+        assertEquals(-35.0, refund.amount, 0.001)
+        assertEquals(-35.0, refund.financeExpenseContribution!!, 0.001)
+        assertEquals(formatSignedEuro(-8.0), formatActivityFlowEuro(
+            ActivityItem("fixture", "", ActivityKind.EXPENSE, "", "", -8.0, "", null)))
+    }
+
+    @Test
     fun groupingManySameDayItemsRetainsRowOrderAndDoesNotChangeCanonicalItems() {
         val originals = (0 until 1000).map { index ->
             ActivityItem(
