@@ -149,14 +149,18 @@ fun projectCanonicalProduct(
     val id = event.string("id") ?: return@mapNotNull null
     id to (event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty())
 }.toMap()
-val contributionsById = document.categoryContributionsBetween("0001-01-01", "9999-12-31")
-    .groupBy { it.transactionId }
-val signedFlowById = legacy.map { tx ->
+// Never key financial metadata by a bare ID. Canonical seed rows can share an
+// ID, and a legacy ID can collide with an event ID. Such a join incorrectly
+// multiplies another row's expense and corrupts Activity/Analytics reports.
+val contributionsBySource = document.categoryContributionsBetween("0001-01-01", "9999-12-31")
+    .groupBy { it.sourceKind to it.sourceOrdinal }
+val legacySignedFlow = legacy.map { tx ->
     val impact = document.legacyFlowImpact(tx)
-    tx.id to (impact.income to impact.expense)
-}.toMap() + events.associate { event ->
+    impact.income to impact.expense
+}
+val eventSignedFlow = events.map { event ->
     val impact = eventFlowImpact(event)
-    event.id to (impact.income to impact.expense)
+    impact.income to impact.expense
 }
 val activityCardLabels = document.canonicalCards().associate { card ->
     val base = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } }
@@ -167,11 +171,17 @@ val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmp
 val activityItems = buildActivityItems(
     legacy, events, accountNames, eventChronology, activityCardLabels, legacyOverrideIds,
 ).map { item ->
+    val sourceKind = if (item.isLegacyTransaction) "legacy" else "event"
+    val signed = if (item.isLegacyTransaction) {
+        legacySignedFlow.getOrNull(item.canonicalSourceOrdinal)
+    } else {
+        eventSignedFlow.getOrNull(item.canonicalSourceOrdinal)
+    }
     item.copy(
-        categoryContributions = contributionsById[item.id].orEmpty()
+        categoryContributions = contributionsBySource[sourceKind to item.canonicalSourceOrdinal].orEmpty()
             .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } },
-        financeIncomeContribution = signedFlowById[item.id]?.first,
-        financeExpenseContribution = signedFlowById[item.id]?.second,
+        financeIncomeContribution = signed?.first,
+        financeExpenseContribution = signed?.second,
     )
 }
 
@@ -508,6 +518,7 @@ private fun buildActivityItems(
                     canonicalKind = tx.type,
                     typeLabel = activityTypeLabel(tx.type),
                     isLegacyTransaction = true,
+                    canonicalSourceOrdinal = index,
                     isLegacyOverridden = tx.id in legacyOverrideIds,
                 ),
             ))
@@ -546,6 +557,7 @@ private fun buildActivityItems(
                     cardId = event.cardId,
                     cardLabel = event.cardId?.let(cardLabels::get),
                     canonicalKind = event.kind,
+                    canonicalSourceOrdinal = index,
                     typeLabel = activityTypeLabel(event.kind),
                     legAccountIds = legAccounts.toSet(),
                     splitParts = if (event.kind == "split") event.parts.map { part ->

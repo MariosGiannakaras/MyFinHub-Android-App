@@ -21,6 +21,50 @@ import org.junit.Test
 
 class CanonicalProductProjectionTest {
     @Test
+    fun duplicatedSeedAndEventIdsKeepEachOwnSignedFlowAndAnalyticsCategoryAmounts() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+            "transactions":[
+              {"id":"same","type":"expense","date":"2026-10-03","amount":5,
+               "category":"Τρόφιμα","accountId":"cash"},
+              {"id":"same","type":"expense","date":"2026-10-04","amount":10,
+               "category":"Μεταφορές","accountId":"cash"}
+            ]},"state":{"events":[
+              {"id":"same","kind":"refund","date":"2026-10-05","amount":4,
+               "category":"Τρόφιμα"},
+              {"id":"unique","kind":"income","date":"2026-10-06","amount":100}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 21)).activityState
+        val rows = state.items.filter { it.id == "same" }.sortedBy { it.rawDate }
+        assertEquals(3, rows.size)
+        assertEquals(listOf(true, true, false), rows.map { it.isLegacyTransaction })
+        assertEquals(listOf(0, 1, 0), rows.map { it.canonicalSourceOrdinal })
+        assertEquals(listOf(5.0, 10.0, -4.0), rows.map { it.financeExpenseContribution })
+        assertEquals(listOf(mapOf("Τρόφιμα" to 5.0),
+            mapOf("Μεταφορές" to 10.0), mapOf("Τρόφιμα" to -4.0)),
+            rows.map { it.categoryContributions })
+        assertEquals(11.0, state.visibleExpense, 0.001)
+        assertEquals(100.0, state.visibleIncome, 0.001)
+        assertEquals(89.0, state.visibleNet, 0.001)
+        assertFalse(state.isUniqueMutationTarget("same"))
+        assertTrue(state.isUniqueMutationTarget("unique"))
+        assertEquals(1.0, doc.categoryTotalsBetween("2026-10-01","2026-10-31")
+            .getValue("Τρόφιμα"), 0.001)
+        val food = state.forCategory("Τρόφιμα", "2026-10-01", "2026-10-31")
+        assertEquals(listOf("same", "same"), food.visibleItems.map { it.id })
+        assertEquals(listOf(-5.0, 4.0),
+            food.visibleItems.sortedBy { it.rawDate }.map { it.amount })
+        assertEquals(1.0, food.visibleExpense, 0.001)
+        assertEquals(10.0, state.forCategory("Μεταφορές", "2026-10-01","2026-10-31")
+            .visibleExpense, 0.001)
+        assertEquals(4, state.items.size)
+        // No money is changed, even though two imported rows and one event
+        // have the exact same server-visible ID.
+        assertEquals(89.0, doc.flowBetween("2026-10-01", "2026-10-31").net, 0.001)
+    }
+
+    @Test
     fun historicalBalanceUsesWebExactAccountAndTransactionDateRatherThanToday() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{"accounts":[

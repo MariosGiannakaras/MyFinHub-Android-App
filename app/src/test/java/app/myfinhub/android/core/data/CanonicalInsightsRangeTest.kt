@@ -8,6 +8,27 @@ import kotlinx.serialization.json.jsonObject
 
 class CanonicalInsightsRangeTest {
     @Test
+    fun categoryContributionsTrackOriginalOrdinalsAcrossDateFiltersAndDuplicateIds() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"transactions":[
+            {"id":"same","type":"expense","date":"2026-09-01","amount":2,"category":"Α"},
+            {"id":"same","type":"expense","date":"2026-10-02","amount":5,"category":"Β"},
+            {"id":"same","type":"expense","date":"2026-10-03","amount":10,"category":"Γ"}
+          ]},"state":{"events":[
+            {"id":"same","kind":"refund","date":"2026-10-04","amount":3,"category":"Β"},
+            {"id":"same","kind":"expense","date":"2026-10-05","amount":7,"category":"Α"}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val oct = doc.categoryContributionsBetween("2026-10-01", "2026-10-31")
+        assertEquals(listOf("legacy", "legacy", "event", "event"), oct.map { it.sourceKind })
+        assertEquals(listOf(1, 2, 0, 1), oct.map { it.sourceOrdinal })
+        assertEquals(listOf("Β", "Γ", "Β", "Α"), oct.map { it.category })
+        assertEquals(listOf(5.0, 10.0, -3.0, 7.0), oct.map { it.amount })
+        assertEquals(19.0, doc.flowBetween("2026-10-01", "2026-10-31").expense, 0.001)
+        assertEquals(2.0, doc.categoryTotalsBetween("2026-10-01", "2026-10-31").getValue("Β"), 0.001)
+    }
+
+    @Test
     fun contributionsIncludeOnlyActualCategoryPartsAndRefunds() {
         val split = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{},"state":{"events":[

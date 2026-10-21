@@ -52,6 +52,8 @@ data class ActivityItem(
     val legAccountIds: Set<String> = emptySet(),
     /** Web TransactionsPage distinguishes historic imported rows from canonical events. */
     val isLegacyTransaction: Boolean = false,
+    /** Ephemeral ordinal in this canonical source list (never a persisted finance ID). */
+    val canonicalSourceOrdinal: Int = -1,
     /** Whether this imported transaction is represented by a canonical override. */
     val isLegacyOverridden: Boolean = false,
     /** Canonical event split parts in server order, not analytics-only aggregates. */
