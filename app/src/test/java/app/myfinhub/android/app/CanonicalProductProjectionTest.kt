@@ -11,6 +11,8 @@ import app.myfinhub.android.feature.home.HomePrimaryRole
 import app.myfinhub.android.feature.money.canonicalCreditOutstanding
 import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
+import app.myfinhub.android.feature.activity.ActivityAction
+import app.myfinhub.android.feature.activity.reduceActivity
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.legacyHistoryLabel
 import java.time.LocalDate
@@ -354,6 +356,18 @@ class CanonicalProductProjectionTest {
         )
         assertEquals(overview, filtered.monthOverview)
         assertEquals(overview, filtered.forCategory("Λοιπά", "2026-10-01", "2026-10-31").monthOverview)
+        val monthOnly = reduceActivity(filtered, ActivityAction.ShowOverviewMonth)
+        assertTrue(monthOnly.showingOverviewMonth)
+        assertEquals(overview.transactionCount, monthOnly.visibleItems.size)
+        assertEquals(setOf("oct-income", "oct-expense", "oct-future", "oct-event"),
+            monthOnly.visibleItems.map { it.id }.toSet())
+        assertTrue(monthOnly.visibleItems.none {
+            it.canonicalKind == "card_purchase" || it.canonicalKind == "card_payment"
+        })
+        assertEquals(projected.activityState.items, monthOnly.items)
+        assertEquals(overview, monthOnly.monthOverview)
+        assertEquals(projected.activityState.webLedgerItems.size,
+            reduceActivity(monthOnly, ActivityAction.ClearSearchAndFilters).visibleItems.size)
     }
 
     @Test
