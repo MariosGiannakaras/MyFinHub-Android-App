@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import.
+- [ ] Validate W4.4 PR #305 explicit calendar-month ledger source identity under customized/cleared date filters, saved category/type sources, source-only ClearFilters reset versus intentional all-history exit, Analytics isolation, server FinanceData reprojection and month rollover; ensure card-only events stay outside main ledger and no original finance writes. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator once on exact final PR head, fix any failures within the same PR then merge only on all four green gates. Keep progress 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema changes, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #304, branch android/w4-4-month-scoped-filter-catalog-20261022
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298–#303 merged and 4/4 exact-head gates passed, current develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c. Draft #304 narrows main Activity type and historical category dropdown values to selected Web calendar month's effective source rows but preserves persisted taxonomy and broader all-history native choices. Distinct mixed-month/override/tombstone/Card-only regressions staged; CI/S24 pending, physical owner acceptance not implied.
+Issue #155, PR #305, branch android/w4-4-explicit-month-source-isolation-20261022
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #304 fixed month source category/type options, 4/4 final exact-head CI passed at 34632d2dbdf7a2dacbd9d71e9bd95aad22d01ec1 and squash merged develop 55152fe5a3c4052626b82c255465374d50d64bc4. Draft #305: explicit month-source mode survives custom date changes and rerenders, reset filters never leaks other months, source membership remains original canonical rows, month rollover reanchors when finance data refreshed. JVM JSON/reducer regression pending CI; owner physical S24 signoff separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import.
+Next Validate W4.4 PR #305 explicit calendar-month ledger source identity under customized/cleared date filters, saved category/type sources, source-only ClearFilters reset versus intentional all-history exit, Analytics isolation, server FinanceData reprojection and month rollover; ensure card-only events stay outside main ledger and no original finance writes. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator once on exact final PR head, fix any failures within the same PR then merge only on all four green gates. Keep progress 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema changes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

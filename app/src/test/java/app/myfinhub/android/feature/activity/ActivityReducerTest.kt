@@ -554,6 +554,53 @@ class ActivityReducerTest {
         assertEquals(overview, restored.monthOverview)
     }
 
+
+    @Test
+    fun explicitWebMonthSourceSurvivesCustomDateFiltersAndResetWithoutLeakingOtherMonths() {
+        val overview = ActivityMonthlyOverview(
+            "2026-10", 200.0, 20.0, 180.0, 3, 50.0, 10.0, 40.0, 1,
+        )
+        fun row(id: String, date: String, kind: String = "expense") = ActivityItem(
+            id, date, ActivityKind.EXPENSE, id, "", -1.0,
+            "cash", id, rawDate = date, canonicalKind = kind,
+            canonicalSourceOrdinal = 0,
+        )
+        val state = ActivityUiState(monthOverview = overview, items = listOf(
+            row("later", "2026-10-29"), row("other", "2026-11-01"),
+            row("earlier", "2026-10-03"), row("prior", "2026-09-20"),
+            row("card-only", "2026-10-10", "card_purchase"),
+        ))
+        val month = reduceActivity(state, ActivityAction.ShowOverviewMonth)
+        assertTrue(month.monthSourceSelected)
+        assertTrue(month.showingOverviewMonth)
+        assertEquals(listOf("later", "earlier"), month.visibleItems.map { it.id })
+        val narrower = reduceActivity(month, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = null,
+            dateFrom = "2026-10-10", dateTo = "2026-10-31",
+        ))
+        assertTrue(narrower.showingOverviewMonth)
+        assertEquals(listOf("later"), narrower.visibleItems.map { it.id })
+        assertFalse(narrower.typeOptions.any { it.id == "card_purchase" })
+        val clearedDate = reduceActivity(narrower, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
+        assertEquals(null, clearedDate.ledgerDateFrom)
+        assertEquals(null, clearedDate.ledgerDateTo)
+        assertTrue("Date clearing cannot leave the Web calendar month source",
+            clearedDate.showingOverviewMonth)
+        assertEquals(listOf("later", "earlier"), clearedDate.visibleItems.map { it.id })
+        assertTrue(clearedDate.availableCategories.contains("earlier"))
+        assertFalse(clearedDate.availableCategories.contains("prior"))
+        val resetWithinMonth = reduceActivity(clearedDate, ActivityAction.ClearFilters)
+        assertTrue(resetWithinMonth.showingOverviewMonth)
+        assertEquals("2026-10-01", resetWithinMonth.ledgerDateFrom)
+        assertEquals("2026-10-31", resetWithinMonth.ledgerDateTo)
+        assertEquals(listOf("later", "earlier"), resetWithinMonth.visibleItems.map { it.id })
+        val history = reduceActivity(resetWithinMonth, ActivityAction.ClearSearchAndFilters)
+        assertFalse(history.monthSourceSelected)
+        assertFalse(history.showingOverviewMonth)
+        assertEquals(state.webLedgerItems, history.visibleItems)
+        assertEquals(state.items, history.items)
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
