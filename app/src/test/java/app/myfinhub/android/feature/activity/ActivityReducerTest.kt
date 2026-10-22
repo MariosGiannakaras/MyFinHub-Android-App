@@ -501,6 +501,59 @@ class ActivityReducerTest {
         assertFalse(analytics.showingOverviewMonth)
     }
 
+
+    @Test
+    fun monthOnlyFilterChoicesMirrorWebMonthSourceButRetainPersistedTaxonomy() {
+        val overview = ActivityMonthlyOverview(
+            "2026-10", 100.0, 20.0, 80.0, 3, 10.0, 10.0, 0.0, 2,
+        )
+        fun row(id: String, date: String, kind: String, category: String) = ActivityItem(
+            id, date, ActivityKind.EXPENSE, id, id, -1.0,
+            "Μετρητά", category, rawDate = date, canonicalKind = kind,
+            canonicalSourceOrdinal = 0,
+        )
+        val original = ActivityUiState(
+            monthOverview = overview,
+            expenseCategories = listOf(ActivityCategoryOption("Πάγια", listOf("Ενέργεια"))),
+            items = listOf(
+                row("oct-food", "2026-10-10", "expense", "Τρόφιμα"),
+                row("oct-refund", "2026-10-12", "refund", "Επιστροφή"),
+                row("oct-card", "2026-10-13", "card_purchase", "Κάρτα"),
+                row("sept-retired", "2026-09-10", "adjustment", "Ιστορική παλιά"),
+                row("sept-income", "2026-09-12", "income", "Έσοδα"),
+                row("nov-unknown", "2026-11-02", "transfer", "Μεταφορές"),
+            ),
+        )
+        assertTrue("All-history exposes historical category", "Ιστορική παλιά" in original.availableCategories)
+        assertTrue(original.typeOptions.any { it.id == "adjustment" })
+        val month = reduceActivity(original, ActivityAction.ShowOverviewMonth)
+        assertTrue(month.showingOverviewMonth)
+        // Month-scoped selector membership must not reorder canonical source rows.
+        assertEquals(listOf("oct-food", "oct-refund"), month.visibleItems.map { it.id })
+        assertTrue("Current month's real category missing", "Τρόφιμα" in month.availableCategories)
+        assertTrue("Saved taxonomy must survive even without source rows",
+            "Πάγια › Ενέργεια" in month.availableCategories)
+        assertFalse("Historic retired category leaked into month",
+            "Ιστορική παλιά" in month.availableCategories)
+        assertFalse("Other month's category leaked into month",
+            "Μεταφορές" in month.availableCategories)
+        assertEquals(setOf("expense", "refund"), month.typeOptions.map { it.id }.toSet())
+        assertFalse(month.typeOptions.any { it.id == "card_purchase" })
+        val combined = month.copy(query = "irrelevant", accountFilterId = "cash",
+            ledgerCategoryFilter = "Τρόφιμα", typeFilterId = "expense")
+        assertTrue("Month selector scope should survive other filters", combined.showingOverviewMonth)
+        assertFalse("Historic category leaked after adding filters",
+            "Ιστορική παλιά" in combined.availableCategories)
+        assertEquals(setOf("expense", "refund"), combined.typeOptions.map { it.id }.toSet())
+        val restored = reduceActivity(combined, ActivityAction.ClearSearchAndFilters)
+        assertFalse(restored.showingOverviewMonth)
+        assertTrue("Full history must still expose retired label",
+            "Ιστορική παλιά" in restored.availableCategories)
+        assertTrue(restored.typeOptions.any { it.id == "adjustment" })
+        assertEquals(original.items, restored.items)
+        assertEquals(overview, restored.monthOverview)
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))

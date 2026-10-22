@@ -247,6 +247,27 @@ data class ActivityUiState(
     }
     val scopeSourceItems: List<ActivityItem> = if (isAnalyticsScope) items else webLedgerItems
 
+    /** Web TransactionsPage builds category/type choices from the selected
+     * calendar month's sourceRows, not the cross-month history. Current
+     * persisted taxonomy remains selectable even without rows that month.
+     * The native all-history view deliberately retains its wider catalog.
+     *
+     * Date-only month mode stays active while other filters/search are edited,
+     * so the user can always return to all history from the overview control.
+     */
+    val showingOverviewMonth: Boolean = !isAnalyticsScope && monthOverview?.let { overview ->
+        val month = runCatching { YearMonth.parse(overview.month) }.getOrNull()
+        month != null &&
+            ledgerDateFrom == month.atDay(1).toString() &&
+            ledgerDateTo == month.atEndOfMonth().toString()
+    } == true
+
+    private val sourceRowsForFilterChoices: List<ActivityItem> =
+        if (showingOverviewMonth) {
+            val month = monthOverview?.month.orEmpty()
+            webLedgerItems.filter { it.rawDate.startsWith("$month-") }
+        } else webLedgerItems
+
     private val greekLabelOrder = greekActivityLabelOrder()
 
     // Web TransactionsPage: available taxonomy paths plus historic *display*
@@ -259,11 +280,11 @@ data class ActivityUiState(
                 add("${option.name} › $subcategory")
             }
         }
-        webLedgerItems.forEach { item -> add(item.webLedgerCategoryLabel()) }
+        sourceRowsForFilterChoices.forEach { item -> add(item.webLedgerCategoryLabel()) }
     }.distinct().sortedWith(greekLabelOrder)
 
     val typeOptions: List<ActivityTypeOption> = buildList {
-        webLedgerItems.forEach { item ->
+        sourceRowsForFilterChoices.forEach { item ->
             add(ActivityTypeOption(item.canonicalKind, item.typeLabel))
         }
         typeFilterId?.takeIf(String::isNotBlank)?.let { selected ->
@@ -283,19 +304,6 @@ data class ActivityUiState(
     ).count { it }
 
     val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotBlank() || activeFilterCount > 0)
-
-    /** The Web monthly source is a calendar range; do not confuse it with
-     * the permanently available native multi-month Activity source.
-     */
-    val showingOverviewMonth: Boolean = !isAnalyticsScope && monthOverview?.let { overview ->
-        val month = runCatching { YearMonth.parse(overview.month) }.getOrNull()
-        month != null &&
-            ledgerDateFrom == month.atDay(1).toString() &&
-            ledgerDateTo == month.atEndOfMonth().toString() &&
-            query.isBlank() && accountFilterId == null &&
-            ledgerCategoryFilter == null && typeFilterId == null &&
-            filter == ActivityFilter.ALL
-    } == true
 
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.

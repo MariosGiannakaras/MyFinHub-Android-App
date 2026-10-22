@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#302 passed all four immutable final-head gates and merged Android develop b5eed206060a6b3f567c8dc4c70194ea04f25210. #302 added Web full-month operational income/expense/net and previous-month transaction comparisons. Draft #303 now connects the native month summary to exact Web source-month ledger membership via a one-tap month/all-history scope, preserving existing multi-month browsing, standalone Analytics drill-down, account/card exclusion, all original FinanceData and privacy controls. Source regression and reducer checks staged; final CI and physical S24 acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#303 passed all four immutable-head gates and merged Android develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c. #303 added reversible one-tap native monthly source scope without changing original finance data. Draft #304 makes month-scoped ledger type and historical-category selector options originate strictly from the month's effective Web source rows plus persisted category taxonomy; all-history native filter choices remain wide, card-only rows excluded and revised/deleted historical sources handled. JVM FinanceData/reducer regressions staged; CI and physical S24 acceptance pending.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.4 PR #303: selecting the calendar-month summary must clear competing search/account/category/type filters, scope exactly YYYY-MM-01 to the month end, never include card-only main-ledger events, and restore original full history/analytics privacy without changing source FinanceData or sort. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator on the immutable final PR head, correct failures in the same PR and merge only on four green gates. Progress remains 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
+1. Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #303, branch android/w4-4-month-summary-ledger-drilldown-20261022
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #302 final 4/4 green at ee1fd4ab8454afc2e0ea2730017bc5105a4dda89 and merged develop b5eed206060a6b3f567c8dc4c70194ea04f25210. Draft #303 adds one-tap native monthly summary → original Web month ledger source membership and back to all history, with state reducer + FinanceData projection regressions. CI/S24/screenshots pending; owner physical S24 confirmation separate.
+Issue #155, PR #304, branch android/w4-4-month-scoped-filter-catalog-20261022
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298–#303 merged and 4/4 exact-head gates passed, current develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c. Draft #304 narrows main Activity type and historical category dropdown values to selected Web calendar month's effective source rows but preserves persisted taxonomy and broader all-history native choices. Distinct mixed-month/override/tombstone/Card-only regressions staged; CI/S24 pending, physical owner acceptance not implied.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.4 PR #303: selecting the calendar-month summary must clear competing search/account/category/type filters, scope exactly YYYY-MM-01 to the month end, never include card-only main-ledger events, and restore original full history/analytics privacy without changing source FinanceData or sort. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator on the immutable final PR head, correct failures in the same PR and merge only on four green gates. Progress remains 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
+Next Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
