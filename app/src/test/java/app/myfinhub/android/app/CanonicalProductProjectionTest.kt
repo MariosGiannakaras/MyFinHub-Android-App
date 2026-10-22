@@ -543,6 +543,45 @@ class CanonicalProductProjectionTest {
         assertEquals(document, projection.document)
     }
 
+
+    @Test
+    fun monthResetRestoresCanonicalEffectiveTransactionsWithoutFinanceMutation() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"sept","type":"expense","date":"2026-09-17","amount":9,
+                 "category":"Τρόφιμα"},
+                {"id":"oct","type":"income","date":"2026-10-13","amount":90}
+              ]},"state":{"events":[
+                {"id":"refund","kind":"refund","date":"2026-09-20","amount":5},
+                {"id":"card-only","kind":"card_purchase","date":"2026-09-18","amount":100}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val projected = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+        val historic = projected.activityState.selectOverviewMonth(
+            projectCanonicalActivityMonthOverview(document, YearMonth.of(2026, 9)),
+        )
+        val filtered = historic.copy(
+            query = "αδύνατη αναζήτηση",
+            typeFilterId = "income", ledgerCategoryFilter = "Τρόφιμα",
+        )
+        assertTrue(filtered.visibleItems.isEmpty())
+        val reset = reduceActivity(filtered, ActivityAction.ClearFilters)
+        assertEquals("", reset.query)
+        assertEquals(setOf("sept", "refund"), reset.visibleItems.map { it.id }.toSet())
+        assertEquals(2, reset.monthOverview!!.transactionCount)
+        assertFalse(reset.typeOptions.any { it.id == "card_purchase" })
+        assertEquals(projected.activityState.items, reset.items)
+        assertEquals(projected.document, document)
+        val refreshed = projectCanonicalProduct(
+            document, LocalDate.of(2026, 11, 3),
+            previous = projected.copy(activityState = reset),
+        )
+        assertTrue(refreshed.activityState.showingOverviewMonth)
+        assertEquals("2026-09", refreshed.activityState.monthOverview!!.month)
+        assertEquals(reset.visibleItems, refreshed.activityState.visibleItems)
+    }
+
     @Test
     fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""

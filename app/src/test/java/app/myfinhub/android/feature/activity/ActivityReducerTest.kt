@@ -242,9 +242,9 @@ class ActivityReducerTest {
         assertEquals(120.0, reset.visibleIncome, 0.001)
         assertEquals(10.0, reset.visibleExpense, 0.001)
         assertEquals(110.0, reset.visibleNet, 0.001)
-        // Clearing the filter chips alone remains available to callers and
-        // intentionally leaves the search query unchanged.
-        assertEquals("Καφές", reduceActivity(filtered, ActivityAction.ClearFilters).query)
+        // Web resetFilters always clears search, even when the user only opened
+        // the filter sheet. The native all-history exit is a separate action.
+        assertEquals("", reduceActivity(filtered, ActivityAction.ClearFilters).query)
     }
 
     @Test
@@ -725,9 +725,86 @@ class ActivityReducerTest {
         assertTrue(removed.showingOverviewMonth)
         val reset = reduceActivity(removed, ActivityAction.ClearFilters)
         assertEquals(0, reset.activeFilterCount)
-        assertTrue(reset.hasActiveListScope) // Search remains until explicitly cleared
+        assertFalse(reset.hasActiveListScope) // Web resetFilters also clears search
         assertEquals("2026-09", reset.monthOverview!!.month)
         assertEquals(original.items, reset.items)
+    }
+
+
+    @Test
+    fun webFilterResetRestoresSelectedHistoricalMonthEvenWhenNoRowsMatch() {
+        val current = ActivityMonthlyOverview(
+            "2026-10", 100.0, 25.0, 75.0, 1, 0.0, 0.0, 0.0, 0,
+        )
+        val september = current.copy(month = "2026-09")
+        fun row(id: String, date: String) = ActivityItem(
+            id, date, ActivityKind.EXPENSE, id, id,
+            -2.0, "cash", "Τρόφιμα", rawDate = date,
+            canonicalSourceOrdinal = 0,
+        )
+        val source = ActivityUiState(
+            monthOverview = current,
+            items = listOf(row("oct", "2026-10-11"), row("sept", "2026-09-12")),
+            sortOldestFirst = true,
+        )
+        val selected = source.selectOverviewMonth(september)
+        val unmatched = selected.copy(
+            query = "κανένα-αποτέλεσμα",
+            ledgerCategoryFilter = "Τρόφιμα",
+            accountFilterId = "cash",
+            typeFilterId = "expense",
+            ledgerDateFrom = "2026-09-20",
+            ledgerDateTo = "2026-09-30",
+        )
+        assertTrue(unmatched.hasActiveListScope)
+        assertTrue(unmatched.visibleItems.isEmpty())
+        val reset = reduceActivity(unmatched, ActivityAction.ClearFilters)
+        assertEquals("", reset.query)
+        assertEquals(0, reset.activeFilterCount)
+        assertFalse(reset.hasActiveListScope)
+        assertEquals("2026-09-01", reset.ledgerDateFrom)
+        assertEquals("2026-09-30", reset.ledgerDateTo)
+        assertTrue(reset.showingOverviewMonth)
+        assertTrue(reset.overviewMonthManuallySelected)
+        assertEquals("2026-09", reset.monthOverview!!.month)
+        assertEquals(listOf("sept"), reset.visibleItems.map { it.id })
+        assertTrue(reset.sortOldestFirst)
+        assertEquals(source.items, reset.items)
+        val exited = reduceActivity(reset, ActivityAction.ClearSearchAndFilters)
+        assertFalse(exited.showingOverviewMonth)
+        assertEquals(setOf("oct", "sept"), exited.visibleItems.map { it.id }.toSet())
+        assertEquals("2026-09", exited.monthOverview!!.month)
+    }
+
+    @Test
+    fun emptyReportingMonthResetCannotInventAnotherMonthSourceRow() {
+        val overview = ActivityMonthlyOverview(
+            "2026-08", 0.0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0,
+        )
+        val source = ActivityUiState(
+            monthOverview = overview,
+            items = listOf(ActivityItem(
+                "sept", "10 Σεπ", ActivityKind.EXPENSE,
+                "Παλιά κίνηση", "", -3.0, "cash", "Τρόφιμα",
+                rawDate = "2026-09-10", canonicalSourceOrdinal = 0,
+            )),
+        )
+        val month = reduceActivity(source, ActivityAction.ShowOverviewMonth)
+        assertTrue(month.scopeSourceItems.isEmpty())
+        assertFalse(month.hasActiveListScope)
+        val unmatched = month.copy(query = "καφές")
+        assertTrue(unmatched.hasActiveListScope)
+        assertTrue(unmatched.scopeSourceItems.isEmpty())
+        val reset = reduceActivity(unmatched, ActivityAction.ClearFilters)
+        assertEquals("", reset.query)
+        assertTrue(reset.scopeSourceItems.isEmpty())
+        assertTrue(reset.showingOverviewMonth)
+        assertFalse(reset.hasActiveListScope)
+        assertEquals(source.items, reset.items)
+        assertEquals("2026-08-01", reset.ledgerDateFrom)
+        assertEquals("2026-08-31", reset.ledgerDateTo)
+        val history = reduceActivity(reset, ActivityAction.ClearSearchAndFilters)
+        assertEquals(listOf("sept"), history.visibleItems.map { it.id })
     }
 
     @Test
@@ -1037,7 +1114,7 @@ class ActivityReducerTest {
         assertEquals(listOf("food-main", "food-old"), withoutDate.visibleItems.map { it.id })
 
         val cleared = reduceActivity(filtered.copy(query = "καφ"), ActivityAction.ClearFilters)
-        assertEquals("καφ", cleared.query)
+        assertEquals("", cleared.query)
         assertEquals(0, cleared.activeFilterCount)
     }
 

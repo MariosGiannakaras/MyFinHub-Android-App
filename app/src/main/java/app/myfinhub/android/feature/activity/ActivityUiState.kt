@@ -560,13 +560,14 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ledgerDateTo = action.dateTo?.trim()?.takeIf(String::isNotBlank),
     )
     ActivityAction.ClearFilters -> {
-        // Web resetFilters restores calendar-month boundaries without exiting
-        // the current month source. The separate "Όλο το ιστορικό" action
-        // resets source mode as well as search and filters.
+        // Web TransactionsPage resetFilters clears query, account/category/type
+        // and restores selected month's date bounds, but never exits its source.
+        // Only the separate "Όλο το ιστορικό" action exits month mode.
         val month = if (state.showingOverviewMonth) {
             state.monthOverview?.month?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
         } else null
         state.copy(
+            query = "",
             filter = ActivityFilter.ALL,
             typeFilterId = null,
             accountFilterId = null,
