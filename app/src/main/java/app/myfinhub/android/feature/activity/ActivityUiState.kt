@@ -520,7 +520,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     ActivityAction.ToggleSortDirection -> if (state.isAnalyticsScope) state
         else state.copy(sortOldestFirst = !state.sortOldestFirst)
-    ActivityAction.NavigateOverviewMonth -> state // FinanceData-backed ViewModel only.
+    is ActivityAction.NavigateOverviewMonth -> state // FinanceData-backed ViewModel only.
     ActivityAction.ShowOverviewMonth -> {
         if (state.isAnalyticsScope) state else {
             val month = state.monthOverview?.month?.let {

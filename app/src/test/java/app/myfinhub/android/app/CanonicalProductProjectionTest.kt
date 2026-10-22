@@ -13,9 +13,11 @@ import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.reduceActivity
+import app.myfinhub.android.feature.activity.selectOverviewMonth
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.legacyHistoryLabel
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
