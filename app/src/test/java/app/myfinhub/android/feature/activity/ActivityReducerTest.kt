@@ -670,7 +670,8 @@ class ActivityReducerTest {
         assertFalse(month.hasActiveListScope)
         assertEquals(2, month.scopeSourceItems.size)
         assertEquals(3, month.webLedgerItems.size)
-        assertEquals(listOf("oct-two", "oct-one"),
+        // UI-state filtering preserves canonical source order in these fixtures.
+        assertEquals(listOf("oct-one", "oct-two"),
             month.visibleItems.map { it.id })
         val filtered = reduceActivity(month, ActivityAction.ApplyFilters(
             type = ActivityFilter.ALL, accountId = null, category = null,
