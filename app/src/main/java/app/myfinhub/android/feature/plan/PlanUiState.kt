@@ -118,15 +118,25 @@ data class PlanningRule(
     val historicalMatchCount: Int = 0,
 )
 
-data class ForecastPortfolioPoint(val dateIso: String, val portfolio: Double)
+/** Web ForecastPoint includes each day's account balances as well as portfolio. */
+data class ForecastPortfolioPoint(
+    val dateIso: String,
+    val portfolio: Double,
+    val balancesByAccount: Map<String, Double> = emptyMap(),
+)
 data class ForecastAccountBreakdown(
     val accountId: String, val accountLabel: String,
     val current: Double, val projected: Double, val minimum: Double,
     val firstLowDateIso: String?, val firstNegativeDateIso: String?,
 )
+data class ForecastAccountImpact(
+    val accountId: String, val accountLabel: String, val delta: Double,
+)
 data class ForecastKnownMovement(
     val id: String, val dateIso: String, val label: String,
     val source: String, val portfolioDelta: Double,
+    /** Preserve each Web ForecastMovement leg, including zero-net transfers. */
+    val accountImpacts: List<ForecastAccountImpact> = emptyList(),
 )
 
 /** Exact read-only Web cashFlowForecast trace, shared across 30/60/90 horizons. */
