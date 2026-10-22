@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate #302 Web monthly operational flow and previous-month trend/count parity against canonical source, including future-dated current-month events, card-only count exclusion and full native ledger/filter isolation. Require Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator all green at immutable PR head. Correct failures within same PR, then merge; W4.4 incomplete, progress 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema changes, SMS import, permanent card deletion or production finance writes.
+- [ ] Validate W4.4 PR #303: selecting the calendar-month summary must clear competing search/account/category/type filters, scope exactly YYYY-MM-01 to the month end, never include card-only main-ledger events, and restore original full history/analytics privacy without changing source FinanceData or sort. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator on the immutable final PR head, correct failures in the same PR and merge only on four green gates. Progress remains 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #302, branch android/w4-4-monthly-ledger-overview-20261021
-Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298–#301 merged with four final-head green gates through develop 604666980f6dce565cf5136d2743329f069b7658. Draft #302 provides a separate full-month Web operational transaction summary and previous-month comparisons on native Activity without replacing multi-month/filtered ledger, with card-only count exclusion and fixtures. CI/S24/screenshots pending; physical owner approval separate.
+Issue #155, PR #303, branch android/w4-4-month-summary-ledger-drilldown-20261022
+Current W4.4: Web parity 1/6 implementations · 11/24 subtasks. #302 final 4/4 green at ee1fd4ab8454afc2e0ea2730017bc5105a4dda89 and merged develop b5eed206060a6b3f567c8dc4c70194ea04f25210. Draft #303 adds one-tap native monthly summary → original Web month ledger source membership and back to all history, with state reducer + FinanceData projection regressions. CI/S24/screenshots pending; owner physical S24 confirmation separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #302 Web monthly operational flow and previous-month trend/count parity against canonical source, including future-dated current-month events, card-only count exclusion and full native ledger/filter isolation. Require Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot regression and S24 emulator all green at immutable PR head. Correct failures within same PR, then merge; W4.4 incomplete, progress 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema changes, SMS import, permanent card deletion or production finance writes.
+Next Validate W4.4 PR #303: selecting the calendar-month summary must clear competing search/account/category/type filters, scope exactly YYYY-MM-01 to the month end, never include card-only main-ledger events, and restore original full history/analytics privacy without changing source FinanceData or sort. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator on the immutable final PR head, correct failures in the same PR and merge only on four green gates. Progress remains 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

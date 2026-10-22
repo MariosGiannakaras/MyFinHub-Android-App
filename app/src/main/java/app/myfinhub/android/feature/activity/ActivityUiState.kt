@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.activity
 
 import java.text.Collator
+import java.time.YearMonth
 import java.util.Locale
 import kotlin.math.roundToInt
 import androidx.lifecycle.ViewModel
@@ -283,6 +284,19 @@ data class ActivityUiState(
 
     val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotBlank() || activeFilterCount > 0)
 
+    /** The Web monthly source is a calendar range; do not confuse it with
+     * the permanently available native multi-month Activity source.
+     */
+    val showingOverviewMonth: Boolean = !isAnalyticsScope && monthOverview?.let { overview ->
+        val month = runCatching { YearMonth.parse(overview.month) }.getOrNull()
+        month != null &&
+            ledgerDateFrom == month.atDay(1).toString() &&
+            ledgerDateTo == month.atEndOfMonth().toString() &&
+            query.isBlank() && accountFilterId == null &&
+            ledgerCategoryFilter == null && typeFilterId == null &&
+            filter == ActivityFilter.ALL
+    } == true
+
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
     val visibleItems: List<ActivityItem> = run {
@@ -439,6 +453,8 @@ data class ActivityUiState(
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data object ToggleSortDirection : ActivityAction
+    /** One-tap Web calendar-month source drill-down from the native summary. */
+    data object ShowOverviewMonth : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class AccountFilterChanged(val accountId: String?) : ActivityAction
     data class ApplyFilters(
@@ -468,6 +484,23 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     ActivityAction.ToggleSortDirection -> if (state.isAnalyticsScope) state
         else state.copy(sortOldestFirst = !state.sortOldestFirst)
+    ActivityAction.ShowOverviewMonth -> {
+        if (state.isAnalyticsScope) state else {
+            val month = state.monthOverview?.month?.let {
+                runCatching { YearMonth.parse(it) }.getOrNull()
+            }
+            if (month == null) state else state.copy(
+                query = "",
+                filter = ActivityFilter.ALL,
+                typeFilterId = null,
+                accountFilterId = null,
+                ledgerCategoryFilter = null,
+                ledgerDateFrom = month.atDay(1).toString(),
+                ledgerDateTo = month.atEndOfMonth().toString(),
+                selectedId = null,
+            )
+        }
+    }
     is ActivityAction.FilterChanged -> state.copy(filter = action.value, typeFilterId = null)
     is ActivityAction.AccountFilterChanged -> state.copy(accountFilterId = action.accountId)
     is ActivityAction.ApplyFilters -> state.copy(

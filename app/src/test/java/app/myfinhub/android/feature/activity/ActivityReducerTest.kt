@@ -429,6 +429,78 @@ class ActivityReducerTest {
         assertEquals(0, activityMonthPercentChange(100.0, 100.0))
     }
 
+
+    @Test
+    fun monthSummaryDrillDownLimitsOnlyLedgerAndRestoresAllHistory() {
+        val overview = ActivityMonthlyOverview(
+            month = "2026-10", income = 100.0, expense = 40.0, net = 60.0,
+            transactionCount = 2, previousIncome = 10.0, previousExpense = 5.0,
+            previousNet = 5.0, previousTransactionCount = 1,
+        )
+        fun item(id: String, day: String, kind: String = "expense") = ActivityItem(
+            id = id, dateLabel = day, kind = ActivityKind.EXPENSE,
+            title = id, subtitle = id, amount = -1.0, accountLabel = "Μετρητά",
+            category = "Άλλο", rawDate = day, canonicalKind = kind,
+            canonicalSourceOrdinal = 0,
+        )
+        val original = ActivityUiState(
+            monthOverview = overview, query = "unmatched",
+            accountFilterId = "missing", ledgerCategoryFilter = "Άλλο",
+            ledgerDateFrom = "2026-09-10", ledgerDateTo = "2026-09-10",
+            sortOldestFirst = true,
+            selectedId = "september",
+            items = listOf(
+                item("november", "2026-11-01"),
+                item("october", "2026-10-29"),
+                item("october-card", "2026-10-20", "card_purchase"),
+                item("october-early", "2026-10-01"),
+                item("september", "2026-09-10"),
+            ),
+        )
+        val scoped = reduceActivity(original, ActivityAction.ShowOverviewMonth)
+        assertTrue(scoped.showingOverviewMonth)
+        assertEquals("2026-10-01", scoped.ledgerDateFrom)
+        assertEquals("2026-10-31", scoped.ledgerDateTo)
+        assertEquals("", scoped.query)
+        assertEquals(null, scoped.accountFilterId)
+        assertEquals(null, scoped.ledgerCategoryFilter)
+        assertEquals(null, scoped.selectedId)
+        assertTrue(scoped.sortOldestFirst)
+        assertEquals(listOf("october-early", "october"),
+            scoped.visibleItems.map { it.id })
+        assertEquals(overview.transactionCount, scoped.visibleItems.size)
+        assertEquals(overview, scoped.monthOverview)
+        assertEquals(original.items, scoped.items)
+        val reset = reduceActivity(scoped, ActivityAction.ClearSearchAndFilters)
+        assertFalse(reset.showingOverviewMonth)
+        assertEquals(listOf("september", "october-early", "october", "november"),
+            reset.visibleItems.map { it.id })
+        assertEquals(overview, reset.monthOverview)
+        assertTrue(reset.sortOldestFirst)
+        assertEquals(original.items, reset.items)
+    }
+
+    @Test
+    fun monthDrillDownFailsClosedOutsideMainLedgerOrWithoutValidMonth() {
+        val source = ActivityUiState(
+            items = listOf(ActivityItem(
+                "r", "10 Οκτ", ActivityKind.EXPENSE, "Αγορά", "", -1.0,
+                "Μετρητά", "Άλλο", rawDate = "2026-10-10",
+            )),
+        )
+        assertEquals(source, reduceActivity(source, ActivityAction.ShowOverviewMonth))
+        val invalid = source.copy(monthOverview = ActivityMonthlyOverview(
+            "2026-99", 0.0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0,
+        ))
+        assertEquals(invalid, reduceActivity(invalid, ActivityAction.ShowOverviewMonth))
+        assertFalse(invalid.showingOverviewMonth)
+        val valid = source.copy(monthOverview = invalid.monthOverview!!.copy(month = "2026-10"))
+        val analytics = valid.forCategory("Άλλο", "2026-10-01", "2026-10-31")
+        assertTrue(analytics.isAnalyticsScope)
+        assertEquals(analytics, reduceActivity(analytics, ActivityAction.ShowOverviewMonth))
+        assertFalse(analytics.showingOverviewMonth)
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))

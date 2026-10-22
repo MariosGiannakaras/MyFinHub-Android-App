@@ -203,7 +203,17 @@ fun ActivityLedgerScreen(
                 }
                 state.monthOverview?.let { overview ->
                     item(key = "monthly-overview") {
-                        ActivityMonthlyOverviewSurface(overview, amountsVisible)
+                        ActivityMonthlyOverviewSurface(
+                            overview = overview,
+                            amountsVisible = amountsVisible,
+                            showingMonth = state.showingOverviewMonth,
+                            onToggleMonth = {
+                                onAction(
+                                    if (state.showingOverviewMonth) ActivityAction.ClearSearchAndFilters
+                                    else ActivityAction.ShowOverviewMonth,
+                                )
+                            },
+                        )
                     }
                 }
                 item(key = "search") {
@@ -380,6 +390,8 @@ fun ActivityLedgerScreen(
 private fun ActivityMonthlyOverviewSurface(
     overview: ActivityMonthlyOverview,
     amountsVisible: Boolean,
+    showingMonth: Boolean,
+    onToggleMonth: () -> Unit,
 ) {
     val monthLabel = runCatching {
         YearMonth.parse(overview.month).atDay(1)
@@ -433,6 +445,12 @@ private fun ActivityMonthlyOverviewSurface(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            TextButton(
+                onClick = onToggleMonth,
+                modifier = Modifier.testTag("activity_month_scope_toggle"),
+            ) {
+                Text(if (showingMonth) "Όλο το ιστορικό" else "Κινήσεις αυτού του μήνα")
+            }
         }
     }
 }
