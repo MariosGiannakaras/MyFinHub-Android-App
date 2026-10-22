@@ -582,8 +582,10 @@ class ActivityReducerTest {
         assertEquals(listOf("later"), narrower.visibleItems.map { it.id })
         assertFalse(narrower.typeOptions.any { it.id == "card_purchase" })
         val clearedDate = reduceActivity(narrower, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
-        assertEquals(null, clearedDate.ledgerDateFrom)
-        assertEquals(null, clearedDate.ledgerDateTo)
+        assertEquals("2026-10-01", clearedDate.ledgerDateFrom)
+        assertEquals("2026-10-31", clearedDate.ledgerDateTo)
+        assertFalse(clearedDate.hasActiveDateFilter)
+        assertEquals(0, clearedDate.activeFilterCount)
         assertTrue("Date clearing cannot leave the Web calendar month source",
             clearedDate.showingOverviewMonth)
         assertEquals(listOf("later", "earlier"), clearedDate.visibleItems.map { it.id })
@@ -641,6 +643,91 @@ class ActivityReducerTest {
         val malformed = october.copy(month = "invalid")
         assertEquals(source, source.selectOverviewMonth(malformed))
         assertEquals(source, reduceActivity(source, ActivityAction.NavigateOverviewMonth(-1)))
+    }
+
+
+    @Test
+    fun webMonthDefaultDateControlsAreNotAnExtraActiveFilter() {
+        val overview = ActivityMonthlyOverview(
+            "2026-10", 30.0, 10.0, 20.0, 2, 10.0, 10.0, 0.0, 1,
+        )
+        fun row(id: String, day: String) = ActivityItem(
+            id = id, dateLabel = day, kind = ActivityKind.EXPENSE,
+            title = id, subtitle = "", amount = -2.0, accountLabel = "cash",
+            category = id, rawDate = day, canonicalSourceOrdinal = 0,
+        )
+        val source = ActivityUiState(
+            monthOverview = overview,
+            items = listOf(
+                row("oct-one", "2026-10-12"),
+                row("oct-two", "2026-10-29"),
+                row("old", "2026-09-09"),
+            ),
+        )
+        val month = reduceActivity(source, ActivityAction.ShowOverviewMonth)
+        assertEquals(0, month.activeFilterCount)
+        assertFalse(month.hasActiveDateFilter)
+        assertFalse(month.hasActiveListScope)
+        assertEquals(2, month.scopeSourceItems.size)
+        assertEquals(3, month.webLedgerItems.size)
+        // UI-state filtering preserves canonical source order in these fixtures.
+        assertEquals(listOf("oct-one", "oct-two"),
+            month.visibleItems.map { it.id })
+        val filtered = reduceActivity(month, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = null,
+            dateFrom = "2026-10-15", dateTo = "2026-10-31",
+        ))
+        assertTrue(filtered.hasActiveDateFilter)
+        assertTrue(filtered.hasActiveListScope)
+        assertEquals(1, filtered.activeFilterCount)
+        assertEquals(listOf("oct-two"), filtered.visibleItems.map { it.id })
+        assertEquals(2, filtered.scopeSourceItems.size)
+        val resetDates = reduceActivity(filtered, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
+        assertEquals("2026-10-01", resetDates.ledgerDateFrom)
+        assertEquals("2026-10-31", resetDates.ledgerDateTo)
+        assertFalse(resetDates.hasActiveDateFilter)
+        assertEquals(0, resetDates.activeFilterCount)
+        assertFalse(resetDates.hasActiveListScope)
+        assertEquals(month.visibleItems, resetDates.visibleItems)
+        assertEquals(source.items, resetDates.items)
+        val accountFiltered = resetDates.copy(accountFilterId = "cash")
+        assertEquals(1, accountFiltered.activeFilterCount)
+        assertFalse(accountFiltered.hasActiveDateFilter)
+        val allHistory = reduceActivity(resetDates, ActivityAction.ClearSearchAndFilters)
+        assertFalse(allHistory.showingOverviewMonth)
+        assertEquals(0, allHistory.activeFilterCount)
+        assertEquals(3, allHistory.scopeSourceItems.size)
+        assertEquals(3, allHistory.visibleItems.size)
+    }
+
+    @Test
+    fun reportingMonthNavigationResetsDateFilterBaselineNotLedgerRows() {
+        val october = ActivityMonthlyOverview(
+            "2026-10", 0.0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0,
+        )
+        val september = october.copy(month = "2026-09")
+        val original = ActivityUiState(monthOverview = october)
+        val chosen = original.selectOverviewMonth(september)
+        assertEquals("2026-09-01", chosen.ledgerDateFrom)
+        assertEquals("2026-09-30", chosen.ledgerDateTo)
+        assertFalse(chosen.hasActiveDateFilter)
+        assertEquals(0, chosen.activeFilterCount)
+        val narrower = chosen.copy(
+            query = "food", ledgerDateFrom = "2026-09-10",
+            ledgerDateTo = "2026-09-20", ledgerCategoryFilter = "Τρόφιμα",
+        )
+        assertEquals(2, narrower.activeFilterCount)
+        assertTrue(narrower.hasActiveListScope)
+        val removed = reduceActivity(narrower, ActivityAction.RemoveFilter(ActivityFilterField.DATE))
+        assertEquals("2026-09-01", removed.ledgerDateFrom)
+        assertEquals("2026-09-30", removed.ledgerDateTo)
+        assertEquals(1, removed.activeFilterCount)
+        assertTrue(removed.showingOverviewMonth)
+        val reset = reduceActivity(removed, ActivityAction.ClearFilters)
+        assertEquals(0, reset.activeFilterCount)
+        assertTrue(reset.hasActiveListScope) // Search remains until explicitly cleared
+        assertEquals("2026-09", reset.monthOverview!!.month)
+        assertEquals(original.items, reset.items)
     }
 
     @Test
