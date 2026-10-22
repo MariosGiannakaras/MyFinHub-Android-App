@@ -16,6 +16,9 @@ import app.myfinhub.android.feature.activity.reduceActivity
 import app.myfinhub.android.feature.activity.selectOverviewMonth
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.legacyHistoryLabel
+import app.myfinhub.android.feature.activity.webLedgerDisplayTitle
+import app.myfinhub.android.feature.activity.webLedgerCategoryLabel
+import app.myfinhub.android.feature.activity.webNoteParts
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.serialization.json.Json
