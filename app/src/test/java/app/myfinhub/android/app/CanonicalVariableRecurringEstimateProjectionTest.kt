@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalRecurringMonthlyTotal
+import app.myfinhub.android.core.data.canonicalRecurringActualPayments
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.array
 import java.time.LocalDate
@@ -58,6 +59,39 @@ class CanonicalVariableRecurringEstimateProjectionTest {
         assertNull(ui.getValue("custom").estimateMin)
         assertEquals(211.0, document.canonicalRecurringMonthlyTotal(), 0.001)
         assertTrue(document.state.array("events").isEmpty())
+    }
+
+    @Test fun linkedActualExpenseCentsExcludeUnrelatedAndFutureEntriesWithoutRewritingEstimates() {
+        val data = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","name":"Cash","kind":"cash"}],
+            "snapshots":[{"date":"2026-10-01","balances":{"cash":500}}],
+            "recurring":[{"id":"power","name":"Ρεύμα","amount":80,"amountMode":"variable",
+              "estimateMin":60,"estimateMax":100,"day":19,"accountId":"cash","active":true}]},
+            "state":{"events":[
+              {"id":"sep","kind":"expense","recurringId":"power","date":"2026-09-05","amount":62.25},
+              {"id":"oct-a","kind":"expense","recurringId":"power","date":"2026-10-02","amount":10.02},
+              {"id":"oct-b","kind":"expense","recurringId":"power","date":"2026-10-08","amount":95.03},
+              {"id":"not-paid","kind":"income","recurringId":"power","date":"2026-10-12","amount":500},
+              {"id":"unrelated","kind":"expense","date":"2026-10-14","amount":70},
+              {"id":"future","kind":"expense","recurringId":"power","date":"2026-10-20","amount":77}
+            ],"settings":{}}}
+        """.trimIndent()).jsonObject)
+        val actual = data.canonicalRecurringActualPayments("power", "2026-10-01", "2026-10-15")
+        assertEquals(2, actual.count)
+        assertEquals(105.05, actual.totalAmount, 0.001)
+        assertEquals("2026-10-08", actual.lastPaymentDateIso)
+        assertEquals(95.03, actual.lastPaymentAmount!!, 0.001)
+        assertEquals(0, data.canonicalRecurringActualPayments(
+            "power", "2026-10-16", "2026-10-19").count)
+        val ui = projectCanonicalPlanState(data, LocalDate.parse("2026-10-15"), null)
+            .recurringManageItems.single()
+        assertEquals(105.05, ui.actualPaidThisMonth!!, 0.001)
+        assertEquals(2, ui.actualPaymentsThisMonth)
+        assertEquals(95.03, ui.lastActualPaymentAmount!!, 0.001)
+        assertEquals("2026-10-08", ui.lastActualPaymentDateIso)
+        assertEquals(80.0, ui.amount, 0.001)
+        assertEquals("variable", ui.amountMode)
+        assertEquals(6, data.state.array("events").size)
     }
 
     @Test fun onlyVariableForecastMovementsAreMarkedEstimatesWithoutChangingMoney() {

@@ -117,6 +117,49 @@ fun CanonicalFinanceDocument.canonicalRecurringPaymentHistory(id: String): Canon
     return CanonicalRecurringPaymentHistory(dates.size, dates.firstOrNull()?.toString())
 }
 
+/** Web recurringVariable.ts: only linked expenses represent actual payments.
+ * Never present an estimate, a future event, or an unrelated kind as money paid.
+ */
+data class CanonicalRecurringActualPayments(
+    val count: Int,
+    val totalAmount: Double,
+    val lastPaymentDateIso: String?,
+    val lastPaymentAmount: Double?,
+)
+
+fun CanonicalFinanceDocument.canonicalRecurringActualPayments(
+    recurringId: String,
+    fromDateIso: String,
+    throughDateIso: String,
+): CanonicalRecurringActualPayments {
+    require(fromDateIso <= throughDateIso) { "Μη έγκυρο διάστημα πληρωμών." }
+    val payments = state.array("events")
+        .mapNotNull { it as? JsonObject }
+        .filter { event ->
+            event.string("kind") == "expense" &&
+                event.string("recurringId") == recurringId &&
+                event.string("date")?.let { it >= fromDateIso && it <= throughDateIso } == true
+        }
+        .sortedWith(compareBy<JsonObject> { it.string("date").orEmpty() }
+            .thenBy { it.string("id").orEmpty() })
+    var totalCents = 0L
+    payments.forEach { event ->
+        val amount = event.number("amount")
+            ?: throw IllegalArgumentException("Μη έγκυρο πραγματικό ποσό πληρωμής.")
+        totalCents = Math.addExact(totalCents, moneyToCents(amount))
+        require(totalCents in -9_007_199_254_740_991L..9_007_199_254_740_991L) {
+            "Μη έγκυρο πραγματικό ποσό πληρωμών."
+        }
+    }
+    val last = payments.lastOrNull()
+    return CanonicalRecurringActualPayments(
+        count = payments.size,
+        totalAmount = centsToMoney(totalCents),
+        lastPaymentDateIso = last?.string("date"),
+        lastPaymentAmount = last?.number("amount"),
+    )
+}
+
 /**
  * Web recurringUpcoming sorts active entries by next due date and then by
  * localized name; inactive entries follow their historical stored order.

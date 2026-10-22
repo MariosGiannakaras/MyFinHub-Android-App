@@ -137,6 +137,28 @@ fun CanonicalRecurringManagementScreen(
                                 modifier = Modifier.testTag("recurring_estimate_range_" + item.id),
                             )
                         }
+                        // Read-only Web actual linked expense amounts, never the estimate.
+                        if (uniqueId && item.lastActualPaymentAmount != null) {
+                            Text(
+                                "Τελευταία πραγματική πληρωμή: " +
+                                    amountVisibilityText(currency.format(item.lastActualPaymentAmount), showAmounts) +
+                                    (item.lastActualPaymentDateIso?.let { " · $it" }.orEmpty()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("recurring_last_actual_" + item.id),
+                            )
+                        }
+                        if (uniqueId && item.actualPaidThisMonth != null &&
+                            item.actualPaymentsThisMonth > 0) {
+                            Text(
+                                "Καταχωρισμένο έως σήμερα στον μήνα: " +
+                                    amountVisibilityText(currency.format(item.actualPaidThisMonth), showAmounts) +
+                                    " · " + item.actualPaymentsThisMonth + " πληρωμές",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("recurring_actual_paid_month_" + item.id),
+                            )
+                        }
                         if (item.paymentCount > 0) {
                             Text(
                                 "Καταγεγραμμένες πληρωμές: " + item.paymentCount +
