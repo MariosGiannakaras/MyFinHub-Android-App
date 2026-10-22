@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1/W4.2 #313 final head cc31ef396c82c32a0ca2798859f9ac0e6b05630e passed Project Tracking, Android CI, screenshot and S24 checks, squash merged develop cc0513b9a06ffd0dc268fd2d27669ad23d0ac030. Draft #314 adds actual linked expense payment totals and latest amounts separately from recurring estimates with a privacy gate; no events or estimate amounts changed. Real FinanceData/JVM and hosted Compose regression staged; CI and owner physical S24 acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 #314 actual linked recurring payments passed all four exact-head gates on a58a0a817b62237aea5cac54b336d4a1742df5d5, squash merged develop 67b9ddb60b44a5d74283ba09bf870f4f1f1b84f1. Draft #315 extends the read-only actual payments into paginated native history with private amounts and unique recurring identity attribution; new JVM and hosted Compose regressions staged, final checks and physical S24 signoff pending.
 
 ## Immediate work
 
-- Validate W4.1 draft #314 linked expense-only as-of payment attribution, cent-safe month totals, legacy duplicate-ID guard and masked actual-vs-estimated amounts. Require exact-head four green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator; correct failures in this PR before squash merge. Web parity stays 1/6 implementations · 11/24 completed subtasks until verified. No signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
+- Validate W4.1 draft #315 expense-only actual payment history with stable newest-first order, no future/non-expense rows, 3+10 progressive access, duplicate historical ID guard and privacy-masked amounts. Require exact-head 4/4 Project Tracking, Android CI unit/lint/unsigned optimized release + Play bundle, screenshot regression and hosted S24 emulator; fix on the same PR before merge. Web parity 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, real finance writes, SMS import or permanent card deletion.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W4.1/W4.2 #313 final
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #314, branch android/w4-1-actual-recurring-payments-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. #313 variable recurring forecast/estimate privacy passed exact-head four gates and squash merged develop cc0513b9a06ffd0dc268fd2d27669ad23d0ac030. Draft #314 exposes Web actual linked recurring expenses, cents-safe as-of monthly aggregate and last amount, separate from estimates; duplicate-ID attribution is hidden. Real FinanceData JVM and S24 Compose tests staged, exact-head CI and physical acceptance pending.
+Issue #155, PR #315, branch android/w4-1-recurring-actual-history-20261023
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.1 #314 passed four exact-head gates and squash merged develop 67b9ddb60b44a5d74283ba09bf870f4f1f1b84f1. Draft #315 projects actual linked expense history newest-first with progressively more payment rows and privacy-safe amounts; canonical event records and estimates unchanged. Exact-head CI and owner S24 physical acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft #314 linked expense-only as-of payment attribution, cent-safe month totals, legacy duplicate-ID guard and masked actual-vs-estimated amounts. Require exact-head four green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator; correct failures in this PR before squash merge. Web parity stays 1/6 implementations · 11/24 completed subtasks until verified. No signed release, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.
+Next Validate W4.1 draft #315 expense-only actual payment history with stable newest-first order, no future/non-expense rows, 3+10 progressive access, duplicate historical ID guard and privacy-masked amounts. Require exact-head 4/4 Project Tracking, Android CI unit/lint/unsigned optimized release + Play bundle, screenshot regression and hosted S24 emulator; fix on the same PR before merge. Web parity 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, real finance writes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

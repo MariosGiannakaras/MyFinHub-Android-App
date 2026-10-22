@@ -6,6 +6,8 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
@@ -42,6 +44,40 @@ class RecurringEstimateComposeTest {
             rule.onAllNodesWithText("95,03", substring = true)
                 .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
             rule.onAllNodesWithText("105,05", substring = true)
+                .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
+        } finally {
+            app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, before)
+        }
+    }
+
+    @Test fun actualHistoryProgressivelyRevealsPrivateRowsWithoutAmountsLeaking() {
+        val context = androidx.test.platform.app.InstrumentationRegistry
+            .getInstrumentation().targetContext
+        val before = app.myfinhub.android.feature.utilities.AmountVisibilityPreference.read(context)
+        try {
+            app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, false)
+            val history = (1..8).map { i ->
+                RecurringActualPaymentRow(
+                    "payment-$i", "2026-10-" + i.toString().padStart(2, '0'), i * 12.34,
+                )
+            }.reversed()
+            rule.setContent { MyFinHubTheme {
+                CanonicalRecurringManagementScreen(
+                    PlanUiState(recurringManageItems = listOf(
+                        RecurringManageItem("power", "Ρεύμα", 80.0, "active",
+                            amountMode = "variable", actualPaymentHistory = history),
+                    )),
+                    onBack = {}, onStatusChanged = { _, _ -> }, mutationBlocked = true,
+                )
+            } }
+            rule.onNodeWithTag("recurring_actual_history_power_0").performScrollTo()
+                .assertTextContains("•••• €", substring = true)
+            rule.onAllNodesWithTag("recurring_actual_history_power_3")
+                .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
+            rule.onNodeWithTag("recurring_more_actual_power").performScrollTo().performClick()
+            rule.onNodeWithTag("recurring_actual_history_power_7").performScrollTo()
+                .assertTextContains("•••• €", substring = true)
+            rule.onAllNodesWithText("98,72", substring = true)
                 .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
         } finally {
             app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, before)

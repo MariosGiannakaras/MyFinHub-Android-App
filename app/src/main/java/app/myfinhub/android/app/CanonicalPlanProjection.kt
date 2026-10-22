@@ -33,6 +33,7 @@ import app.myfinhub.android.feature.plan.PlannedItem
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.PlannedUrgency
 import app.myfinhub.android.feature.plan.RecurringManageItem
+import app.myfinhub.android.feature.plan.RecurringActualPaymentRow
 import app.myfinhub.android.feature.plan.ScheduledManageItem
 import app.myfinhub.android.feature.plan.ScheduledAccountOption
 import java.time.LocalDate
@@ -127,6 +128,11 @@ internal fun projectCanonicalPlanState(
             lastActualPaymentAmount = actualToDate?.lastPaymentAmount,
             actualPaidThisMonth = actualThisMonth?.takeIf { it.count > 0 }?.totalAmount,
             actualPaymentsThisMonth = actualThisMonth?.count ?: 0,
+            actualPaymentHistory = actualToDate?.records.orEmpty().map { record ->
+                RecurringActualPaymentRow(
+                    eventId = record.eventId, dateIso = record.dateIso, amount = record.amount,
+                )
+            },
             amountMode = recurring.amountMode,
             estimateMin = recurring.estimateMin,
             estimateMax = recurring.estimateMax,

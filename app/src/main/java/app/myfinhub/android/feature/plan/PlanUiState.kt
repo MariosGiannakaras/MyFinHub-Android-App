@@ -51,6 +51,14 @@ data class RecurringManageItem(
     val lastActualPaymentAmount: Double? = null,
     val actualPaidThisMonth: Double? = null,
     val actualPaymentsThisMonth: Int = 0,
+    val actualPaymentHistory: List<RecurringActualPaymentRow> = emptyList(),
+)
+
+/** Web actual payments: no additional persisted finance data. */
+data class RecurringActualPaymentRow(
+    val eventId: String,
+    val dateIso: String,
+    val amount: Double,
 )
 
 data class ScheduledManageItem(
