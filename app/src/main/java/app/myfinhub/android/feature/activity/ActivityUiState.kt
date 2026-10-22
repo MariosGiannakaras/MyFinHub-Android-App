@@ -208,6 +208,10 @@ data class ActivityUiState(
      * user-edited dateStart/dateEnd filters within that source month.
      */
     val monthSourceSelected: Boolean = false,
+    /** Web's user-selected reporting month persists independently of current
+     * calendar date and finance refresh, even outside native month-only mode.
+     */
+    val overviewMonthManuallySelected: Boolean = false,
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
     val accountOptions: List<ActivityAccountOption> = emptyList(),
@@ -464,11 +468,29 @@ data class ActivityUiState(
     }
 }
 
+/** Set the user-requested Web reporting month without touching finance state.
+ * The ViewModel derives the full-month snapshot only from canonical FinanceData.
+ */
+fun ActivityUiState.selectOverviewMonth(overview: ActivityMonthlyOverview): ActivityUiState {
+    if (isAnalyticsScope) return this
+    val month = runCatching { YearMonth.parse(overview.month) }.getOrNull() ?: return this
+    return copy(
+        monthOverview = overview,
+        overviewMonthManuallySelected = true,
+        monthSourceSelected = true,
+        ledgerDateFrom = month.atDay(1).toString(),
+        ledgerDateTo = month.atEndOfMonth().toString(),
+        selectedId = null,
+    )
+}
+
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data object ToggleSortDirection : ActivityAction
     /** One-tap Web calendar-month source drill-down from the native summary. */
     data object ShowOverviewMonth : ActivityAction
+    /** Change Web reporting month by one calendar month; no write or sync. */
+    data class NavigateOverviewMonth(val delta: Int) : ActivityAction
     data class FilterChanged(val value: ActivityFilter) : ActivityAction
     data class AccountFilterChanged(val accountId: String?) : ActivityAction
     data class ApplyFilters(
@@ -498,6 +520,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
     is ActivityAction.QueryChanged -> state.copy(query = action.value)
     ActivityAction.ToggleSortDirection -> if (state.isAnalyticsScope) state
         else state.copy(sortOldestFirst = !state.sortOldestFirst)
+    is ActivityAction.NavigateOverviewMonth -> state // FinanceData-backed ViewModel only.
     ActivityAction.ShowOverviewMonth -> {
         if (state.isAnalyticsScope) state else {
             val month = state.monthOverview?.month?.let {

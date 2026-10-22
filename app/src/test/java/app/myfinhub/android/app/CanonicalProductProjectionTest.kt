@@ -13,9 +13,11 @@ import app.myfinhub.android.feature.money.canonicalNetPosition
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.reduceActivity
+import app.myfinhub.android.feature.activity.selectOverviewMonth
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.legacyHistoryLabel
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
@@ -454,6 +456,62 @@ class CanonicalProductProjectionTest {
         val history = reduceActivity(rolled.activityState, ActivityAction.ClearSearchAndFilters)
         assertFalse(history.monthSourceSelected)
         assertEquals(3, history.visibleItems.size)
+    }
+
+
+    @Test
+    fun arbitraryWebCalendarMonthProjectionCountsActualSourceAndSurvivesRefresh() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"january","type":"income","date":"2026-01-12","amount":150,
+                 "category":"Μισθοδοσία"},
+                {"id":"september","type":"expense","date":"2026-09-13","amount":12,
+                 "category":"Τρόφιμα"},
+                {"id":"october","type":"expense","date":"2026-10-21","amount":40,
+                 "category":"Καφές"},
+                {"id":"retired","type":"expense","date":"2026-09-20","amount":1,
+                 "category":"Ιστορικό"}
+              ]},"state":{"deleted":["retired"],"events":[
+                {"id":"sept-refund","kind":"refund","date":"2026-09-17","amount":5},
+                {"id":"oct-card","kind":"card_purchase","date":"2026-10-20",
+                 "cardId":"credit","amount":100}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val projected = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+        val sept = projectCanonicalActivityMonthOverview(document, YearMonth.of(2026, 9))
+        val oct = projectCanonicalActivityMonthOverview(document, YearMonth.of(2026, 10))
+        assertEquals("2026-09", sept.month)
+        assertEquals(2, sept.transactionCount)
+        assertEquals(1, oct.transactionCount)
+        assertEquals(
+            document.canonicalOperationalMonthlyFlow("2026-09").expense,
+            sept.expense, 0.001,
+        )
+        assertEquals(
+            document.canonicalOperationalMonthlyFlow("2026-10").expense,
+            oct.expense, 0.001,
+        )
+        val chosen = projected.activityState.selectOverviewMonth(sept)
+        assertEquals(listOf("sept-refund", "september"), chosen.visibleItems.map { it.id }.toSet().sorted())
+        assertTrue(chosen.availableCategories.contains("Τρόφιμα"))
+        assertFalse(chosen.availableCategories.contains("Καφές"))
+        val refreshed = projectCanonicalProduct(
+            document, LocalDate.of(2026, 11, 10),
+            previous = projected.copy(activityState = chosen),
+        )
+        assertEquals("2026-09", refreshed.activityState.monthOverview!!.month)
+        assertTrue(refreshed.activityState.showingOverviewMonth)
+        assertEquals("2026-09-01", refreshed.activityState.ledgerDateFrom)
+        assertEquals("2026-09-30", refreshed.activityState.ledgerDateTo)
+        assertEquals(chosen.visibleItems, refreshed.activityState.visibleItems)
+        val january = projected.activityState.selectOverviewMonth(
+            projectCanonicalActivityMonthOverview(document, YearMonth.of(2026, 1)),
+        )
+        assertEquals(listOf("january"), january.visibleItems.map { it.id })
+        assertEquals(1, january.monthOverview!!.transactionCount)
+        assertEquals(projected.activityState.items, january.items)
+        assertEquals(document, projected.document)
     }
 
     @Test
