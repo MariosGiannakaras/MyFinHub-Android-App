@@ -153,6 +153,37 @@ internal fun projectCanonicalPlanState(
                 omittedSourceCount = f.omitted.size,
                 omittedWarnings = f.omitted,
                 sourceCounts = f.sourceCounts,
+                currentPortfolio = f.currentPortfolio,
+                minimumPortfolioDateIso = f.minimumPortfolioDate.toString(),
+                insufficientData = f.insufficientData,
+                // Never resample or rederive canonical projections in the UI.
+                portfolioTimeline = f.points.map { point ->
+                    app.myfinhub.android.feature.plan.ForecastPortfolioPoint(
+                        point.date.toString(), point.portfolio)
+                },
+                accountBreakdown = f.accounts.map { account ->
+                    val real = accountsById[account.accountId]
+                    app.myfinhub.android.feature.plan.ForecastAccountBreakdown(
+                        accountId = account.accountId,
+                        accountLabel = real?.let {
+                            financialAccountDisplayName(it.id, it.name, it.kind, it.providerId)
+                        } ?: account.accountId,
+                        current = account.current,
+                        projected = account.projected,
+                        minimum = account.minimum,
+                        firstLowDateIso = account.firstLowDate?.toString(),
+                        firstNegativeDateIso = account.firstNegativeDate?.toString(),
+                    )
+                },
+                knownMovements = f.movements.map { movement ->
+                    app.myfinhub.android.feature.plan.ForecastKnownMovement(
+                        id = movement.id,
+                        dateIso = movement.date.toString(),
+                        label = movement.label,
+                        source = movement.source,
+                        portfolioDelta = movement.portfolioDelta,
+                    )
+                },
             )
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.
