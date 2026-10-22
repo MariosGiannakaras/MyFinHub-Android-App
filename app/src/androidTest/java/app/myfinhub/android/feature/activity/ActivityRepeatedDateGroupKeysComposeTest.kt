@@ -30,7 +30,8 @@ class ActivityRepeatedDateGroupKeysComposeTest {
                 canonicalSourceOrdinal = 1),
             ActivityItem("expense", "19 Οκτ", ActivityKind.EXPENSE,
                 "Κανονική κίνηση μετρητών", "", -9.0, "Μετρητά", "Τρόφιμα",
-                rawDate = "2026-10-19", canonicalSourceOrdinal = 2),
+                rawDate = "2026-10-19", canonicalSourceOrdinal = 2,
+                note = "Κανονική κίνηση μετρητών"),
         ))
         assertEquals(listOf("expense"), source.visibleItems.map { it.id })
         rule.setContent {
@@ -65,23 +66,27 @@ class ActivityRepeatedDateGroupKeysComposeTest {
                 )
             }
         }
-        rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertDoesNotExist()
+        rule.onNodeWithText("Καφές εργασίας").assertDoesNotExist()
         rule.runOnIdle { state = state.copy(query = "Καφές") }
         rule.onNodeWithTag("activity_list")
-            .performScrollToNode(hasText("Μη ευρετηριασμένος τίτλος"))
-        rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertIsDisplayed()
-        rule.runOnIdle { state = state.copy(query = "2026-10-21") }
+            .performScrollToNode(hasText("Καφές εργασίας"))
+        rule.onNodeWithText("Καφές εργασίας").assertIsDisplayed()
+        // Web never substitutes the category/derived title for persisted note.
         rule.onNodeWithText("Μη ευρετηριασμένος τίτλος").assertDoesNotExist()
+        rule.runOnIdle { state = state.copy(query = "2026-10-21") }
+        rule.onNodeWithText("Καφές εργασίας").assertDoesNotExist()
     }
 
     @Test fun repeatedLegacyIdentifiersRenderAsSeparateRowsWithoutDuplicateLazyKeys() {
         val state = ActivityUiState(items = listOf(
             ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,
                 "Πρώτη ίδια ταυτότητα", "", -5.0, "Μετρητά", "Τρόφιμα",
-                rawDate = "2026-10-21", isLegacyTransaction = true),
+                rawDate = "2026-10-21", isLegacyTransaction = true,
+                note = "Πρώτη ίδια ταυτότητα"),
             ActivityItem("duplicate", "21 Οκτ", ActivityKind.EXPENSE,
                 "Δεύτερη ίδια ταυτότητα", "", -10.0, "Μετρητά", "Τρόφιμα",
-                rawDate = "2026-10-21", isLegacyTransaction = true),
+                rawDate = "2026-10-21", isLegacyTransaction = true,
+                note = "Δεύτερη ίδια ταυτότητα"),
             ActivityItem("another", "20 Οκτ", ActivityKind.EXPENSE,
                 "Τρίτη ανεξάρτητη", "", -3.0, "Μετρητά", "Τρόφιμα",
                 rawDate = "2026-10-20"),
