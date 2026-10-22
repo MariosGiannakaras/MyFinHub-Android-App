@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify W4.2 draft #311 exact Web PlanningPage forecast trace across 30/60/90: read-only daily step portfolio, per-account as-of/projected/minimum and first below EUR100/negative dates, trace of scheduled/recurring/loan/future events with zero-net transfer, missing-source flat baseline, credit excluded but savings included, privacy masked and synthetic previews unchanged. Require four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and S24 emulator gates. Repair within same PR; merge only all green; progress 1/6 implementations 11/24 subtasks. No Web/backend/schema changes, production finance writes, signing/publication, SMS import or permanent delete.
+- [ ] Validate grouped W4.1/W4.2 draft #312 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #311, branch android/w4-2-explainable-forecast-account-trace-20261022
-Current W4.2: Web parity 1/6 implementations · 11/24 subtasks. W4.4 #310 final head d64a0cdc34114dd9ff3eaf210a93fa62d79309df passed Project Tracking 39808271922, Android CI 39808272053 and screenshot/S24 39808271976; squash merged develop 56dbfd3fd7e58abf722fd0187a628c679921eb7e. Draft #311 contributes exact Web forecast read-only portfolio/account/movement trace for 30/60/90 days with 100 EUR and negative threshold, privacy and real JSON/Compose tests; hosted checks pending and physical S24 owner approval separate.
+Issue #155, PR #312, branch android/w4-1-variable-recurring-estimates-20261022
+Current W4.2: Web parity 1/6 implementations · 11/24 subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #312 Web variable/fixed recurring estimates with privacy-safe bounds and explicitly estimated forecast source labels, real JSON/Compose regression included; CI and physical S24 owner approval pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.2 draft #311 exact Web PlanningPage forecast trace across 30/60/90: read-only daily step portfolio, per-account as-of/projected/minimum and first below EUR100/negative dates, trace of scheduled/recurring/loan/future events with zero-net transfer, missing-source flat baseline, credit excluded but savings included, privacy masked and synthetic previews unchanged. Require four exact-final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and S24 emulator gates. Repair within same PR; merge only all green; progress 1/6 implementations 11/24 subtasks. No Web/backend/schema changes, production finance writes, signing/publication, SMS import or permanent delete.
+Next Validate grouped W4.1/W4.2 draft #312 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

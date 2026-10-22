@@ -113,6 +113,30 @@ fun CanonicalRecurringManagementScreen(
                         )
                         Text(amountVisibilityText(currency.format(item.amount), showAmounts),
                             style = MaterialTheme.typography.bodyMedium)
+                        // Variable Web amountMode is an estimate, never a recorded payment.
+                        Text(
+                            if (item.amountMode == "variable") "Εκτίμηση · όχι πραγματική πληρωμή"
+                            else "Σταθερό ποσό",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("recurring_amount_mode_" + item.id),
+                        )
+                        if (item.amountMode == "variable" &&
+                            (item.estimateMin != null || item.estimateMax != null)) {
+                            Text(
+                                "Εύρος εκτίμησης: " +
+                                    (item.estimateMin?.let {
+                                        amountVisibilityText(currency.format(it), showAmounts)
+                                    } ?: "—") +
+                                    " – " +
+                                    (item.estimateMax?.let {
+                                        amountVisibilityText(currency.format(it), showAmounts)
+                                    } ?: "—"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("recurring_estimate_range_" + item.id),
+                            )
+                        }
                         if (item.paymentCount > 0) {
                             Text(
                                 "Καταγεγραμμένες πληρωμές: " + item.paymentCount +
