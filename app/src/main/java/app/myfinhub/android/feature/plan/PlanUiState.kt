@@ -118,6 +118,18 @@ data class PlanningRule(
     val historicalMatchCount: Int = 0,
 )
 
+data class ForecastPortfolioPoint(val dateIso: String, val portfolio: Double)
+data class ForecastAccountBreakdown(
+    val accountId: String, val accountLabel: String,
+    val current: Double, val projected: Double, val minimum: Double,
+    val firstLowDateIso: String?, val firstNegativeDateIso: String?,
+)
+data class ForecastKnownMovement(
+    val id: String, val dateIso: String, val label: String,
+    val source: String, val portfolioDelta: Double,
+)
+
+/** Exact read-only Web cashFlowForecast trace, shared across 30/60/90 horizons. */
 data class ForecastWindow(
     val days: Int,
     val label: String,
@@ -131,6 +143,12 @@ data class ForecastWindow(
     val omittedSourceCount: Int = 0,
     val omittedWarnings: List<String> = emptyList(),
     val sourceCounts: Map<String, Int> = emptyMap(),
+    val currentPortfolio: Double = 0.0,
+    val minimumPortfolioDateIso: String = "",
+    val insufficientData: Boolean = false,
+    val portfolioTimeline: List<ForecastPortfolioPoint> = emptyList(),
+    val accountBreakdown: List<ForecastAccountBreakdown> = emptyList(),
+    val knownMovements: List<ForecastKnownMovement> = emptyList(),
 )
 
 /** Production-facing plan state. Synthetic planning data must be supplied explicitly by previews. */

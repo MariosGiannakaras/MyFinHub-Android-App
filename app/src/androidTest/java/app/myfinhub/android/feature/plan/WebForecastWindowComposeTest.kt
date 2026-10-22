@@ -42,6 +42,39 @@ class WebForecastWindowComposeTest {
         rule.onNodeWithText("2 κινήσεις παραλείφθηκαν",substring=true).assertIsDisplayed()
     }
 
+
+    @Test fun realWebForecastBreakdownDisplaysZeroNetTransferAndAccountWarning() {
+        val state = PlanUiState(forecastWindows = listOf(
+            ForecastWindow(
+                30,"30 ημέρες",100.0,120.0,0.0,
+                projectedPortfolio=210.0,minimumPortfolio=110.0,
+                currentPortfolio=230.0,minimumPortfolioDateIso="2026-10-17",
+                portfolioTimeline=listOf(
+                    ForecastPortfolioPoint("2026-10-15",230.0),
+                    ForecastPortfolioPoint("2026-10-16",110.0),
+                    ForecastPortfolioPoint("2026-10-17",110.0),
+                    ForecastPortfolioPoint("2026-11-14",210.0)),
+                accountBreakdown=listOf(
+                    ForecastAccountBreakdown("payroll","Μισθοδοσία",
+                        150.0,80.0,-20.0,"2026-10-16","2026-10-17")),
+                knownMovements=listOf(
+                    ForecastKnownMovement("transfer","2026-10-17",
+                        "Μεταφορά","scheduled",0.0)),
+            )))
+        rule.setContent { MyFinHubTheme { CanonicalPlanForecastScreen(state,onBack={}) } }
+        rule.onNodeWithTag("s7_forecast_breakdown_30").assertDoesNotExist()
+        rule.onNodeWithTag("s7_forecast_breakdown_toggle_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_account_30_payroll")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Αρνητικό από 2026-10-17")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_movement_30_0")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_point_30_3")
+            .performScrollTo().assertIsDisplayed()
+    }
+
     @Test fun sourceProvenanceAndOmissionsAreExpandableWithoutSyntheticMovements() {
         val state = PlanUiState(
             forecastWindows = listOf(

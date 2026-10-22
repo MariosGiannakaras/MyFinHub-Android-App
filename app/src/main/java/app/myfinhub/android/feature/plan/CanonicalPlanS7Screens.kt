@@ -519,6 +519,25 @@ fun CanonicalPlanForecastScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                            // Synthetic screenshot previews retain old cards; only
+                            // genuine canonical FinanceData has source trace rows.
+                            if (window.portfolioTimeline.isNotEmpty() &&
+                                window.accountBreakdown.isNotEmpty()) {
+                                var expandedAccountDetail by rememberSaveable(window.days) {
+                                    mutableStateOf(false)
+                                }
+                                TextButton(
+                                    onClick = { expandedAccountDetail = !expandedAccountDetail },
+                                    modifier = Modifier.testTag(
+                                        "s7_forecast_breakdown_toggle_" + window.days),
+                                ) {
+                                    Text(if (expandedAccountDetail) "Απόκρυψη αναλυτικής πρόβλεψης"
+                                        else "Ανάλυση ανά λογαριασμό και ημερομηνία")
+                                }
+                                if (expandedAccountDetail) {
+                                    CanonicalWebForecastBreakdown(window, amountsVisible)
+                                }
+                            }
                             if (window.omittedSourceCount > 0) {
                                 var showOmitted by rememberSaveable(window.days) {
                                     mutableStateOf(false)
@@ -597,6 +616,115 @@ fun CanonicalPlanForecastScreen(
                 }
             }
         }
+    }
+}
+
+
+/** Web forecast.ts per-day, per-account and source-row detail; no forecast-side writes. */
+@Composable
+private fun CanonicalWebForecastBreakdown(window: ForecastWindow, amountsVisible: Boolean) {
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("s7_forecast_breakdown_" + window.days),
+        verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+    ) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text(
+            "Ελάχιστο χαρτοφυλακίου: " +
+                amountVisibilityText(formatPlanS7Euro(window.minimumPortfolio), amountsVisible) +
+                " · " + window.minimumPortfolioDateIso,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (window.insufficientData) {
+            Text("Δεν υπάρχουν αρκετές γνωστές μελλοντικές ροές. Η πρόβλεψη παραμένει σταθερή.",
+                style = MaterialTheme.typography.bodySmall)
+        }
+        Text("Πρόβλεψη σε κείμενο", style = MaterialTheme.typography.titleSmall)
+        window.portfolioTimeline.forEachIndexed { index, point ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .testTag("s7_forecast_point_" + window.days + "_" + index),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(point.dateIso, style = MaterialTheme.typography.bodySmall)
+                Text(amountVisibilityText(formatPlanS7Euro(point.portfolio), amountsVisible),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text("Προβολή ανά λογαριασμό", style = MaterialTheme.typography.titleSmall)
+        window.accountBreakdown.forEach { account ->
+            Column(
+                modifier = Modifier.fillMaxWidth().testTag(
+                    "s7_forecast_account_" + window.days + "_" + account.accountId),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+            ) {
+                Text(account.accountLabel, style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Τώρα " + amountVisibilityText(formatPlanS7Euro(account.current), amountsVisible) +
+                        " → " + amountVisibilityText(formatPlanS7Euro(account.projected), amountsVisible) +
+                        " · ελάχιστο " +
+                        amountVisibilityText(formatPlanS7Euro(account.minimum), amountsVisible),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    when {
+                        account.firstNegativeDateIso != null ->
+                            "Αρνητικό από " + account.firstNegativeDateIso
+                        account.firstLowDateIso != null ->
+                            "Κάτω από " + amountVisibilityText(
+                                formatPlanS7Euro(100.0), amountsVisible) +
+                                " από " + account.firstLowDateIso
+                        else -> "Δεν περνά το χαμηλό όριο"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (account.firstLowDateIso != null ||
+                        account.firstNegativeDateIso != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text("Επόμενες γνωστές ροές", style = MaterialTheme.typography.titleSmall)
+        val sourceLabels = mapOf(
+            "scheduled" to "Προγραμματισμένη",
+            "recurring" to "Πάγιο",
+            "loan" to "Δόση",
+            "dated_event" to "Μελλοντική κίνηση",
+        )
+        if (window.knownMovements.isEmpty()) {
+            Text("Δεν υπάρχει γνωστή μελλοντική ροή στον ορίζοντα.",
+                style = MaterialTheme.typography.bodySmall)
+        }
+        window.knownMovements.take(8).forEachIndexed { index, movement ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .testTag("s7_forecast_movement_" + window.days + "_" + index),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(movement.label.ifBlank { "Χωρίς περιγραφή" },
+                        style = MaterialTheme.typography.bodySmall)
+                    Text((sourceLabels[movement.source] ?: movement.source) +
+                        " · " + movement.dateIso, style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                val delta = movement.portfolioDelta
+                val amount = if (kotlin.math.abs(delta) < 0.005) "0€ καθαρά"
+                    else (if (delta > 0.0) "+" else "−") +
+                        formatPlanS7Euro(kotlin.math.abs(delta))
+                Text(amountVisibilityText(amount, amountsVisible),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        Text(
+            "Παραδοχή: άγνωστες αγορές/εισοδήματα δεν προβλέπονται. " +
+                "Εσωτερικές μεταφορές έχουν καθαρή επίδραση 0€.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
