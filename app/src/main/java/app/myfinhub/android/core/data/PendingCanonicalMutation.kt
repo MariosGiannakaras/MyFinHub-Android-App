@@ -119,6 +119,11 @@ data class PendingCanonicalMutationIntent(
             nowIso = payload.string("nowIso").orEmpty(),
             date = payload.string("date"),
             subcategory = if ("subcategory" in payload) payload.string("subcategory").orEmpty() else null,
+            legacyType = payload.string("legacyType"),
+            legacyAmount = payload.number("legacyAmount"),
+            legacyAccountId = payload.string("legacyAccountId"),
+            legacyFromAccountId = payload.string("legacyFromAccountId"),
+            legacyToAccountId = payload.string("legacyToAccountId"),
         )
         PendingMutationKind.DELETE_ACTIVITY -> DeleteCanonicalActivity(
             transactionId = payload.string("transactionId").orEmpty(),
@@ -403,6 +408,11 @@ data class PendingCanonicalMutationIntent(
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                     mutation.date?.let { put("date", JsonPrimitive(it)) }
                     mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    mutation.legacyType?.let { put("legacyType", JsonPrimitive(it)) }
+                    mutation.legacyAmount?.let { put("legacyAmount", JsonPrimitive(it)) }
+                    mutation.legacyAccountId?.let { put("legacyAccountId", JsonPrimitive(it)) }
+                    mutation.legacyFromAccountId?.let { put("legacyFromAccountId", JsonPrimitive(it)) }
+                    mutation.legacyToAccountId?.let { put("legacyToAccountId", JsonPrimitive(it)) }
                 }),
                 syncState = syncState,
             )

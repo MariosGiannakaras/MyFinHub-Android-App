@@ -28,6 +28,31 @@ class OfflinePendingMutationSemanticsTest {
         }
     }
 
+
+    @Test
+    fun fullHistoricalOverrideRoundTripsThroughEncryptedOfflineIntentWithoutEventExtras() {
+        val legacy = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[
+              {"id":"cash","kind":"cash"},{"id":"bank","kind":"bank"}],
+              "transactions":[{"id":"old","date":"2026-09-17","type":"expense",
+                "amount":15,"accountId":"cash","note":"Import"}]},
+             "state":{"events":[]}}
+        """.trimIndent()).jsonObject)
+        val mutation = EditCanonicalActivity(
+            "old", "New note", "Άλλο", NOW,
+            date = "2026-09-19", subcategory = "",
+            legacyType = "transfer", legacyAmount = 99.75,
+            legacyFromAccountId = "cash", legacyToAccountId = "bank",
+        )
+        val intent = PendingCanonicalMutationIntent.fromMutation(mutation, "legacy-override")
+        assertEquals(PendingMutationKind.EDIT_ACTIVITY, intent.kind)
+        assertEquals("transfer", intent.payload.string("legacyType"))
+        assertEquals(99.75, intent.payload.number("legacyAmount")!!, 0.001)
+        assertEquals(mutation, intent.asMutation())
+        assertEquals(mutation.apply(legacy).raw, intent.asMutation().apply(legacy).raw)
+        assertEquals(legacy.seed, intent.asMutation().apply(legacy).seed)
+    }
+
     @Test
     fun restoreCardIntent_roundTripsAndReconcilesAgainstLatestServerCardState() {
         val archived = DeactivateCanonicalCard("card-1", NOW).apply(document())

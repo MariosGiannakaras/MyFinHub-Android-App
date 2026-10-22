@@ -344,11 +344,14 @@ internal fun MyFinHubAppContent(
                     ActivityEditScreen(
                         item = item,
                         categoryOptions = item?.let(activityState::categoryOptionsFor).orEmpty(),
+                        accountOptions = activityState.accountOptions,
+                        incomeCategoryOptions = activityState.incomeCategories,
+                        expenseCategoryOptions = activityState.expenseCategories,
                         mutationInFlight = activityMutationInFlight,
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
                         onBack = { activeBackStack.removeLastOrNull() },
-                        onSave = { date, note, category, subcategory ->
+                        onSave = { date, note, category, subcategory, legacy ->
                             onActivityAction(
                                 ActivityAction.SaveEdit(
                                     id = route.eventId,
@@ -356,6 +359,7 @@ internal fun MyFinHubAppContent(
                                     category = category,
                                     date = date,
                                     subcategory = subcategory,
+                                    legacy = legacy,
                                 ),
                             )
                         },

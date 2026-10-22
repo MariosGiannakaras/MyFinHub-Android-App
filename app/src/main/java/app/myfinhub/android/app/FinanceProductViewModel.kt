@@ -371,6 +371,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                         nowIso = Instant.now().toString(),
                         date = action.date,
                         subcategory = action.subcategory,
+                        legacyType = action.legacy?.type,
+                        legacyAmount = action.legacy?.amount,
+                        legacyAccountId = action.legacy?.accountId,
+                        legacyFromAccountId = action.legacy?.fromAccountId,
+                        legacyToAccountId = action.legacy?.toAccountId,
                     ),
                 )
             }

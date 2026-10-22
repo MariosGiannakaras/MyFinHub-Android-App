@@ -119,7 +119,7 @@ private fun ProductionActivityEditFixture(darkTheme: Boolean) {
             mutationInFlight = false,
             mutationBlocked = false,
             onBack = {},
-            onSave = { _, _, _, _ -> },
+            onSave = { _, _, _, _, _ -> },
             onSaved = {},
         )
     }

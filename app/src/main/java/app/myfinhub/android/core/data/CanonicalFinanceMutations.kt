@@ -170,6 +170,12 @@ data class EditCanonicalActivity(
     val date: String? = null,
     /** null preserves the existing value; an empty string explicitly clears subcategory. */
     val subcategory: String? = null,
+    /** Full Web LegacyTransactionEditor fields. Null means an old partial queued edit. */
+    val legacyType: String? = null,
+    val legacyAmount: Double? = null,
+    val legacyAccountId: String? = null,
+    val legacyFromAccountId: String? = null,
+    val legacyToAccountId: String? = null,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αποθήκευση αλλαγών κίνησης"
 
@@ -184,6 +190,45 @@ data class EditCanonicalActivity(
         val subcategoryWasSpecified = subcategory != null
         val normalizedSubcategory = subcategory?.trim()
         val subcategoryValue = normalizedSubcategory?.takeIf(String::isNotBlank)?.let(::JsonPrimitive)
+        require(legacyType != null || (legacyAmount == null && legacyAccountId == null &&
+            legacyFromAccountId == null && legacyToAccountId == null)) {
+            "Δεν επιτρέπονται μεμονωμένες αλλαγές ιστορικού ποσού/λογαριασμού."
+        }
+
+        fun legacyUpdates(current: JsonObject): JsonObject {
+            val type = legacyType ?: return current
+            require(type in setOf("expense", "income", "transfer", "adjustment")) {
+                "Ο τύπος ιστορικής κίνησης δεν υποστηρίζεται."
+            }
+            val cents = moneyToCents(legacyAmount ?: Double.NaN)
+            require(if (type == "adjustment") cents != 0L else cents > 0L) {
+                if (type == "adjustment") "Η διόρθωση δεν μπορεί να έχει μηδενικό ποσό."
+                else "Συμπλήρωσε ποσό μεγαλύτερο από μηδέν."
+            }
+            val knownAccounts = document.canonicalAccounts()
+                .filter { it.kind != "credit" }.map { it.id }.toSet()
+            fun account(raw: String?, label: String): String {
+                val id = raw?.trim().orEmpty()
+                require(id.isNotBlank() && id in knownAccounts) { "$label δεν είναι πλέον διαθέσιμος." }
+                return id
+            }
+            val normalizedAccount = if (type == "transfer") null
+                else account(legacyAccountId, "Ο λογαριασμός")
+            val fromAccount = if (type == "transfer")
+                account(legacyFromAccountId, "Ο λογαριασμός προέλευσης") else null
+            val toAccount = if (type == "transfer")
+                account(legacyToAccountId, "Ο λογαριασμός προορισμού") else null
+            require(type != "transfer" || fromAccount != toAccount) {
+                "Η μεταφορά χρειάζεται δύο διαφορετικούς λογαριασμούς."
+            }
+            return current
+                .updated("type", JsonPrimitive(type))
+                .updated("amount", JsonPrimitive(centsToMoney(cents)))
+                .updated("accountId", normalizedAccount?.let(::JsonPrimitive))
+                .updated("fromAccountId", fromAccount?.let(::JsonPrimitive))
+                .updated("toAccountId", toAccount?.let(::JsonPrimitive))
+                .updated("subcategory", if (normalizedCategory.isBlank()) null else subcategoryValue)
+        }
 
         fun commonUpdates(current: JsonObject): JsonObject {
             var updated = current
@@ -197,6 +242,7 @@ data class EditCanonicalActivity(
         val events = document.state.array("events")
         val eventIndex = events.indexOfFirst { (it as? JsonObject)?.string("id") == transactionId }
         if (eventIndex >= 0) {
+            require(legacyType == null) { "Τα στοιχεία ποσού/λογαριασμού των events δεν τροποποιούνται." }
             val current = events[eventIndex] as JsonObject
             val updatedEvent = commonUpdates(current).updated("updatedAt", JsonPrimitive(nowIso))
             val updatedEvents = events.toMutableList().apply { this[eventIndex] = updatedEvent }
@@ -206,7 +252,7 @@ data class EditCanonicalActivity(
         val custom = document.state.array("customTransactions")
         val customIndex = custom.indexOfFirst { (it as? JsonObject)?.string("id") == transactionId }
         if (customIndex >= 0) {
-            val updatedTx = commonUpdates(custom[customIndex] as JsonObject)
+            val updatedTx = legacyUpdates(commonUpdates(custom[customIndex] as JsonObject))
             val updatedCustom = custom.toMutableList().apply { this[customIndex] = updatedTx }
             return document.withMutableState(document.state.updated("customTransactions", JsonArray(updatedCustom)), nowIso)
         }
@@ -217,7 +263,7 @@ data class EditCanonicalActivity(
             ?: error("Η κίνηση δεν είναι πλέον διαθέσιμη.")
         val overrides = document.state.obj("overrides")
         val currentOverride = overrides[transactionId] as? JsonObject ?: seedTransaction
-        val updatedOverride = commonUpdates(currentOverride)
+        val updatedOverride = legacyUpdates(commonUpdates(currentOverride))
         return document.withMutableState(
             document.state.updated("overrides", overrides.updated(transactionId, updatedOverride)),
             nowIso,

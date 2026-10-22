@@ -434,10 +434,14 @@ data class ActivityUiState(
 
     val selectedItem: ActivityItem? = uniqueItem(selectedId)
 
-    fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> = when (item.canonicalKind) {
+    fun categoryOptionsFor(item: ActivityItem): List<ActivityCategoryOption> = when {
+        item.isLegacyTransaction && item.canonicalKind == "income" -> incomeCategories
+        item.isLegacyTransaction -> expenseCategories
+        else -> when (item.canonicalKind) {
         "income" -> incomeCategories
         "expense", "refund", "lending", "repayment", "card_purchase" -> expenseCategories
         else -> emptyList()
+        }
     }
 
     /** Isolated read view: opening analysis never replaces the user's global ledger filters. */
@@ -494,6 +498,15 @@ fun ActivityUiState.selectOverviewMonth(overview: ActivityMonthlyOverview): Acti
     )
 }
 
+/** Only imported legacy history can change type, amount and account endpoints. */
+data class ActivityLegacyEdit(
+    val type: String,
+    val amount: Double,
+    val accountId: String? = null,
+    val fromAccountId: String? = null,
+    val toAccountId: String? = null,
+)
+
 sealed interface ActivityAction {
     data class QueryChanged(val value: String) : ActivityAction
     data object ToggleSortDirection : ActivityAction
@@ -522,6 +535,7 @@ sealed interface ActivityAction {
         val category: String,
         val date: String? = null,
         val subcategory: String? = null,
+        val legacy: ActivityLegacyEdit? = null,
     ) : ActivityAction
     data class Delete(val id: String) : ActivityAction
 }
