@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. #310 final head d64a0cdc34114dd9ff3eaf210a93fa62d79309df passed 4/4 and merged develop 56dbfd3fd7e58abf722fd0187a628c679921eb7e. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a passed 4/4 and squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca: Web 30/60/90 explainable portfolio/account/source forecasts. Draft #312 restores fixed-versus-variable recurring estimate semantics from canonical seed/overrides/custom to native management and forecast labels plus privacy-safe estimate min/max range; read-only real FinanceData and Compose regressions included. CI and owner physical S24 acceptance pending.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. #310 final head d64a0cdc34114dd9ff3eaf210a93fa62d79309df passed 4/4 and merged develop 56dbfd3fd7e58abf722fd0187a628c679921eb7e. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a passed 4/4 and squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca: Web 30/60/90 explainable portfolio/account/source forecasts. Draft #313 restores fixed-versus-variable recurring estimate semantics from canonical seed/overrides/custom to native management and forecast labels plus privacy-safe estimate min/max range; read-only real FinanceData and Compose regressions included. CI and owner physical S24 acceptance pending.",
     "next": [
-      "Validate grouped W4.1/W4.2 draft #312 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release."
+      "Validate grouped W4.1/W4.2 draft #313 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w4-1-variable-recurring-estimates-20261022",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #312 Web variable/fixed recurring estimates with privacy-safe bounds and explicitly estimated forecast source labels, real JSON/Compose regression included; CI and physical S24 owner approval pending.",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #313 Web variable/fixed recurring estimates with privacy-safe bounds and explicitly estimated forecast source labels, real JSON/Compose regression included; CI and physical S24 owner approval pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -867,7 +867,7 @@
               "PR #239 follow-up folds Web recurringCadenceLabel, logoAssetKey/source/endDate read-only service metadata and golden monthly-equivalent projection into existing duplicate-recurring safety batch. Fixed S24 large-font accessibility regression by retaining original recurring_manage_item_<id> testTags for unique IDs and suffix only for historical duplicates; 4/4 exact-head CI pending fresh commit.",
               "PR #254 Web recurringUpcoming active due/date and Greek-name ordering, inactive stored original order, recurringPayments count/last date/typical day and service expiry/renewal metadata in native management; preserved duplicate historical IDs without unsafe mutations. Corrected Compose matcher's build invocation, JVM and S24 Compose tests passed immutable head 0975258759ee430917623791190262d65483d2ca across Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator 4/4; squash merged develop 889d2a3cdea736ad042fc2dc1c80901c1d0e2368. W4.1 remains partial.",
               "PR #255 Web recurringAccountChoice eligible item/default/first non-credit payer fallback, no-account/credit-only fail closed, paused/stopped payment blocked in production and Compose, preserved historic duplicate ID ambiguity gate; five JVM + two S24 Compose regressions passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 8954167f03603c00377e34cf7fe994bc3f171c21. Squash merged develop 4ad2ddf061f0c0bb80131b997478c4d4df645465. W4.1 remains partial.",
-              "Draft #312 variable recurring amountMode source metadata/estimate bounds, privacy-safe native display and forecast movement labelled estimate, JVM real FinanceData + S24 Compose test; checks pending."
+              "Draft #313 variable recurring amountMode source metadata/estimate bounds, privacy-safe native display and forecast movement labelled estimate, JVM real FinanceData + S24 Compose test; checks pending."
             ]
           },
           {
@@ -895,7 +895,7 @@
               "PR #256 Web forecast sourceCounts for scheduled/recurring/loan/future dated events across 30/60/90, exact omitted reasons with read-only expandable disclosure; golden JVM FinanceData immutability/Plan projection and S24 Compose test passed 4/4 immutable-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator at 70b35ddc5958113319980b5557f0909a4b706122; squash merged develop fb744e15fa46aa9ca6dc58e1e015e3edd9a87dac. W4.2 remains partial.",
               "Draft #311 Web forecast account-level and daily step 30/60/90 portfolio/movement trace, privacy-safe native disclosure and no recalc/persistence of source values; real FinanceData JVM and S24 Compose goldens; exact-head CI pending.",
               "W4.2 #311 Web 30/60/90 forecast trace exact head 6a650091560cd4abb3340e2aeb5a3b70f281442a all four gates passed, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca.",
-              "Draft #312 variable recurring amountMode source metadata/estimate bounds, privacy-safe native display and forecast movement labelled estimate, JVM real FinanceData + S24 Compose test; checks pending."
+              "Draft #313 variable recurring amountMode source metadata/estimate bounds, privacy-safe native display and forecast movement labelled estimate, JVM real FinanceData + S24 Compose test; checks pending."
             ]
           },
           {
@@ -1107,9 +1107,9 @@
         ]
       }
     ],
-    "next_action": "Validate grouped W4.1/W4.2 draft #312 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.",
+    "next_action": "Validate grouped W4.1/W4.2 draft #313 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 312,
+    "pr": 313,
     "current_subtask": "W4.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
