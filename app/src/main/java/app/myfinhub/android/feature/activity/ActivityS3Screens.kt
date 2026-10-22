@@ -213,6 +213,9 @@ fun ActivityLedgerScreen(
                                     else ActivityAction.ShowOverviewMonth,
                                 )
                             },
+                            onNavigateMonth = { delta ->
+                                onAction(ActivityAction.NavigateOverviewMonth(delta))
+                            },
                         )
                     }
                 }
@@ -392,6 +395,7 @@ private fun ActivityMonthlyOverviewSurface(
     amountsVisible: Boolean,
     showingMonth: Boolean,
     onToggleMonth: () -> Unit,
+    onNavigateMonth: (Int) -> Unit,
 ) {
     val monthLabel = runCatching {
         YearMonth.parse(overview.month).atDay(1)
@@ -421,7 +425,25 @@ private fun ActivityMonthlyOverviewSurface(
             modifier = Modifier.padding(MyFinHubSpacing.md),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
         ) {
-            Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Σύνοψη μήνα · $monthLabel", style = MaterialTheme.typography.titleMedium)
+                Row {
+                    TextButton(
+                        onClick = { onNavigateMonth(-1) },
+                        modifier = Modifier.testTag("activity_previous_month")
+                            .semantics { contentDescription = "Προηγούμενος μήνας" },
+                    ) { Text("‹") }
+                    TextButton(
+                        onClick = { onNavigateMonth(1) },
+                        modifier = Modifier.testTag("activity_next_month")
+                            .semantics { contentDescription = "Επόμενος μήνας" },
+                    ) { Text("›") }
+                }
+            }
             Text(
                 "Έσοδα: ${amountVisibilityText(formatSignedEuro(overview.income), amountsVisible)}" +
                     " · Έξοδα: ${amountVisibilityText(formatSignedEuro(overview.expense), amountsVisible)}",

@@ -601,6 +601,48 @@ class ActivityReducerTest {
         assertEquals(state.items, history.items)
     }
 
+
+    @Test
+    fun manualMonthSelectionIsPureAndPreservesAllOriginalSourceRows() {
+        val october = ActivityMonthlyOverview(
+            "2026-10", 30.0, 10.0, 20.0, 2, 10.0, 5.0, 5.0, 1,
+        )
+        val september = october.copy(
+            month = "2026-09", transactionCount = 1,
+        )
+        fun row(id: String, date: String) = ActivityItem(
+            id, date, ActivityKind.EXPENSE, id, "", -3.0, "Μετρητά",
+            null, rawDate = date, canonicalSourceOrdinal = 0,
+        )
+        val source = ActivityUiState(
+            monthOverview = october,
+            items = listOf(row("oct", "2026-10-10"), row("sept", "2026-09-10")),
+        )
+        val selected = source.selectOverviewMonth(september)
+        assertEquals("2026-09", selected.monthOverview!!.month)
+        assertTrue(selected.overviewMonthManuallySelected)
+        assertTrue(selected.monthSourceSelected)
+        assertTrue(selected.showingOverviewMonth)
+        assertEquals("2026-09-01", selected.ledgerDateFrom)
+        assertEquals("2026-09-30", selected.ledgerDateTo)
+        assertEquals(listOf("sept"), selected.visibleItems.map { it.id })
+        assertEquals(source.items, selected.items)
+        val history = reduceActivity(selected, ActivityAction.ClearSearchAndFilters)
+        assertFalse(history.monthSourceSelected)
+        assertTrue(history.overviewMonthManuallySelected)
+        assertEquals("2026-09", history.monthOverview!!.month)
+        assertEquals(listOf("oct", "sept"), history.visibleItems.map { it.id })
+        assertEquals(source.items, history.items)
+        val analytics = selected.forCategory("Άλλο", "2026-09-01", "2026-09-30")
+        assertFalse(analytics.monthSourceSelected)
+        assertTrue(analytics.isAnalyticsScope)
+        assertFalse(analytics.showingOverviewMonth)
+        assertEquals(analytics, analytics.selectOverviewMonth(october))
+        val malformed = october.copy(month = "invalid")
+        assertEquals(source, source.selectOverviewMonth(malformed))
+        assertEquals(source, reduceActivity(source, ActivityAction.NavigateOverviewMonth(-1)))
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))

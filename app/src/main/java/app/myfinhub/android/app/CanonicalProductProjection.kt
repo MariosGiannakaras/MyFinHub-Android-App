@@ -133,6 +133,33 @@ internal fun primaryHomeRoles(accounts: List<app.myfinhub.android.core.data.Cano
     }
 }
 
+
+/** Web TransactionsPage has an arbitrary user-selected reporting month.
+ * Produce only the requested month and its comparison; neither ledger amounts
+ * nor canonical FinanceData are mutated by navigation.
+ */
+internal fun projectCanonicalActivityMonthOverview(
+    document: CanonicalFinanceDocument,
+    selectedMonth: YearMonth,
+    legacy: List<CanonicalLegacyTransaction> = document.effectiveLegacyTransactions(),
+    events: List<CanonicalEvent> = document.canonicalEvents(),
+): ActivityMonthlyOverview {
+    val selected = selectedMonth.toString()
+    val previous = selectedMonth.minusMonths(1).toString()
+    val flow = document.canonicalOperationalMonthlyFlow(selected)
+    val prior = document.canonicalOperationalMonthlyFlow(previous)
+    fun sourceCount(month: String): Int =
+        legacy.count { it.date.startsWith("$month-") } +
+            events.count { it.date.startsWith("$month-") &&
+                it.kind != "card_purchase" && it.kind != "card_payment" }
+    return ActivityMonthlyOverview(
+        month = selected, income = flow.income, expense = flow.expense, net = flow.net,
+        transactionCount = sourceCount(selected),
+        previousIncome = prior.income, previousExpense = prior.expense,
+        previousNet = prior.net, previousTransactionCount = sourceCount(previous),
+    )
+}
+
 fun projectCanonicalProduct(
     document: CanonicalFinanceDocument,
     today: LocalDate,
@@ -300,35 +327,20 @@ val activityItems = buildActivityItems(
         previous = previous?.quickEntryState,
     )
 
-    // Web uses unfiltered full-month operational flow for headline tiles.
-    // Native Android intentionally keeps its multi-month ledger and search.
-    // Do not confuse this independent snapshot with Home's as-of-today flow.
-    val previousLedgerMonth = YearMonth.from(today).minusMonths(1).toString()
-    val currentLedgerFlow = document.canonicalOperationalMonthlyFlow(month)
-    val previousLedgerFlow = document.canonicalOperationalMonthlyFlow(previousLedgerMonth)
-    fun sourceCount(target: String): Int =
-        legacy.count { it.date.startsWith(target) } +
-            events.count { it.date.startsWith(target) &&
-                it.kind != "card_purchase" && it.kind != "card_payment" }
-    val monthOverview = ActivityMonthlyOverview(
-        month = month,
-        income = currentLedgerFlow.income,
-        expense = currentLedgerFlow.expense,
-        net = currentLedgerFlow.net,
-        transactionCount = sourceCount(month),
-        previousIncome = previousLedgerFlow.income,
-        previousExpense = previousLedgerFlow.expense,
-        previousNet = previousLedgerFlow.net,
-        previousTransactionCount = sourceCount(previousLedgerMonth),
-    )
-
+    // When a user picked a reporting month it survives fresh server FinanceData
+    // projections. Otherwise the overview follows the real current calendar.
     val oldActivity = previous?.activityState
-    // If the actual calendar month advanced while the device was offline,
-    // keep the month-source intent but anchor its displayed date boundaries
-    // to the fresh month. Never project stale previous-month filters into
-    // the new current-month source.
+    val selectedMonth = oldActivity?.takeIf { it.overviewMonthManuallySelected }
+        ?.monthOverview?.month?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+        ?: YearMonth.from(today)
+    val monthOverview = projectCanonicalActivityMonthOverview(
+        document, selectedMonth, legacy, events,
+    )
+    // Automatic current-month mode rolls forward on a new calendar month;
+    // manually selected historic months never change behind the user's back.
     val monthRolledWhileSelected = oldActivity?.monthSourceSelected == true &&
-        oldActivity.monthOverview?.month != month
+        !oldActivity.overviewMonthManuallySelected &&
+        oldActivity.monthOverview?.month != selectedMonth.toString()
     val activityAccountOptions = accounts
         .filter { it.kind != "credit" }
         .map { account -> ActivityAccountOption(account.id, account.name) }
@@ -337,10 +349,12 @@ val activityItems = buildActivityItems(
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
         sortOldestFirst = oldActivity?.sortOldestFirst ?: false,
         ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
-        ledgerDateFrom = if (monthRolledWhileSelected) "$month-01" else oldActivity?.ledgerDateFrom,
-        ledgerDateTo = if (monthRolledWhileSelected) YearMonth.parse(month).atEndOfMonth().toString()
+        ledgerDateFrom = if (monthRolledWhileSelected) selectedMonth.atDay(1).toString()
+            else oldActivity?.ledgerDateFrom,
+        ledgerDateTo = if (monthRolledWhileSelected) selectedMonth.atEndOfMonth().toString()
             else oldActivity?.ledgerDateTo,
         monthSourceSelected = oldActivity?.monthSourceSelected == true,
+        overviewMonthManuallySelected = oldActivity?.overviewMonthManuallySelected == true,
         // Web transaction type options never include card-only events.
         // Discard stale pre-parity card filters on reprojection rather than
         // restoring an invisible selection with permanently empty results.

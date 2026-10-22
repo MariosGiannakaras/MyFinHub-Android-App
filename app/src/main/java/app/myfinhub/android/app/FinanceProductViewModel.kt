@@ -56,6 +56,7 @@ import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import app.myfinhub.android.feature.activity.ActivityAction
 import app.myfinhub.android.feature.activity.reduceActivity
+import app.myfinhub.android.feature.activity.selectOverviewMonth
 import app.myfinhub.android.feature.home.HomeAction
 import app.myfinhub.android.feature.home.reduceHomeState
 import app.myfinhub.android.feature.money.CardCreateRequest
@@ -374,6 +375,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 )
             }
             is ActivityAction.Delete -> deleteTransaction(action.id)
+            is ActivityAction.NavigateOverviewMonth -> {
+                if (action.delta !in setOf(-1, 1)) return
+                updateReady { ready ->
+                    val state = ready.projection.activityState
+                    if (state.isAnalyticsScope) return@updateReady ready
+                    val target = runCatching {
+                        YearMonth.parse(state.monthOverview?.month ?: "")
+                            .plusMonths(action.delta.toLong())
+                    }.getOrNull() ?: return@updateReady ready
+                    val overview = projectCanonicalActivityMonthOverview(ready.projection.document, target)
+                    ready.copy(projection = ready.projection.copy(
+                        activityState = state.selectOverviewMonth(overview),
+                    ))
+                }
+            }
             else -> updateReady { ready ->
                 ready.copy(projection = ready.projection.copy(activityState = reduceActivity(ready.projection.activityState, action)))
             }
