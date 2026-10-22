@@ -162,7 +162,10 @@ internal fun projectCanonicalPlanState(
                 // Never resample or rederive canonical projections in the UI.
                 portfolioTimeline = f.points.map { point ->
                     app.myfinhub.android.feature.plan.ForecastPortfolioPoint(
-                        point.date.toString(), point.portfolio)
+                        dateIso = point.date.toString(),
+                        portfolio = point.portfolio,
+                        balancesByAccount = point.balances,
+                    )
                 },
                 accountBreakdown = f.accounts.map { account ->
                     val real = accountsById[account.accountId]
@@ -185,6 +188,16 @@ internal fun projectCanonicalPlanState(
                         label = movement.label,
                         source = movement.source,
                         portfolioDelta = movement.portfolioDelta,
+                        accountImpacts = movement.legs.map { leg ->
+                            val real = accountsById[leg.accountId]
+                            app.myfinhub.android.feature.plan.ForecastAccountImpact(
+                                accountId = leg.accountId,
+                                accountLabel = real?.let {
+                                    financialAccountDisplayName(it.id, it.name, it.kind, it.providerId)
+                                } ?: leg.accountId,
+                                delta = leg.amount,
+                            )
+                        },
                     )
                 },
             )

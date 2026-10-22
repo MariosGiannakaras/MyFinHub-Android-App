@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate grouped W4.1/W4.2 draft #313 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.
+- [ ] Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #313, branch android/w4-1-variable-recurring-estimates-20261022
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #313 Web variable/fixed recurring estimates with privacy-safe bounds and explicitly estimated forecast source labels, real JSON/Compose regression included; CI and physical S24 owner approval pending.
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.2 #312 final head 58947eb07598baf232b90e84c7aacbc4dc3dcea8 four checks green, squash merged develop 7ea37f2dfc98d2fb443205c74d337aa516591a67. Draft W4.1/W4.2 #313 reanchored onto new develop, distinguishes variable estimated versus fixed recurring amounts, carries optional privacy-safe estimate bounds and labelled forecast movements; real FinanceData/JVM + S24 Compose validation pending final exact-head. Physical owner acceptance separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate grouped W4.1/W4.2 draft #313 Web amountMode fixed vs variable: source/override/custom read-only persistence, estimateMin/estimateMax privacy, scheduled variable forecast labels 'Εκτίμηση:' and fixed unprefixed, identical portfolio and monthly-equivalent arithmetic, unchanged event ledger. Four final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator, then squash merge; progress remains 1/6 implementations · 11/24 subtasks. No real finance writes, Web/backend/schema edits, SMS import, permanent card delete or signed release.
+Next Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
