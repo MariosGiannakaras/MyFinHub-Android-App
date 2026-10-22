@@ -25,7 +25,12 @@ data class CanonicalRecurringItem(
     val logoAssetKey: String? = null,
     val source: String? = null,
     val endDate: String? = null,
+    val amountMode: String = "fixed",
+    val estimateMin: Double? = null,
+    val estimateMax: Double? = null,
 ) {
+    /** Web estimate is not an actual paid amount. Never treat it as a settled transaction. */
+    val isVariableEstimate: Boolean get() = amountMode == "variable"
     val effectiveStatus: String
         get() = if (!active) {
             if (status == "paused") "paused" else "stopped"
@@ -66,6 +71,9 @@ private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
         logoAssetKey = string("logoAssetKey"),
         source = string("source"),
         endDate = string("endDate"),
+        amountMode = if (string("amountMode") == "variable") "variable" else "fixed",
+        estimateMin = number("estimateMin")?.takeIf { it.isFinite() && it >= 0.0 },
+        estimateMax = number("estimateMax")?.takeIf { it.isFinite() && it >= 0.0 },
     )
 }
 

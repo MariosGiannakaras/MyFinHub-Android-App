@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a passed Project Tracking, Android CI (JVM/lint/optimized unsigned release+Play bundle), screenshots and hosted S24 emulator, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. #311 added read-only 30/60/90 portfolio points, account summaries, first low/negative warning dates and movement source counts. Draft #312 closes another Web ForecastPoint/ForecastMovement parity gap by exposing each timeline date's real per-account balances and each known movement's ordered account ledger legs (including zero-net transfers), with progressive access to all movements after the first eight; all numbers preserve amount privacy. Golden real FinanceData JVM and S24 Compose regressions staged; exact-head CI pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.2 #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 gates green merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. W4.2 #312 final head 58947eb07598baf232b90e84c7aacbc4dc3dcea8 4/4 gates green merged develop 7ea37f2dfc98d2fb443205c74d337aa516591a67: Web per-date account trajectories and source ledger legs. Draft #313 adds Web fixed-vs-variable recurring estimates to canonical seed/overrides/custom, native management and forecast source labels with privacy-safe min/max; preserves payment records and forecast arithmetic. FinanceData real JSON/JVM and S24 Compose tests included, CI/owner physical S24 signoff pending.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate #312 W4.2 per-date portfolio/account balance trajectories, ordered account movement ledger legs including zero-net transfers and cross-account attribution, privacy for every displayed account number, 30/60/90 exact Web goldens, empty/no-flow and display-more-than-eight; prevent altered portfolio calculations or duplicated finance state. Require four final exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression, S24 emulator. Fix failures on same PR and merge only after all four. Web parity remains 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema changes, live finance writes, SMS import or permanent card delete.
+1. Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #312, branch android/w4-2-forecast-account-timeline-and-legs-20261022
-Current W4.2: Web parity 1/6 implementations · 11/24 subtasks. #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 final-head gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #312: retain per-account daily step balances and exact ledger legs of each planned source movement, expose zero-net transfer attribution and expandable complete source list without altering canonical finance. Real JSON/JVM+hosted Compose tests staged, CI pending, physical owner S24 separate.
+Issue #155, PR #313, branch android/w4-1-variable-recurring-estimates-20261022
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.2 #312 final head 58947eb07598baf232b90e84c7aacbc4dc3dcea8 four checks green, squash merged develop 7ea37f2dfc98d2fb443205c74d337aa516591a67. Draft W4.1/W4.2 #313 reanchored onto new develop, distinguishes variable estimated versus fixed recurring amounts, carries optional privacy-safe estimate bounds and labelled forecast movements; real FinanceData/JVM + S24 Compose validation pending final exact-head. Physical owner acceptance separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #312 W4.2 per-date portfolio/account balance trajectories, ordered account movement ledger legs including zero-net transfers and cross-account attribution, privacy for every displayed account number, 30/60/90 exact Web goldens, empty/no-flow and display-more-than-eight; prevent altered portfolio calculations or duplicated finance state. Require four final exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression, S24 emulator. Fix failures on same PR and merge only after all four. Web parity remains 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema changes, live finance writes, SMS import or permanent card delete.
+Next Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

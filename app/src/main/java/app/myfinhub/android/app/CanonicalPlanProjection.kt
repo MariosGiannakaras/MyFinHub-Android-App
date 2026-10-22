@@ -113,6 +113,9 @@ internal fun projectCanonicalPlanState(
             paymentCount = payments.paymentCount,
             lastPaymentDateIso = payments.lastPaymentDateIso,
             typicalPaymentDay = document.canonicalTypicalRecurringPaymentDay(recurring),
+            amountMode = recurring.amountMode,
+            estimateMin = recurring.estimateMin,
+            estimateMax = recurring.estimateMax,
         )
     }
     return PlanUiState(

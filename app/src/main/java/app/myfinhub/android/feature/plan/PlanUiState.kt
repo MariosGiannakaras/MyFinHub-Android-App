@@ -43,6 +43,9 @@ data class RecurringManageItem(
     val paymentCount: Int = 0,
     val lastPaymentDateIso: String? = null,
     val typicalPaymentDay: Int? = null,
+    val amountMode: String = "fixed",
+    val estimateMin: Double? = null,
+    val estimateMax: Double? = null,
 )
 
 data class ScheduledManageItem(

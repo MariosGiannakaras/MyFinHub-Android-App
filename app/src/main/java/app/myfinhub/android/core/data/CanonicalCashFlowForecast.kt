@@ -98,7 +98,8 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         }
         var guard = 0
         while (next != null && !next.isAfter(end) && guard <= 120) {
-            add("forecast-recurring-${item.id}-$next", next, "recurring", item.name,
+            add("forecast-recurring-${item.id}-$next", next, "recurring",
+                if (item.isVariableEstimate) "Εκτίμηση: ${item.name}" else item.name,
                 listOf(leg(item.accountId, -abs(item.amount))))
             val following = next.afterMonths(item.recurrenceMonths)
             if (!following.isAfter(next)) break

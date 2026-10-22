@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate #312 W4.2 per-date portfolio/account balance trajectories, ordered account movement ledger legs including zero-net transfers and cross-account attribution, privacy for every displayed account number, 30/60/90 exact Web goldens, empty/no-flow and display-more-than-eight; prevent altered portfolio calculations or duplicated finance state. Require four final exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression, S24 emulator. Fix failures on same PR and merge only after all four. Web parity remains 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema changes, live finance writes, SMS import or permanent card delete.
+- [ ] Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #312, branch android/w4-2-forecast-account-timeline-and-legs-20261022
-Current W4.2: Web parity 1/6 implementations · 11/24 subtasks. #311 final head 6a650091560cd4abb3340e2aeb5a3b70f281442a 4/4 final-head gates green, squash merged develop 061e5c8294ba63bcd6f16475a01a3a9f813278ca. Draft #312: retain per-account daily step balances and exact ledger legs of each planned source movement, expose zero-net transfer attribution and expandable complete source list without altering canonical finance. Real JSON/JVM+hosted Compose tests staged, CI pending, physical owner S24 separate.
+Issue #155, PR #313, branch android/w4-1-variable-recurring-estimates-20261022
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.2 #312 final head 58947eb07598baf232b90e84c7aacbc4dc3dcea8 four checks green, squash merged develop 7ea37f2dfc98d2fb443205c74d337aa516591a67. Draft W4.1/W4.2 #313 reanchored onto new develop, distinguishes variable estimated versus fixed recurring amounts, carries optional privacy-safe estimate bounds and labelled forecast movements; real FinanceData/JVM + S24 Compose validation pending final exact-head. Physical owner acceptance separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #312 W4.2 per-date portfolio/account balance trajectories, ordered account movement ledger legs including zero-net transfers and cross-account attribution, privacy for every displayed account number, 30/60/90 exact Web goldens, empty/no-flow and display-more-than-eight; prevent altered portfolio calculations or duplicated finance state. Require four final exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression, S24 emulator. Fix failures on same PR and merge only after all four. Web parity remains 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema changes, live finance writes, SMS import or permanent card delete.
+Next Validate W4.1/W4.2 draft #313 Web amountMode fixed vs variable in recurring seed, overrides and custom; optional estimateMin/estimateMax with privacy, forecast recurring movements with 'Εκτίμηση:' only for variable, no altered balances or real finance writes. Exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator; repair in this PR and squash merge only once green. Web parity 1/6 implementations · 11/24 subtasks. No signed release, Web/backend/schema edits, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
