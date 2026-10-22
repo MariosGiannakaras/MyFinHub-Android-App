@@ -370,6 +370,49 @@ class CanonicalProductProjectionTest {
             reduceActivity(monthOnly, ActivityAction.ClearSearchAndFilters).visibleItems.size)
     }
 
+
+    @Test
+    fun monthSourceOptionsUseReviewedEffectiveRowsWithoutDeletedOrPastLabels() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"retired","type":"expense","date":"2026-09-20","amount":9,
+                 "category":"Ανενεργή κατηγορία"},
+                {"id":"reviewed","type":"expense","date":"2026-10-20","amount":12,
+                 "category":"Παλιά ταξινόμηση"},
+                {"id":"deleted","type":"expense","date":"2026-10-21","amount":5,
+                 "category":"Διαγραμμένη κατηγορία"}
+              ]},"state":{"overrides":{
+                "reviewed":{"id":"reviewed","type":"expense","date":"2026-10-20",
+                 "amount":12,"category":"Ενημερωμένη κατηγορία"}
+              },"deleted":["deleted"],"events":[
+                {"id":"refund","kind":"refund","date":"2026-10-19","amount":7},
+                {"id":"september-transfer","kind":"transfer","date":"2026-09-18",
+                 "amount":3},
+                {"id":"card-only","kind":"card_purchase","date":"2026-10-18",
+                 "amount":2}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+            .activityState
+        assertTrue(state.availableCategories.contains("Ανενεργή κατηγορία"))
+        assertTrue(state.typeOptions.any { it.id == "transfer" })
+        val month = reduceActivity(state, ActivityAction.ShowOverviewMonth)
+        assertEquals(setOf("reviewed", "refund"), month.visibleItems.map { it.id }.toSet())
+        assertEquals(2, month.monthOverview!!.transactionCount)
+        assertTrue("Reviewed source must become the selectable label",
+            month.availableCategories.contains("Ενημερωμένη κατηγορία"))
+        assertFalse(month.availableCategories.contains("Παλιά ταξινόμηση"))
+        assertFalse(month.availableCategories.contains("Ανενεργή κατηγορία"))
+        assertFalse(month.availableCategories.contains("Διαγραμμένη κατηγορία"))
+        assertEquals(setOf("expense", "refund"), month.typeOptions.map { it.id }.toSet())
+        assertEquals(state.items, month.items)
+        assertEquals(state.monthOverview, month.monthOverview)
+        val cleared = reduceActivity(month, ActivityAction.ClearSearchAndFilters)
+        assertTrue(cleared.availableCategories.contains("Ανενεργή κατηγορία"))
+        assertEquals(state.items, cleared.items)
+    }
+
     @Test
     fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
