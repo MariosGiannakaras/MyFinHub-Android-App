@@ -240,9 +240,9 @@ fun ActivityLedgerScreen(
                                 else "Φίλτρα (${state.activeFilterCount})",
                             )
                         }
-                        if (state.hasActiveListScope && state.visibleItems.isNotEmpty()) {
+                        if (state.hasActiveListScope) {
                             TextButton(
-                                onClick = { onAction(ActivityAction.ClearSearchAndFilters) },
+                                onClick = { onAction(ActivityAction.ClearFilters) },
                                 modifier = Modifier.testTag("activity_clear_all"),
                             ) {
                                 Text("Καθαρισμός")
@@ -310,9 +310,19 @@ fun ActivityLedgerScreen(
                 state.scopeSourceItems.isEmpty() -> {
                     item(key = "empty-ledger") {
                         ActivityEmptyState(
-                            title = "Δεν υπάρχουν καταχωρισμένες κινήσεις.",
-                            actionLabel = if (analyticsScope) null else "Νέα κίνηση",
-                            onAction = if (analyticsScope) null else onOpenQuickEntry,
+                            title = if (state.showingOverviewMonth) {
+                                "Δεν υπάρχουν συναλλαγές σε αυτή την περίοδο."
+                            } else "Δεν υπάρχουν καταχωρισμένες κινήσεις.",
+                            actionLabel = when {
+                                analyticsScope -> null
+                                state.hasActiveListScope -> "Επαναφορά φίλτρων"
+                                else -> "Νέα κίνηση"
+                            },
+                            onAction = when {
+                                analyticsScope -> null
+                                state.hasActiveListScope -> { { onAction(ActivityAction.ClearFilters) } }
+                                else -> onOpenQuickEntry
+                            },
                         )
                     }
                 }
@@ -320,9 +330,9 @@ fun ActivityLedgerScreen(
                     item(key = "empty-filtered") {
                         ActivityEmptyState(
                             title = "Δεν βρέθηκαν κινήσεις με αυτή την αναζήτηση ή τα φίλτρα.",
-                            actionLabel = if (analyticsScope) null else "Καθαρισμός αναζήτησης και φίλτρων",
+                            actionLabel = if (analyticsScope) null else "Επαναφορά φίλτρων",
                             onAction = if (analyticsScope) null else {
-                                { onAction(ActivityAction.ClearSearchAndFilters) }
+                                { onAction(ActivityAction.ClearFilters) }
                             },
                         )
                     }
