@@ -76,6 +76,17 @@ internal fun ActivityItem.webNoteParts(): ActivityNoteParts {
     )
 }
 
+/** Web TransactionsPage uses the first line of the persisted note as the row
+ * identity. The canonical category and account must never displace that
+ * description merely because a note has no second-line comment.
+ * Standalone synthetic UI preview fixtures retain their existing title.
+ */
+internal fun ActivityItem.webLedgerDisplayTitle(): String {
+    val noteTitle = webNoteParts().title
+    return if (isLegacyTransaction || canonicalSourceOrdinal >= 0 ||
+        webNoteParts().comment.isNotEmpty()) noteTitle else title
+}
+
 /** Distinguish actual imported rows and their saved review overrides from events. */
 internal fun ActivityItem.legacyHistoryLabel(): String? = when {
     !isLegacyTransaction -> null
