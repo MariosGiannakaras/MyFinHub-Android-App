@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#308 passed exact-final-head four-gate Android CI and squash merged develop 3572d795d61a8cd10b1c199638be503f66f1e712. #308 fixed Web month-preserving reset/search in nonempty, filtered and empty-month ledger with approved UI references. Draft #309 addresses W3.2/W4.4 full Web LegacyTransactionEditor parity: historical override edit type, signed adjustment/positive amount and account endpoints, with validation and non-mutating imported seed source metadata. Canonical mutation and replayable encrypted offline intent include legacy-only fields with old queued edit compatibility; new Compose editor retains read-only event type/amount/account. Domain offline and UI reducer tests staged, exact-head CI and owner physical S24 acceptance pending.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W3.2/W4.4 grouped #309 final head b0dd4f86347c69c4cc5768363f05f1f63f756bde passed Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshots and hosted S24 emulator; squash merged develop b6e91a5113c07a08b90c3e0c3e1329c60e162dbe. #309 enables complete import override editor type/amount/account/transfer endpoints with validated seed-preserving encrypted offline replay, while canonical events stay guarded. Draft #310 fixes Web note-first identity in native persisted transaction rows, detail and editor headings: never replace actual source note title with transaction category, display separate category/comment, retain synthetic preview design, clarify historical tombstone deletion. JVM + real JSON tests staged; CI, S24 and physical owner acceptance pending.",
     "next": [
-      "Validate draft #309 W3.2/W4.4 Web legacy override editor type/amount and account switching, transfer endpoint invariants, adjustment nonzero signed value, financial role validation, source metadata preservation, non-legacy event rejection, idempotent offline intent round-trip and backward-compatible missing legacy fields. Verify Compose privacy, editor persistence feedback, categories on type switch, screenshot and hosted S24 workflows; fix CI errors within same substantial PR, merge only with immutable final-head four gates. Web parity stays 1/6 implementations · 11/24 subtasks. No signed release, shared Web/backend/schema edits, SMS import, live finance writes or permanent card deletion."
+      "Verify draft #310 W4.4 real persisted note-first Web identity across legacy overrides, canonical event rows, missing/multiline notes, compact native rows, read-first detail/edit heading and separate category metadata; Web historical delete confirmation must explain retained imported seed/tombstone, preview screenshots unchanged, financial calculations and stored notes immutable. Require exact-final-head four CI gates Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot and hosted S24 emulator. Repair within same PR, squash merge only after 4/4 success. Progress stays Web parity 1/6 implementations · 11/24 subtasks, no release, Web/backend/schema/production finance changes or SMS import/permanent card deletion."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w3-2-legacy-override-full-editor-20261022",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. #308 final immutable head b2fcd37a2c8298337e120dc19d0c05465f5d9eed passed Project Tracking 39792920334, Android CI 39792920317, screenshot + hosted S24 39792920333; squash merged develop 3572d795d61a8cd10b1c199638be503f66f1e712. Draft #309 adds Web-like full legacy transaction override editor via safe Android canonical mutation + offline replay and dynamic source-specific Compose UI; JVM/domain tests staged; final CI and device acceptance pending.",
+    "branch": "android/w4-4-source-note-labels-and-legacy-tombstone-20261022",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. #309 full Web historical import override editor final head b0dd4f86347c69c4cc5768363f05f1f63f756bde passed exact-head Project Tracking/Android CI/screenshot/S24 4/4 and squash merged develop b6e91a5113c07a08b90c3e0c3e1329c60e162dbe. Draft #310 repairs persisted Activity row/detail/editor transaction note titles versus categories, source comment and legacy tombstone deletion explanation. Read-only golden model + finance JSON regressions included; exact-head CI and physical S24 owner approval pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -819,7 +819,8 @@
               "PR #278 Web note-based expense split suggestions 2–12 cents-exact, manual edit and semantic fail-close guards; JVM and S24 Compose golden tests passed all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshots and S24 emulator checks at a883b6d6e848eef5a9700113bad9de883d898acb. Squash merged develop 0c96f8ed8987d1aebd0a85269131bb17bd6bb858; W3.2 remains partial.",
               "Draft PR #279 Web rule JVM guards for income category exclusion, note-only matching and accountId/fromAccountId preference plus stale handoff recovery. All four exact-head CI gates pending; no accepted completion credit.",
               "PR #279 Web income category exclusion, note-only fallback and accountId/fromAccountId rule matching JVM goldens, reconciled canonical handoff; immutable exact head dbbe022385d8f14709457169505702c39065c0a3 passed 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator. Squash merged develop dde5740ecd20e780a7f1e8cf3104fbe2a4a6859a. W3.2 partial.",
-              "Draft #309 full historical LegacyTransactionEditor Web parity: source-preserving type/amount/account override with validator and replayable offline intent, old queued edits backward compatible, component editor and core tests; exact CI pending."
+              "Draft #309 full historical LegacyTransactionEditor Web parity: source-preserving type/amount/account override with validator and replayable offline intent, old queued edits backward compatible, component editor and core tests; exact CI pending.",
+              "W3.2 #309 full source-safe historical import override editor, signed adjustment/account/transfer edits, durable offline backward compatibility, final head b0dd4f86347c69c4cc5768363f05f1f63f756bde 4/4 green, squash merged develop b6e91a5113c07a08b90c3e0c3e1329c60e162dbe."
             ]
           },
           {
@@ -977,7 +978,9 @@
               "Draft #307 month-based default filter count/date reset and month-relative ledger count parity with Web, source-row JSON and reducer tests, Android Compose validation; CI pending.",
               "W4.4 #307 exact Web date range default and month source counts, final head ead1e96057f2b61c28443088d96bef3fbf413bc8 4/4 green; squash merged develop a6abd85756b00326a0284f54a649f8f24954865d.",
               "Draft #308 Web resetFilters restores selected reporting month's source after unmatched search and no-row month; query reset + scoped empty state/native all history isolation, reducer and canonical JSON goldens, pending CI.",
-              "W4.4 #308 final head b2fcd37a2c8298337e120dc19d0c05465f5d9eed four gates success, merged develop 3572d795d61a8cd10b1c199638be503f66f1e712; #309 historical editor read/edit parity pending."
+              "W4.4 #308 final head b2fcd37a2c8298337e120dc19d0c05465f5d9eed four gates success, merged develop 3572d795d61a8cd10b1c199638be503f66f1e712; #309 historical editor read/edit parity pending.",
+              "W4.4 #309 complete historical import override editor merged develop b6e91a5113c07a08b90c3e0c3e1329c60e162dbe after 4/4 green immutable-head checks.",
+              "Draft #310 Web note-first Activity real source row identity in list/detail/edit with category/comment separate and legacy delete tombstone explanation; source-fixture JVM/JSON tests pending CI."
             ]
           }
         ]
@@ -1099,10 +1102,10 @@
         ]
       }
     ],
-    "next_action": "Validate draft #309 W3.2/W4.4 Web legacy override editor type/amount and account switching, transfer endpoint invariants, adjustment nonzero signed value, financial role validation, source metadata preservation, non-legacy event rejection, idempotent offline intent round-trip and backward-compatible missing legacy fields. Verify Compose privacy, editor persistence feedback, categories on type switch, screenshot and hosted S24 workflows; fix CI errors within same substantial PR, merge only with immutable final-head four gates. Web parity stays 1/6 implementations · 11/24 subtasks. No signed release, shared Web/backend/schema edits, SMS import, live finance writes or permanent card deletion.",
+    "next_action": "Verify draft #310 W4.4 real persisted note-first Web identity across legacy overrides, canonical event rows, missing/multiline notes, compact native rows, read-first detail/edit heading and separate category metadata; Web historical delete confirmation must explain retained imported seed/tombstone, preview screenshots unchanged, financial calculations and stored notes immutable. Require exact-final-head four CI gates Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot and hosted S24 emulator. Repair within same PR, squash merge only after 4/4 success. Progress stays Web parity 1/6 implementations · 11/24 subtasks, no release, Web/backend/schema/production finance changes or SMS import/permanent card deletion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 309,
-    "current_subtask": "W3.2",
+    "pr": 310,
+    "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

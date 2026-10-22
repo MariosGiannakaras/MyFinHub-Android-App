@@ -590,7 +590,13 @@ private fun ActivityFlatLedgerRow(
 ) {
     val tone = item.s3Tone()
     val noteParts = item.webNoteParts()
+    val realWebRow = item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0
     val secondary = when {
+        realWebRow && noteParts.comment.isNotEmpty() -> noteParts.comment
+        realWebRow && item.canonicalKind == "split" && item.splitParts.size >= 2 ->
+            "${item.webLedgerCategoryLabel()} · ${item.splitParts.size} μέρη"
+        realWebRow -> item.webLedgerCategoryLabel()
+        // Keep synthetic preview screenshots' existing standalone wording.
         item.isInternalTransfer() -> activityTransferRouteLabel(item, accountOptions)
         item.canonicalKind == "split" && item.splitParts.size >= 2 ->
             "${item.splitParts.size} μέρη" +
@@ -601,7 +607,8 @@ private fun ActivityFlatLedgerRow(
     val meta = when {
         ambiguousIdentity -> "Διπλό αναγνωριστικό · απαιτεί έλεγχο"
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
-        item.isInternalTransfer() -> "Εσωτερική μεταφορά"
+        item.isInternalTransfer() -> if (realWebRow)
+            "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
         item.canonicalKind == "card_purchase" || item.canonicalKind == "card_payment" ->
             "${item.typeLabel} · ${item.accountLabel}"
         item.isLegacyTransaction ->
@@ -612,7 +619,7 @@ private fun ActivityFlatLedgerRow(
     MyFinHubFinanceRow(
         icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
         iconDescription = null,
-        title = if (noteParts.comment.isNotEmpty()) noteParts.title else item.title,
+        title = item.webLedgerDisplayTitle(),
         subtitle = secondary,
         meta = meta,
         amountText = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
@@ -840,7 +847,13 @@ fun ActivityReadDetailScreen(
                 }
                 item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
-                if (item.webNoteParts().comment.isNotEmpty()) {
+                if (item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0) {
+                    // Match Web's first-line note title and separate multiline comment.
+                    item { ActivityReadField("Περιγραφή", item.webLedgerDisplayTitle()) }
+                    if (item.webNoteParts().comment.isNotEmpty()) {
+                        item { ActivityReadField("Σχόλιο", item.webNoteParts().comment) }
+                    }
+                } else if (item.webNoteParts().comment.isNotEmpty()) {
                     item { ActivityReadField("Περιγραφή", item.webNoteParts().title) }
                     item { ActivityReadField("Σχόλιο", item.webNoteParts().comment) }
                 } else {
@@ -938,7 +951,12 @@ fun ActivityReadDetailScreen(
             title = { Text("Διαγραφή κίνησης;") },
             text = {
                 Text(
-                    "Η «${deleteItem.title}» θα αφαιρεθεί από τα οικονομικά δεδομένα του MyFinHub και θα επανυπολογιστούν τα σχετικά υπόλοιπα. Δεν ακυρώνει συναλλαγή στην τράπεζα.",
+                    if (deleteItem.isLegacyTransaction) {
+                        "Η «${deleteItem.webLedgerDisplayTitle()}» θα εξαιρεθεί από υπολογισμούς και λίστες μέσω tombstone. " +
+                            "Η αρχική εισαγόμενη εγγραφή παραμένει ανέπαφη. Δεν ακυρώνει συναλλαγή στην τράπεζα."
+                    } else {
+                        "Η «${deleteItem.webLedgerDisplayTitle()}» θα αφαιρεθεί από τα οικονομικά δεδομένα του MyFinHub και θα επανυπολογιστούν τα σχετικά υπόλοιπα. Δεν ακυρώνει συναλλαγή στην τράπεζα."
+                    },
                 )
             },
             confirmButton = {
@@ -1169,7 +1187,7 @@ fun ActivityEditScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Επεξεργασία κίνησης",
-                subtitle = item.title,
+                subtitle = item.webLedgerDisplayTitle(),
                 navigation = { MyFinHubBackButton(requestBack) },
             )
         },

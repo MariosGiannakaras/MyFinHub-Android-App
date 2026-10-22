@@ -16,6 +16,9 @@ import app.myfinhub.android.feature.activity.reduceActivity
 import app.myfinhub.android.feature.activity.selectOverviewMonth
 import app.myfinhub.android.feature.activity.ActivityFilter
 import app.myfinhub.android.feature.activity.legacyHistoryLabel
+import app.myfinhub.android.feature.activity.webLedgerDisplayTitle
+import app.myfinhub.android.feature.activity.webLedgerCategoryLabel
+import app.myfinhub.android.feature.activity.webNoteParts
 import java.time.LocalDate
 import java.time.YearMonth
 import kotlinx.serialization.json.Json
@@ -580,6 +583,48 @@ class CanonicalProductProjectionTest {
         assertTrue(refreshed.activityState.showingOverviewMonth)
         assertEquals("2026-09", refreshed.activityState.monthOverview!!.month)
         assertEquals(reset.visibleItems, refreshed.activityState.visibleItems)
+    }
+
+
+    @Test
+    fun realWebLedgerDescriptionsRemainDistinctFromCategoryAcrossImportAndEvent() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"hist","type":"expense","date":"2026-10-20","amount":8,
+                 "accountId":"cash","category":"Τρόφιμα",
+                 "note":"Καφές γραφείου"},
+                {"id":"no-note","type":"expense","date":"2026-10-19","amount":2,
+                 "accountId":"cash","category":"Καφές"}
+              ]},"state":{"overrides":{
+                "hist":{"id":"hist","type":"expense","date":"2026-10-20",
+                  "amount":8,"accountId":"cash","category":"Τρόφιμα",
+                  "note":"Πρωινός καφές\nΚαταχώριση override"}
+              },"events":[
+                {"id":"event","kind":"expense","date":"2026-10-18",
+                 "amount":11,"category":"Μεταφορές","note":"Εισιτήριο"},
+                {"id":"multi","kind":"expense","date":"2026-10-17",
+                 "amount":4,"category":"Μεταφορές","note":"Διαδρομή\nΣχόλιο"},
+                {"id":"card-only","kind":"card_payment","date":"2026-10-16",
+                 "amount":20,"note":"Πληρωμή κάρτας"}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val projected = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+        val state = reduceActivity(projected.activityState, ActivityAction.ShowOverviewMonth)
+        val rows = state.visibleItems.associateBy { it.id }
+        assertEquals(4, rows.size)
+        assertEquals("Πρωινός καφές", rows.getValue("hist").webLedgerDisplayTitle())
+        assertEquals("Καταχώριση override", rows.getValue("hist").webNoteParts().comment)
+        assertTrue(rows.getValue("hist").isLegacyOverridden)
+        assertEquals("Τρόφιμα", rows.getValue("hist").webLedgerCategoryLabel())
+        assertEquals("Χωρίς περιγραφή", rows.getValue("no-note").webLedgerDisplayTitle())
+        assertEquals("Εισιτήριο", rows.getValue("event").webLedgerDisplayTitle())
+        assertEquals("Μεταφορές", rows.getValue("event").webLedgerCategoryLabel())
+        assertEquals("Διαδρομή", rows.getValue("multi").webLedgerDisplayTitle())
+        assertEquals("Σχόλιο", rows.getValue("multi").webNoteParts().comment)
+        assertFalse(rows.containsKey("card-only"))
+        assertEquals(4, state.monthOverview!!.transactionCount)
+        assertEquals(projected.document, document)
     }
 
     @Test

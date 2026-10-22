@@ -826,6 +826,50 @@ class ActivityReducerTest {
         assertTrue(state.categoryOptionsFor(item("event", "transfer", false)).isEmpty())
     }
 
+
+    @Test
+    fun persistedWebRowsUseFirstNoteLineRatherThanCategoryOrFallbackTitle() {
+        val imported = ActivityItem(
+            id = "imported", dateLabel = "21 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Τρόφιμα", subtitle = "ΚΑΦΕΣ", amount = -5.0,
+            accountLabel = "Μετρητά", category = "Τρόφιμα", note = "Καφές στο γραφείο",
+            rawDate = "2026-10-21", subcategory = "Ροφήματα",
+            isLegacyTransaction = true, canonicalSourceOrdinal = 0,
+        )
+        assertEquals("Καφές στο γραφείο", imported.webLedgerDisplayTitle())
+        assertEquals("Τρόφιμα › Ροφήματα", imported.webLedgerCategoryLabel())
+        assertEquals("Καφές στο γραφείο", imported.webNoteParts().title)
+        assertEquals("", imported.webNoteParts().comment)
+        val overridden = imported.copy(
+            note = "Πρωινό\nΕπιβεβαιωμένο σχόλιο", isLegacyOverridden = true,
+        )
+        assertEquals("Πρωινό", overridden.webLedgerDisplayTitle())
+        assertEquals("Επιβεβαιωμένο σχόλιο", overridden.webNoteParts().comment)
+        assertEquals("Ιστορικό · override", overridden.legacyHistoryLabel())
+        val event = imported.copy(
+            isLegacyTransaction = false, canonicalSourceOrdinal = 3,
+            title = "Μεταφορές", category = "Μεταφορές", note = "Εισιτήριο",
+        )
+        assertEquals("Εισιτήριο", event.webLedgerDisplayTitle())
+        assertEquals(null, event.legacyHistoryLabel())
+        assertEquals("Χωρίς περιγραφή", event.copy(note = "").webLedgerDisplayTitle())
+        assertEquals("Χωρίς περιγραφή", imported.copy(note = "").webLedgerDisplayTitle())
+        // Synthetic UI previews cannot be reinterpreted as persisted transactions.
+        val demo = event.copy(
+            canonicalSourceOrdinal = -1, title = "Demo title", note = "Demo note",
+        )
+        assertEquals("Demo title", demo.webLedgerDisplayTitle())
+        assertEquals("Πρώτη γραμμή", demo.copy(
+            note = "Πρώτη γραμμή\nΔεύτερη", title = "Demo title",
+        ).webLedgerDisplayTitle())
+        assertEquals("Πρώτη γραμμή", demo.copy(
+            note = "  Πρώτη γραμμή\r\nΔεύτερη  ",
+        ).webLedgerDisplayTitle())
+        assertEquals("Δεύτερη", demo.copy(
+            note = "  Πρώτη γραμμή\r\nΔεύτερη  ",
+        ).webNoteParts().comment)
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
