@@ -9,6 +9,7 @@ import app.myfinhub.android.core.data.activeCanonicalRecurringItems
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalWebRecurringManagementOrder
 import app.myfinhub.android.core.data.canonicalRecurringPaymentHistory
+import app.myfinhub.android.core.data.canonicalRecurringActualPayments
 import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
@@ -96,8 +97,17 @@ internal fun projectCanonicalPlanState(
     }
     val webThirty = webForecasts.firstOrNull()?.projectedPortfolio ?: 0.0
 
+    val recurringIdentityCounts = document.allCanonicalRecurringItems().groupingBy { it.id }.eachCount()
     val management = document.canonicalWebRecurringManagementOrder(today).map { recurring ->
         val payments = document.canonicalRecurringPaymentHistory(recurring.id)
+        // Historical duplicate IDs remain viewable but cannot uniquely own payments.
+        val unique = recurringIdentityCounts[recurring.id] == 1
+        val actualToDate = if (unique) document.canonicalRecurringActualPayments(
+            recurring.id, "0001-01-01", today.toString(),
+        ) else null
+        val actualThisMonth = if (unique) document.canonicalRecurringActualPayments(
+            recurring.id, month.atDay(1).toString(), today.toString(),
+        ) else null
         RecurringManageItem(
             id = recurring.id,
             title = recurring.name,
@@ -113,6 +123,10 @@ internal fun projectCanonicalPlanState(
             paymentCount = payments.paymentCount,
             lastPaymentDateIso = payments.lastPaymentDateIso,
             typicalPaymentDay = document.canonicalTypicalRecurringPaymentDay(recurring),
+            lastActualPaymentDateIso = actualToDate?.lastPaymentDateIso,
+            lastActualPaymentAmount = actualToDate?.lastPaymentAmount,
+            actualPaidThisMonth = actualThisMonth?.takeIf { it.count > 0 }?.totalAmount,
+            actualPaymentsThisMonth = actualThisMonth?.count ?: 0,
             amountMode = recurring.amountMode,
             estimateMin = recurring.estimateMin,
             estimateMax = recurring.estimateMax,
