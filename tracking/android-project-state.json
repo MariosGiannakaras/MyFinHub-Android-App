@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#305 all passed four immutable-head gates and merged Android develop b237f9efaa9d242f1ca0eae659cab2ef8770246a. #305 isolated explicit Web calendar-month source from user-editable date filters and preserved it through server finance refresh/month rollover. Draft #306 adds arbitrary previous/next reporting month navigation to native Activity using on-demand canonical FinanceData monthly operational snapshots; selection remains read-only, Web source month counts/taxonomy precise, and manual month survives future refresh. JVM model and finance source regression staged; CI and physical S24 acceptance pending.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#306 all passed four final immutable-head gates and merged develop 33f3931a08f8d320088c535bae1423026716b049. #306 added arbitrary previous/next Web reporting month navigation via read-only full-month canonical FinanceData selectors and persistent manual selection, without altering finance. Draft #307 repairs the month-only default date-range filter parity: full month is the baseline (not an active extra filter), filtered counts use month source rows rather than multi-month history, date-chip reset restores chosen month's inclusive range, date entry UI enforces Web's selected-month date bounds; all-history native extension preserved. JVM reducer and JSON projection tests staged, CI and physical S24 acceptance pending.",
     "next": [
-      "Validate W4.4 #306 Web reporting month navigation, on-demand canonical full-month financial snapshots with preceding-month comparison, correct excluded credit-only source counts, return to all-history without resetting chosen reporting month, manual month persistence under finance refresh/date rollover, Analytics isolation and original finance data immutability. Require Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator all green at immutable final PR head; repair on same PR and merge only with 4/4 checks. Progress stays 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema edits, SMS import, permanent card delete or live finance writes."
+      "Validate #307 W4.4 exact monthly Web date-default scope: no phantom active filter for source-month [first,last] day; show counts/filtered context relative to month source, DateEntryField rejects outside-month dates; RemoveFilter DATE and ClearFilters restore selected-month bounds while all-history dates keep unrestricted native scope. Confirm category/Analytics isolation, card-only source exclusion, canonical finance immutability. Require four exact-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle audit, screenshot regression and S24 emulator. Correct failures in same PR then merge; Web parity stays 1/6 implementations · 11/24 subtasks. No release signing, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-arbitrary-ledger-month-navigation-20261022",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. #305 exact head b4dc86d3e1328004cf20cfe1d9f541fd5f725b02 all four gates passed; squash merged develop b237f9efaa9d242f1ca0eae659cab2ef8770246a. Draft #306 adds user-selectable arbitrary previous/next Web reporting months to Activity UI via pure canonical on-demand monthly flow, month-source selection and durable read-only refresh behavior. JVM tests cover historical override/delete/card-only month sources, signed operational amounts, refresh and Analytics isolation; CI/S24 pending, physical owner signoff separate.",
+    "branch": "android/w4-4-calendar-default-filter-counts-20261022",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. #306 final head 902d846975e364475f0ae76c636f9b71df21d65d passed Project Tracking, Android CI (optimized release), screenshot and S24 emulator 4/4 and squash merged develop 33f3931a08f8d320088c535bae1423026716b049. Draft #307 removes phantom monthly date filter, correctly bases counts on Web month source rows, restores month defaults on date-chip reset and validates date entry bounds; JVM/reducer/FinanceData regressions staged, exact CI gates pending; owner physical acceptance separate.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -971,7 +971,9 @@
               "W4.4 #304 month-scoped Web type/category catalogs including effective overrides and deleted rows, final immutable 34632d2dbdf7a2dacbd9d71e9bd95aad22d01ec1 4/4 Project Tracking, Android CI, screenshots, S24 emulator green; squash merged develop 55152fe5a3c4052626b82c255465374d50d64bc4.",
               "Draft #305 explicit persistent Web month source with overlapping date filters, ClearFilters source reset and current-month rollover during finance refresh; reducer and real canonical JSON projection tests; checks pending.",
               "W4.4 #305 explicit Web month source/date filter/finance refresh isolation, head b4dc86d3e1328004cf20cfe1d9f541fd5f725b02 passed 4/4 final gates, squash merged develop b237f9efaa9d242f1ca0eae659cab2ef8770246a.",
-              "Draft #306 arbitrary reporting calendar month previous/next selectors via on-demand canonical financial flow, persisted manual choice, exact card-excluded effective source counts and source month category catalog; host CI pending."
+              "Draft #306 arbitrary reporting calendar month previous/next selectors via on-demand canonical financial flow, persisted manual choice, exact card-excluded effective source counts and source month category catalog; host CI pending.",
+              "W4.4 #306 arbitrary previous/next reporting month navigation final head 902d846975e364475f0ae76c636f9b71df21d65d passed 4/4 gates, squash merged develop 33f3931a08f8d320088c535bae1423026716b049.",
+              "Draft #307 month-based default filter count/date reset and month-relative ledger count parity with Web, source-row JSON and reducer tests, Android Compose validation; CI pending."
             ]
           }
         ]
@@ -1093,9 +1095,9 @@
         ]
       }
     ],
-    "next_action": "Validate W4.4 #306 Web reporting month navigation, on-demand canonical full-month financial snapshots with preceding-month comparison, correct excluded credit-only source counts, return to all-history without resetting chosen reporting month, manual month persistence under finance refresh/date rollover, Analytics isolation and original finance data immutability. Require Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator all green at immutable final PR head; repair on same PR and merge only with 4/4 checks. Progress stays 1/6 implementations · 11/24 subtasks. No production signing/publishing, Web/backend/schema edits, SMS import, permanent card delete or live finance writes.",
+    "next_action": "Validate #307 W4.4 exact monthly Web date-default scope: no phantom active filter for source-month [first,last] day; show counts/filtered context relative to month source, DateEntryField rejects outside-month dates; RemoveFilter DATE and ClearFilters restore selected-month bounds while all-history dates keep unrestricted native scope. Confirm category/Analytics isolation, card-only source exclusion, canonical finance immutability. Require four exact-final-head gates: Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle audit, screenshot regression and S24 emulator. Correct failures in same PR then merge; Web parity stays 1/6 implementations · 11/24 subtasks. No release signing, Web/backend/schema edits, live finance writes, SMS import or permanent card deletion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 306,
+    "pr": 307,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

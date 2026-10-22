@@ -252,7 +252,7 @@ fun ActivityLedgerScreen(
                 }
                 // Keep short histories visually compact; expose Web-style date
                 // sorting and total/filtered counts for large real-bank ledgers.
-                if (state.webLedgerItems.size > 20) {
+                if (state.scopeSourceItems.size > 20) {
                     item(key = "history-order-and-count") {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -260,7 +260,7 @@ fun ActivityLedgerScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "Εμφανίζονται ${state.visibleItems.size} από ${state.webLedgerItems.size} κινήσεις",
+                                "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -282,7 +282,7 @@ fun ActivityLedgerScreen(
                             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
                         ) {
                             Text(
-                                "Βρέθηκαν ${state.visibleItems.size} από ${state.webLedgerItems.size} κινήσεις",
+                                "Βρέθηκαν ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             Text(
@@ -516,7 +516,7 @@ private fun ActivityScopeSummary(
                 onAction(ActivityAction.RemoveFilter(ActivityFilterField.CATEGORY))
             }
         }
-        if (state.ledgerDateFrom != null || state.ledgerDateTo != null) {
+        if (state.hasActiveDateFilter) {
             val from = state.ledgerDateFrom?.let(::formatActivityDate) ?: "αρχή"
             val to = state.ledgerDateTo?.let(::formatActivityDate) ?: "σήμερα"
             ActivityScopeLine("Περίοδος: $from – $to") {
@@ -624,7 +624,17 @@ internal fun ActivityFilterSheetContent(
     val invalidFrom = dateFrom.isNotBlank() && fromParsed == null
     val invalidTo = dateTo.isNotBlank() && toParsed == null
     val invertedRange = fromParsed != null && toParsed != null && fromParsed > toParsed
-    val dateError = invalidFrom || invalidTo || invertedRange
+    // Web AppDateInput constrains each date to the selected reporting month.
+    // The native all-history extension deliberately has no such limit.
+    val monthBounds = state.monthOverview?.month
+        ?.takeIf { state.showingOverviewMonth }
+        ?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+    val outsideFromMonth = monthBounds != null && fromParsed != null &&
+        (fromParsed < monthBounds.atDay(1) || fromParsed > monthBounds.atEndOfMonth())
+    val outsideToMonth = monthBounds != null && toParsed != null &&
+        (toParsed < monthBounds.atDay(1) || toParsed > monthBounds.atEndOfMonth())
+    val dateError = invalidFrom || invalidTo || invertedRange ||
+        outsideFromMonth || outsideToMonth
 
     Column(
         modifier = Modifier
@@ -643,6 +653,13 @@ internal fun ActivityFilterSheetContent(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        monthBounds?.let { selectedMonth ->
+            Text(
+                "Περίοδος: ${selectedMonth.atDay(1)} – ${selectedMonth.atEndOfMonth()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         S3ChoiceField(
             label = "Τύπος κίνησης",
             selectedId = typeId,
@@ -667,6 +684,7 @@ internal fun ActivityFilterSheetContent(
             label = "Από ημερομηνία",
             errorMessage = when {
                 invalidFrom -> "Η ημερομηνία δεν είναι έγκυρη."
+                outsideFromMonth -> "Η ημερομηνία πρέπει να είναι μέσα στον επιλεγμένο μήνα."
                 invertedRange -> "Η αρχή πρέπει να είναι πριν από το τέλος."
                 else -> null
             },
@@ -681,6 +699,7 @@ internal fun ActivityFilterSheetContent(
             label = "Έως ημερομηνία",
             errorMessage = when {
                 invalidTo -> "Η ημερομηνία δεν είναι έγκυρη."
+                outsideToMonth -> "Η ημερομηνία πρέπει να είναι μέσα στον επιλεγμένο μήνα."
                 invertedRange -> "Το τέλος πρέπει να είναι μετά από την αρχή."
                 else -> null
             },

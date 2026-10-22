@@ -514,6 +514,35 @@ class CanonicalProductProjectionTest {
         assertEquals(document, projected.document)
     }
 
+
+    @Test
+    fun monthDefaultFilterStateMatchesSourceEffectiveLegacyAndNonCardEvents() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"oct1","type":"expense","date":"2026-10-03","amount":12},
+                {"id":"oct2","type":"income","date":"2026-10-17","amount":100},
+                {"id":"september","type":"expense","date":"2026-09-10","amount":7}
+              ]},"state":{"events":[
+                {"id":"refund","kind":"refund","date":"2026-10-20","amount":2},
+                {"id":"card","kind":"card_purchase","date":"2026-10-19","amount":4}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val projection = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+        val month = reduceActivity(projection.activityState, ActivityAction.ShowOverviewMonth)
+        assertEquals(3, month.monthOverview!!.transactionCount)
+        assertEquals(month.monthOverview!!.transactionCount, month.scopeSourceItems.size)
+        assertEquals(0, month.activeFilterCount)
+        assertFalse(month.hasActiveListScope)
+        assertEquals(setOf("oct1","oct2","refund"), month.visibleItems.map { it.id }.toSet())
+        val onlyExpense = month.copy(typeFilterId = "expense")
+        assertEquals(1, onlyExpense.activeFilterCount)
+        assertEquals(listOf("oct1"), onlyExpense.visibleItems.map { it.id })
+        assertEquals(3, onlyExpense.scopeSourceItems.size)
+        assertEquals(month.monthOverview, onlyExpense.monthOverview)
+        assertEquals(document, projection.document)
+    }
+
     @Test
     fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""

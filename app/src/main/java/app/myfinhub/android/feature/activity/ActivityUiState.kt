@@ -305,11 +305,21 @@ data class ActivityUiState(
         .distinctBy(ActivityTypeOption::id)
         .sortedWith { left, right -> greekLabelOrder.compare(left.label, right.label) }
 
+    /** Web TransactionsPage uses the first/last day of the selected month as
+     * its DEFAULT date controls, not as an active extra filter. Date clearing
+     * and source-month switching must never show a phantom filter chip.
+     */
+    val hasActiveDateFilter: Boolean = if (showingOverviewMonth) {
+        val month = YearMonth.parse(requireNotNull(monthOverview).month)
+        ledgerDateFrom != month.atDay(1).toString() ||
+            ledgerDateTo != month.atEndOfMonth().toString()
+    } else ledgerDateFrom != null || ledgerDateTo != null
+
     val activeFilterCount: Int = if (isAnalyticsScope) 0 else listOf(
         typeFilterId != null || filter != ActivityFilter.ALL,
         accountFilterId != null,
         ledgerCategoryFilter != null,
-        ledgerDateFrom != null || ledgerDateTo != null,
+        hasActiveDateFilter,
     ).count { it }
 
     val hasActiveListScope: Boolean = !isAnalyticsScope && (query.isNotBlank() || activeFilterCount > 0)
@@ -579,7 +589,15 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ActivityFilterField.TYPE -> state.copy(filter = ActivityFilter.ALL, typeFilterId = null)
         ActivityFilterField.ACCOUNT -> state.copy(accountFilterId = null)
         ActivityFilterField.CATEGORY -> state.copy(ledgerCategoryFilter = null)
-        ActivityFilterField.DATE -> state.copy(ledgerDateFrom = null, ledgerDateTo = null)
+        ActivityFilterField.DATE -> {
+            val month = if (state.showingOverviewMonth) {
+                state.monthOverview?.month?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+            } else null
+            state.copy(
+                ledgerDateFrom = month?.atDay(1)?.toString(),
+                ledgerDateTo = month?.atEndOfMonth()?.toString(),
+            )
+        }
     }
     is ActivityAction.Select -> state.copy(
         selectedId = action.id?.takeIf(state::isUniqueMutationTarget),
