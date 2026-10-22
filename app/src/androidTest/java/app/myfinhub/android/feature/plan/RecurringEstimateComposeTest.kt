@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -38,9 +39,9 @@ class RecurringEstimateComposeTest {
                 .assertTextContains("•••• €", substring = true)
             // This Compose test dependency lacks assertDoesNotExist; inspect
             // the semantics tree directly without weakening the privacy assertion.
-            rule.onNodeWithText("95,03", substring = true)
+            rule.onAllNodesWithText("95,03", substring = true)
                 .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
-            rule.onNodeWithText("105,05", substring = true)
+            rule.onAllNodesWithText("105,05", substring = true)
                 .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
         } finally {
             app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, before)
