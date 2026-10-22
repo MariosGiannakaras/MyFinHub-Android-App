@@ -42,6 +42,20 @@ class CanonicalForecastDetailProjectionTest {
         assertEquals(pure.minimumPortfolioDate.toString(),thirty.minimumPortfolioDateIso)
         assertEquals(pure.points.map { it.date.toString() },thirty.portfolioTimeline.map { it.dateIso })
         assertEquals(pure.points.map { it.portfolio },thirty.portfolioTimeline.map { it.portfolio })
+        assertEquals(pure.points.map { it.balances },
+            thirty.portfolioTimeline.map { it.balancesByAccount })
+        val transferDay = thirty.portfolioTimeline.first { it.dateIso == "2026-10-17" }
+        assertEquals(-20.0, transferDay.balancesByAccount["payroll"]!!, 0.001)
+        assertEquals(130.0, transferDay.balancesByAccount["savings"]!!, 0.001)
+        assertFalse(transferDay.balancesByAccount.containsKey("credit"))
+        val transfer = thirty.knownMovements.first { it.id == "forecast-scheduled-transfer" }
+        assertEquals(0.0, transfer.portfolioDelta, 0.001)
+        assertEquals(listOf("payroll", "savings"),
+            transfer.accountImpacts.map { it.accountId })
+        assertEquals(listOf(-50.0, 50.0),
+            transfer.accountImpacts.map { it.delta })
+        assertEquals(listOf("Μισθοδοσία", "Αποταμίευση"),
+            transfer.accountImpacts.map { it.accountLabel })
         assertEquals(230.0,thirty.currentPortfolio,0.001)
         assertEquals(210.0,thirty.projectedPortfolio,0.001)
         assertEquals(listOf("2026-10-15","2026-10-16","2026-10-17",
@@ -65,6 +79,10 @@ class CanonicalForecastDetailProjectionTest {
             val raw=document.cashFlowForecast(asOf,window.days)
             assertEquals(raw.points.size,window.portfolioTimeline.size)
             assertEquals(raw.movements.map { it.id },window.knownMovements.map { it.id })
+            assertEquals(raw.points.map { it.balances },
+                window.portfolioTimeline.map { it.balancesByAccount })
+            assertEquals(raw.movements.map { m -> m.legs.map { it.amount } },
+                window.knownMovements.map { m -> m.accountImpacts.map { it.delta } })
         }
     }
 
@@ -83,5 +101,11 @@ class CanonicalForecastDetailProjectionTest {
         assertEquals(empty.cashFlowForecast(asOf,30).points.map { it.date.toString() },
             thirty.portfolioTimeline.map { it.dateIso })
         assertTrue(state.forecastWindows.last().knownMovements.isEmpty())
+        assertEquals(mapOf("bank" to 150.0), thirty.portfolioTimeline.first().balancesByAccount)
+        assertEquals(mapOf("bank" to 150.0), thirty.portfolioTimeline.last().balancesByAccount)
+        assertEquals(emptyList<app.myfinhub.android.feature.plan.ForecastKnownMovement>(),
+            thirty.knownMovements)
+        assertEquals(empty.cashFlowForecast(asOf,30).points.map { it.balances },
+            thirty.portfolioTimeline.map { it.balancesByAccount })
     }
 }

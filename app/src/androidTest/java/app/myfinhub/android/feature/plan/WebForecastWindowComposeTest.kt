@@ -75,6 +75,58 @@ class WebForecastWindowComposeTest {
             .performScrollTo().assertIsDisplayed()
     }
 
+
+    @Test fun timelinePerAccountDrilldownAndAllKnownMovementsPreserveZeroNetTransfer() {
+        val movements = (0 until 10).map { index ->
+            ForecastKnownMovement(
+                id = "transfer-$index", dateIso = "2026-10-17",
+                label = "Μεταφορά $index", source = "scheduled",
+                portfolioDelta = 0.0,
+                accountImpacts = listOf(
+                    ForecastAccountImpact("payroll", "Μισθοδοσία", -50.0),
+                    ForecastAccountImpact("savings", "Αποταμίευση", 50.0),
+                ),
+            )
+        }
+        val state = PlanUiState(forecastWindows = listOf(
+            ForecastWindow(30, "30 ημέρες", 0.0, 0.0, 0.0,
+                projectedPortfolio = 230.0, minimumPortfolio = 230.0,
+                portfolioTimeline = listOf(
+                    ForecastPortfolioPoint("2026-10-15", 230.0,
+                        mapOf("payroll" to 150.0, "savings" to 80.0)),
+                    ForecastPortfolioPoint("2026-10-17", 230.0,
+                        mapOf("payroll" to 100.0, "savings" to 130.0)),
+                ),
+                accountBreakdown = listOf(
+                    ForecastAccountBreakdown("payroll", "Μισθοδοσία",
+                        150.0, 100.0, 100.0, null, null),
+                    ForecastAccountBreakdown("savings", "Αποταμίευση",
+                        80.0, 130.0, 80.0, "2026-10-15", null),
+                ),
+                knownMovements = movements,
+            ),
+        ))
+        rule.setContent { MyFinHubTheme { CanonicalPlanForecastScreen(state, onBack = {}) } }
+        rule.onNodeWithTag("s7_forecast_breakdown_toggle_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_point_account_30_0_payroll").assertDoesNotExist()
+        rule.onNodeWithTag("s7_forecast_point_accounts_toggle_30_0")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_point_account_30_0_payroll")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_point_account_30_0_savings")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_movement_account_30_0_0")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_movement_account_30_0_1")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_movement_30_9").assertDoesNotExist()
+        rule.onNodeWithTag("s7_forecast_movement_more_30")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("s7_forecast_movement_30_9")
+            .performScrollTo().assertIsDisplayed()
+    }
+
     @Test fun sourceProvenanceAndOmissionsAreExpandableWithoutSyntheticMovements() {
         val state = PlanUiState(
             forecastWindows = listOf(
