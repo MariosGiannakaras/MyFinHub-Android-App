@@ -204,6 +204,10 @@ data class ActivityUiState(
     val selectedId: String? = null,
     val items: List<ActivityItem> = syntheticActivityItems(),
     val monthOverview: ActivityMonthlyOverview? = null,
+    /** Persistent read-only Web calendar-month source, independent of the
+     * user-edited dateStart/dateEnd filters within that source month.
+     */
+    val monthSourceSelected: Boolean = false,
     val expenseCategories: List<ActivityCategoryOption> = emptyList(),
     val incomeCategories: List<ActivityCategoryOption> = emptyList(),
     val accountOptions: List<ActivityAccountOption> = emptyList(),
@@ -245,28 +249,29 @@ data class ActivityUiState(
         item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ||
             item.canonicalKind !in setOf("card_purchase", "card_payment")
     }
-    val scopeSourceItems: List<ActivityItem> = if (isAnalyticsScope) items else webLedgerItems
-
-    /** Web TransactionsPage builds category/type choices from the selected
-     * calendar month's sourceRows, not the cross-month history. Current
-     * persisted taxonomy remains selectable even without rows that month.
-     * The native all-history view deliberately retains its wider catalog.
-     *
-     * Date-only month mode stays active while other filters/search are edited,
-     * so the user can always return to all history from the overview control.
+    /** An explicit month source must survive partial/cleared date-range filters
+     * and network reprojections. Inferring mode from exact date boundaries
+     * silently leaked other months as soon as a date filter was edited.
      */
-    val showingOverviewMonth: Boolean = !isAnalyticsScope && monthOverview?.let { overview ->
-        val month = runCatching { YearMonth.parse(overview.month) }.getOrNull()
-        month != null &&
-            ledgerDateFrom == month.atDay(1).toString() &&
-            ledgerDateTo == month.atEndOfMonth().toString()
-    } == true
+    val showingOverviewMonth: Boolean = !isAnalyticsScope && monthSourceSelected &&
+        monthOverview?.month?.let {
+            runCatching { YearMonth.parse(it) }.getOrNull()
+        } != null
 
-    private val sourceRowsForFilterChoices: List<ActivityItem> =
-        if (showingOverviewMonth) {
-            val month = monthOverview?.month.orEmpty()
+    val scopeSourceItems: List<ActivityItem> = when {
+        isAnalyticsScope -> items
+        showingOverviewMonth -> {
+            val month = monthOverview!!.month
             webLedgerItems.filter { it.rawDate.startsWith("$month-") }
-        } else webLedgerItems
+        }
+        else -> webLedgerItems
+    }
+
+    /** Web month selector catalogs are based on its original month source,
+     * never the current account/category/query/date filtered visible rows.
+     */
+    private val sourceRowsForFilterChoices: List<ActivityItem> =
+        if (showingOverviewMonth) scopeSourceItems else webLedgerItems
 
     private val greekLabelOrder = greekActivityLabelOrder()
 
@@ -437,6 +442,7 @@ data class ActivityUiState(
             ledgerDateFrom = null,
             ledgerDateTo = null,
             typeFilterId = null,
+            monthSourceSelected = false,
             categoryFilter = label,
             categoryFilterIds = exact,
             dateFrom = start,
@@ -505,6 +511,7 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
                 ledgerCategoryFilter = null,
                 ledgerDateFrom = month.atDay(1).toString(),
                 ledgerDateTo = month.atEndOfMonth().toString(),
+                monthSourceSelected = true,
                 selectedId = null,
             )
         }
@@ -519,16 +526,25 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         ledgerDateFrom = action.dateFrom?.trim()?.takeIf(String::isNotBlank),
         ledgerDateTo = action.dateTo?.trim()?.takeIf(String::isNotBlank),
     )
-    ActivityAction.ClearFilters -> state.copy(
-        filter = ActivityFilter.ALL,
-        typeFilterId = null,
-        accountFilterId = null,
-        ledgerCategoryFilter = null,
-        ledgerDateFrom = null,
-        ledgerDateTo = null,
-    )
+    ActivityAction.ClearFilters -> {
+        // Web resetFilters restores calendar-month boundaries without exiting
+        // the current month source. The separate "Όλο το ιστορικό" action
+        // resets source mode as well as search and filters.
+        val month = if (state.showingOverviewMonth) {
+            state.monthOverview?.month?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+        } else null
+        state.copy(
+            filter = ActivityFilter.ALL,
+            typeFilterId = null,
+            accountFilterId = null,
+            ledgerCategoryFilter = null,
+            ledgerDateFrom = month?.atDay(1)?.toString(),
+            ledgerDateTo = month?.atEndOfMonth()?.toString(),
+        )
+    }
     ActivityAction.ClearSearchAndFilters -> state.copy(
         query = "",
+        monthSourceSelected = false,
         filter = ActivityFilter.ALL,
         typeFilterId = null,
         accountFilterId = null,

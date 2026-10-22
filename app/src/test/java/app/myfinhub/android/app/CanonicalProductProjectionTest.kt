@@ -413,6 +413,49 @@ class CanonicalProductProjectionTest {
         assertEquals(state.items, cleared.items)
     }
 
+
+    @Test
+    fun monthSelectionSurvivesFinanceReprojectionAndRollsOnlyAtCalendarBoundary() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
+              "transactions":[
+                {"id":"sept","type":"expense","date":"2026-09-10","amount":9},
+                {"id":"oct","type":"expense","date":"2026-10-20","amount":12},
+                {"id":"nov","type":"expense","date":"2026-11-04","amount":3}
+              ]},"state":{"events":[
+                {"id":"card","kind":"card_purchase","date":"2026-10-21","amount":4}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val original = projectCanonicalProduct(document, LocalDate.of(2026, 10, 22))
+        val selected = reduceActivity(original.activityState, ActivityAction.ShowOverviewMonth)
+        val narrowed = reduceActivity(selected, ActivityAction.ApplyFilters(
+            type = app.myfinhub.android.feature.activity.ActivityFilter.ALL,
+            accountId = null, category = null,
+            dateFrom = "2026-10-15", dateTo = "2026-10-31",
+        ))
+        assertTrue(narrowed.monthSourceSelected)
+        val withUserScope = original.copy(activityState = narrowed)
+        val refreshed = projectCanonicalProduct(
+            document, LocalDate.of(2026, 10, 23), previous = withUserScope,
+        )
+        assertTrue(refreshed.activityState.showingOverviewMonth)
+        assertEquals("2026-10-15", refreshed.activityState.ledgerDateFrom)
+        assertEquals(listOf("oct"), refreshed.activityState.visibleItems.map { it.id })
+        assertEquals(original.activityState.items, refreshed.activityState.items)
+        val rolled = projectCanonicalProduct(
+            document, LocalDate.of(2026, 11, 5), previous = refreshed,
+        )
+        assertTrue(rolled.activityState.showingOverviewMonth)
+        assertEquals("2026-11", rolled.activityState.monthOverview!!.month)
+        assertEquals("2026-11-01", rolled.activityState.ledgerDateFrom)
+        assertEquals("2026-11-30", rolled.activityState.ledgerDateTo)
+        assertEquals(listOf("nov"), rolled.activityState.visibleItems.map { it.id })
+        assertEquals(3, rolled.activityState.items.count { !it.canonicalKind.startsWith("card_") })
+        val history = reduceActivity(rolled.activityState, ActivityAction.ClearSearchAndFilters)
+        assertFalse(history.monthSourceSelected)
+        assertEquals(3, history.visibleItems.size)
+    }
+
     @Test
     fun canonicalEventAccountLabelAndFilterIgnoreContradictoryOptionalRoute() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""

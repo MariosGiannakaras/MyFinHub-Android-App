@@ -323,6 +323,12 @@ val activityItems = buildActivityItems(
     )
 
     val oldActivity = previous?.activityState
+    // If the actual calendar month advanced while the device was offline,
+    // keep the month-source intent but anchor its displayed date boundaries
+    // to the fresh month. Never project stale previous-month filters into
+    // the new current-month source.
+    val monthRolledWhileSelected = oldActivity?.monthSourceSelected == true &&
+        oldActivity.monthOverview?.month != month
     val activityAccountOptions = accounts
         .filter { it.kind != "credit" }
         .map { account -> ActivityAccountOption(account.id, account.name) }
@@ -331,8 +337,10 @@ val activityItems = buildActivityItems(
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
         sortOldestFirst = oldActivity?.sortOldestFirst ?: false,
         ledgerCategoryFilter = oldActivity?.ledgerCategoryFilter,
-        ledgerDateFrom = oldActivity?.ledgerDateFrom,
-        ledgerDateTo = oldActivity?.ledgerDateTo,
+        ledgerDateFrom = if (monthRolledWhileSelected) "$month-01" else oldActivity?.ledgerDateFrom,
+        ledgerDateTo = if (monthRolledWhileSelected) YearMonth.parse(month).atEndOfMonth().toString()
+            else oldActivity?.ledgerDateTo,
+        monthSourceSelected = oldActivity?.monthSourceSelected == true,
         // Web transaction type options never include card-only events.
         // Discard stale pre-parity card filters on reprojection rather than
         // restoring an invisible selection with permanently empty results.

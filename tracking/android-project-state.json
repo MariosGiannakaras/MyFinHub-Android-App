@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#303 passed all four immutable-head gates and merged Android develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c. #303 added reversible one-tap native monthly source scope without changing original finance data. Draft #304 makes month-scoped ledger type and historical-category selector options originate strictly from the month's effective Web source rows plus persisted category taxonomy; all-history native filter choices remain wide, card-only rows excluded and revised/deleted historical sources handled. JVM FinanceData/reducer regressions staged; CI and physical S24 acceptance pending.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #298–#304 passed all four immutable-head gates and merged Android develop 55152fe5a3c4052626b82c255465374d50d64bc4. #304 corrected month-scoped type and historic-category selector source identities including reviewed overrides and tombstones; its first CI caught one ordering assertion, corrected and all final-head gates passed. Draft #305 isolates the selected Web calendar-month ledger source as an explicit read-only mode independent from additional custom date filters, prevents leakage of other-month rows on filter resets, and preserves/re-anchors month mode across finance refresh/calendar rollover. Golden reducer/JSON regressions staged; CI and physical S24 acceptance pending.",
     "next": [
-      "Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import."
+      "Validate W4.4 PR #305 explicit calendar-month ledger source identity under customized/cleared date filters, saved category/type sources, source-only ClearFilters reset versus intentional all-history exit, Analytics isolation, server FinanceData reprojection and month rollover; ensure card-only events stay outside main ledger and no original finance writes. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator once on exact final PR head, fix any failures within the same PR then merge only on all four green gates. Keep progress 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema changes, SMS import or permanent card deletion."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-4-month-scoped-filter-catalog-20261022",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. W4.4 #298–#303 merged and 4/4 exact-head gates passed, current develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c. Draft #304 narrows main Activity type and historical category dropdown values to selected Web calendar month's effective source rows but preserves persisted taxonomy and broader all-history native choices. Distinct mixed-month/override/tombstone/Card-only regressions staged; CI/S24 pending, physical owner acceptance not implied.",
+    "branch": "android/w4-4-explicit-month-source-isolation-20261022",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. #304 fixed month source category/type options, 4/4 final exact-head CI passed at 34632d2dbdf7a2dacbd9d71e9bd95aad22d01ec1 and squash merged develop 55152fe5a3c4052626b82c255465374d50d64bc4. Draft #305: explicit month-source mode survives custom date changes and rerenders, reset filters never leaks other months, source membership remains original canonical rows, month rollover reanchors when finance data refreshed. JVM JSON/reducer regression pending CI; owner physical S24 signoff separate.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -967,7 +967,9 @@
               "W4.4 #302 full-month Web operational flow and previous-month comparisons all four exact-head gates passed at ee1fd4ab8454afc2e0ea2730017bc5105a4dda89; merged develop b5eed206060a6b3f567c8dc4c70194ea04f25210.",
               "Draft #303: user-triggered Web calendar month source scope from native Activity summary with restored all-history, no card-only ledger leakage and analytics/source immutability regressions; CI pending.",
               "Merged W4.4 #303 reversible native month/all-history source drilldown: exact head 0b81343728ce557cfe8ed12b8b877651726a19cb, 4/4 green, squash develop 2800a1ab5496b22d0de7a68b95c512cd1a0fe00c.",
-              "Draft #304 parity for Web month-specific category/type sourceRows selector catalog while retaining saved taxonomy, source overrides/tombstones and separate all-history/Analytics; final gates pending."
+              "Draft #304 parity for Web month-specific category/type sourceRows selector catalog while retaining saved taxonomy, source overrides/tombstones and separate all-history/Analytics; final gates pending.",
+              "W4.4 #304 month-scoped Web type/category catalogs including effective overrides and deleted rows, final immutable 34632d2dbdf7a2dacbd9d71e9bd95aad22d01ec1 4/4 Project Tracking, Android CI, screenshots, S24 emulator green; squash merged develop 55152fe5a3c4052626b82c255465374d50d64bc4.",
+              "Draft #305 explicit persistent Web month source with overlapping date filters, ClearFilters source reset and current-month rollover during finance refresh; reducer and real canonical JSON projection tests; checks pending."
             ]
           }
         ]
@@ -1089,9 +1091,9 @@
         ]
       }
     ],
-    "next_action": "Validate W4.4 PR #304 canonical month-only category/type source membership: persisted taxonomy always available, current effective legacy overrides and real non-card events supply historic row labels, old/other-month and tombstoned rows excluded, selector behavior remains month-scoped when other filters are added, all-history restores complete legacy choices, Analytics isolated. Require all four exact-final-head Project Tracking, Android CI, screenshot regression and S24 emulator gates, correct failures on same PR and merge; maintain progress 1/6 implementations · 11/24 subtasks. No signed release/publish, Web/backend/schema edits, production finance writes, permanent card deletion or SMS import.",
+    "next_action": "Validate W4.4 PR #305 explicit calendar-month ledger source identity under customized/cleared date filters, saved category/type sources, source-only ClearFilters reset versus intentional all-history exit, Analytics isolation, server FinanceData reprojection and month rollover; ensure card-only events stay outside main ledger and no original finance writes. Run Project Tracking, Android CI unit/lint/optimized unsigned release/Play bundle, screenshot regression and S24 emulator once on exact final PR head, fix any failures within the same PR then merge only on all four green gates. Keep progress 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema changes, SMS import or permanent card deletion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 304,
+    "pr": 305,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
