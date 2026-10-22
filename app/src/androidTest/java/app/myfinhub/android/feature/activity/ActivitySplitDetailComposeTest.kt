@@ -30,7 +30,7 @@ class ActivitySplitDetailComposeTest {
                     ActivityEditScreen(
                         item = item, categoryOptions = emptyList(),
                         mutationInFlight = false, mutationBlocked = false,
-                        onBack = {}, onSave = { _, _, _, _ -> }, onSaved = {},
+                        onBack = {}, onSave = { _, _, _, _, _ -> }, onSaved = {},
                     )
                 }
             }
@@ -39,6 +39,54 @@ class ActivitySplitDetailComposeTest {
             rule.onNodeWithText(formatActivityFlowEuro(item)).assertDoesNotExist()
         } finally {
             AmountVisibilityPreference.write(context, original)
+        }
+    }
+
+
+    @Test fun historicalOverrideEditorExposesRealTypeAmountAndAccountControls() {
+        val original = AmountVisibilityPreference.read(
+            InstrumentationRegistry.getInstrumentation().targetContext,
+        )
+        try {
+            AmountVisibilityPreference.write(
+                InstrumentationRegistry.getInstrumentation().targetContext, false,
+            )
+            val legacy = ActivityItem(
+                "old-imported", "18 Οκτ", ActivityKind.EXPENSE,
+                "Ιστορικό", "", -23.50, "Μετρητά", "Τρόφιμα",
+                rawDate = "2026-10-18", accountId = "cash",
+                canonicalKind = "expense", isLegacyTransaction = true,
+            )
+            rule.setContent {
+                MyFinHubTheme {
+                    ActivityEditScreen(
+                        item = legacy,
+                        accountOptions = listOf(
+                            ActivityAccountOption("cash", "Μετρητά"),
+                            ActivityAccountOption("payroll", "Μισθοδοσία"),
+                        ),
+                        categoryOptions = listOf(ActivityCategoryOption("Τρόφιμα")),
+                        expenseCategoryOptions = listOf(ActivityCategoryOption("Τρόφιμα")),
+                        incomeCategoryOptions = listOf(ActivityCategoryOption("Μισθός")),
+                        mutationInFlight = false,
+                        mutationBlocked = false,
+                        onBack = {}, onSave = { _, _, _, _, _ -> }, onSaved = {},
+                    )
+                }
+            }
+            rule.onNodeWithText(
+                "Ιστορική κίνηση", substring = true,
+            ).assertExists()
+            rule.onNodeWithText("Τύπος ιστορικής κίνησης").assertExists()
+            rule.onNodeWithText("Ποσό ιστορικής κίνησης").assertExists()
+            rule.onNodeWithText("Λογαριασμός ιστορικής κίνησης").assertExists()
+            rule.onNodeWithText("Από λογαριασμό").assertDoesNotExist()
+            rule.onNodeWithText("Το ποσό, ο τύπος και ο λογαριασμός δεν αλλάζουν", substring = true)
+                .assertDoesNotExist()
+        } finally {
+            AmountVisibilityPreference.write(
+                InstrumentationRegistry.getInstrumentation().targetContext, original,
+            )
         }
     }
 

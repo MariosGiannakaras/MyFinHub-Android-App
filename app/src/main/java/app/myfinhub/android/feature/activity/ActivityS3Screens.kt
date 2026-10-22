@@ -51,6 +51,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
@@ -66,6 +69,7 @@ import app.myfinhub.android.designsystem.MyFinHubSearchField
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
+import app.myfinhub.android.core.data.moneyToCents
 import app.myfinhub.android.feature.quickentry.DateEntryField
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
@@ -992,10 +996,13 @@ private fun ActivityReadField(label: String, value: String) {
 fun ActivityEditScreen(
     item: ActivityItem?,
     categoryOptions: List<ActivityCategoryOption>,
+    accountOptions: List<ActivityAccountOption> = emptyList(),
+    incomeCategoryOptions: List<ActivityCategoryOption> = emptyList(),
+    expenseCategoryOptions: List<ActivityCategoryOption> = emptyList(),
     mutationInFlight: Boolean,
     mutationBlocked: Boolean,
     onBack: () -> Unit,
-    onSave: (String, String, String, String) -> Unit,
+    onSave: (String, String, String, String, ActivityLegacyEdit?) -> Unit,
     onSaved: () -> Unit,
 ) {
     if (item == null) {
@@ -1037,6 +1044,27 @@ fun ActivityEditScreen(
     var note by rememberSaveable(item.id) { mutableStateOf(item.note) }
     var category by rememberSaveable(item.id) { mutableStateOf(item.category.orEmpty()) }
     var subcategory by rememberSaveable(item.id) { mutableStateOf(item.subcategory.orEmpty()) }
+    val isLegacy = item.isLegacyTransaction
+    var legacyType by rememberSaveable(item.id) { mutableStateOf(item.canonicalKind) }
+    var legacyAmountText by rememberSaveable(item.id) {
+        mutableStateOf((if (item.canonicalKind == "expense") -item.amount else item.amount).toString())
+    }
+    var legacyAccountId by rememberSaveable(item.id) {
+        mutableStateOf(item.accountId ?: accountOptions.firstOrNull()?.id.orEmpty())
+    }
+    var legacyFromAccountId by rememberSaveable(item.id) {
+        mutableStateOf(item.fromAccountId ?: item.accountId ?: accountOptions.firstOrNull()?.id.orEmpty())
+    }
+    var legacyToAccountId by rememberSaveable(item.id) {
+        mutableStateOf(item.toAccountId ?: accountOptions.firstOrNull {
+            it.id != (item.fromAccountId ?: item.accountId)
+        }?.id.orEmpty())
+    }
+    var requestedLegacyType by rememberSaveable(item.id) { mutableStateOf("") }
+    var requestedLegacyAmount by rememberSaveable(item.id) { mutableStateOf("") }
+    var requestedLegacyAccountId by rememberSaveable(item.id) { mutableStateOf("") }
+    var requestedLegacyFromAccountId by rememberSaveable(item.id) { mutableStateOf("") }
+    var requestedLegacyToAccountId by rememberSaveable(item.id) { mutableStateOf("") }
     var discardDialogOpen by rememberSaveable(item.id) { mutableStateOf(false) }
     var observedMutationInFlight by rememberSaveable(item.id) { mutableStateOf(false) }
     var requestedDate by rememberSaveable(item.id) { mutableStateOf("") }
@@ -1044,8 +1072,11 @@ fun ActivityEditScreen(
     var requestedCategory by rememberSaveable(item.id) { mutableStateOf("") }
     var requestedSubcategory by rememberSaveable(item.id) { mutableStateOf("") }
 
+    val selectableCategories = if (isLegacy && legacyType != item.canonicalKind) {
+        if (legacyType == "income") incomeCategoryOptions else expenseCategoryOptions
+    } else categoryOptions
     val effectiveCategoryOptions = buildList {
-        addAll(categoryOptions)
+        addAll(selectableCategories)
         item.category?.takeIf(String::isNotBlank)?.let { current ->
             if (none { it.name == current }) add(ActivityCategoryOption(current, listOfNotNull(item.subcategory)))
         }
@@ -1053,11 +1084,29 @@ fun ActivityEditScreen(
     val subcategoryOptions = effectiveCategoryOptions.firstOrNull { it.name == category }?.subcategories.orEmpty()
     val parsedDate = runCatching { LocalDate.parse(date) }.getOrNull()
     val dateError = date.isNotBlank() && parsedDate == null
+    val parsedLegacyAmount = legacyAmountText.trim().replace(',', '.').toDoubleOrNull()
+    val legacyCents = parsedLegacyAmount?.let { runCatching { moneyToCents(it) }.getOrNull() }
+    val legacyAmountValid = legacyCents != null &&
+        (if (legacyType == "adjustment") legacyCents != 0L else legacyCents > 0L)
+    val legacyAccountValid = if (legacyType == "transfer") {
+        legacyFromAccountId != legacyToAccountId &&
+            accountOptions.any { it.id == legacyFromAccountId } &&
+            accountOptions.any { it.id == legacyToAccountId }
+    } else accountOptions.any { it.id == legacyAccountId }
+    val originalLegacyAmount = if (item.canonicalKind == "expense") -item.amount else item.amount
+    val legacyDirty = isLegacy && (
+        legacyType != item.canonicalKind ||
+            parsedLegacyAmount != originalLegacyAmount ||
+            (if (legacyType == "transfer") {
+                legacyFromAccountId != item.fromAccountId || legacyToAccountId != item.toAccountId
+            } else legacyAccountId != item.accountId)
+        )
     val dirty = date != item.rawDate.take(10) ||
         note != item.note ||
         category != item.category.orEmpty() ||
-        subcategory != item.subcategory.orEmpty()
-    val valid = parsedDate != null && note.isNotBlank()
+        subcategory != item.subcategory.orEmpty() || legacyDirty
+    val valid = parsedDate != null && note.isNotBlank() &&
+        (!isLegacy || (legacyAmountValid && legacyAccountValid))
 
     val requestBack = {
         when {
@@ -1079,12 +1128,28 @@ fun ActivityEditScreen(
         requestedNote,
         requestedCategory,
         requestedSubcategory,
+        requestedLegacyType,
+        requestedLegacyAmount,
+        requestedLegacyAccountId,
+        requestedLegacyFromAccountId,
+        requestedLegacyToAccountId,
     ) {
+        val legacyPersisted = !isLegacy || (
+            item.canonicalKind == requestedLegacyType &&
+                runCatching { moneyToCents(
+                    if (item.canonicalKind == "expense") -item.amount else item.amount,
+                ) }.getOrNull() == requestedLegacyAmount.toDoubleOrNull()
+                    ?.let { runCatching { moneyToCents(it) }.getOrNull() } &&
+                (if (requestedLegacyType == "transfer") {
+                    item.fromAccountId == requestedLegacyFromAccountId &&
+                        item.toAccountId == requestedLegacyToAccountId
+                } else item.accountId == requestedLegacyAccountId)
+        )
         val persisted = saveRequested &&
             item.rawDate.take(10) == requestedDate &&
             item.note == requestedNote &&
             item.category.orEmpty() == requestedCategory &&
-            item.subcategory.orEmpty() == requestedSubcategory
+            item.subcategory.orEmpty() == requestedSubcategory && legacyPersisted
         when {
             persisted -> {
                 saveRequested = false
@@ -1117,8 +1182,22 @@ fun ActivityEditScreen(
                         requestedNote = note.trim()
                         requestedCategory = category
                         requestedSubcategory = subcategory
+                        requestedLegacyType = legacyType
+                        requestedLegacyAmount = legacyAmountText.trim().replace(',', '.')
+                        requestedLegacyAccountId = legacyAccountId
+                        requestedLegacyFromAccountId = legacyFromAccountId
+                        requestedLegacyToAccountId = legacyToAccountId
                         saveRequested = true
-                        onSave(date, note.trim(), category, subcategory)
+                        onSave(
+                            date, note.trim(), category, subcategory,
+                            if (isLegacy) ActivityLegacyEdit(
+                                type = legacyType,
+                                amount = parsedLegacyAmount!!,
+                                accountId = legacyAccountId.takeIf { legacyType != "transfer" },
+                                fromAccountId = legacyFromAccountId.takeIf { legacyType == "transfer" },
+                                toAccountId = legacyToAccountId.takeIf { legacyType == "transfer" },
+                            ) else null,
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1142,27 +1221,109 @@ fun ActivityEditScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            ActivityReadField(
-                "Ποσό",
-                // Pre-existing @Preview screenshot references explicitly depict
-                // an amount-visible *demo* state. Only inspection mode may show
-                // that sample; the installed app and emulator remain governed
-                // solely by the live device privacy preference.
-                amountVisibilityText(
-                    formatActivityFlowEuro(item),
-                    amountsVisible || LocalInspectionMode.current,
-                ),
-            )
-            ActivityReadField("Τύπος", item.typeLabel)
-            ActivityReadField(
-                if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
-                item.accountLabel,
-            )
-            Text(
-                "Το ποσό, ο τύπος και ο λογαριασμός δεν αλλάζουν από αυτή την επεξεργασία.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (isLegacy) {
+                Text(
+                    "Ιστορική κίνηση · οι αλλαγές αποθηκεύονται ως override. " +
+                        "Το αρχικό εισαγόμενο αρχείο παραμένει ανέπαφο.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                S3ChoiceField(
+                    label = "Τύπος ιστορικής κίνησης",
+                    selectedId = legacyType,
+                    choices = listOf(
+                        "expense" to "Έξοδο",
+                        "income" to "Έσοδο",
+                        "transfer" to "Μεταφορά",
+                        "adjustment" to "Διόρθωση υπολοίπου",
+                    ),
+                    enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
+                    onSelected = { next ->
+                        legacyType = next
+                        if (next == "transfer") {
+                            if (legacyFromAccountId.isBlank()) legacyFromAccountId = legacyAccountId
+                            if (legacyToAccountId == legacyFromAccountId) {
+                                legacyToAccountId = accountOptions.firstOrNull {
+                                    it.id != legacyFromAccountId
+                                }?.id.orEmpty()
+                            }
+                        } else if (legacyAccountId.isBlank()) {
+                            legacyAccountId = legacyFromAccountId
+                        }
+                        val allowed = if (next == "income") incomeCategoryOptions else expenseCategoryOptions
+                        if (category.isNotBlank() && allowed.none { it.name == category }) {
+                            category = ""
+                            subcategory = ""
+                        }
+                    },
+                )
+                MyFinHubOutlinedField(
+                    value = legacyAmountText,
+                    onValueChange = { legacyAmountText = it },
+                    label = "Ποσό ιστορικής κίνησης",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    visualTransformation = if (amountsVisible || LocalInspectionMode.current)
+                        VisualTransformation.None else PasswordVisualTransformation(),
+                    errorMessage = if (legacyAmountValid) null else if (legacyType == "adjustment")
+                        "Η διόρθωση δεν μπορεί να έχει μηδενικό ποσό."
+                    else "Συμπλήρωσε έγκυρο ποσό μεγαλύτερο από μηδέν.",
+                    enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
+                )
+                if (legacyType == "transfer") {
+                    S3ChoiceField(
+                        label = "Από λογαριασμό",
+                        selectedId = legacyFromAccountId,
+                        choices = accountOptions.map { it.id to it.label },
+                        enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
+                        onSelected = { legacyFromAccountId = it },
+                    )
+                    S3ChoiceField(
+                        label = "Προς λογαριασμό",
+                        selectedId = legacyToAccountId,
+                        choices = accountOptions.map { it.id to it.label },
+                        enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
+                        onSelected = { legacyToAccountId = it },
+                    )
+                    if (!legacyAccountValid) Text(
+                        "Η μεταφορά χρειάζεται δύο διαφορετικούς διαθέσιμους λογαριασμούς.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                } else {
+                    S3ChoiceField(
+                        label = "Λογαριασμός ιστορικής κίνησης",
+                        selectedId = legacyAccountId,
+                        choices = accountOptions.map { it.id to it.label },
+                        enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
+                        onSelected = { legacyAccountId = it },
+                    )
+                    if (!legacyAccountValid) Text(
+                        "Επίλεξε διαθέσιμο λογαριασμό.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } else {
+                ActivityReadField(
+                    "Ποσό",
+                    // Existing screenshot references render a visible demo amount;
+                    // installed device privacy remains controlled by the preference.
+                    amountVisibilityText(
+                        formatActivityFlowEuro(item),
+                        amountsVisible || LocalInspectionMode.current,
+                    ),
+                )
+                ActivityReadField("Τύπος", item.typeLabel)
+                ActivityReadField(
+                    if (item.isInternalTransfer()) "Προέλευση / προορισμός" else "Λογαριασμός",
+                    item.accountLabel,
+                )
+                Text(
+                    "Το ποσό, ο τύπος και ο λογαριασμός δεν αλλάζουν από αυτή την επεξεργασία.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             DateEntryField(
                 value = date,
                 onValueChange = { if (!mutationInFlight && !saveRequested && !item.pendingSync) date = it },

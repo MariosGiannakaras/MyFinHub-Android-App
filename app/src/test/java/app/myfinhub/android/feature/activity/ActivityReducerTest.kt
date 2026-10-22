@@ -807,6 +807,25 @@ class ActivityReducerTest {
         assertEquals(listOf("sept"), history.visibleItems.map { it.id })
     }
 
+
+    @Test
+    fun legacyTransferAndAdjustmentUseExpenseTaxonomyWhileEventsRemainSourceRestricted() {
+        val state = ActivityUiState(
+            expenseCategories = listOf(ActivityCategoryOption("Έξοδα")),
+            incomeCategories = listOf(ActivityCategoryOption("Έσοδα")),
+        )
+        fun item(id: String, type: String, legacy: Boolean) = ActivityItem(
+            id, "17 Σεπ", ActivityKind.TRANSFER, id, "",
+            12.0, "cash", null, rawDate = "2026-09-17",
+            canonicalKind = type, isLegacyTransaction = legacy,
+            canonicalSourceOrdinal = 0,
+        )
+        assertEquals("Έξοδα", state.categoryOptionsFor(item("transfer", "transfer", true)).single().name)
+        assertEquals("Έξοδα", state.categoryOptionsFor(item("adjust", "adjustment", true)).single().name)
+        assertEquals("Έσοδα", state.categoryOptionsFor(item("income", "income", true)).single().name)
+        assertTrue(state.categoryOptionsFor(item("event", "transfer", false)).isEmpty())
+    }
+
     @Test
     fun transferFilter_keepsOnlyTransfers() {
         val state = reduceActivity(ActivityUiState(), ActivityAction.FilterChanged(ActivityFilter.TRANSFER))
