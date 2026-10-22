@@ -528,7 +528,8 @@ class ActivityReducerTest {
         assertTrue(original.typeOptions.any { it.id == "adjustment" })
         val month = reduceActivity(original, ActivityAction.ShowOverviewMonth)
         assertTrue(month.showingOverviewMonth)
-        assertEquals(listOf("oct-refund", "oct-food"), month.visibleItems.map { it.id })
+        // Month-scoped selector membership must not reorder canonical source rows.
+        assertEquals(listOf("oct-food", "oct-refund"), month.visibleItems.map { it.id })
         assertTrue("Current month's real category missing", "Τρόφιμα" in month.availableCategories)
         assertTrue("Saved taxonomy must survive even without source rows",
             "Πάγια › Ενέργεια" in month.availableCategories)
