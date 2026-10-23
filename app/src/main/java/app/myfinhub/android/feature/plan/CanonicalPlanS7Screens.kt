@@ -1086,13 +1086,6 @@ fun CanonicalBudget2026Screen(
                 }
             }
 
-            item("budget-category-new") {
-                TextButton(
-                    onClick = { creatingCategoryBudget = true },
-                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested,
-                    modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_create"),
-                ) { Text("Νέο όριο κατηγορίας") }
-            }
             if (state.categoryBudgets.isNotEmpty()) {
                 item("budget-categories-heading") {
                     MyFinHubSectionHeading(
@@ -1218,6 +1211,16 @@ fun CanonicalBudget2026Screen(
                         }
                     }
                 }
+            }
+            // Keep the existing summary and overall editor in their original
+            // on-screen order. The new affordance follows them without shifting
+            // approved screenshot baselines or the top-level budget navigation.
+            item("budget-category-new") {
+                TextButton(
+                    onClick = { creatingCategoryBudget = true },
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_create"),
+                ) { Text("Νέο όριο κατηγορίας") }
             }
         }
     }

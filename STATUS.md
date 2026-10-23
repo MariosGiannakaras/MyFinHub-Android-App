@@ -51,7 +51,7 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/w4-3-category-budget-edit-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. PR #318 recurring editor safeguards passed 4/4 immutable-head gates and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 implements native W4.3 category budget create/edit through optimistic Web-shaped no-event mutation and durable offline replay; Compose/JVM tests staged. CI and physical owner acceptance pending.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. PR #318 recurring editor safeguards passed 4/4 immutable-head gates and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 implements native W4.3 category budget create/edit through optimistic Web-shaped no-event mutation and durable offline replay; Compose/JVM tests staged. CI and physical owner acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate #319 category budget editor, exact-source mutation and pending offline replay on final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator. Fix failures inside PR before squash merge. Continue remaining W4.3 and other parity gaps after verified checkpoint. Web parity stays 1/6 implementations · 11/24 subtasks, owner S24 acceptance #149 separate; no shared code/schema, production writes, signed release or SMS.
 
