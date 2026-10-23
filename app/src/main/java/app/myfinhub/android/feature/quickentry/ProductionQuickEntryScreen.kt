@@ -68,6 +68,7 @@ import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.core.data.canonicalCounterpartySuggestion
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -377,6 +378,21 @@ fun ProductionQuickEntryScreen(
                     onSelected = { onAction(QuickEntryAction.CounterpartyChanged(it)) },
                     searchable = true,
                 )
+                if (state.counterpartyId.isBlank()) {
+                    canonicalCounterpartySuggestion(
+                        records = state.counterparties,
+                        label = state.note,
+                        kind = counterpartyKind,
+                    )?.let { suggested ->
+                        Text(
+                            "Πιθανή αντιστοίχιση: ${suggested.displayName}. " +
+                                "Δεν επιλέγεται αυτόματα.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("quick_entry_counterparty_suggestion"),
+                        )
+                    }
+                }
             }
 
             ProductionDateChoice(

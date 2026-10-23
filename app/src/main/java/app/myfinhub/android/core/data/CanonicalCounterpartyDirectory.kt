@@ -40,6 +40,27 @@ fun canonicalCounterpartyNameKey(value: String): String =
         .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
         .trim()
 
+/**
+ * Web findCounterpartySuggestion: match exact accent-folded name or alias, never fuzzy
+ * and never write an identity into a new event without user selection.
+ * Ambiguity (including duplicate source rows) deliberately returns no suggestion.
+ */
+fun canonicalCounterpartySuggestion(
+    records: List<CanonicalCounterpartyRow>,
+    label: String,
+    kind: String,
+): CanonicalCounterpartyRow? {
+    if (kind !in setOf("merchant", "beneficiary")) return null
+    val key = canonicalCounterpartyNameKey(label)
+    if (key.length < 2) return null
+    return records.filter { row ->
+        row.kind == kind &&
+            (listOf(row.displayName) + row.aliases).any {
+                canonicalCounterpartyNameKey(it) == key
+            }
+    }.singleOrNull()
+}
+
 /** Web withCounterparty, guarded by expected canonical row for offline revision replay. */
 data class UpsertCanonicalCounterparty(
     val counterpartyId: String,
