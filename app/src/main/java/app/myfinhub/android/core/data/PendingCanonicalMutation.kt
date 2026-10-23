@@ -29,6 +29,7 @@ enum class PendingMutationKind {
     SET_TRANSACTION_RULE_ENABLED,
     UPSERT_TRANSACTION_RULE,
     UPSERT_COUNTERPARTY,
+    LINK_EVENT_COUNTERPARTY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -249,6 +250,13 @@ data class PendingCanonicalMutationIntent(
             expectedRate = payload.number("expectedRate"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.LINK_EVENT_COUNTERPARTY -> LinkCanonicalEventCounterparty(
+            eventId = payload.string("eventId").orEmpty(),
+            counterpartyId = payload.string("counterpartyId"),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected source event"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_COUNTERPARTY -> UpsertCanonicalCounterparty(
             counterpartyId = payload.string("counterpartyId").orEmpty(),
             kind = payload.string("kind").orEmpty(),
@@ -447,6 +455,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_COUNTERPARTY ->
             runCatching { (asMutation() as UpsertCanonicalCounterparty).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.LINK_EVENT_COUNTERPARTY ->
+            runCatching { (asMutation() as LinkCanonicalEventCounterparty).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.DELETE_TRANSACTION_RULE ->
             runCatching { (asMutation() as DeleteCanonicalTransactionRule).satisfiedBy(document) }
@@ -692,6 +703,16 @@ data class PendingCanonicalMutationIntent(
                 payload = JsonObject(buildMap {
                     put("rate", JsonPrimitive(mutation.rate))
                     mutation.expectedRate?.let { put("expectedRate", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is LinkCanonicalEventCounterparty -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.LINK_EVENT_COUNTERPARTY,
+                payload = JsonObject(buildMap {
+                    put("eventId", JsonPrimitive(mutation.eventId))
+                    mutation.counterpartyId?.let { put("counterpartyId", JsonPrimitive(it)) }
+                    put("expected", mutation.expected)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }),
                 syncState = syncState,

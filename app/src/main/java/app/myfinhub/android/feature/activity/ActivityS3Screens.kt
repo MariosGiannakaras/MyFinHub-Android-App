@@ -768,8 +768,11 @@ fun ActivityReadDetailScreen(
     onDelete: () -> Unit,
     onDeleted: () -> Unit,
     historicalBalance: Double? = null,
+    counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
+    onChooseCounterparty: ((String?) -> Unit)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var counterpartyMenuOpen by remember { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
 
@@ -847,6 +850,57 @@ fun ActivityReadDetailScreen(
                 }
                 item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
+                val counterpartyKind = when (item.canonicalKind) {
+                    "expense", "card_purchase", "split", "refund" -> "merchant"
+                    "income", "lending", "repayment", "lending_writeoff" -> "beneficiary"
+                    else -> null
+                }
+                if (!item.isLegacyTransaction && item.canonicalSourceOrdinal >= 0 &&
+                    counterpartyKind != null
+                ) {
+                    item(key = "counterparty-identity") {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            val matches = counterpartyRows.filter { it.id == item.counterpartyId }
+                            val selected = matches.singleOrNull()
+                            ActivityReadField(
+                                if (counterpartyKind == "merchant") "Έμπορος" else "Δικαιούχος",
+                                selected?.displayName ?: if (item.counterpartyId.isNullOrBlank())
+                                    "Δεν έχει επιλεγεί" else "Ιστορική ταυτότητα",
+                            )
+                            if (onChooseCounterparty != null) {
+                                TextButton(
+                                    onClick = { counterpartyMenuOpen = true },
+                                    enabled = !mutationBlocked,
+                                    modifier = Modifier.testTag("activity_choose_counterparty"),
+                                ) { Text("Αλλαγή ταυτότητας") }
+                                DropdownMenu(
+                                    expanded = counterpartyMenuOpen,
+                                    onDismissRequest = { counterpartyMenuOpen = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Καμία ταυτότητα") },
+                                        onClick = {
+                                            counterpartyMenuOpen = false
+                                            onChooseCounterparty(null)
+                                        },
+                                    )
+                                    counterpartyRows.filter { it.kind == counterpartyKind }
+                                        .filter { row ->
+                                            counterpartyRows.count { it.id == row.id } == 1
+                                        }.forEach { candidate ->
+                                            DropdownMenuItem(
+                                                text = { Text(candidate.displayName) },
+                                                onClick = {
+                                                    counterpartyMenuOpen = false
+                                                    onChooseCounterparty(candidate.id)
+                                                },
+                                            )
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
                 if (item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0) {
                     // Match Web's first-line note title and separate multiline comment.
                     item { ActivityReadField("Περιγραφή", item.webLedgerDisplayTitle()) }

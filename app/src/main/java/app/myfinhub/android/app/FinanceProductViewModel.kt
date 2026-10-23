@@ -12,6 +12,8 @@ import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalCardProfile
 import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
+import app.myfinhub.android.core.data.LinkCanonicalEventCounterparty
+import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
 import app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest
 import app.myfinhub.android.core.data.SetCanonicalCreditBillingSettings
 import app.myfinhub.android.core.data.AddCanonicalCreditRateVersion
@@ -918,6 +920,29 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    /** Owner-selected identity link for a single canonical event, never an inferred OCR match. */
+    fun linkActivityCounterparty(eventId: String, counterpartyId: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            eventId.isBlank()) return
+        val document = ready.projection.document
+        val events = document.state.array("events")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == eventId }
+        val event = events.singleOrNull() ?: return
+        val kind = canonicalCounterpartyKindForEvent(event.string("kind").orEmpty()) ?: return
+        if (counterpartyId != null) {
+            val matches = document.state.array("counterparties")
+                .mapNotNull { it as? JsonObject }
+                .filter { it.string("id") == counterpartyId }
+            if (matches.size != 1 || matches.single().string("kind") != kind) return
+        }
+        if (event.string("counterpartyId") == counterpartyId) return
+        applyMutation(LinkCanonicalEventCounterparty(
+            eventId = eventId, counterpartyId = counterpartyId,
+            expected = event, nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Web counterparty identity directory: financial events and past notes stay unchanged. */
     fun saveCounterparty(request: CanonicalCounterpartyEditRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1730,6 +1755,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
                 PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
                 PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
+                PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
                 PendingMutationKind.REORDER_TRANSACTION_RULE -> "Σειρά αυτοματισμών"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"

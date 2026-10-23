@@ -173,6 +173,7 @@ internal fun MyFinHubAppContent(
     onToggleTransactionRule: ((String, Boolean) -> Unit)? = null,
     onSaveTransactionRule: ((app.myfinhub.android.feature.utilities.TransactionRuleEditRequest) -> Unit)? = null,
     onSaveCounterparty: ((app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest) -> Unit)? = null,
+    onLinkActivityCounterparty: ((String, String?) -> Unit)? = null,
     onDeleteTransactionRule: ((String) -> Unit)? = null,
     onReorderTransactionRule: ((String, Int) -> Unit)? = null,
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
@@ -368,6 +369,10 @@ internal fun MyFinHubAppContent(
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
                         historicalBalance = item?.let { activityHistoricalBalance?.invoke(it) },
+                        counterpartyRows = planState.counterpartyDirectory,
+                        onChooseCounterparty = onLinkActivityCounterparty?.let { callback ->
+                            { selectedId -> callback(route.eventId, selectedId) }
+                        },
                         onBack = { activeBackStack.removeLastOrNull() },
                         onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
                         onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },

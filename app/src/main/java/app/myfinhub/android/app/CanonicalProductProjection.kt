@@ -209,6 +209,13 @@ val activityCardLabels = document.canonicalCards().associate { card ->
     card.id to if (last4.isBlank()) base else "$base • $last4"
 }
 val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
+val uniqueEventCounterpartyIds = document.state.array("events")
+    .filterIsInstance<JsonObject>()
+    .groupBy { it.string("id").orEmpty() }
+    .filterKeys(String::isNotBlank)
+    .mapNotNull { (id, rows) ->
+        if (rows.size == 1) id to rows.single().string("counterpartyId") else null
+    }.toMap()
 val activityItems = buildActivityItems(
     legacy, events, accountNames, activityCardLabels, legacyOverrideIds,
 ).map { item ->
@@ -223,6 +230,8 @@ val activityItems = buildActivityItems(
             .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } },
         financeIncomeContribution = signed?.first,
         financeExpenseContribution = signed?.second,
+        counterpartyId = if (item.isLegacyTransaction) null
+            else uniqueEventCounterpartyIds[item.id],
     )
 }
 
