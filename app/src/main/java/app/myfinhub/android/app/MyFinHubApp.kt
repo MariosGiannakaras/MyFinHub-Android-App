@@ -160,6 +160,8 @@ internal fun MyFinHubAppContent(
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSaveCategoryBudget: (app.myfinhub.android.feature.plan.CategoryBudgetEditRequest) -> Unit = {},
+    onDeleteCategoryBudget: (String) -> Unit = {},
+    onSaveMonthlySavingsRate: ((String) -> Unit)? = null,
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     onCreateRecurring: (app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = {},
     onEditRecurring: (String, app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = { _, _ -> },
@@ -517,6 +519,7 @@ internal fun MyFinHubAppContent(
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onSaveGoal = onSaveSavingsGoal,
                         onDeleteGoal = onDeleteSavingsGoal,
+                        onSaveMonthlySavingsRate = onSaveMonthlySavingsRate,
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
@@ -616,6 +619,7 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onSaveBudget = onSaveBudget,
                         onSaveCategoryBudget = onSaveCategoryBudget,
+                        onDeleteCategoryBudget = onDeleteCategoryBudget,
                         mutationInFlight = planMutationInFlight,
                         mutationBlocked = planMutationBlocked,
                         onBack = { planBackStack.removeLastOrNull() },

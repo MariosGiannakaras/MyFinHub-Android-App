@@ -909,6 +909,7 @@ fun CanonicalBudget2026Screen(
     onSaveBudget: (String, String) -> Unit,
     onBack: () -> Unit,
     onSaveCategoryBudget: (CategoryBudgetEditRequest) -> Unit = {},
+    onDeleteCategoryBudget: (String) -> Unit = {},
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
@@ -925,6 +926,7 @@ fun CanonicalBudget2026Screen(
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -1122,6 +1124,15 @@ fun CanonicalBudget2026Screen(
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("s7_category_budget_edit_" + budget.id),
                             ) { Text("Επεξεργασία ορίου") }
+                            TextButton(
+                                onClick = { deletingCategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() &&
+                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
+                                    state.categoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s7_category_budget_delete_" + budget.id),
+                            ) { Text("Διαγραφή ορίου") }
                             Text(
                                 if (amountsVisible) "${formatPlanS7Euro(used)} / ${formatPlanS7Euro(limit)}"
                                 else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
@@ -1223,6 +1234,32 @@ fun CanonicalBudget2026Screen(
                 ) { Text("Νέο όριο κατηγορίας") }
             }
         }
+    }
+    deletingCategoryBudget?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked && !mutationInFlight) deletingCategoryBudget = null },
+            title = { Text("Διαγραφή ορίου κατηγορίας;") },
+            text = {
+                Text("Το όριο «" + candidate.name +
+                    "» θα αφαιρεθεί. Οι οικονομικές κινήσεις και οι δαπάνες θα παραμείνουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested,
+                    modifier = Modifier.testTag("s7_category_budget_confirm_delete"),
+                    onClick = {
+                        onDeleteCategoryBudget(candidate.id)
+                        deletingCategoryBudget = null
+                    },
+                ) { Text("Διαγραφή ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deletingCategoryBudget = null },
+                    enabled = !mutationBlocked && !mutationInFlight,
+                ) { Text("Ακύρωση") }
+            },
+        )
     }
     if (creatingCategoryBudget || editingCategoryBudget != null) {
         CanonicalCategoryBudgetEditor(

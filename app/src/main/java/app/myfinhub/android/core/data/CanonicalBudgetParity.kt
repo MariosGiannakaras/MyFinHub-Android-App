@@ -6,6 +6,28 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.serialization.json.JsonObject
 
+
+/** Web budgets.ts budgetStableId: encodeURIComponent(category.trim().toLocaleLowerCase('el-GR')). */
+fun webCategoryBudgetStableId(month: String, category: String): String {
+    require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false))
+    val normalized = category.trim().lowercase(Locale.forLanguageTag("el-GR"))
+    require(normalized.isNotEmpty())
+    val characters = "0123456789ABCDEF"
+    val encoded = buildString {
+        normalized.toByteArray(Charsets.UTF_8).forEach { byte ->
+            val value = byte.toInt() and 0xff
+            val allowed = (value in 65..90) || (value in 97..122) ||
+                (value in 48..57) || value in listOf(45, 95, 46, 33, 126, 42, 39, 40, 41)
+            if (allowed) append(value.toChar()) else {
+                append('%')
+                append(characters[value shr 4])
+                append(characters[value and 15])
+            }
+        }
+    }
+    return "budget:$month:$encoded"
+}
+
 /** Web budgets.ts canonical categorized spending, independent of clamped insights totals. */
 data class CanonicalBudgetProgress(
     val id: String,

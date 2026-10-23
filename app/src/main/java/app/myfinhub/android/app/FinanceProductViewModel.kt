@@ -27,6 +27,11 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.UpsertCategoryBudget
+import app.myfinhub.android.core.data.DeleteCategoryBudget
+import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
+import app.myfinhub.android.core.data.webCategoryBudgetStableId
+import app.myfinhub.android.core.data.settingsObject
+import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.plan.CategoryBudgetEditRequest
@@ -714,6 +719,41 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    /** Web savingsTargetRate is canonical settings metadata, not a balance or transfer. */
+    fun saveMonthlySavingsRate(percentText: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val value = percentText.replace(',', '.').toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it in 0.0..100.0 } ?: return
+        val rate = value / 100.0
+        val existing = ready.projection.document.settingsObject().number("savingsTargetRate")
+        if (existing == rate) return
+        applyMutation(SetCanonicalSavingsTargetRate(
+            rate = rate,
+            expectedRate = existing,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Delete only the explicitly selected source row; historical finance events remain intact. */
+    fun deleteCategoryBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || budgetId.isBlank()) return
+        val month = YearMonth.now().toString()
+        val candidates = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == budgetId }
+        val current = candidates.singleOrNull() ?: return
+        if (current.string("scope") != "category" || current.string("month") != month) return
+        val category = current.string("category")?.takeIf { it.isNotBlank() } ?: return
+        applyMutation(DeleteCategoryBudget(
+            budgetId = budgetId,
+            month = month,
+            category = category,
+            expected = current,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     fun saveCategoryBudget(request: CategoryBudgetEditRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -737,7 +777,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(UpsertCategoryBudget(
             month = month, category = category, amount = amount,
             alertThreshold = threshold,
-            budgetId = request.budgetId ?: "budget-android-${UUID.randomUUID()}",
+            budgetId = request.budgetId ?: webCategoryBudgetStableId(month, category),
             expected = current,
             nowIso = Instant.now().toString(),
         ))
@@ -1338,6 +1378,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
+                PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
+                PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
                 PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.EDIT_RECURRING -> "Επεξεργασία παγίου"

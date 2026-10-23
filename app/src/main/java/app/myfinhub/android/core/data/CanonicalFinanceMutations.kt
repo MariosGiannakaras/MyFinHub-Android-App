@@ -415,6 +415,71 @@ data class UpsertOverallBudget(
 }
 
 
+
+/** User-confirmed metadata removal; no ledger movement or historical event is deleted. */
+data class DeleteCategoryBudget(
+    val budgetId: String,
+    val month: String,
+    val category: String,
+    val expected: JsonObject,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Διαγραφή ορίου κατηγορίας"
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        budgetId.isNotBlank() &&
+            document.state.array("budgets").none {
+                (it as? JsonObject)?.string("id") == budgetId
+            }
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(budgetId.isNotBlank() && category.isNotBlank()) { "Άγνωστο όριο κατηγορίας." }
+        val rows = document.state.array("budgets")
+        val matches = rows.mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == budgetId }
+        require(matches.size <= 1) { "Διπλό ID ορίου: απαιτείται έλεγχος." }
+        val row = matches.singleOrNull() ?: return document
+        require(row == expected && row.string("scope") == "category" &&
+            row.string("month") == month && row.string("category") == category) {
+            "Το όριο άλλαξε σε άλλη συσκευή. Έλεγξε την ενημερωμένη εγγραφή."
+        }
+        return document.withMutableState(
+            document.state.updated("budgets", JsonArray(rows.filterNot { it == row })),
+            nowIso,
+        )
+    }
+}
+
+/** Web SavingsPage target setting. Zero is a valid disabled percentage, not a missing value. */
+data class SetCanonicalSavingsTargetRate(
+    val rate: Double,
+    val expectedRate: Double?,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Αλλαγή μηνιαίου στόχου αποταμίευσης"
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        rate.isFinite() && rate in 0.0..1.0 &&
+            document.settingsObject().number("savingsTargetRate") == rate
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(rate.isFinite() && rate in 0.0..1.0) {
+            "Ο στόχος αποταμίευσης πρέπει να είναι 0–100%."
+        }
+        if (satisfiedBy(document)) return document
+        val actual = document.settingsObject().number("savingsTargetRate")
+        require(actual == expectedRate) {
+            "Ο στόχος αποταμίευσης άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+        }
+        val settings = document.settingsObject()
+        return document.withMutableState(
+            document.state.updated("settings",
+                JsonObject(settings + ("savingsTargetRate" to JsonPrimitive(rate)))),
+            nowIso,
+        )
+    }
+}
+
 /** Web-shaped category budget upsert with expected-row replay and no ledger mutation. */
 data class UpsertCategoryBudget(
     val month: String,

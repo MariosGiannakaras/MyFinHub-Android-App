@@ -443,6 +443,7 @@ fun CanonicalSavingsScreen(
     onBack: () -> Unit,
     onSaveGoal: ((String?, String, String, String?) -> Unit)? = null,
     onDeleteGoal: ((String) -> Unit)? = null,
+    onSaveMonthlySavingsRate: ((String) -> Unit)? = null,
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
@@ -453,6 +454,9 @@ fun CanonicalSavingsScreen(
     var dateDraft by rememberSaveable { mutableStateOf("") }
     var editorError by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var targetEditorVisible by rememberSaveable { mutableStateOf(false) }
+    var targetPercentDraft by rememberSaveable { mutableStateOf("20") }
+    var targetPercentError by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun editGoal(goal: SavingsGoalItem?) {
         editingId = goal?.id
@@ -513,6 +517,21 @@ fun CanonicalSavingsScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text("Στόχος αποταμίευσης μήνα",
                                 style = MaterialTheme.typography.titleMedium)
+                            if (onSaveMonthlySavingsRate != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = {
+                                        targetPercentDraft =
+                                            (performance.targetRate * 100.0).let { rate ->
+                                                if (rate == rate.toLong().toDouble()) rate.toLong().toString()
+                                                else rate.toString()
+                                            }
+                                        targetPercentError = null
+                                        targetEditorVisible = true
+                                    },
+                                    modifier = Modifier.testTag("savings_month_target_edit"),
+                                ) { Text("Αλλαγή ποσοστού στόχου") }
+                            }
                             Text(
                                 if (performance.targetRate > 0.0)
                                     "${kotlin.math.round(performance.targetRate * 100).toInt()}% των πραγματικών εσόδων"
@@ -780,6 +799,50 @@ fun CanonicalSavingsScreen(
                 }
             }
         }
+    }
+    if (targetEditorVisible && onSaveMonthlySavingsRate != null) {
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) targetEditorVisible = false },
+            title = { Text("Μηνιαίος στόχος αποταμίευσης") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Ποσοστό πραγματικών εσόδων από 0 έως 100. " +
+                            "Η αλλαγή στόχου δεν μεταφέρει χρήματα.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = targetPercentDraft,
+                        onValueChange = { targetPercentDraft = it; targetPercentError = null },
+                        label = { Text("Στόχος (%)") }, singleLine = true,
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth().testTag("savings_month_target_percent"),
+                    )
+                    targetPercentError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.testTag("savings_month_target_save"),
+                    onClick = {
+                        val percent = targetPercentDraft.replace(',', '.').toDoubleOrNull()
+                        targetPercentError = if (percent == null || !percent.isFinite() ||
+                            percent !in 0.0..100.0
+                        ) "Βάλε ποσοστό από 0 έως 100." else null
+                        if (targetPercentError == null) {
+                            onSaveMonthlySavingsRate(targetPercentDraft)
+                            targetEditorVisible = false
+                        }
+                    },
+                ) { Text("Αποθήκευση στόχου") }
+            },
+            dismissButton = {
+                TextButton(onClick = { targetEditorVisible = false }) { Text("Ακύρωση") }
+            },
+        )
     }
     if (editorVisible && onSaveGoal != null) {
         AlertDialog(

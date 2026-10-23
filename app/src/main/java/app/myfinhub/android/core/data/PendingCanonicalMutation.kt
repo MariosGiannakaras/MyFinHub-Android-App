@@ -22,6 +22,8 @@ enum class PendingMutationKind {
     DELETE_ACTIVITY,
     UPSERT_OVERALL_BUDGET,
     UPSERT_CATEGORY_BUDGET,
+    DELETE_CATEGORY_BUDGET,
+    SET_SAVINGS_TARGET_RATE,
     CREATE_CARD,
     DEACTIVATE_CARD,
     RESTORE_CARD,
@@ -186,6 +188,19 @@ data class PendingCanonicalMutationIntent(
     creditLimit = payload.number("creditLimit"),
     nowIso = payload.string("nowIso").orEmpty(),
 )
+        PendingMutationKind.DELETE_CATEGORY_BUDGET -> DeleteCategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected budget row"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_SAVINGS_TARGET_RATE -> SetCanonicalSavingsTargetRate(
+            rate = payload.number("rate") ?: Double.NaN,
+            expectedRate = payload.number("expectedRate"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_CATEGORY_BUDGET -> UpsertCategoryBudget(
             month = payload.string("month").orEmpty(),
             category = payload.string("category").orEmpty(),
@@ -318,6 +333,12 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             id.isNotBlank() && effectiveTransaction(document, id) == null
         }
+        PendingMutationKind.DELETE_CATEGORY_BUDGET ->
+            runCatching { (asMutation() as DeleteCategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_SAVINGS_TARGET_RATE ->
+            runCatching { (asMutation() as SetCanonicalSavingsTargetRate).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
             runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
                 .getOrDefault(false)
@@ -516,6 +537,28 @@ data class PendingCanonicalMutationIntent(
                         "nowIso" to JsonPrimitive(mutation.nowIso),
                     ),
                 ),
+                syncState = syncState,
+            )
+            is DeleteCategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_CATEGORY_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "category" to JsonPrimitive(mutation.category),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
+            is SetCanonicalSavingsTargetRate -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.SET_SAVINGS_TARGET_RATE,
+                payload = JsonObject(buildMap {
+                    put("rate", JsonPrimitive(mutation.rate))
+                    mutation.expectedRate?.let { put("expectedRate", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
                 syncState = syncState,
             )
             is UpsertCategoryBudget -> PendingCanonicalMutationIntent(

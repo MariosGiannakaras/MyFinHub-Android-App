@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 legacy recurring editor safeguards PR #318 passed exact-head 4/4 gates at 497bf1212e6389ba524125bec23e839af285728b and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 adds native W4.3 category budget create/edit via a Web-shaped optimistic canonical mutation, offline/revision replay and S24 Compose/JVM regression tests. Exact-head gates and physical owner Galaxy S24 Ultra acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. PR #319 category budget creation/edit passed 4/4 exact-head checks at 68b20e34d88a2fdbd1d80a6b49b645e87bb5ef16 and squash merged develop d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner requests CODE-FIRST BULK PHASE: implement all remaining Android-only Web-parity source changes in coherent large batches before mass CI, emulator, visual regression and physical S24 acceptance. Active unmerged branch android/web-parity-code-first-bulk-20261023 adds source-only savings monthly target-rate editor and canonical settings/offline mutation, category budget guarded delete/confirmation and Web deterministic Greek category budget IDs. No tests executed or merge/approval claimed for this branch.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft #319 native category budget create/edit: current-month exact category, cent values, 50–99% thresholds, source metadata preservation, duplicate-ID/remote-conflict rejection, pending offline replay, no ledger changes, Compose accessibility. Require exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator before squash merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 acceptance #149 separate. No Web/backend/schema changes, production finance writes, signed release, SMS import or permanent card deletion.
+1. Continue CODE-FIRST BULK phase on android/web-parity-code-first-bulk-20261023. First source batch has Web budget deterministic IDs, guarded category-budget delete and offline durable replay, and monthly savings percentage goal editor with canonical settings optimistic replay. Implement remaining W2.4/W3.1/W3.2/W4.1–W4.4/W5.1–W5.4 integration gaps as large coherent code batches without waiting for per-feature CI. Only after source implementation is complete: add/finish regression tests, actual Compose screenshot reviews and run batched exact-head CI including S24 emulator, fix failures, then merge safely. Keep 1/6 implementations · 11/24 subtasks until evidence-backed integration; no production writes, Web/backend/schema changes, signed release, SMS import, or irreversible card delete UI.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #319, branch android/w4-3-category-budget-edit-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. PR #318 recurring editor safeguards passed 4/4 immutable-head gates and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 implements native W4.3 category budget create/edit through optimistic Web-shaped no-event mutation and durable offline replay; Compose/JVM tests staged. CI and physical owner acceptance pending.
+Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. PR #319 category budget native create/edit merged d78154c142aac01b0e1c301e2334b30c91f18fdf after exact-head 4/4 checks. Owner switched execution to CODE-FIRST BULK: current unmerged branch implements savings monthly goal rate editing, guarded category budget deletion and Web stable category budget ID in canonical mutation/offline/UI wiring. Source work in progress; no CI/merge yet for this branch.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #319 category budget editor, exact-source mutation and pending offline replay on final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator. Fix failures inside PR before squash merge. Continue remaining W4.3 and other parity gaps after verified checkpoint. Web parity stays 1/6 implementations · 11/24 subtasks, owner S24 acceptance #149 separate; no shared code/schema, production writes, signed release or SMS.
+Next Continue implementing the remaining code gaps on branch android/web-parity-code-first-bulk-20261023 without per-feature CI. Add domain/UI/offline source in consolidated batches and maintain canonical tracker; defer mass tests, visuals, hosted emulator and integration until code phase complete. Last merged PR #319; no PR for this active code-first branch yet. Keep Web parity 1/6 · 11/24, physical owner S24 #149 pending, no unapproved shared/production/irreversible actions.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
