@@ -52,6 +52,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
+import java.time.LocalDate
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +67,11 @@ fun CanonicalCardDetailScreen(
     onRetryCleanup: (String) -> Unit = {},
     onOpenSecureDetails: (String) -> Unit = {},
     onRemoveCard: (String) -> Unit = {},
+    onSaveCardProfile: ((CardProfileEditRequest) -> Unit)? = null,
+    onSaveCreditBillingSettings: ((CreditBillingSettingsRequest) -> Unit)? = null,
+    onAddCreditRateVersion: ((CreditRateVersionRequest) -> Unit)? = null,
+    profileMutationBlocked: Boolean = false,
+    cardProviderOptions: List<Pair<String, String>> = emptyList(),
     onAddPurchase: () -> Unit = {},
     onPayCard: () -> Unit = {},
     onPayStatement: (String, Double) -> Unit = { _, _ -> },
@@ -76,6 +82,9 @@ fun CanonicalCardDetailScreen(
     var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
+    var editProfileOpen by remember(cardId) { mutableStateOf(false) }
+    var billingEditorOpen by remember(cardId) { mutableStateOf(false) }
+    var rateEditorOpen by remember(cardId) { mutableStateOf(false) }
     val provider = card?.let { financialProviderForCard(it.bankId, it.nickname) }
     val ownerCatalog = LocalFinancialProviderCatalog.current
     val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
@@ -187,6 +196,61 @@ fun CanonicalCardDetailScreen(
                     }
                 }
 
+                if (onSaveCreditBillingSettings != null || onAddCreditRateVersion != null) {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("card_credit_terms"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                            Text("Όροι πιστωτικής", style = MaterialTheme.typography.titleLarge)
+                            Text(
+                                "Κλείσιμο: " + (card.statementClosingDay?.toString() ?: "Άγνωστο") +
+                                    " · Πληρωμή: " + (card.statementDueDay?.toString() ?: "Άγνωστο"),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            val currentRate = card.annualRates
+                                .filter { it.effectiveFrom <= LocalDate.now().toString() }
+                                .maxByOrNull { it.effectiveFrom }
+                            Text(
+                                if (currentRate == null) "Ονομαστικό ετήσιο επιτόκιο: άγνωστο"
+                                else "Ονομαστικό ετήσιο επιτόκιο: " +
+                                    currentRate.annualPercent + "% · από " + currentRate.effectiveFrom,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (card.annualRates.isNotEmpty()) {
+                                Text(
+                                    card.annualRates.joinToString(
+                                        prefix = "Ιστορικό: ", separator = " · "
+                                    ) { "${it.effectiveFrom}: ${it.annualPercent}%" },
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            if (onSaveCreditBillingSettings != null) {
+                                OutlinedButton(
+                                    onClick = { billingEditorOpen = true },
+                                    enabled = !profileMutationBlocked,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("card_credit_billing_edit"),
+                                ) { Text("Ρύθμιση κύκλου και λήξης") }
+                            }
+                            if (onAddCreditRateVersion != null) {
+                                OutlinedButton(
+                                    onClick = { rateEditorOpen = true },
+                                    enabled = !profileMutationBlocked,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("card_credit_add_rate"),
+                                ) { Text("Καταχώριση νέου επιτοκίου") }
+                            }
+                            Text(
+                                "Το ΣΕΠΕ/APR διαφέρει από το ονομαστικό επιτόκιο. " +
+                                    "Καμία αλλαγή δεν καταχωρίζει αυτόματα τόκους ή ξαναγράφει statements.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+
                 CanonicalCardStatementHistorySection(
                     card = card,
                     statements = statements,
@@ -215,6 +279,13 @@ fun CanonicalCardDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (onSaveCardProfile != null) {
+                        OutlinedButton(
+                            onClick = { editProfileOpen = true },
+                            enabled = !profileMutationBlocked,
+                            modifier = Modifier.fillMaxWidth().testTag("card_edit_profile"),
+                        ) { Text("Επεξεργασία προφίλ κάρτας") }
+                    }
                     MyFinHubDestructiveTextAction(
                         label = "Αρχειοθέτηση κάρτας",
                         onClick = { removeDialogOpen = true },
@@ -232,6 +303,43 @@ fun CanonicalCardDetailScreen(
             onSelect = { selectedId ->
                 cardPickerOpen = false
                 if (selectedId != card?.id) onSelectCard(selectedId)
+            },
+        )
+    }
+
+    if (billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
+        CanonicalCreditBillingSettingsEditor(
+            card = card,
+            mutationBlocked = profileMutationBlocked,
+            onDismiss = { billingEditorOpen = false },
+            onSave = { value ->
+                onSaveCreditBillingSettings(value)
+                billingEditorOpen = false
+            },
+        )
+    }
+    if (rateEditorOpen && card != null && onAddCreditRateVersion != null) {
+        CanonicalCreditRateVersionEditor(
+            card = card,
+            mutationBlocked = profileMutationBlocked,
+            todayIso = LocalDate.now().toString(),
+            onDismiss = { rateEditorOpen = false },
+            onSave = { value ->
+                onAddCreditRateVersion(value)
+                rateEditorOpen = false
+            },
+        )
+    }
+
+    if (editProfileOpen && card != null && onSaveCardProfile != null) {
+        CanonicalCardProfileEditor(
+            card = card,
+            providerOptions = cardProviderOptions,
+            mutationBlocked = profileMutationBlocked,
+            onDismiss = { editProfileOpen = false },
+            onSave = { request ->
+                onSaveCardProfile(request)
+                editProfileOpen = false
             },
         )
     }

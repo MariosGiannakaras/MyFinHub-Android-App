@@ -35,6 +35,12 @@ data class MoneyCardActivity(
     val kind: MoneyCardActivityKind,
 )
 
+/** Historical bank-disclosed nominal rate. This never posts interest into the ledger. */
+data class CardAnnualRateVersion(
+    val effectiveFrom: String,
+    val annualPercent: Double,
+)
+
 data class MoneyCard(
     val id: String,
     val nickname: String,
@@ -53,6 +59,7 @@ data class MoneyCard(
     val statementClosingDay: Int? = null,
     val statementDueDay: Int? = null,
     val statementBoundaryRule: String? = null,
+    val annualRates: List<CardAnnualRateVersion> = emptyList(),
     val archivedAt: String? = null,
 )
 

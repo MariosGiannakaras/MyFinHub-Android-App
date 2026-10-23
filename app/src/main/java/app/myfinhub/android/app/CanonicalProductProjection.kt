@@ -68,6 +68,7 @@ import app.myfinhub.android.feature.money.SavingsHistoryItem
 import app.myfinhub.android.feature.money.LoanItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
+import app.myfinhub.android.feature.money.CardAnnualRateVersion
 import app.myfinhub.android.feature.money.MoneyCardActivity
 import app.myfinhub.android.feature.money.MoneyCardActivityKind
 import app.myfinhub.android.feature.money.MoneyUiState
@@ -378,6 +379,22 @@ val activityItems = buildActivityItems(
     )
 
     val canonicalCardProfiles = document.canonicalCards()
+    val rateHistoryByCard = document.state.array("cards")
+        .filterIsInstance<JsonObject>()
+        .mapNotNull { row ->
+            val id = row.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+            val versions = row.array("creditRateHistory")
+                .filterIsInstance<JsonObject>()
+                .mapNotNull { version ->
+                    val date = version.string("effectiveFrom")
+                        ?: return@mapNotNull null
+                    val rate = version.number("annualPercent")
+                        ?.takeIf { it.isFinite() && it in 0.0..100.0 }
+                        ?: return@mapNotNull null
+                    CardAnnualRateVersion(date, rate)
+                }.sortedBy(CardAnnualRateVersion::effectiveFrom)
+            id to versions
+        }.toMap()
     val activeCards = canonicalCardProfiles.filter { it.active }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
@@ -455,6 +472,7 @@ val activityItems = buildActivityItems(
                 statementClosingDay = card.statementClosingDay,
                 statementDueDay = card.statementDueDay,
                 statementBoundaryRule = card.statementBoundaryRule,
+                annualRates = rateHistoryByCard[card.id].orEmpty(),
                 archivedAt = card.archivedAt,
                 activity = cardActivity,
             )

@@ -10,6 +10,12 @@ import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
+import app.myfinhub.android.core.data.EditCanonicalCardProfile
+import app.myfinhub.android.core.data.SetCanonicalCreditBillingSettings
+import app.myfinhub.android.core.data.AddCanonicalCreditRateVersion
+import app.myfinhub.android.feature.money.CreditBillingSettingsRequest
+import app.myfinhub.android.feature.money.CreditRateVersionRequest
+import app.myfinhub.android.feature.money.CardProfileEditRequest
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.confirmedPendingCardSecretCleanupIds
 import app.myfinhub.android.core.data.CompleteCanonicalCardSecretCleanup
@@ -433,6 +439,91 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val id = transactionId.trim()
         if (!canMutateActivity(ready, id)) return
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
+    }
+
+    /** Future purchase cycle configuration: already stored statement IDs are immutable. */
+    fun saveCreditBillingSettings(request: CreditBillingSettingsRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (request.closingDay !in 1..31 || request.dueDay !in 1..31 ||
+            request.boundaryRule !in setOf("next-cycle", "include-closing-day")) return
+        val original = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+            .singleOrNull() ?: return
+        if (original.string("kind") != "credit" || original.bool("active") == false) return
+        if (original.number("statementClosingDay") == request.closingDay.toDouble() &&
+            original.number("statementDueDay") == request.dueDay.toDouble() &&
+            original.string("statementBoundaryRule") == request.boundaryRule) return
+        applyMutation(SetCanonicalCreditBillingSettings(
+            cardId = request.cardId,
+            closingDay = request.closingDay,
+            dueDay = request.dueDay,
+            boundaryRule = request.boundaryRule,
+            expected = original,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Record only a dated bank-disclosed nominal rate; no modeled interest becomes a transaction. */
+    fun addCreditRateVersion(request: CreditRateVersionRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val effective = runCatching { LocalDate.parse(request.effectiveFrom) }.getOrNull()
+            ?: return
+        val earliest = LocalDate.now()
+        val scaled = request.annualPercent * 10_000.0
+        if (effective.isBefore(earliest) || !request.annualPercent.isFinite() ||
+            request.annualPercent !in 0.0..100.0 ||
+            kotlin.math.abs(kotlin.math.round(scaled) - scaled) >= 0.00001) return
+        val original = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+            .singleOrNull() ?: return
+        if (original.string("kind") != "credit" || original.bool("active") == false) return
+        if (original.array("creditRateHistory")
+            .filterIsInstance<JsonObject>()
+            .any { it.string("effectiveFrom") == request.effectiveFrom }) return
+        applyMutation(AddCanonicalCreditRateVersion(
+            cardId = request.cardId,
+            annualPercent = request.annualPercent,
+            effectiveFrom = request.effectiveFrom,
+            earliestAllowedDate = earliest.toString(),
+            expected = original,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Canonical card-profile editing. Does not modify the encrypted secret vault. */
+    fun saveCardProfile(request: CardProfileEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val rows = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+        val expected = rows.singleOrNull() ?: return
+        if (expected.bool("active") == false) return
+        if (request.nickname.trim().isEmpty() ||
+            request.nickname.trim().length > 500 || request.bankId.isBlank() ||
+            request.bankId.length > 100 ||
+            request.network !in setOf("visa", "mastercard", "other") ||
+            request.formFactor !in setOf("physical", "virtual")) return
+        val kind = expected.string("kind")
+        if (kind !in setOf("debit", "prepaid", "credit")) return
+        if (request.creditLimit != null &&
+            (kind != "credit" || !request.creditLimit.isFinite() ||
+                request.creditLimit <= 0.0)) return
+        // Keep source-row and kind identity; only the permitted profile fields change.
+        applyMutation(EditCanonicalCardProfile(
+            cardId = request.cardId,
+            bankId = request.bankId,
+            nickname = request.nickname,
+            network = request.network,
+            formFactor = request.formFactor,
+            creditLimit = request.creditLimit,
+            expected = expected,
+            nowIso = Instant.now().toString(),
+        ))
     }
 
     fun createCard(request: CardCreateRequest) {
@@ -1526,6 +1617,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_SAVINGS_GOAL -> "Αποθήκευση στόχου αποταμίευσης"
                 PendingMutationKind.DELETE_SAVINGS_GOAL -> "Διαγραφή στόχου αποταμίευσης"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
+                PendingMutationKind.EDIT_CARD_PROFILE -> "Αλλαγή προφίλ κάρτας"
+                PendingMutationKind.SET_CREDIT_BILLING_SETTINGS -> "Ρυθμίσεις κύκλου πιστωτικής"
+                PendingMutationKind.ADD_CREDIT_RATE_VERSION -> "Νέο επιτόκιο πιστωτικής"
                 PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
                 PendingMutationKind.PERMANENTLY_DELETE_CARD -> "Οριστική διαγραφή κάρτας"

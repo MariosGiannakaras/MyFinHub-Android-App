@@ -157,6 +157,9 @@ internal fun MyFinHubAppContent(
     onDeleteCard: (String) -> Unit = {},
     onRestoreCard: (String) -> Unit = {},
     onCreateCard: (CardCreateRequest) -> Unit = {},
+    onSaveCardProfile: ((app.myfinhub.android.feature.money.CardProfileEditRequest) -> Unit)? = null,
+    onSaveCreditBillingSettings: ((app.myfinhub.android.feature.money.CreditBillingSettingsRequest) -> Unit)? = null,
+    onAddCreditRateVersion: ((app.myfinhub.android.feature.money.CreditRateVersionRequest) -> Unit)? = null,
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSaveCategoryBudget: (app.myfinhub.android.feature.plan.CategoryBudgetEditRequest) -> Unit = {},
@@ -495,6 +498,13 @@ internal fun MyFinHubAppContent(
                         onRetryCleanup = onRetryCardSecretCleanup,
                         onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },
                         onRemoveCard = onDeleteCard,
+                        onSaveCardProfile = onSaveCardProfile,
+                        onSaveCreditBillingSettings = onSaveCreditBillingSettings,
+                        onAddCreditRateVersion = onAddCreditRateVersion,
+                        profileMutationBlocked = planMutationInFlight || planMutationBlocked,
+                        cardProviderOptions = financialProviderCatalog.map {
+                            it.id to it.displayName
+                        },
                         onAddPurchase = {
                             onQuickEntryAction(QuickEntryAction.Reset)
                             onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))

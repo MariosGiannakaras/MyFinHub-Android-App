@@ -30,6 +30,9 @@ enum class PendingMutationKind {
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
+    EDIT_CARD_PROFILE,
+    SET_CREDIT_BILLING_SETTINGS,
+    ADD_CREDIT_RATE_VERSION,
     DEACTIVATE_CARD,
     RESTORE_CARD,
     PERMANENTLY_DELETE_CARD,
@@ -181,6 +184,35 @@ data class PendingCanonicalMutationIntent(
         )
         PendingMutationKind.DELETE_ACTIVITY -> DeleteCanonicalActivity(
             transactionId = payload.string("transactionId").orEmpty(),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_CREDIT_BILLING_SETTINGS -> SetCanonicalCreditBillingSettings(
+            cardId = payload.string("cardId").orEmpty(),
+            closingDay = payload.number("closingDay")?.toInt() ?: 0,
+            dueDay = payload.number("dueDay")?.toInt() ?: 0,
+            boundaryRule = payload.string("boundaryRule").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source billing card"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.ADD_CREDIT_RATE_VERSION -> AddCanonicalCreditRateVersion(
+            cardId = payload.string("cardId").orEmpty(),
+            annualPercent = payload.number("annualPercent") ?: Double.NaN,
+            effectiveFrom = payload.string("effectiveFrom").orEmpty(),
+            earliestAllowedDate = payload.string("earliestAllowedDate").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source rate card"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.EDIT_CARD_PROFILE -> EditCanonicalCardProfile(
+            cardId = payload.string("cardId").orEmpty(),
+            bankId = payload.string("bankId").orEmpty(),
+            nickname = payload.string("nickname").orEmpty(),
+            network = payload.string("network").orEmpty(),
+            formFactor = payload.string("formFactor").orEmpty(),
+            creditLimit = payload.number("creditLimit"),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected card source"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
         PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(
@@ -422,6 +454,15 @@ data class PendingCanonicalMutationIntent(
                             actualThreshold == normalizedExpectedThreshold)
                 } == true
         }
+        PendingMutationKind.EDIT_CARD_PROFILE ->
+            runCatching { (asMutation() as EditCanonicalCardProfile).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_CREDIT_BILLING_SETTINGS ->
+            runCatching { (asMutation() as SetCanonicalCreditBillingSettings).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.ADD_CREDIT_RATE_VERSION ->
+            runCatching { (asMutation() as AddCanonicalCreditRateVersion).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.CREATE_CARD -> {
             val cardId = payload.string("cardId").orEmpty()
             val card = document.state.array("cards")
@@ -687,6 +728,43 @@ data class PendingCanonicalMutationIntent(
                         }
                     },
                 ),
+                syncState = syncState,
+            )
+            is SetCanonicalCreditBillingSettings -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_CREDIT_BILLING_SETTINGS,
+                payload = JsonObject(mapOf(
+                    "cardId" to JsonPrimitive(mutation.cardId),
+                    "closingDay" to JsonPrimitive(mutation.closingDay),
+                    "dueDay" to JsonPrimitive(mutation.dueDay),
+                    "boundaryRule" to JsonPrimitive(mutation.boundaryRule),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is AddCanonicalCreditRateVersion -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.ADD_CREDIT_RATE_VERSION,
+                payload = JsonObject(mapOf(
+                    "cardId" to JsonPrimitive(mutation.cardId),
+                    "annualPercent" to JsonPrimitive(mutation.annualPercent),
+                    "effectiveFrom" to JsonPrimitive(mutation.effectiveFrom),
+                    "earliestAllowedDate" to JsonPrimitive(mutation.earliestAllowedDate),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is EditCanonicalCardProfile -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.EDIT_CARD_PROFILE,
+                payload = JsonObject(buildMap {
+                    put("cardId", JsonPrimitive(mutation.cardId))
+                    put("bankId", JsonPrimitive(mutation.bankId))
+                    put("nickname", JsonPrimitive(mutation.nickname))
+                    put("network", JsonPrimitive(mutation.network))
+                    put("formFactor", JsonPrimitive(mutation.formFactor))
+                    mutation.creditLimit?.let { put("creditLimit", JsonPrimitive(it)) }
+                    put("expected", mutation.expected)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
                 syncState = syncState,
             )
             is CreateCanonicalCard -> PendingCanonicalMutationIntent(
