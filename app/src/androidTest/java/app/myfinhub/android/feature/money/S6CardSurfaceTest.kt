@@ -1,5 +1,9 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -9,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -175,6 +180,57 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithText("Εκκρεμεί: τοπικά στοιχεία κάρτας.").assertIsDisplayed()
         composeRule.onNodeWithText("Δοκιμή καθαρισμού ξανά").performClick()
         composeRule.runOnIdle { assertEquals("credit", retryCardId) }
+    }
+
+    @Test
+    fun secureEditor_dropsSensitiveDraftsImmediatelyWhenVaultAuthorityIsRevoked() {
+        var state by mutableStateOf<CardSecretUiState>(
+            CardSecretUiState.Revealed(cardId = "credit", pan = null, expiry = null, cvv = null),
+        )
+        var savedPan: String? = null
+        var savedExpiry: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "credit",
+                    card = credit,
+                    secretState = state,
+                    onReveal = {},
+                    onSaveServerSecrets = { pan, expiry ->
+                        savedPan = String(pan)
+                        savedExpiry = String(expiry)
+                        pan.fill('\u0000')
+                        expiry.fill('\u0000')
+                    },
+                    onSaveCvv = { it.fill('\u0000') },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Προσθήκη αριθμού / λήξης").performClick()
+        composeRule.onNodeWithTag("card_secure_pan_editor").performTextInput("4000000000000002")
+        composeRule.onNodeWithTag("card_secure_expiry_editor").performTextInput("11/31")
+
+        composeRule.runOnIdle { state = CardSecretUiState.AuthRejected }
+        composeRule.onNodeWithTag("card_secure_pan_editor").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_secure_expiry_editor").assertDoesNotExist()
+        composeRule.onNodeWithText("Αποθήκευση αριθμού / λήξης").assertDoesNotExist()
+        composeRule.onNodeWithText("Η ασφαλής συνεδρία έληξε. Χρειάζεται νέα σύνδεση.").assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertEquals(null, savedPan)
+            assertEquals(null, savedExpiry)
+            state = CardSecretUiState.Revealed(cardId = "credit", pan = null, expiry = null, cvv = null)
+        }
+
+        // New owner-authorized read may open a fresh editor, never the prior draft.
+        composeRule.onNodeWithText("Προσθήκη αριθμού / λήξης").performClick()
+        composeRule.onNodeWithTag("card_secure_pan_editor").performTextInput("4111111111111111")
+        composeRule.onNodeWithTag("card_secure_expiry_editor").performTextInput("12/32")
+        composeRule.onNodeWithText("Αποθήκευση αριθμού / λήξης").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals("4111111111111111", savedPan)
+            assertEquals("12/32", savedExpiry)
+        }
     }
 
     @Test
