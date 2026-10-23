@@ -160,6 +160,7 @@ internal fun MyFinHubAppContent(
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
+    onCreateRecurring: (app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = {},
     onCreateScheduled: (ScheduledCreateRequest) -> Unit = {},
     onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit = {},
     onCloseScheduled: (String, String) -> Unit = { _, _ -> },
@@ -555,6 +556,7 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
                         onStatusChanged = onSetRecurringStatus,
+                        onCreate = onCreateRecurring,
                         onRecordPayment = { item ->
                             val eligibleAccount = recurringQuickEntryAccountChoice(item, quickEntryState)
                             if (!planMutationInFlight && !planMutationBlocked &&

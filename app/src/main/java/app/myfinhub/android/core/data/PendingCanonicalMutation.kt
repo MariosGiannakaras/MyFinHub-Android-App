@@ -27,6 +27,7 @@ enum class PendingMutationKind {
     PERMANENTLY_DELETE_CARD,
     COMPLETE_CARD_SECRET_CLEANUP,
     SET_RECURRING_STATUS,
+    CREATE_RECURRING,
     CREATE_SCHEDULED,
     COMPLETE_SCHEDULED,
     CLOSE_SCHEDULED,
@@ -78,6 +79,27 @@ data class PendingCanonicalMutationIntent(
             status = payload.string("status").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.CREATE_RECURRING -> {
+            val row = payload.obj("recurring")
+            CreateCanonicalRecurring(
+                recurringId = payload.string("recurringId").orEmpty(),
+                nowIso = payload.string("nowIso").orEmpty(),
+                draft = CanonicalRecurringCreateDraft(
+                    name = row.string("name").orEmpty(),
+                    amount = row.number("amount") ?: Double.NaN,
+                    accountId = row.string("accountId").orEmpty(),
+                    category = row.string("category").orEmpty(),
+                    amountMode = row.string("amountMode") ?: "fixed",
+                    estimateMin = row.number("estimateMin"),
+                    estimateMax = row.number("estimateMax"),
+                    recurrenceUnit = row.string("recurrenceUnit") ?: "month",
+                    recurrenceInterval = row.number("recurrenceInterval")?.toInt() ?: 1,
+                    day = row.number("day")?.toInt(),
+                    firstExpectedDate = row.string("firstExpectedDate"),
+                    endDate = row.string("endDate"),
+                ),
+            )
+        }
         PendingMutationKind.CREATE_SCHEDULED -> CreateCanonicalScheduledTransaction(
             scheduledId = payload.string("scheduledId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
@@ -195,6 +217,15 @@ data class PendingCanonicalMutationIntent(
                 .firstOrNull { it.id == id }?.effectiveStatus
             id.isNotBlank() && expected in setOf("active", "paused", "stopped") &&
                 (actual == null || actual == expected)
+        }
+        PendingMutationKind.CREATE_RECURRING -> {
+            val id = payload.string("recurringId").orEmpty()
+            val matches = document.allCanonicalRecurringItems().filter { it.id == id }
+            val custom = document.state.array("recurringCustom")
+                .filterIsInstance<JsonObject>().filter { it.string("id") == id }
+            id.isNotBlank() && matches.size == 1 && custom.size == 1 &&
+                runCatching { (asMutation() as CreateCanonicalRecurring)
+                    .matchesExisting(custom.single()) }.getOrDefault(false)
         }
         PendingMutationKind.CREATE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
@@ -349,6 +380,14 @@ data class PendingCanonicalMutationIntent(
                     "nowIso" to JsonPrimitive(mutation.nowIso),
                 )),
                 syncState = syncState,
+            )
+            is CreateCanonicalRecurring -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.CREATE_RECURRING,
+                payload = JsonObject(mapOf(
+                    "recurringId" to JsonPrimitive(mutation.recurringId),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                    "recurring" to mutation.newRow(),
+                )), syncState = syncState,
             )
             is CreateCanonicalScheduledTransaction -> PendingCanonicalMutationIntent(
                 intentId = intentId, kind = PendingMutationKind.CREATE_SCHEDULED,

@@ -15,7 +15,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
+import androidx.compose.material3.Box
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -33,6 +47,8 @@ import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
+import java.time.LocalDate
+import kotlin.math.abs
 
 /** Native real-state management for Web recurringOverrides/custom lifecycle. */
 @Composable
@@ -40,6 +56,7 @@ fun CanonicalRecurringManagementScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onStatusChanged: (String, String) -> Unit,
+    onCreate: (RecurringCreateRequest) -> Unit = {},
     onRecordPayment: (RecurringManageItem) -> Unit = {},
     mutationBlocked: Boolean = false,
     paymentAccountAvailable: Boolean = true,
@@ -47,6 +64,7 @@ fun CanonicalRecurringManagementScreen(
     val showAmounts = rememberAmountVisibilityPreference()
     val serviceAssetCatalog = LocalRecurringServiceAssets.current
     val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+    var creating by remember { mutableStateOf(false) }
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Πάγια & συνδρομές",
@@ -64,7 +82,15 @@ fun CanonicalRecurringManagementScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            // Duplicate historical IDs remain independent display rows. Index
+            // Duplicate historical IDs remain independent display rows. Index            item("new-recurring") {
+                TextButton(
+                    enabled = !mutationBlocked && state.scheduledAccounts.isNotEmpty(),
+                    onClick = { creating = true },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("recurring_create_open"),
+                ) { Text("Νέο πάγιο / συνδρομή") }
+            }
+
             // contributes to stable Compose identity; finance actions are gated.
             itemsIndexed(state.recurringManageItems, key = { index, item ->
                 item.id + "#row#" + index
@@ -261,3 +287,155 @@ fun CanonicalRecurringManagementScreen(
         }
     }
 }
+    if (creating) {
+        CanonicalRecurringCreateDialog(
+            accounts = state.scheduledAccounts,
+            mutationBlocked = mutationBlocked,
+            onDismiss = { creating = false },
+            onCreate = { request -> onCreate(request); creating = false },
+        )
+    }
+}
+
+
+/** Web recurring editor subset: canonical amount type, cadence, account and dates.
+ * The optional Web logo upload intentionally remains a separate service workflow.
+ */
+@Composable
+private fun CanonicalRecurringCreateDialog(
+    accounts: List<ScheduledAccountOption>,
+    mutationBlocked: Boolean,
+    onDismiss: () -> Unit,
+    onCreate: (RecurringCreateRequest) -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("Πάγια") }
+    var accountId by remember { mutableStateOf(accounts.firstOrNull()?.id.orEmpty()) }
+    var accountMenu by remember { mutableStateOf(false) }
+    var mode by remember { mutableStateOf("fixed") }
+    var estimateMin by remember { mutableStateOf("") }
+    var estimateMax by remember { mutableStateOf("") }
+    var unit by remember { mutableStateOf("month") }
+    var intervalText by remember { mutableStateOf("1") }
+    var dayText by remember { mutableStateOf("") }
+    var firstDate by remember { mutableStateOf(LocalDate.now().toString()) }
+    var endDate by remember { mutableStateOf("") }
+    fun parseMoney(raw: String) = raw.replace(',', '.').toDoubleOrNull()
+    fun validMoney(value: Double?) = value != null && value.isFinite() && value > 0.0 &&
+        abs(value * 100.0 - kotlin.math.round(value * 100.0)) < 0.000001
+    fun validDate(raw: String) = raw.isBlank() || runCatching {
+        LocalDate.parse(raw).toString() == raw
+    }.getOrDefault(false)
+    val amount = parseMoney(amountText)
+    val lower = parseMoney(estimateMin)
+    val upper = parseMoney(estimateMax)
+    val interval = intervalText.toIntOrNull()
+    val day = dayText.toIntOrNull()
+    val variable = mode == "variable"
+    val boundsValid = if (!variable) true
+        else if (estimateMin.isBlank() && estimateMax.isBlank()) true
+        else validMoney(lower) && validMoney(upper) && lower!! <= amount.orZero() &&
+            amount.orZero() <= upper!!
+    val valid = name.trim().isNotEmpty() && name.trim().length <= 500 &&
+        validMoney(amount) && boundsValid && accountId in accounts.map { it.id } &&
+        interval != null && interval in 1..120 &&
+        (dayText.isBlank() || day in 1..31) && validDate(firstDate) &&
+        validDate(endDate) && (firstDate.isNotBlank() || (unit == "month" && interval == 1))
+    AlertDialog(
+        onDismissRequest = { if (!mutationBlocked) onDismiss() },
+        title = { Text("Νέο πάγιο / συνδρομή") },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                Text("Η εκτίμηση δεν καταχωρίζει πραγματική πληρωμή.",
+                    style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(value = name, onValueChange = { name = it },
+                    label = { Text("Όνομα") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_name"))
+                OutlinedTextField(value = amountText, onValueChange = { amountText = it },
+                    label = { Text(if (variable) "Εκτιμώμενο ποσό" else "Σταθερό ποσό") },
+                    singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_amount"))
+                TextButton(onClick = {
+                    mode = if (variable) "fixed" else "variable"
+                    estimateMin = ""; estimateMax = ""
+                }, modifier = Modifier.fillMaxWidth().testTag("recurring_create_mode")) {
+                    Text(if (variable) "Μεταβλητό · εκτίμηση" else "Σταθερό ποσό · αλλαγή τύπου")
+                }
+                if (variable) {
+                    OutlinedTextField(value = estimateMin, onValueChange = { estimateMin = it },
+                        label = { Text("Κατώτερη εκτίμηση (€)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true, modifier = Modifier.fillMaxWidth()
+                            .testTag("recurring_create_min"))
+                    OutlinedTextField(value = estimateMax, onValueChange = { estimateMax = it },
+                        label = { Text("Ανώτερη εκτίμηση (€)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true, modifier = Modifier.fillMaxWidth()
+                            .testTag("recurring_create_max"))
+                }
+                OutlinedTextField(value = category, onValueChange = { category = it },
+                    label = { Text("Κατηγορία") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_category"))
+                Box {
+                    TextButton(onClick = { accountMenu = true },
+                        modifier = Modifier.fillMaxWidth().testTag("recurring_create_account")) {
+                        Text("Λογαριασμός: " +
+                            (accounts.firstOrNull { it.id == accountId }?.label ?: "Επιλογή"))
+                    }
+                    DropdownMenu(expanded = accountMenu, onDismissRequest = { accountMenu = false }) {
+                        accounts.forEach { account ->
+                            DropdownMenuItem(text = { Text(account.label) }, onClick = {
+                                accountId = account.id; accountMenu = false
+                            })
+                        }
+                    }
+                }
+                TextButton(onClick = { unit = if (unit == "month") "year" else "month" },
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_unit")) {
+                    Text(if (unit == "month") "Επανάληψη: μήνες" else "Επανάληψη: χρόνια")
+                }
+                OutlinedTextField(value = intervalText, onValueChange = { intervalText = it },
+                    label = { Text("Κάθε (1–120)") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_interval"))
+                OutlinedTextField(value = dayText, onValueChange = { dayText = it },
+                    label = { Text("Ημέρα μήνα (προαιρετικά)") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_day"))
+                OutlinedTextField(value = firstDate, onValueChange = { firstDate = it },
+                    label = { Text("Πρώτη ημερομηνία (ΕΕΕΕ-ΜΜ-ΗΗ)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_first_date"))
+                OutlinedTextField(value = endDate, onValueChange = { endDate = it },
+                    label = { Text("Λήξη / ανανέωση (προαιρετικά)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_end_date"))
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = valid && !mutationBlocked,
+                modifier = Modifier.testTag("recurring_create_save"),
+                onClick = {
+                    if (valid && amount != null && interval != null) onCreate(
+                        RecurringCreateRequest(
+                            name = name.trim(), amount = amount, accountId = accountId,
+                            category = category.trim(), amountMode = mode,
+                            estimateMin = if (variable) lower else null,
+                            estimateMax = if (variable) upper else null,
+                            recurrenceUnit = unit, recurrenceInterval = interval,
+                            day = day, firstExpectedDate = firstDate.ifBlank { null },
+                            endDate = endDate.ifBlank { null },
+                        ),
+                    )
+                },
+            ) { Text("Αποθήκευση παγίου") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !mutationBlocked) { Text("Ακύρωση") }
+        },
+    )
+}
+
+private fun Double?.orZero(): Double = this ?: 0.0
