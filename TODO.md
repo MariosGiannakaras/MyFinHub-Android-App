@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue code-first Android-only Web parity on android/web-parity-code-first-bulk-20261023, now with taxonomy add/reorder/rename/move/retire and category/subcategory Web color preferences backed by one canonical settings source with offline CAS; no intermediate PR/CI. Next focus actual native icon semantics/pack parity where assets exist and remaining provider/account/security/analytics Web gaps. After source pass, consolidate Kotlin compiler/unit/security/real Compose light-dark-large-font/privacy screenshots/hosted S24 emulator checks, fix defects and require 4/4 exact-head gates before protected develop merge. Official progress remains 1/6 implementations · 11/24 subtasks until evidence-backed integration; owner physical S24 #149 separate. No Web/backend/schema, production financial writes, signing/release, SMS #146 or irreversible card-delete UI.
+- [ ] Continue code-first Web parity on android/web-parity-code-first-bulk-20261023 after adding canonical transaction-rule draft live preview (source state.events only, enabled-agnostic matching, exact count, three examples). Prior taxonomy/account/provider/credit/loan/savings/report source remains unmerged. Implement remaining Web-only icons/provider/account/security/report gaps before mass QA. Do not open per-feature PR or trigger per-change CI; then consolidate Kotlin compile/unit/security, real Compose screenshots, S24 emulator exact-head 4/4 and fix regressions. Official progress 1/6 implementations · 11/24 subtasks until evidence-based merge, physical owner #149 separate, no backend/schema/production writes/signing/SMS/card hard-delete UI.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. Unmerged code-first source now includes dependency-guarded taxonomy retirement and Web icon color preference editor (#RRGGBB/clear), alongside identity-preserving rename/move and preceding W2–W5 domains. No CI, PR, compiled verification, screenshots, emulator or physical acceptance yet.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. Unmerged code-first source now includes dependency-guarded taxonomy retirement and Web icon color preference editor (#RRGGBB/clear), alongside identity-preserving rename/move and preceding W2–W5 domains. No CI, PR, compiled verification, screenshots, emulator or physical acceptance yet. Added UI-only canonical transaction-rule draft preview: actual stored event matches, shared rule matcher, up to 3 examples; no historical mutation. No tests/PR/merge yet.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue large code-first Android-only batches on android/web-parity-code-first-bulk-20261023; finish remaining W2–W5 icon-pack/provider/security/report gaps before mass tests. Once all source is authored, consolidated exact-head Kotlin/unit/security/Compose visual + hosted S24 emulator 4/4 check cycle, fix defects, then merge. Last validated develop #319; 1/6 implementations and 11/24 subtasks unchanged until verified; real owner S24 #149 separate. No shared backend/Web/schema, production finance writes, signer/release, SMS or permanent card delete UI.
+Next Continue remaining Android-only code-first gaps including icon/provider/security/report features on android/web-parity-code-first-bulk-20261023. New rule-preview source is authored but untested. Defer CI/PR until full source pass; then run consolidated compilation, unit, security, Compose accessibility/visual/S24 emulator and require 4/4 exact-head gates, fix defects, merge. Verified develop remains #319, progress 1/6 · 11/24, owner S24 #149 separate; no shared API/schema/production data, signer, SMS or destructive card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

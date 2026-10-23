@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.lifecycle.ViewModel
+import kotlinx.serialization.json.JsonObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -231,6 +232,8 @@ data class PlanUiState(
     val categoryIconColors: Map<String, String> = emptyMap(),
     val subcategoryIconColors: Map<String, String> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),
+    /** Source events only; never seeded legacy transactions or synthetic preview fixtures. */
+    val rulePreviewEvents: List<JsonObject> = emptyList(),
     val counterpartyDirectory: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
     val deletableCustomCashAccountIds: Set<String> = emptySet(),

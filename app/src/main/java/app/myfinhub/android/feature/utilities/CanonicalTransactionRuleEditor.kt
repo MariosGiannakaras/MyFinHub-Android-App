@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,6 +28,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.plan.PlanningRule
+import app.myfinhub.android.core.data.canonicalRulePreview
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /** Web TransactionRulesWorkspace native editor; no historical event is rewritten. */
 @Composable
@@ -35,6 +40,7 @@ fun CanonicalTransactionRuleEditor(
     categories: List<String>,
     subcategories: Map<String, List<String>>,
     accountOptions: List<Pair<String, String>>,
+    previewEvents: List<JsonObject> = emptyList(),
     mutationBlocked: Boolean,
     onDismiss: () -> Unit,
     onSave: (TransactionRuleEditRequest) -> Unit,
@@ -62,6 +68,31 @@ fun CanonicalTransactionRuleEditor(
         account == initial?.matchAccountId
     val knownCategory = category.isBlank() || categories.isEmpty() ||
         category in categories || category == initial?.actionCategory
+    val draftPreview = remember(
+        previewEvents, description, merchant, account, equalsMode, category,
+        subcategory, note, manual, imported, review,
+    ) {
+        val rule = JsonObject(mapOf(
+            "enabled" to JsonPrimitive(true),
+            "scopes" to JsonArray(buildList {
+                if (manual) add(JsonPrimitive("manual"))
+                if (imported) add(JsonPrimitive("imported"))
+                if (review) add(JsonPrimitive("review"))
+            }),
+            "match" to JsonObject(mapOf(
+                "description" to JsonPrimitive(description.trim()),
+                "merchant" to JsonPrimitive(merchant.trim()),
+                "accountId" to JsonPrimitive(account.trim()),
+                "mode" to JsonPrimitive(if (equalsMode) "equals" else "contains"),
+            )),
+            "action" to JsonObject(mapOf(
+                "category" to JsonPrimitive(category.trim()),
+                "subcategory" to JsonPrimitive(subcategory.trim()),
+                "note" to JsonPrimitive(note.trim()),
+            )),
+        ))
+        canonicalRulePreview(rule, previewEvents)
+    }
     val canSave = !mutationBlocked && name.isNotBlank() && name.length <= 500 &&
         hasCondition && hasAction && (manual || imported || review) &&
         knownAccount && knownCategory && knownSubcategory &&
@@ -197,6 +228,27 @@ fun CanonicalTransactionRuleEditor(
                         enabled = !mutationBlocked,
                     )
                     Text("Επιβεβαιώσεις")
+                }
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("s9_rule_editor_preview"),
+                    verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                ) {
+                    Text("Προεπισκόπηση μόνο · ${draftPreview.matchingCount} υπάρχουσες κινήσεις θα ταίριαζαν.",
+                        style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "Η προεπισκόπηση δεν αλλάζει συναλλαγές, κατηγορίες ή ιστορικό.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    draftPreview.examples.forEachIndexed { index, example ->
+                        Text(example, modifier = Modifier.testTag("s9_rule_preview_example_$index"),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (draftPreview.matchingCount == 0) {
+                        Text("Δεν βρέθηκαν παραδείγματα στο υπάρχον ιστορικό.",
+                            style = MaterialTheme.typography.bodySmall)
+                    }
                 }
                 if (!hasCondition) {
                     Text("Χρειάζεται τουλάχιστον μία συνθήκη.",

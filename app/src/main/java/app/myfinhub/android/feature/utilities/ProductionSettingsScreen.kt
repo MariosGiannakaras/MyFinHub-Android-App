@@ -54,6 +54,7 @@ fun ProductionSettingsScreen(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
+    rulePreviewEvents: List<JsonObject> = emptyList(),
     counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     onSaveCounterparty: ((CanonicalCounterpartyEditRequest) -> Unit)? = null,
     managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
@@ -605,6 +606,7 @@ fun ProductionSettingsScreen(
             categories = ruleCategories,
             subcategories = ruleSubcategories,
             accountOptions = ruleAccountOptions,
+            previewEvents = rulePreviewEvents,
             mutationBlocked = rulesMutationBlocked,
             onDismiss = { creatingRule = false; editingRuleId = null },
             onSave = { request ->

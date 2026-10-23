@@ -270,6 +270,8 @@ internal fun projectCanonicalPlanState(
         defaultAccountIds = listOf(
             "defaultExpenseAccount", "defaultIncomeAccount", "defaultLoanAccount",
         ).associateWith { document.settingsObject().string(it).orEmpty() },
+        rulePreviewEvents = document.state.array("events")
+            .filterIsInstance<JsonObject>(),
         rules = document.canonicalTransactionRuleOverview().map { entry ->
             PlanningRule(
                 id = entry.id, title = entry.name,

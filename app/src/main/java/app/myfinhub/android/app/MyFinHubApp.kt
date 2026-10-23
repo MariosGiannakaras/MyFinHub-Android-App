@@ -306,6 +306,7 @@ internal fun MyFinHubAppContent(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
                         transactionRules = planState.rules,
+                        rulePreviewEvents = planState.rulePreviewEvents,
                         counterpartyRows = planState.counterpartyDirectory,
                         onSaveCounterparty = onSaveCounterparty,
                         managedAccounts = planState.managedAccounts,
