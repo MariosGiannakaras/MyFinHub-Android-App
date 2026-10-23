@@ -30,6 +30,8 @@ enum class PendingMutationKind {
     UPSERT_TRANSACTION_RULE,
     UPSERT_COUNTERPARTY,
     LINK_EVENT_COUNTERPARTY,
+    UPSERT_MANAGED_ACCOUNT,
+    SET_DEFAULT_ACCOUNT,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -257,6 +259,24 @@ data class PendingCanonicalMutationIntent(
                 ?: throw IllegalArgumentException("Missing expected source event"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> UpsertCanonicalManagedAccount(
+            accountId = payload.string("accountId").orEmpty(),
+            source = payload.string("source").orEmpty(),
+            name = payload.string("name").orEmpty(),
+            mode = payload.string("mode").orEmpty(),
+            providerId = payload.string("providerId"),
+            providerName = payload.string("providerName"),
+            bankCategory = payload.string("bankCategory"),
+            cashType = payload.string("cashType"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_DEFAULT_ACCOUNT -> SetCanonicalDefaultAccount(
+            role = payload.string("role").orEmpty(),
+            accountId = payload.string("accountId").orEmpty(),
+            expectedAccountId = payload.string("expectedAccountId"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_COUNTERPARTY -> UpsertCanonicalCounterparty(
             counterpartyId = payload.string("counterpartyId").orEmpty(),
             kind = payload.string("kind").orEmpty(),
@@ -452,6 +472,12 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_TRANSACTION_RULE ->
             runCatching { (asMutation() as UpsertCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
+            runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_DEFAULT_ACCOUNT ->
+            runCatching { (asMutation() as SetCanonicalDefaultAccount).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_COUNTERPARTY ->
             runCatching { (asMutation() as UpsertCanonicalCounterparty).satisfiedBy(document) }
@@ -716,6 +742,30 @@ data class PendingCanonicalMutationIntent(
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }),
                 syncState = syncState,
+            )
+            is UpsertCanonicalManagedAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_MANAGED_ACCOUNT,
+                payload = JsonObject(buildMap {
+                    put("accountId", JsonPrimitive(mutation.accountId))
+                    put("source", JsonPrimitive(mutation.source))
+                    put("name", JsonPrimitive(mutation.name))
+                    put("mode", JsonPrimitive(mutation.mode))
+                    mutation.providerId?.let { put("providerId", JsonPrimitive(it)) }
+                    mutation.providerName?.let { put("providerName", JsonPrimitive(it)) }
+                    mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
+                    mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is SetCanonicalDefaultAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_DEFAULT_ACCOUNT,
+                payload = JsonObject(buildMap {
+                    put("role", JsonPrimitive(mutation.role))
+                    put("accountId", JsonPrimitive(mutation.accountId))
+                    mutation.expectedAccountId?.let { put("expectedAccountId", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
             )
             is UpsertCanonicalCounterparty -> PendingCanonicalMutationIntent(
                 intentId = intentId,

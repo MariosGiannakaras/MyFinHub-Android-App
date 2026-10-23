@@ -12,6 +12,9 @@ import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalCardProfile
 import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
+import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
+import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
+import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
 import app.myfinhub.android.core.data.LinkCanonicalEventCounterparty
 import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
 import app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest
@@ -943,6 +946,71 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Web account settings: seed overrides or custom account identities, never balance edits. */
+    fun saveManagedAccount(request: ManagedAccountEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val doc = ready.projection.document
+        val accountId = request.id ?: "account-" +
+            (if (request.mode == "cash") "cash" else request.providerId.orEmpty()) +
+            "-${UUID.randomUUID()}"
+        val seeded = doc.seed.array("accounts").filterIsInstance<JsonObject>()
+            .filter { it.string("id") == accountId }
+        val custom = doc.settingsObject().array("customAccounts")
+            .filterIsInstance<JsonObject>().filter { it.string("id") == accountId }
+        val source = if (request.id == null) "new"
+            else if (seeded.size == 1 && custom.isEmpty()) "seed"
+            else if (custom.size == 1 && seeded.isEmpty()) "custom" else return
+        val expected = when (source) {
+            "seed" -> doc.settingsObject().obj("accountOverrides")[accountId] as? JsonObject
+            "custom" -> custom.singleOrNull()
+            else -> null
+        }
+        if (ready.projection.planState.managedAccounts.any {
+            it.id == accountId
+        } && request.id == null) return
+        if (request.id != null &&
+            ready.projection.planState.managedAccounts.count { it.id == accountId } != 1) return
+        if (request.mode == "bank" &&
+            (request.providerId.isNullOrBlank() ||
+                request.bankCategory !in setOf(
+                    "payroll", "current", "savings", "term", "payment", "other",
+                ))) return
+        if (request.mode == "cash" &&
+            request.cashType !in setOf("cash", "reserve", "other")) return
+        applyMutation(UpsertCanonicalManagedAccount(
+            accountId = accountId,
+            source = source,
+            name = request.name,
+            mode = request.mode,
+            providerId = request.providerId,
+            providerName = request.providerName,
+            bankCategory = request.bankCategory,
+            cashType = request.cashType,
+            expected = expected,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Safe owner-selected defaults cannot point to reserves or term deposits. */
+    fun setDefaultManagedAccount(role: String, accountId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (role !in setOf("defaultExpenseAccount", "defaultIncomeAccount",
+                "defaultLoanAccount")) return
+        val matches = ready.projection.document.canonicalAccounts()
+            .filter { it.id == accountId }
+        if (matches.size != 1 || matches.single().kind == "credit" ||
+            matches.single().excludeFromAvailable ||
+            !matches.single().showInQuickChoices) return
+        val current = ready.projection.document.settingsObject().string(role)
+        if (current == accountId) return
+        applyMutation(SetCanonicalDefaultAccount(
+            role = role, accountId = accountId, expectedAccountId = current,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Web counterparty identity directory: financial events and past notes stay unchanged. */
     fun saveCounterparty(request: CanonicalCounterpartyEditRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1755,6 +1823,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
                 PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
                 PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
+                PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> "Διαχείριση λογαριασμού"
+                PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
                 PendingMutationKind.REORDER_TRANSACTION_RULE -> "Σειρά αυτοματισμών"

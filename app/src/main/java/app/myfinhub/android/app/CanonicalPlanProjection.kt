@@ -252,6 +252,10 @@ internal fun projectCanonicalPlanState(
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.
         counterpartyDirectory = document.canonicalCounterpartyDirectory(),
+        managedAccounts = document.canonicalAccounts().filter { it.kind != "credit" },
+        defaultAccountIds = listOf(
+            "defaultExpenseAccount", "defaultIncomeAccount", "defaultLoanAccount",
+        ).associateWith { document.settingsObject().string(it).orEmpty() },
         rules = document.canonicalTransactionRuleOverview().map { entry ->
             PlanningRule(
                 id = entry.id, title = entry.name,

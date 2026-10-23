@@ -56,6 +56,11 @@ fun ProductionSettingsScreen(
     transactionRules: List<PlanningRule> = emptyList(),
     counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     onSaveCounterparty: ((CanonicalCounterpartyEditRequest) -> Unit)? = null,
+    managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
+    defaultAccountIds: Map<String, String> = emptyMap(),
+    accountProviderOptions: List<Pair<String, String>> = emptyList(),
+    onSaveManagedAccount: ((ManagedAccountEditRequest) -> Unit)? = null,
+    onSetDefaultManagedAccount: ((String, String) -> Unit)? = null,
     onToggleRuleEnabled: ((String, Boolean) -> Unit)? = null,
     onSaveTransactionRule: ((TransactionRuleEditRequest) -> Unit)? = null,
     onDeleteTransactionRule: ((String) -> Unit)? = null,
@@ -219,6 +224,16 @@ fun ProductionSettingsScreen(
                 }
             }
 
+            if (onSaveManagedAccount != null && onSetDefaultManagedAccount != null) {
+                CanonicalAccountManagementPanel(
+                    accounts = managedAccounts,
+                    defaults = defaultAccountIds,
+                    providers = accountProviderOptions,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSave = onSaveManagedAccount,
+                    onChooseDefault = onSetDefaultManagedAccount,
+                )
+            }
             if (onSaveCounterparty != null) {
                 CanonicalCounterpartyDirectoryPanel(
                     rows = counterpartyRows,
