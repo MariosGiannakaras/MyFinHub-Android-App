@@ -49,6 +49,7 @@ internal fun createQuickEntryCanonicalMutation(
         recurringId = state.recurringId.takeIf {
             state.kind == QuickEntryKind.EXPENSE && it.isNotBlank()
         },
+        counterpartyId = state.counterpartyId.takeIf(String::isNotBlank),
         // Quick Entry's saving action moves money from a bank account into
         // savings. This is Web's manual_transfer, NOT the cash_offset mechanism.
         // The explicit source remains correct even if the user note says Pay & Save.

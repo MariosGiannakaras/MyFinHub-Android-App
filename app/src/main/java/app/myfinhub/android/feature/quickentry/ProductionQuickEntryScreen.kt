@@ -359,6 +359,26 @@ fun ProductionQuickEntryScreen(
                 }
             }
 
+            val counterpartyKind =
+                app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent(
+                    state.kind.canonicalKind
+                )
+            if (counterpartyKind != null &&
+                state.counterparties.any { it.kind == counterpartyKind }
+            ) {
+                val choices = state.counterparties.filter {
+                    it.kind == counterpartyKind &&
+                        state.counterparties.count { row -> row.id == it.id } == 1
+                }.map { it.id to it.displayName }
+                CompactChoice(
+                    label = if (counterpartyKind == "merchant") "Έμπορος" else "Δικαιούχος",
+                    selectedId = state.counterpartyId,
+                    choices = listOf("" to "Χωρίς σύνδεση") + choices,
+                    onSelected = { onAction(QuickEntryAction.CounterpartyChanged(it)) },
+                    searchable = true,
+                )
+            }
+
             ProductionDateChoice(
                 value = state.dateText,
                 onValueChange = { onAction(QuickEntryAction.DateChanged(it)) },

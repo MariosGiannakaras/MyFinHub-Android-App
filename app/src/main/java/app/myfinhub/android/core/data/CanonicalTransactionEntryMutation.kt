@@ -33,6 +33,8 @@ data class CanonicalTransactionEntryDraft(
     val installmentCount: Int? = null,
     // Web recurring.ts and ContextualQuickAdd annotate existing expense events.
     val recurringId: String? = null,
+    /** Explicit owner-selected ID only; never inferred from OCR or note text. */
+    val counterpartyId: String? = null,
     /** Web SavingsPage SavingSource; null preserves historical draft behavior. */
     val savingSource: String? = null,
     val actualBalance: Double? = null,
@@ -326,6 +328,20 @@ fun createCanonicalTransactionEntryMutation(
         }
     }
 
+    draft.counterpartyId?.let { selectedId ->
+        require(selectedId.isNotBlank() && selectedId == selectedId.trim()) {
+            "Διάλεξε έγκυρη ταυτότητα αντισυμβαλλομένου."
+        }
+        val expectedKind = canonicalCounterpartyKindForEvent(draft.kind)
+            ?: throw IllegalArgumentException("Αυτή η κίνηση δεν δέχεται αντισυμβαλλόμενο.")
+        val matches = document.state.array("counterparties")
+            .filterIsInstance<JsonObject>()
+            .filter { it.string("id") == selectedId }
+        require(matches.size == 1 && matches.single().string("kind") == expectedKind) {
+            "Ο επιλεγμένος έμπορος ή δικαιούχος δεν είναι πλέον διαθέσιμος."
+        }
+    }
+
     val event = JsonObject(buildMap {
         put("id", JsonPrimitive(eventId))
         put("date", JsonPrimitive(draft.date))
@@ -344,6 +360,7 @@ fun createCanonicalTransactionEntryMutation(
         draft.loanId?.let { put("loanId", JsonPrimitive(it)) }
         draft.installmentCount?.let { put("installmentCount", JsonPrimitive(it)) }
         draft.recurringId?.let { put("recurringId", JsonPrimitive(it)) }
+        draft.counterpartyId?.let { put("counterpartyId", JsonPrimitive(it)) }
         draft.savingSource?.let { put("savingSource", JsonPrimitive(it)) }
         put("legs", JsonArray(legs))
         if (normalizedParts.isNotEmpty()) put("parts", JsonArray(normalizedParts))

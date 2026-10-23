@@ -4,6 +4,8 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
+import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
+import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.settingsObject
@@ -149,8 +151,15 @@ internal fun projectQuickEntryState(
         )
     }
 
+    val counterparties = document.canonicalCounterpartyDirectory()
+    val matchingCounterpartyId = base.counterpartyId.takeIf { selected ->
+        val kind = canonicalCounterpartyKindForEvent(base.kind.canonicalKind)
+        kind != null && counterparties.count { it.id == selected && it.kind == kind } == 1
+    }.orEmpty()
     return base.copy(
         dateText = base.dateText.ifBlank { today.toString() },
+        counterpartyId = matchingCounterpartyId,
+        counterparties = counterparties,
         category = category,
         subcategory = subcategory,
         accountId = selectedAccount,
