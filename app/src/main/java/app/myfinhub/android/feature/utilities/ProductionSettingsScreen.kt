@@ -64,6 +64,9 @@ fun ProductionSettingsScreen(
     onRenameCategoryTaxonomy: ((String, String, String?, String) -> Unit)? = null,
     onMoveSubcategoryTaxonomy: ((String, String, String, String) -> Unit)? = null,
     onRetireCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
+    onSetCategoryIconColor: ((String, String, String?, String?) -> Unit)? = null,
+    categoryIconColors: Map<String, String> = emptyMap(),
+    subcategoryIconColors: Map<String, String> = emptyMap(),
     deletableCustomCashAccountIds: Set<String> = emptySet(),
     onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
     defaultAccountIds: Map<String, String> = emptyMap(),
@@ -255,6 +258,9 @@ fun ProductionSettingsScreen(
                     onRename = onRenameCategoryTaxonomy,
                     onMove = onMoveSubcategoryTaxonomy,
                     onRetire = onRetireCategoryTaxonomy,
+                    onSetColor = onSetCategoryIconColor,
+                    categoryColors = categoryIconColors,
+                    subcategoryColors = subcategoryIconColors,
                 )
             }
             if (onSaveCounterparty != null) {

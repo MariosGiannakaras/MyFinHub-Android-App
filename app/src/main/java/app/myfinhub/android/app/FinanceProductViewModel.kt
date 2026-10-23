@@ -19,6 +19,7 @@ import app.myfinhub.android.core.data.AddCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.RenameCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.MoveCanonicalSubcategoryTaxonomy
 import app.myfinhub.android.core.data.RetireCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.SetCanonicalCategoryIconColor
 import app.myfinhub.android.core.data.categoryRetirementBlockers
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
@@ -1028,6 +1029,24 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             .singleOrNull() ?: return
         applyMutation(DeleteCanonicalCustomCashAccount(
             accountId = accountId, expected = expected, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web icon-color preference; no glyph/pack inference and no finance event edit. */
+    fun setCategoryIconColor(kind: String, category: String, subcategory: String?, color: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val normalized = color?.trim()?.takeIf(String::isNotEmpty)
+        if (normalized != null && !Regex("^#[0-9a-fA-F]{6}$").matches(normalized)) return
+        val settings = ready.projection.document.settingsObject()
+        val field = if (subcategory == null) "categoryIconColors" else "subcategoryIconColors"
+        val key = kind + ":" + category + if (subcategory == null) "" else ":" + subcategory
+        if (settings.obj(field).string(key) == normalized?.uppercase(java.util.Locale.ROOT) ||
+            (normalized == null && settings.obj(field).string(key) == null)) return
+        applyMutation(SetCanonicalCategoryIconColor(
+            kind = kind, category = category, subcategory = subcategory,
+            color = normalized, expectedSettings = settings, nowIso = Instant.now().toString(),
         ))
     }
 
@@ -2077,6 +2096,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> "Μετονομασία κατηγορίας"
                 PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> "Μεταφορά υποκατηγορίας"
                 PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> "Απόσυρση κατηγορίας"
+                PendingMutationKind.SET_CATEGORY_ICON_COLOR -> "Χρώμα εικονιδίου"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

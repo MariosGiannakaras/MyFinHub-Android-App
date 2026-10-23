@@ -37,6 +37,9 @@ fun CanonicalCategoryTaxonomyOrderPanel(
     onRename: ((kind: String, category: String, subcategory: String?, newLabel: String) -> Unit)? = null,
     onMove: ((kind: String, source: String, child: String, target: String) -> Unit)? = null,
     onRetire: ((kind: String, category: String, subcategory: String?) -> Unit)? = null,
+    onSetColor: ((kind: String, category: String, subcategory: String?, color: String?) -> Unit)? = null,
+    categoryColors: Map<String, String> = emptyMap(),
+    subcategoryColors: Map<String, String> = emptyMap(),
 ) {
     var newKind by remember { mutableStateOf<String?>(null) }
     var newParent by remember { mutableStateOf<String?>(null) }
@@ -52,6 +55,17 @@ fun CanonicalCategoryTaxonomyOrderPanel(
     var retireKind by remember { mutableStateOf<String?>(null) }
     var retireCategory by remember { mutableStateOf("") }
     var retireSubcategory by remember { mutableStateOf<String?>(null) }
+    var colorKind by remember { mutableStateOf<String?>(null) }
+    var colorCategory by remember { mutableStateOf("") }
+    var colorSubcategory by remember { mutableStateOf<String?>(null) }
+    var colorDraft by remember { mutableStateOf("") }
+    fun openColor(kind: String, category: String, child: String?) {
+        colorKind = kind
+        colorCategory = category
+        colorSubcategory = child
+        val key = kind + ":" + category + if (child == null) "" else ":" + child
+        colorDraft = (if (child == null) categoryColors else subcategoryColors)[key].orEmpty()
+    }
     fun openRetirement(kind: String, category: String, child: String?) {
         retireKind = kind
         retireCategory = category
@@ -106,6 +120,17 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                     rows.take(visible).forEachIndexed { index, row ->
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                             Text(row.name, style = MaterialTheme.typography.bodyLarge)
+                            if (onSetColor != null) {
+                                val color = categoryColors[kind + ":" + row.name]
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { openColor(kind, row.name, null) },
+                                    modifier = Modifier.testTag("s9_taxonomy_color_" + kind + "_" + index),
+                                ) {
+                                    Text("Χρώμα εικονιδίου" +
+                                        if (color.isNullOrBlank()) "" else " · " + color)
+                                }
+                            }
                             if (onRetire != null && row.subcategories.isEmpty()) {
                                 TextButton(
                                     enabled = !mutationBlocked,
@@ -142,6 +167,19 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                             row.subcategories.forEachIndexed { subIndex, child ->
                                 Column {
                                     Text("↳ $child", style = MaterialTheme.typography.bodySmall)
+                                    if (onSetColor != null) {
+                                        val color = subcategoryColors[kind + ":" + row.name + ":" + child]
+                                        TextButton(
+                                            enabled = !mutationBlocked,
+                                            onClick = { openColor(kind, row.name, child) },
+                                            modifier = Modifier.testTag(
+                                                "s9_taxonomy_color_sub_" + kind + "_" + index + "_" + subIndex,
+                                            ),
+                                        ) {
+                                            Text("Χρώμα εικονιδίου" +
+                                                if (color.isNullOrBlank()) "" else " · " + color)
+                                        }
+                                    }
                                     if (onRetire != null) {
                                         TextButton(
                                             enabled = !mutationBlocked,
@@ -210,6 +248,57 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                 }
             }
         }
+    }
+    if (colorKind != null && onSetColor != null) {
+        val kind = colorKind!!
+        val category = colorCategory
+        val subcategory = colorSubcategory
+        val valid = colorDraft.isBlank() ||
+            Regex("^#[0-9a-fA-F]{6}$").matches(colorDraft.trim())
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) colorKind = null },
+            title = { Text("Χρώμα εικονιδίου") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Ορίζει μόνο το χρώμα προτίμησης του Web. " +
+                            "Δεν τροποποιεί το λογιστικό ιστορικό ή την ταυτότητα.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = colorDraft,
+                        onValueChange = { colorDraft = it.take(7) },
+                        label = { Text("Χρώμα #RRGGBB") },
+                        singleLine = true,
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth().testTag("s9_taxonomy_color_hex"),
+                    )
+                    if (!valid) {
+                        Text(
+                            "Χρησιμοποίησε έξι δεκαεξαδικά ψηφία μετά το #.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && valid,
+                    onClick = {
+                        onSetColor(kind, category, subcategory, colorDraft.trim().takeIf { it.isNotBlank() })
+                        colorKind = null
+                    },
+                    modifier = Modifier.testTag("s9_taxonomy_color_save"),
+                ) { Text("Αποθήκευση") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    onClick = { colorKind = null },
+                ) { Text("Ακύρωση") }
+            },
+        )
     }
     if (retireKind != null && onRetire != null) {
         val kind = retireKind!!

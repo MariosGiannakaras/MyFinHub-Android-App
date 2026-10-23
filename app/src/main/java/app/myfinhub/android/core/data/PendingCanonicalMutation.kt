@@ -41,6 +41,7 @@ enum class PendingMutationKind {
     RENAME_CATEGORY_TAXONOMY,
     MOVE_SUBCATEGORY_TAXONOMY,
     RETIRE_CATEGORY_TAXONOMY,
+    SET_CATEGORY_ICON_COLOR,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -304,6 +305,15 @@ data class PendingCanonicalMutationIntent(
             bankCategory = payload.string("bankCategory"),
             cashType = payload.string("cashType"),
             expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_CATEGORY_ICON_COLOR -> SetCanonicalCategoryIconColor(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            color = payload.string("color"),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing icon settings snapshot"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
         PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> RetireCanonicalCategoryTaxonomy(
@@ -579,6 +589,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.RETIRE_CATEGORY_TAXONOMY ->
             runCatching { (asMutation() as RetireCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_CATEGORY_ICON_COLOR ->
+            runCatching { (asMutation() as SetCanonicalCategoryIconColor).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.ADD_CATEGORY_TAXONOMY ->
             runCatching { (asMutation() as AddCanonicalCategoryTaxonomy).satisfiedBy(document) }
@@ -906,6 +919,17 @@ data class PendingCanonicalMutationIntent(
                     mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
                     mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
                     mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is SetCanonicalCategoryIconColor -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_CATEGORY_ICON_COLOR,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    mutation.color?.let { put("color", JsonPrimitive(it)) }
+                    put("expectedSettings", mutation.expectedSettings)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }), syncState = syncState,
             )

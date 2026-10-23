@@ -290,6 +290,14 @@ internal fun projectCanonicalPlanState(
         },
         expenseTaxonomy = document.canonicalCategoryTaxonomy("expense"),
         incomeTaxonomy = document.canonicalCategoryTaxonomy("income"),
+        categoryIconColors = document.settingsObject().obj("categoryIconColors")
+            .mapNotNull { (key, value) ->
+                (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+            }.toMap(),
+        subcategoryIconColors = document.settingsObject().obj("subcategoryIconColors")
+            .mapNotNull { (key, value) ->
+                (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+            }.toMap(),
         budgetCategories = allowedBudgetCategories,
         ruleSubcategories = ruleSubcategories,
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
