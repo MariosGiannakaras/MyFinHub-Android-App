@@ -912,6 +912,7 @@ fun CanonicalBudget2026Screen(
     onBack: () -> Unit,
     onSaveCategoryBudget: (CategoryBudgetEditRequest) -> Unit = {},
     onDeleteCategoryBudget: (String) -> Unit = {},
+    onDeleteOverallBudget: (String) -> Unit = {},
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
@@ -929,6 +930,7 @@ fun CanonicalBudget2026Screen(
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingOverallBudget by rememberSaveable { mutableStateOf(false) }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -974,6 +976,35 @@ fun CanonicalBudget2026Screen(
     }
 
     BackHandler(enabled = dirty || mutationInFlight || saveRequested) { requestBack() }
+
+    if (deletingOverallBudget && state.overallBudgetId != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!mutationInFlight && !mutationBlocked) deletingOverallBudget = false
+            },
+            title = { Text("Διαγραφή συνολικού προϋπολογισμού;") },
+            text = {
+                Text("Θα αφαιρεθεί μόνο το συνολικό όριο του τρέχοντος μήνα. " +
+                    "Τα όρια κατηγοριών, οι κινήσεις και το ιστορικό δεν θα αλλάξουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationInFlight && !mutationBlocked && !saveRequested && !dirty,
+                    modifier = Modifier.testTag("s7_budget_confirm_delete_overall"),
+                    onClick = {
+                        onDeleteOverallBudget(state.overallBudgetId)
+                        deletingOverallBudget = false
+                    },
+                ) { Text("Διαγραφή συνολικού ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !mutationInFlight && !mutationBlocked,
+                    onClick = { deletingOverallBudget = false },
+                ) { Text("Ακύρωση") }
+            },
+        )
+    }
 
     if (discardDialogOpen) {
         AlertDialog(
@@ -1215,6 +1246,15 @@ fun CanonicalBudget2026Screen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             enabled = !mutationInFlight && !saveRequested,
                         )
+                        if (state.overallBudgetId != null) {
+                            TextButton(
+                                onClick = { deletingOverallBudget = true },
+                                enabled = !mutationInFlight && !mutationBlocked &&
+                                    !saveRequested && !dirty,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s7_budget_delete_overall"),
+                            ) { Text("Διαγραφή συνολικού ορίου") }
+                        }
                         progress?.threshold?.let { threshold ->
                             Text(
                                 "Η ένδειξη προόδου επισημαίνεται στο $threshold% του συνολικού ορίου.",

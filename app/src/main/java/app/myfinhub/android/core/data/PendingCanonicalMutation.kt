@@ -23,6 +23,7 @@ enum class PendingMutationKind {
     EDIT_ACTIVITY,
     DELETE_ACTIVITY,
     UPSERT_OVERALL_BUDGET,
+    DELETE_OVERALL_BUDGET,
     UPSERT_CATEGORY_BUDGET,
     DELETE_CATEGORY_BUDGET,
     SET_SAVINGS_TARGET_RATE,
@@ -321,6 +322,13 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.DELETE_OVERALL_BUDGET -> DeleteCanonicalOverallBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing overall budget source row"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> UpsertOverallBudget(
             month = payload.string("month").orEmpty(),
             amount = payload.number("amount") ?: Double.NaN,
@@ -493,6 +501,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
             runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_OVERALL_BUDGET ->
+            runCatching { (asMutation() as DeleteCanonicalOverallBudget).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> {
             val month = payload.string("month").orEmpty()
@@ -829,6 +840,17 @@ data class PendingCanonicalMutationIntent(
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                     mutation.expected?.let { put("expected", it) }
                 }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalOverallBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_OVERALL_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
                 syncState = syncState,
             )
             is UpsertOverallBudget -> PendingCanonicalMutationIntent(

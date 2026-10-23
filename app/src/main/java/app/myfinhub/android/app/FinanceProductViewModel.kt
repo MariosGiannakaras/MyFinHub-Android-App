@@ -41,6 +41,7 @@ import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.UpsertCategoryBudget
 import app.myfinhub.android.core.data.DeleteCategoryBudget
+import app.myfinhub.android.core.data.DeleteCanonicalOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
 import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
 import app.myfinhub.android.core.data.UpsertCanonicalTransactionRule
@@ -1162,6 +1163,25 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Delete only the owner's confirmed current-month overall budget; no ledger effects. */
+    fun deleteOverallBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            budgetId.isBlank()) return
+        val month = YearMonth.now().toString()
+        val all = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val candidates = all.filter { it.string("id") == budgetId }
+        val current = candidates.singleOrNull() ?: return
+        if (current.string("scope") != "overall" || current.string("month") != month ||
+            all.count { it.string("scope") == "overall" && it.string("month") == month } != 1
+        ) return
+        applyMutation(DeleteCanonicalOverallBudget(
+            budgetId = budgetId, month = month,
+            expected = current, nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Delete only the explicitly selected source row; historical finance events remain intact. */
     fun deleteCategoryBudget(budgetId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1250,18 +1270,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         }
         val validated = reducePlan(ready.projection.planState, PlanAction.SaveBudget)
         mutableState.value = ready.copy(projection = ready.projection.copy(planState = validated))
-        val amount = validated.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
-        val threshold = validated.budget.alertThresholdText.toIntOrNull()
-        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
-
-        applyMutation(
-            UpsertOverallBudget(
-                month = YearMonth.now().toString(),
-                amount = amount,
-                alertThreshold = threshold,
-                budgetId = "budget-android-${UUID.randomUUID()}",
-                nowIso = Instant.now().toString(),
-            ),
+        // Reuse the exact same guarded Web-ID mutation as the budget editor.
+        // Never create an unsafe random-ID budget through a secondary PlanAction path.
+        saveOverallBudget(
+            validated.budget.monthlyLimitText,
+            validated.budget.alertThresholdText,
         )
     }
 
@@ -1817,6 +1830,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.EDIT_ACTIVITY -> "Επεξεργασία κίνησης"
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
+                PendingMutationKind.DELETE_OVERALL_BUDGET -> "Διαγραφή συνολικού budget"
                 PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
                 PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
                 PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"

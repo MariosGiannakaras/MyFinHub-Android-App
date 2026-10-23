@@ -213,6 +213,7 @@ data class PlanUiState(
     val scheduledManageItems: List<ScheduledManageItem> = emptyList(),
     val scheduledAccounts: List<ScheduledAccountOption> = emptyList(),
     val budget: BudgetDraft = BudgetDraft(),
+    val overallBudgetId: String? = null,
     val categoryBudgets: List<CategoryBudget> = emptyList(),
     val budgetCategories: List<String> = emptyList(),
     val ruleSubcategories: Map<String, List<String>> = emptyMap(),

@@ -62,6 +62,11 @@ internal fun projectCanonicalPlanState(
 ): PlanUiState {
     val month = YearMonth.from(today)
     val canonicalBudget = document.overallBudget(month.toString())
+    val overallBudgetCandidates = document.state.array("budgets")
+        .filterIsInstance<JsonObject>()
+        .filter { it.string("month") == month.toString() && it.string("scope") == "overall" }
+    val editableOverallBudgetId = overallBudgetCandidates.singleOrNull()
+        ?.string("id")?.takeIf(String::isNotBlank)
     val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
     // The Web category picker uses the owner's canonical expense taxonomy, not fixed Android labels.
     val expenseCategoryRows = document.settingsObject().array("expenseCategoryTree")
@@ -293,6 +298,7 @@ internal fun projectCanonicalPlanState(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
         ),
+        overallBudgetId = editableOverallBudgetId,
         forecastHorizonDays = horizonDays,
         forecastStartDateIso = today.toString(),
         forecastEndDateIso = horizonEnd.toString(),
