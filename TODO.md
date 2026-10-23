@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue writing all remaining Android Web-parity code in large grouped commits on android/web-parity-code-first-bulk-20261023. Current unmerged source includes budgets CRUD/IDs/conflict guards, savings percent goal, Settings rules full CRUD and priority order with canonical category tree/subcategory/account selectors, recurring lifecycle optimistic offline status and stop confirmation. Next focus W2.4 secure card interactions, W3.1 statement-cycle debt, W3.2 event/classification, W4.1–W4.4 remaining semantics and W5.1–W5.4 settings/provider/sync gaps. DO NOT start per-feature CI/PR; after all source work, run mass security/build/unit/real Compose screenshot/S24 emulator checks and fix regressions before any protected develop merge. Tracking counts 1/6 · 11/24 until evidence-backed integration. No shared Web/backend/schema, production finance writes, signing/releases, SMS import #146, irreversible card deletion or owner S24 acceptance #149.
+- [ ] Continue Android-only code implementation in grouped commits on android/web-parity-code-first-bulk-20261023 before mass tests. Completed source batches (NOT validated): W4.3 budgets and savings target, W5.4 native transaction rules CRUD and configured taxonomy, W4.1 recurring lifecycle source conflict guard, W3.1 credit statement drilldown. Remaining W2.4 secure card interaction, W3.1 historical debt precision, W3.2 classification/event parity, W4.1–W4.4 further gaps, W5.1–W5.4 supporting features require careful source audit/implementation. Then consolidate Kotlin, security, screenshot, hosted emulator acceptance and exact-head CI, fix failures and merge. Web parity counts stay 1/6 · 11/24 until evidence-backed integration; no shared backend/Web/schema changes, private finance writes, signing, SMS or permanent card delete. Physical S24 #149 separate.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last merged develop #319. CODE-FIRST BULK unmerged branch includes budget CRUD/IDs, savings target rate, full rules CRUD/reorder/toggle and canonical taxonomy, recurring state CAS and confirmation. Code is authored but not built/tested/merged. Continue remaining W2–W5 code before aggregate verification.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last merged #319. CODE-FIRST BULK unmerged branch includes budgets CRUD+Web IDs, savings target settings, rule CRUD/reorder/toggle/taxonomy, source-guarded recurring lifecycle, and credit statement detail history drilldown. Still untested/unmerged: further W2–W5 code and mass QA pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Write all remaining safe Android-only parity source on android/web-parity-code-first-bulk-20261023 in large commits, no per-feature PR/CI. Once code phase is complete, conduct consolidated source audit, Kotlin/unit, security, screenshot and hosted S24 emulator checks at immutable final head, fix defects, and merge. Last verified develop #319, counts 1/6 and 11/24 unchanged, physical owner S24 #149 separate. No shared API/backend/schema, production financial changes, signing, SMS import or permanent card deletion.
+Next Write remaining W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 Android-only Web-parity source in coherent batches on android/web-parity-code-first-bulk-20261023. Defer test runs and PR churn until code phase complete. Then execute mass compiler/unit/security/Compose light-dark-large/S24 emulator checks, resolve defects, and merge only at exact-head four green gates. Last verified develop #319, progress 1/6 · 11/24, physical owner S24 #149 separate, no shared Web/backend/schema, production financial writes, signer/release, SMS import or irreversible card deletion UI.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

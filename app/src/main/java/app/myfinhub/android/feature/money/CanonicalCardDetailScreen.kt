@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.core.ui.financialProviderForCard
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
@@ -59,6 +60,7 @@ fun CanonicalCardDetailScreen(
     card: MoneyCard?,
     cardId: String = card?.id.orEmpty(),
     cards: List<MoneyCard> = listOfNotNull(card),
+    statements: List<CanonicalCreditStatementView> = emptyList(),
     onSelectCard: (String) -> Unit = {},
     cleanupState: CardSecretCleanupUiState = CardSecretCleanupUiState.Idle,
     onRetryCleanup: (String) -> Unit = {},
@@ -184,6 +186,12 @@ fun CanonicalCardDetailScreen(
                     }
                 }
 
+                CanonicalCardStatementHistorySection(
+                    card = card,
+                    statements = statements,
+                    amountsVisible = amountsVisible,
+                    onOpenActivity = onOpenActivity,
+                )
                 CardActivitySection(
                     card = card,
                     amountsVisible = amountsVisible,

@@ -484,6 +484,7 @@ internal fun MyFinHubAppContent(
                         cardId = route.cardId,
                         card = card,
                         cards = moneyState.cards,
+                        statements = moneyState.creditStatementsByCard[route.cardId].orEmpty(),
                         onSelectCard = { selectedCardId ->
                             if (selectedCardId != route.cardId) {
                                 moneyBackStack.removeLastOrNull()
