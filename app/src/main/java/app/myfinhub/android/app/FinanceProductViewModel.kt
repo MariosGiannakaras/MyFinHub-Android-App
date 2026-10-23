@@ -13,6 +13,8 @@ import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalCardProfile
 import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
 import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
+import app.myfinhub.android.core.data.DeleteCanonicalCustomCashAccount
+import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
 import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
 import app.myfinhub.android.core.data.LinkCanonicalEventCounterparty
@@ -993,6 +995,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Safe delete: only unused custom cash profiles with no protected IBAN metadata. */
+    fun deleteUnusedCustomCashAccount(accountId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            accountId.isBlank()) return
+        val document = ready.projection.document
+        if (!document.customCashAccountCanBeDeleted(accountId)) return
+        val expected = document.settingsObject().array("customAccounts")
+            .filterIsInstance<JsonObject>().filter { it.string("id") == accountId }
+            .singleOrNull() ?: return
+        applyMutation(DeleteCanonicalCustomCashAccount(
+            accountId = accountId, expected = expected, nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Safe owner-selected defaults cannot point to reserves or term deposits. */
     fun setDefaultManagedAccount(role: String, accountId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1838,6 +1855,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
                 PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
                 PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> "Διαχείριση λογαριασμού"
+                PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> "Διαγραφή αχρησιμοποίητων μετρητών"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

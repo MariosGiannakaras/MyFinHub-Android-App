@@ -220,6 +220,7 @@ data class PlanUiState(
     val rules: List<PlanningRule> = emptyList(),
     val counterpartyDirectory: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
+    val deletableCustomCashAccountIds: Set<String> = emptySet(),
     val defaultAccountIds: Map<String, String> = emptyMap(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,

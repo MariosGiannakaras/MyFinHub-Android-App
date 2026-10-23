@@ -32,6 +32,7 @@ enum class PendingMutationKind {
     UPSERT_COUNTERPARTY,
     LINK_EVENT_COUNTERPARTY,
     UPSERT_MANAGED_ACCOUNT,
+    DELETE_UNUSED_CASH_ACCOUNT,
     SET_DEFAULT_ACCOUNT,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
@@ -260,6 +261,12 @@ data class PendingCanonicalMutationIntent(
                 ?: throw IllegalArgumentException("Missing expected source event"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> DeleteCanonicalCustomCashAccount(
+            accountId = payload.string("accountId").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source custom cash account"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> UpsertCanonicalManagedAccount(
             accountId = payload.string("accountId").orEmpty(),
             source = payload.string("source").orEmpty(),
@@ -480,6 +487,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_TRANSACTION_RULE ->
             runCatching { (asMutation() as UpsertCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT ->
+            runCatching { (asMutation() as DeleteCanonicalCustomCashAccount).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
             runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
@@ -752,6 +762,15 @@ data class PendingCanonicalMutationIntent(
                     put("expected", mutation.expected)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalCustomCashAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT,
+                payload = JsonObject(mapOf(
+                    "accountId" to JsonPrimitive(mutation.accountId),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
                 syncState = syncState,
             )
             is UpsertCanonicalManagedAccount -> PendingCanonicalMutationIntent(

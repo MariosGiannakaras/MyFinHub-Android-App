@@ -14,6 +14,7 @@ import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
+import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
@@ -258,6 +259,9 @@ internal fun projectCanonicalPlanState(
         // Read-only Web Settings > Rules. Existing history is never rewritten.
         counterpartyDirectory = document.canonicalCounterpartyDirectory(),
         managedAccounts = document.canonicalAccounts().filter { it.kind != "credit" },
+        deletableCustomCashAccountIds = document.canonicalAccounts()
+            .filter { it.kind == "cash" && document.customCashAccountCanBeDeleted(it.id) }
+            .map { it.id }.toSet(),
         defaultAccountIds = listOf(
             "defaultExpenseAccount", "defaultIncomeAccount", "defaultLoanAccount",
         ).associateWith { document.settingsObject().string(it).orEmpty() },

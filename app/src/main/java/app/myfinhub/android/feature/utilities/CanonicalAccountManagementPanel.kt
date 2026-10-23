@@ -42,12 +42,15 @@ data class ManagedAccountEditRequest(
 @Composable
 fun CanonicalAccountManagementPanel(
     accounts: List<CanonicalAccount>,
+    deletableCustomCashAccountIds: Set<String> = emptySet(),
+    onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
     defaults: Map<String, String>,
     providers: List<Pair<String, String>>,
     mutationBlocked: Boolean,
     onSave: (ManagedAccountEditRequest) -> Unit,
     onChooseDefault: (String, String) -> Unit,
 ) {
+    var deleteCandidateId by remember { mutableStateOf<String?>(null) }
     var editorOpen by remember { mutableStateOf(false) }
     var editingId by remember { mutableStateOf<String?>(null) }
     var limit by rememberSaveable { mutableIntStateOf(12) }
@@ -118,12 +121,53 @@ fun CanonicalAccountManagementPanel(
                         onClick = { editingId = account.id; editorOpen = true },
                         modifier = Modifier.testTag("s9_account_edit_$index"),
                     ) { Text("Επεξεργασία") }
+                    if (onDeleteUnusedCustomCashAccount != null &&
+                        account.id in deletableCustomCashAccountIds && account.kind == "cash"
+                    ) {
+                        TextButton(
+                            enabled = !mutationBlocked,
+                            onClick = { deleteCandidateId = account.id },
+                            modifier = Modifier.testTag("s9_cash_account_delete_$index"),
+                        ) { Text("Αφαίρεση αχρησιμοποίητων μετρητών") }
+                    }
                 }
             }
             if (accounts.size > limit) TextButton(
                 onClick = { limit = (limit + 12).coerceAtMost(accounts.size) },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Περισσότεροι λογαριασμοί (${accounts.size - limit})") }
+        }
+    }
+    deleteCandidateId?.let { id ->
+        val candidate = accounts.singleOrNull { it.id == id }
+        if (candidate != null && candidate.kind == "cash" &&
+            id in deletableCustomCashAccountIds &&
+            onDeleteUnusedCustomCashAccount != null
+        ) {
+            AlertDialog(
+                onDismissRequest = { if (!mutationBlocked) deleteCandidateId = null },
+                title = { Text("Αφαίρεση λογαριασμού μετρητών;") },
+                text = {
+                    Text("Θα αφαιρεθεί μόνο ο αχρησιμοποίητος προσαρμοσμένος " +
+                        "λογαριασμός «" + candidate.name + "». " +
+                        "Αρχικοί λογαριασμοί και λογαριασμοί με οικονομικό ιστορικό δεν αφαιρούνται.")
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.testTag("s9_cash_account_delete_confirm"),
+                        onClick = {
+                            deleteCandidateId = null
+                            onDeleteUnusedCustomCashAccount(id)
+                        },
+                    ) { Text("Αφαίρεση") }
+                },
+                dismissButton = {
+                    TextButton(enabled = !mutationBlocked, onClick = { deleteCandidateId = null }) {
+                        Text("Ακύρωση")
+                    }
+                },
+            )
         }
     }
     if (editorOpen && (editingId == null || selected != null)) {
