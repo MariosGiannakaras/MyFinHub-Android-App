@@ -28,6 +28,7 @@ enum class PendingMutationKind {
     COMPLETE_CARD_SECRET_CLEANUP,
     SET_RECURRING_STATUS,
     CREATE_RECURRING,
+    EDIT_RECURRING,
     CREATE_SCHEDULED,
     COMPLETE_SCHEDULED,
     CLOSE_SCHEDULED,
@@ -83,6 +84,28 @@ data class PendingCanonicalMutationIntent(
             val row = payload.obj("recurring")
             CreateCanonicalRecurring(
                 recurringId = payload.string("recurringId").orEmpty(),
+                nowIso = payload.string("nowIso").orEmpty(),
+                draft = CanonicalRecurringCreateDraft(
+                    name = row.string("name").orEmpty(),
+                    amount = row.number("amount") ?: Double.NaN,
+                    accountId = row.string("accountId").orEmpty(),
+                    category = row.string("category").orEmpty(),
+                    amountMode = row.string("amountMode") ?: "fixed",
+                    estimateMin = row.number("estimateMin"),
+                    estimateMax = row.number("estimateMax"),
+                    recurrenceUnit = row.string("recurrenceUnit") ?: "month",
+                    recurrenceInterval = row.number("recurrenceInterval")?.toInt() ?: 1,
+                    day = row.number("day")?.toInt(),
+                    firstExpectedDate = row.string("firstExpectedDate"),
+                    endDate = row.string("endDate"),
+                ),
+            )
+        }
+        PendingMutationKind.EDIT_RECURRING -> {
+            val row = payload.obj("recurring")
+            EditCanonicalRecurring(
+                recurringId = payload.string("recurringId").orEmpty(),
+                expected = payload.obj("expected"),
                 nowIso = payload.string("nowIso").orEmpty(),
                 draft = CanonicalRecurringCreateDraft(
                     name = row.string("name").orEmpty(),
@@ -226,6 +249,13 @@ data class PendingCanonicalMutationIntent(
             id.isNotBlank() && matches.size == 1 && custom.size == 1 &&
                 runCatching { (asMutation() as CreateCanonicalRecurring)
                     .matchesExisting(custom.single()) }.getOrDefault(false)
+        }
+        PendingMutationKind.EDIT_RECURRING -> {
+            val id = payload.string("recurringId").orEmpty()
+            val current = document.canonicalRecurringEditSource(id)
+            id.isNotBlank() && (current == null ||
+                runCatching { (asMutation() as EditCanonicalRecurring)
+                    .matchesEdited(current.row) }.getOrDefault(false))
         }
         PendingMutationKind.CREATE_SCHEDULED -> {
             val id = payload.string("scheduledId").orEmpty()
@@ -387,6 +417,15 @@ data class PendingCanonicalMutationIntent(
                     "recurringId" to JsonPrimitive(mutation.recurringId),
                     "nowIso" to JsonPrimitive(mutation.nowIso),
                     "recurring" to mutation.newRow(),
+                )), syncState = syncState,
+            )
+            is EditCanonicalRecurring -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.EDIT_RECURRING,
+                payload = JsonObject(mapOf(
+                    "recurringId" to JsonPrimitive(mutation.recurringId),
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                    "expected" to mutation.expected,
+                    "recurring" to mutation.editedRow(),
                 )), syncState = syncState,
             )
             is CreateCanonicalScheduledTransaction -> PendingCanonicalMutationIntent(

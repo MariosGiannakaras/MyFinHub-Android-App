@@ -57,6 +57,7 @@ fun CanonicalRecurringManagementScreen(
     onBack: () -> Unit,
     onStatusChanged: (String, String) -> Unit,
     onCreate: (RecurringCreateRequest) -> Unit = {},
+    onEdit: (String, RecurringCreateRequest) -> Unit = { _, _ -> },
     onRecordPayment: (RecurringManageItem) -> Unit = {},
     mutationBlocked: Boolean = false,
     paymentAccountAvailable: Boolean = true,
@@ -65,6 +66,7 @@ fun CanonicalRecurringManagementScreen(
     val serviceAssetCatalog = LocalRecurringServiceAssets.current
     val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
     var creating by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<RecurringManageItem?>(null) }
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Πάγια & συνδρομές",
@@ -250,6 +252,12 @@ fun CanonicalRecurringManagementScreen(
                             )
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            TextButton(
+                                enabled = !mutationBlocked && uniqueId,
+                                onClick = { editing = item },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("recurring_edit_" + item.id),
+                            ) { Text("Επεξεργασία παγίου") }
                             // Explicitly opens the editable canonical Quick Entry form.
                             // No financial event is created until its Save action.
                             TextButton(
@@ -287,12 +295,17 @@ fun CanonicalRecurringManagementScreen(
             }
         }
     }
-    if (creating) {
+    if (creating || editing != null) {
+        val activeEdit = editing
         CanonicalRecurringCreateDialog(
             accounts = state.scheduledAccounts,
+            initial = activeEdit,
             mutationBlocked = mutationBlocked,
-            onDismiss = { creating = false },
-            onCreate = { request -> onCreate(request); creating = false },
+            onDismiss = { creating = false; editing = null },
+            onSave = { request ->
+                if (activeEdit != null) onEdit(activeEdit.id, request) else onCreate(request)
+                creating = false; editing = null
+            },
         )
     }
 }
@@ -304,23 +317,33 @@ fun CanonicalRecurringManagementScreen(
 @Composable
 private fun CanonicalRecurringCreateDialog(
     accounts: List<ScheduledAccountOption>,
+    initial: RecurringManageItem? = null,
     mutationBlocked: Boolean,
     onDismiss: () -> Unit,
-    onCreate: (RecurringCreateRequest) -> Unit,
+    onSave: (RecurringCreateRequest) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var amountText by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Πάγια") }
-    var accountId by remember { mutableStateOf(accounts.firstOrNull()?.id.orEmpty()) }
+    var name by remember(initial?.id) { mutableStateOf(initial?.title.orEmpty()) }
+    var amountText by remember(initial?.id) {
+        mutableStateOf(initial?.amount?.toString().orEmpty())
+    }
+    var category by remember(initial?.id) { mutableStateOf(initial?.category ?: "Πάγια") }
+    var accountId by remember(initial?.id) {
+        mutableStateOf(initial?.accountId?.takeIf { id -> accounts.any { it.id == id } }
+            ?: accounts.firstOrNull()?.id.orEmpty())
+    }
     var accountMenu by remember { mutableStateOf(false) }
-    var mode by remember { mutableStateOf("fixed") }
-    var estimateMin by remember { mutableStateOf("") }
-    var estimateMax by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("month") }
-    var intervalText by remember { mutableStateOf("1") }
-    var dayText by remember { mutableStateOf("") }
-    var firstDate by remember { mutableStateOf(LocalDate.now().toString()) }
-    var endDate by remember { mutableStateOf("") }
+    var mode by remember(initial?.id) { mutableStateOf(initial?.amountMode ?: "fixed") }
+    var estimateMin by remember(initial?.id) { mutableStateOf(initial?.estimateMin?.toString().orEmpty()) }
+    var estimateMax by remember(initial?.id) { mutableStateOf(initial?.estimateMax?.toString().orEmpty()) }
+    var unit by remember(initial?.id) { mutableStateOf(initial?.recurrenceUnit ?: "month") }
+    var intervalText by remember(initial?.id) {
+        mutableStateOf(initial?.recurrenceInterval?.toString() ?: "1")
+    }
+    var dayText by remember(initial?.id) { mutableStateOf(initial?.day?.toString().orEmpty()) }
+    var firstDate by remember(initial?.id) {
+        mutableStateOf(initial?.firstExpectedDateIso ?: LocalDate.now().toString())
+    }
+    var endDate by remember(initial?.id) { mutableStateOf(initial?.endDateIso.orEmpty()) }
     fun parseMoney(raw: String) = raw.replace(',', '.').toDoubleOrNull()
     fun validMoney(value: Double?) = value != null && value.isFinite() && value > 0.0 &&
         abs(value * 100.0 - kotlin.math.round(value * 100.0)) < 0.000001
@@ -344,7 +367,7 @@ private fun CanonicalRecurringCreateDialog(
         validDate(endDate) && (firstDate.isNotBlank() || (unit == "month" && interval == 1))
     AlertDialog(
         onDismissRequest = { if (!mutationBlocked) onDismiss() },
-        title = { Text("Νέο πάγιο / συνδρομή") },
+        title = { Text(if (initial == null) "Νέο πάγιο / συνδρομή" else "Επεξεργασία παγίου") },
         text = {
             Column(
                 modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
@@ -418,7 +441,7 @@ private fun CanonicalRecurringCreateDialog(
             TextButton(enabled = valid && !mutationBlocked,
                 modifier = Modifier.testTag("recurring_create_save"),
                 onClick = {
-                    if (valid && amount != null && interval != null) onCreate(
+                    if (valid && amount != null && interval != null) onSave(
                         RecurringCreateRequest(
                             name = name.trim(), amount = amount, accountId = accountId,
                             category = category.trim(), amountMode = mode,
@@ -430,7 +453,7 @@ private fun CanonicalRecurringCreateDialog(
                         ),
                     )
                 },
-            ) { Text("Αποθήκευση παγίου") }
+            ) { Text(if (initial == null) "Αποθήκευση παγίου" else "Αποθήκευση αλλαγών") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss, enabled = !mutationBlocked) { Text("Ακύρωση") }

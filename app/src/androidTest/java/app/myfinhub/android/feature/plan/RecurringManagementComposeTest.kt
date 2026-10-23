@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.plan
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -47,6 +48,34 @@ class RecurringManagementComposeTest {
             assertEquals(60.0,calls.single().estimateMin!!,0.001)
             assertEquals(100.0,calls.single().estimateMax!!,0.001)
             assertEquals("cash",calls.single().accountId)
+        }
+    }
+
+    @Test fun existingRecurringEditorEmitsIdentityScopedUpdateAndPreservesCadence() {
+        val edits=mutableListOf<Pair<String,RecurringCreateRequest>>()
+        val existing=state.copy(recurringManageItems=listOf(
+            RecurringManageItem("energy","Ρεύμα",80.0,"paused",
+                category="Πάγια",accountId="cash",amountMode="variable",
+                estimateMin=60.0,estimateMax=100.0,
+                recurrenceUnit="year",recurrenceInterval=2,
+                firstExpectedDateIso="2026-11-23"),
+        ),scheduledAccounts=listOf(ScheduledAccountOption("cash","Μετρητά")))
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(existing,onBack={},
+                onStatusChanged={_,_->},onEdit={ id,request -> edits+=id to request })
+        } }
+        rule.onNodeWithTag("recurring_edit_energy").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_create_name").performScrollTo()
+            .performTextReplacement("Ρεύμα και θέρμανση")
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals(1,edits.size)
+            assertEquals("energy",edits.single().first)
+            assertEquals("Ρεύμα και θέρμανση",edits.single().second.name)
+            assertEquals("variable",edits.single().second.amountMode)
+            assertEquals("year",edits.single().second.recurrenceUnit)
+            assertEquals(2,edits.single().second.recurrenceInterval)
+            assertEquals(80.0,edits.single().second.amount,0.001)
         }
     }
 

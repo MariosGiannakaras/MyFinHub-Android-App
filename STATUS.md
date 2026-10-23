@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 #315 actual recurring payment history passed all four immutable-head gates on e154534aca46f0003727690060f7ff80f23f991b and squash merged develop 8d70c737008b5140cf705205e1bf8a3908f3c5c3. Draft #316 adds native user-approved create recurring with Web cadence/fixed-or-variable bounds validation, canonical recurringCustom mutation, offline/revision replay and Compose/JVM regressions. Exact-head gates and physical S24 owner signoff pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 #316 Web-validated native recurring creation and durable offline replay passed exact-head 4/4 gates at 3c8786759adf7c7a37024746cad1dbcfa58dd089, squash merged develop 4b9b7b31bc13034ab3e51d16d5b6c44b437b57a3. Draft #317 adds Web seeded/override/custom metadata editing preserving lifecycle/service fields with expected-row optimistic conflict gate, replay and native Compose editor; CI and physical S24 signoff pending.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.1 draft #316 native create recurring across fixed/variable amount bounds, noncredit payer, cadence/year anchor and date checks, independent ledger history, duplicate IDs, durable offline queue/replay and accessible Compose form. Require four exact final-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator. Correct within PR before squash merge; physical owner S24 approval #149 separate. Web parity 1/6 implementations and 11/24 subtasks; no signed release, Web/backend/schema, production finance writes, SMS import or permanent card deletion.
+1. Validate W4.1 draft #317 seeded full override vs custom in-place editing, no ledger events, preserved logo/source/status/unrelated data, duplicate-ID safety, per-row expected-value offline/revision conflict protection and existing recurring Compose editor. Require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshots and hosted S24 emulator before merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner approval #149 separate. No Web/backend/schema edits, production finance writes, signed release, SMS import or permanent card deletion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #316, branch android/w4-1-create-recurring-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. #315 actual linked expense recurring payment history passed 4/4 exact head and squash merged develop 8d70c737008b5140cf705205e1bf8a3908f3c5c3. Draft #316 introduces user-approved recurring creation via Web-validated amount/cadence metadata with canonical offline replay, no synthetic payment events; JVM and hosted S24 Compose tests staged. CI and physical owner acceptance pending.
+Issue #155, PR #317, branch android/w4-1-edit-recurring-20261023
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. PR #316 recurring creation passed four exact-head gates and squash merged develop 4b9b7b31bc13034ab3e51d16d5b6c44b437b57a3. Draft #317 adds safeguarded edit of seeded/overridden/custom recurring finance metadata via unique identity/expected-row replay, preserving logo/status/unknown fields and no payment event writes. Kotlin + hosted S24 Compose goldens staged; gates and physical acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft #316 native create recurring across fixed/variable amount bounds, noncredit payer, cadence/year anchor and date checks, independent ledger history, duplicate IDs, durable offline queue/replay and accessible Compose form. Require four exact final-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator. Correct within PR before squash merge; physical owner S24 approval #149 separate. Web parity 1/6 implementations and 11/24 subtasks; no signed release, Web/backend/schema, production finance writes, SMS import or permanent card deletion.
+Next Validate W4.1 draft #317 seeded full override vs custom in-place editing, no ledger events, preserved logo/source/status/unrelated data, duplicate-ID safety, per-row expected-value offline/revision conflict protection and existing recurring Compose editor. Require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshots and hosted S24 emulator before merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner approval #149 separate. No Web/backend/schema edits, production finance writes, signed release, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
