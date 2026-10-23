@@ -14,6 +14,7 @@ import app.myfinhub.android.core.data.EditCanonicalCardProfile
 import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
 import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
 import app.myfinhub.android.core.data.DeleteCanonicalCustomCashAccount
+import app.myfinhub.android.core.data.ReorderCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
 import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
@@ -1010,6 +1011,27 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Web taxonomy reorder changes labels' display order, not stable identities or events. */
+    fun reorderCategoryTaxonomy(
+        kind: String, category: String, subcategory: String?, direction: Int,
+    ) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || direction !in setOf(-1, 1) ||
+            category.isBlank()) return
+        val key = if (kind == "expense") "expenseCategoryTree" else "incomeCategoryTree"
+        val tree = ready.projection.document.settingsObject().array(key)
+        if (tree.isEmpty()) return
+        applyMutation(ReorderCanonicalCategoryTaxonomy(
+            kind = kind,
+            category = category,
+            subcategory = subcategory,
+            direction = direction,
+            expectedTree = JsonArray(tree),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Safe owner-selected defaults cannot point to reserves or term deposits. */
     fun setDefaultManagedAccount(role: String, accountId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1856,6 +1878,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
                 PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> "Διαχείριση λογαριασμού"
                 PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> "Διαγραφή αχρησιμοποίητων μετρητών"
+                PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> "Σειρά κατηγοριών"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

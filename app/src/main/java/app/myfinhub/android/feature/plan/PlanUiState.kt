@@ -221,6 +221,8 @@ data class PlanUiState(
     val subcategoryBudgets: List<CategoryBudget> = emptyList(),
     val budgetCategories: List<String> = emptyList(),
     val ruleSubcategories: Map<String, List<String>> = emptyMap(),
+    val expenseTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
+    val incomeTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
     val rules: List<PlanningRule> = emptyList(),
     val counterpartyDirectory: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),

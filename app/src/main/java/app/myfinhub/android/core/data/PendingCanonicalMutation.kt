@@ -34,6 +34,7 @@ enum class PendingMutationKind {
     UPSERT_MANAGED_ACCOUNT,
     DELETE_UNUSED_CASH_ACCOUNT,
     SET_DEFAULT_ACCOUNT,
+    REORDER_CATEGORY_TAXONOMY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -279,6 +280,15 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> ReorderCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            direction = payload.number("direction")?.toInt() ?: 0,
+            expectedTree = payload["expectedTree"] as? JsonArray
+                ?: throw IllegalArgumentException("Missing category tree"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.SET_DEFAULT_ACCOUNT -> SetCanonicalDefaultAccount(
             role = payload.string("role").orEmpty(),
             accountId = payload.string("accountId").orEmpty(),
@@ -493,6 +503,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
             runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.REORDER_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as ReorderCanonicalCategoryTaxonomy).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.SET_DEFAULT_ACCOUNT ->
             runCatching { (asMutation() as SetCanonicalDefaultAccount).satisfiedBy(document) }
@@ -787,6 +800,18 @@ data class PendingCanonicalMutationIntent(
                     mutation.expected?.let { put("expected", it) }
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }), syncState = syncState,
+            )
+            is ReorderCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.REORDER_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("direction", JsonPrimitive(mutation.direction))
+                    put("expectedTree", mutation.expectedTree)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
             )
             is SetCanonicalDefaultAccount -> PendingCanonicalMutationIntent(
                 intentId = intentId, kind = PendingMutationKind.SET_DEFAULT_ACCOUNT,

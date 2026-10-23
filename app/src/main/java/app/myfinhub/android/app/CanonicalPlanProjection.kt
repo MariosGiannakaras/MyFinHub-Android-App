@@ -15,6 +15,7 @@ import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
+import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
@@ -283,6 +284,8 @@ internal fun projectCanonicalPlanState(
                 scopes = entry.scopes,
             )
         },
+        expenseTaxonomy = document.canonicalCategoryTaxonomy("expense"),
+        incomeTaxonomy = document.canonicalCategoryTaxonomy("income"),
         budgetCategories = allowedBudgetCategories,
         ruleSubcategories = ruleSubcategories,
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
