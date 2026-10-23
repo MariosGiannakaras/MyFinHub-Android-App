@@ -10,7 +10,34 @@ import java.util.Locale
  * familiar category labels receive a curated local glyph and unknown labels safely fall back to
  * the transaction-kind icon supplied by the caller.
  */
-fun myFinHubCategoryIcon(category: String?, fallback: ImageVector): ImageVector {
+
+/** Local-vector counterparts to a bounded set of Web semantic glyph keys.
+ * Unknown Web pack-specific SVG/catalog keys deliberately fall back to taxonomy inference.
+ */
+fun myFinHubSemanticCategoryIcon(key: String?): ImageVector? = when (key) {
+    "coffee", "dining" -> MyFinHubIcons.Dining
+    "groceries", "shopping" -> MyFinHubIcons.Shopping
+    "fuel", "car", "travel" -> MyFinHubIcons.Transport
+    "home" -> MyFinHubIcons.Home
+    "electricity", "subscription" -> MyFinHubIcons.Bills
+    "health" -> MyFinHubIcons.Health
+    "entertainment" -> MyFinHubIcons.Entertainment
+    "cash" -> MyFinHubIcons.Money
+    "saving" -> MyFinHubIcons.Savings
+    "salary" -> MyFinHubIcons.Work
+    "card" -> MyFinHubIcons.Card
+    "transfer" -> MyFinHubIcons.Transfer
+    "loan" -> MyFinHubIcons.Account
+    "other" -> MyFinHubIcons.All
+    else -> null
+}
+
+fun myFinHubCategoryIcon(
+    category: String?,
+    fallback: ImageVector,
+    semanticOverride: String? = null,
+): ImageVector {
+    myFinHubSemanticCategoryIcon(semanticOverride)?.let { return it }
     val key = category.orEmpty().trim().lowercase(Locale.ROOT)
     if (key.isBlank()) return fallback
 

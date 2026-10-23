@@ -20,6 +20,9 @@ import app.myfinhub.android.core.data.RenameCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.MoveCanonicalSubcategoryTaxonomy
 import app.myfinhub.android.core.data.RetireCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.SetCanonicalCategoryIconColor
+import app.myfinhub.android.core.data.SetCanonicalCategoryIconPreference
+import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
+import app.myfinhub.android.core.data.canonicalNativeIconsForPack
 import app.myfinhub.android.core.data.categoryRetirementBlockers
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
@@ -1029,6 +1032,37 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             .singleOrNull() ?: return
         applyMutation(DeleteCanonicalCustomCashAccount(
             accountId = accountId, expected = expected, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web icon-family selection stored in canonical settings with full-settings CAS. */
+    fun setCategoryIconPack(pack: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            pack !in CANONICAL_CATEGORY_ICON_PACKS) return
+        val settings = ready.projection.document.settingsObject()
+        if (settings.string("categoryIconPack") == pack) return
+        applyMutation(SetCanonicalCategoryIconPreference(
+            pack = pack, kind = null, category = null, subcategory = null,
+            semanticKey = null, expectedSettings = settings,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** A native local glyph selection is written to Web's per-pack preference contract. */
+    fun setCategoryIconGlyph(kind: String, category: String, subcategory: String?, glyph: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val settings = ready.projection.document.settingsObject()
+        val pack = settings.string("categoryIconPack")?.takeIf {
+            it in CANONICAL_CATEGORY_ICON_PACKS
+        } ?: "lucide"
+        if (glyph != null && glyph !in canonicalNativeIconsForPack(pack)) return
+        applyMutation(SetCanonicalCategoryIconPreference(
+            pack = pack, kind = kind, category = category, subcategory = subcategory,
+            semanticKey = glyph, expectedSettings = settings,
+            nowIso = Instant.now().toString(),
         ))
     }
 
@@ -2097,6 +2131,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> "Μεταφορά υποκατηγορίας"
                 PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> "Απόσυρση κατηγορίας"
                 PendingMutationKind.SET_CATEGORY_ICON_COLOR -> "Χρώμα εικονιδίου"
+                PendingMutationKind.SET_CATEGORY_ICON_PREFERENCE -> "Επιλογή εικονιδίου"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

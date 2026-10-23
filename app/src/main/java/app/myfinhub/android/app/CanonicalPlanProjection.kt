@@ -17,6 +17,8 @@ import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalBudgetProjectedCommitments
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.canonicalExplicitNativeCategoryIcon
+import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
 import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
@@ -75,6 +77,44 @@ internal fun projectCanonicalPlanState(
         ?.string("id")?.takeIf(String::isNotBlank)
     val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
     // The Web category picker uses the owner's canonical expense taxonomy, not fixed Android labels.
+    val iconSettings = document.settingsObject()
+    val nativeIconPack = iconSettings.string("categoryIconPack")
+        ?.takeIf { it in CANONICAL_CATEGORY_ICON_PACKS } ?: "lucide"
+    fun iconTextMap(field: String): Map<String, String> =
+        iconSettings.obj(field).mapNotNull { (key, value) ->
+            (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+        }.toMap()
+    fun iconSelections(field: String): Map<String, Map<String, String>> =
+        iconSettings.obj(field).mapNotNull { (key, value) ->
+            val entry = value as? JsonObject ?: return@mapNotNull null
+            key to entry.mapNotNull { (pack, raw) ->
+                (raw as? JsonPrimitive)?.contentOrNull?.let { pack to it }
+            }.toMap()
+        }.toMap()
+    val legacyWithoutPack = iconSettings.string("categoryIconPack") == null
+    val categoryIconLegacy = iconTextMap("categoryIcons")
+    val subcategoryIconLegacy = iconTextMap("subcategoryIcons")
+    val categoryIconSelections = iconSelections("categoryIconPackSelections")
+    val subcategoryIconSelections = iconSelections("subcategoryIconPackSelections")
+    val nativeGlyphOverrides = buildMap<String, String> {
+        for (kind in listOf("expense", "income")) {
+            val treeField = if (kind == "expense") "expenseCategoryTree" else "incomeCategoryTree"
+            iconSettings.array(treeField).filterIsInstance<JsonObject>().forEach { row ->
+                val name = row.string("name") ?: return@forEach
+                canonicalExplicitNativeCategoryIcon(
+                    nativeIconPack, kind, name, null,
+                    categoryIconLegacy, categoryIconSelections, legacyWithoutPack,
+                )?.let { put("$kind:$name", it) }
+                row.array("subcategories").forEach { raw ->
+                    val child = (raw as? JsonPrimitive)?.contentOrNull ?: return@forEach
+                    canonicalExplicitNativeCategoryIcon(
+                        nativeIconPack, kind, name, child,
+                        subcategoryIconLegacy, subcategoryIconSelections, legacyWithoutPack,
+                    )?.let { put("$kind:$name:$child", it) }
+                }
+            }
+        }
+    }
     val expenseCategoryRows = document.settingsObject().array("expenseCategoryTree")
         .mapNotNull { it as? JsonObject }
     val expenseCategoryTree = expenseCategoryRows.mapNotNull { it.string("name")?.trim() }
@@ -292,6 +332,8 @@ internal fun projectCanonicalPlanState(
         },
         expenseTaxonomy = document.canonicalCategoryTaxonomy("expense"),
         incomeTaxonomy = document.canonicalCategoryTaxonomy("income"),
+        categoryIconPack = nativeIconPack,
+        categoryGlyphOverrides = nativeGlyphOverrides,
         categoryIconColors = document.settingsObject().obj("categoryIconColors")
             .mapNotNull { (key, value) ->
                 (value as? JsonPrimitive)?.contentOrNull?.let { key to it }

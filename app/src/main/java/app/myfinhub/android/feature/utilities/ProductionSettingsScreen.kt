@@ -66,6 +66,10 @@ fun ProductionSettingsScreen(
     onMoveSubcategoryTaxonomy: ((String, String, String, String) -> Unit)? = null,
     onRetireCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
     onSetCategoryIconColor: ((String, String, String?, String?) -> Unit)? = null,
+    onSetCategoryIconPack: ((String) -> Unit)? = null,
+    onSetCategoryIconGlyph: ((String, String, String?, String?) -> Unit)? = null,
+    categoryIconPack: String = "lucide",
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
     categoryIconColors: Map<String, String> = emptyMap(),
     subcategoryIconColors: Map<String, String> = emptyMap(),
     deletableCustomCashAccountIds: Set<String> = emptySet(),
@@ -262,6 +266,17 @@ fun ProductionSettingsScreen(
                     onSetColor = onSetCategoryIconColor,
                     categoryColors = categoryIconColors,
                     subcategoryColors = subcategoryIconColors,
+                )
+            }
+            if (onSetCategoryIconPack != null && onSetCategoryIconGlyph != null) {
+                CanonicalCategoryGlyphPreferencePanel(
+                    expense = expenseTaxonomy,
+                    income = incomeTaxonomy,
+                    activePack = categoryIconPack,
+                    overrides = categoryGlyphOverrides,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSetPack = onSetCategoryIconPack,
+                    onSetGlyph = onSetCategoryIconGlyph,
                 )
             }
             if (onSaveCounterparty != null) {

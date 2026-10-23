@@ -150,6 +150,7 @@ fun ActivityLedgerScreen(
     onBack: (() -> Unit)? = null,
     categoryIconColors: Map<String, String> = emptyMap(),
     subcategoryIconColors: Map<String, String> = emptyMap(),
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -366,6 +367,7 @@ fun ActivityLedgerScreen(
                                 ambiguousIdentity = item.id in state.ambiguousIds,
                                 categoryIconColors = categoryIconColors,
                                 subcategoryIconColors = subcategoryIconColors,
+                                categoryGlyphOverrides = categoryGlyphOverrides,
                                 onClick = {
                                     if (item.id !in state.ambiguousIds) onOpenDetail(item.id)
                                 },
@@ -593,6 +595,7 @@ private fun ActivityFlatLedgerRow(
     ambiguousIdentity: Boolean,
     categoryIconColors: Map<String, String>,
     subcategoryIconColors: Map<String, String>,
+    categoryGlyphOverrides: Map<String, String>,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -637,7 +640,17 @@ private fun ActivityFlatLedgerRow(
         ?.let { Color(("FF" + it.drop(1)).toLong(16).toInt()) }
 
     MyFinHubFinanceRow(
-        icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
+        icon = myFinHubCategoryIcon(
+            item.category, item.kind.s3Icon(),
+            categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income" else "expense") +
+                    ":" + item.category.orEmpty() +
+                    (item.subcategory?.takeIf(String::isNotBlank)?.let { ":" + it } ?: "")
+            ] ?: categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income" else "expense") +
+                    ":" + item.category.orEmpty()
+            ],
+        ),
         categoryAccent = selectedColor,
         iconDescription = null,
         title = item.webLedgerDisplayTitle(),

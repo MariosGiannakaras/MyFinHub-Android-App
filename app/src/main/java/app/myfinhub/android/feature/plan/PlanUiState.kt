@@ -230,6 +230,9 @@ data class PlanUiState(
     val expenseTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
     val incomeTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
     val categoryIconColors: Map<String, String> = emptyMap(),
+    val categoryIconPack: String = "lucide",
+    /** Selected per-pack semantic keys for the currently active pack and valid taxonomy. */
+    val categoryGlyphOverrides: Map<String, String> = emptyMap(),
     val subcategoryIconColors: Map<String, String> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),
     /** Source events only; never seeded legacy transactions or synthetic preview fixtures. */
