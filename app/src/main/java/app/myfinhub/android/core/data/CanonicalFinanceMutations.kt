@@ -386,6 +386,9 @@ data class UpsertOverallBudget(
     val alertThreshold: Int,
     val budgetId: String,
     val nowIso: String,
+    /** Opt-in safe expected-row guard for new writes; old pending intents remain compatible. */
+    val expected: JsonObject? = null,
+    val enforceExpected: Boolean = false,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αποθήκευση budget"
 
@@ -393,21 +396,31 @@ data class UpsertOverallBudget(
         val cents = moneyToCents(amount)
         require(cents > 0) { "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν." }
         require(alertThreshold in 1..100) { "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100% για συμβατότητα παλαιών εκκρεμών αλλαγών." }
+        require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false)) {
+            "Μη έγκυρος μήνας προϋπολογισμού."
+        }
         val budgets = document.state.array("budgets")
+        val candidates = budgets.mapNotNull { it as? JsonObject }
+            .filter { it.string("month") == month && it.string("scope") == "overall" }
+        if (enforceExpected) {
+            require(candidates.size <= 1 && candidates.singleOrNull() == expected) {
+                "Ο προϋπολογισμός άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+            }
+        }
         val index = budgets.indexOfFirst { raw ->
             val item = raw as? JsonObject
             item?.string("month") == month && item.string("scope") == "overall"
         }
         val existing = budgets.getOrNull(index) as? JsonObject
-        val item = JsonObject(buildMap {
-            put("id", JsonPrimitive(existing?.string("id") ?: budgetId))
-            put("month", JsonPrimitive(month))
-            put("scope", JsonPrimitive("overall"))
-            put("amount", JsonPrimitive(centsToMoney(cents)))
-            put("alertThreshold", JsonPrimitive(alertThreshold.coerceIn(50, 99) / 100.0))
-            put("createdAt", JsonPrimitive(existing?.string("createdAt") ?: nowIso))
-            put("updatedAt", JsonPrimitive(nowIso))
-        })
+        val item = JsonObject((existing ?: JsonObject(emptyMap())) + mapOf(
+            "id" to JsonPrimitive(existing?.string("id") ?: budgetId),
+            "month" to JsonPrimitive(month),
+            "scope" to JsonPrimitive("overall"),
+            "amount" to JsonPrimitive(centsToMoney(cents)),
+            "alertThreshold" to JsonPrimitive(alertThreshold.coerceIn(50, 99) / 100.0),
+            "createdAt" to JsonPrimitive(existing?.string("createdAt") ?: nowIso),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
         val updated = budgets.toMutableList()
         if (index >= 0) updated[index] = item else updated += item
         return document.withMutableState(document.state.updated("budgets", JsonArray(updated)), nowIso)

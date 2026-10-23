@@ -216,6 +216,8 @@ data class PendingCanonicalMutationIntent(
             alertThreshold = payload.number("alertThreshold")?.toInt() ?: 0,
             budgetId = payload.string("budgetId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
+            enforceExpected = payload.string("enforceExpected") == "true",
         )
         PendingMutationKind.DEACTIVATE_CARD -> DeactivateCanonicalCard(
             cardId = payload.string("cardId").orEmpty(),
@@ -585,7 +587,12 @@ data class PendingCanonicalMutationIntent(
                         "alertThreshold" to JsonPrimitive(mutation.alertThreshold),
                         "budgetId" to JsonPrimitive(mutation.budgetId),
                         "nowIso" to JsonPrimitive(mutation.nowIso),
-                    ),
+                    ) + buildMap {
+                        if (mutation.enforceExpected) {
+                            put("enforceExpected", JsonPrimitive("true"))
+                            mutation.expected?.let { put("expected", it) }
+                        }
+                    },
                 ),
                 syncState = syncState,
             )

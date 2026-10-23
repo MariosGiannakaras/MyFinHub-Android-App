@@ -8,6 +8,11 @@ import kotlinx.serialization.json.JsonObject
 
 
 /** Web budgets.ts budgetStableId: encodeURIComponent(category.trim().toLocaleLowerCase('el-GR')). */
+fun webOverallBudgetStableId(month: String): String {
+    require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false))
+    return "budget:$month:overall"
+}
+
 fun webCategoryBudgetStableId(month: String, category: String): String {
     require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false))
     val normalized = category.trim().lowercase(Locale.forLanguageTag("el-GR"))

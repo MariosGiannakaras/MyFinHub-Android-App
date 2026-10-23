@@ -30,6 +30,7 @@ import app.myfinhub.android.core.data.UpsertCategoryBudget
 import app.myfinhub.android.core.data.DeleteCategoryBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
 import app.myfinhub.android.core.data.webCategoryBudgetStableId
+import app.myfinhub.android.core.data.webOverallBudgetStableId
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.array
@@ -790,13 +791,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val threshold = alertThresholdText.toIntOrNull()
         if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
 
+        val month = YearMonth.now().toString()
+        val rows = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("month") == month && it.string("scope") == "overall" }
+        if (rows.size > 1) return
         applyMutation(
             UpsertOverallBudget(
-                month = YearMonth.now().toString(),
+                month = month,
                 amount = amount,
                 alertThreshold = threshold,
-                budgetId = "budget-android-${UUID.randomUUID()}",
+                budgetId = webOverallBudgetStableId(month),
                 nowIso = Instant.now().toString(),
+                expected = rows.singleOrNull(),
+                enforceExpected = true,
             ),
         )
     }

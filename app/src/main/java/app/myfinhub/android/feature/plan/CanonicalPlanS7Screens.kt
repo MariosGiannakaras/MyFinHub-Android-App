@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -1265,6 +1267,7 @@ fun CanonicalBudget2026Screen(
         CanonicalCategoryBudgetEditor(
             initial = editingCategoryBudget,
             existing = state.categoryBudgets,
+            categories = state.budgetCategories,
             mutationBlocked = mutationInFlight || mutationBlocked || saveRequested,
             onDismiss = { creatingCategoryBudget = false; editingCategoryBudget = null },
             onSave = { request ->
@@ -1280,11 +1283,13 @@ fun CanonicalBudget2026Screen(
 private fun CanonicalCategoryBudgetEditor(
     initial: CategoryBudget?,
     existing: List<CategoryBudget>,
+    categories: List<String>,
     mutationBlocked: Boolean,
     onDismiss: () -> Unit,
     onSave: (CategoryBudgetEditRequest) -> Unit,
 ) {
     var category by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
+    var categoryMenuOpen by remember { mutableStateOf(false) }
     var amount by remember(initial?.id) { mutableStateOf(initial?.monthlyLimitText.orEmpty()) }
     var threshold by remember(initial?.id) {
         mutableStateOf(initial?.alertThresholdText ?: "80")
@@ -1293,6 +1298,7 @@ private fun CanonicalCategoryBudgetEditor(
     val centsValid = money != null && money.isFinite() && money > 0.0 &&
         abs(money * 100.0 - kotlin.math.round(money * 100.0)) < 0.000001
     val valid = category.trim().isNotEmpty() && centsValid &&
+        (initial != null || categories.isEmpty() || category.trim() in categories) &&
         (threshold.toIntOrNull()?.let { it in 50..99 } == true) &&
         existing.none { it.name.trim() == category.trim() && it.id != initial?.id }
     AlertDialog(
@@ -1304,10 +1310,29 @@ private fun CanonicalCategoryBudgetEditor(
                     style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(
                     value = category, onValueChange = { category = it },
-                    enabled = !mutationBlocked && initial == null,
+                    enabled = !mutationBlocked && initial == null && categories.isEmpty(),
                     label = { Text("Κατηγορία") }, singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("s7_category_editor_name"),
                 )
+                if (initial == null && categories.isNotEmpty()) {
+                    TextButton(
+                        onClick = { categoryMenuOpen = true },
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_category_editor_select"),
+                    ) { Text(if (category.isBlank()) "Επίλεξε κατηγορία εξόδων" else "Αλλαγή: $category") }
+                    DropdownMenu(
+                        expanded = categoryMenuOpen,
+                        onDismissRequest = { categoryMenuOpen = false },
+                    ) {
+                        categories.forEach { item ->
+                            DropdownMenuItem(
+                                text = { Text(item) },
+                                onClick = { category = item; categoryMenuOpen = false },
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = amount, onValueChange = { amount = it },
                     enabled = !mutationBlocked,
