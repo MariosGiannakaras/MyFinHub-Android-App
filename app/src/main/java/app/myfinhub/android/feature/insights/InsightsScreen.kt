@@ -160,6 +160,7 @@ fun InsightsScreen(
                     scope = scope,
                     onOpenCategoryActivity = onOpenCategoryActivity,
                     amountsVisible = amountsVisible,
+                    categoryGlyphOverrides = categoryGlyphOverrides,
                 )
             }
             if (scope.counterparties.isNotEmpty()) {
@@ -669,6 +670,7 @@ private fun CategoryCompositionCard(
     scope: InsightPeriodScope,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit,
     amountsVisible: Boolean,
+    categoryGlyphOverrides: Map<String, String>,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_categories")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {

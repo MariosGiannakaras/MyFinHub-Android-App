@@ -1118,7 +1118,7 @@
     ],
     "next_action": "Continue remaining safe Android-only W2.4/W3/W4/W5 parity code on android/web-parity-code-first-bulk-20261023, consolidating commits without per-feature PR/CI. Latest source-only batch extends Web category icon preferences to Activity/Account/Insights/Plan. Do not claim full five-pack Web SVG catalogs in native. After source completion, mass Kotlin/unit/security/Compose screenshot/hosted S24 emulator exact-head gates, fix failures, then merge. Last develop #319, counts 1/6 · 11/24, physical S24 #149 separate; no Web/backend/schema/production data writes, signing, SMS or irreversible card deletion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 319,
+    "pr": 320,
     "current_subtask": "W5.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

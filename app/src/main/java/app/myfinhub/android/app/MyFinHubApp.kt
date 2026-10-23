@@ -64,6 +64,7 @@ import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
@@ -109,6 +110,7 @@ fun MyFinHubApp(
             moneyState = moneyState,
             onDeleteCard = moneyViewModel::deleteCard,
             planState = planState,
+            onPlanAction = planViewModel::onAction,
             insightsState = insightsState,
         )
     }
@@ -166,6 +168,7 @@ internal fun MyFinHubAppContent(
     onSaveCreditBillingSettings: ((app.myfinhub.android.feature.money.CreditBillingSettingsRequest) -> Unit)? = null,
     onAddCreditRateVersion: ((app.myfinhub.android.feature.money.CreditRateVersionRequest) -> Unit)? = null,
     planState: PlanUiState = PlanUiState(),
+    onPlanAction: (PlanAction) -> Unit = {},
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSaveCategoryBudget: (app.myfinhub.android.feature.plan.CategoryBudgetEditRequest) -> Unit = {},
     onDeleteCategoryBudget: (String) -> Unit = {},

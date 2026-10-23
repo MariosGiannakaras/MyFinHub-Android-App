@@ -615,6 +615,7 @@ fun CanonicalPlanForecastScreen(
                             item = item, amountsVisible = amountsVisible,
                             onRecordItem = onRecordItem, recordEnabled = uniqueSource,
                             tagSuffix = if (uniqueSource) "" else "_duplicate_$index",
+                            categoryGlyphOverrides = state.categoryGlyphOverrides,
                         )
                     }
                 }
@@ -849,6 +850,7 @@ private fun ForecastS7ItemCard(
     item: PlannedItem, amountsVisible: Boolean,
     onRecordItem: (PlannedItem) -> Unit,
     recordEnabled: Boolean = true, tagSuffix: String = "",
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val tone = planS7Tone(item.flow)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -861,7 +863,7 @@ private fun ForecastS7ItemCard(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        MyFinHubIconBadge(planS7Icon(item, state.categoryGlyphOverrides), tone, null)
+                        MyFinHubIconBadge(planS7Icon(item, categoryGlyphOverrides), tone, null)
                         PlanS7Identity(item, Modifier.weight(1f))
                     }
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone, modifier = Modifier.align(Alignment.End))
@@ -872,7 +874,7 @@ private fun ForecastS7ItemCard(
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MyFinHubIconBadge(planS7Icon(item, state.categoryGlyphOverrides), tone, null)
+                    MyFinHubIconBadge(planS7Icon(item, categoryGlyphOverrides), tone, null)
                     PlanS7Identity(item, Modifier.weight(1f))
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone)
                 }

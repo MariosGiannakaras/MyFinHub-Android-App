@@ -50,8 +50,8 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Develop last merged #319. Code-first unmerged source now preserves per-Web-pack category glyph choices, Settings edit and offline CAS, with native semantic icon application on Activity, Account detail, Insights categories and Plan/Forecast. Remaining full SVG asset parity and other W2–W5 gaps, mass compilation/visual checks and physical owner device acceptance are pending.
+Issue #155, PR #320, branch android/web-parity-code-first-bulk-20261023
+Current W5.4: Web parity 1/6 implementations · 11/24 subtasks. Develop last merged #319. Code-first unmerged source now preserves per-Web-pack category glyph choices, Settings edit and offline CAS, with native semantic icon application on Activity, Account detail, Insights categories and Plan/Forecast. Remaining full SVG asset parity and other W2–W5 gaps, mass compilation/visual checks and physical owner device acceptance are pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Continue remaining safe Android-only W2.4/W3/W4/W5 parity code on android/web-parity-code-first-bulk-20261023, consolidating commits without per-feature PR/CI. Latest source-only batch extends Web category icon preferences to Activity/Account/Insights/Plan. Do not claim full five-pack Web SVG catalogs in native. After source completion, mass Kotlin/unit/security/Compose screenshot/hosted S24 emulator exact-head gates, fix failures, then merge. Last develop #319, counts 1/6 · 11/24, physical S24 #149 separate; no Web/backend/schema/production data writes, signing, SMS or irreversible card deletion.
 

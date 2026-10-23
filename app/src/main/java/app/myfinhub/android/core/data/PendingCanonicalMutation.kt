@@ -1102,7 +1102,7 @@ data class PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.UPSERT_OVERALL_BUDGET,
                 payload = JsonObject(
-                    mapOf(
+                    mapOf<String, kotlinx.serialization.json.JsonElement>(
                         "month" to JsonPrimitive(mutation.month),
                         "amount" to JsonPrimitive(mutation.amount),
                         "alertThreshold" to JsonPrimitive(mutation.alertThreshold),
