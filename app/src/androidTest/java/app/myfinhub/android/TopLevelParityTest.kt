@@ -96,7 +96,9 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithTag("s7_budget_link").performScrollTo().performClick()
         composeRule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_budget_limit").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_budget_root")
+            .performScrollToNode(hasTestTag("s7_budget_limit"))
+        composeRule.onNodeWithTag("s7_budget_limit").assertIsDisplayed()
         composeRule.onNodeWithTag("s7_budget_save").assertIsDisplayed()
     }
 
