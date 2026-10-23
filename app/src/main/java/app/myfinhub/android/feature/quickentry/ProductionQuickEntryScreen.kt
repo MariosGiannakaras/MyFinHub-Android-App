@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -68,6 +69,7 @@ import app.myfinhub.android.designsystem.MyFinHubPrimaryAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSelectorButton
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.core.data.canonicalCounterpartySuggestion
 import java.time.Instant
 import java.time.LocalDate
@@ -109,6 +111,7 @@ fun ProductionQuickEntryScreen(
     onAction: (QuickEntryAction) -> Unit,
     onBack: () -> Unit,
     mutationInFlight: Boolean = false,
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     var noteExpanded by rememberSaveable { mutableStateOf(false) }
     var advancedMenuOpen by remember { mutableStateOf(false) }
@@ -346,6 +349,9 @@ fun ProductionQuickEntryScreen(
                     label = "Κατηγορία",
                     selectedId = state.category,
                     choices = state.activeCategoryOptions.map { it.name to it.name },
+                    choiceIcon = { category ->
+                        quickEntryCategoryIcon(category, null, state.kind == QuickEntryKind.INCOME, categoryGlyphOverrides)
+                    },
                     onSelected = { onAction(QuickEntryAction.CategoryChanged(it)) },
                     searchable = true,
                 )
@@ -355,6 +361,11 @@ fun ProductionQuickEntryScreen(
                         selectedId = state.subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") +
                             state.activeSubcategoryOptions.map { it to it },
+                        choiceIcon = { subcategory ->
+                            if (subcategory.isBlank()) null else quickEntryCategoryIcon(
+                                state.category, subcategory, state.kind == QuickEntryKind.INCOME, categoryGlyphOverrides,
+                            )
+                        },
                         onSelected = { onAction(QuickEntryAction.SubcategoryChanged(it)) },
                     )
                 }
@@ -440,7 +451,9 @@ fun ProductionQuickEntryScreen(
                             .testTag("quick_entry_split_suggest"),
                     )
                 }
-                ProductionSplitEditor(state = state, onAction = onAction)
+                ProductionSplitEditor(
+                    state = state, onAction = onAction, categoryGlyphOverrides = categoryGlyphOverrides,
+                )
             }
 
             if (state.validationMessage != null &&
@@ -519,6 +532,7 @@ private fun CompactChoice(
     onSelected: (String) -> Unit,
     subtitles: Map<String, String> = emptyMap(),
     searchable: Boolean = false,
+    choiceIcon: ((String) -> ImageVector?)? = null,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -529,6 +543,9 @@ private fun CompactChoice(
         onClick = { sheetOpen = true },
         enabled = choices.isNotEmpty(),
     ) {
+        choiceIcon?.invoke(selectedId)?.let { vector ->
+            Icon(imageVector = vector, contentDescription = null, modifier = Modifier.size(20.dp))
+        }
         Text(selectedLabel, modifier = Modifier.weight(1f))
         Text("Αλλαγή", style = MaterialTheme.typography.labelMedium)
     }
@@ -574,6 +591,9 @@ private fun CompactChoice(
                     items(filteredChoices, key = { it.first }) { (id, text) ->
                         ListItem(
                             headlineContent = { Text(text) },
+                            leadingContent = choiceIcon?.invoke(id)?.let { vector ->
+                                { Icon(imageVector = vector, contentDescription = null) }
+                            },
                             supportingContent = subtitles[id]?.let { subtitle ->
                                 { Text(subtitle) }
                             },
@@ -654,6 +674,7 @@ private fun AdvancedKindSheet(
 private fun ProductionSplitEditor(
     state: QuickEntryUiState,
     onAction: (QuickEntryAction) -> Unit,
+    categoryGlyphOverrides: Map<String, String>,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -692,6 +713,9 @@ private fun ProductionSplitEditor(
                     label = "Κατηγορία μέρους ${index + 1}",
                     selectedId = part.category,
                     choices = state.expenseCategories.map { it.name to it.name },
+                    choiceIcon = { category ->
+                        quickEntryCategoryIcon(category, null, false, categoryGlyphOverrides)
+                    },
                     onSelected = {
                         onAction(QuickEntryAction.SplitPartCategoryChanged(part.id, it))
                     },
@@ -705,6 +729,11 @@ private fun ProductionSplitEditor(
                         label = "Υποκατηγορία μέρους ${index + 1}",
                         selectedId = part.subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") + subcategories.map { it to it },
+                        choiceIcon = { subcategory ->
+                            if (subcategory.isBlank()) null else quickEntryCategoryIcon(
+                                part.category, subcategory, false, categoryGlyphOverrides,
+                            )
+                        },
                         onSelected = {
                             onAction(QuickEntryAction.SplitPartSubcategoryChanged(part.id, it))
                         },
@@ -781,6 +810,22 @@ private fun productionDestinationOptions(state: QuickEntryUiState): List<QuickEn
     }.filter { it.id != state.fromAccountId }
     return if (state.kind == QuickEntryKind.SAVING) filtered
         else filtered.ifEmpty { state.accounts.filter { it.id != state.fromAccountId } }
+}
+
+/**
+ * Reuse the selected Web icon preference for Quick Entry, including split part editors.
+ * Unknown external SVG keys safely use Android's bundled category fallback; no URL is loaded.
+ */
+internal fun quickEntryCategoryIcon(
+    category: String,
+    subcategory: String?,
+    isIncome: Boolean,
+    overrides: Map<String, String>,
+): ImageVector {
+    val key = (if (isIncome) "income:" else "expense:") + category
+    val preferred = subcategory?.takeIf(String::isNotBlank)?.let { overrides["$key:$it"] }
+        ?: overrides[key]
+    return myFinHubCategoryIcon(category, MyFinHubIcons.All, preferred)
 }
 
 private fun productionPrimaryAccountLabel(kind: QuickEntryKind): String = when (kind) {
