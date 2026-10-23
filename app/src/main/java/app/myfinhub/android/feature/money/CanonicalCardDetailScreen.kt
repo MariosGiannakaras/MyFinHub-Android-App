@@ -251,6 +251,10 @@ fun CanonicalCardDetailScreen(
                     }
                 }
 
+                CanonicalCreditPayoffSimulator(
+                    card = card,
+                    amountsVisible = amountsVisible,
+                )
                 CanonicalCardStatementHistorySection(
                     card = card,
                     statements = statements,
