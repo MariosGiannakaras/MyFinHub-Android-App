@@ -927,6 +927,7 @@ fun CanonicalBudget2026Screen(
     // Web's budget editor displays the first 24 records, then reveals 24 more
     // on demand. Never silently hide historical category budgets.
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
+    var visibleSubcategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
@@ -1141,13 +1142,22 @@ fun CanonicalBudget2026Screen(
                                     "" else "_duplicate_" + index),
                         ),
                     ) {
-                        val limit = budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        val limit = budget.effectiveLimit
+                            ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
                         val used = budget.spent.coerceAtLeast(0.0)
                         val threshold = (budget.alertThresholdText.toDoubleOrNull() ?: 80.0) / 100.0
                         val ratio = if (limit > 0.0) used / limit else 0.0
                         val remaining = limit - used
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            if (budget.carried > 0.0) {
+                                Text(
+                                    "Μεταφορά από προηγούμενο μήνα: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.carried), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             TextButton(
                                 onClick = { editingCategoryBudget = budget },
                                 enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
@@ -1210,6 +1220,81 @@ fun CanonicalBudget2026Screen(
                         ) {
                             Text("Προβολή περισσότερων · " +
                                 (state.categoryBudgets.size - visibleCategoryBudgetLimit) + " ακόμη")
+                        }
+                    }
+                }
+            }
+
+            if (state.subcategoryBudgets.isNotEmpty()) {
+                item("budget-subcategories-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Όρια ανά υποκατηγορία",
+                        subtitle = "Πραγματικές δαπάνες της επιλεγμένης υποκατηγορίας · χωρίς διπλή χρέωση του γονικού budget",
+                        icon = MyFinHubIcons.Savings,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(
+                    state.subcategoryBudgets.take(visibleSubcategoryBudgetLimit),
+                    key = { index, budget -> "subcategory-budget-" + budget.id + "#" + index },
+                ) { index, budget ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_subcategory_budget_" + index),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            val limit = budget.effectiveLimit
+                                ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
+                            val used = budget.spent.coerceAtLeast(0.0)
+                            val ratio = if (limit > 0.0) used / limit else 0.0
+                            Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                amountVisibilityText(formatPlanS7Euro(used), amountsVisible) + " / " +
+                                    amountVisibilityText(formatPlanS7Euro(limit), amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            LinearProgressIndicator(
+                                progress = { ratio.toFloat().coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                (if (budget.remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
+                                    amountVisibilityText(
+                                        formatPlanS7Euro(abs(budget.remaining)), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (budget.carried > 0.0) {
+                                Text(
+                                    "Μεταφορά υπολοίπου: " +
+                                        amountVisibilityText(
+                                            formatPlanS7Euro(budget.carried), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            Text(
+                                "Η υποκατηγορία εμφανίζεται προς το παρόν για επισκόπηση. " +
+                                    "Δεν δημιουργεί νέα οικονομική κίνηση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+                if (state.subcategoryBudgets.size > visibleSubcategoryBudgetLimit) {
+                    item("budget-subcategories-more") {
+                        TextButton(
+                            onClick = {
+                                visibleSubcategoryBudgetLimit =
+                                    (visibleSubcategoryBudgetLimit + 24)
+                                        .coerceAtMost(state.subcategoryBudgets.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s7_subcategory_budget_more"),
+                        ) {
+                            Text("Προβολή περισσότερων · " +
+                                (state.subcategoryBudgets.size - visibleSubcategoryBudgetLimit) +
+                                " ακόμη")
                         }
                     }
                 }

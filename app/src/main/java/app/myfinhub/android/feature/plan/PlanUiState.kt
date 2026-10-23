@@ -143,6 +143,9 @@ data class CategoryBudget(
     val rawSpent: Double = spent,
     val remaining: Double = 0.0,
     val status: String = "ok",
+    val effectiveLimit: Double? = null,
+    val carried: Double = 0.0,
+    val carryover: Boolean = false,
 )
 
 data class PlanningRule(
@@ -215,6 +218,7 @@ data class PlanUiState(
     val budget: BudgetDraft = BudgetDraft(),
     val overallBudgetId: String? = null,
     val categoryBudgets: List<CategoryBudget> = emptyList(),
+    val subcategoryBudgets: List<CategoryBudget> = emptyList(),
     val budgetCategories: List<String> = emptyList(),
     val ruleSubcategories: Map<String, List<String>> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),

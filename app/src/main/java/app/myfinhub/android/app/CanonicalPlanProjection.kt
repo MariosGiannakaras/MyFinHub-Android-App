@@ -290,12 +290,33 @@ internal fun projectCanonicalPlanState(
                 CategoryBudget(
                     id = row.id,
                     name = row.category.orEmpty(),
-                    monthlyLimitText = row.limit.toPlainPlanMoney(),
+                    monthlyLimitText = row.baseLimit.toPlainPlanMoney(),
                     alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
                     spent = row.used,
                     rawSpent = row.rawUsed,
                     remaining = row.remaining,
                     status = row.status,
+                    effectiveLimit = row.limit,
+                    carried = row.carried,
+                    carryover = row.carryover,
+                )
+            },
+        subcategoryBudgets = budgetProgressRows
+            .filter { it.scope == "subcategory" &&
+                !it.category.isNullOrBlank() && !it.subcategory.isNullOrBlank() }
+            .map { row ->
+                CategoryBudget(
+                    id = row.id,
+                    name = row.category.orEmpty() + " › " + row.subcategory.orEmpty(),
+                    monthlyLimitText = row.baseLimit.toPlainPlanMoney(),
+                    alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
+                    spent = row.used,
+                    rawSpent = row.rawUsed,
+                    remaining = row.remaining,
+                    status = row.status,
+                    effectiveLimit = row.limit,
+                    carried = row.carried,
+                    carryover = row.carryover,
                 )
             },
         budget = BudgetDraft(
