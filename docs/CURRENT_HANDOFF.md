@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 recurring editing PR #317 passed 4/4 exact-head gates at 55985a2ccc079ca27fb129df174a47dcf99fda98 and squash merged develop c2bfd9807a548facc3eb93148b8f9706c94ddd4b. Draft #318 fixes legacy recurring editor safety: no invented date anchor and no silent payer fallback; Compose/JVM regressions staged, CI and physical owner acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 legacy recurring editor safeguards PR #318 passed exact-head 4/4 gates at 497bf1212e6389ba524125bec23e839af285728b and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 adds native W4.3 category budget create/edit via a Web-shaped optimistic canonical mutation, offline/revision replay and S24 Compose/JVM regression tests. Exact-head gates and physical owner Galaxy S24 Ultra acceptance pending.
 
 ## Immediate work
 
-- Validate W4.1 draft #318: legacy monthly recurring edit retains absent firstExpectedDate, and a missing source account requires explicit new payer selection. Require four exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator before squash merge. Web parity stays 1/6 implementations · 11/24 subtasks; physical S24 owner approval #149 separate. No Web/backend/schema changes, production finance writes, signed release, SMS import or permanent card deletion.
+- Validate draft #319 native category budget create/edit: current-month exact category, cent values, 50–99% thresholds, source metadata preservation, duplicate-ID/remote-conflict rejection, pending offline replay, no ledger changes, Compose accessibility. Require exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator before squash merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 acceptance #149 separate. No Web/backend/schema changes, production finance writes, signed release, SMS import or permanent card deletion.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 recurring editi
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #318, branch android/w4-1-legacy-edit-payer-anchor-safety-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. PR #317 recurring editing passed 4/4 immutable-head checks and squash merged develop c2bfd9807a548facc3eb93148b8f9706c94ddd4b. Draft #318 ensures legacy monthly recurring edit retains no schedule anchor where absent and forces explicit replacement of an orphaned payer; no ledger writes, Compose and JVM tests staged. CI and physical acceptance pending.
+Issue #155, PR #319, branch android/w4-3-category-budget-edit-20261023
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. PR #318 recurring editor safeguards passed 4/4 immutable-head gates and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 implements native W4.3 category budget create/edit through optimistic Web-shaped no-event mutation and durable offline replay; Compose/JVM tests staged. CI and physical owner acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft #318 existing recurring editor for missing legacy monthly schedule anchor and unavailable payer; require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and S24 instrumentation before merge. Next continue W4.1 metadata parity; keep Web parity 1/6 · 11/24, owner S24 signoff #149 separate and Web/backend/schema/signing/SMS outside scope.
+Next Validate #319 category budget editor, exact-source mutation and pending offline replay on final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator. Fix failures inside PR before squash merge. Continue remaining W4.3 and other parity gaps after verified checkpoint. Web parity stays 1/6 implementations · 11/24 subtasks, owner S24 acceptance #149 separate; no shared code/schema, production writes, signed release or SMS.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

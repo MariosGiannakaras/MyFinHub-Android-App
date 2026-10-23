@@ -159,6 +159,7 @@ internal fun MyFinHubAppContent(
     onCreateCard: (CardCreateRequest) -> Unit = {},
     planState: PlanUiState = PlanUiState(),
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
+    onSaveCategoryBudget: (app.myfinhub.android.feature.plan.CategoryBudgetEditRequest) -> Unit = {},
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     onCreateRecurring: (app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = {},
     onEditRecurring: (String, app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = { _, _ -> },
@@ -614,6 +615,7 @@ internal fun MyFinHubAppContent(
                     CanonicalBudget2026Screen(
                         state = planState,
                         onSaveBudget = onSaveBudget,
+                        onSaveCategoryBudget = onSaveCategoryBudget,
                         mutationInFlight = planMutationInFlight,
                         mutationBlocked = planMutationBlocked,
                         onBack = { planBackStack.removeLastOrNull() },

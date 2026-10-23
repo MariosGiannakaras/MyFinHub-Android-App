@@ -18,6 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -893,12 +895,20 @@ private fun ForecastS7ItemCard(
     }
 }
 
-/** Overall canonical monthly budget only; unsupported category-budget drafts remain out of production. */
+data class CategoryBudgetEditRequest(
+    val budgetId: String?,
+    val category: String,
+    val monthlyLimitText: String,
+    val alertThresholdText: String,
+)
+
+/** Canonical overall and category budget workspace. */
 @Composable
 fun CanonicalBudget2026Screen(
     state: PlanUiState,
     onSaveBudget: (String, String) -> Unit,
     onBack: () -> Unit,
+    onSaveCategoryBudget: (CategoryBudgetEditRequest) -> Unit = {},
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
@@ -913,6 +923,8 @@ fun CanonicalBudget2026Screen(
     // Web's budget editor displays the first 24 records, then reveals 24 more
     // on demand. Never silently hide historical category budgets.
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
+    var creatingCategoryBudget by remember { mutableStateOf(false) }
+    var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -1101,6 +1113,15 @@ fun CanonicalBudget2026Screen(
                         val remaining = limit - used
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            TextButton(
+                                onClick = { editingCategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() &&
+                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
+                                    state.categoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s7_category_budget_edit_" + budget.id),
+                            ) { Text("Επεξεργασία ορίου") }
                             Text(
                                 if (amountsVisible) "${formatPlanS7Euro(used)} / ${formatPlanS7Euro(limit)}"
                                 else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
@@ -1191,8 +1212,99 @@ fun CanonicalBudget2026Screen(
                     }
                 }
             }
+            // Keep the existing summary and overall editor in their original
+            // on-screen order. The new affordance follows them without shifting
+            // approved screenshot baselines or the top-level budget navigation.
+            item("budget-category-new") {
+                TextButton(
+                    onClick = { creatingCategoryBudget = true },
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_create"),
+                ) { Text("Νέο όριο κατηγορίας") }
+            }
         }
     }
+    if (creatingCategoryBudget || editingCategoryBudget != null) {
+        CanonicalCategoryBudgetEditor(
+            initial = editingCategoryBudget,
+            existing = state.categoryBudgets,
+            mutationBlocked = mutationInFlight || mutationBlocked || saveRequested,
+            onDismiss = { creatingCategoryBudget = false; editingCategoryBudget = null },
+            onSave = { request ->
+                onSaveCategoryBudget(request)
+                creatingCategoryBudget = false
+                editingCategoryBudget = null
+            },
+        )
+    }
+}
+
+@Composable
+private fun CanonicalCategoryBudgetEditor(
+    initial: CategoryBudget?,
+    existing: List<CategoryBudget>,
+    mutationBlocked: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (CategoryBudgetEditRequest) -> Unit,
+) {
+    var category by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
+    var amount by remember(initial?.id) { mutableStateOf(initial?.monthlyLimitText.orEmpty()) }
+    var threshold by remember(initial?.id) {
+        mutableStateOf(initial?.alertThresholdText ?: "80")
+    }
+    val money = amount.replace(',', '.').toDoubleOrNull()
+    val centsValid = money != null && money.isFinite() && money > 0.0 &&
+        abs(money * 100.0 - kotlin.math.round(money * 100.0)) < 0.000001
+    val valid = category.trim().isNotEmpty() && centsValid &&
+        (threshold.toIntOrNull()?.let { it in 50..99 } == true) &&
+        existing.none { it.name.trim() == category.trim() && it.id != initial?.id }
+    AlertDialog(
+        onDismissRequest = { if (!mutationBlocked) onDismiss() },
+        title = { Text(if (initial == null) "Νέο όριο κατηγορίας" else "Επεξεργασία ορίου") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                Text("Το όριο δεν καταχωρίζει οικονομική κίνηση.",
+                    style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(
+                    value = category, onValueChange = { category = it },
+                    enabled = !mutationBlocked && initial == null,
+                    label = { Text("Κατηγορία") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_category_editor_name"),
+                )
+                OutlinedTextField(
+                    value = amount, onValueChange = { amount = it },
+                    enabled = !mutationBlocked,
+                    label = { Text("Μηνιαίο όριο (€)") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth().testTag("s7_category_editor_amount"),
+                )
+                OutlinedTextField(
+                    value = threshold, onValueChange = { threshold = it },
+                    enabled = !mutationBlocked,
+                    label = { Text("Προειδοποίηση (50–99%)") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth().testTag("s7_category_editor_threshold"),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSave(CategoryBudgetEditRequest(
+                        budgetId = initial?.id,
+                        category = category.trim(),
+                        monthlyLimitText = amount,
+                        alertThresholdText = threshold,
+                    ))
+                },
+                enabled = valid && !mutationBlocked,
+                modifier = Modifier.testTag("s7_category_editor_save"),
+            ) { Text("Αποθήκευση ορίου") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !mutationBlocked) { Text("Ακύρωση") }
+        },
+    )
 }
 
 internal fun budgetDraftEquivalent(first: BudgetDraft, second: BudgetDraft): Boolean {
