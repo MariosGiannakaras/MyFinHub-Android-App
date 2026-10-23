@@ -493,6 +493,49 @@ data class SetCanonicalSavingsTargetRate(
     }
 }
 
+
+/** Web Settings Rules: pausing a rule changes only future matching, not historical finance. */
+data class SetCanonicalTransactionRuleEnabled(
+    val ruleId: String,
+    val enabled: Boolean,
+    val expected: JsonObject,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Αλλαγή κατάστασης κανόνα"
+
+    private fun matches(document: CanonicalFinanceDocument) =
+        document.state.array("transactionRules").filterIsInstance<JsonObject>()
+            .filter { it.string("id") == ruleId }
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        ruleId.isNotBlank() &&
+            matches(document).singleOrNull()?.bool("enabled") == enabled
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(ruleId.isNotBlank()) { "Ο κανόνας δεν είναι διαθέσιμος." }
+        val matching = matches(document)
+        require(matching.size == 1) {
+            "Ο κανόνας λείπει ή έχει διπλό αναγνωριστικό. Απαιτείται έλεγχος."
+        }
+        val original = matching.single()
+        if (original.bool("enabled") == enabled) return document
+        require(original == expected) {
+            "Ο κανόνας άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+        }
+        val updated = JsonObject(original + mapOf(
+            "enabled" to JsonPrimitive(enabled),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
+        val rows = document.state.array("transactionRules").toMutableList()
+        val index = rows.indexOfFirst { it == original }
+        require(index >= 0)
+        rows[index] = updated
+        return document.withMutableState(
+            document.state.updated("transactionRules", JsonArray(rows)), nowIso,
+        )
+    }
+}
+
 /** Web-shaped category budget upsert with expected-row replay and no ledger mutation. */
 data class UpsertCategoryBudget(
     val month: String,

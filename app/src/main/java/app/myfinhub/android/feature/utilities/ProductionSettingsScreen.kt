@@ -53,6 +53,8 @@ fun ProductionSettingsScreen(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
+    onToggleRuleEnabled: ((String, Boolean) -> Unit)? = null,
+    rulesMutationBlocked: Boolean = false,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -209,8 +211,8 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Κανόνες νέων κινήσεων · μόνο προβολή στο Android. " +
-                                "Η σειρά και η επεξεργασία διαχειρίζονται από το Web. " +
+                            "Κανόνες νέων κινήσεων · παύση και ενεργοποίηση στο Android. " +
+                                "Η δημιουργία, επεξεργασία και αλλαγή σειράς γίνεται στο Web. " +
                                 "Το υπάρχον ιστορικό δεν αλλάζει.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -243,6 +245,19 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (onToggleRuleEnabled != null) {
+                                    TextButton(
+                                        onClick = {
+                                            onToggleRuleEnabled(rule.id, !rule.enabled)
+                                        },
+                                        enabled = !rulesMutationBlocked &&
+                                            rule.id.isNotBlank() &&
+                                            transactionRules.count { it.id == rule.id } == 1,
+                                        modifier = Modifier.testTag("s9_transaction_rule_toggle_$index"),
+                                    ) {
+                                        Text(if (rule.enabled) "Παύση κανόνα" else "Ενεργοποίηση κανόνα")
+                                    }
+                                }
                                 Text(
                                     "Ιστορικές αντιστοιχίσεις: " +
                                         rule.historicalMatchCount +

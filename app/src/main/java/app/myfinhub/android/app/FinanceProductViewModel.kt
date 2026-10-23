@@ -29,6 +29,8 @@ import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.UpsertCategoryBudget
 import app.myfinhub.android.core.data.DeleteCategoryBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
+import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
+import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.webCategoryBudgetStableId
 import app.myfinhub.android.core.data.webOverallBudgetStableId
 import app.myfinhub.android.core.data.settingsObject
@@ -720,6 +722,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    /** Applies only to future transactions; source fields and past events are preserved. */
+    fun setTransactionRuleEnabled(ruleId: String, enabled: Boolean) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || ruleId.isBlank()) return
+        val matches = ready.projection.document.state.array("transactionRules")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == ruleId }
+        val existing = matches.singleOrNull() ?: return
+        if (existing.bool("enabled") == enabled) return
+        applyMutation(SetCanonicalTransactionRuleEnabled(
+            ruleId = ruleId, enabled = enabled, expected = existing,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Web savingsTargetRate is canonical settings metadata, not a balance or transfer. */
     fun saveMonthlySavingsRate(percentText: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1388,6 +1404,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
                 PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
                 PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
+                PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
                 PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.EDIT_RECURRING -> "Επεξεργασία παγίου"

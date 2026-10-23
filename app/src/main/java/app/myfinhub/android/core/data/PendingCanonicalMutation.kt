@@ -24,6 +24,7 @@ enum class PendingMutationKind {
     UPSERT_CATEGORY_BUDGET,
     DELETE_CATEGORY_BUDGET,
     SET_SAVINGS_TARGET_RATE,
+    SET_TRANSACTION_RULE_ENABLED,
     CREATE_CARD,
     DEACTIVATE_CARD,
     RESTORE_CARD,
@@ -201,6 +202,13 @@ data class PendingCanonicalMutationIntent(
             expectedRate = payload.number("expectedRate"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> SetCanonicalTransactionRuleEnabled(
+            ruleId = payload.string("ruleId").orEmpty(),
+            enabled = payload.string("enabled") == "true",
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Rule source is missing"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_CATEGORY_BUDGET -> UpsertCategoryBudget(
             month = payload.string("month").orEmpty(),
             category = payload.string("category").orEmpty(),
@@ -340,6 +348,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.SET_SAVINGS_TARGET_RATE ->
             runCatching { (asMutation() as SetCanonicalSavingsTargetRate).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_TRANSACTION_RULE_ENABLED ->
+            runCatching { (asMutation() as SetCanonicalTransactionRuleEnabled).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
             runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
@@ -561,6 +572,17 @@ data class PendingCanonicalMutationIntent(
                     mutation.expectedRate?.let { put("expectedRate", JsonPrimitive(it)) }
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }),
+                syncState = syncState,
+            )
+            is SetCanonicalTransactionRuleEnabled -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.SET_TRANSACTION_RULE_ENABLED,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "enabled" to JsonPrimitive(mutation.enabled.toString()),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
                 syncState = syncState,
             )
             is UpsertCategoryBudget -> PendingCanonicalMutationIntent(

@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. PR #319 category budget create/edit passed 4/4 final-head gates and merged develop d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner-directed CODE-FIRST BULK phase in unmerged branch android/web-parity-code-first-bulk-20261023: source adds guarded category budget deletion with confirmation and offline intent; deterministic Web category/overall budget IDs, optimistic overall source-row protection with backwards-compatible offline intents and metadata preservation; canonical expense category picker; editable savings monthly target rate (0–100%) through guarded canonical settings replay. Code-first branch has not been tested or merged.
+Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develop PR #319 merged d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner CODE-FIRST BULK in unmerged android/web-parity-code-first-bulk-20261023: Android source only, no PR or CI until implementation batch completed. Authored guarded category budget deletion and offline replay; deterministic Web overall/category IDs; optimistic overall budget write with metadata preservation and backward-compatible historical pending intents; configured expense taxonomy picker; monthly savings target-rate editor and canonical offline settings update; transaction-rule pause/reactivation directly in Settings with exact-source conflict guard and durable offline intent. All source requires later comprehensive tests, screenshot review and owner S24 acceptance.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue CODE-FIRST BULK on android/web-parity-code-first-bulk-20261023. Current source batch: Web stable budget IDs, canonical category/overall budget upserts with conflict guard and metadata preservation, category budget delete/confirmation with offline replay, canonical expense taxonomy picker, and monthly savings rate editor with secure offline/revision update. Continue W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 remaining Android code in grouped commits before starting mass tests. Then run unified Kotlin/unit/security, Compose/visual references and hosted S24 emulator exact-head checks, correct failures, and merge only verified code. Progress stays 1/6 implementations · 11/24 subtasks; physical owner S24 #149 pending. No shared Web/backend/schema, production financial data, signing, SMS import or irreversible card delete UI.
+1. Continue broad Android code phase on android/web-parity-code-first-bulk-20261023 without per-feature PR/CI. Source currently implements category and overall budget CRUD safeguards, canonical expense category selector, monthly savings target-rate settings editor/offline replay, and native transaction-rule activation/pause with historic ledger protection. Continue remaining W2.4/W3/W4/W5 code gaps in grouped commits. Only after feature code coverage is complete: consolidated tests, security review, real light/dark/large-font screenshot baseline checks, hosted S24 emulator, fix regressions, draft PR and exact-head gate merge. Keep progress 1/6 implementations · 11/24 subtasks; no production finance writes, shared backend/schema, signer/release, SMS import #146, irreversible card deletion UI, or physical owner acceptance #149.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last merged PR #319 at develop d78154c142aac01b0e1c301e2334b30c91f18fdf. Active unmerged CODE-FIRST BULK source branch holds guarded category deletion, overall/category Web IDs, source-row optimism, expense taxonomy picker, monthly savings target settings and durable pending replay. No current PR/CI or physical acceptance yet.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last merged PR #319 develop d78154c142aac01b0e1c301e2334b30c91f18fdf. CODE-FIRST BULK active branch has source for savings rate, budget category CRUD/taxonomy/IDs and transaction rule enable/disable guarded offline; untested and unmerged. More code and mass validation pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Implement remaining code on android/web-parity-code-first-bulk-20261023 in coherent grouped commits, deferring tests and PR until all planned Android-only features are authored. Then do one comprehensive test/security/visual/emulator cycle, fix defects, exact-head merge. Last merged PR #319; Web parity remains 1/6 · 11/24. Physical S24 #149 separate, no shared API/schema, production writes, SMS, signing or permanent card delete exposure.
+Next Continue all missing Android-only domain and UI source in grouped commits on android/web-parity-code-first-bulk-20261023 (no current PR); do not run tests until code pass done. When implementation phase is complete, build one consolidated test/security/visual/S24 emulator plan, correct defects and require exact-head 4/4 before merge. Last merged PR #319. Web parity remains 1/6 · 11/24, owner S24 #149 separate; Web/API/schema/production financial writes/signing/SMS/destructive card UI excluded.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
