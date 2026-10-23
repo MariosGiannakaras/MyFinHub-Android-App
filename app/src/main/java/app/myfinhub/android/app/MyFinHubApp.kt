@@ -288,6 +288,7 @@ internal fun MyFinHubAppContent(
                         onDeleteTransactionRule = onDeleteTransactionRule,
                         onReorderTransactionRule = onReorderTransactionRule,
                         ruleCategories = planState.budgetCategories,
+                        ruleSubcategories = planState.ruleSubcategories,
                         ruleAccountOptions = moneyState.accounts
                             .filter { it.canonicalKind != "credit" && it.id.isNotBlank() }
                             .map { it.id to it.name },

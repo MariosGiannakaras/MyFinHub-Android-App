@@ -33,6 +33,7 @@ import app.myfinhub.android.feature.plan.PlanningRule
 fun CanonicalTransactionRuleEditor(
     initial: PlanningRule?,
     categories: List<String>,
+    subcategories: Map<String, List<String>>,
     accountOptions: List<Pair<String, String>>,
     mutationBlocked: Boolean,
     onDismiss: () -> Unit,
@@ -51,6 +52,10 @@ fun CanonicalTransactionRuleEditor(
     var review by rememberSaveable(initial?.id) { mutableStateOf(initial?.scopes?.contains("review") ?: false) }
     var accountMenu by remember { mutableStateOf(false) }
     var categoryMenu by remember { mutableStateOf(false) }
+    var subcategoryMenu by remember { mutableStateOf(false) }
+    val knownSubcategory = subcategory.isEmpty() ||
+        subcategories[category].orEmpty().contains(subcategory) ||
+        (subcategory == initial?.actionSubcategory && category == initial?.actionCategory)
     val hasCondition = description.isNotBlank() || merchant.isNotBlank() || account.isNotBlank()
     val hasAction = category.isNotBlank() || subcategory.isNotBlank() || note.isNotBlank()
     val knownAccount = account.isBlank() || accountOptions.any { it.first == account } ||
@@ -59,7 +64,8 @@ fun CanonicalTransactionRuleEditor(
         category in categories || category == initial?.actionCategory
     val canSave = !mutationBlocked && name.isNotBlank() && name.length <= 500 &&
         hasCondition && hasAction && (manual || imported || review) &&
-        knownAccount && knownCategory && (subcategory.isBlank() || category.isNotBlank())
+        knownAccount && knownCategory && knownSubcategory &&
+        (subcategory.isBlank() || category.isNotBlank())
 
     AlertDialog(
         onDismissRequest = { if (!mutationBlocked) onDismiss() },
@@ -136,12 +142,34 @@ fun CanonicalTransactionRuleEditor(
                         )
                     }
                 }
-                OutlinedTextField(
-                    value = subcategory, onValueChange = { subcategory = it },
-                    label = { Text("Υποκατηγορία") }, singleLine = true,
+                TextButton(
+                    onClick = { subcategoryMenu = true },
                     enabled = !mutationBlocked && category.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().testTag("s9_rule_editor_subcategory"),
-                )
+                ) { Text(if (subcategory.isBlank()) "Χωρίς υποκατηγορία" else "Υποκατηγορία: $subcategory") }
+                DropdownMenu(
+                    expanded = subcategoryMenu,
+                    onDismissRequest = { subcategoryMenu = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Χωρίς υποκατηγορία") },
+                        onClick = { subcategory = ""; subcategoryMenu = false },
+                    )
+                    subcategories[category].orEmpty().forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item) },
+                            onClick = { subcategory = item; subcategoryMenu = false },
+                        )
+                    }
+                    if (subcategory.isNotBlank() &&
+                        subcategory !in subcategories[category].orEmpty()
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Ιστορική επιλογή: $subcategory") },
+                            onClick = { subcategoryMenu = false },
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = note, onValueChange = { note = it },
                     label = { Text("Σχόλιο όταν είναι κενό") }, singleLine = true,

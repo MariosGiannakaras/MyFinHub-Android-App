@@ -176,8 +176,17 @@ data class ReorderCanonicalTransactionRule(
     fun satisfiedBy(document: CanonicalFinanceDocument): Boolean {
         val source = expected.filterIsInstance<JsonObject>()
         val actual = document.state.array("transactionRules").filterIsInstance<JsonObject>()
-        if (source.size != actual.size || ruleId.isBlank()) return false
-        return actual.map { it.string("id") }.toSet() == source.map { it.string("id") }.toSet() &&
+        if (source.size != actual.size || ruleId.isBlank() ||
+            source.map { it.string("id") }.distinct().size != source.size ||
+            actual.map { it.string("id") }.distinct().size != actual.size) return false
+        val sourcesById = source.associateBy { it.string("id") }
+        // An unrelated remote rule edit must never be mistaken for our successful reorder.
+        val identicalContent = actual.all { row ->
+            val before = sourcesById[row.string("id")] ?: return@all false
+            row.rulePayloadWithoutOrdering() == before.rulePayloadWithoutOrdering()
+        }
+        return identicalContent &&
+            actual.map { it.string("id") }.toSet() == source.map { it.string("id") }.toSet() &&
             ordered(actual).map { it.string("id") } == desiredIdOrder()
     }
 

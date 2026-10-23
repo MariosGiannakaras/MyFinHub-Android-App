@@ -63,9 +63,18 @@ internal fun projectCanonicalPlanState(
     val canonicalBudget = document.overallBudget(month.toString())
     val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
     // The Web category picker uses the owner's canonical expense taxonomy, not fixed Android labels.
-    val expenseCategoryTree = document.settingsObject().array("expenseCategoryTree")
-        .mapNotNull { (it as? JsonObject)?.string("name")?.trim() }
+    val expenseCategoryRows = document.settingsObject().array("expenseCategoryTree")
+        .mapNotNull { it as? JsonObject }
+    val expenseCategoryTree = expenseCategoryRows.mapNotNull { it.string("name")?.trim() }
         .filter { it.isNotEmpty() }
+    val ruleSubcategories = expenseCategoryRows
+        .mapNotNull { row ->
+            val name = row.string("name")?.trim()?.takeIf(String::isNotEmpty)
+                ?: return@mapNotNull null
+            name to row.array("subcategories")
+                .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
+                .filter { it.isNotEmpty() }.distinct()
+        }.toMap()
     val flatExpenseCategories = document.settingsObject().array("expenseCategories")
         .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
         .filter { it.isNotEmpty() }
@@ -260,6 +269,7 @@ internal fun projectCanonicalPlanState(
             )
         },
         budgetCategories = allowedBudgetCategories,
+        ruleSubcategories = ruleSubcategories,
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
             .map { row ->
                 CategoryBudget(

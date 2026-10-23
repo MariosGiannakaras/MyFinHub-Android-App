@@ -58,6 +58,7 @@ fun ProductionSettingsScreen(
     onDeleteTransactionRule: ((String) -> Unit)? = null,
     onReorderTransactionRule: ((String, Int) -> Unit)? = null,
     ruleCategories: List<String> = emptyList(),
+    ruleSubcategories: Map<String, List<String>> = emptyMap(),
     ruleAccountOptions: List<Pair<String, String>> = emptyList(),
     rulesMutationBlocked: Boolean = false,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
@@ -532,6 +533,7 @@ fun ProductionSettingsScreen(
         CanonicalTransactionRuleEditor(
             initial = editorRule,
             categories = ruleCategories,
+            subcategories = ruleSubcategories,
             accountOptions = ruleAccountOptions,
             mutationBlocked = rulesMutationBlocked,
             onDismiss = { creatingRule = false; editingRuleId = null },

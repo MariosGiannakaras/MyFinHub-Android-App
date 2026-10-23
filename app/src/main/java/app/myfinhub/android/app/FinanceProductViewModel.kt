@@ -760,6 +760,11 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (category.isNotEmpty() && allowedCategories.isNotEmpty() &&
             category !in allowedCategories && category != existing?.obj("action")?.string("category")) return
         if (subcategory.isNotEmpty() && category.isEmpty()) return
+        if (subcategory.isNotEmpty() &&
+            subcategory !in ready.projection.planState.ruleSubcategories[category].orEmpty() &&
+            !(subcategory == existing?.obj("action")?.string("subcategory") &&
+              category == existing?.obj("action")?.string("category"))
+        ) return
         val allowedAccounts = document.canonicalAccounts().filter { it.kind != "credit" }.map { it.id }
         if (account.isNotEmpty() && account !in allowedAccounts &&
             account != existing?.obj("match")?.string("accountId")) return

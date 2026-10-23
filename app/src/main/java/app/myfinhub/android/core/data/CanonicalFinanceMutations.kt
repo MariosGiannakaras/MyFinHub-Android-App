@@ -129,6 +129,8 @@ data class SetCanonicalRecurringStatus(
     val recurringId: String,
     val status: String,
     val nowIso: String,
+    /** null preserves replay compatibility with historical status intents. */
+    val expected: JsonObject? = null,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αλλαγή κατάστασης παγίου"
 
@@ -139,6 +141,19 @@ data class SetCanonicalRecurringStatus(
         // while leaving other rows inconsistent. Preserve them read-only.
         require(document.allCanonicalRecurringItems().count { it.id == recurringId } == 1) {
             "Το πάγιο έχει μη μοναδικό αναγνωριστικό. Η αλλαγή κατάστασης αποκλείστηκε."
+        }
+        val selectedSource = document.canonicalRecurringEditSource(recurringId)
+            ?: throw IllegalArgumentException("Το πάγιο απουσιάζει ή έχει διπλό ID.")
+        if (expected != null) {
+            require(expected.string("id") == recurringId) { "Άκυρη πηγή παγίου." }
+            val desired = JsonObject(expected + mapOf(
+                "active" to JsonPrimitive(status == "active"),
+                "status" to JsonPrimitive(status),
+            ))
+            if (selectedSource.row == desired) return document
+            require(selectedSource.row == expected) {
+                "Η κατάσταση ή τα στοιχεία του παγίου άλλαξαν στον server. Έλεγξε τη νέα έκδοση."
+            }
         }
         val custom = document.state.array("recurringCustom")
         val index = custom.indexOfFirst { (it as? JsonObject)?.string("id") == recurringId }

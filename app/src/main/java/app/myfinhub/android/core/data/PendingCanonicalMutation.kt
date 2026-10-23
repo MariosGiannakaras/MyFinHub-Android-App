@@ -87,6 +87,7 @@ data class PendingCanonicalMutationIntent(
             recurringId = payload.string("recurringId").orEmpty(),
             status = payload.string("status").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
         )
         PendingMutationKind.CREATE_RECURRING -> {
             val row = payload.obj("recurring")
@@ -293,11 +294,23 @@ data class PendingCanonicalMutationIntent(
         }
         PendingMutationKind.SET_RECURRING_STATUS -> {
             val id = payload.string("recurringId").orEmpty()
-            val expected = payload.string("status")
-            val actual = document.allCanonicalRecurringItems()
-                .firstOrNull { it.id == id }?.effectiveStatus
-            id.isNotBlank() && expected in setOf("active", "paused", "stopped") &&
-                (actual == null || actual == expected)
+            val status = payload.string("status")
+            val source = payload["expected"] as? JsonObject
+            val matches = document.allCanonicalRecurringItems().filter { it.id == id }
+            val actual = matches.singleOrNull()?.effectiveStatus
+            if (source != null) {
+                val current = document.canonicalRecurringEditSource(id)?.row
+                val target = JsonObject(source + mapOf(
+                    "active" to JsonPrimitive(status == "active"),
+                    "status" to JsonPrimitive(status.orEmpty()),
+                ))
+                id.isNotBlank() && status in setOf("active", "paused", "stopped") &&
+                    matches.size == 1 && actual == status && current == target
+            } else {
+                // Old pre-CAS intents remain replay-compatible.
+                id.isNotBlank() && status in setOf("active", "paused", "stopped") &&
+                    (actual == null || actual == status)
+            }
         }
         PendingMutationKind.CREATE_RECURRING -> {
             val id = payload.string("recurringId").orEmpty()
@@ -483,11 +496,12 @@ data class PendingCanonicalMutationIntent(
             is SetCanonicalRecurringStatus -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.SET_RECURRING_STATUS,
-                payload = JsonObject(mapOf(
-                    "recurringId" to JsonPrimitive(mutation.recurringId),
-                    "status" to JsonPrimitive(mutation.status),
-                    "nowIso" to JsonPrimitive(mutation.nowIso),
-                )),
+                payload = JsonObject(buildMap {
+                    put("recurringId", JsonPrimitive(mutation.recurringId))
+                    put("status", JsonPrimitive(mutation.status))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.expected?.let { put("expected", it) }
+                }),
                 syncState = syncState,
             )
             is CreateCanonicalRecurring -> PendingCanonicalMutationIntent(

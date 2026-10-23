@@ -215,6 +215,7 @@ data class PlanUiState(
     val budget: BudgetDraft = BudgetDraft(),
     val categoryBudgets: List<CategoryBudget> = emptyList(),
     val budgetCategories: List<String> = emptyList(),
+    val ruleSubcategories: Map<String, List<String>> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,

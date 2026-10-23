@@ -67,6 +67,7 @@ fun CanonicalRecurringManagementScreen(
     val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
     var creating by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<RecurringManageItem?>(null) }
+    var stopCandidate by remember { mutableStateOf<RecurringManageItem?>(null) }
     Scaffold(topBar = {
         MyFinHubScreenHeader(
             title = "Πάγια & συνδρομές",
@@ -281,7 +282,7 @@ fun CanonicalRecurringManagementScreen(
                             if (item.status != "stopped") {
                                 TextButton(
                                     enabled = !mutationBlocked && uniqueId,
-                                    onClick = { onStatusChanged(item.id, "stopped") },
+                                    onClick = { stopCandidate = item },
                                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                         .testTag("recurring_stop_" + item.id),
                                 ) { Text("Διακοπή") }
@@ -294,6 +295,33 @@ fun CanonicalRecurringManagementScreen(
                 item("empty") { Text("Δεν υπάρχουν καταγεγραμμένα πάγια ή συνδρομές.") }
             }
         }
+    }
+    stopCandidate?.let { candidate ->
+        val unique = state.recurringManageItems.count { it.id == candidate.id } == 1
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) stopCandidate = null },
+            title = { Text("Διακοπή παγίου;") },
+            text = {
+                Text("Το πάγιο «" + candidate.title +
+                    "» δεν θα υπολογίζεται πλέον στις επόμενες υποχρεώσεις. " +
+                    "Οι ήδη καταχωρισμένες πληρωμές παραμένουν ανέπαφες.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && unique && candidate.status != "stopped",
+                    modifier = Modifier.testTag("recurring_stop_confirm"),
+                    onClick = {
+                        onStatusChanged(candidate.id, "stopped")
+                        stopCandidate = null
+                    },
+                ) { Text("Διακοπή παγίου") }
+            },
+            dismissButton = {
+                TextButton(onClick = { stopCandidate = null }, enabled = !mutationBlocked) {
+                    Text("Ακύρωση")
+                }
+            },
+        )
     }
     if (creating || editing != null) {
         val activeEdit = editing
