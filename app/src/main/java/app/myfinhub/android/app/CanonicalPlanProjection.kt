@@ -136,6 +136,10 @@ internal fun projectCanonicalPlanState(
             amountMode = recurring.amountMode,
             estimateMin = recurring.estimateMin,
             estimateMax = recurring.estimateMax,
+            recurrenceUnit = recurring.recurrenceUnit ?: "month",
+            recurrenceInterval = recurring.recurrenceInterval,
+            day = recurring.day,
+            firstExpectedDateIso = recurring.firstExpectedDate,
         )
     }
     return PlanUiState(

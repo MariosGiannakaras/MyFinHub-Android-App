@@ -52,6 +52,11 @@ data class RecurringManageItem(
     val actualPaidThisMonth: Double? = null,
     val actualPaymentsThisMonth: Int = 0,
     val actualPaymentHistory: List<RecurringActualPaymentRow> = emptyList(),
+    // Web editable cadence fields, distinct from historical typical payment day.
+    val recurrenceUnit: String = "month",
+    val recurrenceInterval: Int = 1,
+    val day: Int? = null,
+    val firstExpectedDateIso: String? = null,
 )
 
 /** Web actual payments: no additional persisted finance data. */
