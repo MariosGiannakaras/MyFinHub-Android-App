@@ -37,6 +37,7 @@ enum class PendingMutationKind {
     DELETE_UNUSED_CASH_ACCOUNT,
     SET_DEFAULT_ACCOUNT,
     REORDER_CATEGORY_TAXONOMY,
+    ADD_CATEGORY_TAXONOMY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -302,6 +303,14 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.ADD_CATEGORY_TAXONOMY -> AddCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            label = payload.string("label").orEmpty(),
+            parentCategory = payload.string("parentCategory"),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected category settings"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> ReorderCanonicalCategoryTaxonomy(
             kind = payload.string("kind").orEmpty(),
             category = payload.string("category").orEmpty(),
@@ -531,6 +540,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
             runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.ADD_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as AddCanonicalCategoryTaxonomy).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.REORDER_CATEGORY_TAXONOMY ->
             runCatching { (asMutation() as ReorderCanonicalCategoryTaxonomy).satisfiedBy(document) }
@@ -855,6 +867,16 @@ data class PendingCanonicalMutationIntent(
                     mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
                     mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
                     mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is AddCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.ADD_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("label", JsonPrimitive(mutation.label))
+                    mutation.parentCategory?.let { put("parentCategory", JsonPrimitive(it)) }
+                    put("expectedSettings", mutation.expectedSettings)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }), syncState = syncState,
             )

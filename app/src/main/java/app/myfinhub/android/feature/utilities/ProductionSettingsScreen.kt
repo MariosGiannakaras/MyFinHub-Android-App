@@ -60,6 +60,7 @@ fun ProductionSettingsScreen(
     expenseTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
     incomeTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
     onReorderCategoryTaxonomy: ((String, String, String?, Int) -> Unit)? = null,
+    onAddCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
     deletableCustomCashAccountIds: Set<String> = emptySet(),
     onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
     defaultAccountIds: Map<String, String> = emptyMap(),
@@ -247,6 +248,7 @@ fun ProductionSettingsScreen(
                     income = incomeTaxonomy,
                     mutationBlocked = rulesMutationBlocked,
                     onReorder = onReorderCategoryTaxonomy,
+                    onAdd = onAddCategoryTaxonomy,
                 )
             }
             if (onSaveCounterparty != null) {

@@ -15,6 +15,7 @@ import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
 import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
 import app.myfinhub.android.core.data.DeleteCanonicalCustomCashAccount
 import app.myfinhub.android.core.data.ReorderCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.AddCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
 import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
@@ -1025,6 +1026,19 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Append only the owner's explicitly chosen category label. */
+    fun addCategoryTaxonomy(kind: String, label: String, parentCategory: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || label.isBlank() ||
+            label.length > 120 || parentCategory?.isBlank() == true) return
+        applyMutation(AddCanonicalCategoryTaxonomy(
+            kind = kind, label = label, parentCategory = parentCategory,
+            expectedSettings = ready.projection.document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Web taxonomy reorder changes labels' display order, not stable identities or events. */
     fun reorderCategoryTaxonomy(
         kind: String, category: String, subcategory: String?, direction: Int,
@@ -1981,6 +1995,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> "Διαχείριση λογαριασμού"
                 PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> "Διαγραφή αχρησιμοποίητων μετρητών"
                 PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> "Σειρά κατηγοριών"
+                PendingMutationKind.ADD_CATEGORY_TAXONOMY -> "Προσθήκη κατηγορίας"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
