@@ -42,26 +42,26 @@ jobs:
         run: |
           set -euo pipefail
           cat > /tmp/reviewed-android-screenshots.txt <<'WHITELIST'
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditDarkScreenshot_production_activity_edit_dark_486e7d1d_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditLargeFontScreenshot_production_activity_edit_large_font_4f0ecc79_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditScreenshot_production_activity_edit_0f264771_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailLightScreenshot_canonical_card_detail_light_315a739a_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailLargeFontScreenshot_canonical_card_detail_large_font_665deb00_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailDarkScreenshot_canonical_card_detail_dark_7c0c9ebf_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalLoansCompactLightScreenshot_canonical_loans_compact_light_48b79ab1_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLarge_s7_budget_large_acbd1ba0_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetDark_s7_budget_dark_25640f28_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLight_s7_budget_light_73b79d53_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntrySplitDarkScreenshot_production_quick_entry_split_dark_12cd45ee_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntrySplitLightScreenshot_production_quick_entry_split_light_e9879f9d_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
-app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
-WHITELIST
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditDarkScreenshot_production_activity_edit_dark_486e7d1d_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditLargeFontScreenshot_production_activity_edit_large_font_4f0ecc79_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityEditScreenshot_production_activity_edit_0f264771_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailLightScreenshot_canonical_card_detail_light_315a739a_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailLargeFontScreenshot_canonical_card_detail_large_font_665deb00_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalCardDetailScreenshotTestKt/CanonicalCardDetailDarkScreenshot_canonical_card_detail_dark_7c0c9ebf_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/CanonicalMoneyScreenshotTestKt/CanonicalLoansCompactLightScreenshot_canonical_loans_compact_light_48b79ab1_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLarge_s7_budget_large_acbd1ba0_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetDark_s7_budget_dark_25640f28_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7BudgetLight_s7_budget_light_73b79d53_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntrySplitDarkScreenshot_production_quick_entry_split_dark_12cd45ee_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntrySplitLightScreenshot_production_quick_entry_split_light_e9879f9d_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
+          WHITELIST
           git diff --name-only --diff-filter=ACMR > /tmp/actual-android-screenshots.txt
           if ! diff -u <(sort /tmp/reviewed-android-screenshots.txt) <(sort /tmp/actual-android-screenshots.txt); then
             echo 'Rendered screenshot set differs from the owner-review candidate; no baseline will be committed.' >&2
