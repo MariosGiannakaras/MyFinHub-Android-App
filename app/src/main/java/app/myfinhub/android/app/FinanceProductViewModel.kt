@@ -788,6 +788,12 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             }
         if (matches.size > 1) return
         val current = matches.singleOrNull()
+        // New category budgets use the configured Web taxonomy, never a free-form
+        // Android-only synthetic category. Existing historical rows retain their identity.
+        if (request.budgetId == null &&
+            ready.projection.planState.budgetCategories.isNotEmpty() &&
+            category !in ready.projection.planState.budgetCategories
+        ) return
         // A new category must not silently overwrite an existing category.
         if (request.budgetId == null && current != null) return
         if (request.budgetId != null && current?.string("id") != request.budgetId) return

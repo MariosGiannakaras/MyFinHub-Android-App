@@ -24,6 +24,7 @@ import app.myfinhub.android.core.data.webBudgetProgress
 import app.myfinhub.android.core.data.canonicalTransactionRuleOverview
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.core.data.settingsObject
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import app.myfinhub.android.core.ui.financialAccountDisplayName
@@ -62,10 +63,15 @@ internal fun projectCanonicalPlanState(
     val canonicalBudget = document.overallBudget(month.toString())
     val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
     // The Web category picker uses the owner's canonical expense taxonomy, not fixed Android labels.
-    val allowedBudgetCategories = document.settingsObject().array("expenseCategories")
+    val expenseCategoryTree = document.settingsObject().array("expenseCategoryTree")
+        .mapNotNull { (it as? JsonObject)?.string("name")?.trim() }
+        .filter { it.isNotEmpty() }
+    val flatExpenseCategories = document.settingsObject().array("expenseCategories")
         .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
         .filter { it.isNotEmpty() }
-        .distinct()
+    val allowedBudgetCategories =
+        (if (expenseCategoryTree.isNotEmpty()) expenseCategoryTree else flatExpenseCategories)
+            .distinct()
     val categorizedBudgetTotal = document.categoryBudgetSpending(month.toString(), today.toString())
         .values.sum().coerceAtLeast(0.0)
     // H7 production forecast is a fixed, explainable 30-day window. Legacy preview-only
