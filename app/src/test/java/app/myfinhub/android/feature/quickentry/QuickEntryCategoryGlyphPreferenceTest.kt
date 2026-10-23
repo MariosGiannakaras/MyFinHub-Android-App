@@ -44,6 +44,27 @@ class QuickEntryCategoryGlyphPreferenceTest {
     }
 
     @Test
+    fun greekAccentedTaxonomyFallbacksRemainDeterministicAcrossClientSurfaces() {
+        // Case/tonos of user-authored Greek labels must not make icon fallbacks disappear.
+        assertEquals(
+            MyFinHubIcons.Savings,
+            quickEntryCategoryIcon("Αποταμίευση", null, false, emptyMap()),
+        )
+        assertEquals(
+            MyFinHubIcons.Transport,
+            quickEntryCategoryIcon("Καύσιμα", null, false, emptyMap()),
+        )
+        assertEquals(
+            MyFinHubIcons.Home,
+            quickEntryCategoryIcon("Ενοίκιο", null, false, emptyMap()),
+        )
+        assertEquals(
+            MyFinHubIcons.Bills,
+            quickEntryCategoryIcon("Λογαριασμοί", null, false, emptyMap()),
+        )
+    }
+
+    @Test
     fun unsupportedWebSvgKeyNeverLoadsRemoteAssetOrHidesDefault() {
         assertEquals(
             MyFinHubIcons.Savings,
