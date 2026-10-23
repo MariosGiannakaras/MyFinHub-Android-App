@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.lifecycle.ViewModel
+import kotlinx.serialization.json.JsonObject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -143,6 +144,14 @@ data class CategoryBudget(
     val rawSpent: Double = spent,
     val remaining: Double = 0.0,
     val status: String = "ok",
+    val effectiveLimit: Double? = null,
+    val carried: Double = 0.0,
+    val carryover: Boolean = false,
+    val projectedDue: Double = 0.0,
+    val projectedRemaining: Double = remaining,
+    val projectedStatus: String = status,
+    val category: String? = null,
+    val subcategory: String? = null,
 )
 
 data class PlanningRule(
@@ -152,6 +161,15 @@ data class PlanningRule(
     val enabled: Boolean,
     val warning: String? = null,
     val historicalMatchCount: Int = 0,
+    val priority: Double = 0.0,
+    val matchDescription: String = "",
+    val matchMerchant: String = "",
+    val matchAccountId: String = "",
+    val matchMode: String = "contains",
+    val actionCategory: String = "",
+    val actionSubcategory: String = "",
+    val actionNote: String = "",
+    val scopes: List<String> = listOf("manual"),
 )
 
 /** Web ForecastPoint includes each day's account balances as well as portfolio. */
@@ -204,8 +222,25 @@ data class PlanUiState(
     val scheduledManageItems: List<ScheduledManageItem> = emptyList(),
     val scheduledAccounts: List<ScheduledAccountOption> = emptyList(),
     val budget: BudgetDraft = BudgetDraft(),
+    val overallBudgetId: String? = null,
     val categoryBudgets: List<CategoryBudget> = emptyList(),
+    val subcategoryBudgets: List<CategoryBudget> = emptyList(),
+    val budgetCategories: List<String> = emptyList(),
+    val ruleSubcategories: Map<String, List<String>> = emptyMap(),
+    val expenseTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
+    val incomeTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
+    val categoryIconColors: Map<String, String> = emptyMap(),
+    val categoryIconPack: String = "lucide",
+    /** Selected per-pack semantic keys for the currently active pack and valid taxonomy. */
+    val categoryGlyphOverrides: Map<String, String> = emptyMap(),
+    val subcategoryIconColors: Map<String, String> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),
+    /** Source events only; never seeded legacy transactions or synthetic preview fixtures. */
+    val rulePreviewEvents: List<JsonObject> = emptyList(),
+    val counterpartyDirectory: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
+    val managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
+    val deletableCustomCashAccountIds: Set<String> = emptySet(),
+    val defaultAccountIds: Map<String, String> = emptyMap(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
     val forecastStartDateIso: String = "",
@@ -217,7 +252,14 @@ data class PlanUiState(
     val forecastEndBalance: Double = 0.0,
     val forecastEndDateLabel: String = "",
     val budgetSpent: Double = 0.0,
+    val budgetProjectedDue: Double = 0.0,
+    val budgetProjectedRemaining: Double = 0.0,
+    val budgetProjectedStatus: String = "ok",
+    /** Known future scheduled/recurring expenses, not finance ledger entries. */
+    val budgetKnownCommitments: List<app.myfinhub.android.core.data.CanonicalBudgetCommitment> = emptyList(),
     val budgetMonthLabel: String = "",
+    /** Independent reporting month: YYYY-MM, preserved across finance reprojections. */
+    val budgetSelectedMonthIso: String = "",
     val message: String? = null,
     val itemMessage: String? = null,
     val categoryBudgetMessage: String? = null,
@@ -227,6 +269,8 @@ sealed interface PlanAction {
     data class MonthlyLimitChanged(val value: String) : PlanAction
     data class AlertThresholdChanged(val value: String) : PlanAction
     data object SaveBudget : PlanAction
+    data class ShiftBudgetMonth(val delta: Int) : PlanAction
+    data class SelectBudgetMonth(val monthIso: String) : PlanAction
 
     data class UpdatePlannedItem(
         val id: String,
@@ -249,6 +293,17 @@ sealed interface PlanAction {
 }
 
 fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (action) {
+    is PlanAction.SelectBudgetMonth -> {
+        val next = runCatching { java.time.YearMonth.parse(action.monthIso) }.getOrNull()
+        if (next == null || next.toString() != action.monthIso) state
+        else state.copy(budgetSelectedMonthIso = next.toString())
+    }
+    is PlanAction.ShiftBudgetMonth -> {
+        val month = runCatching { java.time.YearMonth.parse(state.budgetSelectedMonthIso) }
+            .getOrNull() ?: java.time.YearMonth.now()
+        if (action.delta !in setOf(-1, 1)) state
+        else state.copy(budgetSelectedMonthIso = month.plusMonths(action.delta.toLong()).toString())
+    }
     is PlanAction.MonthlyLimitChanged -> state.copy(
         budget = state.budget.copy(monthlyLimitText = action.value),
         message = null,

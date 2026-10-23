@@ -129,6 +129,8 @@ data class SetCanonicalRecurringStatus(
     val recurringId: String,
     val status: String,
     val nowIso: String,
+    /** null preserves replay compatibility with historical status intents. */
+    val expected: JsonObject? = null,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αλλαγή κατάστασης παγίου"
 
@@ -139,6 +141,19 @@ data class SetCanonicalRecurringStatus(
         // while leaving other rows inconsistent. Preserve them read-only.
         require(document.allCanonicalRecurringItems().count { it.id == recurringId } == 1) {
             "Το πάγιο έχει μη μοναδικό αναγνωριστικό. Η αλλαγή κατάστασης αποκλείστηκε."
+        }
+        val selectedSource = document.canonicalRecurringEditSource(recurringId)
+            ?: throw IllegalArgumentException("Το πάγιο απουσιάζει ή έχει διπλό ID.")
+        if (expected != null) {
+            require(expected.string("id") == recurringId) { "Άκυρη πηγή παγίου." }
+            val desired = JsonObject(expected + mapOf(
+                "active" to JsonPrimitive(status == "active"),
+                "status" to JsonPrimitive(status),
+            ))
+            if (selectedSource.row == desired) return document
+            require(selectedSource.row == expected) {
+                "Η κατάσταση ή τα στοιχεία του παγίου άλλαξαν στον server. Έλεγξε τη νέα έκδοση."
+            }
         }
         val custom = document.state.array("recurringCustom")
         val index = custom.indexOfFirst { (it as? JsonObject)?.string("id") == recurringId }
@@ -386,6 +401,9 @@ data class UpsertOverallBudget(
     val alertThreshold: Int,
     val budgetId: String,
     val nowIso: String,
+    /** Opt-in safe expected-row guard for new writes; old pending intents remain compatible. */
+    val expected: JsonObject? = null,
+    val enforceExpected: Boolean = false,
 ) : CanonicalFinanceMutation {
     override val description: String = "Αποθήκευση budget"
 
@@ -393,27 +411,145 @@ data class UpsertOverallBudget(
         val cents = moneyToCents(amount)
         require(cents > 0) { "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν." }
         require(alertThreshold in 1..100) { "Το όριο ειδοποίησης πρέπει να είναι από 1 έως 100% για συμβατότητα παλαιών εκκρεμών αλλαγών." }
+        require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false)) {
+            "Μη έγκυρος μήνας προϋπολογισμού."
+        }
         val budgets = document.state.array("budgets")
+        val candidates = budgets.mapNotNull { it as? JsonObject }
+            .filter { it.string("month") == month && it.string("scope") == "overall" }
+        if (enforceExpected) {
+            require(candidates.size <= 1 && candidates.singleOrNull() == expected) {
+                "Ο προϋπολογισμός άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+            }
+        }
         val index = budgets.indexOfFirst { raw ->
             val item = raw as? JsonObject
             item?.string("month") == month && item.string("scope") == "overall"
         }
         val existing = budgets.getOrNull(index) as? JsonObject
-        val item = JsonObject(buildMap {
-            put("id", JsonPrimitive(existing?.string("id") ?: budgetId))
-            put("month", JsonPrimitive(month))
-            put("scope", JsonPrimitive("overall"))
-            put("amount", JsonPrimitive(centsToMoney(cents)))
-            put("alertThreshold", JsonPrimitive(alertThreshold.coerceIn(50, 99) / 100.0))
-            put("createdAt", JsonPrimitive(existing?.string("createdAt") ?: nowIso))
-            put("updatedAt", JsonPrimitive(nowIso))
-        })
+        val item = JsonObject((existing ?: JsonObject(emptyMap())) + mapOf(
+            "id" to JsonPrimitive(existing?.string("id") ?: budgetId),
+            "month" to JsonPrimitive(month),
+            "scope" to JsonPrimitive("overall"),
+            "amount" to JsonPrimitive(centsToMoney(cents)),
+            "alertThreshold" to JsonPrimitive(alertThreshold.coerceIn(50, 99) / 100.0),
+            "createdAt" to JsonPrimitive(existing?.string("createdAt") ?: nowIso),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
         val updated = budgets.toMutableList()
         if (index >= 0) updated[index] = item else updated += item
         return document.withMutableState(document.state.updated("budgets", JsonArray(updated)), nowIso)
     }
 }
 
+
+
+/** User-confirmed metadata removal; no ledger movement or historical event is deleted. */
+data class DeleteCategoryBudget(
+    val budgetId: String,
+    val month: String,
+    val category: String,
+    val expected: JsonObject,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Διαγραφή ορίου κατηγορίας"
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        budgetId.isNotBlank() &&
+            document.state.array("budgets").none {
+                (it as? JsonObject)?.string("id") == budgetId
+            }
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(budgetId.isNotBlank() && category.isNotBlank()) { "Άγνωστο όριο κατηγορίας." }
+        val rows = document.state.array("budgets")
+        val matches = rows.mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == budgetId }
+        require(matches.size <= 1) { "Διπλό ID ορίου: απαιτείται έλεγχος." }
+        val row = matches.singleOrNull() ?: return document
+        require(row == expected && row.string("scope") == "category" &&
+            row.string("month") == month && row.string("category") == category) {
+            "Το όριο άλλαξε σε άλλη συσκευή. Έλεγξε την ενημερωμένη εγγραφή."
+        }
+        return document.withMutableState(
+            document.state.updated("budgets", JsonArray(rows.filterNot { it == row })),
+            nowIso,
+        )
+    }
+}
+
+/** Web SavingsPage target setting. Zero is a valid disabled percentage, not a missing value. */
+data class SetCanonicalSavingsTargetRate(
+    val rate: Double,
+    val expectedRate: Double?,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Αλλαγή μηνιαίου στόχου αποταμίευσης"
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        rate.isFinite() && rate in 0.0..1.0 &&
+            document.settingsObject().number("savingsTargetRate") == rate
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(rate.isFinite() && rate in 0.0..1.0) {
+            "Ο στόχος αποταμίευσης πρέπει να είναι 0–100%."
+        }
+        if (satisfiedBy(document)) return document
+        val actual = document.settingsObject().number("savingsTargetRate")
+        require(actual == expectedRate) {
+            "Ο στόχος αποταμίευσης άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+        }
+        val settings = document.settingsObject()
+        return document.withMutableState(
+            document.state.updated("settings",
+                JsonObject(settings + ("savingsTargetRate" to JsonPrimitive(rate)))),
+            nowIso,
+        )
+    }
+}
+
+
+/** Web Settings Rules: pausing a rule changes only future matching, not historical finance. */
+data class SetCanonicalTransactionRuleEnabled(
+    val ruleId: String,
+    val enabled: Boolean,
+    val expected: JsonObject,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description = "Αλλαγή κατάστασης κανόνα"
+
+    private fun matches(document: CanonicalFinanceDocument) =
+        document.state.array("transactionRules").filterIsInstance<JsonObject>()
+            .filter { it.string("id") == ruleId }
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean =
+        ruleId.isNotBlank() &&
+            matches(document).singleOrNull()?.bool("enabled") == enabled
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(ruleId.isNotBlank()) { "Ο κανόνας δεν είναι διαθέσιμος." }
+        val matching = matches(document)
+        require(matching.size == 1) {
+            "Ο κανόνας λείπει ή έχει διπλό αναγνωριστικό. Απαιτείται έλεγχος."
+        }
+        val original = matching.single()
+        if (original.bool("enabled") == enabled) return document
+        require(original == expected) {
+            "Ο κανόνας άλλαξε σε άλλη συσκευή. Έλεγξε τη νέα έκδοση."
+        }
+        val updated = JsonObject(original + mapOf(
+            "enabled" to JsonPrimitive(enabled),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
+        val rows = document.state.array("transactionRules").toMutableList()
+        val index = rows.indexOfFirst { it == original }
+        require(index >= 0)
+        rows[index] = updated
+        return document.withMutableState(
+            document.state.updated("transactionRules", JsonArray(rows)), nowIso,
+        )
+    }
+}
 
 /** Web-shaped category budget upsert with expected-row replay and no ledger mutation. */
 data class UpsertCategoryBudget(
@@ -430,7 +566,8 @@ data class UpsertCategoryBudget(
     private fun matches(document: CanonicalFinanceDocument) =
         document.state.array("budgets").mapNotNull { it as? JsonObject }.filter {
             it.string("month") == month && it.string("scope") == "category" &&
-                it.string("category") == category
+                webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                    webBudgetCategoryKey(category)
         }
 
     fun satisfiedBy(document: CanonicalFinanceDocument): Boolean {

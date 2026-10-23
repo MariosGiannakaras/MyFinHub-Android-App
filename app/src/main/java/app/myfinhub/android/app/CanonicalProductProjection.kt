@@ -32,6 +32,8 @@ import app.myfinhub.android.core.data.canonicalLoanBalanceRows
 import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
+import app.myfinhub.android.core.data.canonicalLendingHistoryRows
+import app.myfinhub.android.core.data.canonicalLoanPaymentHistory
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.webSavingsMonthlyTargetSnapshot
 import app.myfinhub.android.core.data.webSavingsMonthlyTrend
@@ -66,8 +68,11 @@ import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.SavingsHistoryItem
 import app.myfinhub.android.feature.money.LoanItem
+import app.myfinhub.android.feature.money.LoanPaymentHistoryItem
+import app.myfinhub.android.feature.money.LendingHistoryItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
+import app.myfinhub.android.feature.money.CardAnnualRateVersion
 import app.myfinhub.android.feature.money.MoneyCardActivity
 import app.myfinhub.android.feature.money.MoneyCardActivityKind
 import app.myfinhub.android.feature.money.MoneyUiState
@@ -204,6 +209,13 @@ val activityCardLabels = document.canonicalCards().associate { card ->
     card.id to if (last4.isBlank()) base else "$base • $last4"
 }
 val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
+val uniqueEventCounterpartyIds = document.state.array("events")
+    .filterIsInstance<JsonObject>()
+    .groupBy { it.string("id").orEmpty() }
+    .filterKeys(String::isNotBlank)
+    .mapNotNull { (id, rows) ->
+        if (rows.size == 1) id to rows.single().string("counterpartyId") else null
+    }.toMap()
 val activityItems = buildActivityItems(
     legacy, events, accountNames, activityCardLabels, legacyOverrideIds,
 ).map { item ->
@@ -218,6 +230,8 @@ val activityItems = buildActivityItems(
             .groupBy { it.category }.mapValues { (_, rows) -> rows.sumOf { it.amount } },
         financeIncomeContribution = signed?.first,
         financeExpenseContribution = signed?.second,
+        counterpartyId = if (item.isLegacyTransaction) null
+            else uniqueEventCounterpartyIds[item.id],
     )
 }
 
@@ -378,6 +392,22 @@ val activityItems = buildActivityItems(
     )
 
     val canonicalCardProfiles = document.canonicalCards()
+    val rateHistoryByCard = document.state.array("cards")
+        .filterIsInstance<JsonObject>()
+        .mapNotNull { row ->
+            val id = row.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+            val versions = row.array("creditRateHistory")
+                .filterIsInstance<JsonObject>()
+                .mapNotNull { version ->
+                    val date = version.string("effectiveFrom")
+                        ?: return@mapNotNull null
+                    val rate = version.number("annualPercent")
+                        ?.takeIf { it.isFinite() && it in 0.0..100.0 }
+                        ?: return@mapNotNull null
+                    CardAnnualRateVersion(date, rate)
+                }.sortedBy(CardAnnualRateVersion::effectiveFrom)
+            id to versions
+        }.toMap()
     val activeCards = canonicalCardProfiles.filter { it.active }
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
@@ -455,6 +485,7 @@ val activityItems = buildActivityItems(
                 statementClosingDay = card.statementClosingDay,
                 statementDueDay = card.statementDueDay,
                 statementBoundaryRule = card.statementBoundaryRule,
+                annualRates = rateHistoryByCard[card.id].orEmpty(),
                 archivedAt = card.archivedAt,
                 activity = cardActivity,
             )
@@ -487,8 +518,27 @@ val activityItems = buildActivityItems(
                 isSelfLoan = loan.isSelfLoan,
                 liabilityRepayment = loan.isLiabilityRepayment,
                 defaultAccountId = loan.defaultAccountId,
+                typicalPaymentDay = loan.typicalPaymentDay,
+                kind = loan.kind,
+                totalInstallments = loan.totalInstallments,
+                firstExpectedDate = loan.firstExpectedDate,
+                expenseCategory = loan.expenseCategory,
             )
         },
+        loanPaymentsById = document.canonicalLoanPaymentHistory(asOf)
+            .mapValues { (_, rows) ->
+                rows.map { row ->
+                    LoanPaymentHistoryItem(
+                        eventId = row.eventId,
+                        date = row.date,
+                        note = row.note,
+                        amount = row.amount,
+                        accountId = row.accountId,
+                        installmentCount = row.installmentCount,
+                        eventKind = row.eventKind,
+                    )
+                }
+            },
         lendingItems = document.canonicalLendingPersonRows(asOf)
             .filter { it.outstanding > 0.005 }
             .map { row ->
@@ -499,6 +549,20 @@ val activityItems = buildActivityItems(
                     dueLabel = "",
                 )
             },
+        // Web lending history includes settled people and survives zero balances.
+        lendingHistory = document.canonicalLendingHistoryRows(asOf).map { row ->
+            LendingHistoryItem(
+                id = row.id,
+                personLabel = row.person,
+                date = row.date,
+                action = row.action,
+                amount = row.amount,
+                note = row.note,
+                runningOutstanding = row.runningOutstanding,
+                accountId = row.accountId,
+                origin = row.origin,
+            )
+        },
         savingsSources = currentSavingsBreakdown.bySource,
         savingsMonthlyTarget = document.webSavingsMonthlyTargetSnapshot(month, asOf),
         savingsMonthlyTrend = document.webSavingsMonthlyTrend(month, asOf),

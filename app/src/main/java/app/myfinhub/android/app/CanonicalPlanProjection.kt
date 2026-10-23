@@ -14,15 +14,26 @@ import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
+import app.myfinhub.android.core.data.canonicalBudgetProjectedCommitments
+import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
+import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.canonicalExplicitNativeCategoryIcon
+import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
+import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
 import app.myfinhub.android.core.data.canonicalLifecycle
 import app.myfinhub.android.core.data.number
+import app.myfinhub.android.core.data.obj
 import app.myfinhub.android.core.data.overallBudget
 import app.myfinhub.android.core.data.categoryBudgetSpending
 import app.myfinhub.android.core.data.webBudgetProgress
 import app.myfinhub.android.core.data.canonicalTransactionRuleOverview
 import app.myfinhub.android.core.data.string
+import app.myfinhub.android.core.data.settingsObject
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import app.myfinhub.android.core.ui.financialAccountDisplayName
 import app.myfinhub.android.feature.plan.BudgetDraft
 import app.myfinhub.android.feature.plan.CategoryBudget
@@ -55,9 +66,74 @@ internal fun projectCanonicalPlanState(
     today: LocalDate,
     previous: PlanUiState?,
 ): PlanUiState {
-    val month = YearMonth.from(today)
+    val month = previous?.budgetSelectedMonthIso
+        ?.takeIf(String::isNotBlank)
+        ?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+        ?: YearMonth.from(today)
     val canonicalBudget = document.overallBudget(month.toString())
+    val overallBudgetCandidates = document.state.array("budgets")
+        .filterIsInstance<JsonObject>()
+        .filter { it.string("month") == month.toString() && it.string("scope") == "overall" }
+    val editableOverallBudgetId = overallBudgetCandidates.singleOrNull()
+        ?.string("id")?.takeIf(String::isNotBlank)
     val budgetProgressRows = document.webBudgetProgress(month.toString(), today.toString())
+    // The Web category picker uses the owner's canonical expense taxonomy, not fixed Android labels.
+    val iconSettings = document.settingsObject()
+    val nativeIconPack = iconSettings.string("categoryIconPack")
+        ?.takeIf { it in CANONICAL_CATEGORY_ICON_PACKS } ?: "lucide"
+    fun iconTextMap(field: String): Map<String, String> =
+        iconSettings.obj(field).mapNotNull { (key, value) ->
+            (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+        }.toMap()
+    fun iconSelections(field: String): Map<String, Map<String, String>> =
+        iconSettings.obj(field).mapNotNull { (key, value) ->
+            val entry = value as? JsonObject ?: return@mapNotNull null
+            key to entry.mapNotNull { (pack, raw) ->
+                (raw as? JsonPrimitive)?.contentOrNull?.let { pack to it }
+            }.toMap()
+        }.toMap()
+    val legacyWithoutPack = iconSettings.string("categoryIconPack") == null
+    val categoryIconLegacy = iconTextMap("categoryIcons")
+    val subcategoryIconLegacy = iconTextMap("subcategoryIcons")
+    val categoryIconSelections = iconSelections("categoryIconPackSelections")
+    val subcategoryIconSelections = iconSelections("subcategoryIconPackSelections")
+    val nativeGlyphOverrides = buildMap<String, String> {
+        for (kind in listOf("expense", "income")) {
+            val treeField = if (kind == "expense") "expenseCategoryTree" else "incomeCategoryTree"
+            iconSettings.array(treeField).filterIsInstance<JsonObject>().forEach { row ->
+                val name = row.string("name") ?: return@forEach
+                canonicalExplicitNativeCategoryIcon(
+                    nativeIconPack, kind, name, null,
+                    categoryIconLegacy, categoryIconSelections, legacyWithoutPack,
+                )?.let { put("$kind:$name", it) }
+                row.array("subcategories").forEach { raw ->
+                    val child = (raw as? JsonPrimitive)?.contentOrNull ?: return@forEach
+                    canonicalExplicitNativeCategoryIcon(
+                        nativeIconPack, kind, name, child,
+                        subcategoryIconLegacy, subcategoryIconSelections, legacyWithoutPack,
+                    )?.let { put("$kind:$name:$child", it) }
+                }
+            }
+        }
+    }
+    val expenseCategoryRows = document.settingsObject().array("expenseCategoryTree")
+        .mapNotNull { it as? JsonObject }
+    val expenseCategoryTree = expenseCategoryRows.mapNotNull { it.string("name")?.trim() }
+        .filter { it.isNotEmpty() }
+    val ruleSubcategories = expenseCategoryRows
+        .mapNotNull { row ->
+            val name = row.string("name")?.trim()?.takeIf(String::isNotEmpty)
+                ?: return@mapNotNull null
+            name to row.array("subcategories")
+                .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
+                .filter { it.isNotEmpty() }.distinct()
+        }.toMap()
+    val flatExpenseCategories = document.settingsObject().array("expenseCategories")
+        .mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
+        .filter { it.isNotEmpty() }
+    val allowedBudgetCategories =
+        (if (expenseCategoryTree.isNotEmpty()) expenseCategoryTree else flatExpenseCategories)
+            .distinct()
     val categorizedBudgetTotal = document.categoryBudgetSpending(month.toString(), today.toString())
         .values.sum().coerceAtLeast(0.0)
     // H7 production forecast is a fixed, explainable 30-day window. Legacy preview-only
@@ -227,6 +303,16 @@ internal fun projectCanonicalPlanState(
             )
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.
+        counterpartyDirectory = document.canonicalCounterpartyDirectory(),
+        managedAccounts = document.canonicalAccounts().filter { it.kind != "credit" },
+        deletableCustomCashAccountIds = document.canonicalAccounts()
+            .filter { it.kind == "cash" && document.customCashAccountCanBeDeleted(it.id) }
+            .map { it.id }.toSet(),
+        defaultAccountIds = listOf(
+            "defaultExpenseAccount", "defaultIncomeAccount", "defaultLoanAccount",
+        ).associateWith { document.settingsObject().string(it).orEmpty() },
+        rulePreviewEvents = document.state.array("events")
+            .filterIsInstance<JsonObject>(),
         rules = document.canonicalTransactionRuleOverview().map { entry ->
             PlanningRule(
                 id = entry.id, title = entry.name,
@@ -234,25 +320,78 @@ internal fun projectCanonicalPlanState(
                     entry.action + " · " + entry.scopeLabel,
                 enabled = entry.enabled, warning = entry.invalidReason,
                 historicalMatchCount = entry.historicalMatchCount,
+                priority = entry.priority,
+                matchDescription = entry.matchDescription,
+                matchMerchant = entry.matchMerchant,
+                matchAccountId = entry.matchAccountId,
+                matchMode = entry.matchMode,
+                actionCategory = entry.actionCategory,
+                actionSubcategory = entry.actionSubcategory,
+                actionNote = entry.actionNote,
+                scopes = entry.scopes,
             )
         },
+        expenseTaxonomy = document.canonicalCategoryTaxonomy("expense"),
+        incomeTaxonomy = document.canonicalCategoryTaxonomy("income"),
+        categoryIconPack = nativeIconPack,
+        categoryGlyphOverrides = nativeGlyphOverrides,
+        categoryIconColors = document.settingsObject().obj("categoryIconColors")
+            .mapNotNull { (key, value) ->
+                (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+            }.toMap(),
+        subcategoryIconColors = document.settingsObject().obj("subcategoryIconColors")
+            .mapNotNull { (key, value) ->
+                (value as? JsonPrimitive)?.contentOrNull?.let { key to it }
+            }.toMap(),
+        budgetCategories = allowedBudgetCategories,
+        ruleSubcategories = ruleSubcategories,
         categoryBudgets = budgetProgressRows.filter { it.scope == "category" && !it.category.isNullOrBlank() }
             .map { row ->
                 CategoryBudget(
                     id = row.id,
                     name = row.category.orEmpty(),
-                    monthlyLimitText = row.limit.toPlainPlanMoney(),
+                    monthlyLimitText = row.baseLimit.toPlainPlanMoney(),
                     alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
                     spent = row.used,
                     rawSpent = row.rawUsed,
                     remaining = row.remaining,
                     status = row.status,
+                    effectiveLimit = row.limit,
+                    carried = row.carried,
+                    carryover = row.carryover,
+                    projectedDue = row.projectedDue,
+                    projectedRemaining = row.projectedRemaining,
+                    projectedStatus = row.projectedStatus,
+                )
+            },
+        subcategoryBudgets = budgetProgressRows
+            .filter { it.scope == "subcategory" &&
+                !it.category.isNullOrBlank() && !it.subcategory.isNullOrBlank() }
+            .map { row ->
+                CategoryBudget(
+                    id = row.id,
+                    name = row.category.orEmpty() + " › " + row.subcategory.orEmpty(),
+                    monthlyLimitText = row.baseLimit.toPlainPlanMoney(),
+                    alertThresholdText = (row.alertThreshold * 100).roundToInt().toString(),
+                    spent = row.used,
+                    rawSpent = row.rawUsed,
+                    remaining = row.remaining,
+                    status = row.status,
+                    effectiveLimit = row.limit,
+                    carried = row.carried,
+                    carryover = row.carryover,
+                    projectedDue = row.projectedDue,
+                    projectedRemaining = row.projectedRemaining,
+                    projectedStatus = row.projectedStatus,
+                    category = row.category,
+                    subcategory = row.subcategory,
                 )
             },
         budget = BudgetDraft(
             monthlyLimitText = canonicalBudget?.amount?.toPlainPlanMoney() ?: "",
             alertThresholdText = (canonicalBudget?.alertThreshold ?: 80).toString(),
         ),
+        overallBudgetId = editableOverallBudgetId,
         forecastHorizonDays = horizonDays,
         forecastStartDateIso = today.toString(),
         forecastEndDateIso = horizonEnd.toString(),
@@ -265,9 +404,19 @@ internal fun projectCanonicalPlanState(
             DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
         budgetSpent = categorizedBudgetTotal,
+        budgetProjectedDue = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedDue ?: 0.0,
+        budgetProjectedRemaining = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedRemaining ?: 0.0,
+        budgetProjectedStatus = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedStatus ?: "ok",
+        budgetKnownCommitments = document.canonicalBudgetProjectedCommitments(
+            month.toString(), today.toString(),
+        ),
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
+        budgetSelectedMonthIso = month.toString(),
         message = previous?.message,
     )
 }

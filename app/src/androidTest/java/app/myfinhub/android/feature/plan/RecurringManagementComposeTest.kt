@@ -112,6 +112,7 @@ class RecurringManagementComposeTest {
         } }
         rule.onNodeWithText("Παύση").performClick()
         rule.onAllNodesWithText("Διακοπή")[0].performClick()
+        rule.onNodeWithTag("recurring_stop_confirm").performClick()
         rule.onAllNodesWithText("Επανενεργοποίηση")[0].performClick()
         rule.runOnIdle {
             assertEquals("active" to "paused",calls[0])

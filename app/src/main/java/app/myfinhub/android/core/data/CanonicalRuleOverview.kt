@@ -17,6 +17,15 @@ data class CanonicalRuleOverview(
     val scopeLabel: String,
     val invalidReason: String?,
     val historicalMatchCount: Int = 0,
+    val matchDescription: String = "",
+    val matchMerchant: String = "",
+    val matchAccountId: String = "",
+    val matchMode: String = "contains",
+    val actionCategory: String = "",
+    val actionSubcategory: String = "",
+    val actionNote: String = "",
+    val scopes: List<String> = listOf("manual"),
+    val createdAt: String = "",
 )
 
 fun CanonicalFinanceDocument.canonicalTransactionRuleOverview(): List<CanonicalRuleOverview> {
@@ -98,6 +107,15 @@ fun CanonicalFinanceDocument.canonicalTransactionRuleOverview(): List<CanonicalR
                 scopeLabel = scopeLabel,
                 invalidReason = warning,
                 historicalMatchCount = canonicalHistoricalRuleMatchCount(rule),
+                matchDescription = desc.orEmpty(),
+                matchMerchant = merchant.orEmpty(),
+                matchAccountId = account.orEmpty(),
+                matchMode = match.string("mode") ?: "contains",
+                actionCategory = category.orEmpty(),
+                actionSubcategory = subcategory.orEmpty(),
+                actionNote = note.orEmpty(),
+                scopes = scopes,
+                createdAt = rule.string("createdAt").orEmpty(),
             )
         }
 }

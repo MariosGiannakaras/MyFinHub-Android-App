@@ -22,6 +22,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import kotlinx.serialization.json.JsonObject
 import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
 import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
 import app.myfinhub.android.core.network.AccountMetadataRecord
@@ -63,6 +64,7 @@ import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
 import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlanAction
 import app.myfinhub.android.feature.plan.PlanViewModel
 import app.myfinhub.android.feature.plan.PlannedFlow
 import app.myfinhub.android.feature.plan.PlannedItem
@@ -108,6 +110,7 @@ fun MyFinHubApp(
             moneyState = moneyState,
             onDeleteCard = moneyViewModel::deleteCard,
             planState = planState,
+            onPlanAction = planViewModel::onAction,
             insightsState = insightsState,
         )
     }
@@ -132,6 +135,10 @@ internal fun MyFinHubAppContent(
     moneyState: MoneyUiState = MoneyUiState(),
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
     recurringServiceAssets: List<app.myfinhub.android.core.network.RecurringServiceAssetRecord> = emptyList(),
+    backupFinanceDocument: JsonObject? = null,
+    backupPendingChangeCount: Int = 0,
+    backupMutationBlocked: Boolean = false,
+    backupOffline: Boolean = false,
     deviceSessions: DeviceSessionsUiSnapshot = DeviceSessionsUiSnapshot(),
     serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary? = null,
     serverHistoryEnabled: Boolean = false,
@@ -157,9 +164,35 @@ internal fun MyFinHubAppContent(
     onDeleteCard: (String) -> Unit = {},
     onRestoreCard: (String) -> Unit = {},
     onCreateCard: (CardCreateRequest) -> Unit = {},
+    onSaveCardProfile: ((app.myfinhub.android.feature.money.CardProfileEditRequest) -> Unit)? = null,
+    onSaveCreditBillingSettings: ((app.myfinhub.android.feature.money.CreditBillingSettingsRequest) -> Unit)? = null,
+    onAddCreditRateVersion: ((app.myfinhub.android.feature.money.CreditRateVersionRequest) -> Unit)? = null,
     planState: PlanUiState = PlanUiState(),
+    onPlanAction: (PlanAction) -> Unit = {},
     onSaveBudget: (String, String) -> Unit = { _, _ -> },
     onSaveCategoryBudget: (app.myfinhub.android.feature.plan.CategoryBudgetEditRequest) -> Unit = {},
+    onDeleteCategoryBudget: (String) -> Unit = {},
+    onSaveSubcategoryBudget: (app.myfinhub.android.feature.plan.SubcategoryBudgetEditRequest) -> Unit = {},
+    onDeleteSubcategoryBudget: (String) -> Unit = {},
+    onDeleteOverallBudget: (String) -> Unit = {},
+    onSaveMonthlySavingsRate: ((String) -> Unit)? = null,
+    onToggleTransactionRule: ((String, Boolean) -> Unit)? = null,
+    onSaveTransactionRule: ((app.myfinhub.android.feature.utilities.TransactionRuleEditRequest) -> Unit)? = null,
+    onSaveCounterparty: ((app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest) -> Unit)? = null,
+    onSaveManagedAccount: ((app.myfinhub.android.feature.utilities.ManagedAccountEditRequest) -> Unit)? = null,
+    onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
+    onReorderCategoryTaxonomy: ((String, String, String?, Int) -> Unit)? = null,
+    onAddCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
+    onRenameCategoryTaxonomy: ((String, String, String?, String) -> Unit)? = null,
+    onMoveSubcategoryTaxonomy: ((String, String, String, String) -> Unit)? = null,
+    onRetireCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
+    onSetCategoryIconColor: ((String, String, String?, String?) -> Unit)? = null,
+    onSetCategoryIconPack: ((String) -> Unit)? = null,
+    onSetCategoryIconGlyph: ((String, String, String?, String?) -> Unit)? = null,
+    onSetDefaultManagedAccount: ((String, String) -> Unit)? = null,
+    onLinkActivityCounterparty: ((String, String?) -> Unit)? = null,
+    onDeleteTransactionRule: ((String) -> Unit)? = null,
+    onReorderTransactionRule: ((String, Int) -> Unit)? = null,
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     onCreateRecurring: (app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = {},
     onEditRecurring: (String, app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = { _, _ -> },
@@ -167,6 +200,7 @@ internal fun MyFinHubAppContent(
     onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit = {},
     onCloseScheduled: (String, String) -> Unit = { _, _ -> },
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
+    onSaveLoanMetadata: ((app.myfinhub.android.feature.money.LoanMetadataEditRequest) -> Unit)? = null,
     onSaveSavingsGoal: ((String?, String, String, String?) -> Unit)? = null,
     onDeleteSavingsGoal: ((String) -> Unit)? = null,
     planMutationInFlight: Boolean = false,
@@ -277,6 +311,44 @@ internal fun MyFinHubAppContent(
                         state = frontendUtilitiesState,
                         onAction = onFrontendUtilitiesAction,
                         transactionRules = planState.rules,
+                        rulePreviewEvents = planState.rulePreviewEvents,
+                        counterpartyRows = planState.counterpartyDirectory,
+                        onSaveCounterparty = onSaveCounterparty,
+                        managedAccounts = planState.managedAccounts,
+                        deletableCustomCashAccountIds = planState.deletableCustomCashAccountIds,
+                        expenseTaxonomy = planState.expenseTaxonomy,
+                        incomeTaxonomy = planState.incomeTaxonomy,
+                        onReorderCategoryTaxonomy = onReorderCategoryTaxonomy,
+                        onAddCategoryTaxonomy = onAddCategoryTaxonomy,
+                        onRenameCategoryTaxonomy = onRenameCategoryTaxonomy,
+                        onMoveSubcategoryTaxonomy = onMoveSubcategoryTaxonomy,
+                        onRetireCategoryTaxonomy = onRetireCategoryTaxonomy,
+                        onSetCategoryIconColor = onSetCategoryIconColor,
+                        onSetCategoryIconPack = onSetCategoryIconPack,
+                        onSetCategoryIconGlyph = onSetCategoryIconGlyph,
+                        categoryIconPack = planState.categoryIconPack,
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
+                        categoryIconColors = planState.categoryIconColors,
+                        subcategoryIconColors = planState.subcategoryIconColors,
+                        onDeleteUnusedCustomCashAccount = onDeleteUnusedCustomCashAccount,
+                        defaultAccountIds = planState.defaultAccountIds,
+                        accountProviderOptions = financialProviderCatalog.map { it.id to it.displayName },
+                        onSaveManagedAccount = onSaveManagedAccount,
+                        onSetDefaultManagedAccount = onSetDefaultManagedAccount,
+                        onToggleRuleEnabled = onToggleTransactionRule,
+                        onSaveTransactionRule = onSaveTransactionRule,
+                        onDeleteTransactionRule = onDeleteTransactionRule,
+                        onReorderTransactionRule = onReorderTransactionRule,
+                        ruleCategories = planState.budgetCategories,
+                        ruleSubcategories = planState.ruleSubcategories,
+                        ruleAccountOptions = moneyState.accounts
+                            .filter { it.canonicalKind != "credit" && it.id.isNotBlank() }
+                            .map { it.id to it.name },
+                        rulesMutationBlocked = planMutationInFlight || planMutationBlocked,
+                        backupDocument = backupFinanceDocument,
+                        backupPendingChangeCount = backupPendingChangeCount,
+                        backupMutationBlocked = backupMutationBlocked,
+                        backupOffline = backupOffline,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
                         noticeHistoryCount = noticeHistory.size,
@@ -322,6 +394,9 @@ internal fun MyFinHubAppContent(
                     ) {
                         ActivityLedgerScreen(
                             state = activityState,
+                            categoryIconColors = planState.categoryIconColors,
+                            subcategoryIconColors = planState.subcategoryIconColors,
+                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
                             onAction = onActivityAction,
                             onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                             onOpenQuickEntry = { openFastExpense(activityBackStack) },
@@ -336,6 +411,10 @@ internal fun MyFinHubAppContent(
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
                         historicalBalance = item?.let { activityHistoricalBalance?.invoke(it) },
+                        counterpartyRows = planState.counterpartyDirectory,
+                        onChooseCounterparty = onLinkActivityCounterparty?.let { callback ->
+                            { selectedId -> callback(route.eventId, selectedId) }
+                        },
                         onBack = { activeBackStack.removeLastOrNull() },
                         onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
                         onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },
@@ -350,6 +429,7 @@ internal fun MyFinHubAppContent(
                         accountOptions = activityState.accountOptions,
                         incomeCategoryOptions = activityState.incomeCategories,
                         expenseCategoryOptions = activityState.expenseCategories,
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         mutationInFlight = activityMutationInFlight,
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
@@ -371,6 +451,9 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.CategoryActivity> { route ->
                     ActivityLedgerScreen(
+                        categoryIconColors = planState.categoryIconColors,
+                        subcategoryIconColors = planState.subcategoryIconColors,
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         state = activityState.forCategories(
                             categories = route.categories.ifEmpty { listOf(route.category) },
                             label = route.category,
@@ -394,6 +477,7 @@ internal fun MyFinHubAppContent(
                             onAction = onQuickEntryAction,
                             onBack = { activeBackStack.removeLastOrNull() },
                             mutationInFlight = quickEntryMutationInFlight,
+                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         )
                     }
                 }
@@ -437,6 +521,7 @@ internal fun MyFinHubAppContent(
                         onSaveAccountIban = onSaveAccountIban,
                         accountMetadataSaving = accountMetadataSaving,
                         activityItems = accountActivityItems(route.accountId, activityState.items),
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         onNewTransaction = {
@@ -468,6 +553,7 @@ internal fun MyFinHubAppContent(
                         cardId = route.cardId,
                         card = card,
                         cards = moneyState.cards,
+                        statements = moneyState.creditStatementsByCard[route.cardId].orEmpty(),
                         onSelectCard = { selectedCardId ->
                             if (selectedCardId != route.cardId) {
                                 moneyBackStack.removeLastOrNull()
@@ -478,6 +564,13 @@ internal fun MyFinHubAppContent(
                         onRetryCleanup = onRetryCardSecretCleanup,
                         onOpenSecureDetails = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardSecureDetails(cardId)) },
                         onRemoveCard = onDeleteCard,
+                        onSaveCardProfile = onSaveCardProfile,
+                        onSaveCreditBillingSettings = onSaveCreditBillingSettings,
+                        onAddCreditRateVersion = onAddCreditRateVersion,
+                        profileMutationBlocked = planMutationInFlight || planMutationBlocked,
+                        cardProviderOptions = financialProviderCatalog.map {
+                            it.id to it.displayName
+                        },
                         onAddPurchase = {
                             onQuickEntryAction(QuickEntryAction.Reset)
                             onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
@@ -489,6 +582,20 @@ internal fun MyFinHubAppContent(
                             onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
                             onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onPayStatement = { statementId, remaining ->
+                            val matching = moneyState.creditStatementsByCard[route.cardId].orEmpty()
+                                .filter { it.id == statementId }
+                            if (matching.size == 1 && matching.single().remaining > 0.005 &&
+                                kotlin.math.abs(matching.single().remaining - remaining) < 0.005
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                onQuickEntryAction(QuickEntryAction.StatementChanged(statementId))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(remaining.toString()))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
@@ -517,6 +624,7 @@ internal fun MyFinHubAppContent(
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onSaveGoal = onSaveSavingsGoal,
                         onDeleteGoal = onDeleteSavingsGoal,
+                        onSaveMonthlySavingsRate = onSaveMonthlySavingsRate,
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
@@ -525,6 +633,8 @@ internal fun MyFinHubAppContent(
                         state = moneyState,
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onRecordPayment = onRecordLoanPayment,
+                        onSaveLoanMetadata = onSaveLoanMetadata,
+                        expenseCategories = planState.budgetCategories,
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }
@@ -532,15 +642,34 @@ internal fun MyFinHubAppContent(
                     CanonicalLendingScreen(
                         state = moneyState,
                         onBack = { moneyBackStack.removeLastOrNull() },
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
                         onRecordRepayment = { lending ->
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
-                            onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
-                            onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
-                            if (lending.note.isNotBlank()) {
-                                onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                moneyState.lendingItems.count { it.personLabel == lending.personLabel } == 1 &&
+                                lending.amount > 0.005
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
+                                if (lending.note.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                                }
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onRecordLending = { person ->
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                person.isNotBlank() && (
+                                    moneyState.lendingItems.any { it.personLabel == person } ||
+                                    moneyState.lendingHistory.any { it.personLabel == person }
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.LENDING))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(person))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                     )
                 }
@@ -615,7 +744,17 @@ internal fun MyFinHubAppContent(
                     CanonicalBudget2026Screen(
                         state = planState,
                         onSaveBudget = onSaveBudget,
+                        onShiftBudgetMonth = { delta ->
+                            onPlanAction(PlanAction.ShiftBudgetMonth(delta))
+                        },
+                        onSelectBudgetMonth = { monthIso ->
+                            onPlanAction(PlanAction.SelectBudgetMonth(monthIso))
+                        },
                         onSaveCategoryBudget = onSaveCategoryBudget,
+                        onDeleteCategoryBudget = onDeleteCategoryBudget,
+                        onSaveSubcategoryBudget = onSaveSubcategoryBudget,
+                        onDeleteSubcategoryBudget = onDeleteSubcategoryBudget,
+                        onDeleteOverallBudget = onDeleteOverallBudget,
                         mutationInFlight = planMutationInFlight,
                         mutationBlocked = planMutationBlocked,
                         onBack = { planBackStack.removeLastOrNull() },
@@ -629,6 +768,7 @@ internal fun MyFinHubAppContent(
                     ) {
                         InsightsScreen(
                             state = insightsState,
+                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
                             selectedPeriodId = insightsPeriodId,
                             onPeriodSelected = { insightsPeriodId = it },
                             onOpenSupportingActivity = { activityBackStack.popToRoot() },

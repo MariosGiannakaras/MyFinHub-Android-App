@@ -443,6 +443,7 @@ fun CanonicalSavingsScreen(
     onBack: () -> Unit,
     onSaveGoal: ((String?, String, String, String?) -> Unit)? = null,
     onDeleteGoal: ((String) -> Unit)? = null,
+    onSaveMonthlySavingsRate: ((String) -> Unit)? = null,
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
@@ -453,6 +454,9 @@ fun CanonicalSavingsScreen(
     var dateDraft by rememberSaveable { mutableStateOf("") }
     var editorError by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var targetEditorVisible by rememberSaveable { mutableStateOf(false) }
+    var targetPercentDraft by rememberSaveable { mutableStateOf("20") }
+    var targetPercentError by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun editGoal(goal: SavingsGoalItem?) {
         editingId = goal?.id
@@ -513,6 +517,21 @@ fun CanonicalSavingsScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text("Στόχος αποταμίευσης μήνα",
                                 style = MaterialTheme.typography.titleMedium)
+                            if (onSaveMonthlySavingsRate != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = {
+                                        targetPercentDraft =
+                                            (performance.targetRate * 100.0).let { rate ->
+                                                if (rate == rate.toLong().toDouble()) rate.toLong().toString()
+                                                else rate.toString()
+                                            }
+                                        targetPercentError = null
+                                        targetEditorVisible = true
+                                    },
+                                    modifier = Modifier.testTag("savings_month_target_edit"),
+                                ) { Text("Αλλαγή ποσοστού στόχου") }
+                            }
                             Text(
                                 if (performance.targetRate > 0.0)
                                     "${kotlin.math.round(performance.targetRate * 100).toInt()}% των πραγματικών εσόδων"
@@ -781,6 +800,50 @@ fun CanonicalSavingsScreen(
             }
         }
     }
+    if (targetEditorVisible && onSaveMonthlySavingsRate != null) {
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) targetEditorVisible = false },
+            title = { Text("Μηνιαίος στόχος αποταμίευσης") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Ποσοστό πραγματικών εσόδων από 0 έως 100. " +
+                            "Η αλλαγή στόχου δεν μεταφέρει χρήματα.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = targetPercentDraft,
+                        onValueChange = { targetPercentDraft = it; targetPercentError = null },
+                        label = { Text("Στόχος (%)") }, singleLine = true,
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth().testTag("savings_month_target_percent"),
+                    )
+                    targetPercentError?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.testTag("savings_month_target_save"),
+                    onClick = {
+                        val percent = targetPercentDraft.replace(',', '.').toDoubleOrNull()
+                        targetPercentError = if (percent == null || !percent.isFinite() ||
+                            percent !in 0.0..100.0
+                        ) "Βάλε ποσοστό από 0 έως 100." else null
+                        if (targetPercentError == null) {
+                            onSaveMonthlySavingsRate(targetPercentDraft)
+                            targetEditorVisible = false
+                        }
+                    },
+                ) { Text("Αποθήκευση στόχου") }
+            },
+            dismissButton = {
+                TextButton(onClick = { targetEditorVisible = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
     if (editorVisible && onSaveGoal != null) {
         AlertDialog(
             onDismissRequest = { if (!mutationBlocked) editorVisible = false },
@@ -869,21 +932,202 @@ internal fun canonicalLoanPaymentIsUnambiguous(loan: LoanItem, rows: List<LoanIt
         loan.remaining > 0.005 && (loan.isSelfLoan || loan.remainingInstallments > 0)
 
 @Composable
+private fun CanonicalLoanFinanceRow(
+    loan: LoanItem,
+    amountsVisible: Boolean,
+    mutationBlocked: Boolean,
+    eligible: Boolean,
+    duplicateIdentity: Boolean,
+    history: List<LoanPaymentHistoryItem>,
+    accounts: List<MoneyAccount>,
+    onPay: () -> Unit,
+    onEdit: (() -> Unit)? = null,
+) {
+    var showHistory by rememberSaveable(loan.id) { mutableStateOf(false) }
+    var historyLimit by rememberSaveable(loan.id) { mutableStateOf(10) }
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MyFinHubIconBadge(MyFinHubIcons.Plan, FinanceTone.Expense, null)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(loan.name, style = MaterialTheme.typography.titleMedium)
+                    if (loan.lender.isNotBlank()) {
+                        Text(
+                            loan.lender,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                MyFinHubAmountText(
+                    amountVisibilityText(formatCanonicalEuro(loan.remaining), amountsVisible),
+                    FinanceTone.Expense,
+                )
+            }
+            if (loan.nextPaymentLabel.isNotBlank()) {
+                Text(loan.nextPaymentLabel, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (!loan.isSelfLoan && loan.remainingInstallments > 0) {
+                Text(
+                    "Απομένουν ${loan.remainingInstallments} δόσεις" +
+                        if (loan.monthlyPayment > 0.0) " · ${amountVisibilityText(formatCanonicalEuro(loan.monthlyPayment), amountsVisible)} / δόση"
+                        else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (eligible) {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    onClick = onPay,
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_record_payment_" + loan.id),
+                ) {
+                    Text(if (loan.isSelfLoan) "Καταχώριση επιστροφής" else "Πληρωμή δόσης")
+                }
+            } else if (duplicateIdentity) {
+                Text(
+                    "Διπλό ιστορικό ID δανείου · η πληρωμή απαιτεί μοναδικό αναγνωριστικό.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (onEdit != null && !duplicateIdentity) {
+                TextButton(
+                    onClick = onEdit,
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_edit_" + loan.id),
+                ) { Text("Επεξεργασία στοιχείων δανείου") }
+            }
+            if (history.isNotEmpty() && !duplicateIdentity) {
+                TextButton(
+                    onClick = { showHistory = !showHistory; historyLimit = 10 },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_history_toggle_" + loan.id),
+                ) {
+                    Text(if (showHistory) "Απόκρυψη πληρωμών"
+                        else "Συνδεδεμένες πληρωμές (${history.size})")
+                }
+                if (showHistory) {
+                    history.take(historyLimit).forEachIndexed { i, entry ->
+                        val accountLabel = entry.accountId?.let { accountId ->
+                            accounts.singleOrNull { it.id == accountId }?.name
+                        }
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("loan_payment_history_${i}"),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            Text(
+                                entry.date +
+                                    if (entry.installmentCount > 1)
+                                        " · ${entry.installmentCount} δόσεις" else "",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (entry.note.isNotBlank()) {
+                                Text(entry.note, style = MaterialTheme.typography.bodySmall)
+                            }
+                            if (accountLabel != null) {
+                                Text(accountLabel, style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            MyFinHubAmountText(
+                                amountVisibilityText(
+                                    formatCanonicalEuro(entry.amount), amountsVisible,
+                                ),
+                                FinanceTone.Expense,
+                            )
+                        }
+                    }
+                    if (history.size > historyLimit) {
+                        TextButton(
+                            onClick = {
+                                historyLimit = (historyLimit + 10).coerceAtMost(history.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("loan_history_more_" + loan.id),
+                        ) { Text("Περισσότερες πληρωμές (${history.size - historyLimit})") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Mirrors Web LoansPage active/completed groups and client-only sorting. */
+@Composable
 fun CanonicalLoansScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
     onRecordPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
+    onSaveLoanMetadata: ((LoanMetadataEditRequest) -> Unit)? = null,
+    expenseCategories: List<String> = emptyList(),
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var selectedLoanId by rememberSaveable { mutableStateOf<String?>(null) }
-    state.loans.firstOrNull { it.id == selectedLoanId &&
+    var creatingLoan by rememberSaveable { mutableStateOf(false) }
+    var editingLoanId by rememberSaveable { mutableStateOf<String?>(null) }
+    var sortKey by rememberSaveable { mutableStateOf("remaining") }
+    var ascending by rememberSaveable { mutableStateOf(false) }
+    var activeLimit by rememberSaveable { mutableStateOf(20) }
+    var completedLimit by rememberSaveable { mutableStateOf(20) }
+    val sorted = state.loans.withIndex().sortedWith { a, b ->
+        val first = when (sortKey) {
+            "name" -> a.value.name.lowercase(Locale.forLanguageTag("el-GR"))
+                .compareTo(b.value.name.lowercase(Locale.forLanguageTag("el-GR")))
+            "amount" -> a.value.remaining.compareTo(b.value.remaining)
+            "next" -> (a.value.typicalPaymentDay ?: 99)
+                .compareTo(b.value.typicalPaymentDay ?: 99)
+            else -> a.value.remainingInstallments
+                .compareTo(b.value.remainingInstallments)
+                .takeUnless { it == 0 } ?: a.value.remaining.compareTo(b.value.remaining)
+        }
+        val withTie = if (first == 0) a.value.id.compareTo(b.value.id) else first
+        if (withTie != 0) {
+            if (ascending) withTie else -withTie
+        } else a.index.compareTo(b.index)
+    }
+    val active = sorted.filter {
+        it.value.remaining > 0.005 &&
+            (it.value.isSelfLoan || it.value.remainingInstallments > 0)
+    }
+    val completed = sorted.filterNot { it in active }
+    val editorLoan = editingLoanId?.let { targetId ->
+        state.loans.singleOrNull {
+            it.id == targetId && !it.isSelfLoan &&
+                it.kind in setOf("loan", "installment")
+        }
+    }
+    if (onSaveLoanMetadata != null && (creatingLoan || editorLoan != null)) {
+        CanonicalLoanMetadataEditor(
+            initial = editorLoan,
+            accounts = state.accounts,
+            categories = expenseCategories,
+            mutationBlocked = mutationBlocked,
+            onDismiss = { creatingLoan = false; editingLoanId = null },
+            onSave = { request ->
+                onSaveLoanMetadata(request)
+                creatingLoan = false
+                editingLoanId = null
+            },
+        )
+    }
+    state.loans.singleOrNull { it.id == selectedLoanId &&
         canonicalLoanPaymentIsUnambiguous(it, state.loans) }?.let { loan ->
         CanonicalLoanPaymentDialog(
             loan = loan, accounts = state.accounts,
             onDismiss = { selectedLoanId = null },
             onConfirm = { date, account, count, amount, savings ->
-                onRecordPayment(loan.id, account, date, count, amount, savings)
+                if (!mutationBlocked && canonicalLoanPaymentIsUnambiguous(loan, state.loans)) {
+                    onRecordPayment(loan.id, account, date, count, amount, savings)
+                }
                 selectedLoanId = null
             },
         )
@@ -892,7 +1136,7 @@ fun CanonicalLoansScreen(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Δάνεια",
-                subtitle = "Συνολικό υπόλοιπο οφειλών",
+                subtitle = "Ενεργές και ολοκληρωμένες υποχρεώσεις",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -903,80 +1147,152 @@ fun CanonicalLoansScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                    .testTag("loan_total_outstanding")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Συνολικό υπόλοιπο", style = MaterialTheme.typography.labelLarge)
                         MyFinHubAmountText(
-                            text = amountVisibilityText(formatCanonicalEuro(state.loanOutstanding), amountsVisible),
+                            text = amountVisibilityText(
+                                formatCanonicalEuro(state.loanOutstanding), amountsVisible,
+                            ),
                             tone = FinanceTone.Expense,
                             style = MaterialTheme.typography.headlineMedium,
                         )
+                        Text(
+                            "${active.size} ενεργά · ${completed.size} ολοκληρωμένα",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (onSaveLoanMetadata != null) {
+                            TextButton(
+                                onClick = { creatingLoan = true },
+                                enabled = !mutationBlocked,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("loan_create_new"),
+                            ) { Text("Νέο δάνειο ή αγορά σε δόσεις") }
+                        }
                     }
                 }
             }
             if (state.loans.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Δεν υπάρχουν αναλυτικά στοιχεία δανείων",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "Το συνολικό υπόλοιπο παραμένει διαθέσιμο. Αν προστεθούν στοιχεία ανά δάνειο, θα εμφανιστούν εδώ.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Text("Δεν υπάρχουν καταχωρισμένα δάνεια.",
+                            style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             } else {
-                itemsIndexed(state.loans, key = { index, loan ->
-                    canonicalLoanRowKey(loan, index)
-                }) { _, loan ->
-                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                item {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_sort_controls")) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text("Ταξινόμηση", style = MaterialTheme.typography.titleSmall)
                             Row(
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                MyFinHubIconBadge(MyFinHubIcons.Plan, FinanceTone.Expense, null)
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(loan.name, style = MaterialTheme.typography.titleMedium)
-                                    if (loan.lender.isNotBlank()) {
-                                        Text(
-                                            loan.lender,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                listOf("remaining" to "Δόσεις", "amount" to "Ποσό")
+                                    .forEach { (key, label) ->
+                                        androidx.compose.material3.FilterChip(
+                                            selected = sortKey == key,
+                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
+                                            label = { Text(label) },
                                         )
                                     }
-                                }
-                                MyFinHubAmountText(amountVisibilityText(formatCanonicalEuro(loan.remaining), amountsVisible), FinanceTone.Expense)
                             }
-                            if (loan.nextPaymentLabel.isNotBlank()) {
-                                Text(
-                                    loan.nextPaymentLabel,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                                listOf("name" to "Όνομα", "next" to "Ημέρα")
+                                    .forEach { (key, label) ->
+                                        androidx.compose.material3.FilterChip(
+                                            selected = sortKey == key,
+                                            onClick = { sortKey = key; activeLimit = 20; completedLimit = 20 },
+                                            label = { Text(label) },
+                                        )
+                                    }
                             }
-                            if (canonicalLoanPaymentIsUnambiguous(loan, state.loans)) {
-                                TextButton(
-                                    enabled = !mutationBlocked,
-                                    onClick = { selectedLoanId = loan.id },
-                                    modifier = Modifier.fillMaxWidth()
-                                        .testTag("loan_record_payment_" + loan.id),
-                                ) { Text(if (loan.isSelfLoan) "Καταχώριση επιστροφής" else "Πληρωμή δόσης") }
-                            } else if (state.loans.count { it.id == loan.id } > 1) {
-                                Text(
-                                    "Διπλό ιστορικό αναγνωριστικό δανείου · οι πληρωμές απαιτούν μοναδικό ID.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                            TextButton(
+                                onClick = { ascending = !ascending },
+                                modifier = Modifier.testTag("loan_sort_direction"),
+                            ) { Text(if (ascending) "Αύξουσα ↑" else "Φθίνουσα ↓") }
                         }
+                    }
+                }
+                item {
+                    MyFinHubSectionHeading(
+                        title = "Ενεργές οφειλές",
+                        subtitle = "${active.size} δάνεια με υπόλοιπο",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Expense,
+                    )
+                }
+                if (active.isEmpty()) item {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("Δεν υπάρχουν ενεργές οφειλές.")
+                    }
+                }
+                itemsIndexed(
+                    active.take(activeLimit),
+                    key = { _, indexed -> canonicalLoanRowKey(indexed.value, indexed.index) },
+                ) { _, indexed ->
+                    CanonicalLoanFinanceRow(
+                        loan = indexed.value,
+                        amountsVisible = amountsVisible,
+                        mutationBlocked = mutationBlocked,
+                        eligible = canonicalLoanPaymentIsUnambiguous(indexed.value, state.loans),
+                        duplicateIdentity = state.loans.count { it.id == indexed.value.id } > 1,
+                        history = state.loanPaymentsById[indexed.value.id].orEmpty(),
+                        accounts = state.accounts,
+                        onPay = { selectedLoanId = indexed.value.id },
+                        onEdit = if (onSaveLoanMetadata != null &&
+                            !indexed.value.isSelfLoan &&
+                            indexed.value.kind in setOf("loan", "installment") &&
+                            state.loans.count { it.id == indexed.value.id } == 1
+                        ) ({ editingLoanId = indexed.value.id }) else null,
+                    )
+                }
+                if (active.size > activeLimit) item {
+                    TextButton(
+                        onClick = { activeLimit = (activeLimit + 20).coerceAtMost(active.size) },
+                        modifier = Modifier.fillMaxWidth().testTag("loan_more_active"),
+                    ) { Text("Περισσότερα ενεργά (${active.size - activeLimit})") }
+                }
+                if (completed.isNotEmpty()) {
+                    item {
+                        MyFinHubSectionHeading(
+                            title = "Ολοκληρωμένα δάνεια",
+                            subtitle = "Ιστορικά στοιχεία χωρίς ενεργή πληρωμή",
+                            icon = MyFinHubIcons.Plan,
+                            tone = FinanceTone.Neutral,
+                        )
+                    }
+                    itemsIndexed(
+                        completed.take(completedLimit),
+                        key = { _, indexed -> "completed-" +
+                            canonicalLoanRowKey(indexed.value, indexed.index) },
+                    ) { _, indexed ->
+                        CanonicalLoanFinanceRow(
+                            loan = indexed.value,
+                            amountsVisible = amountsVisible,
+                            mutationBlocked = true,
+                            eligible = false,
+                            duplicateIdentity = state.loans.count { it.id == indexed.value.id } > 1,
+                            history = state.loanPaymentsById[indexed.value.id].orEmpty(),
+                            accounts = state.accounts,
+                            onPay = {},
+                            onEdit = if (onSaveLoanMetadata != null &&
+                                !indexed.value.isSelfLoan &&
+                                indexed.value.kind in setOf("loan", "installment") &&
+                                state.loans.count { it.id == indexed.value.id } == 1
+                            ) ({ editingLoanId = indexed.value.id }) else null,
+                        )
+                    }
+                    if (completed.size > completedLimit) item {
+                        TextButton(
+                            onClick = {
+                                completedLimit = (completedLimit + 20).coerceAtMost(completed.size)
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("loan_more_completed"),
+                        ) { Text("Περισσότερα ολοκληρωμένα (${completed.size - completedLimit})") }
                     }
                 }
             }
@@ -989,13 +1305,38 @@ fun CanonicalLendingScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
     onRecordRepayment: (LendingItem) -> Unit = {},
+    onRecordLending: (String) -> Unit = {},
+    mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedPerson by rememberSaveable { mutableStateOf<String?>(null) }
+    var actionFilter by rememberSaveable { mutableStateOf("all") }
+    var peopleLimit by rememberSaveable { mutableStateOf(24) }
+    var historyLimit by rememberSaveable { mutableStateOf(30) }
+    // The canonical person rows are the source of receivable balances; historical
+    // rows only provide independently auditable movements, never synthetic balances.
+    val allPeople = (
+        state.lendingItems.map { it.personLabel } +
+            state.lendingHistory.map { it.personLabel }
+    ).filter { it.isNotBlank() }.distinct().sortedBy {
+        it.lowercase(Locale.forLanguageTag("el-GR"))
+    }
+    val displayedPeople = allPeople.filter {
+        query.isBlank() || it.contains(query.trim(), ignoreCase = true)
+    }
+    val focusPerson = selectedPerson?.takeIf { it in allPeople }
+    val currentRow = state.lendingItems.singleOrNull { it.personLabel == focusPerson }
+    val visibleHistory = state.lendingHistory.filter { entry ->
+        (focusPerson == null || entry.personLabel == focusPerson) &&
+            (actionFilter == "all" || entry.action == actionFilter)
+    }
+    val displayedTotal = state.lendingReceivable
     Scaffold(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Απαιτήσεις",
-                subtitle = "Ποσά που αναμένεις να επιστραφούν",
+                subtitle = "Δανεικά ανά πρόσωπο και πραγματικές κινήσεις",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -1006,37 +1347,66 @@ fun CanonicalLendingScreen(
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
             item {
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                MyFinHubSectionCard(
+                    modifier = Modifier.fillMaxWidth().testTag("lending_totals")
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text("Αναμενόμενες επιστροφές", style = MaterialTheme.typography.labelLarge)
                         MyFinHubAmountText(
-                            text = amountVisibilityText(formatCanonicalEuro(state.lendingReceivable), amountsVisible),
+                            text = amountVisibilityText(formatCanonicalEuro(displayedTotal), amountsVisible),
                             tone = FinanceTone.Income,
                             style = MaterialTheme.typography.headlineMedium,
+                        )
+                        Text(
+                            "${state.lendingItems.size} ενεργές απαιτήσεις · " +
+                                "${allPeople.size} πρόσωπα με στοιχεία",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
-            // Settled people can retain dated history without a current receivable.
-            if (state.lendingItems.isEmpty() && state.lendingHistory.isEmpty()) {
+            if (allPeople.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            Text(
-                                "Δεν υπάρχουν αναλυτικά στοιχεία απαιτήσεων",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "Το συνολικό ποσό παραμένει διαθέσιμο. Αν προστεθούν πρόσωπα ή ημερομηνίες επιστροφής, θα εμφανιστούν εδώ.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        Text(
+                            "Δεν υπάρχουν καταγεγραμμένα πρόσωπα ή κινήσεις δανεικών.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
                 }
             } else {
-                items(state.lendingItems, key = LendingItem::id) { item ->
+                item {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("lending_person_selector")
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text("Πρόσωπα", style = MaterialTheme.typography.titleMedium)
+                            OutlinedTextField(
+                                value = query,
+                                onValueChange = { query = it; peopleLimit = 24 },
+                                label = { Text("Αναζήτηση προσώπου") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("lending_person_search"),
+                            )
+                            TextButton(
+                                onClick = { selectedPerson = null; historyLimit = 30 },
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("lending_all_people"),
+                            ) {
+                                Text(if (focusPerson == null) "✓ Όλα τα πρόσωπα"
+                                else "Προβολή όλων των προσώπων")
+                            }
+                        }
+                    }
+                }
+                itemsIndexed(
+                    displayedPeople.take(peopleLimit),
+                    key = { index, person -> "lending-person-${index}-${person}" },
+                ) { _, person ->
+                    val matches = state.lendingItems.filter { it.personLabel == person }
+                    val balance = matches.singleOrNull()?.amount
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Row(
@@ -1046,38 +1416,114 @@ fun CanonicalLendingScreen(
                             ) {
                                 MyFinHubIconBadge(MyFinHubIcons.Income, FinanceTone.Income, null)
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(item.personLabel, style = MaterialTheme.typography.titleMedium)
-                                    if (item.dueLabel.isNotBlank()) {
-                                        Text(
-                                            item.dueLabel,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
+                                    Text(person, style = MaterialTheme.typography.titleMedium)
+                                    Text(
+                                        if (balance == null) "Ιστορικό χωρίς ενεργή απαίτηση"
+                                        else "Ενεργή απαίτηση",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
-                                MyFinHubAmountText(amountVisibilityText(formatCanonicalEuro(item.amount), amountsVisible), FinanceTone.Income)
+                                if (balance != null) {
+                                    MyFinHubAmountText(
+                                        amountVisibilityText(formatCanonicalEuro(balance), amountsVisible),
+                                        FinanceTone.Income,
+                                    )
+                                }
                             }
-                            TextButton(onClick = { onRecordRepayment(item) }) {
-                                Text("Καταχώριση επιστροφής")
+                            TextButton(
+                                onClick = { selectedPerson = person; historyLimit = 30 },
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("lending_select_person"),
+                            ) { Text(if (person == focusPerson) "✓ Επιλεγμένο πρόσωπο" else "Προβολή κινήσεων") }
+                            if (person == focusPerson) {
+                                TextButton(
+                                    onClick = { onRecordLending(person) },
+                                    enabled = !mutationBlocked,
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("lending_record_new"),
+                                ) { Text("Του δίνω · νέα καταχώριση") }
+                                if (matches.size == 1 && balance != null && balance > 0.005) {
+                                    TextButton(
+                                        onClick = { onRecordRepayment(matches.single()) },
+                                        enabled = !mutationBlocked,
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("lending_record_repayment"),
+                                    ) { Text("Μου επιστρέφει · νέα καταχώριση") }
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (state.lendingHistory.isNotEmpty()) {
+                if (displayedPeople.size > peopleLimit) {
+                    item {
+                        TextButton(
+                            onClick = {
+                                peopleLimit = (peopleLimit + 24).coerceAtMost(displayedPeople.size)
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("lending_more_people"),
+                        ) { Text("Περισσότερα πρόσωπα (${displayedPeople.size - peopleLimit})") }
+                    }
+                }
                 item {
                     MyFinHubSectionHeading(
                         title = "Ιστορικό δανεικών",
-                        subtitle = "Καταγεγραμμένες χορηγήσεις, επιστροφές και διαγραφές",
+                        subtitle = if (focusPerson == null)
+                            "Πραγματικές χορηγήσεις, επιστροφές και διαγραφές"
+                        else "Κινήσεις: $focusPerson",
                         icon = MyFinHubIcons.Income,
                         tone = FinanceTone.Neutral,
                     )
                 }
-                // Web history can contain independent historical rows with repeated IDs.
-                // Identity is render-only; never use a history list key as a mutation target.
+                item {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                        .testTag("lending_history_filters")) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            ) {
+                                androidx.compose.material3.FilterChip(
+                                    selected = actionFilter == "all",
+                                    onClick = { actionFilter = "all"; historyLimit = 30 },
+                                    label = { Text("Όλες") },
+                                )
+                                androidx.compose.material3.FilterChip(
+                                    selected = actionFilter == "lent",
+                                    onClick = { actionFilter = "lent"; historyLimit = 30 },
+                                    label = { Text("Έδωσα") },
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            ) {
+                                androidx.compose.material3.FilterChip(
+                                    selected = actionFilter == "repaid",
+                                    onClick = { actionFilter = "repaid"; historyLimit = 30 },
+                                    label = { Text("Επιστροφές") },
+                                )
+                                androidx.compose.material3.FilterChip(
+                                    selected = actionFilter == "forgiven",
+                                    onClick = { actionFilter = "forgiven"; historyLimit = 30 },
+                                    label = { Text("Διαγραφές") },
+                                )
+                            }
+                        }
+                    }
+                }
+                if (visibleHistory.isEmpty()) {
+                    item {
+                        MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                            Text("Δεν υπάρχουν κινήσεις με αυτά τα φίλτρα.")
+                        }
+                    }
+                }
+                // Imported event IDs may repeat. The index is only a stable render
+                // discriminator, NEVER a write target or an assumed unique event ID.
                 itemsIndexed(
-                    items = state.lendingHistory,
-                    key = { index, row -> "lending-history-$index-${row.id}" },
+                    visibleHistory.take(historyLimit),
+                    key = { index, item -> "lending-history-${index}-${item.id}" },
                 ) { _, history ->
                     val typeLabel = when (history.action) {
                         "lent" -> "Έδωσα"
@@ -1085,18 +1531,19 @@ fun CanonicalLendingScreen(
                         "forgiven" -> "Διαγραφή απαίτησης"
                         else -> "Κίνηση"
                     }
-                    val tone = if (history.action == "lent") FinanceTone.Expense else FinanceTone.Income
+                    val tone = if (history.action == "lent")
+                        FinanceTone.Expense else FinanceTone.Income
+                    val accountLabel = history.accountId?.let { accountId ->
+                        state.accounts.singleOrNull { it.id == accountId }?.name
+                    }
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(
                                 "${history.personLabel} · ${history.date}",
                                 style = MaterialTheme.typography.titleSmall,
                             )
-                            Text(
-                                typeLabel,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Text(typeLabel, style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                             if (history.note.isNotBlank()) {
                                 Text(history.note, style = MaterialTheme.typography.bodySmall)
                             }
@@ -1110,6 +1557,23 @@ fun CanonicalLendingScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (accountLabel != null || history.origin == "legacy") {
+                                Text(
+                                    accountLabel ?: "Ιστορικό χωρίς λογαριασμό",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+                if (visibleHistory.size > historyLimit) {
+                    item {
+                        TextButton(
+                            onClick = { historyLimit = (historyLimit + 30).coerceAtMost(visibleHistory.size) },
+                            modifier = Modifier.fillMaxWidth().testTag("lending_more_history"),
+                        ) {
+                            Text("Περισσότερες κινήσεις (${visibleHistory.size - historyLimit})")
                         }
                     }
                 }

@@ -1,8 +1,10 @@
 package app.myfinhub.android.core.data
 
 import kotlin.math.roundToInt
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 /**
  * Durable, device-local representation of a user-approved canonical finance mutation.
@@ -21,8 +23,32 @@ enum class PendingMutationKind {
     EDIT_ACTIVITY,
     DELETE_ACTIVITY,
     UPSERT_OVERALL_BUDGET,
+    DELETE_OVERALL_BUDGET,
     UPSERT_CATEGORY_BUDGET,
+    UPSERT_SUBCATEGORY_BUDGET,
+    DELETE_SUBCATEGORY_BUDGET,
+    DELETE_CATEGORY_BUDGET,
+    SET_SAVINGS_TARGET_RATE,
+    SET_TRANSACTION_RULE_ENABLED,
+    UPSERT_TRANSACTION_RULE,
+    UPSERT_COUNTERPARTY,
+    LINK_EVENT_COUNTERPARTY,
+    UPSERT_MANAGED_ACCOUNT,
+    DELETE_UNUSED_CASH_ACCOUNT,
+    SET_DEFAULT_ACCOUNT,
+    REORDER_CATEGORY_TAXONOMY,
+    ADD_CATEGORY_TAXONOMY,
+    RENAME_CATEGORY_TAXONOMY,
+    MOVE_SUBCATEGORY_TAXONOMY,
+    RETIRE_CATEGORY_TAXONOMY,
+    SET_CATEGORY_ICON_COLOR,
+    SET_CATEGORY_ICON_PREFERENCE,
+    DELETE_TRANSACTION_RULE,
+    REORDER_TRANSACTION_RULE,
     CREATE_CARD,
+    EDIT_CARD_PROFILE,
+    SET_CREDIT_BILLING_SETTINGS,
+    ADD_CREDIT_RATE_VERSION,
     DEACTIVATE_CARD,
     RESTORE_CARD,
     PERMANENTLY_DELETE_CARD,
@@ -34,6 +60,7 @@ enum class PendingMutationKind {
     COMPLETE_SCHEDULED,
     CLOSE_SCHEDULED,
     UPSERT_SAVINGS_GOAL,
+    UPSERT_LOAN_METADATA,
     DELETE_SAVINGS_GOAL,
 }
 
@@ -64,6 +91,13 @@ data class PendingCanonicalMutationIntent(
         }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
+        PendingMutationKind.UPSERT_LOAN_METADATA -> UpsertCanonicalLoanMetadata(
+            source = payload.string("source").orEmpty(),
+            loan = payload["loan"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing loan metadata row"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_SAVINGS_GOAL -> UpsertCanonicalSavingsGoal(
             goalId = payload.string("goalId").orEmpty(),
             name = payload.string("name").orEmpty(),
@@ -80,6 +114,7 @@ data class PendingCanonicalMutationIntent(
             recurringId = payload.string("recurringId").orEmpty(),
             status = payload.string("status").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
         )
         PendingMutationKind.CREATE_RECURRING -> {
             val row = payload.obj("recurring")
@@ -175,6 +210,35 @@ data class PendingCanonicalMutationIntent(
             transactionId = payload.string("transactionId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.SET_CREDIT_BILLING_SETTINGS -> SetCanonicalCreditBillingSettings(
+            cardId = payload.string("cardId").orEmpty(),
+            closingDay = payload.number("closingDay")?.toInt() ?: 0,
+            dueDay = payload.number("dueDay")?.toInt() ?: 0,
+            boundaryRule = payload.string("boundaryRule").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source billing card"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.ADD_CREDIT_RATE_VERSION -> AddCanonicalCreditRateVersion(
+            cardId = payload.string("cardId").orEmpty(),
+            annualPercent = payload.number("annualPercent") ?: Double.NaN,
+            effectiveFrom = payload.string("effectiveFrom").orEmpty(),
+            earliestAllowedDate = payload.string("earliestAllowedDate").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source rate card"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.EDIT_CARD_PROFILE -> EditCanonicalCardProfile(
+            cardId = payload.string("cardId").orEmpty(),
+            bankId = payload.string("bankId").orEmpty(),
+            nickname = payload.string("nickname").orEmpty(),
+            network = payload.string("network").orEmpty(),
+            formFactor = payload.string("formFactor").orEmpty(),
+            creditLimit = payload.number("creditLimit"),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected card source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.CREATE_CARD -> CreateCanonicalCard(
     cardId = payload.string("cardId").orEmpty(),
     bankId = payload.string("bankId").orEmpty(),
@@ -186,6 +250,168 @@ data class PendingCanonicalMutationIntent(
     creditLimit = payload.number("creditLimit"),
     nowIso = payload.string("nowIso").orEmpty(),
 )
+        PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET -> UpsertCanonicalSubcategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            amount = payload.number("amount") ?: Double.NaN,
+            alertThreshold = payload.number("alertThreshold")?.toInt() ?: 0,
+            carryover = payload.bool("carryover") == true,
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_SUBCATEGORY_BUDGET -> DeleteCanonicalSubcategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source subcategory budget"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_CATEGORY_BUDGET -> DeleteCategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected budget row"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_SAVINGS_TARGET_RATE -> SetCanonicalSavingsTargetRate(
+            rate = payload.number("rate") ?: Double.NaN,
+            expectedRate = payload.number("expectedRate"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.LINK_EVENT_COUNTERPARTY -> LinkCanonicalEventCounterparty(
+            eventId = payload.string("eventId").orEmpty(),
+            counterpartyId = payload.string("counterpartyId"),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected source event"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> DeleteCanonicalCustomCashAccount(
+            accountId = payload.string("accountId").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source custom cash account"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> UpsertCanonicalManagedAccount(
+            accountId = payload.string("accountId").orEmpty(),
+            source = payload.string("source").orEmpty(),
+            name = payload.string("name").orEmpty(),
+            mode = payload.string("mode").orEmpty(),
+            providerId = payload.string("providerId"),
+            providerName = payload.string("providerName"),
+            bankCategory = payload.string("bankCategory"),
+            cashType = payload.string("cashType"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_CATEGORY_ICON_PREFERENCE -> SetCanonicalCategoryIconPreference(
+            pack = payload.string("pack").orEmpty(),
+            kind = payload.string("kind"),
+            category = payload.string("category"),
+            subcategory = payload.string("subcategory"),
+            semanticKey = payload.string("semanticKey"),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing icon preference settings source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_CATEGORY_ICON_COLOR -> SetCanonicalCategoryIconColor(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            color = payload.string("color"),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing icon settings snapshot"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> RetireCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            asOf = payload.string("asOf").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing taxonomy retirement source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> MoveCanonicalSubcategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            sourceCategory = payload.string("sourceCategory").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            targetCategory = payload.string("targetCategory").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source taxonomy settings"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> RenameCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            newLabel = payload.string("newLabel").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing category settings snapshot"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.ADD_CATEGORY_TAXONOMY -> AddCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            label = payload.string("label").orEmpty(),
+            parentCategory = payload.string("parentCategory"),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing expected category settings"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> ReorderCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            direction = payload.number("direction")?.toInt() ?: 0,
+            expectedTree = payload["expectedTree"] as? JsonArray
+                ?: throw IllegalArgumentException("Missing category tree"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_DEFAULT_ACCOUNT -> SetCanonicalDefaultAccount(
+            role = payload.string("role").orEmpty(),
+            accountId = payload.string("accountId").orEmpty(),
+            expectedAccountId = payload.string("expectedAccountId"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.UPSERT_COUNTERPARTY -> UpsertCanonicalCounterparty(
+            counterpartyId = payload.string("counterpartyId").orEmpty(),
+            kind = payload.string("kind").orEmpty(),
+            displayName = payload.string("displayName").orEmpty(),
+            aliases = payload.array("aliases").mapNotNull { (it as? JsonPrimitive)?.contentOrNull },
+            createdAt = payload.string("createdAt").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.UPSERT_TRANSACTION_RULE -> UpsertCanonicalTransactionRule(
+            rule = payload["rule"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source rule"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_TRANSACTION_RULE -> DeleteCanonicalTransactionRule(
+            ruleId = payload.string("ruleId").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing deleted rule source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.REORDER_TRANSACTION_RULE -> ReorderCanonicalTransactionRule(
+            ruleId = payload.string("ruleId").orEmpty(),
+            direction = payload.number("direction")?.toInt() ?: 0,
+            expected = payload["expected"] as? JsonArray
+                ?: throw IllegalArgumentException("Missing rule order source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> SetCanonicalTransactionRuleEnabled(
+            ruleId = payload.string("ruleId").orEmpty(),
+            enabled = payload.string("enabled") == "true",
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Rule source is missing"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_CATEGORY_BUDGET -> UpsertCategoryBudget(
             month = payload.string("month").orEmpty(),
             category = payload.string("category").orEmpty(),
@@ -195,12 +421,21 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.DELETE_OVERALL_BUDGET -> DeleteCanonicalOverallBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing overall budget source row"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> UpsertOverallBudget(
             month = payload.string("month").orEmpty(),
             amount = payload.number("amount") ?: Double.NaN,
             alertThreshold = payload.number("alertThreshold")?.toInt() ?: 0,
             budgetId = payload.string("budgetId").orEmpty(),
             nowIso = payload.string("nowIso").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
+            enforceExpected = payload.string("enforceExpected") == "true",
         )
         PendingMutationKind.DEACTIVATE_CARD -> DeactivateCanonicalCard(
             cardId = payload.string("cardId").orEmpty(),
@@ -227,6 +462,9 @@ data class PendingCanonicalMutationIntent(
      * target left to mutate, so it must not poison persistence or be replayed against a missing id.
      */
     fun isSatisfiedBy(document: CanonicalFinanceDocument): Boolean = when (kind) {
+        PendingMutationKind.UPSERT_LOAN_METADATA ->
+            runCatching { (asMutation() as UpsertCanonicalLoanMetadata).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.UPSERT_SAVINGS_GOAL -> {
             val id = payload.string("goalId").orEmpty()
             val amount = payload.number("targetAmount")
@@ -245,11 +483,23 @@ data class PendingCanonicalMutationIntent(
         }
         PendingMutationKind.SET_RECURRING_STATUS -> {
             val id = payload.string("recurringId").orEmpty()
-            val expected = payload.string("status")
-            val actual = document.allCanonicalRecurringItems()
-                .firstOrNull { it.id == id }?.effectiveStatus
-            id.isNotBlank() && expected in setOf("active", "paused", "stopped") &&
-                (actual == null || actual == expected)
+            val status = payload.string("status")
+            val source = payload["expected"] as? JsonObject
+            val matches = document.allCanonicalRecurringItems().filter { it.id == id }
+            val actual = matches.singleOrNull()?.effectiveStatus
+            if (source != null) {
+                val current = document.canonicalRecurringEditSource(id)?.row
+                val target = JsonObject(source + mapOf(
+                    "active" to JsonPrimitive(status == "active"),
+                    "status" to JsonPrimitive(status.orEmpty()),
+                ))
+                id.isNotBlank() && status in setOf("active", "paused", "stopped") &&
+                    matches.size == 1 && actual == status && current == target
+            } else {
+                // Old pre-CAS intents remain replay-compatible.
+                id.isNotBlank() && status in setOf("active", "paused", "stopped") &&
+                    (actual == null || actual == status)
+            }
         }
         PendingMutationKind.CREATE_RECURRING -> {
             val id = payload.string("recurringId").orEmpty()
@@ -318,8 +568,71 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             id.isNotBlank() && effectiveTransaction(document, id) == null
         }
+        PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET ->
+            runCatching { (asMutation() as UpsertCanonicalSubcategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_SUBCATEGORY_BUDGET ->
+            runCatching { (asMutation() as DeleteCanonicalSubcategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_CATEGORY_BUDGET ->
+            runCatching { (asMutation() as DeleteCategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_SAVINGS_TARGET_RATE ->
+            runCatching { (asMutation() as SetCanonicalSavingsTargetRate).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_TRANSACTION_RULE_ENABLED ->
+            runCatching { (asMutation() as SetCanonicalTransactionRuleEnabled).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_TRANSACTION_RULE ->
+            runCatching { (asMutation() as UpsertCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT ->
+            runCatching { (asMutation() as DeleteCanonicalCustomCashAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
+            runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.RENAME_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as RenameCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as MoveCanonicalSubcategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.RETIRE_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as RetireCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_CATEGORY_ICON_COLOR ->
+            runCatching { (asMutation() as SetCanonicalCategoryIconColor).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_CATEGORY_ICON_PREFERENCE ->
+            runCatching { (asMutation() as SetCanonicalCategoryIconPreference).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.ADD_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as AddCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.REORDER_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as ReorderCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_DEFAULT_ACCOUNT ->
+            runCatching { (asMutation() as SetCanonicalDefaultAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_COUNTERPARTY ->
+            runCatching { (asMutation() as UpsertCanonicalCounterparty).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.LINK_EVENT_COUNTERPARTY ->
+            runCatching { (asMutation() as LinkCanonicalEventCounterparty).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_TRANSACTION_RULE ->
+            runCatching { (asMutation() as DeleteCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.REORDER_TRANSACTION_RULE ->
+            runCatching { (asMutation() as ReorderCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
             runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_OVERALL_BUDGET ->
+            runCatching { (asMutation() as DeleteCanonicalOverallBudget).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> {
             val month = payload.string("month").orEmpty()
@@ -343,6 +656,15 @@ data class PendingCanonicalMutationIntent(
                             actualThreshold == normalizedExpectedThreshold)
                 } == true
         }
+        PendingMutationKind.EDIT_CARD_PROFILE ->
+            runCatching { (asMutation() as EditCanonicalCardProfile).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.SET_CREDIT_BILLING_SETTINGS ->
+            runCatching { (asMutation() as SetCanonicalCreditBillingSettings).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.ADD_CREDIT_RATE_VERSION ->
+            runCatching { (asMutation() as AddCanonicalCreditRateVersion).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.CREATE_CARD -> {
             val cardId = payload.string("cardId").orEmpty()
             val card = document.state.array("cards")
@@ -394,6 +716,16 @@ data class PendingCanonicalMutationIntent(
             intentId: String,
             syncState: PendingMutationSyncState = PendingMutationSyncState.NEVER_SENT,
         ): PendingCanonicalMutationIntent = when (mutation) {
+            is UpsertCanonicalLoanMetadata -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_LOAN_METADATA,
+                payload = JsonObject(buildMap {
+                    put("source", JsonPrimitive(mutation.source))
+                    put("loan", mutation.loan)
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
             is UpsertCanonicalSavingsGoal -> PendingCanonicalMutationIntent(
                 intentId = intentId, kind = PendingMutationKind.UPSERT_SAVINGS_GOAL,
                 payload = JsonObject(buildMap {
@@ -417,11 +749,12 @@ data class PendingCanonicalMutationIntent(
             is SetCanonicalRecurringStatus -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.SET_RECURRING_STATUS,
-                payload = JsonObject(mapOf(
-                    "recurringId" to JsonPrimitive(mutation.recurringId),
-                    "status" to JsonPrimitive(mutation.status),
-                    "nowIso" to JsonPrimitive(mutation.nowIso),
-                )),
+                payload = JsonObject(buildMap {
+                    put("recurringId", JsonPrimitive(mutation.recurringId))
+                    put("status", JsonPrimitive(mutation.status))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.expected?.let { put("expected", it) }
+                }),
                 syncState = syncState,
             )
             is CreateCanonicalRecurring -> PendingCanonicalMutationIntent(
@@ -518,6 +851,228 @@ data class PendingCanonicalMutationIntent(
                 ),
                 syncState = syncState,
             )
+            is UpsertCanonicalSubcategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET,
+                payload = JsonObject(buildMap {
+                    put("budgetId", JsonPrimitive(mutation.budgetId))
+                    put("month", JsonPrimitive(mutation.month))
+                    put("category", JsonPrimitive(mutation.category))
+                    put("subcategory", JsonPrimitive(mutation.subcategory))
+                    put("amount", JsonPrimitive(mutation.amount))
+                    put("alertThreshold", JsonPrimitive(mutation.alertThreshold))
+                    put("carryover", JsonPrimitive(mutation.carryover))
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalSubcategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_SUBCATEGORY_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "category" to JsonPrimitive(mutation.category),
+                    "subcategory" to JsonPrimitive(mutation.subcategory),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
+            is DeleteCategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_CATEGORY_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "category" to JsonPrimitive(mutation.category),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
+            is SetCanonicalSavingsTargetRate -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.SET_SAVINGS_TARGET_RATE,
+                payload = JsonObject(buildMap {
+                    put("rate", JsonPrimitive(mutation.rate))
+                    mutation.expectedRate?.let { put("expectedRate", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is LinkCanonicalEventCounterparty -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.LINK_EVENT_COUNTERPARTY,
+                payload = JsonObject(buildMap {
+                    put("eventId", JsonPrimitive(mutation.eventId))
+                    mutation.counterpartyId?.let { put("counterpartyId", JsonPrimitive(it)) }
+                    put("expected", mutation.expected)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalCustomCashAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT,
+                payload = JsonObject(mapOf(
+                    "accountId" to JsonPrimitive(mutation.accountId),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
+            is UpsertCanonicalManagedAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_MANAGED_ACCOUNT,
+                payload = JsonObject(buildMap {
+                    put("accountId", JsonPrimitive(mutation.accountId))
+                    put("source", JsonPrimitive(mutation.source))
+                    put("name", JsonPrimitive(mutation.name))
+                    put("mode", JsonPrimitive(mutation.mode))
+                    mutation.providerId?.let { put("providerId", JsonPrimitive(it)) }
+                    mutation.providerName?.let { put("providerName", JsonPrimitive(it)) }
+                    mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
+                    mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is SetCanonicalCategoryIconPreference -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_CATEGORY_ICON_PREFERENCE,
+                payload = JsonObject(buildMap {
+                    put("pack", JsonPrimitive(mutation.pack))
+                    mutation.kind?.let { put("kind", JsonPrimitive(it)) }
+                    mutation.category?.let { put("category", JsonPrimitive(it)) }
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    mutation.semanticKey?.let { put("semanticKey", JsonPrimitive(it)) }
+                    put("expectedSettings", mutation.expectedSettings)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is SetCanonicalCategoryIconColor -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_CATEGORY_ICON_COLOR,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    mutation.color?.let { put("color", JsonPrimitive(it)) }
+                    put("expectedSettings", mutation.expectedSettings)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is RetireCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.RETIRE_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("asOf", JsonPrimitive(mutation.asOf))
+                    put("expectedSettings", mutation.expectedSettings)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is MoveCanonicalSubcategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY,
+                payload = JsonObject(mapOf(
+                    "kind" to JsonPrimitive(mutation.kind),
+                    "sourceCategory" to JsonPrimitive(mutation.sourceCategory),
+                    "subcategory" to JsonPrimitive(mutation.subcategory),
+                    "targetCategory" to JsonPrimitive(mutation.targetCategory),
+                    "expectedSettings" to mutation.expectedSettings,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is RenameCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.RENAME_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("newLabel", JsonPrimitive(mutation.newLabel))
+                    put("expectedSettings", mutation.expectedSettings)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is AddCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.ADD_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("label", JsonPrimitive(mutation.label))
+                    mutation.parentCategory?.let { put("parentCategory", JsonPrimitive(it)) }
+                    put("expectedSettings", mutation.expectedSettings)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is ReorderCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.REORDER_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("direction", JsonPrimitive(mutation.direction))
+                    put("expectedTree", mutation.expectedTree)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is SetCanonicalDefaultAccount -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_DEFAULT_ACCOUNT,
+                payload = JsonObject(buildMap {
+                    put("role", JsonPrimitive(mutation.role))
+                    put("accountId", JsonPrimitive(mutation.accountId))
+                    mutation.expectedAccountId?.let { put("expectedAccountId", JsonPrimitive(it)) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is UpsertCanonicalCounterparty -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.UPSERT_COUNTERPARTY,
+                payload = JsonObject(buildMap {
+                    put("counterpartyId", JsonPrimitive(mutation.counterpartyId))
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("displayName", JsonPrimitive(mutation.displayName))
+                    put("aliases", JsonArray(mutation.aliases.map(::JsonPrimitive)))
+                    put("createdAt", JsonPrimitive(mutation.createdAt))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.expected?.let { put("expected", it) }
+                }),
+                syncState = syncState,
+            )
+            is UpsertCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_TRANSACTION_RULE,
+                payload = JsonObject(buildMap {
+                    put("rule", mutation.rule)
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is DeleteCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.DELETE_TRANSACTION_RULE,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is ReorderCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.REORDER_TRANSACTION_RULE,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "direction" to JsonPrimitive(mutation.direction),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is SetCanonicalTransactionRuleEnabled -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.SET_TRANSACTION_RULE_ENABLED,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "enabled" to JsonPrimitive(mutation.enabled.toString()),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
             is UpsertCategoryBudget -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.UPSERT_CATEGORY_BUDGET,
@@ -532,18 +1087,71 @@ data class PendingCanonicalMutationIntent(
                 }),
                 syncState = syncState,
             )
+            is DeleteCanonicalOverallBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_OVERALL_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
+                syncState = syncState,
+            )
             is UpsertOverallBudget -> PendingCanonicalMutationIntent(
                 intentId = intentId,
                 kind = PendingMutationKind.UPSERT_OVERALL_BUDGET,
                 payload = JsonObject(
-                    mapOf(
+                    mapOf<String, kotlinx.serialization.json.JsonElement>(
                         "month" to JsonPrimitive(mutation.month),
                         "amount" to JsonPrimitive(mutation.amount),
                         "alertThreshold" to JsonPrimitive(mutation.alertThreshold),
                         "budgetId" to JsonPrimitive(mutation.budgetId),
                         "nowIso" to JsonPrimitive(mutation.nowIso),
-                    ),
+                    ) + buildMap {
+                        if (mutation.enforceExpected) {
+                            put("enforceExpected", JsonPrimitive("true"))
+                            mutation.expected?.let { put("expected", it) }
+                        }
+                    },
                 ),
+                syncState = syncState,
+            )
+            is SetCanonicalCreditBillingSettings -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.SET_CREDIT_BILLING_SETTINGS,
+                payload = JsonObject(mapOf(
+                    "cardId" to JsonPrimitive(mutation.cardId),
+                    "closingDay" to JsonPrimitive(mutation.closingDay),
+                    "dueDay" to JsonPrimitive(mutation.dueDay),
+                    "boundaryRule" to JsonPrimitive(mutation.boundaryRule),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is AddCanonicalCreditRateVersion -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.ADD_CREDIT_RATE_VERSION,
+                payload = JsonObject(mapOf(
+                    "cardId" to JsonPrimitive(mutation.cardId),
+                    "annualPercent" to JsonPrimitive(mutation.annualPercent),
+                    "effectiveFrom" to JsonPrimitive(mutation.effectiveFrom),
+                    "earliestAllowedDate" to JsonPrimitive(mutation.earliestAllowedDate),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is EditCanonicalCardProfile -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.EDIT_CARD_PROFILE,
+                payload = JsonObject(buildMap {
+                    put("cardId", JsonPrimitive(mutation.cardId))
+                    put("bankId", JsonPrimitive(mutation.bankId))
+                    put("nickname", JsonPrimitive(mutation.nickname))
+                    put("network", JsonPrimitive(mutation.network))
+                    put("formFactor", JsonPrimitive(mutation.formFactor))
+                    mutation.creditLimit?.let { put("creditLimit", JsonPrimitive(it)) }
+                    put("expected", mutation.expected)
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
                 syncState = syncState,
             )
             is CreateCanonicalCard -> PendingCanonicalMutationIntent(

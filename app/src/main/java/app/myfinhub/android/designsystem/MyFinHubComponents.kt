@@ -161,18 +161,19 @@ fun MyFinHubIconBadge(
     tone: FinanceTone,
     contentDescription: String?,
     modifier: Modifier = Modifier,
+    categoryAccent: Color? = null,
 ) {
     val colors = financeToneColors(tone)
     Surface(
         modifier = modifier.size(MyFinHubDesignMetrics.iconBadgeSize),
         shape = MaterialTheme.shapes.small,
-        color = colors.container,
+        color = categoryAccent?.copy(alpha = 0.16f) ?: colors.container,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = colors.accent,
+                tint = categoryAccent ?: colors.accent,
                 modifier = Modifier.size(MyFinHubDesignMetrics.iconBadgeIconSize),
             )
         }
@@ -286,6 +287,7 @@ fun MyFinHubFinanceRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
+    categoryAccent: Color? = null,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     Column(
@@ -312,6 +314,7 @@ fun MyFinHubFinanceRow(
                         icon = icon,
                         tone = tone,
                         contentDescription = iconDescription,
+                        categoryAccent = categoryAccent,
                     )
                     FinanceRowIdentity(
                         title = title,
@@ -340,6 +343,7 @@ fun MyFinHubFinanceRow(
                     icon = icon,
                     tone = tone,
                     contentDescription = iconDescription,
+                    categoryAccent = categoryAccent,
                 )
                 FinanceRowIdentity(
                     title = title,

@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -164,7 +166,7 @@ fun CanonicalPlan2026Screen(
                 itemsIndexed(urgent, key = { index, item ->
                     "urgent-${plannedItemSourceKey(item)}-row-$index"
                 }) { _, item ->
-                    PlanS7Row(item = item, amountsVisible = amountsVisible)
+                    PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                 }
             }
 
@@ -228,7 +230,7 @@ fun CanonicalPlan2026Screen(
                     itemsIndexed(group, key = { index, item ->
                         "remaining-${plannedItemSourceKey(item)}-row-$index"
                     }) { _, item ->
-                        PlanS7Row(item = item, amountsVisible = amountsVisible)
+                        PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                     }
                 }
             } else if (urgent.isEmpty()) {
@@ -333,9 +335,9 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
 }
 
 @Composable
-private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean) {
+private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides: Map<String, String> = emptyMap()) {
     val tone = planS7Tone(item.flow)
-    val icon = planS7Icon(item)
+    val icon = planS7Icon(item, glyphOverrides)
     val amountText = planS7Amount(item, amountsVisible)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
 
@@ -613,6 +615,7 @@ fun CanonicalPlanForecastScreen(
                             item = item, amountsVisible = amountsVisible,
                             onRecordItem = onRecordItem, recordEnabled = uniqueSource,
                             tagSuffix = if (uniqueSource) "" else "_duplicate_$index",
+                            categoryGlyphOverrides = state.categoryGlyphOverrides,
                         )
                     }
                 }
@@ -847,6 +850,7 @@ private fun ForecastS7ItemCard(
     item: PlannedItem, amountsVisible: Boolean,
     onRecordItem: (PlannedItem) -> Unit,
     recordEnabled: Boolean = true, tagSuffix: String = "",
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val tone = planS7Tone(item.flow)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -859,7 +863,7 @@ private fun ForecastS7ItemCard(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        MyFinHubIconBadge(planS7Icon(item), tone, null)
+                        MyFinHubIconBadge(planS7Icon(item, categoryGlyphOverrides), tone, null)
                         PlanS7Identity(item, Modifier.weight(1f))
                     }
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone, modifier = Modifier.align(Alignment.End))
@@ -870,7 +874,7 @@ private fun ForecastS7ItemCard(
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MyFinHubIconBadge(planS7Icon(item), tone, null)
+                    MyFinHubIconBadge(planS7Icon(item, categoryGlyphOverrides), tone, null)
                     PlanS7Identity(item, Modifier.weight(1f))
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone)
                 }
@@ -909,22 +913,42 @@ fun CanonicalBudget2026Screen(
     onSaveBudget: (String, String) -> Unit,
     onBack: () -> Unit,
     onSaveCategoryBudget: (CategoryBudgetEditRequest) -> Unit = {},
+    onDeleteCategoryBudget: (String) -> Unit = {},
+    onSaveSubcategoryBudget: (SubcategoryBudgetEditRequest) -> Unit = {},
+    onDeleteSubcategoryBudget: (String) -> Unit = {},
+    onDeleteOverallBudget: (String) -> Unit = {},
+    onShiftBudgetMonth: ((Int) -> Unit)? = null,
+    onSelectBudgetMonth: ((String) -> Unit)? = null,
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
-    var savedLimit by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
-    var savedThreshold by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
-    var limitDraft by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
-    var thresholdDraft by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
-    var localError by rememberSaveable { mutableStateOf<String?>(null) }
-    var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var saveRequested by rememberSaveable { mutableStateOf(false) }
+    // Reset all draft state when changing the period, never submit an old-month draft.
+    var savedLimit by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.monthlyLimitText) }
+    var savedThreshold by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.alertThresholdText) }
+    var limitDraft by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.monthlyLimitText) }
+    var thresholdDraft by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.alertThresholdText) }
+    var localError by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf<String?>(null) }
+    var discardDialogOpen by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(false) }
+    var saveRequested by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(false) }
     // Web's budget editor displays the first 24 records, then reveals 24 more
     // on demand. Never silently hide historical category budgets.
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
+    var visibleSubcategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
+    var visibleBudgetCommitmentLimit by rememberSaveable(state.budgetSelectedMonthIso) {
+        mutableStateOf(24)
+    }
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var creatingSubcategoryBudget by remember { mutableStateOf(false) }
+    var editingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingOverallBudget by rememberSaveable { mutableStateOf(false) }
+    var selectBudgetMonthOpen by rememberSaveable { mutableStateOf(false) }
+    var selectedMonthDraft by rememberSaveable(state.budgetSelectedMonthIso) {
+        mutableStateOf(state.budgetSelectedMonthIso)
+    }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -970,6 +994,74 @@ fun CanonicalBudget2026Screen(
     }
 
     BackHandler(enabled = dirty || mutationInFlight || saveRequested) { requestBack() }
+
+    if (selectBudgetMonthOpen && onSelectBudgetMonth != null) {
+        AlertDialog(
+            onDismissRequest = { selectBudgetMonthOpen = false },
+            title = { Text("Επιλογή μήνα προϋπολογισμού") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Γράψε τον μήνα σε μορφή YYYY-MM, π.χ. 2026-12. " +
+                            "Η επιλογή δεν αλλάζει οικονομικές κινήσεις.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = selectedMonthDraft,
+                        onValueChange = { selectedMonthDraft = it.take(7) },
+                        label = { Text("Μήνας (YYYY-MM)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("s7_budget_month_input"),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked &&
+                        runCatching {
+                            java.time.YearMonth.parse(selectedMonthDraft).toString() == selectedMonthDraft
+                        }.getOrDefault(false),
+                    modifier = Modifier.testTag("s7_budget_month_apply"),
+                    onClick = {
+                        onSelectBudgetMonth(selectedMonthDraft)
+                        selectBudgetMonthOpen = false
+                    },
+                ) { Text("Μετάβαση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectBudgetMonthOpen = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
+
+    if (deletingOverallBudget && state.overallBudgetId != null) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!mutationInFlight && !mutationBlocked) deletingOverallBudget = false
+            },
+            title = { Text("Διαγραφή συνολικού προϋπολογισμού;") },
+            text = {
+                Text("Θα αφαιρεθεί μόνο το συνολικό όριο του τρέχοντος μήνα. " +
+                    "Τα όρια κατηγοριών, οι κινήσεις και το ιστορικό δεν θα αλλάξουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationInFlight && !mutationBlocked && !saveRequested && !dirty,
+                    modifier = Modifier.testTag("s7_budget_confirm_delete_overall"),
+                    onClick = {
+                        onDeleteOverallBudget(state.overallBudgetId)
+                        deletingOverallBudget = false
+                    },
+                ) { Text("Διαγραφή συνολικού ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !mutationInFlight && !mutationBlocked,
+                    onClick = { deletingOverallBudget = false },
+                ) { Text("Ακύρωση") }
+            },
+        )
+    }
 
     if (discardDialogOpen) {
         AlertDialog(
@@ -1042,6 +1134,48 @@ fun CanonicalBudget2026Screen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
+            if (onShiftBudgetMonth != null) {
+                item("budget-month-selector") {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                        .testTag("s7_budget_month_selector")) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(
+                                "Περίοδος: " + state.budgetMonthLabel,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Κάθε μήνας έχει δικά του συνολικά όρια, όρια κατηγοριών " +
+                                    "και υποκατηγοριών. Η αλλαγή μήνα δεν αποθηκεύει οικονομική κίνηση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (onSelectBudgetMonth != null) {
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = {
+                                        selectedMonthDraft = state.budgetSelectedMonthIso
+                                        selectBudgetMonthOpen = true
+                                    },
+                                    modifier = Modifier.fillMaxWidth().testTag("s7_budget_pick_month"),
+                                ) { Text("Επιλογή συγκεκριμένου μήνα") }
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = { onShiftBudgetMonth(-1) },
+                                    modifier = Modifier.testTag("s7_budget_previous_month"),
+                                ) { Text("‹ Προηγούμενος") }
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = { onShiftBudgetMonth(1) },
+                                    modifier = Modifier.testTag("s7_budget_next_month"),
+                                ) { Text("Επόμενος ›") }
+                            }
+                        }
+                    }
+                }
+            }
             if (progress != null) {
                 item("budget-progress") {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -1073,6 +1207,30 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (state.budgetProjectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές εκκρεμείς υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(state.budgetProjectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("s7_budget_projected_due"),
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο μετά τις υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(state.budgetProjectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                if (state.budgetProjectedStatus != "ok") {
+                                    Text(
+                                        if (state.budgetProjectedStatus == "exceeded")
+                                            "Με τις γνωστές υποχρεώσεις προβλέπεται υπέρβαση του συνολικού ορίου."
+                                        else "Με τις γνωστές υποχρεώσεις προβλέπεται προσέγγιση του ορίου ειδοποίησης.",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.testTag("s7_budget_projected_warning"),
+                                    )
+                                }
+                            }
                             if (progress.thresholdReached) {
                                 Text(
                                     "Οι δαπάνες έχουν φτάσει το όριο προειδοποίησης ${progress.threshold}%.",
@@ -1081,6 +1239,62 @@ fun CanonicalBudget2026Screen(
                                     modifier = Modifier.testTag("s7_budget_threshold_warning"),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            if (state.budgetKnownCommitments.isNotEmpty()) {
+                item("budget-commitments-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Γνωστές εκκρεμείς υποχρεώσεις",
+                        subtitle = "Προγραμματισμένες χρεώσεις και επόμενα πάγια · δεν έχουν εξοφληθεί",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(
+                    state.budgetKnownCommitments.take(visibleBudgetCommitmentLimit),
+                    key = { index, row -> "budget-upcoming-" + row.source + "-" + row.id + "-" + index },
+                ) { index, row ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_budget_commitment_$index"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                            Text(
+                                row.category + (row.subcategory?.let { " › " + it } ?: ""),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                row.date + " · " +
+                                    if (row.source == "recurring") "Επόμενο πάγιο"
+                                    else "Προγραμματισμένη χρέωση",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            MyFinHubAmountText(
+                                amountVisibilityText(formatPlanS7Euro(row.amount), amountsVisible),
+                                FinanceTone.Expense,
+                            )
+                        }
+                    }
+                }
+                if (state.budgetKnownCommitments.size > visibleBudgetCommitmentLimit) {
+                    item("budget-commitments-more") {
+                        TextButton(
+                            onClick = {
+                                visibleBudgetCommitmentLimit =
+                                    (visibleBudgetCommitmentLimit + 24)
+                                        .coerceAtMost(state.budgetKnownCommitments.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s7_budget_commitments_more"),
+                        ) {
+                            Text(
+                                "Περισσότερες υποχρεώσεις (" +
+                                    (state.budgetKnownCommitments.size - visibleBudgetCommitmentLimit) + ")",
+                            )
                         }
                     }
                 }
@@ -1106,13 +1320,44 @@ fun CanonicalBudget2026Screen(
                                     "" else "_duplicate_" + index),
                         ),
                     ) {
-                        val limit = budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        val limit = budget.effectiveLimit
+                            ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
                         val used = budget.spent.coerceAtLeast(0.0)
                         val threshold = (budget.alertThresholdText.toDoubleOrNull() ?: 80.0) / 100.0
                         val ratio = if (limit > 0.0) used / limit else 0.0
                         val remaining = limit - used
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            if (budget.projectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές μελλοντικές υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                if (budget.projectedStatus != "ok") {
+                                    Text(
+                                        if (budget.projectedStatus == "exceeded")
+                                            "Προβλεπόμενη υπέρβαση με τις γνωστές υποχρεώσεις."
+                                        else "Προβλεπόμενη προσέγγιση του ορίου προειδοποίησης.",
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                }
+                            }
+                            if (budget.carried > 0.0) {
+                                Text(
+                                    "Μεταφορά από προηγούμενο μήνα: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.carried), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             TextButton(
                                 onClick = { editingCategoryBudget = budget },
                                 enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
@@ -1122,6 +1367,15 @@ fun CanonicalBudget2026Screen(
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("s7_category_budget_edit_" + budget.id),
                             ) { Text("Επεξεργασία ορίου") }
+                            TextButton(
+                                onClick = { deletingCategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() &&
+                                    state.categoryBudgets.count { it.name == budget.name } == 1 &&
+                                    state.categoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s7_category_budget_delete_" + budget.id),
+                            ) { Text("Διαγραφή ορίου") }
                             Text(
                                 if (amountsVisible) "${formatPlanS7Euro(used)} / ${formatPlanS7Euro(limit)}"
                                 else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
@@ -1171,6 +1425,118 @@ fun CanonicalBudget2026Screen(
                 }
             }
 
+            if (state.subcategoryBudgets.isNotEmpty()) {
+                item("budget-subcategories-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Όρια ανά υποκατηγορία",
+                        subtitle = "Πραγματικές δαπάνες της επιλεγμένης υποκατηγορίας · χωρίς διπλή χρέωση του γονικού budget",
+                        icon = MyFinHubIcons.Savings,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(
+                    state.subcategoryBudgets.take(visibleSubcategoryBudgetLimit),
+                    key = { index, budget -> "subcategory-budget-" + budget.id + "#" + index },
+                ) { index, budget ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_subcategory_budget_" + index),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            val limit = budget.effectiveLimit
+                                ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
+                            val used = budget.spent.coerceAtLeast(0.0)
+                            val ratio = if (limit > 0.0) used / limit else 0.0
+                            Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                amountVisibilityText(formatPlanS7Euro(used), amountsVisible) + " / " +
+                                    amountVisibilityText(formatPlanS7Euro(limit), amountsVisible),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            LinearProgressIndicator(
+                                progress = { ratio.toFloat().coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Text(
+                                (if (budget.remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
+                                    amountVisibilityText(
+                                        formatPlanS7Euro(abs(budget.remaining)), amountsVisible),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (budget.projectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές μελλοντικές υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                if (budget.projectedStatus != "ok") {
+                                    Text(
+                                        if (budget.projectedStatus == "exceeded")
+                                            "Προβλεπόμενη υπέρβαση με τις γνωστές υποχρεώσεις."
+                                        else "Προβλεπόμενη προσέγγιση του ορίου προειδοποίησης.",
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                }
+                            }
+                            if (budget.carried > 0.0) {
+                                Text(
+                                    "Μεταφορά υπολοίπου: " +
+                                        amountVisibilityText(
+                                            formatPlanS7Euro(budget.carried), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            TextButton(
+                                onClick = { editingSubcategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() && budget.category != null &&
+                                    budget.subcategory != null &&
+                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.testTag("s7_subcategory_budget_edit_$index"),
+                            ) { Text("Επεξεργασία ορίου") }
+                            TextButton(
+                                onClick = { deletingSubcategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() && budget.category != null &&
+                                    budget.subcategory != null &&
+                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.testTag("s7_subcategory_budget_delete_$index"),
+                            ) { Text("Διαγραφή ορίου") }
+                            Text(
+                                "Το όριο δεν δημιουργεί νέα οικονομική κίνηση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+                if (state.subcategoryBudgets.size > visibleSubcategoryBudgetLimit) {
+                    item("budget-subcategories-more") {
+                        TextButton(
+                            onClick = {
+                                visibleSubcategoryBudgetLimit =
+                                    (visibleSubcategoryBudgetLimit + 24)
+                                        .coerceAtMost(state.subcategoryBudgets.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s7_subcategory_budget_more"),
+                        ) {
+                            Text("Προβολή περισσότερων · " +
+                                (state.subcategoryBudgets.size - visibleSubcategoryBudgetLimit) +
+                                " ακόμη")
+                        }
+                    }
+                }
+            }
+
             item("budget-editor") {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -1202,6 +1568,15 @@ fun CanonicalBudget2026Screen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                             enabled = !mutationInFlight && !saveRequested,
                         )
+                        if (state.overallBudgetId != null) {
+                            TextButton(
+                                onClick = { deletingOverallBudget = true },
+                                enabled = !mutationInFlight && !mutationBlocked &&
+                                    !saveRequested && !dirty,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s7_budget_delete_overall"),
+                            ) { Text("Διαγραφή συνολικού ορίου") }
+                        }
                         progress?.threshold?.let { threshold ->
                             Text(
                                 "Η ένδειξη προόδου επισημαίνεται στο $threshold% του συνολικού ορίου.",
@@ -1222,12 +1597,95 @@ fun CanonicalBudget2026Screen(
                     modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_create"),
                 ) { Text("Νέο όριο κατηγορίας") }
             }
+            item("budget-subcategory-new") {
+                TextButton(
+                    onClick = { creatingSubcategoryBudget = true },
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                        state.ruleSubcategories.values.any { it.isNotEmpty() },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("s7_subcategory_budget_create"),
+                ) { Text("Νέο όριο υποκατηγορίας") }
+            }
         }
+    }
+    deletingSubcategoryBudget?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = {
+                if (!mutationBlocked && !mutationInFlight) deletingSubcategoryBudget = null
+            },
+            title = { Text("Διαγραφή ορίου υποκατηγορίας;") },
+            text = {
+                Text("Θα αφαιρεθεί μόνο το όριο «" + candidate.name +
+                    "». Η γονική κατηγορία και οι συναλλαγές θα παραμείνουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                        candidate.id.isNotBlank() &&
+                        state.subcategoryBudgets.count { it.id == candidate.id } == 1,
+                    modifier = Modifier.testTag("s7_subcategory_budget_confirm_delete"),
+                    onClick = {
+                        onDeleteSubcategoryBudget(candidate.id)
+                        deletingSubcategoryBudget = null
+                    },
+                ) { Text("Διαγραφή ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deletingSubcategoryBudget = null },
+                    enabled = !mutationBlocked && !mutationInFlight,
+                ) { Text("Ακύρωση") }
+            },
+        )
+    }
+    deletingCategoryBudget?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked && !mutationInFlight) deletingCategoryBudget = null },
+            title = { Text("Διαγραφή ορίου κατηγορίας;") },
+            text = {
+                Text("Το όριο «" + candidate.name +
+                    "» θα αφαιρεθεί. Οι οικονομικές κινήσεις και οι δαπάνες θα παραμείνουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested,
+                    modifier = Modifier.testTag("s7_category_budget_confirm_delete"),
+                    onClick = {
+                        onDeleteCategoryBudget(candidate.id)
+                        deletingCategoryBudget = null
+                    },
+                ) { Text("Διαγραφή ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deletingCategoryBudget = null },
+                    enabled = !mutationBlocked && !mutationInFlight,
+                ) { Text("Ακύρωση") }
+            },
+        )
+    }
+    if (creatingSubcategoryBudget || editingSubcategoryBudget != null) {
+        CanonicalSubcategoryBudgetEditor(
+            initial = editingSubcategoryBudget,
+            categories = state.ruleSubcategories,
+            existing = state.subcategoryBudgets,
+            mutationBlocked = mutationInFlight || mutationBlocked || saveRequested,
+            onDismiss = {
+                creatingSubcategoryBudget = false
+                editingSubcategoryBudget = null
+            },
+            onSave = { request ->
+                onSaveSubcategoryBudget(request)
+                creatingSubcategoryBudget = false
+                editingSubcategoryBudget = null
+            },
+        )
     }
     if (creatingCategoryBudget || editingCategoryBudget != null) {
         CanonicalCategoryBudgetEditor(
             initial = editingCategoryBudget,
             existing = state.categoryBudgets,
+            categories = state.budgetCategories,
             mutationBlocked = mutationInFlight || mutationBlocked || saveRequested,
             onDismiss = { creatingCategoryBudget = false; editingCategoryBudget = null },
             onSave = { request ->
@@ -1243,11 +1701,13 @@ fun CanonicalBudget2026Screen(
 private fun CanonicalCategoryBudgetEditor(
     initial: CategoryBudget?,
     existing: List<CategoryBudget>,
+    categories: List<String>,
     mutationBlocked: Boolean,
     onDismiss: () -> Unit,
     onSave: (CategoryBudgetEditRequest) -> Unit,
 ) {
     var category by remember(initial?.id) { mutableStateOf(initial?.name.orEmpty()) }
+    var categoryMenuOpen by remember { mutableStateOf(false) }
     var amount by remember(initial?.id) { mutableStateOf(initial?.monthlyLimitText.orEmpty()) }
     var threshold by remember(initial?.id) {
         mutableStateOf(initial?.alertThresholdText ?: "80")
@@ -1256,6 +1716,7 @@ private fun CanonicalCategoryBudgetEditor(
     val centsValid = money != null && money.isFinite() && money > 0.0 &&
         abs(money * 100.0 - kotlin.math.round(money * 100.0)) < 0.000001
     val valid = category.trim().isNotEmpty() && centsValid &&
+        (initial != null || categories.isEmpty() || category.trim() in categories) &&
         (threshold.toIntOrNull()?.let { it in 50..99 } == true) &&
         existing.none { it.name.trim() == category.trim() && it.id != initial?.id }
     AlertDialog(
@@ -1267,10 +1728,29 @@ private fun CanonicalCategoryBudgetEditor(
                     style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(
                     value = category, onValueChange = { category = it },
-                    enabled = !mutationBlocked && initial == null,
+                    enabled = !mutationBlocked && initial == null && categories.isEmpty(),
                     label = { Text("Κατηγορία") }, singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("s7_category_editor_name"),
                 )
+                if (initial == null && categories.isNotEmpty()) {
+                    TextButton(
+                        onClick = { categoryMenuOpen = true },
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_category_editor_select"),
+                    ) { Text(if (category.isBlank()) "Επίλεξε κατηγορία εξόδων" else "Αλλαγή: $category") }
+                    DropdownMenu(
+                        expanded = categoryMenuOpen,
+                        onDismissRequest = { categoryMenuOpen = false },
+                    ) {
+                        categories.forEach { item ->
+                            DropdownMenuItem(
+                                text = { Text(item) },
+                                onClick = { category = item; categoryMenuOpen = false },
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = amount, onValueChange = { amount = it },
                     enabled = !mutationBlocked,
@@ -1323,10 +1803,16 @@ private fun planS7Tone(flow: PlannedFlow): FinanceTone = when (flow) {
     PlannedFlow.TRANSFER -> FinanceTone.Neutral
 }
 
-private fun planS7Icon(item: PlannedItem) = when (item.flow) {
+private fun planS7Icon(item: PlannedItem, overrides: Map<String, String> = emptyMap()) = when (item.flow) {
     PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
-    PlannedFlow.INCOME -> myFinHubCategoryIcon(item.category.ifBlank { item.title }, MyFinHubIcons.Income)
-    PlannedFlow.OBLIGATION -> myFinHubCategoryIcon(item.category.ifBlank { item.title }, MyFinHubIcons.Plan)
+    PlannedFlow.INCOME -> myFinHubCategoryIcon(
+        item.category.ifBlank { item.title }, MyFinHubIcons.Income,
+        overrides["income:" + item.category],
+    )
+    PlannedFlow.OBLIGATION -> myFinHubCategoryIcon(
+        item.category.ifBlank { item.title }, MyFinHubIcons.Plan,
+        overrides["expense:" + item.category],
+    )
 }
 
 private fun planS7Amount(item: PlannedItem, amountsVisible: Boolean): String = if (!amountsVisible) {

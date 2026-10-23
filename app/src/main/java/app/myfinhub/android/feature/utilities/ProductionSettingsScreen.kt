@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
+import kotlinx.serialization.json.JsonObject
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
 import app.myfinhub.android.core.network.visibleServerFinanceHistoryPoints
@@ -53,6 +54,42 @@ fun ProductionSettingsScreen(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
+    rulePreviewEvents: List<JsonObject> = emptyList(),
+    counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
+    onSaveCounterparty: ((CanonicalCounterpartyEditRequest) -> Unit)? = null,
+    managedAccounts: List<app.myfinhub.android.core.data.CanonicalAccount> = emptyList(),
+    expenseTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
+    incomeTaxonomy: List<app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow> = emptyList(),
+    onReorderCategoryTaxonomy: ((String, String, String?, Int) -> Unit)? = null,
+    onAddCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
+    onRenameCategoryTaxonomy: ((String, String, String?, String) -> Unit)? = null,
+    onMoveSubcategoryTaxonomy: ((String, String, String, String) -> Unit)? = null,
+    onRetireCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
+    onSetCategoryIconColor: ((String, String, String?, String?) -> Unit)? = null,
+    onSetCategoryIconPack: ((String) -> Unit)? = null,
+    onSetCategoryIconGlyph: ((String, String, String?, String?) -> Unit)? = null,
+    categoryIconPack: String = "lucide",
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
+    categoryIconColors: Map<String, String> = emptyMap(),
+    subcategoryIconColors: Map<String, String> = emptyMap(),
+    deletableCustomCashAccountIds: Set<String> = emptySet(),
+    onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
+    defaultAccountIds: Map<String, String> = emptyMap(),
+    accountProviderOptions: List<Pair<String, String>> = emptyList(),
+    onSaveManagedAccount: ((ManagedAccountEditRequest) -> Unit)? = null,
+    onSetDefaultManagedAccount: ((String, String) -> Unit)? = null,
+    onToggleRuleEnabled: ((String, Boolean) -> Unit)? = null,
+    onSaveTransactionRule: ((TransactionRuleEditRequest) -> Unit)? = null,
+    onDeleteTransactionRule: ((String) -> Unit)? = null,
+    onReorderTransactionRule: ((String, Int) -> Unit)? = null,
+    ruleCategories: List<String> = emptyList(),
+    ruleSubcategories: Map<String, List<String>> = emptyMap(),
+    ruleAccountOptions: List<Pair<String, String>> = emptyList(),
+    rulesMutationBlocked: Boolean = false,
+    backupDocument: JsonObject? = null,
+    backupPendingChangeCount: Int = 0,
+    backupMutationBlocked: Boolean = false,
+    backupOffline: Boolean = false,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -76,6 +113,9 @@ fun ProductionSettingsScreen(
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
+    var creatingRule by remember { mutableStateOf(false) }
+    var editingRuleId by remember { mutableStateOf<String?>(null) }
+    var deletingRuleId by remember { mutableStateOf<String?>(null) }
     var visibleRuleCount by remember(transactionRules) { mutableStateOf(24) }
     // Read-only history paging is scoped to the exact generation/revision.
     // A server refresh with a different revision resets the viewed window.
@@ -201,7 +241,52 @@ fun ProductionSettingsScreen(
                 }
             }
 
-            if (transactionRules.isNotEmpty()) {
+            if (onSaveManagedAccount != null && onSetDefaultManagedAccount != null) {
+                CanonicalAccountManagementPanel(
+                    accounts = managedAccounts,
+                    deletableCustomCashAccountIds = deletableCustomCashAccountIds,
+                    onDeleteUnusedCustomCashAccount = onDeleteUnusedCustomCashAccount,
+                    defaults = defaultAccountIds,
+                    providers = accountProviderOptions,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSave = onSaveManagedAccount,
+                    onChooseDefault = onSetDefaultManagedAccount,
+                )
+            }
+            if (onReorderCategoryTaxonomy != null) {
+                CanonicalCategoryTaxonomyOrderPanel(
+                    expense = expenseTaxonomy,
+                    income = incomeTaxonomy,
+                    mutationBlocked = rulesMutationBlocked,
+                    onReorder = onReorderCategoryTaxonomy,
+                    onAdd = onAddCategoryTaxonomy,
+                    onRename = onRenameCategoryTaxonomy,
+                    onMove = onMoveSubcategoryTaxonomy,
+                    onRetire = onRetireCategoryTaxonomy,
+                    onSetColor = onSetCategoryIconColor,
+                    categoryColors = categoryIconColors,
+                    subcategoryColors = subcategoryIconColors,
+                )
+            }
+            if (onSetCategoryIconPack != null && onSetCategoryIconGlyph != null) {
+                CanonicalCategoryGlyphPreferencePanel(
+                    expense = expenseTaxonomy,
+                    income = incomeTaxonomy,
+                    activePack = categoryIconPack,
+                    overrides = categoryGlyphOverrides,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSetPack = onSetCategoryIconPack,
+                    onSetGlyph = onSetCategoryIconGlyph,
+                )
+            }
+            if (onSaveCounterparty != null) {
+                CanonicalCounterpartyDirectoryPanel(
+                    rows = counterpartyRows,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSave = onSaveCounterparty,
+                )
+            }
+            if (transactionRules.isNotEmpty() || onSaveTransactionRule != null) {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("s9_transaction_rules")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -209,9 +294,8 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Κανόνες νέων κινήσεων · μόνο προβολή στο Android. " +
-                                "Η σειρά και η επεξεργασία διαχειρίζονται από το Web. " +
-                                "Το υπάρχον ιστορικό δεν αλλάζει.",
+                            "Κανόνες νέων κινήσεων · δημιουργία, επεξεργασία, διαγραφή, " +
+                                "παύση και αλλαγή προτεραιότητας. Το υπάρχον ιστορικό δεν αλλάζει.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -223,6 +307,14 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (onSaveTransactionRule != null) {
+                            TextButton(
+                                onClick = { creatingRule = true },
+                                enabled = !rulesMutationBlocked && transactionRules.size < 10_000,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_transaction_rule_create"),
+                            ) { Text("Νέος κανόνας") }
+                        }
                         // Web renders 24 rules per page. Avoid materializing
                         // thousands of Composables in a vertical scroll Column.
                         transactionRules.take(visibleRuleCount).forEachIndexed { index, rule ->
@@ -243,6 +335,59 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (onReorderTransactionRule != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        TextButton(
+                                            onClick = { onReorderTransactionRule(rule.id, -1) },
+                                            enabled = !rulesMutationBlocked && index > 0 &&
+                                                rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_up_$index"),
+                                        ) { Text("Πάνω") }
+                                        TextButton(
+                                            onClick = { onReorderTransactionRule(rule.id, 1) },
+                                            enabled = !rulesMutationBlocked && index < transactionRules.lastIndex &&
+                                                rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_down_$index"),
+                                        ) { Text("Κάτω") }
+                                    }
+                                }
+                                if (onSaveTransactionRule != null || onDeleteTransactionRule != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        if (onSaveTransactionRule != null) TextButton(
+                                            onClick = { editingRuleId = rule.id },
+                                            enabled = !rulesMutationBlocked && rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_edit_$index"),
+                                        ) { Text("Επεξεργασία") }
+                                        if (onDeleteTransactionRule != null) TextButton(
+                                            onClick = { deletingRuleId = rule.id },
+                                            enabled = !rulesMutationBlocked && rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_delete_$index"),
+                                        ) { Text("Διαγραφή") }
+                                    }
+                                }
+                                if (onToggleRuleEnabled != null) {
+                                    TextButton(
+                                        onClick = {
+                                            onToggleRuleEnabled(rule.id, !rule.enabled)
+                                        },
+                                        enabled = !rulesMutationBlocked &&
+                                            rule.id.isNotBlank() &&
+                                            transactionRules.count { it.id == rule.id } == 1,
+                                        modifier = Modifier.testTag("s9_transaction_rule_toggle_$index"),
+                                    ) {
+                                        Text(if (rule.enabled) "Παύση κανόνα" else "Ενεργοποίηση κανόνα")
+                                    }
+                                }
                                 Text(
                                     "Ιστορικές αντιστοιχίσεις: " +
                                         rule.historicalMatchCount +
@@ -427,6 +572,18 @@ fun ProductionSettingsScreen(
                 }
             }
 
+            if (backupDocument != null) {
+                CanonicalFinanceBackupExport(
+                    canonicalDocument = backupDocument,
+                    pendingChangeCount = backupPendingChangeCount,
+                    mutationBlocked = backupMutationBlocked,
+                    offline = backupOffline,
+                )
+            }
+            if (backupDocument != null) {
+                CanonicalFinanceBackupImportPreview()
+            }
+
             onLogout?.let { logout ->
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_account")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -454,4 +611,58 @@ fun ProductionSettingsScreen(
             }
         }
     }
+
+    val editorRule = editingRuleId?.let { id ->
+        transactionRules.singleOrNull { it.id == id }
+    }
+    if ((creatingRule || editorRule != null) && onSaveTransactionRule != null) {
+        CanonicalTransactionRuleEditor(
+            initial = editorRule,
+            categories = ruleCategories,
+            subcategories = ruleSubcategories,
+            accountOptions = ruleAccountOptions,
+            previewEvents = rulePreviewEvents,
+            mutationBlocked = rulesMutationBlocked,
+            onDismiss = { creatingRule = false; editingRuleId = null },
+            onSave = { request ->
+                onSaveTransactionRule(request)
+                creatingRule = false
+                editingRuleId = null
+            },
+        )
+    }
+
+    deletingRuleId?.let { id ->
+        val candidate = transactionRules.singleOrNull { it.id == id }
+        if (candidate != null && onDeleteTransactionRule != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    if (!rulesMutationBlocked) deletingRuleId = null
+                },
+                title = { Text("Διαγραφή κανόνα;") },
+                text = {
+                    Text("Ο κανόνας «" + candidate.title +
+                        "» θα αφαιρεθεί από τη μελλοντική ταξινόμηση. " +
+                        "Οι παλιές συναλλαγές δεν αλλάζουν.")
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = !rulesMutationBlocked,
+                        modifier = Modifier.testTag("s9_transaction_rule_confirm_delete"),
+                        onClick = {
+                            onDeleteTransactionRule(id)
+                            deletingRuleId = null
+                        },
+                    ) { Text("Διαγραφή κανόνα") }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { deletingRuleId = null },
+                        enabled = !rulesMutationBlocked,
+                    ) { Text("Ακύρωση") }
+                },
+            )
+        }
+    }
+
 }

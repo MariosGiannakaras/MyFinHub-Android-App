@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -55,6 +56,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -147,6 +150,9 @@ fun ActivityLedgerScreen(
     onOpenDetail: (String) -> Unit,
     onOpenQuickEntry: () -> Unit,
     onBack: (() -> Unit)? = null,
+    categoryIconColors: Map<String, String> = emptyMap(),
+    subcategoryIconColors: Map<String, String> = emptyMap(),
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -361,6 +367,9 @@ fun ActivityLedgerScreen(
                                 accountOptions = state.accountOptions,
                                 amountsVisible = amountsVisible,
                                 ambiguousIdentity = item.id in state.ambiguousIds,
+                                categoryIconColors = categoryIconColors,
+                                subcategoryIconColors = subcategoryIconColors,
+                                categoryGlyphOverrides = categoryGlyphOverrides,
                                 onClick = {
                                     if (item.id !in state.ambiguousIds) onOpenDetail(item.id)
                                 },
@@ -586,6 +595,9 @@ private fun ActivityFlatLedgerRow(
     accountOptions: List<ActivityAccountOption>,
     amountsVisible: Boolean,
     ambiguousIdentity: Boolean,
+    categoryIconColors: Map<String, String>,
+    subcategoryIconColors: Map<String, String>,
+    categoryGlyphOverrides: Map<String, String>,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -616,8 +628,32 @@ private fun ActivityFlatLedgerRow(
         else -> item.accountLabel
     }
 
+    // Web preference key: kind:category[:subcategory]. Invalid colors preserve tone.
+    val categoryKind = if (item.canonicalKind == "income") "income" else "expense"
+    val parentKey = item.category?.takeIf(String::isNotBlank)?.let {
+        "$categoryKind:$it"
+    }
+    val childKey = item.subcategory?.takeIf(String::isNotBlank)?.let { child ->
+        parentKey?.let { "$it:$child" }
+    }
+    val preferredHex = childKey?.let(subcategoryIconColors::get)
+        ?: parentKey?.let(categoryIconColors::get)
+    val selectedColor = preferredHex?.takeIf { Regex("^#[0-9A-Fa-f]{6}$").matches(it) }
+        ?.let { Color(("FF" + it.drop(1)).toLong(16).toInt()) }
+
     MyFinHubFinanceRow(
-        icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
+        icon = myFinHubCategoryIcon(
+            item.category, item.kind.s3Icon(),
+            categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income" else "expense") +
+                    ":" + item.category.orEmpty() +
+                    (item.subcategory?.takeIf(String::isNotBlank)?.let { ":" + it } ?: "")
+            ] ?: categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income" else "expense") +
+                    ":" + item.category.orEmpty()
+            ],
+        ),
+        categoryAccent = selectedColor,
         iconDescription = null,
         title = item.webLedgerDisplayTitle(),
         subtitle = secondary,
@@ -768,8 +804,11 @@ fun ActivityReadDetailScreen(
     onDelete: () -> Unit,
     onDeleted: () -> Unit,
     historicalBalance: Double? = null,
+    counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
+    onChooseCounterparty: ((String?) -> Unit)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    var counterpartyMenuOpen by remember { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var deleteRequested by rememberSaveable { mutableStateOf(false) }
 
@@ -847,6 +886,57 @@ fun ActivityReadDetailScreen(
                 }
                 item { ActivityReadField("Κατηγορία", activityDetailCategoryLabel(item)) }
                 item { ActivityReadField("Υποκατηγορία", item.subcategory ?: "Χωρίς υποκατηγορία") }
+                val counterpartyKind = when (item.canonicalKind) {
+                    "expense", "card_purchase", "split", "refund" -> "merchant"
+                    "income", "lending", "repayment", "lending_writeoff" -> "beneficiary"
+                    else -> null
+                }
+                if (!item.isLegacyTransaction && item.canonicalSourceOrdinal >= 0 &&
+                    counterpartyKind != null
+                ) {
+                    item(key = "counterparty-identity") {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            val matches = counterpartyRows.filter { it.id == item.counterpartyId }
+                            val selected = matches.singleOrNull()
+                            ActivityReadField(
+                                if (counterpartyKind == "merchant") "Έμπορος" else "Δικαιούχος",
+                                selected?.displayName ?: if (item.counterpartyId.isNullOrBlank())
+                                    "Δεν έχει επιλεγεί" else "Ιστορική ταυτότητα",
+                            )
+                            if (onChooseCounterparty != null) {
+                                TextButton(
+                                    onClick = { counterpartyMenuOpen = true },
+                                    enabled = !mutationBlocked,
+                                    modifier = Modifier.testTag("activity_choose_counterparty"),
+                                ) { Text("Αλλαγή ταυτότητας") }
+                                DropdownMenu(
+                                    expanded = counterpartyMenuOpen,
+                                    onDismissRequest = { counterpartyMenuOpen = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Καμία ταυτότητα") },
+                                        onClick = {
+                                            counterpartyMenuOpen = false
+                                            onChooseCounterparty(null)
+                                        },
+                                    )
+                                    counterpartyRows.filter { it.kind == counterpartyKind }
+                                        .filter { row ->
+                                            counterpartyRows.count { it.id == row.id } == 1
+                                        }.forEach { candidate ->
+                                            DropdownMenuItem(
+                                                text = { Text(candidate.displayName) },
+                                                onClick = {
+                                                    counterpartyMenuOpen = false
+                                                    onChooseCounterparty(candidate.id)
+                                                },
+                                            )
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
                 if (item.isLegacyTransaction || item.canonicalSourceOrdinal >= 0) {
                     // Match Web's first-line note title and separate multiline comment.
                     item { ActivityReadField("Περιγραφή", item.webLedgerDisplayTitle()) }
@@ -1017,6 +1107,7 @@ fun ActivityEditScreen(
     accountOptions: List<ActivityAccountOption> = emptyList(),
     incomeCategoryOptions: List<ActivityCategoryOption> = emptyList(),
     expenseCategoryOptions: List<ActivityCategoryOption> = emptyList(),
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
     mutationInFlight: Boolean,
     mutationBlocked: Boolean,
     onBack: () -> Unit,
@@ -1349,10 +1440,21 @@ fun ActivityEditScreen(
                 errorMessage = if (dateError) "Η ημερομηνία δεν είναι έγκυρη." else null,
             )
             if (item.supportsCategoryEdit() && effectiveCategoryOptions.isNotEmpty()) {
+                val categoryIconKind = if ((if (isLegacy) legacyType else item.canonicalKind) == "income") {
+                    "income"
+                } else {
+                    "expense"
+                }
                 S3ChoiceField(
                     label = "Κατηγορία",
                     selectedId = category,
                     choices = effectiveCategoryOptions.map { it.name to it.name },
+                    choiceIcon = { name ->
+                        myFinHubCategoryIcon(
+                            name, MyFinHubIcons.All,
+                            categoryGlyphOverrides["$categoryIconKind:$name"],
+                        )
+                    },
                     enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                     onSelected = { selected ->
                         category = selected
@@ -1365,6 +1467,15 @@ fun ActivityEditScreen(
                         label = "Υποκατηγορία",
                         selectedId = subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") + subcategoryOptions.map { it to it },
+                        choiceIcon = { child ->
+                            if (child.isBlank()) null else {
+                                val key = "$categoryIconKind:$category"
+                                myFinHubCategoryIcon(
+                                    category, MyFinHubIcons.All,
+                                    categoryGlyphOverrides["$key:$child"] ?: categoryGlyphOverrides[key],
+                                )
+                            }
+                        },
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { subcategory = it },
                     )
@@ -1407,6 +1518,7 @@ private fun S3ChoiceField(
     selectedId: String,
     choices: List<Pair<String, String>>,
     enabled: Boolean = true,
+    choiceIcon: ((String) -> ImageVector?)? = null,
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -1419,12 +1531,19 @@ private fun S3ChoiceField(
             onClick = { if (enabled && choices.isNotEmpty()) expanded = true },
             enabled = enabled && choices.isNotEmpty(),
         ) {
+            choiceIcon?.invoke(selectedId)?.let { vector ->
+                Icon(vector, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
             Text(selectedLabel, modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             choices.forEach { (id, text) ->
+                val vector = choiceIcon?.invoke(id)
                 DropdownMenuItem(
                     text = { Text(text) },
+                    leadingIcon = if (vector == null) null else {
+                        { Icon(vector, contentDescription = null) }
+                    },
                     onClick = {
                         expanded = false
                         onSelected(id)

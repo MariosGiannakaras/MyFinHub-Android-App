@@ -2,6 +2,8 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -34,7 +36,8 @@ class WebFinancialMoneySurfaceComposeTest {
             CanonicalLendingScreen(state,onBack={},onRecordRepayment={})
         } }
         rule.onNodeWithText("Άννα").assertIsDisplayed()
-        rule.onNodeWithText("Καταχώριση επιστροφής").assertIsDisplayed()
+        rule.onNodeWithTag("lending_select_person").performScrollTo().performClick()
+        rule.onNodeWithTag("lending_record_repayment").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun savingsShowsPayAndSaveButDoesNotCombineItWithExistingAccountBalance() {

@@ -35,6 +35,12 @@ data class MoneyCardActivity(
     val kind: MoneyCardActivityKind,
 )
 
+/** Historical bank-disclosed nominal rate. This never posts interest into the ledger. */
+data class CardAnnualRateVersion(
+    val effectiveFrom: String,
+    val annualPercent: Double,
+)
+
 data class MoneyCard(
     val id: String,
     val nickname: String,
@@ -53,6 +59,7 @@ data class MoneyCard(
     val statementClosingDay: Int? = null,
     val statementDueDay: Int? = null,
     val statementBoundaryRule: String? = null,
+    val annualRates: List<CardAnnualRateVersion> = emptyList(),
     val archivedAt: String? = null,
 )
 
@@ -89,6 +96,17 @@ data class SavingsPlan(
     val paused: Boolean = false,
 )
 
+/** Historical linked loan event; no automatic loan accounting changes. */
+data class LoanPaymentHistoryItem(
+    val eventId: String,
+    val date: String,
+    val note: String,
+    val amount: Double,
+    val accountId: String? = null,
+    val installmentCount: Int = 1,
+    val eventKind: String = "",
+)
+
 data class LoanItem(
     val id: String,
     val name: String,
@@ -102,6 +120,11 @@ data class LoanItem(
     val isSelfLoan: Boolean = false,
     val liabilityRepayment: Boolean = false,
     val defaultAccountId: String = "",
+    val typicalPaymentDay: Int? = null,
+    val kind: String = "",
+    val totalInstallments: Int = 0,
+    val firstExpectedDate: String = "",
+    val expenseCategory: String = "",
 )
 
 data class LendingItem(
@@ -122,6 +145,8 @@ data class LendingHistoryItem(
     val amount: Double,
     val note: String,
     val runningOutstanding: Double,
+    val accountId: String? = null,
+    val origin: String = "",
 )
 
 /**
@@ -147,6 +172,7 @@ data class MoneyUiState(
     val lendingReceivable: Double = 0.0,
     val savingsPlan: SavingsPlan = SavingsPlan(targetAmountText = ""),
     val loans: List<LoanItem> = emptyList(),
+    val loanPaymentsById: Map<String, List<LoanPaymentHistoryItem>> = emptyMap(),
     val lendingItems: List<LendingItem> = emptyList(),
     val lendingHistory: List<LendingHistoryItem> = emptyList(),
     val frontendMessage: String? = null,

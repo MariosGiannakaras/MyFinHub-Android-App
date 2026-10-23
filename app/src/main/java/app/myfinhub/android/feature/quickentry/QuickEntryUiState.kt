@@ -102,6 +102,9 @@ data class QuickEntryUiState(
     val statementId: String = "",
     /** Explicit Web recurringId linkage. Cleared by Reset or switching transaction kind. */
     val recurringId: String = "",
+    /** Web counterparties.ts stores only deliberate owner selections. */
+    val counterpartyId: String = "",
+    val counterparties: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val creditStatements: List<QuickEntryStatementOption> = emptyList(),
     val person: String = "",
     val expectedReturnDateText: String = "",
@@ -159,6 +162,7 @@ sealed interface QuickEntryAction {
     data class StatementChanged(val id: String) : QuickEntryAction
     /** Carry the Web recurring category even when it was retired from current settings. */
     data class RecurringChanged(val id: String, val category: String? = null) : QuickEntryAction
+    data class CounterpartyChanged(val id: String) : QuickEntryAction
     data class PersonChanged(val value: String) : QuickEntryAction
     data class ExpectedReturnDateChanged(val value: String) : QuickEntryAction
     data class ActualBalanceChanged(val value: String) : QuickEntryAction
@@ -197,6 +201,7 @@ fun reduceQuickEntry(state: QuickEntryUiState, action: QuickEntryAction): QuickE
             subcategory = if (category != null) "" else state.subcategory,
         )
     }
+    is QuickEntryAction.CounterpartyChanged -> state.changed(counterpartyId = action.id)
     is QuickEntryAction.PersonChanged -> state.changed(person = action.value)
     is QuickEntryAction.ExpectedReturnDateChanged -> state.changed(expectedReturnDateText = action.value)
     is QuickEntryAction.ActualBalanceChanged -> state.changed(actualBalanceText = action.value)
@@ -297,6 +302,15 @@ private fun selectKind(state: QuickEntryUiState, kind: QuickEntryKind): QuickEnt
         toAccountId = preferredTo?.id.orEmpty(),
         statementId = "",
         recurringId = "",
+        counterpartyId = state.counterpartyId.takeIf {
+            app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent(
+                previousKind.canonicalKind
+            ) == app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent(
+                kind.canonicalKind
+            ) && app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent(
+                kind.canonicalKind
+            ) != null
+        }.orEmpty(),
         cardId = state.cardId.takeIf {
             previousKind.needsCard && kind.needsCard && state.creditCards.any { card -> card.id == it }
         } ?: state.creditCards.firstOrNull()?.id.orEmpty(),
@@ -336,6 +350,7 @@ private fun QuickEntryUiState.changed(
     cardId: String = this.cardId,
     statementId: String = this.statementId,
     recurringId: String = this.recurringId,
+    counterpartyId: String = this.counterpartyId,
     person: String = this.person,
     expectedReturnDateText: String = this.expectedReturnDateText,
     actualBalanceText: String = this.actualBalanceText,
@@ -351,6 +366,7 @@ private fun QuickEntryUiState.changed(
     cardId = cardId,
     statementId = statementId,
     recurringId = recurringId,
+    counterpartyId = counterpartyId,
     person = person,
     expectedReturnDateText = expectedReturnDateText,
     actualBalanceText = actualBalanceText,
@@ -415,6 +431,7 @@ private fun resetDraft(state: QuickEntryUiState): QuickEntryUiState {
         actualBalanceText = "",
         statementId = "",
         recurringId = "",
+        counterpartyId = "",
         splitParts = defaultSplitParts(state.expenseCategories.firstOrNull()?.name ?: "Άλλο"),
         validationMessage = null,
         savedSummary = null,
@@ -429,6 +446,15 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         ?: return state.invalid("Συμπλήρωσε έγκυρη ημερομηνία.")
     if (state.recurringId.isNotEmpty() && state.kind != QuickEntryKind.EXPENSE) {
         return state.invalid("Η συνδεδεμένη πληρωμή παγίου πρέπει να είναι έξοδο.")
+    }
+    if (state.counterpartyId.isNotBlank()) {
+        val expectedKind = app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent(
+            state.kind.canonicalKind
+        ) ?: return state.invalid("Ο τύπος κίνησης δεν δέχεται αντισυμβαλλόμενο.")
+        val candidates = state.counterparties.filter { it.id == state.counterpartyId }
+        if (candidates.size != 1 || candidates.single().kind != expectedKind) {
+            return state.invalid("Επίλεξε διαθέσιμο έμπορο ή δικαιούχο.")
+        }
     }
 
     if (state.kind != QuickEntryKind.RECONCILIATION) {

@@ -10,6 +10,32 @@ import app.myfinhub.android.core.data.AppendCanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
+import app.myfinhub.android.core.data.EditCanonicalCardProfile
+import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
+import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
+import app.myfinhub.android.core.data.DeleteCanonicalCustomCashAccount
+import app.myfinhub.android.core.data.ReorderCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.AddCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.RenameCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.MoveCanonicalSubcategoryTaxonomy
+import app.myfinhub.android.core.data.RetireCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.SetCanonicalCategoryIconColor
+import app.myfinhub.android.core.data.SetCanonicalCategoryIconPreference
+import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
+import app.myfinhub.android.core.data.canonicalNativeIconsForPack
+import app.myfinhub.android.core.data.categoryRetirementBlockers
+import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
+import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
+import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
+import app.myfinhub.android.core.data.LinkCanonicalEventCounterparty
+import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
+import app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest
+import app.myfinhub.android.core.data.SetCanonicalCreditBillingSettings
+import app.myfinhub.android.core.data.AddCanonicalCreditRateVersion
+import app.myfinhub.android.feature.money.CreditBillingSettingsRequest
+import app.myfinhub.android.feature.money.CreditRateVersionRequest
+import app.myfinhub.android.feature.money.CardProfileEditRequest
 import app.myfinhub.android.core.data.DeactivateCanonicalCard
 import app.myfinhub.android.core.data.confirmedPendingCardSecretCleanupIds
 import app.myfinhub.android.core.data.CompleteCanonicalCardSecretCleanup
@@ -27,6 +53,30 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.UpsertCategoryBudget
+import app.myfinhub.android.core.data.UpsertCanonicalSubcategoryBudget
+import app.myfinhub.android.core.data.DeleteCanonicalSubcategoryBudget
+import app.myfinhub.android.core.data.webSubcategoryBudgetStableId
+import app.myfinhub.android.core.data.webBudgetCategoryKey
+import app.myfinhub.android.feature.plan.SubcategoryBudgetEditRequest
+import app.myfinhub.android.core.data.DeleteCategoryBudget
+import app.myfinhub.android.core.data.DeleteCanonicalOverallBudget
+import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
+import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
+import app.myfinhub.android.core.data.UpsertCanonicalTransactionRule
+import app.myfinhub.android.core.data.UpsertCanonicalLoanMetadata
+import app.myfinhub.android.feature.money.LoanMetadataEditRequest
+import app.myfinhub.android.core.data.DeleteCanonicalTransactionRule
+import app.myfinhub.android.core.data.ReorderCanonicalTransactionRule
+import app.myfinhub.android.core.data.obj
+import app.myfinhub.android.feature.utilities.TransactionRuleEditRequest
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import app.myfinhub.android.core.data.bool
+import app.myfinhub.android.core.data.webCategoryBudgetStableId
+import app.myfinhub.android.core.data.webOverallBudgetStableId
+import app.myfinhub.android.core.data.settingsObject
+import app.myfinhub.android.core.data.number
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.plan.CategoryBudgetEditRequest
@@ -419,6 +469,91 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(DeleteCanonicalActivity(id, Instant.now().toString()))
     }
 
+    /** Future purchase cycle configuration: already stored statement IDs are immutable. */
+    fun saveCreditBillingSettings(request: CreditBillingSettingsRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (request.closingDay !in 1..31 || request.dueDay !in 1..31 ||
+            request.boundaryRule !in setOf("next-cycle", "include-closing-day")) return
+        val original = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+            .singleOrNull() ?: return
+        if (original.string("kind") != "credit" || original.bool("active") == false) return
+        if (original.number("statementClosingDay") == request.closingDay.toDouble() &&
+            original.number("statementDueDay") == request.dueDay.toDouble() &&
+            original.string("statementBoundaryRule") == request.boundaryRule) return
+        applyMutation(SetCanonicalCreditBillingSettings(
+            cardId = request.cardId,
+            closingDay = request.closingDay,
+            dueDay = request.dueDay,
+            boundaryRule = request.boundaryRule,
+            expected = original,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Record only a dated bank-disclosed nominal rate; no modeled interest becomes a transaction. */
+    fun addCreditRateVersion(request: CreditRateVersionRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val effective = runCatching { LocalDate.parse(request.effectiveFrom) }.getOrNull()
+            ?: return
+        val earliest = LocalDate.now()
+        val scaled = request.annualPercent * 10_000.0
+        if (effective.isBefore(earliest) || !request.annualPercent.isFinite() ||
+            request.annualPercent !in 0.0..100.0 ||
+            kotlin.math.abs(kotlin.math.round(scaled) - scaled) >= 0.00001) return
+        val original = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+            .singleOrNull() ?: return
+        if (original.string("kind") != "credit" || original.bool("active") == false) return
+        if (original.array("creditRateHistory")
+            .filterIsInstance<JsonObject>()
+            .any { it.string("effectiveFrom") == request.effectiveFrom }) return
+        applyMutation(AddCanonicalCreditRateVersion(
+            cardId = request.cardId,
+            annualPercent = request.annualPercent,
+            effectiveFrom = request.effectiveFrom,
+            earliestAllowedDate = earliest.toString(),
+            expected = original,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Canonical card-profile editing. Does not modify the encrypted secret vault. */
+    fun saveCardProfile(request: CardProfileEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val rows = ready.projection.document.state.array("cards")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("id") == request.cardId }
+        val expected = rows.singleOrNull() ?: return
+        if (expected.bool("active") == false) return
+        if (request.nickname.trim().isEmpty() ||
+            request.nickname.trim().length > 500 || request.bankId.isBlank() ||
+            request.bankId.length > 100 ||
+            request.network !in setOf("visa", "mastercard", "other") ||
+            request.formFactor !in setOf("physical", "virtual")) return
+        val kind = expected.string("kind")
+        if (kind !in setOf("debit", "prepaid", "credit")) return
+        if (request.creditLimit != null &&
+            (kind != "credit" || !request.creditLimit.isFinite() ||
+                request.creditLimit <= 0.0)) return
+        // Keep source-row and kind identity; only the permitted profile fields change.
+        applyMutation(EditCanonicalCardProfile(
+            cardId = request.cardId,
+            bankId = request.bankId,
+            nickname = request.nickname,
+            network = request.network,
+            formFactor = request.formFactor,
+            creditLimit = request.creditLimit,
+            expected = expected,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     fun createCard(request: CardCreateRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -579,6 +714,99 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(DeleteCanonicalSavingsGoal(goalId, Instant.now().toString()))
     }
 
+    /**
+     * Ordinary-loan metadata only: never creates a payment, funding event,
+     * transfer or silently rewrites historical installment totals.
+     */
+    fun saveLoanMetadata(request: LoanMetadataEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val document = ready.projection.document
+        if (request.name.trim().isEmpty() || request.name.length > 500 ||
+            request.kind !in setOf("loan", "installment") ||
+            request.installments !in 1..1200 ||
+            !request.total.isFinite() || request.total <= 0.0 ||
+            !request.installment.isFinite() || request.installment <= 0.0 ||
+            request.defaultAccountId.isBlank() ||
+            document.canonicalAccounts().count {
+                it.id == request.defaultAccountId && it.kind != "credit"
+            } != 1) return
+        if (Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
+                .containsMatchIn(request.name + " " + request.provider)) return
+        fun validMoney(value: Double): Boolean {
+            val scaled = value * 100.0
+            return scaled.isFinite() && kotlin.math.abs(kotlin.math.round(scaled) -
+                scaled) < 0.00001
+        }
+        if (!validMoney(request.total) || !validMoney(request.installment) ||
+            (request.firstExpectedDate.isNotBlank() &&
+                runCatching { LocalDate.parse(request.firstExpectedDate) }.isFailure)) return
+
+        val taxonomy = ready.projection.planState.budgetCategories
+        val seeded = document.seed.array("loans").filterIsInstance<JsonObject>()
+        val custom = document.state.array("customLoans").filterIsInstance<JsonObject>()
+        val id = request.id ?: "loan-android-${UUID.randomUUID()}"
+        if (id.isBlank()) return
+        val seedMatches = seeded.filter { it.string("id") == id }
+        val customMatches = custom.filter { it.string("id") == id }
+        if (seedMatches.size + customMatches.size > 1) return
+        val source = if (seedMatches.isNotEmpty()) "seed" else "custom"
+        val existing = when (source) {
+            "seed" -> {
+                (document.state.obj("loanOverrides")[id] as? JsonObject)
+                    ?: seedMatches.singleOrNull()
+            }
+            else -> customMatches.singleOrNull()
+        }
+        if (request.id != null && existing == null) return
+        if (request.id == null && existing != null) return
+        if (existing != null) {
+            if (existing.string("kind") != request.kind ||
+                existing.string("source") == "self-loan") return
+        }
+        val expectedCategory = existing?.string("expenseCategory")
+        if (request.expenseCategory.isBlank() ||
+            (taxonomy.isNotEmpty() && request.expenseCategory !in taxonomy &&
+                request.expenseCategory != expectedCategory)) return
+
+        val now = Instant.now().toString()
+        val metadata = mapOf(
+            "id" to JsonPrimitive(id),
+            "name" to JsonPrimitive(request.name.trim()),
+            "provider" to JsonPrimitive(request.provider.trim()),
+            "kind" to JsonPrimitive(request.kind),
+            "total" to JsonPrimitive(request.total),
+            "installment" to JsonPrimitive(request.installment),
+            "installments" to JsonPrimitive(request.installments),
+            "firstExpectedDate" to JsonPrimitive(request.firstExpectedDate),
+            "defaultAccountId" to JsonPrimitive(request.defaultAccountId),
+            "expenseCategory" to JsonPrimitive(request.expenseCategory),
+            "updatedAt" to JsonPrimitive(now),
+        )
+        val row = if (existing != null) {
+            JsonObject(existing + metadata)
+        } else {
+            JsonObject(mapOf(
+                "source" to JsonPrimitive("user"),
+                "paidCount" to JsonPrimitive(0),
+                "forgivenAmount" to JsonPrimitive(0),
+                "accountingMode" to JsonPrimitive("expense-per-installment"),
+                "day" to JsonPrimitive(""),
+                "schedule" to JsonArray(emptyList()),
+                "longTermRecurring" to JsonPrimitive(
+                    request.kind == "loan" && request.longTermRecurring
+                ),
+                "createdAt" to JsonPrimitive(now),
+            ) + metadata)
+        }
+        applyMutation(UpsertCanonicalLoanMetadata(
+            source = source,
+            loan = row,
+            expected = existing,
+            nowIso = now,
+        ))
+    }
+
     /** User-confirmed loan payment uses the existing strict canonical mutation and offline replay. */
     fun recordLoanPayment(
         loanId: String, accountId: String, date: String, installments: Int,
@@ -711,7 +939,528 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val recurring = ready.projection.document.allCanonicalRecurringItems()
             .filter { it.id == recurringId }.singleOrNull() ?: return
         if (recurring.effectiveStatus == status) return
-        applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
+        val source = ready.projection.document.canonicalRecurringEditSource(recurringId)
+            ?: return
+        // Carry the exact source row through durable pending replay. Without this
+        // expected snapshot an offline status action could overwrite remote edits.
+        applyMutation(SetCanonicalRecurringStatus(
+            recurringId = recurringId,
+            status = status,
+            nowIso = Instant.now().toString(),
+            expected = source.row,
+        ))
+    }
+
+    /** Owner-selected identity link for a single canonical event, never an inferred OCR match. */
+    fun linkActivityCounterparty(eventId: String, counterpartyId: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            eventId.isBlank()) return
+        val document = ready.projection.document
+        val events = document.state.array("events")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == eventId }
+        val event = events.singleOrNull() ?: return
+        val kind = canonicalCounterpartyKindForEvent(event.string("kind").orEmpty()) ?: return
+        if (counterpartyId != null) {
+            val matches = document.state.array("counterparties")
+                .mapNotNull { it as? JsonObject }
+                .filter { it.string("id") == counterpartyId }
+            if (matches.size != 1 || matches.single().string("kind") != kind) return
+        }
+        if (event.string("counterpartyId") == counterpartyId) return
+        applyMutation(LinkCanonicalEventCounterparty(
+            eventId = eventId, counterpartyId = counterpartyId,
+            expected = event, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web account settings: seed overrides or custom account identities, never balance edits. */
+    fun saveManagedAccount(request: ManagedAccountEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val doc = ready.projection.document
+        val accountId = request.id ?: "account-" +
+            (if (request.mode == "cash") "cash" else request.providerId.orEmpty()) +
+            "-${UUID.randomUUID()}"
+        val seeded = doc.seed.array("accounts").filterIsInstance<JsonObject>()
+            .filter { it.string("id") == accountId }
+        val custom = doc.settingsObject().array("customAccounts")
+            .filterIsInstance<JsonObject>().filter { it.string("id") == accountId }
+        val source = if (request.id == null) "new"
+            else if (seeded.size == 1 && custom.isEmpty()) "seed"
+            else if (custom.size == 1 && seeded.isEmpty()) "custom" else return
+        val expected = when (source) {
+            "seed" -> doc.settingsObject().obj("accountOverrides")[accountId] as? JsonObject
+            "custom" -> custom.singleOrNull()
+            else -> null
+        }
+        if (ready.projection.planState.managedAccounts.any {
+            it.id == accountId
+        } && request.id == null) return
+        if (request.id != null &&
+            ready.projection.planState.managedAccounts.count { it.id == accountId } != 1) return
+        if (request.mode == "bank" &&
+            (request.providerId.isNullOrBlank() ||
+                request.bankCategory !in setOf(
+                    "payroll", "current", "savings", "term", "payment", "other",
+                ))) return
+        if (request.mode == "cash" &&
+            request.cashType !in setOf("cash", "reserve", "other")) return
+        applyMutation(UpsertCanonicalManagedAccount(
+            accountId = accountId,
+            source = source,
+            name = request.name,
+            mode = request.mode,
+            providerId = request.providerId,
+            providerName = request.providerName,
+            bankCategory = request.bankCategory,
+            cashType = request.cashType,
+            expected = expected,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Safe delete: only unused custom cash profiles with no protected IBAN metadata. */
+    fun deleteUnusedCustomCashAccount(accountId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            accountId.isBlank()) return
+        val document = ready.projection.document
+        if (!document.customCashAccountCanBeDeleted(accountId)) return
+        val expected = document.settingsObject().array("customAccounts")
+            .filterIsInstance<JsonObject>().filter { it.string("id") == accountId }
+            .singleOrNull() ?: return
+        applyMutation(DeleteCanonicalCustomCashAccount(
+            accountId = accountId, expected = expected, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web icon-family selection stored in canonical settings with full-settings CAS. */
+    fun setCategoryIconPack(pack: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            pack !in CANONICAL_CATEGORY_ICON_PACKS) return
+        val settings = ready.projection.document.settingsObject()
+        if (settings.string("categoryIconPack") == pack) return
+        applyMutation(SetCanonicalCategoryIconPreference(
+            pack = pack, kind = null, category = null, subcategory = null,
+            semanticKey = null, expectedSettings = settings,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** A native local glyph selection is written to Web's per-pack preference contract. */
+    fun setCategoryIconGlyph(kind: String, category: String, subcategory: String?, glyph: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val settings = ready.projection.document.settingsObject()
+        val pack = settings.string("categoryIconPack")?.takeIf {
+            it in CANONICAL_CATEGORY_ICON_PACKS
+        } ?: "lucide"
+        if (glyph != null && glyph !in canonicalNativeIconsForPack(pack)) return
+        applyMutation(SetCanonicalCategoryIconPreference(
+            pack = pack, kind = kind, category = category, subcategory = subcategory,
+            semanticKey = glyph, expectedSettings = settings,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web icon-color preference; no glyph/pack inference and no finance event edit. */
+    fun setCategoryIconColor(kind: String, category: String, subcategory: String?, color: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val normalized = color?.trim()?.takeIf(String::isNotEmpty)
+        if (normalized != null && !Regex("^#[0-9a-fA-F]{6}$").matches(normalized)) return
+        val settings = ready.projection.document.settingsObject()
+        val field = if (subcategory == null) "categoryIconColors" else "subcategoryIconColors"
+        val key = kind + ":" + category + if (subcategory == null) "" else ":" + subcategory
+        if (settings.obj(field).string(key) == normalized?.uppercase(java.util.Locale.ROOT) ||
+            (normalized == null && settings.obj(field).string(key) == null)) return
+        applyMutation(SetCanonicalCategoryIconColor(
+            kind = kind, category = category, subcategory = subcategory,
+            color = normalized, expectedSettings = settings, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Never retire a category while a future rule, budget, scheduled entry or recurring uses it. */
+    fun retireCategoryTaxonomy(kind: String, category: String, subcategory: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val asOf = java.time.LocalDate.now().toString()
+        val document = ready.projection.document
+        val dependencies = runCatching {
+            document.categoryRetirementBlockers(kind, category, subcategory, asOf)
+        }.getOrElse {
+            mutableNotices.tryEmit(UserNotice(
+                message = "Η απόσυρση κατηγορίας δεν είναι ασφαλής.",
+                details = it.message ?: "Η ταυτότητα κατηγορίας δεν είναι μοναδική.",
+                diagnosticCode = "MFH-TAXONOMY-RETIRE-BLOCKED",
+            ))
+            return
+        }
+        if (dependencies.isNotEmpty()) {
+            mutableNotices.tryEmit(UserNotice(
+                message = "Υπάρχουν ενεργές εξαρτήσεις της κατηγορίας.",
+                details = dependencies.take(10).joinToString("\n"),
+                diagnosticCode = "MFH-TAXONOMY-DEPENDENCY-BLOCK",
+            ))
+            return
+        }
+        applyMutation(RetireCanonicalCategoryTaxonomy(
+            kind = kind, category = category, subcategory = subcategory,
+            asOf = asOf, expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Move only the owner's explicit subcategory, preserving identity and parent aliases. */
+    fun moveSubcategoryTaxonomy(kind: String, sourceCategory: String,
+        subcategory: String, targetCategory: String,
+    ) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || sourceCategory.isBlank() ||
+            subcategory.isBlank() || targetCategory.isBlank() ||
+            sourceCategory == targetCategory) return
+        val document = ready.projection.document
+        val rows = document.canonicalCategoryTaxonomy(kind)
+        val source = rows.singleOrNull { it.name == sourceCategory } ?: return
+        if (source.subcategories.count { it == subcategory } != 1 ||
+            rows.count { it.name == targetCategory } != 1) return
+        applyMutation(MoveCanonicalSubcategoryTaxonomy(
+            kind = kind, sourceCategory = sourceCategory, subcategory = subcategory,
+            targetCategory = targetCategory,
+            expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web taxonomy rename keeps stable identity IDs and historical aliases. */
+    fun renameCategoryTaxonomy(kind: String, category: String, subcategory: String?, newLabel: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank() ||
+            newLabel.isBlank() || newLabel.length > 120) return
+        val document = ready.projection.document
+        val tree = document.canonicalCategoryTaxonomy(kind)
+        val parent = tree.singleOrNull { it.name == category } ?: return
+        if (subcategory != null && parent.subcategories.count { it == subcategory } != 1) return
+        if (subcategory == null && parent.name == newLabel.trim()) return
+        if (subcategory != null && subcategory == newLabel.trim()) return
+        applyMutation(RenameCanonicalCategoryTaxonomy(
+            kind = kind, category = category, subcategory = subcategory,
+            newLabel = newLabel, expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Append only the owner's explicitly chosen category label. */
+    fun addCategoryTaxonomy(kind: String, label: String, parentCategory: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || label.isBlank() ||
+            label.length > 120 || parentCategory?.isBlank() == true) return
+        applyMutation(AddCanonicalCategoryTaxonomy(
+            kind = kind, label = label, parentCategory = parentCategory,
+            expectedSettings = ready.projection.document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web taxonomy reorder changes labels' display order, not stable identities or events. */
+    fun reorderCategoryTaxonomy(
+        kind: String, category: String, subcategory: String?, direction: Int,
+    ) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || direction !in setOf(-1, 1) ||
+            category.isBlank()) return
+        val key = if (kind == "expense") "expenseCategoryTree" else "incomeCategoryTree"
+        val tree = ready.projection.document.settingsObject().array(key)
+        if (tree.isEmpty()) return
+        applyMutation(ReorderCanonicalCategoryTaxonomy(
+            kind = kind,
+            category = category,
+            subcategory = subcategory,
+            direction = direction,
+            expectedTree = JsonArray(tree),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Safe owner-selected defaults cannot point to reserves or term deposits. */
+    fun setDefaultManagedAccount(role: String, accountId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (role !in setOf("defaultExpenseAccount", "defaultIncomeAccount",
+                "defaultLoanAccount")) return
+        val matches = ready.projection.document.canonicalAccounts()
+            .filter { it.id == accountId }
+        if (matches.size != 1 || matches.single().kind == "credit" ||
+            matches.single().excludeFromAvailable ||
+            !matches.single().showInQuickChoices) return
+        val current = ready.projection.document.settingsObject().string(role)
+        if (current == accountId) return
+        applyMutation(SetCanonicalDefaultAccount(
+            role = role, accountId = accountId, expectedAccountId = current,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web counterparty identity directory: financial events and past notes stay unchanged. */
+    fun saveCounterparty(request: CanonicalCounterpartyEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val rows = ready.projection.document.state.array("counterparties")
+            .mapNotNull { it as? JsonObject }
+        val matches = rows.filter { it.string("id") == request.id }
+        if (request.id != null && matches.size != 1) return
+        if (request.id == null && rows.size >= 2000) return
+        val original = matches.singleOrNull()
+        val kind = original?.string("kind") ?: request.kind
+        val now = Instant.now().toString()
+        val id = original?.string("id") ?: "cp-${UUID.randomUUID()}"
+        if (kind !in setOf("merchant", "beneficiary") ||
+            (original != null && request.kind != kind)) return
+        applyMutation(UpsertCanonicalCounterparty(
+            counterpartyId = id,
+            kind = kind,
+            displayName = request.displayName,
+            aliases = request.aliases,
+            createdAt = original?.string("createdAt") ?: now,
+            expected = original,
+            nowIso = now,
+        ))
+    }
+
+    /** Web-shaped rule authoring through the only guarded finance mutation pipeline. */
+    fun saveTransactionRule(request: TransactionRuleEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val document = ready.projection.document
+        val rows = document.state.array("transactionRules").mapNotNull { it as? JsonObject }
+        val matches = rows.filter { it.string("id") == request.id }
+        if (request.id != null && matches.size != 1) return
+        if (request.id == null && rows.size >= 10_000) return
+        val existing = matches.singleOrNull()
+        val name = request.name.trim()
+        val description = request.matchDescription.trim()
+        val merchant = request.matchMerchant.trim()
+        val account = request.matchAccountId.trim()
+        val category = request.actionCategory.trim()
+        val subcategory = request.actionSubcategory.trim()
+        val note = request.actionNote.trim()
+        val scopeOrder = listOf("manual", "imported", "review")
+        val scopes = scopeOrder.filter { it in request.scopes }
+        if (name.isEmpty() || name.length > 500 ||
+            listOf(description, merchant, account).all(String::isEmpty) ||
+            listOf(category, subcategory, note).all(String::isEmpty) ||
+            scopes.isEmpty() || request.scopes.any { it !in scopeOrder } ||
+            request.matchMode !in setOf("contains", "equals")
+        ) return
+        // Existing missing taxonomy references remain editable as Web historical exceptions.
+        val allowedCategories = ready.projection.planState.budgetCategories
+        if (category.isNotEmpty() && allowedCategories.isNotEmpty() &&
+            category !in allowedCategories && category != existing?.obj("action")?.string("category")) return
+        if (subcategory.isNotEmpty() && category.isEmpty()) return
+        if (subcategory.isNotEmpty() &&
+            subcategory !in ready.projection.planState.ruleSubcategories[category].orEmpty() &&
+            !(subcategory == existing?.obj("action")?.string("subcategory") &&
+              category == existing?.obj("action")?.string("category"))
+        ) return
+        val allowedAccounts = document.canonicalAccounts().filter { it.kind != "credit" }.map { it.id }
+        if (account.isNotEmpty() && account !in allowedAccounts &&
+            account != existing?.obj("match")?.string("accountId")) return
+
+        val now = Instant.now().toString()
+        val id = request.id ?: "rule-android-${UUID.randomUUID()}"
+        val priority = existing?.number("priority")
+            ?: ((rows.maxOfOrNull { it.number("priority") ?: 0.0 } ?: 0.0) + 100.0)
+                .coerceIn(0.0, 1_000_000.0)
+        fun withFields(original: JsonObject, pairs: Map<String, String?>): JsonObject {
+            val values = original.toMutableMap()
+            pairs.forEach { (key, value) ->
+                if (value.isNullOrBlank()) values.remove(key) else values[key] = JsonPrimitive(value)
+            }
+            return JsonObject(values)
+        }
+        val match = withFields(existing?.obj("match") ?: JsonObject(emptyMap()), mapOf(
+            "description" to description, "merchant" to merchant,
+            "accountId" to account, "mode" to request.matchMode,
+        ))
+        val action = withFields(existing?.obj("action") ?: JsonObject(emptyMap()), mapOf(
+            "category" to category, "subcategory" to subcategory, "note" to note,
+        ))
+        val rule = JsonObject((existing ?: JsonObject(emptyMap())) + mapOf(
+            "id" to JsonPrimitive(id),
+            "name" to JsonPrimitive(name),
+            "enabled" to JsonPrimitive(existing?.bool("enabled") ?: true),
+            "priority" to JsonPrimitive(priority.toInt()),
+            "scopes" to JsonArray(scopes.map(::JsonPrimitive)),
+            "match" to match,
+            "action" to action,
+            "createdAt" to JsonPrimitive(existing?.string("createdAt") ?: now),
+            "updatedAt" to JsonPrimitive(now),
+        ))
+        applyMutation(UpsertCanonicalTransactionRule(rule, existing, now))
+    }
+
+    fun deleteTransactionRule(ruleId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || ruleId.isBlank()) return
+        val row = ready.projection.document.state.array("transactionRules")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == ruleId }
+            .singleOrNull() ?: return
+        applyMutation(DeleteCanonicalTransactionRule(ruleId, row, Instant.now().toString()))
+    }
+
+    fun reorderTransactionRule(ruleId: String, direction: Int) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            ruleId.isBlank() || direction !in setOf(-1, 1)) return
+        val rows = ready.projection.document.state.array("transactionRules")
+        val ids = rows.mapNotNull { (it as? JsonObject)?.string("id") }
+        if (ids.size != rows.size || ids.distinct().size != ids.size ||
+            ruleId !in ids || rows.size < 2) return
+        applyMutation(ReorderCanonicalTransactionRule(
+            ruleId = ruleId, direction = direction,
+            expected = JsonArray(rows), nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Applies only to future transactions; source fields and past events are preserved. */
+    fun setTransactionRuleEnabled(ruleId: String, enabled: Boolean) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || ruleId.isBlank()) return
+        val matches = ready.projection.document.state.array("transactionRules")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == ruleId }
+        val existing = matches.singleOrNull() ?: return
+        if (existing.bool("enabled") == enabled) return
+        applyMutation(SetCanonicalTransactionRuleEnabled(
+            ruleId = ruleId, enabled = enabled, expected = existing,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web savingsTargetRate is canonical settings metadata, not a balance or transfer. */
+    fun saveMonthlySavingsRate(percentText: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val value = percentText.replace(',', '.').toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it in 0.0..100.0 } ?: return
+        val rate = value / 100.0
+        val existing = ready.projection.document.settingsObject().number("savingsTargetRate")
+        if (existing == rate) return
+        applyMutation(SetCanonicalSavingsTargetRate(
+            rate = rate,
+            expectedRate = existing,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Delete only the owner's confirmed current-month overall budget; no ledger effects. */
+    /** Month selection is UI-only until a specific guarded budget is saved. */
+    private fun selectedBudgetMonth(ready: FinanceProductState.Ready): String {
+        val raw = ready.projection.planState.budgetSelectedMonthIso
+        return runCatching { YearMonth.parse(raw).toString() }.getOrNull()
+            ?: YearMonth.now().toString()
+    }
+
+    fun deleteOverallBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            budgetId.isBlank()) return
+        val month = selectedBudgetMonth(ready)
+        val all = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val candidates = all.filter { it.string("id") == budgetId }
+        val current = candidates.singleOrNull() ?: return
+        if (current.string("scope") != "overall" || current.string("month") != month ||
+            all.count { it.string("scope") == "overall" && it.string("month") == month } != 1
+        ) return
+        applyMutation(DeleteCanonicalOverallBudget(
+            budgetId = budgetId, month = month,
+            expected = current, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Delete only the explicitly selected source row; historical finance events remain intact. */
+    fun deleteCategoryBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || budgetId.isBlank()) return
+        val month = selectedBudgetMonth(ready)
+        val candidates = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == budgetId }
+        val current = candidates.singleOrNull() ?: return
+        if (current.string("scope") != "category" || current.string("month") != month) return
+        val category = current.string("category")?.takeIf { it.isNotBlank() } ?: return
+        applyMutation(DeleteCategoryBudget(
+            budgetId = budgetId,
+            month = month,
+            category = category,
+            expected = current,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web subcategory budget metadata; no new expense or payment is posted. */
+    fun saveSubcategoryBudget(request: SubcategoryBudgetEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val category = request.category.trim()
+        val subcategory = request.subcategory.trim()
+        val amount = request.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+        val threshold = request.alertThresholdText.toIntOrNull()
+        if (category.isBlank() || subcategory.isBlank() || amount == null ||
+            !amount.isFinite() || amount <= 0.0 || threshold == null || threshold !in 50..99) return
+        val knownSubs = ready.projection.planState.ruleSubcategories
+        val month = selectedBudgetMonth(ready)
+        val rows = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val scoped = rows.filter {
+            it.string("month") == month && it.string("scope") == "subcategory" &&
+                webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                    webBudgetCategoryKey(category) &&
+                webBudgetCategoryKey(it.string("subcategory").orEmpty()) ==
+                    webBudgetCategoryKey(subcategory)
+        }
+        if (scoped.size > 1) return
+        val current = scoped.singleOrNull()
+        if (request.budgetId == null) {
+            if (current != null || category !in knownSubs ||
+                subcategory !in knownSubs[category].orEmpty()) return
+        } else {
+            if (current?.string("id") != request.budgetId) return
+        }
+        applyMutation(UpsertCanonicalSubcategoryBudget(
+            budgetId = request.budgetId ?: webSubcategoryBudgetStableId(
+                month, category, subcategory),
+            month = month, category = category, subcategory = subcategory,
+            amount = amount, alertThreshold = threshold, carryover = request.carryover,
+            expected = current, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Delete only the exact user-confirmed subcategory row, never parent or ledger rows. */
+    fun deleteSubcategoryBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            budgetId.isBlank()) return
+        val month = selectedBudgetMonth(ready)
+        val all = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val row = all.filter { it.string("id") == budgetId }.singleOrNull() ?: return
+        if (row.string("scope") != "subcategory" || row.string("month") != month) return
+        val category = row.string("category")?.takeIf(String::isNotBlank) ?: return
+        val subcategory = row.string("subcategory")?.takeIf(String::isNotBlank) ?: return
+        applyMutation(DeleteCanonicalSubcategoryBudget(
+            budgetId = budgetId, month = month,
+            category = category, subcategory = subcategory,
+            expected = row, nowIso = Instant.now().toString(),
+        ))
     }
 
     fun saveCategoryBudget(request: CategoryBudgetEditRequest) {
@@ -722,22 +1471,29 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val threshold = request.alertThresholdText.toIntOrNull()
         if (category.isEmpty() || amount == null || !amount.isFinite() ||
             amount <= 0.0 || threshold == null || threshold !in 50..99) return
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val matches = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
             .filter {
                 it.string("month") == month && it.string("scope") == "category" &&
-                    it.string("category") == category
+                    webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                        webBudgetCategoryKey(category)
             }
         if (matches.size > 1) return
         val current = matches.singleOrNull()
+        // New category budgets use the configured Web taxonomy, never a free-form
+        // Android-only synthetic category. Existing historical rows retain their identity.
+        if (request.budgetId == null &&
+            ready.projection.planState.budgetCategories.isNotEmpty() &&
+            category !in ready.projection.planState.budgetCategories
+        ) return
         // A new category must not silently overwrite an existing category.
         if (request.budgetId == null && current != null) return
         if (request.budgetId != null && current?.string("id") != request.budgetId) return
         applyMutation(UpsertCategoryBudget(
             month = month, category = category, amount = amount,
             alertThreshold = threshold,
-            budgetId = request.budgetId ?: "budget-android-${UUID.randomUUID()}",
+            budgetId = request.budgetId ?: webCategoryBudgetStableId(month, category),
             expected = current,
             nowIso = Instant.now().toString(),
         ))
@@ -750,13 +1506,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val threshold = alertThresholdText.toIntOrNull()
         if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
 
+        val month = selectedBudgetMonth(ready)
+        val rows = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+            .filter { it.string("month") == month && it.string("scope") == "overall" }
+        if (rows.size > 1) return
         applyMutation(
             UpsertOverallBudget(
-                month = YearMonth.now().toString(),
+                month = month,
                 amount = amount,
                 alertThreshold = threshold,
-                budgetId = "budget-android-${UUID.randomUUID()}",
+                budgetId = webOverallBudgetStableId(month),
                 nowIso = Instant.now().toString(),
+                expected = rows.singleOrNull(),
+                enforceExpected = true,
             ),
         )
     }
@@ -764,24 +1527,38 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (action is PlanAction.ShiftBudgetMonth ||
+            action is PlanAction.SelectBudgetMonth
+        ) {
+            if (action is PlanAction.ShiftBudgetMonth &&
+                action.delta !in setOf(-1, 1)) return
+            if (action is PlanAction.SelectBudgetMonth &&
+                runCatching {
+                    YearMonth.parse(action.monthIso).toString() == action.monthIso
+                }.getOrDefault(false).not()) return
+            val current = ready.projection.planState
+            val changed = reducePlan(current, action)
+            val updated = projectCanonicalPlanState(
+                document = ready.projection.document,
+                today = LocalDate.now(),
+                previous = changed,
+            )
+            mutableState.value = ready.copy(
+                projection = ready.projection.copy(planState = updated),
+            )
+            return
+        }
         if (action != PlanAction.SaveBudget) {
             mutableState.value = ready.copy(projection = ready.projection.copy(planState = reducePlan(ready.projection.planState, action)))
             return
         }
         val validated = reducePlan(ready.projection.planState, PlanAction.SaveBudget)
         mutableState.value = ready.copy(projection = ready.projection.copy(planState = validated))
-        val amount = validated.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()
-        val threshold = validated.budget.alertThresholdText.toIntOrNull()
-        if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
-
-        applyMutation(
-            UpsertOverallBudget(
-                month = YearMonth.now().toString(),
-                amount = amount,
-                alertThreshold = threshold,
-                budgetId = "budget-android-${UUID.randomUUID()}",
-                nowIso = Instant.now().toString(),
-            ),
+        // Reuse the exact same guarded Web-ID mutation as the budget editor.
+        // Never create an unsafe random-ID budget through a secondary PlanAction path.
+        saveOverallBudget(
+            validated.budget.monthlyLimitText,
+            validated.budget.alertThresholdText,
         )
     }
 
@@ -1337,16 +2114,41 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.EDIT_ACTIVITY -> "Επεξεργασία κίνησης"
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
+                PendingMutationKind.DELETE_OVERALL_BUDGET -> "Διαγραφή συνολικού budget"
                 PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
+                PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET -> "Όριο υποκατηγορίας"
+                PendingMutationKind.DELETE_SUBCATEGORY_BUDGET -> "Διαγραφή ορίου υποκατηγορίας"
+                PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
+                PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
+                PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
+                PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
+                PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
+                PendingMutationKind.UPSERT_MANAGED_ACCOUNT -> "Διαχείριση λογαριασμού"
+                PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> "Διαγραφή αχρησιμοποίητων μετρητών"
+                PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> "Σειρά κατηγοριών"
+                PendingMutationKind.ADD_CATEGORY_TAXONOMY -> "Προσθήκη κατηγορίας"
+                PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> "Μετονομασία κατηγορίας"
+                PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> "Μεταφορά υποκατηγορίας"
+                PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> "Απόσυρση κατηγορίας"
+                PendingMutationKind.SET_CATEGORY_ICON_COLOR -> "Χρώμα εικονιδίου"
+                PendingMutationKind.SET_CATEGORY_ICON_PREFERENCE -> "Επιλογή εικονιδίου"
+                PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
+                PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
+                PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
+                PendingMutationKind.REORDER_TRANSACTION_RULE -> "Σειρά αυτοματισμών"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
                 PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.EDIT_RECURRING -> "Επεξεργασία παγίου"
                 PendingMutationKind.CREATE_SCHEDULED -> "Προγραμματισμός κίνησης"
                 PendingMutationKind.COMPLETE_SCHEDULED -> "Ολοκλήρωση προγραμματισμένης κίνησης"
                 PendingMutationKind.CLOSE_SCHEDULED -> "Παράλειψη ή ακύρωση προγραμματισμένης κίνησης"
+                PendingMutationKind.UPSERT_LOAN_METADATA -> "Στοιχεία δανείου"
                 PendingMutationKind.UPSERT_SAVINGS_GOAL -> "Αποθήκευση στόχου αποταμίευσης"
                 PendingMutationKind.DELETE_SAVINGS_GOAL -> "Διαγραφή στόχου αποταμίευσης"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"
+                PendingMutationKind.EDIT_CARD_PROFILE -> "Αλλαγή προφίλ κάρτας"
+                PendingMutationKind.SET_CREDIT_BILLING_SETTINGS -> "Ρυθμίσεις κύκλου πιστωτικής"
+                PendingMutationKind.ADD_CREDIT_RATE_VERSION -> "Νέο επιτόκιο πιστωτικής"
                 PendingMutationKind.DEACTIVATE_CARD -> "Αρχειοθέτηση κάρτας"
                 PendingMutationKind.RESTORE_CARD -> "Επαναφορά κάρτας"
                 PendingMutationKind.PERMANENTLY_DELETE_CARD -> "Οριστική διαγραφή κάρτας"

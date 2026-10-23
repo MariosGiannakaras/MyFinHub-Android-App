@@ -2,6 +2,7 @@ package app.myfinhub.android.designsystem
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.util.Locale
+import java.text.Normalizer
 
 /**
  * Stable Android-only presentation mapping for canonical category labels.
@@ -10,7 +11,34 @@ import java.util.Locale
  * familiar category labels receive a curated local glyph and unknown labels safely fall back to
  * the transaction-kind icon supplied by the caller.
  */
-fun myFinHubCategoryIcon(category: String?, fallback: ImageVector): ImageVector {
+
+/** Local-vector counterparts to a bounded set of Web semantic glyph keys.
+ * Unknown Web pack-specific SVG/catalog keys deliberately fall back to taxonomy inference.
+ */
+fun myFinHubSemanticCategoryIcon(key: String?): ImageVector? = when (key) {
+    "coffee", "dining" -> MyFinHubIcons.Dining
+    "groceries", "shopping" -> MyFinHubIcons.Shopping
+    "fuel", "car", "travel" -> MyFinHubIcons.Transport
+    "home" -> MyFinHubIcons.Home
+    "electricity", "subscription" -> MyFinHubIcons.Bills
+    "health" -> MyFinHubIcons.Health
+    "entertainment" -> MyFinHubIcons.Entertainment
+    "cash" -> MyFinHubIcons.Money
+    "saving" -> MyFinHubIcons.Savings
+    "salary" -> MyFinHubIcons.Work
+    "card" -> MyFinHubIcons.Card
+    "transfer" -> MyFinHubIcons.Transfer
+    "loan" -> MyFinHubIcons.Account
+    "other" -> MyFinHubIcons.All
+    else -> null
+}
+
+fun myFinHubCategoryIcon(
+    category: String?,
+    fallback: ImageVector,
+    semanticOverride: String? = null,
+): ImageVector {
+    myFinHubSemanticCategoryIcon(semanticOverride)?.let { return it }
     val key = category.orEmpty().trim().lowercase(Locale.ROOT)
     if (key.isBlank()) return fallback
 
@@ -29,4 +57,13 @@ fun myFinHubCategoryIcon(category: String?, fallback: ImageVector): ImageVector 
     }
 }
 
-private fun String.containsAny(vararg needles: String): Boolean = needles.any(::contains)
+/** Taxonomy labels are user-authored Greek strings; compare accents canonically for fallback glyphs. */
+private fun String.containsAny(vararg needles: String): Boolean {
+    val normalized = Normalizer.normalize(this, Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+    return needles.any { needle ->
+        this.contains(needle) || normalized.contains(
+            Normalizer.normalize(needle, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
+        )
+    }
+}

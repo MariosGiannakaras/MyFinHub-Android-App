@@ -47,6 +47,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.financeToneColors
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
@@ -61,10 +62,13 @@ fun InsightsScreen(
     onOpenSupportingActivity: () -> Unit,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
     initialDetailsExpanded: Boolean = false,
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val scope = state.periodScope(selectedPeriodId)
+    val historicIndex = state.historicalMonths.indexOfFirst { it.id == scope.id }
+    val isCalendarMonth = scope.id == INSIGHTS_PERIOD_MONTH || historicIndex >= 0
     var detailsExpanded by rememberSaveable { mutableStateOf(initialDetailsExpanded) }
 
     Scaffold(
@@ -93,6 +97,46 @@ fun InsightsScreen(
                     onPeriodSelected = onPeriodSelected,
                 )
             }
+            if (isCalendarMonth) {
+                item("historical-calendar-month-navigation") {
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth().testTag("insights_report_month_nav"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(
+                                "Μήνας αναφοράς · " +
+                                    (if (historicIndex >= 0) scope.label else "Τρέχων"),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Η σύγκριση αφορά πραγματικούς ημερολογιακούς μήνες, " +
+                                    "όχι αυθαίρετα κυλιόμενα διαστήματα.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                val earlier = if (historicIndex < 0) state.historicalMonths.firstOrNull()
+                                    else state.historicalMonths.getOrNull(historicIndex + 1)
+                                val later = if (historicIndex <= 0) state.periods
+                                    .firstOrNull { it.id == INSIGHTS_PERIOD_MONTH }
+                                    else state.historicalMonths.getOrNull(historicIndex - 1)
+                                TextButton(
+                                    enabled = earlier != null,
+                                    onClick = { earlier?.let { onPeriodSelected(it.id) } },
+                                    modifier = Modifier.testTag("insights_report_previous_month"),
+                                ) { Text("Προηγούμενος") }
+                                TextButton(
+                                    enabled = later != null && historicIndex >= 0,
+                                    onClick = { later?.let { onPeriodSelected(it.id) } },
+                                    modifier = Modifier.testTag("insights_report_next_month"),
+                                ) { Text("Επόμενος") }
+                            }
+                        }
+                    }
+                }
+            }
             item("spending-comparison") {
                 SpendingComparisonCard(scope = scope, largeFont = largeFont, amountsVisible = amountsVisible)
             }
@@ -116,6 +160,7 @@ fun InsightsScreen(
                     scope = scope,
                     onOpenCategoryActivity = onOpenCategoryActivity,
                     amountsVisible = amountsVisible,
+                    categoryGlyphOverrides = categoryGlyphOverrides,
                 )
             }
             if (scope.counterparties.isNotEmpty()) {
@@ -330,8 +375,10 @@ fun InsightsScreen(
             item("details") {
                 AnalysisDetailsCard(
                     scope = scope,
-                    points = state.monthlyTrend.takeLast(6),
-                    averageMonthlySpend = state.averageMonthlySpend,
+                    points = scope.historicTrend.ifEmpty { state.monthlyTrend.takeLast(6) },
+                    averageMonthlySpend = if (scope.historicTrend.isNotEmpty()) {
+                        scope.historicTrend.map(TrendPoint::expense).average()
+                    } else state.averageMonthlySpend,
                     expanded = detailsExpanded,
                     onToggle = { detailsExpanded = !detailsExpanded },
                     amountsVisible = amountsVisible,
@@ -433,7 +480,8 @@ private fun PeriodSelector(
         ) {
             periods.forEach { period ->
                 FilterChip(
-                    selected = period.id == selectedPeriodId,
+                    selected = period.id == selectedPeriodId ||
+                        (period.id == INSIGHTS_PERIOD_MONTH && selectedPeriodId.startsWith("report:")),
                     onClick = { onPeriodSelected(period.id) },
                     label = { Text(period.label) },
                     modifier = Modifier.weight(1f).testTag("insights_period_${period.id}"),
@@ -622,6 +670,7 @@ private fun CategoryCompositionCard(
     scope: InsightPeriodScope,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit,
     amountsVisible: Boolean,
+    categoryGlyphOverrides: Map<String, String>,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_categories")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -642,6 +691,7 @@ private fun CategoryCompositionCard(
                         category = category,
                         onOpen = { onOpenCategoryActivity(category, scope.startDate, scope.endDate) },
                         amountsVisible = amountsVisible,
+                        semanticIcon = categoryGlyphOverrides["expense:" + category.name],
                     )
                 }
             }
@@ -650,7 +700,12 @@ private fun CategoryCompositionCard(
 }
 
 @Composable
-private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVisible: Boolean) {
+private fun CategoryRow(
+    category: InsightCategory,
+    onOpen: () -> Unit,
+    amountsVisible: Boolean,
+    semanticIcon: String? = null,
+) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val description = "${category.name}, ${amountVisibilityText(formatEuro(category.amount), amountsVisible)}, ${(category.share * 100).roundToInt()}% των εξόδων"
     Surface(
@@ -672,7 +727,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVi
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     MyFinHubIconBadge(
-                        icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense),
+                        icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense, semanticIcon),
                         tone = FinanceTone.Expense,
                         contentDescription = null,
                     )
@@ -695,7 +750,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVi
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MyFinHubIconBadge(
-                    icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense),
+                    icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense, semanticIcon),
                     tone = FinanceTone.Expense,
                     contentDescription = null,
                 )

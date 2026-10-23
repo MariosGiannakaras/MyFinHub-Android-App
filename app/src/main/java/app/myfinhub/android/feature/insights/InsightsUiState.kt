@@ -164,6 +164,8 @@ data class InsightPeriodScope(
     val primaryAccountSeries: InsightsPrimaryAccountSeries? = null,
     val monthlyReportSignals: InsightMonthlyReportSignals? = null,
     val operationalReport: InsightsOperationalReport? = null,
+    /** Month-anchored Web reportFlowSeries, separate from current-month homepage trend. */
+    val historicTrend: List<TrendPoint> = emptyList(),
 )
 
 data class InsightsUiState(
@@ -174,11 +176,14 @@ data class InsightsUiState(
     val categoryStartDate: String = "2026-08-01",
     val categoryEndDate: String = "2026-08-31",
     val periods: List<InsightPeriodScope> = emptyList(),
+    /** Historical calendar month scopes are distinct from the three primary rolling filters. */
+    val historicalMonths: List<InsightPeriodScope> = emptyList(),
 ) {
     val defaultPeriodId: String
         get() = periods.firstOrNull()?.id ?: INSIGHTS_PERIOD_MONTH
 
-    fun periodScope(id: String): InsightPeriodScope = periods.firstOrNull { it.id == id }
+    fun periodScope(id: String): InsightPeriodScope = historicalMonths.firstOrNull { it.id == id }
+        ?: periods.firstOrNull { it.id == id }
         ?: periods.firstOrNull()
         ?: InsightPeriodScope(
             id = INSIGHTS_PERIOD_MONTH,

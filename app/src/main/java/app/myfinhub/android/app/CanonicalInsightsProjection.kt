@@ -110,6 +110,36 @@ internal fun projectCanonicalInsightsState(
         )
     }
     val completedMonthSpend = trend.filterNot(TrendPoint::isPartial).map(TrendPoint::expense)
+    // Web ReportsPage can select past calendar months; historical periods include complete
+    // calendar-month source ranges, never rolling 30-day approximations. Bound projection
+    // to the last 12 completed months to avoid unbounded work on every finance refresh.
+    val historicalMonths = (1L..12L).map { offset ->
+        val selected = currentMonth.minusMonths(offset)
+        val prior = selected.minusMonths(1)
+        var historicalNet = 0.0
+        val historicalTrend = (5L downTo 0L).map { selected.minusMonths(it) }
+            .map { month ->
+                val flow = document.canonicalOperationalMonthlyFlow(month.toString())
+                historicalNet += flow.income - flow.expense
+                TrendPoint(
+                    label = insightsMonthLabel(month),
+                    income = flow.income, expense = flow.expense,
+                    monthIso = month.toString(), saving = flow.saving,
+                    cumulativeNet = historicalNet,
+                )
+            }
+        buildInsightsScope(
+            document = document,
+            id = "report:" + selected,
+            label = insightsMonthLabel(selected) + " " + selected.year,
+            start = selected.atDay(1),
+            end = selected.atEndOfMonth(),
+            comparisonStart = prior.atDay(1),
+            comparisonEnd = prior.atEndOfMonth(),
+            contextLabel = "Πλήρης μήνας · " + insightsMonthLabel(selected) + " " + selected.year,
+            allowUnequalMonthLengths = true,
+        ).copy(historicTrend = historicalTrend)
+    }
 
     return InsightsUiState(
         categoryStartDate = monthScope.startDate,
@@ -119,6 +149,7 @@ internal fun projectCanonicalInsightsState(
         averageMonthlySpend = completedMonthSpend.average().takeIf { it.isFinite() } ?: 0.0,
         comparison = monthScope.comparison,
         periods = listOf(monthScope, thirtyScope, ninetyScope),
+        historicalMonths = historicalMonths,
     )
 }
 
@@ -131,9 +162,11 @@ private fun buildInsightsScope(
     comparisonStart: LocalDate,
     comparisonEnd: LocalDate,
     contextLabel: String,
+    allowUnequalMonthLengths: Boolean = false,
 ): InsightPeriodScope {
     check(!end.isBefore(start))
-    check(ChronoUnit.DAYS.between(start, end) == ChronoUnit.DAYS.between(comparisonStart, comparisonEnd)) {
+    check(allowUnequalMonthLengths ||
+        ChronoUnit.DAYS.between(start, end) == ChronoUnit.DAYS.between(comparisonStart, comparisonEnd)) {
         "Insight comparison windows must contain the same number of days"
     }
     val current = document.canonicalOperationalFlowBetween(start.toString(), end.toString())
@@ -153,7 +186,7 @@ private fun buildInsightsScope(
             previousExpense = previous.expense,
         ),
         categories = insightCategories(document, start, end),
-        operationalReport = if (id == INSIGHTS_PERIOD_MONTH) {
+        operationalReport = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:"))) {
             val snapshot = document.canonicalOperationalReportSnapshot(
                 month = YearMonth.from(end).toString(),
                 asOf = end.toString(),
@@ -182,7 +215,7 @@ private fun buildInsightsScope(
                     },
             )
         } else null,
-        monthlyReportSignals = if (id == INSIGHTS_PERIOD_MONTH) {
+        monthlyReportSignals = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:"))) {
             val row = document.canonicalReportInsightSignals(
                 month = YearMonth.from(end).toString(),
                 asOf = end.toString(),
@@ -205,7 +238,7 @@ private fun buildInsightsScope(
                 sufficientExpenseHistory = row.sufficientExpenseHistory,
             )
         } else null,
-        primaryAccountSeries = if (id == INSIGHTS_PERIOD_MONTH) {
+        primaryAccountSeries = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:"))) {
             val accounts = document.canonicalAccounts()
             val primary = primaryHomeRoles(accounts)
             val payrollId = primary[HomePrimaryRole.PAYROLL]
@@ -234,7 +267,7 @@ private fun buildInsightsScope(
                 )
             }
         } else null,
-        creditPortfolio = if (id == INSIGHTS_PERIOD_MONTH) {
+        creditPortfolio = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:"))) {
             val snapshot = document.canonicalReportCreditPortfolio(end.toString())
             InsightsCreditPortfolio(
                 activeCards = snapshot.activeCards,
@@ -253,7 +286,7 @@ private fun buildInsightsScope(
                 },
             )
         } else null,
-        loanBurden = if (id == INSIGHTS_PERIOD_MONTH) {
+        loanBurden = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:"))) {
             val source = document.canonicalReportLoanBurden(asOf = end.toString())
             InsightsLoanBurden(
                 total = source.total, count = source.count,
@@ -264,14 +297,14 @@ private fun buildInsightsScope(
                 },
             )
         } else null,
-        categoryMomentum = if (id == INSIGHTS_PERIOD_MONTH)
+        categoryMomentum = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:")))
             document.canonicalReportCategoryMomentum(
                 month = YearMonth.from(end).toString(), asOf = end.toString(),
             ).map { row ->
                 InsightCategoryMomentum(row.name, row.value, row.previous, row.change)
             }
         else emptyList(),
-        counterparties = if (id == INSIGHTS_PERIOD_MONTH)
+        counterparties = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:")))
             document.canonicalReportExpenseCounterparties(
                 month = YearMonth.from(end).toString(), asOf = end.toString(),
             ).map { row ->

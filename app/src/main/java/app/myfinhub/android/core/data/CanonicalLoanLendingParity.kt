@@ -16,6 +16,10 @@ data class CanonicalLoanBalanceRow(
     val isSelfLoan: Boolean = false,
     val isLiabilityRepayment: Boolean = false,
     val defaultAccountId: String = "",
+    val kind: String = "",
+    val totalInstallments: Int = 0,
+    val firstExpectedDate: String = "",
+    val expenseCategory: String = "",
 )
 
 internal fun JsonObject.isOwnLoan(): Boolean =
@@ -79,6 +83,10 @@ fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): Lis
             loan.number("total") ?: 0.0,installment,outstanding,remainingCount,typical,
             self, loan.string("accountingMode") == "liability-repayment",
             loan.string("defaultAccountId").orEmpty(),
+            kind = loan.string("kind").orEmpty(),
+            totalInstallments = installments,
+            firstExpectedDate = loan.string("firstExpectedDate").orEmpty(),
+            expenseCategory = loan.string("expenseCategory").orEmpty(),
         )
     }
 }

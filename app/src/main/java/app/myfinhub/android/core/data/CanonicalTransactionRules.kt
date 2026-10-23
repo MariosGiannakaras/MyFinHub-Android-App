@@ -13,6 +13,30 @@ private val ruleEventKinds = setOf("expense", "refund", "income", "card_purchase
 private fun normalizeRuleText(value: String?): String =
     value.orEmpty().trim().lowercase(transactionRuleLocale)
 
+/** Exact Web-only historic example preview: no rule action is applied to an event. */
+data class CanonicalRulePreview(
+    val matchingCount: Int,
+    val examples: List<String>,
+)
+
+fun canonicalRulePreview(
+    draft: JsonObject,
+    events: List<JsonObject>,
+): CanonicalRulePreview {
+    var count = 0
+    val examples = ArrayList<String>(3)
+    events.forEach { event ->
+        if (canonicalRuleMatchesEvent(draft, event, ignoreEnabled = true)) {
+            count++
+            if (examples.size < 3) {
+                examples += event.string("note").orEmpty().trim()
+                    .take(100).ifBlank { "Κίνηση χωρίς περιγραφή" }
+            }
+        }
+    }
+    return CanonicalRulePreview(count, examples)
+}
+
 /** Web transactionRuleMatchingEvents forces only this rule enabled for history previews. */
 internal fun canonicalRuleMatchesEvent(
     rule: JsonObject,

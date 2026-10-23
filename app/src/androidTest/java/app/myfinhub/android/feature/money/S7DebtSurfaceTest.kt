@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -54,7 +55,8 @@ class S7DebtSurfaceTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Καταχώριση επιστροφής").performScrollTo().performClick()
+        composeRule.onNodeWithTag("lending_select_person").performScrollTo().performClick()
+        composeRule.onNodeWithTag("lending_record_repayment").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("lend-1", recorded?.id) }
     }
 
@@ -103,7 +105,8 @@ class S7DebtSurfaceTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Καταχώριση επιστροφής").performScrollTo().performClick()
+        composeRule.onNodeWithTag("lending_select_person").performScrollTo().performClick()
+        composeRule.onNodeWithTag("lending_record_repayment").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("person-anna", selected?.id) }
         composeRule.onNodeWithText("Ιστορικό δανεικών").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Επιστροφή λογαριασμού").performScrollTo().assertIsDisplayed()

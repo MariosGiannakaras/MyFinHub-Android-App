@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 legacy recurring editor safeguards PR #318 passed exact-head 4/4 gates at 497bf1212e6389ba524125bec23e839af285728b and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 adds native W4.3 category budget create/edit via a Web-shaped optimistic canonical mutation, offline/revision replay and S24 Compose/JVM regression tests. Exact-head gates and physical owner Galaxy S24 Ultra acceptance pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develop PR #319 at d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner CODE-FIRST BULK unmerged android/web-parity-code-first-bulk-20261023 without per-feature CI/PR. Authored source: budgets/savings, rules/preview, account management, recurring, credit/card profiles/rates/payoff, backup, lending/loans, counterparty directory/event links/suggestions, taxonomy/analytics. Latest source adds five-pack Web category icon selections with per-pack memory and source CAS/offline intent; native Settings exposes only bundled semantic vectors, and selected glyphs project consistently into Activity, Account detail, Insights category rows, Plan obligations and Forecast rows. Unmapped Web SVGs preserved, not yet shipped as native assets. All branch source uncompiled/untested/unmerged; physical Galaxy S24 Ultra owner acceptance #149 outstanding.
 
 ## Immediate work
 
-- Validate draft #319 native category budget create/edit: current-month exact category, cent values, 50–99% thresholds, source metadata preservation, duplicate-ID/remote-conflict rejection, pending offline replay, no ledger changes, Compose accessibility. Require exact final-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator before squash merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 acceptance #149 separate. No Web/backend/schema changes, production finance writes, signed release, SMS import or permanent card deletion.
+- Continue Android-only W2–W5 source gaps on android/web-parity-code-first-bulk-20261023. Now category icon semantic glyphs are applied to Activity, Account, Insights and Plan/Forecast without touching financial calculations. Full desktop SVG glyph catalog for five packs is not bundled: do not claim 1:1 visual pack parity. Continue remaining domain, provider/security/settings and rendering gaps in consolidated code batches. Only after source implementation run consolidated Kotlin/unit/security, real Compose screenshot light/dark/large font and hosted S24 emulator, correct bugs and 4/4 exact-head CI before protected develop merge. Progress remains 1/6 implementations · 11/24 subtasks until verified; owner physical S24 #149 pending. No shared Web/backend/schema, production writes, signing/release, SMS import, or permanent card deletion UI.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 legacy recurrin
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #319, branch android/w4-3-category-budget-edit-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. PR #318 recurring editor safeguards passed 4/4 immutable-head gates and squash merged develop da9f62a84b806b0c1369111b0837b9f2459e1de2. Draft #319 implements native W4.3 category budget create/edit through optimistic Web-shaped no-event mutation and durable offline replay; Compose/JVM tests staged. CI and physical owner acceptance pending.
+Issue #155, PR #320, branch android/web-parity-code-first-bulk-20261023
+Current W5.4: Web parity 1/6 implementations · 11/24 subtasks. Develop last merged #319. Code-first unmerged source now preserves per-Web-pack category glyph choices, Settings edit and offline CAS, with native semantic icon application on Activity, Account detail, Insights categories and Plan/Forecast. Remaining full SVG asset parity and other W2–W5 gaps, mass compilation/visual checks and physical owner device acceptance are pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #319 category budget editor, exact-source mutation and pending offline replay on final-head Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and hosted S24 emulator. Fix failures inside PR before squash merge. Continue remaining W4.3 and other parity gaps after verified checkpoint. Web parity stays 1/6 implementations · 11/24 subtasks, owner S24 acceptance #149 separate; no shared code/schema, production writes, signed release or SMS.
+Next Continue remaining safe Android-only W2.4/W3/W4/W5 parity code on android/web-parity-code-first-bulk-20261023, consolidating commits without per-feature PR/CI. Latest source-only batch extends Web category icon preferences to Activity/Account/Insights/Plan. Do not claim full five-pack Web SVG catalogs in native. After source completion, mass Kotlin/unit/security/Compose screenshot/hosted S24 emulator exact-head gates, fix failures, then merge. Last develop #319, counts 1/6 · 11/24, physical S24 #149 separate; no Web/backend/schema/production data writes, signing, SMS or irreversible card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
