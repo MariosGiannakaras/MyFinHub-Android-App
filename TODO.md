@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue CODE-FIRST BULK on android/web-parity-code-first-bulk-20261023 without individual CI/PRs. New W5.4 backup source is Android SAF CreateDocument with pending sync guard; credit payoff simulation matches Web cents and privacy. Still audit W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source, particularly backup import preview/restore authorization and validation and remaining card/loan/settings/statement gaps, then consolidated build/unit/security/true light-dark-large Compose screenshots/hosted S24 emulator checks. Fix regressions, merge only after four exact-head green gates. Web parity stays 1/6 implementations · 11/24 subtasks; physical owner S24 #149 separate. No Web/backend/schema, production financial writes, signing, SMS import #146, irreversible card deletion.
+- [ ] Continue writing all remaining Android-only W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source on android/web-parity-code-first-bulk-20261023 before mass QA. New W5.4 code covers selected-location full JSON export and bounded, non-destructive backup import PREVIEW only; actual finance-data restore requires Web-equivalent full schema/relationships validation, owner authentication and trusted revision/recovery safety, and is NOT activated. Finish other card/statement/loan/taxonomy/settings gaps in grouped commits; then aggregate compile/unit/security/real Compose light-dark-large font screenshot and hosted S24 emulator checks, fix failures and merge after four exact-head green gates. Counts stay 1/6 implementations · 11/24 subtasks pending evidence; no Web/backend/schema edits, production writes, signer/release, SMS import or permanent card delete.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last integrated PR #319. Unmerged and untested code-first branch now includes canonical budgets/savings, rules, recurring lifecycle, statements, card profile/credit rates/cycle, advisory payoff simulation and new full JSON export via SAF with privacy and sync guard. More Android source and mass QA required.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. Unmerged CODE-FIRST BULK includes budget, saving, rule, recurring, card statement and credit term source, payoff simulation; new W5.4 SAF JSON export and read-only 16MiB JSON import PREVIEW. No server restore, tests, PR/merge, physical S24 acceptance yet. Continue code-first implementation.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue Android-only W2.4/W3/W4/W5 source on android/web-parity-code-first-bulk-20261023 in large commits; explore safe backup import preview but no production data replacement without authorization. Defer per-feature CI and PR. At code completion run comprehensive Kotlin/build/unit/security/Compose visual/accessibility/hosted S24 emulator, fix defects and require all exact-head gates to merge. Last verified develop #319; parity 1/6 · 11/24; physical owner S24 #149 separate; no shared Web/backend/schema, production financial writes, signing, SMS #146 or permanent card deletion.
+Next Continue completing remaining W2–W5 Android-only source on android/web-parity-code-first-bulk-20261023. Ensure safe finance backup restore is not enabled without verified schema, relationships, account authorization and revision protections; bounded preview is read-only. After source phase, consolidated Kotlin/build/unit/security/real Compose visual/S24 emulator checks, fix errors and merge only at immutable exact-head green checks. Last tested develop #319; Web parity 1/6 · 11/24, S24 owner #149 separate; no Web/API/schema, production writes, signing, SMS #146 or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -511,6 +511,9 @@ fun ProductionSettingsScreen(
                     offline = backupOffline,
                 )
             }
+            if (backupDocument != null) {
+                CanonicalFinanceBackupImportPreview()
+            }
 
             onLogout?.let { logout ->
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s9_settings_account")) {
