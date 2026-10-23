@@ -61,6 +61,12 @@ jobs:
           app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLargeFontScreenshot_production_quick_entry_compact_large_font_f2f26a3e_0.png
           app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactDarkScreenshot_production_quick_entry_compact_dark_e7f0ce82_0.png
           app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/quickentry/ProductionQuickEntryScreenshotTestKt/ProductionQuickEntryCompactLightScreenshot_production_quick_entry_compact_light_5e5d5329_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingDarkScreenshot_production_activity_pending_dark_322b8683_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLargeFontScreenshot_production_activity_pending_large_font_83e0a837_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/activity/ProductionActivityScreenshotTestKt/ProductionActivityPendingLightScreenshot_production_activity_pending_light_ee7d53cf_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanDark_s7_plan_dark_8ab7588e_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanLarge_s7_plan_large_18fa4087_0.png
+          app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/plan/S7PlanScreenshotTestKt/S7PlanLight_s7_plan_light_0b794e8d_0.png
           WHITELIST
           git diff --name-only --diff-filter=ACMR > /tmp/actual-android-screenshots.txt
           if ! diff -u <(sort /tmp/reviewed-android-screenshots.txt) <(sort /tmp/actual-android-screenshots.txt); then
