@@ -938,8 +938,12 @@ private fun CanonicalLoanFinanceRow(
     mutationBlocked: Boolean,
     eligible: Boolean,
     duplicateIdentity: Boolean,
+    history: List<LoanPaymentHistoryItem>,
+    accounts: List<MoneyAccount>,
     onPay: () -> Unit,
 ) {
+    var showHistory by rememberSaveable(loan.id) { mutableStateOf(false) }
+    var historyLimit by rememberSaveable(loan.id) { mutableStateOf(10) }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
             Row(
@@ -991,6 +995,57 @@ private fun CanonicalLoanFinanceRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (history.isNotEmpty() && !duplicateIdentity) {
+                TextButton(
+                    onClick = { showHistory = !showHistory; historyLimit = 10 },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_history_toggle_" + loan.id),
+                ) {
+                    Text(if (showHistory) "Απόκρυψη πληρωμών"
+                        else "Συνδεδεμένες πληρωμές (${history.size})")
+                }
+                if (showHistory) {
+                    history.take(historyLimit).forEachIndexed { i, entry ->
+                        val accountLabel = entry.accountId?.let { accountId ->
+                            accounts.singleOrNull { it.id == accountId }?.name
+                        }
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("loan_payment_history_${i}"),
+                            verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs),
+                        ) {
+                            Text(
+                                entry.date +
+                                    if (entry.installmentCount > 1)
+                                        " · ${entry.installmentCount} δόσεις" else "",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (entry.note.isNotBlank()) {
+                                Text(entry.note, style = MaterialTheme.typography.bodySmall)
+                            }
+                            if (accountLabel != null) {
+                                Text(accountLabel, style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            MyFinHubAmountText(
+                                amountVisibilityText(
+                                    formatCanonicalEuro(entry.amount), amountsVisible,
+                                ),
+                                FinanceTone.Expense,
+                            )
+                        }
+                    }
+                    if (history.size > historyLimit) {
+                        TextButton(
+                            onClick = {
+                                historyLimit = (historyLimit + 10).coerceAtMost(history.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("loan_history_more_" + loan.id),
+                        ) { Text("Περισσότερες πληρωμές (${history.size - historyLimit})") }
+                    }
+                }
             }
         }
     }
@@ -1144,6 +1199,8 @@ fun CanonicalLoansScreen(
                         mutationBlocked = mutationBlocked,
                         eligible = canonicalLoanPaymentIsUnambiguous(indexed.value, state.loans),
                         duplicateIdentity = state.loans.count { it.id == indexed.value.id } > 1,
+                        history = state.loanPaymentsById[indexed.value.id].orEmpty(),
+                        accounts = state.accounts,
                         onPay = { selectedLoanId = indexed.value.id },
                     )
                 }
@@ -1173,6 +1230,8 @@ fun CanonicalLoansScreen(
                             mutationBlocked = true,
                             eligible = false,
                             duplicateIdentity = state.loans.count { it.id == indexed.value.id } > 1,
+                            history = state.loanPaymentsById[indexed.value.id].orEmpty(),
+                            accounts = state.accounts,
                             onPay = {},
                         )
                     }

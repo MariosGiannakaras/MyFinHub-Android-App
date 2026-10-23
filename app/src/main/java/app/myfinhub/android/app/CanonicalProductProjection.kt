@@ -32,6 +32,8 @@ import app.myfinhub.android.core.data.canonicalLoanBalanceRows
 import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
+import app.myfinhub.android.core.data.canonicalLendingHistoryRows
+import app.myfinhub.android.core.data.canonicalLoanPaymentHistory
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.webSavingsMonthlyTargetSnapshot
 import app.myfinhub.android.core.data.webSavingsMonthlyTrend
@@ -66,6 +68,8 @@ import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.SavingsHistoryItem
 import app.myfinhub.android.feature.money.LoanItem
+import app.myfinhub.android.feature.money.LoanPaymentHistoryItem
+import app.myfinhub.android.feature.money.LendingHistoryItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
 import app.myfinhub.android.feature.money.CardAnnualRateVersion
@@ -508,6 +512,20 @@ val activityItems = buildActivityItems(
                 typicalPaymentDay = loan.typicalPaymentDay,
             )
         },
+        loanPaymentsById = document.canonicalLoanPaymentHistory(asOf)
+            .mapValues { (_, rows) ->
+                rows.map { row ->
+                    LoanPaymentHistoryItem(
+                        eventId = row.eventId,
+                        date = row.date,
+                        note = row.note,
+                        amount = row.amount,
+                        accountId = row.accountId,
+                        installmentCount = row.installmentCount,
+                        eventKind = row.eventKind,
+                    )
+                }
+            },
         lendingItems = document.canonicalLendingPersonRows(asOf)
             .filter { it.outstanding > 0.005 }
             .map { row ->
@@ -518,6 +536,20 @@ val activityItems = buildActivityItems(
                     dueLabel = "",
                 )
             },
+        // Web lending history includes settled people and survives zero balances.
+        lendingHistory = document.canonicalLendingHistoryRows(asOf).map { row ->
+            LendingHistoryItem(
+                id = row.id,
+                personLabel = row.person,
+                date = row.date,
+                action = row.action,
+                amount = row.amount,
+                note = row.note,
+                runningOutstanding = row.runningOutstanding,
+                accountId = row.accountId,
+                origin = row.origin,
+            )
+        },
         savingsSources = currentSavingsBreakdown.bySource,
         savingsMonthlyTarget = document.webSavingsMonthlyTargetSnapshot(month, asOf),
         savingsMonthlyTrend = document.webSavingsMonthlyTrend(month, asOf),

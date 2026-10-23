@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue Android Web-parity CODE-FIRST BULK on android/web-parity-code-first-bulk-20261023. New source W4.3 shows actual seeded/event lending history by person with running row balances, source account, action filter, pagination, and user-confirmed Quick Entry lending/repayment drafts; active/completed loans now have sort and paging. Outstanding W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source gaps must be implemented before mass build/unit/security/visual/S24 emulator CI. Restore imported FinanceData remains preview-only until full schema/ownership/revision validations exist; no server overwrite. Web parity counts 1/6 implementations · 11/24 subtasks until code reviewed and merged. Protected develop only after four green immutable-head checks; physical S24 #149 separate. No Web/backend/schema, production finance writes, signing, SMS import #146 or irreversible card delete.
+- [ ] Continue code-first safe Android-only W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source on android/web-parity-code-first-bulk-20261023 before consolidated tests. Latest W4.3 source connects canonical lending history and loan payment events to MoneyUiState with person filters, search, sort and paging; source-ID safety preserved. Continue remaining loan metadata, account/provider, taxonomy and settings/report parity. Full finance-data restore remains read-only preview without production overwrite until Web-equivalent schema/owner/revision validation exists. Then run consolidated Kotlin/build/unit/security, actual Compose screenshot/accessibility and hosted S24 emulator, fix defects, and require 4 exact-head green gates before develop merge. Counts stay 1/6 and 11/24 until validated integration, physical S24 #149 separate. No Web/backend/schema, production finance writes, signing, SMS import or permanent card delete.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last integrated #319. Unmerged CODE-FIRST BULK branch now additionally connects canonical lending history to user-facing UI, adds person search, action filters and explicit Quick Entry drafts, plus sorted/paginated active/completed loan lists; earlier budgets, credit statements, recurring/rules, card profiles and JSON backup source remain untested. Continue source before consolidated QA.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last merged #319. Unmerged CODE-FIRST BULK source includes loan active/completed views, canonical per-loan linked event history and lending person/history filtering; earlier budgets/recurring/rules/savings/credit/backup remain untested. Previously overwritten source lendingHistory projection restored. No new PR, build, CI, merge or physical acceptance.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue grouped Android-only W2/W3/W4/W5 code authoring on android/web-parity-code-first-bulk-20261023. After source complete, consolidated compiler/Kotlin tests/security/screenshot/hosted S24 emulator exact-head 4/4, fix and merge; do not open per-feature PRs or claim acceptance. Web parity 1/6 · 11/24; S24 owner #149 separate. Backup restore preview does not write. No shared Web/backend/schema, production writes, signing, SMS #146, or permanent card delete.
+Next Continue remaining W2-W5 Android-only source authoring in grouped commits on android/web-parity-code-first-bulk-20261023. Then consolidated compiler/Kotlin/unit/security/real Compose light/dark/large-font/S24 emulator verification, repair defects and exact-head four green checks before merge. Last tested develop #319. Counts 1/6 and 11/24; S24 owner #149 separate. No shared Web/API/schema, production writes, signing, SMS #146 or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
