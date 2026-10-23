@@ -589,9 +589,10 @@ private fun CompactChoice(
                     contentPadding = PaddingValues(bottom = MyFinHubSpacing.sm),
                 ) {
                     items(filteredChoices, key = { it.first }) { (id, text) ->
+                        val vector = choiceIcon?.invoke(id)
                         ListItem(
                             headlineContent = { Text(text) },
-                            leadingContent = choiceIcon?.invoke(id)?.let { vector ->
+                            leadingContent = if (vector == null) null else {
                                 { Icon(imageVector = vector, contentDescription = null) }
                             },
                             supportingContent = subtitles[id]?.let { subtitle ->
