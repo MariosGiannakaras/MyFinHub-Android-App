@@ -40,6 +40,7 @@ enum class PendingMutationKind {
     ADD_CATEGORY_TAXONOMY,
     RENAME_CATEGORY_TAXONOMY,
     MOVE_SUBCATEGORY_TAXONOMY,
+    RETIRE_CATEGORY_TAXONOMY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -305,6 +306,15 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> RetireCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            asOf = payload.string("asOf").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing taxonomy retirement source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> MoveCanonicalSubcategoryTaxonomy(
             kind = payload.string("kind").orEmpty(),
             sourceCategory = payload.string("sourceCategory").orEmpty(),
@@ -566,6 +576,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY ->
             runCatching { (asMutation() as MoveCanonicalSubcategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.RETIRE_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as RetireCanonicalCategoryTaxonomy).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.ADD_CATEGORY_TAXONOMY ->
             runCatching { (asMutation() as AddCanonicalCategoryTaxonomy).satisfiedBy(document) }
@@ -893,6 +906,17 @@ data class PendingCanonicalMutationIntent(
                     mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
                     mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
                     mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is RetireCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.RETIRE_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("asOf", JsonPrimitive(mutation.asOf))
+                    put("expectedSettings", mutation.expectedSettings)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }), syncState = syncState,
             )

@@ -36,6 +36,7 @@ fun CanonicalCategoryTaxonomyOrderPanel(
     onAdd: ((kind: String, label: String, parentCategory: String?) -> Unit)? = null,
     onRename: ((kind: String, category: String, subcategory: String?, newLabel: String) -> Unit)? = null,
     onMove: ((kind: String, source: String, child: String, target: String) -> Unit)? = null,
+    onRetire: ((kind: String, category: String, subcategory: String?) -> Unit)? = null,
 ) {
     var newKind by remember { mutableStateOf<String?>(null) }
     var newParent by remember { mutableStateOf<String?>(null) }
@@ -48,6 +49,14 @@ fun CanonicalCategoryTaxonomyOrderPanel(
     var moveSource by remember { mutableStateOf("") }
     var moveChild by remember { mutableStateOf("") }
     var moveTarget by remember { mutableStateOf<String?>(null) }
+    var retireKind by remember { mutableStateOf<String?>(null) }
+    var retireCategory by remember { mutableStateOf("") }
+    var retireSubcategory by remember { mutableStateOf<String?>(null) }
+    fun openRetirement(kind: String, category: String, child: String?) {
+        retireKind = kind
+        retireCategory = category
+        retireSubcategory = child
+    }
     fun openRename(kind: String, category: String, child: String?) {
         renameKind = kind
         renameCategory = category
@@ -97,6 +106,13 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                     rows.take(visible).forEachIndexed { index, row ->
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                             Text(row.name, style = MaterialTheme.typography.bodyLarge)
+                            if (onRetire != null && row.subcategories.isEmpty()) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { openRetirement(kind, row.name, null) },
+                                    modifier = Modifier.testTag("s9_taxonomy_retire_" + kind + "_" + index),
+                                ) { Text("Απόσυρση κατηγορίας") }
+                            }
                             if (onRename != null) {
                                 TextButton(
                                     enabled = !mutationBlocked,
@@ -126,6 +142,15 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                             row.subcategories.forEachIndexed { subIndex, child ->
                                 Column {
                                     Text("↳ $child", style = MaterialTheme.typography.bodySmall)
+                                    if (onRetire != null) {
+                                        TextButton(
+                                            enabled = !mutationBlocked,
+                                            onClick = { openRetirement(kind, row.name, child) },
+                                            modifier = Modifier.testTag(
+                                                "s9_taxonomy_retire_sub_" + kind + "_" + index + "_" + subIndex,
+                                            ),
+                                        ) { Text("Απόσυρση υποκατηγορίας") }
+                                    }
                                     if (onMove != null && rows.size > 1) {
                                         TextButton(
                                             enabled = !mutationBlocked,
@@ -185,6 +210,45 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                 }
             }
         }
+    }
+    if (retireKind != null && onRetire != null) {
+        val kind = retireKind!!
+        val category = retireCategory
+        val child = retireSubcategory
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) retireKind = null },
+            title = { Text(if (child == null) "Απόσυρση κατηγορίας;" else "Απόσυρση υποκατηγορίας;") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Η «" + (child ?: category) + "» αφαιρείται μόνο από τις ενεργές επιλογές. " +
+                            "Οι ιστορικές συναλλαγές, τα IDs και τα aliases δεν διαγράφονται.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text(
+                        "Η ενέργεια απορρίπτεται αυτόματα αν υπάρχουν ενεργοί κανόνες, " +
+                            "πάγια, προγραμματισμένες κινήσεις ή budgets που εξαρτώνται από αυτή.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    onClick = {
+                        onRetire(kind, category, child)
+                        retireKind = null
+                    },
+                    modifier = Modifier.testTag("s9_taxonomy_retire_confirm"),
+                ) { Text("Απόσυρση") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    onClick = { retireKind = null },
+                ) { Text("Ακύρωση") }
+            },
+        )
     }
     if (moveKind != null && onMove != null) {
         val kind = moveKind!!

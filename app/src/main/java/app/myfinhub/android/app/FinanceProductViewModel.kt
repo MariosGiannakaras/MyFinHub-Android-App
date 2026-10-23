@@ -18,6 +18,8 @@ import app.myfinhub.android.core.data.ReorderCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.AddCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.RenameCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.MoveCanonicalSubcategoryTaxonomy
+import app.myfinhub.android.core.data.RetireCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.categoryRetirementBlockers
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
@@ -1026,6 +1028,38 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             .singleOrNull() ?: return
         applyMutation(DeleteCanonicalCustomCashAccount(
             accountId = accountId, expected = expected, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Never retire a category while a future rule, budget, scheduled entry or recurring uses it. */
+    fun retireCategoryTaxonomy(kind: String, category: String, subcategory: String?) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank()) return
+        val asOf = java.time.LocalDate.now().toString()
+        val document = ready.projection.document
+        val dependencies = runCatching {
+            document.categoryRetirementBlockers(kind, category, subcategory, asOf)
+        }.getOrElse {
+            mutableNotices.tryEmit(UserNotice(
+                message = "Η απόσυρση κατηγορίας δεν είναι ασφαλής.",
+                details = it.message ?: "Η ταυτότητα κατηγορίας δεν είναι μοναδική.",
+                diagnosticCode = "MFH-TAXONOMY-RETIRE-BLOCKED",
+            ))
+            return
+        }
+        if (dependencies.isNotEmpty()) {
+            mutableNotices.tryEmit(UserNotice(
+                message = "Υπάρχουν ενεργές εξαρτήσεις της κατηγορίας.",
+                details = dependencies.take(10).joinToString("\n"),
+                diagnosticCode = "MFH-TAXONOMY-DEPENDENCY-BLOCK",
+            ))
+            return
+        }
+        applyMutation(RetireCanonicalCategoryTaxonomy(
+            kind = kind, category = category, subcategory = subcategory,
+            asOf = asOf, expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
         ))
     }
 
@@ -2042,6 +2076,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.ADD_CATEGORY_TAXONOMY -> "Προσθήκη κατηγορίας"
                 PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> "Μετονομασία κατηγορίας"
                 PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> "Μεταφορά υποκατηγορίας"
+                PendingMutationKind.RETIRE_CATEGORY_TAXONOMY -> "Απόσυρση κατηγορίας"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

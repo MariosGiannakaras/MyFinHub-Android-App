@@ -63,6 +63,7 @@ fun ProductionSettingsScreen(
     onAddCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
     onRenameCategoryTaxonomy: ((String, String, String?, String) -> Unit)? = null,
     onMoveSubcategoryTaxonomy: ((String, String, String, String) -> Unit)? = null,
+    onRetireCategoryTaxonomy: ((String, String, String?) -> Unit)? = null,
     deletableCustomCashAccountIds: Set<String> = emptySet(),
     onDeleteUnusedCustomCashAccount: ((String) -> Unit)? = null,
     defaultAccountIds: Map<String, String> = emptyMap(),
@@ -253,6 +254,7 @@ fun ProductionSettingsScreen(
                     onAdd = onAddCategoryTaxonomy,
                     onRename = onRenameCategoryTaxonomy,
                     onMove = onMoveSubcategoryTaxonomy,
+                    onRetire = onRetireCategoryTaxonomy,
                 )
             }
             if (onSaveCounterparty != null) {
