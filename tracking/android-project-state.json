@@ -1118,7 +1118,7 @@
     ],
     "next_action": "Validate W2.4 secure card editor session-invalidation behavior and S24 Compose regression on android/w2-card-secure-editor-session-20261024; PR and exact-head 4/4 gates required before merge. Then continue other unfinished W2–W5 parity. No permanent-card-delete UI, real finance writes, shared backend edits, SMS import, signer or release.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 320,
+    "pr": 321,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

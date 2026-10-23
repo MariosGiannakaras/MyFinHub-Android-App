@@ -54,7 +54,7 @@ Web parity 1/6 implementations · 11/24 subtasks. Consolidated Android-only sour
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #320, branch android/w2-card-secure-editor-session-20261024
+Issue #155, PR #321, branch android/w2-card-secure-editor-session-20261024
 Current W2.4: Merged PR #320 at develop 3c85ad3b (4/4 exact-head pass). W2.4 secure card editor authority-loss draft invalidation and Compose regression are authored in a new unmerged branch, not yet CI-validated. Web parity progress remains 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate W2.4 secure card editor session-invalidation behavior and S24 Compose regression on android/w2-card-secure-editor-session-20261024; PR and exact-head 4/4 gates required before merge. Then continue other unfinished W2–W5 parity. No permanent-card-delete UI, real finance writes, shared backend edits, SMS import, signer or release.
