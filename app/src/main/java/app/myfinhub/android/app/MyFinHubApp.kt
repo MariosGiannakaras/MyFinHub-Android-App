@@ -426,6 +426,7 @@ internal fun MyFinHubAppContent(
                         accountOptions = activityState.accountOptions,
                         incomeCategoryOptions = activityState.incomeCategories,
                         expenseCategoryOptions = activityState.expenseCategories,
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         mutationInFlight = activityMutationInFlight,
                         mutationBlocked = activityMutationBlocked ||
                             !activityState.isUniqueMutationTarget(route.eventId),
