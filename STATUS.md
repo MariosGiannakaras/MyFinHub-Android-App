@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develop #319 at d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner-directed CODE-FIRST BULK in unmerged android/web-parity-code-first-bulk-20261023, with no per-feature PR/CI: Android source authored for Web compatible category/overall budget CRUD and savings percent goal, complete transaction-rule create/edit/delete/reorder/toggle with configured categories and offline replay, recurring source-guard pause/stop/reactivate, canonical statement-cycle historical drilldown and explicitly targeted prefilled Quick Entry repayment draft, plus card-profile metadata editing preserving PAN/CVV/vault, and Web 1–31-day billing cycle and future-dated annual nominal rate versions with immutable prior statements and no auto-posted interest. All source uncompiled/unverified until mass QA, no merge/physical S24 signoff.
+Web parity 1/6 implementations · 11/24 completed subtasks. Verified develop last PR #319 at d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner-directed CODE-FIRST BULK in unmerged android/web-parity-code-first-bulk-20261023; no per-feature PR/CI. Source authored for budgets, savings rate, Settings rules CRUD/order/toggle, guarded recurring, credit statement detail/payment drafts, non-secret card profile editing, future billing cycles, dated nominal credit rates and privacy-aware Web-aligned payoff simulation. NEW W5.4 source: user-selected full canonical JSON export via SAF, blocks pending changes, warns about plaintext and excludes card vault secrets. No source branch build, unit, UI or physical S24 checks yet.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue CODE-FIRST BULK Android-only Web parity source on android/web-parity-code-first-bulk-20261023; no per-feature PR/CI. New card batch edits safe non-secret card profile (nickname, bank, network, form factor, optional credit limit), future purchase billing-cycle configuration, and bank-disclosed nominal rates (0–100%, four decimals, non-backdated effective dates) with durable expected-card offline intents, current rate history projection and explicit native editors. Earlier branch source also covers rules, budgets, savings, recurring and statements. Still audit and implement remaining W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 code gaps; then perform consolidated compiler/unit/security/visual/emulator tests, fix all failures and merge only on four green immutable-head checks. Counters remain 1/6 and 11/24 until evidence-backed integration, physical owner S24 #149 separate. No Web/backend/schema changes, production financial writes, signing/releases, SMS #146 or irreversible card deletion UI.
+1. Continue CODE-FIRST BULK on android/web-parity-code-first-bulk-20261023 without individual CI/PRs. New W5.4 backup source is Android SAF CreateDocument with pending sync guard; credit payoff simulation matches Web cents and privacy. Still audit W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source, particularly backup import preview/restore authorization and validation and remaining card/loan/settings/statement gaps, then consolidated build/unit/security/true light-dark-large Compose screenshots/hosted S24 emulator checks. Fix regressions, merge only after four exact-head green gates. Web parity stays 1/6 implementations · 11/24 subtasks; physical owner S24 #149 separate. No Web/backend/schema, production financial writes, signing, SMS import #146, irreversible card deletion.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last integrated PR #319. Unmerged CODE-FIRST BULK branch includes source for budgets, savings rate, rules CRUD/order, guarded recurring, statement history and targeted payment draft, and now editable non-secret card profile, future billing cycle, future-dated nominal rate history with guarded offline replay. No PR/CI/physical acceptance for new source. Continue W2–W5 code then consolidated QA.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last integrated PR #319. Unmerged and untested code-first branch now includes canonical budgets/savings, rules, recurring lifecycle, statements, card profile/credit rates/cycle, advisory payoff simulation and new full JSON export via SAF with privacy and sync guard. More Android source and mass QA required.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue Android-only W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 code authoring on android/web-parity-code-first-bulk-20261023 in coherent batches before tests; check feature completeness against Web. Later one broad CI, unit, security, Compose screenshots and S24 emulator pass, repair errors and exact-head gate merge. Last tested develop #319; counts 1/6,11/24; S24 owner #149 separate; no shared backend/Web/schema or production financial writes, signer/release, SMS or permanent card deletion.
+Next Continue Android-only W2.4/W3/W4/W5 source on android/web-parity-code-first-bulk-20261023 in large commits; explore safe backup import preview but no production data replacement without authorization. Defer per-feature CI and PR. At code completion run comprehensive Kotlin/build/unit/security/Compose visual/accessibility/hosted S24 emulator, fix defects and require all exact-head gates to merge. Last verified develop #319; parity 1/6 · 11/24; physical owner S24 #149 separate; no shared Web/backend/schema, production financial writes, signing, SMS #146 or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

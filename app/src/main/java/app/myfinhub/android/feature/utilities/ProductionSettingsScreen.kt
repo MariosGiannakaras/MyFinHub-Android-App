@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.BuildConfig
+import kotlinx.serialization.json.JsonObject
 import app.myfinhub.android.core.network.DeviceSessionRecord
 import app.myfinhub.android.core.network.ServerFinanceHistorySummary
 import app.myfinhub.android.core.network.visibleServerFinanceHistoryPoints
@@ -61,6 +62,10 @@ fun ProductionSettingsScreen(
     ruleSubcategories: Map<String, List<String>> = emptyMap(),
     ruleAccountOptions: List<Pair<String, String>> = emptyList(),
     rulesMutationBlocked: Boolean = false,
+    backupDocument: JsonObject? = null,
+    backupPendingChangeCount: Int = 0,
+    backupMutationBlocked: Boolean = false,
+    backupOffline: Boolean = false,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
     serverHistory: ServerFinanceHistorySummary? = null,
@@ -496,6 +501,15 @@ fun ProductionSettingsScreen(
                         )
                     }
                 }
+            }
+
+            if (backupDocument != null) {
+                CanonicalFinanceBackupExport(
+                    canonicalDocument = backupDocument,
+                    pendingChangeCount = backupPendingChangeCount,
+                    mutationBlocked = backupMutationBlocked,
+                    offline = backupOffline,
+                )
             }
 
             onLogout?.let { logout ->

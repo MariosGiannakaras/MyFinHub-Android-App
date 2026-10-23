@@ -22,6 +22,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import kotlinx.serialization.json.JsonObject
 import app.myfinhub.android.designsystem.LocalFinancialProviderCatalog
 import app.myfinhub.android.designsystem.LocalRecurringServiceAssets
 import app.myfinhub.android.core.network.AccountMetadataRecord
@@ -132,6 +133,10 @@ internal fun MyFinHubAppContent(
     moneyState: MoneyUiState = MoneyUiState(),
     financialProviderCatalog: List<app.myfinhub.android.core.network.FinancialProviderRecord> = emptyList(),
     recurringServiceAssets: List<app.myfinhub.android.core.network.RecurringServiceAssetRecord> = emptyList(),
+    backupFinanceDocument: JsonObject? = null,
+    backupPendingChangeCount: Int = 0,
+    backupMutationBlocked: Boolean = false,
+    backupOffline: Boolean = false,
     deviceSessions: DeviceSessionsUiSnapshot = DeviceSessionsUiSnapshot(),
     serverHistory: app.myfinhub.android.core.network.ServerFinanceHistorySummary? = null,
     serverHistoryEnabled: Boolean = false,
@@ -296,6 +301,10 @@ internal fun MyFinHubAppContent(
                             .filter { it.canonicalKind != "credit" && it.id.isNotBlank() }
                             .map { it.id to it.name },
                         rulesMutationBlocked = planMutationInFlight || planMutationBlocked,
+                        backupDocument = backupFinanceDocument,
+                        backupPendingChangeCount = backupPendingChangeCount,
+                        backupMutationBlocked = backupMutationBlocked,
+                        backupOffline = backupOffline,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,
                         noticeHistoryCount = noticeHistory.size,
