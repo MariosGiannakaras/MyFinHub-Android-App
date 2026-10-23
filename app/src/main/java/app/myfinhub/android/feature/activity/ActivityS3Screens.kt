@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -56,6 +57,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -1105,6 +1107,7 @@ fun ActivityEditScreen(
     accountOptions: List<ActivityAccountOption> = emptyList(),
     incomeCategoryOptions: List<ActivityCategoryOption> = emptyList(),
     expenseCategoryOptions: List<ActivityCategoryOption> = emptyList(),
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
     mutationInFlight: Boolean,
     mutationBlocked: Boolean,
     onBack: () -> Unit,
@@ -1437,10 +1440,21 @@ fun ActivityEditScreen(
                 errorMessage = if (dateError) "Η ημερομηνία δεν είναι έγκυρη." else null,
             )
             if (item.supportsCategoryEdit() && effectiveCategoryOptions.isNotEmpty()) {
+                val categoryIconKind = if ((if (isLegacy) legacyType else item.canonicalKind) == "income") {
+                    "income"
+                } else {
+                    "expense"
+                }
                 S3ChoiceField(
                     label = "Κατηγορία",
                     selectedId = category,
                     choices = effectiveCategoryOptions.map { it.name to it.name },
+                    choiceIcon = { name ->
+                        myFinHubCategoryIcon(
+                            name, MyFinHubIcons.All,
+                            categoryGlyphOverrides["$categoryIconKind:$name"],
+                        )
+                    },
                     enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                     onSelected = { selected ->
                         category = selected
@@ -1453,6 +1467,15 @@ fun ActivityEditScreen(
                         label = "Υποκατηγορία",
                         selectedId = subcategory,
                         choices = listOf("" to "Χωρίς υποκατηγορία") + subcategoryOptions.map { it to it },
+                        choiceIcon = { child ->
+                            if (child.isBlank()) null else {
+                                val key = "$categoryIconKind:$category"
+                                myFinHubCategoryIcon(
+                                    category, MyFinHubIcons.All,
+                                    categoryGlyphOverrides["$key:$child"] ?: categoryGlyphOverrides[key],
+                                )
+                            }
+                        },
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { subcategory = it },
                     )
@@ -1495,6 +1518,7 @@ private fun S3ChoiceField(
     selectedId: String,
     choices: List<Pair<String, String>>,
     enabled: Boolean = true,
+    choiceIcon: ((String) -> ImageVector?)? = null,
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -1507,12 +1531,19 @@ private fun S3ChoiceField(
             onClick = { if (enabled && choices.isNotEmpty()) expanded = true },
             enabled = enabled && choices.isNotEmpty(),
         ) {
+            choiceIcon?.invoke(selectedId)?.let { vector ->
+                Icon(vector, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
             Text(selectedLabel, modifier = Modifier.weight(1f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             choices.forEach { (id, text) ->
+                val vector = choiceIcon?.invoke(id)
                 DropdownMenuItem(
                     text = { Text(text) },
+                    leadingIcon = if (vector == null) null else {
+                        { Icon(vector, contentDescription = null) }
+                    },
                     onClick = {
                         expanded = false
                         onSelected(id)
