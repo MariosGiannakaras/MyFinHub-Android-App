@@ -320,6 +320,8 @@ internal fun projectCanonicalPlanState(
                     effectiveLimit = row.limit,
                     carried = row.carried,
                     carryover = row.carryover,
+                    category = row.category,
+                    subcategory = row.subcategory,
                 )
             },
         budget = BudgetDraft(

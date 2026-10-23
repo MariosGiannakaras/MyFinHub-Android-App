@@ -912,6 +912,8 @@ fun CanonicalBudget2026Screen(
     onBack: () -> Unit,
     onSaveCategoryBudget: (CategoryBudgetEditRequest) -> Unit = {},
     onDeleteCategoryBudget: (String) -> Unit = {},
+    onSaveSubcategoryBudget: (SubcategoryBudgetEditRequest) -> Unit = {},
+    onDeleteSubcategoryBudget: (String) -> Unit = {},
     onDeleteOverallBudget: (String) -> Unit = {},
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
@@ -931,6 +933,9 @@ fun CanonicalBudget2026Screen(
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var creatingSubcategoryBudget by remember { mutableStateOf(false) }
+    var editingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
+    var deletingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingOverallBudget by rememberSaveable { mutableStateOf(false) }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
@@ -1272,9 +1277,24 @@ fun CanonicalBudget2026Screen(
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
+                            TextButton(
+                                onClick = { editingSubcategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() && budget.category != null &&
+                                    budget.subcategory != null &&
+                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.testTag("s7_subcategory_budget_edit_$index"),
+                            ) { Text("Επεξεργασία ορίου") }
+                            TextButton(
+                                onClick = { deletingSubcategoryBudget = budget },
+                                enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                                    budget.id.isNotBlank() && budget.category != null &&
+                                    budget.subcategory != null &&
+                                    state.subcategoryBudgets.count { it.id == budget.id } == 1,
+                                modifier = Modifier.testTag("s7_subcategory_budget_delete_$index"),
+                            ) { Text("Διαγραφή ορίου") }
                             Text(
-                                "Η υποκατηγορία εμφανίζεται προς το παρόν για επισκόπηση. " +
-                                    "Δεν δημιουργεί νέα οικονομική κίνηση.",
+                                "Το όριο δεν δημιουργεί νέα οικονομική κίνηση.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -1360,7 +1380,46 @@ fun CanonicalBudget2026Screen(
                     modifier = Modifier.fillMaxWidth().testTag("s7_category_budget_create"),
                 ) { Text("Νέο όριο κατηγορίας") }
             }
+            item("budget-subcategory-new") {
+                TextButton(
+                    onClick = { creatingSubcategoryBudget = true },
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                        state.ruleSubcategories.values.any { it.isNotEmpty() },
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("s7_subcategory_budget_create"),
+                ) { Text("Νέο όριο υποκατηγορίας") }
+            }
         }
+    }
+    deletingSubcategoryBudget?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = {
+                if (!mutationBlocked && !mutationInFlight) deletingSubcategoryBudget = null
+            },
+            title = { Text("Διαγραφή ορίου υποκατηγορίας;") },
+            text = {
+                Text("Θα αφαιρεθεί μόνο το όριο «" + candidate.name +
+                    "». Η γονική κατηγορία και οι συναλλαγές θα παραμείνουν.")
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && !mutationInFlight && !saveRequested &&
+                        candidate.id.isNotBlank() &&
+                        state.subcategoryBudgets.count { it.id == candidate.id } == 1,
+                    modifier = Modifier.testTag("s7_subcategory_budget_confirm_delete"),
+                    onClick = {
+                        onDeleteSubcategoryBudget(candidate.id)
+                        deletingSubcategoryBudget = null
+                    },
+                ) { Text("Διαγραφή ορίου") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deletingSubcategoryBudget = null },
+                    enabled = !mutationBlocked && !mutationInFlight,
+                ) { Text("Ακύρωση") }
+            },
+        )
     }
     deletingCategoryBudget?.let { candidate ->
         AlertDialog(
@@ -1385,6 +1444,23 @@ fun CanonicalBudget2026Screen(
                     onClick = { deletingCategoryBudget = null },
                     enabled = !mutationBlocked && !mutationInFlight,
                 ) { Text("Ακύρωση") }
+            },
+        )
+    }
+    if (creatingSubcategoryBudget || editingSubcategoryBudget != null) {
+        CanonicalSubcategoryBudgetEditor(
+            initial = editingSubcategoryBudget,
+            categories = state.ruleSubcategories,
+            existing = state.subcategoryBudgets,
+            mutationBlocked = mutationInFlight || mutationBlocked || saveRequested,
+            onDismiss = {
+                creatingSubcategoryBudget = false
+                editingSubcategoryBudget = null
+            },
+            onSave = { request ->
+                onSaveSubcategoryBudget(request)
+                creatingSubcategoryBudget = false
+                editingSubcategoryBudget = null
             },
         )
     }

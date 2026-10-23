@@ -25,6 +25,8 @@ enum class PendingMutationKind {
     UPSERT_OVERALL_BUDGET,
     DELETE_OVERALL_BUDGET,
     UPSERT_CATEGORY_BUDGET,
+    UPSERT_SUBCATEGORY_BUDGET,
+    DELETE_SUBCATEGORY_BUDGET,
     DELETE_CATEGORY_BUDGET,
     SET_SAVINGS_TARGET_RATE,
     SET_TRANSACTION_RULE_ENABLED,
@@ -242,6 +244,26 @@ data class PendingCanonicalMutationIntent(
     creditLimit = payload.number("creditLimit"),
     nowIso = payload.string("nowIso").orEmpty(),
 )
+        PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET -> UpsertCanonicalSubcategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            amount = payload.number("amount") ?: Double.NaN,
+            alertThreshold = payload.number("alertThreshold")?.toInt() ?: 0,
+            carryover = payload.bool("carryover") == true,
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_SUBCATEGORY_BUDGET -> DeleteCanonicalSubcategoryBudget(
+            budgetId = payload.string("budgetId").orEmpty(),
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source subcategory budget"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.DELETE_CATEGORY_BUDGET -> DeleteCategoryBudget(
             budgetId = payload.string("budgetId").orEmpty(),
             month = payload.string("month").orEmpty(),
@@ -486,6 +508,12 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             id.isNotBlank() && effectiveTransaction(document, id) == null
         }
+        PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET ->
+            runCatching { (asMutation() as UpsertCanonicalSubcategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_SUBCATEGORY_BUDGET ->
+            runCatching { (asMutation() as DeleteCanonicalSubcategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.DELETE_CATEGORY_BUDGET ->
             runCatching { (asMutation() as DeleteCategoryBudget).satisfiedBy(document) }
                 .getOrDefault(false)
@@ -743,6 +771,35 @@ data class PendingCanonicalMutationIntent(
                         "nowIso" to JsonPrimitive(mutation.nowIso),
                     ),
                 ),
+                syncState = syncState,
+            )
+            is UpsertCanonicalSubcategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET,
+                payload = JsonObject(buildMap {
+                    put("budgetId", JsonPrimitive(mutation.budgetId))
+                    put("month", JsonPrimitive(mutation.month))
+                    put("category", JsonPrimitive(mutation.category))
+                    put("subcategory", JsonPrimitive(mutation.subcategory))
+                    put("amount", JsonPrimitive(mutation.amount))
+                    put("alertThreshold", JsonPrimitive(mutation.alertThreshold))
+                    put("carryover", JsonPrimitive(mutation.carryover))
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is DeleteCanonicalSubcategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.DELETE_SUBCATEGORY_BUDGET,
+                payload = JsonObject(mapOf(
+                    "budgetId" to JsonPrimitive(mutation.budgetId),
+                    "month" to JsonPrimitive(mutation.month),
+                    "category" to JsonPrimitive(mutation.category),
+                    "subcategory" to JsonPrimitive(mutation.subcategory),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )),
                 syncState = syncState,
             )
             is DeleteCategoryBudget -> PendingCanonicalMutationIntent(

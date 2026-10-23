@@ -146,6 +146,8 @@ data class CategoryBudget(
     val effectiveLimit: Double? = null,
     val carried: Double = 0.0,
     val carryover: Boolean = false,
+    val category: String? = null,
+    val subcategory: String? = null,
 )
 
 data class PlanningRule(

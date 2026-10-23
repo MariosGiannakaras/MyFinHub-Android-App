@@ -43,6 +43,11 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.UpsertCategoryBudget
+import app.myfinhub.android.core.data.UpsertCanonicalSubcategoryBudget
+import app.myfinhub.android.core.data.DeleteCanonicalSubcategoryBudget
+import app.myfinhub.android.core.data.webSubcategoryBudgetStableId
+import app.myfinhub.android.core.data.webBudgetCategoryKey
+import app.myfinhub.android.feature.plan.SubcategoryBudgetEditRequest
 import app.myfinhub.android.core.data.DeleteCategoryBudget
 import app.myfinhub.android.core.data.DeleteCanonicalOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
@@ -1240,6 +1245,63 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Web subcategory budget metadata; no new expense or payment is posted. */
+    fun saveSubcategoryBudget(request: SubcategoryBudgetEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val category = request.category.trim()
+        val subcategory = request.subcategory.trim()
+        val amount = request.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+        val threshold = request.alertThresholdText.toIntOrNull()
+        if (category.isBlank() || subcategory.isBlank() || amount == null ||
+            !amount.isFinite() || amount <= 0.0 || threshold == null || threshold !in 50..99) return
+        val knownSubs = ready.projection.planState.ruleSubcategories
+        val month = YearMonth.now().toString()
+        val rows = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val scoped = rows.filter {
+            it.string("month") == month && it.string("scope") == "subcategory" &&
+                webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                    webBudgetCategoryKey(category) &&
+                webBudgetCategoryKey(it.string("subcategory").orEmpty()) ==
+                    webBudgetCategoryKey(subcategory)
+        }
+        if (scoped.size > 1) return
+        val current = scoped.singleOrNull()
+        if (request.budgetId == null) {
+            if (current != null || category !in knownSubs ||
+                subcategory !in knownSubs[category].orEmpty()) return
+        } else {
+            if (current?.string("id") != request.budgetId) return
+        }
+        applyMutation(UpsertCanonicalSubcategoryBudget(
+            budgetId = request.budgetId ?: webSubcategoryBudgetStableId(
+                month, category, subcategory),
+            month = month, category = category, subcategory = subcategory,
+            amount = amount, alertThreshold = threshold, carryover = request.carryover,
+            expected = current, nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Delete only the exact user-confirmed subcategory row, never parent or ledger rows. */
+    fun deleteSubcategoryBudget(budgetId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            budgetId.isBlank()) return
+        val month = YearMonth.now().toString()
+        val all = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+        val row = all.filter { it.string("id") == budgetId }.singleOrNull() ?: return
+        if (row.string("scope") != "subcategory" || row.string("month") != month) return
+        val category = row.string("category")?.takeIf(String::isNotBlank) ?: return
+        val subcategory = row.string("subcategory")?.takeIf(String::isNotBlank) ?: return
+        applyMutation(DeleteCanonicalSubcategoryBudget(
+            budgetId = budgetId, month = month,
+            category = category, subcategory = subcategory,
+            expected = row, nowIso = Instant.now().toString(),
+        ))
+    }
+
     fun saveCategoryBudget(request: CategoryBudgetEditRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -1871,6 +1933,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.DELETE_OVERALL_BUDGET -> "Διαγραφή συνολικού budget"
                 PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
+                PendingMutationKind.UPSERT_SUBCATEGORY_BUDGET -> "Όριο υποκατηγορίας"
+                PendingMutationKind.DELETE_SUBCATEGORY_BUDGET -> "Διαγραφή ορίου υποκατηγορίας"
                 PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
                 PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
                 PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
