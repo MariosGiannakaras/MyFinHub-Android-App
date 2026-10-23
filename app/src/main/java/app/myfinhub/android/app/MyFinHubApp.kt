@@ -507,6 +507,20 @@ internal fun MyFinHubAppContent(
                             onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
+                        onPayStatement = { statementId, remaining ->
+                            val matching = moneyState.creditStatementsByCard[route.cardId].orEmpty()
+                                .filter { it.id == statementId }
+                            if (matching.size == 1 && matching.single().remaining > 0.005 &&
+                                kotlin.math.abs(matching.single().remaining - remaining) < 0.005
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                onQuickEntryAction(QuickEntryAction.StatementChanged(statementId))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(remaining.toString()))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                     )

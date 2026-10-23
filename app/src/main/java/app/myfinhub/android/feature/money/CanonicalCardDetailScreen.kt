@@ -68,6 +68,7 @@ fun CanonicalCardDetailScreen(
     onRemoveCard: (String) -> Unit = {},
     onAddPurchase: () -> Unit = {},
     onPayCard: () -> Unit = {},
+    onPayStatement: (String, Double) -> Unit = { _, _ -> },
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit = {},
 ) {
@@ -191,6 +192,7 @@ fun CanonicalCardDetailScreen(
                     statements = statements,
                     amountsVisible = amountsVisible,
                     onOpenActivity = onOpenActivity,
+                    onPayStatement = onPayStatement,
                 )
                 CardActivitySection(
                     card = card,

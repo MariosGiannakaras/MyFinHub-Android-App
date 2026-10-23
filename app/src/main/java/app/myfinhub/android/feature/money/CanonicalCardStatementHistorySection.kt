@@ -48,6 +48,7 @@ internal fun CanonicalCardStatementHistorySection(
     statements: List<CanonicalCreditStatementView>,
     amountsVisible: Boolean,
     onOpenActivity: (String) -> Unit,
+    onPayStatement: (String, Double) -> Unit,
 ) {
     if (statements.isEmpty()) return
     var visibleLimit by rememberSaveable(card.id) { mutableIntStateOf(8) }
@@ -86,6 +87,13 @@ internal fun CanonicalCardStatementHistorySection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    if (identityUnique && statement.remaining > 0.005) {
+                        TextButton(
+                            onClick = { onPayStatement(statement.id, statement.remaining) },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("card_statement_pay_$index"),
+                        ) { Text("Πληρωμή αυτής της κατάστασης") }
+                    }
                     if (!identityUnique) {
                         Text(
                             "Μη μοναδικό ID κατάστασης · οι συνδεδεμένες κινήσεις είναι μόνο για προβολή.",
