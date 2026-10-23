@@ -3,7 +3,8 @@ package app.myfinhub.android.feature.plan
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -34,11 +35,11 @@ class RecurringManagementComposeTest {
         } }
         rule.onNodeWithTag("recurring_create_open").performClick()
         rule.onNodeWithTag("recurring_create_save").assertIsNotEnabled()
-        rule.onNodeWithTag("recurring_create_name").performTextInput("Ρεύμα")
-        rule.onNodeWithTag("recurring_create_amount").performTextInput("80")
-        rule.onNodeWithTag("recurring_create_mode").performClick()
-        rule.onNodeWithTag("recurring_create_min").performTextInput("60")
-        rule.onNodeWithTag("recurring_create_max").performTextInput("100")
+        rule.onNodeWithTag("recurring_create_name").performScrollTo().performTextInput("Ρεύμα")
+        rule.onNodeWithTag("recurring_create_amount").performScrollTo().performTextInput("80")
+        rule.onNodeWithTag("recurring_create_mode").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_create_min").performScrollTo().performTextInput("60")
+        rule.onNodeWithTag("recurring_create_max").performScrollTo().performTextInput("100")
         rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
         rule.runOnIdle {
             assertEquals(1,calls.size)
