@@ -26,6 +26,11 @@ import app.myfinhub.android.core.data.PendingMutationSyncState
 import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
+import app.myfinhub.android.core.data.UpsertCategoryBudget
+import app.myfinhub.android.core.data.array
+import app.myfinhub.android.core.data.string
+import app.myfinhub.android.feature.plan.CategoryBudgetEditRequest
+import kotlinx.serialization.json.JsonObject
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
 import app.myfinhub.android.core.data.CreateCanonicalRecurring
 import app.myfinhub.android.core.data.EditCanonicalRecurring
@@ -709,6 +714,35 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    fun saveCategoryBudget(request: CategoryBudgetEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val category = request.category.trim()
+        val amount = request.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+        val threshold = request.alertThresholdText.toIntOrNull()
+        if (category.isEmpty() || amount == null || !amount.isFinite() ||
+            amount <= 0.0 || threshold == null || threshold !in 50..99) return
+        val month = YearMonth.now().toString()
+        val matches = ready.projection.document.state.array("budgets")
+            .mapNotNull { it as? JsonObject }
+            .filter {
+                it.string("month") == month && it.string("scope") == "category" &&
+                    it.string("category") == category
+            }
+        if (matches.size > 1) return
+        val current = matches.singleOrNull()
+        // A new category must not silently overwrite an existing category.
+        if (request.budgetId == null && current != null) return
+        if (request.budgetId != null && current?.string("id") != request.budgetId) return
+        applyMutation(UpsertCategoryBudget(
+            month = month, category = category, amount = amount,
+            alertThreshold = threshold,
+            budgetId = request.budgetId ?: "budget-android-${UUID.randomUUID()}",
+            expected = current,
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     fun saveOverallBudget(monthlyLimitText: String, alertThresholdText: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -1303,6 +1337,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.EDIT_ACTIVITY -> "Επεξεργασία κίνησης"
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
+                PendingMutationKind.UPSERT_CATEGORY_BUDGET -> "Όριο κατηγορίας"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
                 PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.EDIT_RECURRING -> "Επεξεργασία παγίου"

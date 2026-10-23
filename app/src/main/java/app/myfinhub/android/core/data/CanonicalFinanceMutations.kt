@@ -1,5 +1,7 @@
 package app.myfinhub.android.core.data
 
+import kotlin.math.roundToInt
+
 import java.time.LocalDate
 import kotlin.math.floor
 import kotlinx.serialization.json.JsonArray
@@ -409,6 +411,71 @@ data class UpsertOverallBudget(
         val updated = budgets.toMutableList()
         if (index >= 0) updated[index] = item else updated += item
         return document.withMutableState(document.state.updated("budgets", JsonArray(updated)), nowIso)
+    }
+}
+
+
+/** Web-shaped category budget upsert with expected-row replay and no ledger mutation. */
+data class UpsertCategoryBudget(
+    val month: String,
+    val category: String,
+    val amount: Double,
+    val alertThreshold: Int,
+    val budgetId: String,
+    val expected: JsonObject?,
+    val nowIso: String,
+) : CanonicalFinanceMutation {
+    override val description: String = "Αποθήκευση ορίου κατηγορίας"
+
+    private fun matches(document: CanonicalFinanceDocument) =
+        document.state.array("budgets").mapNotNull { it as? JsonObject }.filter {
+            it.string("month") == month && it.string("scope") == "category" &&
+                it.string("category") == category
+        }
+
+    fun satisfiedBy(document: CanonicalFinanceDocument): Boolean {
+        val row = matches(document).singleOrNull() ?: return false
+        val cents = row.number("amount") ?: return false
+        val threshold = row.number("alertThreshold") ?: return false
+        return budgetId.isNotBlank() && row.string("id") == budgetId &&
+            runCatching { moneyToCents(cents) == moneyToCents(amount) }.getOrDefault(false) &&
+            (if (threshold <= 1.0) (threshold * 100.0).roundToInt()
+             else threshold.roundToInt()) == alertThreshold
+    }
+
+    override fun apply(document: CanonicalFinanceDocument): CanonicalFinanceDocument {
+        require(runCatching { java.time.YearMonth.parse(month).toString() == month }.getOrDefault(false)) {
+            "Μη έγκυρος μήνας προϋπολογισμού."
+        }
+        require(category.isNotBlank() && category == category.trim()) { "Επίλεξε κατηγορία." }
+        require(budgetId.isNotBlank()) { "Μη έγκυρο ID ορίου." }
+        val cents = moneyToCents(amount)
+        require(cents > 0) { "Το όριο πρέπει να είναι μεγαλύτερο από μηδέν." }
+        require(alertThreshold in 50..99) { "Η προειδοποίηση πρέπει να είναι 50–99%." }
+        val candidates = matches(document)
+        require(candidates.size <= 1) { "Ιστορικά διπλό όριο κατηγορίας: μόνο προβολή." }
+        if (satisfiedBy(document)) return document
+        val current = candidates.singleOrNull()
+        require(current == expected && (current == null || current.string("id") == budgetId)) {
+            "Το όριο άλλαξε στον server. Έλεγξε τη νεότερη έκδοση."
+        }
+        val row = JsonObject((current ?: JsonObject(emptyMap())) + mapOf(
+            "id" to JsonPrimitive(budgetId),
+            "month" to JsonPrimitive(month),
+            "scope" to JsonPrimitive("category"),
+            "category" to JsonPrimitive(category),
+            "amount" to JsonPrimitive(centsToMoney(cents)),
+            "alertThreshold" to JsonPrimitive(alertThreshold / 100.0),
+            "createdAt" to JsonPrimitive(current?.string("createdAt") ?: nowIso),
+            "updatedAt" to JsonPrimitive(nowIso),
+        ))
+        val rows = document.state.array("budgets").toMutableList()
+        if (current == null) rows += row else {
+            val index = rows.indexOfFirst { it == current }
+            require(index >= 0) { "Το όριο δεν βρέθηκε." }
+            rows[index] = row
+        }
+        return document.withMutableState(document.state.updated("budgets", JsonArray(rows)), nowIso)
     }
 }
 

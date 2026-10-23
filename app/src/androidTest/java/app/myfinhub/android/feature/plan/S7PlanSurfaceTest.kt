@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.plan
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -105,6 +106,49 @@ class S7PlanSurfaceTest {
         composeRule.onNodeWithTag("s7_budget_limit").assertIsNotEnabled()
         composeRule.onNodeWithTag("s7_budget_threshold").assertIsNotEnabled()
     }
+    @Test
+    fun categoryEditorEmitsIdentityScopedLimitAndKeepsCategory() {
+        val writes = mutableListOf<CategoryBudgetEditRequest>()
+        val category = CategoryBudget(id = "food", name = "Τρόφιμα",
+            monthlyLimitText = "120", alertThresholdText = "80", spent = 50.0)
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = state.copy(categoryBudgets = listOf(category)),
+                onSaveBudget = { _, _ -> }, onBack = {},
+                onSaveCategoryBudget = { writes += it },
+            )
+        } }
+        composeRule.onNodeWithTag("s7_category_budget_edit_food").performScrollTo().performClick()
+        composeRule.onNodeWithTag("s7_category_editor_name").assertIsNotEnabled()
+        composeRule.onNodeWithTag("s7_category_editor_amount").performTextReplacement("150")
+        composeRule.onNodeWithTag("s7_category_editor_save").assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, writes.size)
+            assertEquals("food", writes.single().budgetId)
+            assertEquals("Τρόφιμα", writes.single().category)
+            assertEquals("150", writes.single().monthlyLimitText)
+        }
+    }
+
+    @Test
+    fun createCategoryBudgetRequiresValidInputAndExplicitConfirmation() {
+        val writes = mutableListOf<CategoryBudgetEditRequest>()
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(state, { _, _ -> }, {},
+                onSaveCategoryBudget = { writes += it })
+        } }
+        composeRule.onNodeWithTag("s7_category_budget_create").performScrollTo().performClick()
+        composeRule.onNodeWithTag("s7_category_editor_save").assertIsNotEnabled()
+        composeRule.onNodeWithTag("s7_category_editor_name").performTextInput("Μετακινήσεις")
+        composeRule.onNodeWithTag("s7_category_editor_amount").performTextInput("55.50")
+        composeRule.onNodeWithTag("s7_category_editor_save").assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            assertEquals(1,writes.size)
+            assertEquals(null,writes.single().budgetId)
+            assertEquals("Μετακινήσεις",writes.single().category)
+        }
+    }
+
     @Test
     fun historicalScheduledDuplicateIdsRemainVisibleWithoutUnsafeForecastActions() {
         val first = obligation.copy(id = "legacy", title = "Παλαιό Α",

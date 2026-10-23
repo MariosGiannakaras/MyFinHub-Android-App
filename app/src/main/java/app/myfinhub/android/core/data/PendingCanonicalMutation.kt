@@ -21,6 +21,7 @@ enum class PendingMutationKind {
     EDIT_ACTIVITY,
     DELETE_ACTIVITY,
     UPSERT_OVERALL_BUDGET,
+    UPSERT_CATEGORY_BUDGET,
     CREATE_CARD,
     DEACTIVATE_CARD,
     RESTORE_CARD,
@@ -185,6 +186,15 @@ data class PendingCanonicalMutationIntent(
     creditLimit = payload.number("creditLimit"),
     nowIso = payload.string("nowIso").orEmpty(),
 )
+        PendingMutationKind.UPSERT_CATEGORY_BUDGET -> UpsertCategoryBudget(
+            month = payload.string("month").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            amount = payload.number("amount") ?: Double.NaN,
+            alertThreshold = payload.number("alertThreshold")?.toInt() ?: 0,
+            budgetId = payload.string("budgetId").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> UpsertOverallBudget(
             month = payload.string("month").orEmpty(),
             amount = payload.number("amount") ?: Double.NaN,
@@ -308,6 +318,9 @@ data class PendingCanonicalMutationIntent(
             val id = payload.string("transactionId").orEmpty()
             id.isNotBlank() && effectiveTransaction(document, id) == null
         }
+        PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
+            runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.UPSERT_OVERALL_BUDGET -> {
             val month = payload.string("month").orEmpty()
             val expectedAmount = payload.number("amount")
@@ -503,6 +516,20 @@ data class PendingCanonicalMutationIntent(
                         "nowIso" to JsonPrimitive(mutation.nowIso),
                     ),
                 ),
+                syncState = syncState,
+            )
+            is UpsertCategoryBudget -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.UPSERT_CATEGORY_BUDGET,
+                payload = JsonObject(buildMap {
+                    put("month", JsonPrimitive(mutation.month))
+                    put("category", JsonPrimitive(mutation.category))
+                    put("amount", JsonPrimitive(mutation.amount))
+                    put("alertThreshold", JsonPrimitive(mutation.alertThreshold))
+                    put("budgetId", JsonPrimitive(mutation.budgetId))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.expected?.let { put("expected", it) }
+                }),
                 syncState = syncState,
             )
             is UpsertOverallBudget -> PendingCanonicalMutationIntent(
