@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 #316 Web-validated native recurring creation and durable offline replay passed exact-head 4/4 gates at 3c8786759adf7c7a37024746cad1dbcfa58dd089, squash merged develop 4b9b7b31bc13034ab3e51d16d5b6c44b437b57a3. Draft #317 adds Web seeded/override/custom metadata editing preserving lifecycle/service fields with expected-row optimistic conflict gate, replay and native Compose editor; CI and physical S24 signoff pending.
+Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 recurring editing PR #317 passed 4/4 exact-head gates at 55985a2ccc079ca27fb129df174a47dcf99fda98 and squash merged develop c2bfd9807a548facc3eb93148b8f9706c94ddd4b. Draft #318 fixes legacy recurring editor safety: no invented date anchor and no silent payer fallback; Compose/JVM regressions staged, CI and physical owner acceptance pending.
 
 ## Immediate work
 
-- Validate W4.1 draft #317 seeded full override vs custom in-place editing, no ledger events, preserved logo/source/status/unrelated data, duplicate-ID safety, per-row expected-value offline/revision conflict protection and existing recurring Compose editor. Require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshots and hosted S24 emulator before merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner approval #149 separate. No Web/backend/schema edits, production finance writes, signed release, SMS import or permanent card deletion.
+- Validate W4.1 draft #318: legacy monthly recurring edit retains absent firstExpectedDate, and a missing source account requires explicit new payer selection. Require four exact-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator before squash merge. Web parity stays 1/6 implementations · 11/24 subtasks; physical S24 owner approval #149 separate. No Web/backend/schema changes, production finance writes, signed release, SMS import or permanent card deletion.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. W4.1 #316 Web-valida
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #317, branch android/w4-1-edit-recurring-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. PR #316 recurring creation passed four exact-head gates and squash merged develop 4b9b7b31bc13034ab3e51d16d5b6c44b437b57a3. Draft #317 adds safeguarded edit of seeded/overridden/custom recurring finance metadata via unique identity/expected-row replay, preserving logo/status/unknown fields and no payment event writes. Kotlin + hosted S24 Compose goldens staged; gates and physical acceptance pending.
+Issue #155, PR #318, branch android/w4-1-legacy-edit-payer-anchor-safety-20261023
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. PR #317 recurring editing passed 4/4 immutable-head checks and squash merged develop c2bfd9807a548facc3eb93148b8f9706c94ddd4b. Draft #318 ensures legacy monthly recurring edit retains no schedule anchor where absent and forces explicit replacement of an orphaned payer; no ledger writes, Compose and JVM tests staged. CI and physical acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft #317 seeded full override vs custom in-place editing, no ledger events, preserved logo/source/status/unrelated data, duplicate-ID safety, per-row expected-value offline/revision conflict protection and existing recurring Compose editor. Require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshots and hosted S24 emulator before merge. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner approval #149 separate. No Web/backend/schema edits, production finance writes, signed release, SMS import or permanent card deletion.
+Next Validate W4.1 draft #318 existing recurring editor for missing legacy monthly schedule anchor and unavailable payer; require exact-head 4/4 Project Tracking, Android CI unit/lint/optimized unsigned release+Play bundle, screenshot regression and S24 instrumentation before merge. Next continue W4.1 metadata parity; keep Web parity 1/6 · 11/24, owner S24 signoff #149 separate and Web/backend/schema/signing/SMS outside scope.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -79,6 +79,31 @@ class RecurringManagementComposeTest {
         }
     }
 
+    @Test fun legacyEditorKeepsMissingAnchorAndRequiresExplicitPayerReplacement() {
+        val edits = mutableListOf<RecurringCreateRequest>()
+        val legacy = state.copy(recurringManageItems = listOf(
+            RecurringManageItem("legacy", "Παλιό πάγιο", 25.0, "active",
+                category = "Πάγια", accountId = "removed-account",
+                recurrenceUnit = "month", recurrenceInterval = 1,
+                firstExpectedDateIso = null),
+        ), scheduledAccounts = listOf(ScheduledAccountOption("cash", "Μετρητά")))
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(legacy, onBack = {},
+                onStatusChanged = { _, _ -> }, onEdit = { _, request -> edits += request })
+        } }
+        rule.onNodeWithTag("recurring_edit_legacy").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_create_save").assertIsNotEnabled()
+        rule.onNodeWithText("Λογαριασμός: Μη διαθέσιμος — επίλεξε λογαριασμό")
+            .performScrollTo().performClick()
+        rule.onNodeWithText("Μετρητά").performClick()
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals(1, edits.size)
+            assertEquals("cash", edits.single().accountId)
+            assertEquals(null, edits.single().firstExpectedDate)
+        }
+    }
+
     @Test fun nativeButtonsEmitCorrectCanonicalLifecycleIntent() {
         val calls=mutableListOf<Pair<String,String>>()
         rule.setContent { MyFinHubTheme {

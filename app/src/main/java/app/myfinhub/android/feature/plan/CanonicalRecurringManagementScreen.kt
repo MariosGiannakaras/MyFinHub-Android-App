@@ -328,8 +328,8 @@ private fun CanonicalRecurringCreateDialog(
     }
     var category by remember(initial?.id) { mutableStateOf(initial?.category ?: "Πάγια") }
     var accountId by remember(initial?.id) {
-        mutableStateOf(initial?.accountId?.takeIf { id -> accounts.any { it.id == id } }
-            ?: accounts.firstOrNull()?.id.orEmpty())
+        // Existing orphaned payer stays unresolved until explicitly replaced.
+        mutableStateOf(initial?.accountId ?: accounts.firstOrNull()?.id.orEmpty())
     }
     var accountMenu by remember { mutableStateOf(false) }
     var mode by remember(initial?.id) { mutableStateOf(initial?.amountMode ?: "fixed") }
@@ -341,7 +341,9 @@ private fun CanonicalRecurringCreateDialog(
     }
     var dayText by remember(initial?.id) { mutableStateOf(initial?.day?.toString().orEmpty()) }
     var firstDate by remember(initial?.id) {
-        mutableStateOf(initial?.firstExpectedDateIso ?: LocalDate.now().toString())
+        // Editing a legacy monthly bill must not invent a missing cadence anchor.
+        mutableStateOf(initial?.firstExpectedDateIso
+            ?: if (initial == null) LocalDate.now().toString() else "")
     }
     var endDate by remember(initial?.id) { mutableStateOf(initial?.endDateIso.orEmpty()) }
     fun parseMoney(raw: String) = raw.replace(',', '.').toDoubleOrNull()
@@ -407,7 +409,9 @@ private fun CanonicalRecurringCreateDialog(
                     TextButton(onClick = { accountMenu = true },
                         modifier = Modifier.fillMaxWidth().testTag("recurring_create_account")) {
                         Text("Λογαριασμός: " +
-                            (accounts.firstOrNull { it.id == accountId }?.label ?: "Επιλογή"))
+                            (accounts.firstOrNull { it.id == accountId }?.label
+                                ?: if (initial == null) "Επιλογή"
+                                else "Μη διαθέσιμος — επίλεξε λογαριασμό"))
                     }
                     DropdownMenu(expanded = accountMenu, onDismissRequest = { accountMenu = false }) {
                         accounts.forEach { account ->
