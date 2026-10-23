@@ -81,6 +81,8 @@ class CanonicalVariableRecurringEstimateProjectionTest {
         assertEquals(105.05, actual.totalAmount, 0.001)
         assertEquals("2026-10-08", actual.lastPaymentDateIso)
         assertEquals(95.03, actual.lastPaymentAmount!!, 0.001)
+        assertEquals(listOf("oct-b", "oct-a"), actual.records.map { it.eventId })
+        assertEquals(listOf(95.03, 10.02), actual.records.map { it.amount })
         assertEquals(0, data.canonicalRecurringActualPayments(
             "power", "2026-10-16", "2026-10-19").count)
         val ui = projectCanonicalPlanState(data, LocalDate.parse("2026-10-15"), null)
@@ -89,9 +91,30 @@ class CanonicalVariableRecurringEstimateProjectionTest {
         assertEquals(2, ui.actualPaymentsThisMonth)
         assertEquals(95.03, ui.lastActualPaymentAmount!!, 0.001)
         assertEquals("2026-10-08", ui.lastActualPaymentDateIso)
+        assertEquals(listOf("oct-b", "oct-a", "sep"),
+            ui.actualPaymentHistory.map { it.eventId })
+        assertEquals(listOf("2026-10-08", "2026-10-02", "2026-09-05"),
+            ui.actualPaymentHistory.map { it.dateIso })
         assertEquals(80.0, ui.amount, 0.001)
         assertEquals("variable", ui.amountMode)
         assertEquals(6, data.state.array("events").size)
+    }
+
+    @Test fun duplicateRecurringRowsRemainVisibleWithoutAmbiguousPaymentAttribution() {
+        val data = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"recurring":[
+              {"id":"repeated","name":"First","amount":10,"accountId":"cash","active":true},
+              {"id":"repeated","name":"Second","amount":20,"accountId":"cash","active":true}
+          ]},"state":{"events":[
+              {"id":"old","kind":"expense","recurringId":"repeated","date":"2026-10-02","amount":15}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val rows = projectCanonicalPlanState(data, today, null).recurringManageItems
+        assertEquals(2, rows.size)
+        assertTrue(rows.all { it.actualPaymentHistory.isEmpty() })
+        assertTrue(rows.all { it.lastActualPaymentAmount == null })
+        assertTrue(rows.all { it.actualPaidThisMonth == null })
+        assertEquals(1, data.state.array("events").size)
     }
 
     @Test fun onlyVariableForecastMovementsAreMarkedEstimatesWithoutChangingMoney() {

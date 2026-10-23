@@ -16,6 +16,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -68,6 +70,7 @@ fun CanonicalRecurringManagementScreen(
                 item.id + "#row#" + index
             }) { index, item ->
                 val uniqueId = state.recurringManageItems.count { it.id == item.id } == 1
+                val visibleActualRows = rememberSaveable { mutableIntStateOf(3) }
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("recurring_manage_item_" + item.id +
                         (if (uniqueId) "" else "_" + index))) {
@@ -158,6 +161,43 @@ fun CanonicalRecurringManagementScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.testTag("recurring_actual_paid_month_" + item.id),
                             )
+                        }
+                        // Canonical recorded expenses are never projected estimates.
+                        // Privacy masking applies per row, including Compose semantics.
+                        if (uniqueId && item.actualPaymentHistory.isNotEmpty()) {
+                            Text(
+                                "Πραγματικές πληρωμές (" + item.actualPaymentHistory.size + ")",
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            item.actualPaymentHistory.take(visibleActualRows.intValue)
+                                .forEachIndexed { paymentIndex, payment ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            payment.dateIso,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            amountVisibilityText(currency.format(payment.amount), showAmounts),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.testTag(
+                                                "recurring_actual_history_" + item.id + "_" + paymentIndex,
+                                            ),
+                                        )
+                                    }
+                                }
+                            if (item.actualPaymentHistory.size > visibleActualRows.intValue) {
+                                val remaining = item.actualPaymentHistory.size - visibleActualRows.intValue
+                                TextButton(
+                                    onClick = { visibleActualRows.intValue += 10 },
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                        .testTag("recurring_more_actual_" + item.id),
+                                ) { Text("Περισσότερες πληρωμές ($remaining)") }
+                            }
                         }
                         if (item.paymentCount > 0) {
                             Text(

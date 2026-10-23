@@ -120,11 +120,19 @@ fun CanonicalFinanceDocument.canonicalRecurringPaymentHistory(id: String): Canon
 /** Web recurringVariable.ts: only linked expenses represent actual payments.
  * Never present an estimate, a future event, or an unrelated kind as money paid.
  */
+data class CanonicalRecurringActualPayment(
+    val eventId: String,
+    val dateIso: String,
+    val amount: Double,
+)
+
 data class CanonicalRecurringActualPayments(
     val count: Int,
     val totalAmount: Double,
     val lastPaymentDateIso: String?,
     val lastPaymentAmount: Double?,
+    /** Read-only linked expense rows, newest first, sourced from the canonical ledger. */
+    val records: List<CanonicalRecurringActualPayment> = emptyList(),
 )
 
 fun CanonicalFinanceDocument.canonicalRecurringActualPayments(
@@ -157,6 +165,14 @@ fun CanonicalFinanceDocument.canonicalRecurringActualPayments(
         totalAmount = centsToMoney(totalCents),
         lastPaymentDateIso = last?.string("date"),
         lastPaymentAmount = last?.number("amount"),
+        records = payments.asReversed().map { event ->
+            CanonicalRecurringActualPayment(
+                eventId = event.string("id").orEmpty(),
+                dateIso = event.string("date").orEmpty(),
+                amount = centsToMoney(moneyToCents(event.number("amount")
+                    ?: throw IllegalArgumentException("Μη έγκυρο πραγματικό ποσό πληρωμής."))),
+            )
+        },
     )
 }
 
