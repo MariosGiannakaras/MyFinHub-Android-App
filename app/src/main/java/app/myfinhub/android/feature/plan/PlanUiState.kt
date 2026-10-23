@@ -146,6 +146,9 @@ data class CategoryBudget(
     val effectiveLimit: Double? = null,
     val carried: Double = 0.0,
     val carryover: Boolean = false,
+    val projectedDue: Double = 0.0,
+    val projectedRemaining: Double = remaining,
+    val projectedStatus: String = status,
     val category: String? = null,
     val subcategory: String? = null,
 )
@@ -241,6 +244,8 @@ data class PlanUiState(
     val forecastEndBalance: Double = 0.0,
     val forecastEndDateLabel: String = "",
     val budgetSpent: Double = 0.0,
+    val budgetProjectedDue: Double = 0.0,
+    val budgetProjectedRemaining: Double = 0.0,
     val budgetMonthLabel: String = "",
     /** Independent reporting month: YYYY-MM, preserved across finance reprojections. */
     val budgetSelectedMonthIso: String = "",

@@ -305,6 +305,9 @@ internal fun projectCanonicalPlanState(
                     effectiveLimit = row.limit,
                     carried = row.carried,
                     carryover = row.carryover,
+                    projectedDue = row.projectedDue,
+                    projectedRemaining = row.projectedRemaining,
+                    projectedStatus = row.projectedStatus,
                 )
             },
         subcategoryBudgets = budgetProgressRows
@@ -323,6 +326,9 @@ internal fun projectCanonicalPlanState(
                     effectiveLimit = row.limit,
                     carried = row.carried,
                     carryover = row.carryover,
+                    projectedDue = row.projectedDue,
+                    projectedRemaining = row.projectedRemaining,
+                    projectedStatus = row.projectedStatus,
                     category = row.category,
                     subcategory = row.subcategory,
                 )
@@ -344,6 +350,10 @@ internal fun projectCanonicalPlanState(
             DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
         budgetSpent = categorizedBudgetTotal,
+        budgetProjectedDue = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedDue ?: 0.0,
+        budgetProjectedRemaining = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedRemaining ?: 0.0,
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),

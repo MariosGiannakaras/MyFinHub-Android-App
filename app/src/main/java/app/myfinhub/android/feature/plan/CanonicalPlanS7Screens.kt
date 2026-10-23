@@ -1148,6 +1148,20 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (state.budgetProjectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές εκκρεμείς υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(state.budgetProjectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.testTag("s7_budget_projected_due"),
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο μετά τις υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(state.budgetProjectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
                             if (progress.thresholdReached) {
                                 Text(
                                     "Οι δαπάνες έχουν φτάσει το όριο προειδοποίησης ${progress.threshold}%.",
@@ -1189,6 +1203,19 @@ fun CanonicalBudget2026Screen(
                         val remaining = limit - used
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
+                            if (budget.projectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές μελλοντικές υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
                             if (budget.carried > 0.0) {
                                 Text(
                                     "Μεταφορά από προηγούμενο μήνα: " +
@@ -1303,6 +1330,19 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (budget.projectedDue > 0.0) {
+                                Text(
+                                    "Γνωστές μελλοντικές υποχρεώσεις: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Εκτιμώμενο υπόλοιπο: " +
+                                        amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
                             if (budget.carried > 0.0) {
                                 Text(
                                     "Μεταφορά υπολοίπου: " +

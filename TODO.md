@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue remaining Android-only Web-parity code-first batches on android/web-parity-code-first-bulk-20261023; current batch adds prior/next budget month selection and Web-normalized category-ID protection. Next inspect planned future/scheduled budget commitments, provider/account settings gaps, statement/forecast and other W3/W4/W5 semantics; author safe features before starting mass tests. After feature source is complete: consolidated Kotlin/compiler/unit/security/real Compose visual light/dark/large-font/hosted S24 emulator checks, fix issues and only merge after four exact-final-head gates. Progress remains 1/6 implementations · 11/24 subtasks until evidence-backed acceptance, physical owner #149 separate; no shared Web/backend/schema, production financial writes, signer/release, SMS import or irreversible card delete UI.
+- [ ] Continue Web parity W2–W5 Android-only code-first implementation on android/web-parity-code-first-bulk-20261023 after monthly budget picker and nonposting known-commitment projections. Inspect further W3 event/read histories, W4.2 forecast and W5 provider/auth/security/backup gaps before code phase completion. Then consolidated Kotlin compiler/unit/security, actual light/dark/large-font Compose screenshots and hosted S24 emulator exact-head CI, fix failures and only merge after four green exact-head gates. Counts remain 1/6 implementations · 11/24 subtasks until verified integration; physical S24 owner #149 separately pending. No Web/backend/schema, production financial writes, signer/release, SMS #146 or irreversible card delete.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last tested develop #319. CODE-FIRST BULK branch adds independent monthly budget period picker and protected per-month Web-aligned CRUD across overall/category/subcategory budgets; normalized Greek budget match avoids hidden duplicate source records. Existing account/rules/loan/credit/backup work remains uncompiled, untested and unmerged; further source and mass QA pending.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. Unmerged CODE-FIRST branch now includes Web-selected budget month and nonposting projected commitments (scheduled and recurring) with dedup, projected status and category breakdown, plus prior category/subcategory CRUD/carryover, accounts, rules, recurring, credit, backup and loan code. No branch QA/merge yet.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue Android code-only W2–W5 parity gaps on android/web-parity-code-first-bulk-20261023 after adding per-month budgets, without small PRs/CI. Then consolidate one source QA pass: compile Kotlin, run unit/security tests, inspect true Compose screenshots and hosted Galaxy S24 emulator, fix regressions and exact-head 4/4 before protected develop merge. Maintain 1/6 · 11/24 progress until merged; owner S24 #149 distinct. No shared Web/backend/schema, production financial data, signing/release, SMS #146 or irreversible card deletion UI.
+Next Continue writing Android-only W2–W5 Web-parity gaps on android/web-parity-code-first-bulk-20261023 without per-feature CI. After source completion perform one consolidated build/unit/security/real Compose visual/S24 emulator cycle and immutable-head 4/4 checks, fix issues then merge. Last integrated #319, Web parity 1/6 · 11/24, physical owner S24 #149 separately pending. No shared backend/Web/schema, production financial writes, signer/release, SMS import or irreversible card deletion UI.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

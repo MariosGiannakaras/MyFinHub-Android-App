@@ -77,6 +77,10 @@ data class CanonicalBudgetProgress(
     val carryover: Boolean = false,
     val carried: Double = 0.0,
     val baseLimit: Double = limit,
+    val projectedDue: Double = 0.0,
+    val projectedUsed: Double = used,
+    val projectedRemaining: Double = remaining,
+    val projectedStatus: String = status,
 )
 
 fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String? = null): Map<String, Double> {
@@ -138,6 +142,7 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
     val normalizedSpending = spending.entries.groupBy { webBudgetCategoryKey(it.key) }
         .mapValues { (_, values) -> values.sumOf { it.value } }
     val subSpending = canonicalSubcategoryBudgetSpending(month, asOf)
+    val commitments = asOf?.let { canonicalBudgetProjectedCommitments(month, it) }.orEmpty()
     val total = spending.values.sum()
     val locale = Collator.getInstance(Locale.forLanguageTag("el-GR"))
     val all = state.array("budgets").filterIsInstance<JsonObject>()
@@ -212,6 +217,23 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
         }
         val used = max(0.0, rawUsed)
         val ratio = if (limit > 0.0) used / limit else 0.0
+        val matchingCommitments = commitments.filter { item ->
+            when (scope) {
+                "overall" -> true
+                "category" -> webBudgetCategoryKey(item.category) ==
+                    webBudgetCategoryKey(row.string("category").orEmpty())
+                "subcategory" -> webBudgetCategoryKey(item.category) ==
+                    webBudgetCategoryKey(row.string("category").orEmpty()) &&
+                    webBudgetCategoryKey(item.subcategory.orEmpty()) ==
+                        webBudgetCategoryKey(row.string("subcategory").orEmpty())
+                else -> false
+            }
+        }
+        val projectedDue = centsToMoney(matchingCommitments.fold(0L) { cents, item ->
+            Math.addExact(cents, moneyToCents(item.amount))
+        })
+        val projectedUsed = max(0.0, rawUsed + projectedDue)
+        val projectedRatio = if (limit > 0.0) projectedUsed / limit else 0.0
         val rawThreshold = row.number("alertThreshold")
         val threshold = when {
             rawThreshold == null || !rawThreshold.isFinite() -> 0.8
@@ -236,6 +258,14 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
             status = when {
                 ratio > 1.0 -> "exceeded"
                 ratio >= threshold -> "near"
+                else -> "ok"
+            },
+            projectedDue = projectedDue,
+            projectedUsed = projectedUsed,
+            projectedRemaining = limit - projectedUsed,
+            projectedStatus = when {
+                projectedRatio > 1.0 -> "exceeded"
+                projectedRatio >= threshold -> "near"
                 else -> "ok"
             },
         )
