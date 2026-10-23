@@ -86,6 +86,21 @@ class CanonicalRecurringEditMutationTest {
         assertEquals(null,duplicate.canonicalRecurringEditSource("seed"))
     }
 
+    @Test fun legacyMonthlyEditPreservesMissingScheduleAnchorAndHistory() {
+        val monthly = CanonicalRecurringCreateDraft(
+            name = "Electricity revised", amount = 61.0,
+            accountId = "cash", category = "Utilities",
+            recurrenceUnit = "month", recurrenceInterval = 1,
+            firstExpectedDate = null,
+        )
+        val changed = edit(before, "seed", monthly).apply(before)
+        val row = changed.state.obj("recurringOverrides")["seed"] as JsonObject
+        assertFalse(row.containsKey("firstExpectedDate"))
+        assertEquals("Electricity revised", row.string("name"))
+        assertEquals("logo-certified", row.string("logoAssetKey"))
+        assertEquals(0, changed.state.array("events").size)
+    }
+
     @Test fun storedEditRoundTripsExactExpectedSource() {
         val original=edit(before,"custom",CanonicalRecurringCreateDraft(
             name="TV+",amount=22.0,accountId="cash",category="Subscriptions",
