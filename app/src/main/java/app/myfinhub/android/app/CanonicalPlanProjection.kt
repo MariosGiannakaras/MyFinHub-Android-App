@@ -62,7 +62,10 @@ internal fun projectCanonicalPlanState(
     today: LocalDate,
     previous: PlanUiState?,
 ): PlanUiState {
-    val month = YearMonth.from(today)
+    val month = previous?.budgetSelectedMonthIso
+        ?.takeIf(String::isNotBlank)
+        ?.let { runCatching { YearMonth.parse(it) }.getOrNull() }
+        ?: YearMonth.from(today)
     val canonicalBudget = document.overallBudget(month.toString())
     val overallBudgetCandidates = document.state.array("budgets")
         .filterIsInstance<JsonObject>()
@@ -344,6 +347,7 @@ internal fun projectCanonicalPlanState(
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
+        budgetSelectedMonthIso = month.toString(),
         message = previous?.message,
     )
 }

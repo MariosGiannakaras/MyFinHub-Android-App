@@ -915,17 +915,19 @@ fun CanonicalBudget2026Screen(
     onSaveSubcategoryBudget: (SubcategoryBudgetEditRequest) -> Unit = {},
     onDeleteSubcategoryBudget: (String) -> Unit = {},
     onDeleteOverallBudget: (String) -> Unit = {},
+    onShiftBudgetMonth: ((Int) -> Unit)? = null,
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
-    var savedLimit by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
-    var savedThreshold by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
-    var limitDraft by rememberSaveable { mutableStateOf(state.budget.monthlyLimitText) }
-    var thresholdDraft by rememberSaveable { mutableStateOf(state.budget.alertThresholdText) }
-    var localError by rememberSaveable { mutableStateOf<String?>(null) }
-    var discardDialogOpen by rememberSaveable { mutableStateOf(false) }
-    var saveRequested by rememberSaveable { mutableStateOf(false) }
+    // Reset all draft state when changing the period, never submit an old-month draft.
+    var savedLimit by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.monthlyLimitText) }
+    var savedThreshold by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.alertThresholdText) }
+    var limitDraft by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.monthlyLimitText) }
+    var thresholdDraft by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(state.budget.alertThresholdText) }
+    var localError by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf<String?>(null) }
+    var discardDialogOpen by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(false) }
+    var saveRequested by rememberSaveable(state.budgetSelectedMonthIso) { mutableStateOf(false) }
     // Web's budget editor displays the first 24 records, then reveals 24 more
     // on demand. Never silently hide historical category budgets.
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
@@ -1083,6 +1085,38 @@ fun CanonicalBudget2026Screen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
+            if (onShiftBudgetMonth != null) {
+                item("budget-month-selector") {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
+                        .testTag("s7_budget_month_selector")) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                            Text(
+                                "Περίοδος: " + state.budgetMonthLabel,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Κάθε μήνας έχει δικά του συνολικά όρια, όρια κατηγοριών " +
+                                    "και υποκατηγοριών. Η αλλαγή μήνα δεν αποθηκεύει οικονομική κίνηση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Row(modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween) {
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = { onShiftBudgetMonth(-1) },
+                                    modifier = Modifier.testTag("s7_budget_previous_month"),
+                                ) { Text("‹ Προηγούμενος") }
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = { onShiftBudgetMonth(1) },
+                                    modifier = Modifier.testTag("s7_budget_next_month"),
+                                ) { Text("Επόμενος ›") }
+                            }
+                        }
+                    }
+                }
+            }
             if (progress != null) {
                 item("budget-progress") {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {

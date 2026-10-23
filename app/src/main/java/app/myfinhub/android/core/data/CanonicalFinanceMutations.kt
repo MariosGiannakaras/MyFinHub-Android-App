@@ -566,7 +566,8 @@ data class UpsertCategoryBudget(
     private fun matches(document: CanonicalFinanceDocument) =
         document.state.array("budgets").mapNotNull { it as? JsonObject }.filter {
             it.string("month") == month && it.string("scope") == "category" &&
-                it.string("category") == category
+                webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                    webBudgetCategoryKey(category)
         }
 
     fun satisfiedBy(document: CanonicalFinanceDocument): Boolean {

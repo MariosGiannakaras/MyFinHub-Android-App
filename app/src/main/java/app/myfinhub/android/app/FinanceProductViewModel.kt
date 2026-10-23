@@ -1217,11 +1217,18 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     }
 
     /** Delete only the owner's confirmed current-month overall budget; no ledger effects. */
+    /** Month selection is UI-only until a specific guarded budget is saved. */
+    private fun selectedBudgetMonth(ready: FinanceProductState.Ready): String {
+        val raw = ready.projection.planState.budgetSelectedMonthIso
+        return runCatching { YearMonth.parse(raw).toString() }.getOrNull()
+            ?: YearMonth.now().toString()
+    }
+
     fun deleteOverallBudget(budgetId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
             budgetId.isBlank()) return
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val all = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
         val candidates = all.filter { it.string("id") == budgetId }
@@ -1239,7 +1246,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun deleteCategoryBudget(budgetId: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight || budgetId.isBlank()) return
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val candidates = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }.filter { it.string("id") == budgetId }
         val current = candidates.singleOrNull() ?: return
@@ -1265,7 +1272,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (category.isBlank() || subcategory.isBlank() || amount == null ||
             !amount.isFinite() || amount <= 0.0 || threshold == null || threshold !in 50..99) return
         val knownSubs = ready.projection.planState.ruleSubcategories
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val rows = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
         val scoped = rows.filter {
@@ -1297,7 +1304,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
             budgetId.isBlank()) return
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val all = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
         val row = all.filter { it.string("id") == budgetId }.singleOrNull() ?: return
@@ -1319,12 +1326,13 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val threshold = request.alertThresholdText.toIntOrNull()
         if (category.isEmpty() || amount == null || !amount.isFinite() ||
             amount <= 0.0 || threshold == null || threshold !in 50..99) return
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val matches = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
             .filter {
                 it.string("month") == month && it.string("scope") == "category" &&
-                    it.string("category") == category
+                    webBudgetCategoryKey(it.string("category").orEmpty()) ==
+                        webBudgetCategoryKey(category)
             }
         if (matches.size > 1) return
         val current = matches.singleOrNull()
@@ -1353,7 +1361,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val threshold = alertThresholdText.toIntOrNull()
         if (amount == null || amount <= 0.0 || threshold == null || threshold !in 50..99) return
 
-        val month = YearMonth.now().toString()
+        val month = selectedBudgetMonth(ready)
         val rows = ready.projection.document.state.array("budgets")
             .mapNotNull { it as? JsonObject }
             .filter { it.string("month") == month && it.string("scope") == "overall" }
@@ -1374,6 +1382,20 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        if (action is PlanAction.ShiftBudgetMonth) {
+            if (action.delta !in setOf(-1, 1)) return
+            val current = ready.projection.planState
+            val changed = reducePlan(current, action)
+            val updated = projectCanonicalPlanState(
+                document = ready.projection.document,
+                today = LocalDate.now(),
+                previous = changed,
+            )
+            mutableState.value = ready.copy(
+                projection = ready.projection.copy(planState = updated),
+            )
+            return
+        }
         if (action != PlanAction.SaveBudget) {
             mutableState.value = ready.copy(projection = ready.projection.copy(planState = reducePlan(ready.projection.planState, action)))
             return

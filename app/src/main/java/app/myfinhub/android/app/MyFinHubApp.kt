@@ -713,6 +713,9 @@ internal fun MyFinHubAppContent(
                     CanonicalBudget2026Screen(
                         state = planState,
                         onSaveBudget = onSaveBudget,
+                        onShiftBudgetMonth = { delta ->
+                            onPlanAction(PlanAction.ShiftBudgetMonth(delta))
+                        },
                         onSaveCategoryBudget = onSaveCategoryBudget,
                         onDeleteCategoryBudget = onDeleteCategoryBudget,
                         onSaveSubcategoryBudget = onSaveSubcategoryBudget,

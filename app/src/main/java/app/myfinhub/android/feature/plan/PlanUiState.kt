@@ -242,6 +242,8 @@ data class PlanUiState(
     val forecastEndDateLabel: String = "",
     val budgetSpent: Double = 0.0,
     val budgetMonthLabel: String = "",
+    /** Independent reporting month: YYYY-MM, preserved across finance reprojections. */
+    val budgetSelectedMonthIso: String = "",
     val message: String? = null,
     val itemMessage: String? = null,
     val categoryBudgetMessage: String? = null,
@@ -251,6 +253,7 @@ sealed interface PlanAction {
     data class MonthlyLimitChanged(val value: String) : PlanAction
     data class AlertThresholdChanged(val value: String) : PlanAction
     data object SaveBudget : PlanAction
+    data class ShiftBudgetMonth(val delta: Int) : PlanAction
 
     data class UpdatePlannedItem(
         val id: String,
@@ -273,6 +276,12 @@ sealed interface PlanAction {
 }
 
 fun reducePlan(state: PlanUiState, action: PlanAction): PlanUiState = when (action) {
+    is PlanAction.ShiftBudgetMonth -> {
+        val month = runCatching { java.time.YearMonth.parse(state.budgetSelectedMonthIso) }
+            .getOrNull() ?: java.time.YearMonth.now()
+        if (action.delta !in setOf(-1, 1)) state
+        else state.copy(budgetSelectedMonthIso = month.plusMonths(action.delta.toLong()).toString())
+    }
     is PlanAction.MonthlyLimitChanged -> state.copy(
         budget = state.budget.copy(monthlyLimitText = action.value),
         message = null,
