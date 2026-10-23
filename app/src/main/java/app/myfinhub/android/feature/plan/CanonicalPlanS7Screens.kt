@@ -166,7 +166,7 @@ fun CanonicalPlan2026Screen(
                 itemsIndexed(urgent, key = { index, item ->
                     "urgent-${plannedItemSourceKey(item)}-row-$index"
                 }) { _, item ->
-                    PlanS7Row(item = item, amountsVisible = amountsVisible)
+                    PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                 }
             }
 
@@ -230,7 +230,7 @@ fun CanonicalPlan2026Screen(
                     itemsIndexed(group, key = { index, item ->
                         "remaining-${plannedItemSourceKey(item)}-row-$index"
                     }) { _, item ->
-                        PlanS7Row(item = item, amountsVisible = amountsVisible)
+                        PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                     }
                 }
             } else if (urgent.isEmpty()) {
@@ -335,9 +335,9 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
 }
 
 @Composable
-private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean) {
+private fun PlanS7Row(item: PlannedItem, amountsVisible: Boolean, glyphOverrides: Map<String, String> = emptyMap()) {
     val tone = planS7Tone(item.flow)
-    val icon = planS7Icon(item)
+    val icon = planS7Icon(item, glyphOverrides)
     val amountText = planS7Amount(item, amountsVisible)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
 
@@ -861,7 +861,7 @@ private fun ForecastS7ItemCard(
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.Top,
                     ) {
-                        MyFinHubIconBadge(planS7Icon(item), tone, null)
+                        MyFinHubIconBadge(planS7Icon(item, state.categoryGlyphOverrides), tone, null)
                         PlanS7Identity(item, Modifier.weight(1f))
                     }
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone, modifier = Modifier.align(Alignment.End))
@@ -872,7 +872,7 @@ private fun ForecastS7ItemCard(
                     horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    MyFinHubIconBadge(planS7Icon(item), tone, null)
+                    MyFinHubIconBadge(planS7Icon(item, state.categoryGlyphOverrides), tone, null)
                     PlanS7Identity(item, Modifier.weight(1f))
                     MyFinHubAmountText(planS7Amount(item, amountsVisible), tone)
                 }
@@ -1801,10 +1801,16 @@ private fun planS7Tone(flow: PlannedFlow): FinanceTone = when (flow) {
     PlannedFlow.TRANSFER -> FinanceTone.Neutral
 }
 
-private fun planS7Icon(item: PlannedItem) = when (item.flow) {
+private fun planS7Icon(item: PlannedItem, overrides: Map<String, String> = emptyMap()) = when (item.flow) {
     PlannedFlow.TRANSFER -> MyFinHubIcons.Transfer
-    PlannedFlow.INCOME -> myFinHubCategoryIcon(item.category.ifBlank { item.title }, MyFinHubIcons.Income)
-    PlannedFlow.OBLIGATION -> myFinHubCategoryIcon(item.category.ifBlank { item.title }, MyFinHubIcons.Plan)
+    PlannedFlow.INCOME -> myFinHubCategoryIcon(
+        item.category.ifBlank { item.title }, MyFinHubIcons.Income,
+        overrides["income:" + item.category],
+    )
+    PlannedFlow.OBLIGATION -> myFinHubCategoryIcon(
+        item.category.ifBlank { item.title }, MyFinHubIcons.Plan,
+        overrides["expense:" + item.category],
+    )
 }
 
 private fun planS7Amount(item: PlannedItem, amountsVisible: Boolean): String = if (!amountsVisible) {

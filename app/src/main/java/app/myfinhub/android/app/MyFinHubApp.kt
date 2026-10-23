@@ -516,6 +516,7 @@ internal fun MyFinHubAppContent(
                         onSaveAccountIban = onSaveAccountIban,
                         accountMetadataSaving = accountMetadataSaving,
                         activityItems = accountActivityItems(route.accountId, activityState.items),
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                         onNewTransaction = {
@@ -762,6 +763,7 @@ internal fun MyFinHubAppContent(
                     ) {
                         InsightsScreen(
                             state = insightsState,
+                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
                             selectedPeriodId = insightsPeriodId,
                             onPeriodSelected = { insightsPeriodId = it },
                             onOpenSupportingActivity = { activityBackStack.popToRoot() },

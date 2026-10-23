@@ -62,6 +62,7 @@ fun InsightsScreen(
     onOpenSupportingActivity: () -> Unit,
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
     initialDetailsExpanded: Boolean = false,
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -688,6 +689,7 @@ private fun CategoryCompositionCard(
                         category = category,
                         onOpen = { onOpenCategoryActivity(category, scope.startDate, scope.endDate) },
                         amountsVisible = amountsVisible,
+                        semanticIcon = categoryGlyphOverrides["expense:" + category.name],
                     )
                 }
             }
@@ -696,7 +698,12 @@ private fun CategoryCompositionCard(
 }
 
 @Composable
-private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVisible: Boolean) {
+private fun CategoryRow(
+    category: InsightCategory,
+    onOpen: () -> Unit,
+    amountsVisible: Boolean,
+    semanticIcon: String? = null,
+) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val description = "${category.name}, ${amountVisibilityText(formatEuro(category.amount), amountsVisible)}, ${(category.share * 100).roundToInt()}% των εξόδων"
     Surface(
@@ -718,7 +725,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVi
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     MyFinHubIconBadge(
-                        icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense),
+                        icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense, semanticIcon),
                         tone = FinanceTone.Expense,
                         contentDescription = null,
                     )
@@ -741,7 +748,7 @@ private fun CategoryRow(category: InsightCategory, onOpen: () -> Unit, amountsVi
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MyFinHubIconBadge(
-                    icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense),
+                    icon = myFinHubCategoryIcon(category.name, MyFinHubIcons.Expense, semanticIcon),
                     tone = FinanceTone.Expense,
                     contentDescription = null,
                 )

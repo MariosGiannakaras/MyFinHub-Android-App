@@ -53,6 +53,7 @@ fun CanonicalAccountDetailScreen(
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
     onNewTransaction: () -> Unit = {},
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
     referenceDate: LocalDate = LocalDate.now(),
     amountsVisibleOverride: Boolean? = null,
     ibanRecord: AccountMetadataRecord? = null,
@@ -229,6 +230,7 @@ fun CanonicalAccountDetailScreen(
                             AccountLedgerRow(
                                 item = item,
                                 amountsVisible = amountsVisible,
+                                categoryGlyphOverrides = categoryGlyphOverrides,
                                 onClick = { onOpenActivity(item.id) },
                             )
                         }
@@ -243,6 +245,7 @@ fun CanonicalAccountDetailScreen(
 private fun AccountLedgerRow(
     item: ActivityItem,
     amountsVisible: Boolean,
+    categoryGlyphOverrides: Map<String, String> = emptyMap(),
     onClick: () -> Unit,
 ) {
     val transfer = item.kind == ActivityKind.TRANSFER
@@ -251,7 +254,17 @@ private fun AccountLedgerRow(
     val meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else if (transfer) "" else item.accountLabel
     val tone = if (item.pendingSync || transfer) FinanceTone.Neutral else accountActivityTone(item.kind)
     MyFinHubFinanceRow(
-        icon = myFinHubCategoryIcon(item.category, accountActivityIcon(item.kind)),
+        icon = myFinHubCategoryIcon(
+            item.category, accountActivityIcon(item.kind),
+            categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income:" else "expense:") +
+                    item.category.orEmpty() +
+                    (item.subcategory?.takeIf(String::isNotBlank)?.let { ":" + it } ?: "")
+            ] ?: categoryGlyphOverrides[
+                (if (item.canonicalKind == "income") "income:" else "expense:") +
+                    item.category.orEmpty()
+            ],
+        ),
         iconDescription = item.category ?: item.kind.label,
         title = item.title,
         subtitle = subtitle,
