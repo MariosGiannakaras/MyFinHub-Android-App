@@ -2,6 +2,7 @@ package app.myfinhub.android.designsystem
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.util.Locale
+import java.text.Normalizer
 
 /**
  * Stable Android-only presentation mapping for canonical category labels.
@@ -56,4 +57,13 @@ fun myFinHubCategoryIcon(
     }
 }
 
-private fun String.containsAny(vararg needles: String): Boolean = needles.any(::contains)
+/** Taxonomy labels are user-authored Greek strings; compare accents canonically for fallback glyphs. */
+private fun String.containsAny(vararg needles: String): Boolean {
+    val normalized = Normalizer.normalize(this, Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+    return needles.any { needle ->
+        this.contains(needle) || normalized.contains(
+            Normalizer.normalize(needle, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
+        )
+    }
+}
