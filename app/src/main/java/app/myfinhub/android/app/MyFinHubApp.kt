@@ -385,6 +385,8 @@ internal fun MyFinHubAppContent(
                     ) {
                         ActivityLedgerScreen(
                             state = activityState,
+                            categoryIconColors = planState.categoryIconColors,
+                            subcategoryIconColors = planState.subcategoryIconColors,
                             onAction = onActivityAction,
                             onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                             onOpenQuickEntry = { openFastExpense(activityBackStack) },
@@ -438,6 +440,8 @@ internal fun MyFinHubAppContent(
                 }
                 entry<AppRoute.CategoryActivity> { route ->
                     ActivityLedgerScreen(
+                        categoryIconColors = planState.categoryIconColors,
+                        subcategoryIconColors = planState.subcategoryIconColors,
                         state = activityState.forCategories(
                             categories = route.categories.ifEmpty { listOf(route.category) },
                             label = route.category,

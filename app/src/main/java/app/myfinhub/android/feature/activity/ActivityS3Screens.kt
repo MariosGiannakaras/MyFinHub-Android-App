@@ -55,6 +55,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubAmountText
 import app.myfinhub.android.designsystem.MyFinHubBackButton
@@ -147,6 +148,8 @@ fun ActivityLedgerScreen(
     onOpenDetail: (String) -> Unit,
     onOpenQuickEntry: () -> Unit,
     onBack: (() -> Unit)? = null,
+    categoryIconColors: Map<String, String> = emptyMap(),
+    subcategoryIconColors: Map<String, String> = emptyMap(),
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
@@ -361,6 +364,8 @@ fun ActivityLedgerScreen(
                                 accountOptions = state.accountOptions,
                                 amountsVisible = amountsVisible,
                                 ambiguousIdentity = item.id in state.ambiguousIds,
+                                categoryIconColors = categoryIconColors,
+                                subcategoryIconColors = subcategoryIconColors,
                                 onClick = {
                                     if (item.id !in state.ambiguousIds) onOpenDetail(item.id)
                                 },
@@ -586,6 +591,8 @@ private fun ActivityFlatLedgerRow(
     accountOptions: List<ActivityAccountOption>,
     amountsVisible: Boolean,
     ambiguousIdentity: Boolean,
+    categoryIconColors: Map<String, String>,
+    subcategoryIconColors: Map<String, String>,
     onClick: () -> Unit,
 ) {
     val tone = item.s3Tone()
@@ -616,8 +623,22 @@ private fun ActivityFlatLedgerRow(
         else -> item.accountLabel
     }
 
+    // Web preference key: kind:category[:subcategory]. Invalid colors preserve tone.
+    val categoryKind = if (item.canonicalKind == "income") "income" else "expense"
+    val parentKey = item.category?.takeIf(String::isNotBlank)?.let {
+        "$categoryKind:$it"
+    }
+    val childKey = item.subcategory?.takeIf(String::isNotBlank)?.let { child ->
+        parentKey?.let { "$it:$child" }
+    }
+    val preferredHex = childKey?.let(subcategoryIconColors::get)
+        ?: parentKey?.let(categoryIconColors::get)
+    val selectedColor = preferredHex?.takeIf { Regex("^#[0-9A-Fa-f]{6}$").matches(it) }
+        ?.let { Color(("FF" + it.drop(1)).toLong(16).toInt()) }
+
     MyFinHubFinanceRow(
         icon = myFinHubCategoryIcon(item.category, item.kind.s3Icon()),
+        categoryAccent = selectedColor,
         iconDescription = null,
         title = item.webLedgerDisplayTitle(),
         subtitle = secondary,
