@@ -109,6 +109,7 @@ data class LoanItem(
     val isSelfLoan: Boolean = false,
     val liabilityRepayment: Boolean = false,
     val defaultAccountId: String = "",
+    val typicalPaymentDay: Int? = null,
 )
 
 data class LendingItem(

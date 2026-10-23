@@ -583,15 +583,34 @@ internal fun MyFinHubAppContent(
                     CanonicalLendingScreen(
                         state = moneyState,
                         onBack = { moneyBackStack.removeLastOrNull() },
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
                         onRecordRepayment = { lending ->
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
-                            onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
-                            onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
-                            if (lending.note.isNotBlank()) {
-                                onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                moneyState.lendingItems.count { it.personLabel == lending.personLabel } == 1 &&
+                                lending.amount > 0.005
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.REPAYMENT))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(lending.amount.toString()))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(lending.personLabel))
+                                if (lending.note.isNotBlank()) {
+                                    onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
+                                }
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onRecordLending = { person ->
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                person.isNotBlank() && (
+                                    moneyState.lendingItems.any { it.personLabel == person } ||
+                                    moneyState.lendingHistory.any { it.personLabel == person }
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.LENDING))
+                                onQuickEntryAction(QuickEntryAction.PersonChanged(person))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                     )
                 }

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue writing all remaining Android-only W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source on android/web-parity-code-first-bulk-20261023 before mass QA. New W5.4 code covers selected-location full JSON export and bounded, non-destructive backup import PREVIEW only; actual finance-data restore requires Web-equivalent full schema/relationships validation, owner authentication and trusted revision/recovery safety, and is NOT activated. Finish other card/statement/loan/taxonomy/settings gaps in grouped commits; then aggregate compile/unit/security/real Compose light-dark-large font screenshot and hosted S24 emulator checks, fix failures and merge after four exact-head green gates. Counts stay 1/6 implementations · 11/24 subtasks pending evidence; no Web/backend/schema edits, production writes, signer/release, SMS import or permanent card delete.
+- [ ] Continue Android Web-parity CODE-FIRST BULK on android/web-parity-code-first-bulk-20261023. New source W4.3 shows actual seeded/event lending history by person with running row balances, source account, action filter, pagination, and user-confirmed Quick Entry lending/repayment drafts; active/completed loans now have sort and paging. Outstanding W2.4/W3.1–W3.2/W4.1–W4.4/W5.1–W5.4 source gaps must be implemented before mass build/unit/security/visual/S24 emulator CI. Restore imported FinanceData remains preview-only until full schema/ownership/revision validations exist; no server overwrite. Web parity counts 1/6 implementations · 11/24 subtasks until code reviewed and merged. Protected develop only after four green immutable-head checks; physical S24 #149 separate. No Web/backend/schema, production finance writes, signing, SMS import #146 or irreversible card delete.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #319, branch android/web-parity-code-first-bulk-20261023
-Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. Unmerged CODE-FIRST BULK includes budget, saving, rule, recurring, card statement and credit term source, payoff simulation; new W5.4 SAF JSON export and read-only 16MiB JSON import PREVIEW. No server restore, tests, PR/merge, physical S24 acceptance yet. Continue code-first implementation.
+Current W4.3: Web parity 1/6 implementations · 11/24 subtasks. Last integrated #319. Unmerged CODE-FIRST BULK branch now additionally connects canonical lending history to user-facing UI, adds person search, action filters and explicit Quick Entry drafts, plus sorted/paginated active/completed loan lists; earlier budgets, credit statements, recurring/rules, card profiles and JSON backup source remain untested. Continue source before consolidated QA.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue completing remaining W2–W5 Android-only source on android/web-parity-code-first-bulk-20261023. Ensure safe finance backup restore is not enabled without verified schema, relationships, account authorization and revision protections; bounded preview is read-only. After source phase, consolidated Kotlin/build/unit/security/real Compose visual/S24 emulator checks, fix errors and merge only at immutable exact-head green checks. Last tested develop #319; Web parity 1/6 · 11/24, S24 owner #149 separate; no Web/API/schema, production writes, signing, SMS #146 or permanent card deletion.
+Next Continue grouped Android-only W2/W3/W4/W5 code authoring on android/web-parity-code-first-bulk-20261023. After source complete, consolidated compiler/Kotlin tests/security/screenshot/hosted S24 emulator exact-head 4/4, fix and merge; do not open per-feature PRs or claim acceptance. Web parity 1/6 · 11/24; S24 owner #149 separate. Backup restore preview does not write. No shared Web/backend/schema, production writes, signing, SMS #146, or permanent card delete.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

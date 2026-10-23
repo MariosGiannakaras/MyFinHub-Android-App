@@ -505,6 +505,7 @@ val activityItems = buildActivityItems(
                 isSelfLoan = loan.isSelfLoan,
                 liabilityRepayment = loan.isLiabilityRepayment,
                 defaultAccountId = loan.defaultAccountId,
+                typicalPaymentDay = loan.typicalPaymentDay,
             )
         },
         lendingItems = document.canonicalLendingPersonRows(asOf)
