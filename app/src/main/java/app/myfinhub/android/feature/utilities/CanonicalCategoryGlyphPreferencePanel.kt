@@ -3,6 +3,8 @@ package app.myfinhub.android.feature.utilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
@@ -25,9 +27,11 @@ import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow
 import app.myfinhub.android.core.data.CANONICAL_CATEGORY_ICON_PACKS
 import app.myfinhub.android.core.data.canonicalNativeIconsForPack
+import app.myfinhub.android.designsystem.MyFinHubIcons
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubSemanticCategoryIcon
+import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 
 private val nativeIconNames = mapOf(
     "coffee" to "Καφές", "dining" to "Φαγητό", "groceries" to "Τρόφιμα",
@@ -108,6 +112,14 @@ fun CanonicalCategoryGlyphPreferencePanel(
                         modifier = Modifier.fillMaxWidth()
                             .testTag("s9_category_glyph_${kind}_$index"),
                     ) {
+                        Icon(
+                            imageVector = myFinHubCategoryIcon(
+                                row.name, MyFinHubIcons.All, overrides[key],
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.size(MyFinHubSpacing.xs))
                         Text(row.name + " · " +
                             (overrides[key]?.let { nativeIconNames[it] } ?: "Αυτόματο"))
                     }
@@ -119,6 +131,15 @@ fun CanonicalCategoryGlyphPreferencePanel(
                             modifier = Modifier.fillMaxWidth()
                                 .testTag("s9_subcategory_glyph_${kind}_${index}_$childIndex"),
                         ) {
+                            Icon(
+                                imageVector = myFinHubCategoryIcon(
+                                    row.name, MyFinHubIcons.All,
+                                    overrides[childKey] ?: overrides[key],
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(Modifier.size(MyFinHubSpacing.xs))
                             Text("↳ $child · " +
                                 (overrides[childKey]?.let { nativeIconNames[it] } ?: "Αυτόματο"))
                         }
