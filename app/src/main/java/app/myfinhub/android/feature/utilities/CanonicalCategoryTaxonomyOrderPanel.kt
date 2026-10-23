@@ -3,6 +3,9 @@ package app.myfinhub.android.feature.utilities
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
@@ -17,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.core.data.CanonicalCategoryTaxonomyRow
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -30,10 +34,26 @@ fun CanonicalCategoryTaxonomyOrderPanel(
     mutationBlocked: Boolean,
     onReorder: (kind: String, category: String, subcategory: String?, direction: Int) -> Unit,
     onAdd: ((kind: String, label: String, parentCategory: String?) -> Unit)? = null,
+    onRename: ((kind: String, category: String, subcategory: String?, newLabel: String) -> Unit)? = null,
+    onMove: ((kind: String, source: String, child: String, target: String) -> Unit)? = null,
 ) {
     var newKind by remember { mutableStateOf<String?>(null) }
     var newParent by remember { mutableStateOf<String?>(null) }
     var newLabel by remember { mutableStateOf("") }
+    var renameKind by remember { mutableStateOf<String?>(null) }
+    var renameCategory by remember { mutableStateOf("") }
+    var renameSubcategory by remember { mutableStateOf<String?>(null) }
+    var renameDraft by remember { mutableStateOf("") }
+    var moveKind by remember { mutableStateOf<String?>(null) }
+    var moveSource by remember { mutableStateOf("") }
+    var moveChild by remember { mutableStateOf("") }
+    var moveTarget by remember { mutableStateOf<String?>(null) }
+    fun openRename(kind: String, category: String, child: String?) {
+        renameKind = kind
+        renameCategory = category
+        renameSubcategory = child
+        renameDraft = child ?: category
+    }
 
     fun openAdd(kind: String, parent: String?) {
         newKind = kind
@@ -77,6 +97,13 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                     rows.take(visible).forEachIndexed { index, row ->
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                             Text(row.name, style = MaterialTheme.typography.bodyLarge)
+                            if (onRename != null) {
+                                TextButton(
+                                    enabled = !mutationBlocked,
+                                    onClick = { openRename(kind, row.name, null) },
+                                    modifier = Modifier.testTag("s9_taxonomy_rename_" + kind + "_" + index),
+                                ) { Text("Μετονομασία κατηγορίας") }
+                            }
                             if (onAdd != null) {
                                 TextButton(
                                     onClick = { openAdd(kind, row.name) },
@@ -99,6 +126,29 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                             row.subcategories.forEachIndexed { subIndex, child ->
                                 Column {
                                     Text("↳ $child", style = MaterialTheme.typography.bodySmall)
+                                    if (onMove != null && rows.size > 1) {
+                                        TextButton(
+                                            enabled = !mutationBlocked,
+                                            onClick = {
+                                                moveKind = kind
+                                                moveSource = row.name
+                                                moveChild = child
+                                                moveTarget = null
+                                            },
+                                            modifier = Modifier.testTag(
+                                                "s9_taxonomy_move_sub_" + kind + "_" + index + "_" + subIndex,
+                                            ),
+                                        ) { Text("Μεταφορά σε άλλη κατηγορία") }
+                                    }
+                                    if (onRename != null) {
+                                        TextButton(
+                                            enabled = !mutationBlocked,
+                                            onClick = { openRename(kind, row.name, child) },
+                                            modifier = Modifier.testTag(
+                                                "s9_taxonomy_rename_sub_" + kind + "_" + index + "_" + subIndex,
+                                            ),
+                                        ) { Text("Μετονομασία υποκατηγορίας") }
+                                    }
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(
                                             MyFinHubSpacing.xs,
@@ -135,6 +185,105 @@ fun CanonicalCategoryTaxonomyOrderPanel(
                 }
             }
         }
+    }
+    if (moveKind != null && onMove != null) {
+        val kind = moveKind!!
+        val candidates = (if (kind == "expense") expense else income)
+            .filter { it.name != moveSource }
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) moveKind = null },
+            title = { Text("Μεταφορά υποκατηγορίας") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Η «" + moveChild + "» θα διατηρήσει το ID και την αρχική " +
+                            "κατηγορία ως ιστορικό alias. Οι προηγούμενες κινήσεις δεν αλλάζουν.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text("Επίλεξε κατηγορία προορισμού",
+                        style = MaterialTheme.typography.titleSmall)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp),
+                    ) {
+                        items(candidates, key = { it.name }) { candidate ->
+                            TextButton(
+                                enabled = !mutationBlocked,
+                                onClick = { moveTarget = candidate.name },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    (if (moveTarget == candidate.name) "✓ " else "") +
+                                        candidate.name
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && moveTarget != null,
+                    onClick = {
+                        val target = moveTarget
+                        if (target != null) onMove(kind, moveSource, moveChild, target)
+                        moveKind = null
+                    },
+                    modifier = Modifier.testTag("s9_taxonomy_move_confirm"),
+                ) { Text("Μεταφορά") }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = !mutationBlocked,
+                    onClick = { moveKind = null },
+                ) { Text("Ακύρωση") }
+            },
+        )
+    }
+    if (renameKind != null && onRename != null) {
+        val kind = renameKind!!
+        val category = renameCategory
+        val subcategory = renameSubcategory
+        val valid = renameDraft.trim().length in 1..120 &&
+            renameDraft.trim().any(Char::isLetterOrDigit) &&
+            renameDraft.trim() != (subcategory ?: category)
+        AlertDialog(
+            onDismissRequest = { if (!mutationBlocked) renameKind = null },
+            title = { Text(if (subcategory == null)
+                "Μετονομασία κατηγορίας" else "Μετονομασία υποκατηγορίας") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Η παλιά ονομασία θα διατηρηθεί ως alias στην ίδια ταυτότητα. " +
+                            "Το ιστορικό, τα budgets και οι κανόνες δεν επανεγγράφονται.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = renameDraft,
+                        onValueChange = { renameDraft = it.take(120) },
+                        singleLine = true,
+                        label = { Text("Νέα ονομασία") },
+                        enabled = !mutationBlocked,
+                        modifier = Modifier.fillMaxWidth().testTag("s9_taxonomy_rename_name"),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !mutationBlocked && valid,
+                    onClick = {
+                        onRename(kind, category, subcategory, renameDraft)
+                        renameKind = null
+                    },
+                    modifier = Modifier.testTag("s9_taxonomy_rename_save"),
+                ) { Text("Αποθήκευση") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { renameKind = null },
+                    enabled = !mutationBlocked,
+                ) { Text("Ακύρωση") }
+            },
+        )
     }
     if (newKind != null && onAdd != null) {
         val selectedKind = newKind!!

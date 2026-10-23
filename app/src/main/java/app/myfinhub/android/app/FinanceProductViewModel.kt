@@ -16,6 +16,9 @@ import app.myfinhub.android.core.data.UpsertCanonicalManagedAccount
 import app.myfinhub.android.core.data.DeleteCanonicalCustomCashAccount
 import app.myfinhub.android.core.data.ReorderCanonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.AddCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.RenameCanonicalCategoryTaxonomy
+import app.myfinhub.android.core.data.MoveCanonicalSubcategoryTaxonomy
+import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.SetCanonicalDefaultAccount
 import app.myfinhub.android.feature.utilities.ManagedAccountEditRequest
@@ -1026,6 +1029,47 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Move only the owner's explicit subcategory, preserving identity and parent aliases. */
+    fun moveSubcategoryTaxonomy(kind: String, sourceCategory: String,
+        subcategory: String, targetCategory: String,
+    ) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || sourceCategory.isBlank() ||
+            subcategory.isBlank() || targetCategory.isBlank() ||
+            sourceCategory == targetCategory) return
+        val document = ready.projection.document
+        val rows = document.canonicalCategoryTaxonomy(kind)
+        val source = rows.singleOrNull { it.name == sourceCategory } ?: return
+        if (source.subcategories.count { it == subcategory } != 1 ||
+            rows.count { it.name == targetCategory } != 1) return
+        applyMutation(MoveCanonicalSubcategoryTaxonomy(
+            kind = kind, sourceCategory = sourceCategory, subcategory = subcategory,
+            targetCategory = targetCategory,
+            expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
+    /** Web taxonomy rename keeps stable identity IDs and historical aliases. */
+    fun renameCategoryTaxonomy(kind: String, category: String, subcategory: String?, newLabel: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            kind !in setOf("expense", "income") || category.isBlank() ||
+            newLabel.isBlank() || newLabel.length > 120) return
+        val document = ready.projection.document
+        val tree = document.canonicalCategoryTaxonomy(kind)
+        val parent = tree.singleOrNull { it.name == category } ?: return
+        if (subcategory != null && parent.subcategories.count { it == subcategory } != 1) return
+        if (subcategory == null && parent.name == newLabel.trim()) return
+        if (subcategory != null && subcategory == newLabel.trim()) return
+        applyMutation(RenameCanonicalCategoryTaxonomy(
+            kind = kind, category = category, subcategory = subcategory,
+            newLabel = newLabel, expectedSettings = document.settingsObject(),
+            nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Append only the owner's explicitly chosen category label. */
     fun addCategoryTaxonomy(kind: String, label: String, parentCategory: String?) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1996,6 +2040,8 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_UNUSED_CASH_ACCOUNT -> "Διαγραφή αχρησιμοποίητων μετρητών"
                 PendingMutationKind.REORDER_CATEGORY_TAXONOMY -> "Σειρά κατηγοριών"
                 PendingMutationKind.ADD_CATEGORY_TAXONOMY -> "Προσθήκη κατηγορίας"
+                PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> "Μετονομασία κατηγορίας"
+                PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> "Μεταφορά υποκατηγορίας"
                 PendingMutationKind.SET_DEFAULT_ACCOUNT -> "Προεπιλεγμένος λογαριασμός"
                 PendingMutationKind.LINK_EVENT_COUNTERPARTY -> "Σύνδεση κίνησης με αντισυμβαλλόμενο"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"

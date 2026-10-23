@@ -38,6 +38,8 @@ enum class PendingMutationKind {
     SET_DEFAULT_ACCOUNT,
     REORDER_CATEGORY_TAXONOMY,
     ADD_CATEGORY_TAXONOMY,
+    RENAME_CATEGORY_TAXONOMY,
+    MOVE_SUBCATEGORY_TAXONOMY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -303,6 +305,24 @@ data class PendingCanonicalMutationIntent(
             expected = payload["expected"] as? JsonObject,
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY -> MoveCanonicalSubcategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            sourceCategory = payload.string("sourceCategory").orEmpty(),
+            subcategory = payload.string("subcategory").orEmpty(),
+            targetCategory = payload.string("targetCategory").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source taxonomy settings"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.RENAME_CATEGORY_TAXONOMY -> RenameCanonicalCategoryTaxonomy(
+            kind = payload.string("kind").orEmpty(),
+            category = payload.string("category").orEmpty(),
+            subcategory = payload.string("subcategory"),
+            newLabel = payload.string("newLabel").orEmpty(),
+            expectedSettings = payload["expectedSettings"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing category settings snapshot"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.ADD_CATEGORY_TAXONOMY -> AddCanonicalCategoryTaxonomy(
             kind = payload.string("kind").orEmpty(),
             label = payload.string("label").orEmpty(),
@@ -540,6 +560,12 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_MANAGED_ACCOUNT ->
             runCatching { (asMutation() as UpsertCanonicalManagedAccount).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.RENAME_CATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as RenameCanonicalCategoryTaxonomy).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY ->
+            runCatching { (asMutation() as MoveCanonicalSubcategoryTaxonomy).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.ADD_CATEGORY_TAXONOMY ->
             runCatching { (asMutation() as AddCanonicalCategoryTaxonomy).satisfiedBy(document) }
@@ -867,6 +893,28 @@ data class PendingCanonicalMutationIntent(
                     mutation.bankCategory?.let { put("bankCategory", JsonPrimitive(it)) }
                     mutation.cashType?.let { put("cashType", JsonPrimitive(it)) }
                     mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is MoveCanonicalSubcategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.MOVE_SUBCATEGORY_TAXONOMY,
+                payload = JsonObject(mapOf(
+                    "kind" to JsonPrimitive(mutation.kind),
+                    "sourceCategory" to JsonPrimitive(mutation.sourceCategory),
+                    "subcategory" to JsonPrimitive(mutation.subcategory),
+                    "targetCategory" to JsonPrimitive(mutation.targetCategory),
+                    "expectedSettings" to mutation.expectedSettings,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is RenameCanonicalCategoryTaxonomy -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.RENAME_CATEGORY_TAXONOMY,
+                payload = JsonObject(buildMap {
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("category", JsonPrimitive(mutation.category))
+                    mutation.subcategory?.let { put("subcategory", JsonPrimitive(it)) }
+                    put("newLabel", JsonPrimitive(mutation.newLabel))
+                    put("expectedSettings", mutation.expectedSettings)
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }), syncState = syncState,
             )

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. Last validated develop PR #319 d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner-directed CODE-FIRST BULK in unmerged android/web-parity-code-first-bulk-20261023 has authored Android-only source for Web budget months and projected commitments, account/default management, counterparty links, native rule CRUD, secured card/credit statements, lending/loans, backup, recurring and category taxonomy. Latest unverified W4.4 source adds historical calendar-month Reports selection for the previous 12 completed months with exact full-month comparisons and six-month month-anchored trends, preserving rolling 30/90 day scopes and explicit UI navigation. All code-first changes remain uncompiled/untested/unmerged; physical S24 #149 pending.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develop PR #319 d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner-directed CODE-FIRST BULK remains on unmerged android/web-parity-code-first-bulk-20261023 without per-feature PR/CI. Existing source covers Home/cards, budget/month/carryover/projections, report history, accounts/defaults, counterparties, transaction rules, credit statement/billing/rates, recurring, loan/lending, backup and category taxonomy. NEW W5.4 source batch adds category and subcategory rename with stable categoryIdentity IDs, prior-name aliases and Web-shaped icon preference migration plus explicit moving a subcategory between parents with parentAliases, collision and expected-settings guards, durable pending offline intents and native Settings Compose dialogs. Current code-first branch is UNCOMPILED, UNTESTED, UNMERGED; do not claim parity signoff. Physical owner S24 #149 pending.",
     "next": [
-      "Continue code-first implementation of remaining W2–W5 Android parity on android/web-parity-code-first-bulk-20261023, deferring per-feature CI/PR as owner requested. Latest source includes owner-addable expense/income category/subcategory with Web-stable Greek FNV identity and CAS replay, plus Reports historical calendar-month navigation and scope-aligned monthly metrics/trends for last 12 completed months. Continue closing remaining source gaps and review implementation seams; after source phase run consolidated build/Kotlin unit/security/real Compose light-dark-large-font screenshots and hosted S24 emulator exact-head 4/4 gates, fix failures and merge only verified source. Progress 1/6 implementations · 11/24 subtasks until evidence-backed integration; physical S24 owner acceptance separate. No Web/backend/schema, production finance writes, release signer, SMS import #146 or permanent card delete UI."
+      "Continue CODE-FIRST BULK Android-only Web parity on android/web-parity-code-first-bulk-20261023. Latest authored source implements explicit category/subcategory rename and moving subcategories between parents, retaining stable IDs, aliases, icon overrides, budgets, rule and ledger references via full-settings CAS and offline intents. Next close remaining dependency-safe taxonomy retirement and icon customization, provider/credit/account/settings parity and W2–W5 gaps without per-feature CI. After source complete: consolidated compiler, unit, security, real Compose visual/privacy/large-font, hosted S24 emulator and exact-final-head 4/4 gates, fix issues before protected develop merge. Counts remain 1/6 implementations · 11/24 subtasks until evidence-backed integration. Physical owner S24 signoff #149 separate. No Web/backend/schema or production financial writes, signer/release, SMS import #146 or permanent card deletion UI."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/web-parity-code-first-bulk-20261023",
-    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. Last merged develop PR #319. Active code-first branch now includes stable category/subcategory authoring and bounded historical Reports monthly navigation with six-month selected-month trends, atop existing account/credit/recurring/budget/loan/backup source. No PR, CI, screenshots, S24 physical acceptance or merge for branch. Continue source first.",
+    "checkpoint": "Web parity 1/6 implementations · 11/24 subtasks. Last verified develop #319. New active unmerged CODE-FIRST BULK source adds Web category rename and subcategory move, retaining identity aliases, historical parent aliases and icon selections, with offline CAS and native Settings. All source still awaits consolidated compilation/tests/visual/emulator; no merge or physical S24 signoff.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1116,10 +1116,10 @@
         ]
       }
     ],
-    "next_action": "Continue implementing remaining Android-only W2/W3/W4/W5 parity source in large grouped commits on android/web-parity-code-first-bulk-20261023. Category additions and 12-month historical reporting selection have source but no QA. After all source authored, run mass exact-head compile/unit/security/Compose screenshot/S24 hosted emulator, fix integration defects and merge with four green gates. Last verified #319; progress 1/6 and 11/24 unchanged, physical owner S24 #149 separate; no Web/backend/schema edits, production finance writes, release signing, SMS import or irreversible card-delete UI.",
+    "next_action": "Continue remaining W2–W5 safe Android-only authoring in large code batches on android/web-parity-code-first-bulk-20261023, particularly taxonomy retirement dependency gates, category icon preferences and provider/security settings, then perform consolidated exact-head Kotlin/unit/security/Compose screenshot and hosted S24 emulator QA, resolve defects and merge only verified head. Progress 1/6 · 11/24 until validated, physical S24 #149 pending. No shared backend/Web/schema, financial production writes, signing/release, SMS import or irreversible card deletion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 319,
-    "current_subtask": "W4.3",
+    "current_subtask": "W5.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
