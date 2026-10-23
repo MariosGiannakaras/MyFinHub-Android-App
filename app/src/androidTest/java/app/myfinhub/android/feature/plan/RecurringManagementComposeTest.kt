@@ -2,6 +2,9 @@ package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
@@ -21,6 +24,31 @@ class RecurringManagementComposeTest {
         RecurringManageItem("paused","Ασφάλεια",50.0,"paused"),
         RecurringManageItem("stopped","Παλιό",15.0,"stopped"),
     ))
+
+    @Test fun createRecurringRequiresValidAmountAndSeparatesEstimatesFromEvents() {
+        val calls = mutableListOf<RecurringCreateRequest>()
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state.copy(scheduledAccounts=listOf(ScheduledAccountOption("cash","Μετρητά"))),
+                onBack={},onStatusChanged={_,_->},onCreate={ calls += it },
+            )
+        } }
+        rule.onNodeWithTag("recurring_create_open").performClick()
+        rule.onNodeWithTag("recurring_create_save").assertIsNotEnabled()
+        rule.onNodeWithTag("recurring_create_name").performScrollTo().performTextInput("Ρεύμα")
+        rule.onNodeWithTag("recurring_create_amount").performScrollTo().performTextInput("80")
+        rule.onNodeWithTag("recurring_create_mode").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_create_min").performScrollTo().performTextInput("60")
+        rule.onNodeWithTag("recurring_create_max").performScrollTo().performTextInput("100")
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals(1,calls.size)
+            assertEquals("variable",calls.single().amountMode)
+            assertEquals(60.0,calls.single().estimateMin!!,0.001)
+            assertEquals(100.0,calls.single().estimateMax!!,0.001)
+            assertEquals("cash",calls.single().accountId)
+        }
+    }
 
     @Test fun nativeButtonsEmitCorrectCanonicalLifecycleIntent() {
         val calls=mutableListOf<Pair<String,String>>()

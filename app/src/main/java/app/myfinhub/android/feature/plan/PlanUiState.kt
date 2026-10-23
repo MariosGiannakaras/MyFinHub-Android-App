@@ -74,6 +74,21 @@ data class ScheduledManageItem(
 )
 
 data class ScheduledAccountOption(val id: String, val label: String)
+/** A plan only: no money is booked until a separate explicit expense action. */
+data class RecurringCreateRequest(
+    val name: String,
+    val amount: Double,
+    val accountId: String,
+    val category: String,
+    val amountMode: String = "fixed",
+    val estimateMin: Double? = null,
+    val estimateMax: Double? = null,
+    val recurrenceUnit: String = "month",
+    val recurrenceInterval: Int = 1,
+    val day: Int? = null,
+    val firstExpectedDate: String? = null,
+    val endDate: String? = null,
+)
 
 /** A confirmed scheduled payment selects the actual money route, not a stale scheduled source. */
 data class ScheduledCompletionRequest(

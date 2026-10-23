@@ -27,6 +27,9 @@ import app.myfinhub.android.core.data.reconcileSatisfiedPendingMutations
 import app.myfinhub.android.core.data.undoLatestNeverSentPendingMutation
 import app.myfinhub.android.core.data.UpsertOverallBudget
 import app.myfinhub.android.core.data.SetCanonicalRecurringStatus
+import app.myfinhub.android.core.data.CreateCanonicalRecurring
+import app.myfinhub.android.core.data.CanonicalRecurringCreateDraft
+import app.myfinhub.android.feature.plan.RecurringCreateRequest
 import app.myfinhub.android.core.data.CompleteCanonicalScheduledTransaction
 import app.myfinhub.android.core.data.CreateCanonicalScheduledTransaction
 import app.myfinhub.android.core.data.CanonicalScheduledDraft
@@ -651,6 +654,27 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         ))
     }
 
+    /** Only an explicit Save queues this canonical plan metadata; never book a payment. */
+    fun createRecurring(request: RecurringCreateRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        applyMutation(CreateCanonicalRecurring(
+            recurringId = "rec-android-${UUID.randomUUID()}",
+            nowIso = Instant.now().toString(),
+            draft = CanonicalRecurringCreateDraft(
+                name = request.name, amount = request.amount,
+                accountId = request.accountId, category = request.category,
+                amountMode = request.amountMode,
+                estimateMin = request.estimateMin, estimateMax = request.estimateMax,
+                recurrenceUnit = request.recurrenceUnit,
+                recurrenceInterval = request.recurrenceInterval,
+                day = request.day,
+                firstExpectedDate = request.firstExpectedDate,
+                endDate = request.endDate,
+            ),
+        ))
+    }
+
     fun setRecurringStatus(recurringId: String, status: String) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
@@ -1256,6 +1280,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_ACTIVITY -> "Διαγραφή κίνησης"
                 PendingMutationKind.UPSERT_OVERALL_BUDGET -> "Αλλαγή budget"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
+                PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.CREATE_SCHEDULED -> "Προγραμματισμός κίνησης"
                 PendingMutationKind.COMPLETE_SCHEDULED -> "Ολοκλήρωση προγραμματισμένης κίνησης"
                 PendingMutationKind.CLOSE_SCHEDULED -> "Παράλειψη ή ακύρωση προγραμματισμένης κίνησης"

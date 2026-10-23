@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.1 draft #315 expense-only actual payment history with stable newest-first order, no future/non-expense rows, 3+10 progressive access, duplicate historical ID guard and privacy-masked amounts. Require exact-head 4/4 Project Tracking, Android CI unit/lint/unsigned optimized release + Play bundle, screenshot regression and hosted S24 emulator; fix on the same PR before merge. Web parity 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, real finance writes, SMS import or permanent card deletion.
+- [ ] Validate W4.1 draft #316 native create recurring across fixed/variable amount bounds, noncredit payer, cadence/year anchor and date checks, independent ledger history, duplicate IDs, durable offline queue/replay and accessible Compose form. Require four exact final-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator. Correct within PR before squash merge; physical owner S24 approval #149 separate. Web parity 1/6 implementations and 11/24 subtasks; no signed release, Web/backend/schema, production finance writes, SMS import or permanent card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #315, branch android/w4-1-recurring-actual-history-20261023
-Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. W4.1 #314 passed four exact-head gates and squash merged develop 67b9ddb60b44a5d74283ba09bf870f4f1f1b84f1. Draft #315 projects actual linked expense history newest-first with progressively more payment rows and privacy-safe amounts; canonical event records and estimates unchanged. Exact-head CI and owner S24 physical acceptance pending.
+Issue #155, PR #316, branch android/w4-1-create-recurring-20261023
+Current W4.1: Web parity 1/6 implementations · 11/24 subtasks. #315 actual linked expense recurring payment history passed 4/4 exact head and squash merged develop 8d70c737008b5140cf705205e1bf8a3908f3c5c3. Draft #316 introduces user-approved recurring creation via Web-validated amount/cadence metadata with canonical offline replay, no synthetic payment events; JVM and hosted S24 Compose tests staged. CI and physical owner acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft #315 expense-only actual payment history with stable newest-first order, no future/non-expense rows, 3+10 progressive access, duplicate historical ID guard and privacy-masked amounts. Require exact-head 4/4 Project Tracking, Android CI unit/lint/unsigned optimized release + Play bundle, screenshot regression and hosted S24 emulator; fix on the same PR before merge. Web parity 1/6 implementations · 11/24 subtasks; no signed release, Web/backend/schema edits, real finance writes, SMS import or permanent card deletion.
+Next Validate W4.1 draft #316 native create recurring across fixed/variable amount bounds, noncredit payer, cadence/year anchor and date checks, independent ledger history, duplicate IDs, durable offline queue/replay and accessible Compose form. Require four exact final-head green gates: Project Tracking, Android CI unit/lint/optimized unsigned release + Play bundle, screenshot regression and hosted S24 emulator. Correct within PR before squash merge; physical owner S24 approval #149 separate. Web parity 1/6 implementations and 11/24 subtasks; no signed release, Web/backend/schema, production finance writes, SMS import or permanent card deletion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
