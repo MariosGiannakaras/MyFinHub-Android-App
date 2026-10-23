@@ -61,6 +61,20 @@ jobs:
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
+      # Temporary reviewed-reference handoff for same-repo PR #319 only.
+      # This step is removed before final exact-head validation and merge.
+      - name: Export three reviewed budget render candidates for explicit commit
+        if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.number == 319 && github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        run: |
+          for filename in S7BudgetDark_s7_budget_dark_25640f28_0.png S7BudgetLarge_s7_budget_large_acbd1ba0_0.png S7BudgetLight_s7_budget_light_73b79d53_0.png; do
+            path=$(find app/src/screenshotTestDebug/reference -name "$filename" -print -quit)
+            test -n "$path" && test -f "$path"
+            echo "REVIEWED_PNG_BEGIN:$filename"
+            base64 "$path" | fold -w 2048
+            echo "REVIEWED_PNG_END:$filename"
+          done
+
       - name: Publish rendered UI screenshots
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
