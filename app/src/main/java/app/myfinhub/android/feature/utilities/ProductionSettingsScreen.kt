@@ -54,6 +54,11 @@ fun ProductionSettingsScreen(
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
     onToggleRuleEnabled: ((String, Boolean) -> Unit)? = null,
+    onSaveTransactionRule: ((TransactionRuleEditRequest) -> Unit)? = null,
+    onDeleteTransactionRule: ((String) -> Unit)? = null,
+    onReorderTransactionRule: ((String, Int) -> Unit)? = null,
+    ruleCategories: List<String> = emptyList(),
+    ruleAccountOptions: List<Pair<String, String>> = emptyList(),
     rulesMutationBlocked: Boolean = false,
     deviceSessions: List<DeviceSessionRecord> = emptyList(),
     deviceSessionsLoaded: Boolean = false,
@@ -78,6 +83,9 @@ fun ProductionSettingsScreen(
     var appearance by remember { mutableStateOf(AppAppearancePreference.read(context)) }
     var amountsVisible by remember { mutableStateOf(AmountVisibilityPreference.read(context)) }
     var pendingDeviceRevokeId by remember { mutableStateOf<String?>(null) }
+    var creatingRule by remember { mutableStateOf(false) }
+    var editingRuleId by remember { mutableStateOf<String?>(null) }
+    var deletingRuleId by remember { mutableStateOf<String?>(null) }
     var visibleRuleCount by remember(transactionRules) { mutableStateOf(24) }
     // Read-only history paging is scoped to the exact generation/revision.
     // A server refresh with a different revision resets the viewed window.
@@ -203,7 +211,7 @@ fun ProductionSettingsScreen(
                 }
             }
 
-            if (transactionRules.isNotEmpty()) {
+            if (transactionRules.isNotEmpty() || onSaveTransactionRule != null) {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("s9_transaction_rules")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -211,9 +219,8 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Κανόνες νέων κινήσεων · παύση και ενεργοποίηση στο Android. " +
-                                "Η δημιουργία, επεξεργασία και αλλαγή σειράς γίνεται στο Web. " +
-                                "Το υπάρχον ιστορικό δεν αλλάζει.",
+                            "Κανόνες νέων κινήσεων · δημιουργία, επεξεργασία, διαγραφή, " +
+                                "παύση και αλλαγή προτεραιότητας. Το υπάρχον ιστορικό δεν αλλάζει.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -225,6 +232,14 @@ fun ProductionSettingsScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (onSaveTransactionRule != null) {
+                            TextButton(
+                                onClick = { creatingRule = true },
+                                enabled = !rulesMutationBlocked && transactionRules.size < 10_000,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("s9_transaction_rule_create"),
+                            ) { Text("Νέος κανόνας") }
+                        }
                         // Web renders 24 rules per page. Avoid materializing
                         // thousands of Composables in a vertical scroll Column.
                         transactionRules.take(visibleRuleCount).forEachIndexed { index, rule ->
@@ -245,6 +260,46 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                if (onReorderTransactionRule != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        TextButton(
+                                            onClick = { onReorderTransactionRule(rule.id, -1) },
+                                            enabled = !rulesMutationBlocked && index > 0 &&
+                                                rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_up_$index"),
+                                        ) { Text("Πάνω") }
+                                        TextButton(
+                                            onClick = { onReorderTransactionRule(rule.id, 1) },
+                                            enabled = !rulesMutationBlocked && index < transactionRules.lastIndex &&
+                                                rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_down_$index"),
+                                        ) { Text("Κάτω") }
+                                    }
+                                }
+                                if (onSaveTransactionRule != null || onDeleteTransactionRule != null) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                                    ) {
+                                        if (onSaveTransactionRule != null) TextButton(
+                                            onClick = { editingRuleId = rule.id },
+                                            enabled = !rulesMutationBlocked && rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_edit_$index"),
+                                        ) { Text("Επεξεργασία") }
+                                        if (onDeleteTransactionRule != null) TextButton(
+                                            onClick = { deletingRuleId = rule.id },
+                                            enabled = !rulesMutationBlocked && rule.id.isNotBlank() &&
+                                                transactionRules.count { it.id == rule.id } == 1,
+                                            modifier = Modifier.testTag("s9_transaction_rule_delete_$index"),
+                                        ) { Text("Διαγραφή") }
+                                    }
+                                }
                                 if (onToggleRuleEnabled != null) {
                                     TextButton(
                                         onClick = {
@@ -469,4 +524,56 @@ fun ProductionSettingsScreen(
             }
         }
     }
+
+    val editorRule = editingRuleId?.let { id ->
+        transactionRules.singleOrNull { it.id == id }
+    }
+    if ((creatingRule || editorRule != null) && onSaveTransactionRule != null) {
+        CanonicalTransactionRuleEditor(
+            initial = editorRule,
+            categories = ruleCategories,
+            accountOptions = ruleAccountOptions,
+            mutationBlocked = rulesMutationBlocked,
+            onDismiss = { creatingRule = false; editingRuleId = null },
+            onSave = { request ->
+                onSaveTransactionRule(request)
+                creatingRule = false
+                editingRuleId = null
+            },
+        )
+    }
+
+    deletingRuleId?.let { id ->
+        val candidate = transactionRules.singleOrNull { it.id == id }
+        if (candidate != null && onDeleteTransactionRule != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    if (!rulesMutationBlocked) deletingRuleId = null
+                },
+                title = { Text("Διαγραφή κανόνα;") },
+                text = {
+                    Text("Ο κανόνας «" + candidate.title +
+                        "» θα αφαιρεθεί από τη μελλοντική ταξινόμηση. " +
+                        "Οι παλιές συναλλαγές δεν αλλάζουν.")
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = !rulesMutationBlocked,
+                        modifier = Modifier.testTag("s9_transaction_rule_confirm_delete"),
+                        onClick = {
+                            onDeleteTransactionRule(id)
+                            deletingRuleId = null
+                        },
+                    ) { Text("Διαγραφή κανόνα") }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { deletingRuleId = null },
+                        enabled = !rulesMutationBlocked,
+                    ) { Text("Ακύρωση") }
+                },
+            )
+        }
+    }
+
 }

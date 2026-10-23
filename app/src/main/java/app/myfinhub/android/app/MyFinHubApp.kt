@@ -163,6 +163,9 @@ internal fun MyFinHubAppContent(
     onDeleteCategoryBudget: (String) -> Unit = {},
     onSaveMonthlySavingsRate: ((String) -> Unit)? = null,
     onToggleTransactionRule: ((String, Boolean) -> Unit)? = null,
+    onSaveTransactionRule: ((app.myfinhub.android.feature.utilities.TransactionRuleEditRequest) -> Unit)? = null,
+    onDeleteTransactionRule: ((String) -> Unit)? = null,
+    onReorderTransactionRule: ((String, Int) -> Unit)? = null,
     onSetRecurringStatus: (String, String) -> Unit = { _, _ -> },
     onCreateRecurring: (app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = {},
     onEditRecurring: (String, app.myfinhub.android.feature.plan.RecurringCreateRequest) -> Unit = { _, _ -> },
@@ -281,6 +284,13 @@ internal fun MyFinHubAppContent(
                         onAction = onFrontendUtilitiesAction,
                         transactionRules = planState.rules,
                         onToggleRuleEnabled = onToggleTransactionRule,
+                        onSaveTransactionRule = onSaveTransactionRule,
+                        onDeleteTransactionRule = onDeleteTransactionRule,
+                        onReorderTransactionRule = onReorderTransactionRule,
+                        ruleCategories = planState.budgetCategories,
+                        ruleAccountOptions = moneyState.accounts
+                            .filter { it.canonicalKind != "credit" && it.id.isNotBlank() }
+                            .map { it.id to it.name },
                         rulesMutationBlocked = planMutationInFlight || planMutationBlocked,
                         onBack = { homeBackStack.removeLastOrNull() },
                         diagnostics = diagnostics,

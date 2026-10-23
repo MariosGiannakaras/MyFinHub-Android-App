@@ -152,6 +152,15 @@ data class PlanningRule(
     val enabled: Boolean,
     val warning: String? = null,
     val historicalMatchCount: Int = 0,
+    val priority: Double = 0.0,
+    val matchDescription: String = "",
+    val matchMerchant: String = "",
+    val matchAccountId: String = "",
+    val matchMode: String = "contains",
+    val actionCategory: String = "",
+    val actionSubcategory: String = "",
+    val actionNote: String = "",
+    val scopes: List<String> = listOf("manual"),
 )
 
 /** Web ForecastPoint includes each day's account balances as well as portfolio. */

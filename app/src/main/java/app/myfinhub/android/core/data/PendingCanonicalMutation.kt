@@ -1,6 +1,7 @@
 package app.myfinhub.android.core.data
 
 import kotlin.math.roundToInt
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -25,6 +26,9 @@ enum class PendingMutationKind {
     DELETE_CATEGORY_BUDGET,
     SET_SAVINGS_TARGET_RATE,
     SET_TRANSACTION_RULE_ENABLED,
+    UPSERT_TRANSACTION_RULE,
+    DELETE_TRANSACTION_RULE,
+    REORDER_TRANSACTION_RULE,
     CREATE_CARD,
     DEACTIVATE_CARD,
     RESTORE_CARD,
@@ -202,6 +206,25 @@ data class PendingCanonicalMutationIntent(
             expectedRate = payload.number("expectedRate"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.UPSERT_TRANSACTION_RULE -> UpsertCanonicalTransactionRule(
+            rule = payload["rule"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing source rule"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.DELETE_TRANSACTION_RULE -> DeleteCanonicalTransactionRule(
+            ruleId = payload.string("ruleId").orEmpty(),
+            expected = payload["expected"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing deleted rule source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
+        PendingMutationKind.REORDER_TRANSACTION_RULE -> ReorderCanonicalTransactionRule(
+            ruleId = payload.string("ruleId").orEmpty(),
+            direction = payload.number("direction")?.toInt() ?: 0,
+            expected = payload["expected"] as? JsonArray
+                ?: throw IllegalArgumentException("Missing rule order source"),
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> SetCanonicalTransactionRuleEnabled(
             ruleId = payload.string("ruleId").orEmpty(),
             enabled = payload.string("enabled") == "true",
@@ -351,6 +374,15 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.SET_TRANSACTION_RULE_ENABLED ->
             runCatching { (asMutation() as SetCanonicalTransactionRuleEnabled).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_TRANSACTION_RULE ->
+            runCatching { (asMutation() as UpsertCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.DELETE_TRANSACTION_RULE ->
+            runCatching { (asMutation() as DeleteCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.REORDER_TRANSACTION_RULE ->
+            runCatching { (asMutation() as ReorderCanonicalTransactionRule).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_CATEGORY_BUDGET ->
             runCatching { (asMutation() as UpsertCategoryBudget).satisfiedBy(document) }
@@ -573,6 +605,31 @@ data class PendingCanonicalMutationIntent(
                     put("nowIso", JsonPrimitive(mutation.nowIso))
                 }),
                 syncState = syncState,
+            )
+            is UpsertCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_TRANSACTION_RULE,
+                payload = JsonObject(buildMap {
+                    put("rule", mutation.rule)
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }), syncState = syncState,
+            )
+            is DeleteCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.DELETE_TRANSACTION_RULE,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
+            )
+            is ReorderCanonicalTransactionRule -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.REORDER_TRANSACTION_RULE,
+                payload = JsonObject(mapOf(
+                    "ruleId" to JsonPrimitive(mutation.ruleId),
+                    "direction" to JsonPrimitive(mutation.direction),
+                    "expected" to mutation.expected,
+                    "nowIso" to JsonPrimitive(mutation.nowIso),
+                )), syncState = syncState,
             )
             is SetCanonicalTransactionRuleEnabled -> PendingCanonicalMutationIntent(
                 intentId = intentId,

@@ -30,6 +30,14 @@ import app.myfinhub.android.core.data.UpsertCategoryBudget
 import app.myfinhub.android.core.data.DeleteCategoryBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
 import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
+import app.myfinhub.android.core.data.UpsertCanonicalTransactionRule
+import app.myfinhub.android.core.data.DeleteCanonicalTransactionRule
+import app.myfinhub.android.core.data.ReorderCanonicalTransactionRule
+import app.myfinhub.android.core.data.obj
+import app.myfinhub.android.feature.utilities.TransactionRuleEditRequest
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.webCategoryBudgetStableId
 import app.myfinhub.android.core.data.webOverallBudgetStableId
@@ -722,6 +730,96 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    /** Web-shaped rule authoring through the only guarded finance mutation pipeline. */
+    fun saveTransactionRule(request: TransactionRuleEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val document = ready.projection.document
+        val rows = document.state.array("transactionRules").mapNotNull { it as? JsonObject }
+        val matches = rows.filter { it.string("id") == request.id }
+        if (request.id != null && matches.size != 1) return
+        if (request.id == null && rows.size >= 10_000) return
+        val existing = matches.singleOrNull()
+        val name = request.name.trim()
+        val description = request.matchDescription.trim()
+        val merchant = request.matchMerchant.trim()
+        val account = request.matchAccountId.trim()
+        val category = request.actionCategory.trim()
+        val subcategory = request.actionSubcategory.trim()
+        val note = request.actionNote.trim()
+        val scopeOrder = listOf("manual", "imported", "review")
+        val scopes = scopeOrder.filter { it in request.scopes }
+        if (name.isEmpty() || name.length > 500 ||
+            listOf(description, merchant, account).all(String::isEmpty) ||
+            listOf(category, subcategory, note).all(String::isEmpty) ||
+            scopes.isEmpty() || request.scopes.any { it !in scopeOrder } ||
+            request.matchMode !in setOf("contains", "equals")
+        ) return
+        // Existing missing taxonomy references remain editable as Web historical exceptions.
+        val allowedCategories = ready.projection.planState.budgetCategories
+        if (category.isNotEmpty() && allowedCategories.isNotEmpty() &&
+            category !in allowedCategories && category != existing?.obj("action")?.string("category")) return
+        if (subcategory.isNotEmpty() && category.isEmpty()) return
+        val allowedAccounts = document.canonicalAccounts().filter { it.kind != "credit" }.map { it.id }
+        if (account.isNotEmpty() && account !in allowedAccounts &&
+            account != existing?.obj("match")?.string("accountId")) return
+
+        val now = Instant.now().toString()
+        val id = request.id ?: "rule-android-${UUID.randomUUID()}"
+        val priority = existing?.number("priority")
+            ?: ((rows.maxOfOrNull { it.number("priority") ?: 0.0 } ?: 0.0) + 100.0)
+                .coerceIn(0.0, 1_000_000.0)
+        fun withFields(original: JsonObject, pairs: Map<String, String?>): JsonObject {
+            val values = original.toMutableMap()
+            pairs.forEach { (key, value) ->
+                if (value.isNullOrBlank()) values.remove(key) else values[key] = JsonPrimitive(value)
+            }
+            return JsonObject(values)
+        }
+        val match = withFields(existing?.obj("match") ?: JsonObject(emptyMap()), mapOf(
+            "description" to description, "merchant" to merchant,
+            "accountId" to account, "mode" to request.matchMode,
+        ))
+        val action = withFields(existing?.obj("action") ?: JsonObject(emptyMap()), mapOf(
+            "category" to category, "subcategory" to subcategory, "note" to note,
+        ))
+        val rule = JsonObject((existing ?: JsonObject(emptyMap())) + mapOf(
+            "id" to JsonPrimitive(id),
+            "name" to JsonPrimitive(name),
+            "enabled" to JsonPrimitive(existing?.bool("enabled") ?: true),
+            "priority" to JsonPrimitive(priority.toInt()),
+            "scopes" to JsonArray(scopes.map(::JsonPrimitive)),
+            "match" to match,
+            "action" to action,
+            "createdAt" to JsonPrimitive(existing?.string("createdAt") ?: now),
+            "updatedAt" to JsonPrimitive(now),
+        ))
+        applyMutation(UpsertCanonicalTransactionRule(rule, existing, now))
+    }
+
+    fun deleteTransactionRule(ruleId: String) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight || ruleId.isBlank()) return
+        val row = ready.projection.document.state.array("transactionRules")
+            .mapNotNull { it as? JsonObject }.filter { it.string("id") == ruleId }
+            .singleOrNull() ?: return
+        applyMutation(DeleteCanonicalTransactionRule(ruleId, row, Instant.now().toString()))
+    }
+
+    fun reorderTransactionRule(ruleId: String, direction: Int) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight ||
+            ruleId.isBlank() || direction !in setOf(-1, 1)) return
+        val rows = ready.projection.document.state.array("transactionRules")
+        val ids = rows.mapNotNull { (it as? JsonObject)?.string("id") }
+        if (ids.size != rows.size || ids.distinct().size != ids.size ||
+            ruleId !in ids || rows.size < 2) return
+        applyMutation(ReorderCanonicalTransactionRule(
+            ruleId = ruleId, direction = direction,
+            expected = JsonArray(rows), nowIso = Instant.now().toString(),
+        ))
+    }
+
     /** Applies only to future transactions; source fields and past events are preserved. */
     fun setTransactionRuleEnabled(ruleId: String, enabled: Boolean) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1411,6 +1509,9 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.DELETE_CATEGORY_BUDGET -> "Διαγραφή ορίου κατηγορίας"
                 PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
                 PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
+                PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
+                PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
+                PendingMutationKind.REORDER_TRANSACTION_RULE -> "Σειρά αυτοματισμών"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"
                 PendingMutationKind.CREATE_RECURRING -> "Προσθήκη παγίου"
                 PendingMutationKind.EDIT_RECURRING -> "Επεξεργασία παγίου"
