@@ -217,6 +217,7 @@ data class PlanUiState(
     val budgetCategories: List<String> = emptyList(),
     val ruleSubcategories: Map<String, List<String>> = emptyMap(),
     val rules: List<PlanningRule> = emptyList(),
+    val counterpartyDirectory: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
     val forecastWindows: List<ForecastWindow> = emptyList(),
     val forecastHorizonDays: Int = 30,
     val forecastStartDateIso: String = "",

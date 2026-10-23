@@ -11,6 +11,8 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.CanonicalFinanceMutation
 import app.myfinhub.android.core.data.CreateCanonicalCard
 import app.myfinhub.android.core.data.EditCanonicalCardProfile
+import app.myfinhub.android.core.data.UpsertCanonicalCounterparty
+import app.myfinhub.android.feature.utilities.CanonicalCounterpartyEditRequest
 import app.myfinhub.android.core.data.SetCanonicalCreditBillingSettings
 import app.myfinhub.android.core.data.AddCanonicalCreditRateVersion
 import app.myfinhub.android.feature.money.CreditBillingSettingsRequest
@@ -916,6 +918,32 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
     }
 
+    /** Web counterparty identity directory: financial events and past notes stay unchanged. */
+    fun saveCounterparty(request: CanonicalCounterpartyEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val rows = ready.projection.document.state.array("counterparties")
+            .mapNotNull { it as? JsonObject }
+        val matches = rows.filter { it.string("id") == request.id }
+        if (request.id != null && matches.size != 1) return
+        if (request.id == null && rows.size >= 2000) return
+        val original = matches.singleOrNull()
+        val kind = original?.string("kind") ?: request.kind
+        val now = Instant.now().toString()
+        val id = original?.string("id") ?: "cp-${UUID.randomUUID()}"
+        if (kind !in setOf("merchant", "beneficiary") ||
+            (original != null && request.kind != kind)) return
+        applyMutation(UpsertCanonicalCounterparty(
+            counterpartyId = id,
+            kind = kind,
+            displayName = request.displayName,
+            aliases = request.aliases,
+            createdAt = original?.string("createdAt") ?: now,
+            expected = original,
+            nowIso = now,
+        ))
+    }
+
     /** Web-shaped rule authoring through the only guarded finance mutation pipeline. */
     fun saveTransactionRule(request: TransactionRuleEditRequest) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
@@ -1701,6 +1729,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.SET_SAVINGS_TARGET_RATE -> "Αλλαγή στόχου αποταμίευσης"
                 PendingMutationKind.SET_TRANSACTION_RULE_ENABLED -> "Κατάσταση αυτοματισμού"
                 PendingMutationKind.UPSERT_TRANSACTION_RULE -> "Αποθήκευση αυτοματισμού"
+                PendingMutationKind.UPSERT_COUNTERPARTY -> "Αποθήκευση αντισυμβαλλομένου"
                 PendingMutationKind.DELETE_TRANSACTION_RULE -> "Διαγραφή αυτοματισμού"
                 PendingMutationKind.REORDER_TRANSACTION_RULE -> "Σειρά αυτοματισμών"
                 PendingMutationKind.SET_RECURRING_STATUS -> "Αλλαγή κατάστασης παγίου"

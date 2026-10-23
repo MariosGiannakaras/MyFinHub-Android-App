@@ -14,6 +14,7 @@ import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
+import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.canonicalScheduledManagementOrder
 import app.myfinhub.android.core.data.canonicalLifecycle
@@ -250,6 +251,7 @@ internal fun projectCanonicalPlanState(
             )
         },
         // Read-only Web Settings > Rules. Existing history is never rewritten.
+        counterpartyDirectory = document.canonicalCounterpartyDirectory(),
         rules = document.canonicalTransactionRuleOverview().map { entry ->
             PlanningRule(
                 id = entry.id, title = entry.name,

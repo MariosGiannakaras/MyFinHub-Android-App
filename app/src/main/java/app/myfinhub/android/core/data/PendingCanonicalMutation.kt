@@ -4,6 +4,7 @@ import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 /**
  * Durable, device-local representation of a user-approved canonical finance mutation.
@@ -27,6 +28,7 @@ enum class PendingMutationKind {
     SET_SAVINGS_TARGET_RATE,
     SET_TRANSACTION_RULE_ENABLED,
     UPSERT_TRANSACTION_RULE,
+    UPSERT_COUNTERPARTY,
     DELETE_TRANSACTION_RULE,
     REORDER_TRANSACTION_RULE,
     CREATE_CARD,
@@ -247,6 +249,15 @@ data class PendingCanonicalMutationIntent(
             expectedRate = payload.number("expectedRate"),
             nowIso = payload.string("nowIso").orEmpty(),
         )
+        PendingMutationKind.UPSERT_COUNTERPARTY -> UpsertCanonicalCounterparty(
+            counterpartyId = payload.string("counterpartyId").orEmpty(),
+            kind = payload.string("kind").orEmpty(),
+            displayName = payload.string("displayName").orEmpty(),
+            aliases = payload.array("aliases").mapNotNull { (it as? JsonPrimitive)?.contentOrNull },
+            createdAt = payload.string("createdAt").orEmpty(),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_TRANSACTION_RULE -> UpsertCanonicalTransactionRule(
             rule = payload["rule"] as? JsonObject
                 ?: throw IllegalArgumentException("Missing source rule"),
@@ -433,6 +444,9 @@ data class PendingCanonicalMutationIntent(
                 .getOrDefault(false)
         PendingMutationKind.UPSERT_TRANSACTION_RULE ->
             runCatching { (asMutation() as UpsertCanonicalTransactionRule).satisfiedBy(document) }
+                .getOrDefault(false)
+        PendingMutationKind.UPSERT_COUNTERPARTY ->
+            runCatching { (asMutation() as UpsertCanonicalCounterparty).satisfiedBy(document) }
                 .getOrDefault(false)
         PendingMutationKind.DELETE_TRANSACTION_RULE ->
             runCatching { (asMutation() as DeleteCanonicalTransactionRule).satisfiedBy(document) }
@@ -679,6 +693,20 @@ data class PendingCanonicalMutationIntent(
                     put("rate", JsonPrimitive(mutation.rate))
                     mutation.expectedRate?.let { put("expectedRate", JsonPrimitive(it)) }
                     put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
+            is UpsertCanonicalCounterparty -> PendingCanonicalMutationIntent(
+                intentId = intentId,
+                kind = PendingMutationKind.UPSERT_COUNTERPARTY,
+                payload = JsonObject(buildMap {
+                    put("counterpartyId", JsonPrimitive(mutation.counterpartyId))
+                    put("kind", JsonPrimitive(mutation.kind))
+                    put("displayName", JsonPrimitive(mutation.displayName))
+                    put("aliases", JsonArray(mutation.aliases.map(::JsonPrimitive)))
+                    put("createdAt", JsonPrimitive(mutation.createdAt))
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                    mutation.expected?.let { put("expected", it) }
                 }),
                 syncState = syncState,
             )

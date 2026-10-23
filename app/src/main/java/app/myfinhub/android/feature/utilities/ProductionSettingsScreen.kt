@@ -54,6 +54,8 @@ fun ProductionSettingsScreen(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistoryCount: Int = 0,
     transactionRules: List<PlanningRule> = emptyList(),
+    counterpartyRows: List<app.myfinhub.android.core.data.CanonicalCounterpartyRow> = emptyList(),
+    onSaveCounterparty: ((CanonicalCounterpartyEditRequest) -> Unit)? = null,
     onToggleRuleEnabled: ((String, Boolean) -> Unit)? = null,
     onSaveTransactionRule: ((TransactionRuleEditRequest) -> Unit)? = null,
     onDeleteTransactionRule: ((String) -> Unit)? = null,
@@ -217,6 +219,13 @@ fun ProductionSettingsScreen(
                 }
             }
 
+            if (onSaveCounterparty != null) {
+                CanonicalCounterpartyDirectoryPanel(
+                    rows = counterpartyRows,
+                    mutationBlocked = rulesMutationBlocked,
+                    onSave = onSaveCounterparty,
+                )
+            }
             if (transactionRules.isNotEmpty() || onSaveTransactionRule != null) {
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("s9_transaction_rules")) {
