@@ -916,6 +916,7 @@ fun CanonicalBudget2026Screen(
     onDeleteSubcategoryBudget: (String) -> Unit = {},
     onDeleteOverallBudget: (String) -> Unit = {},
     onShiftBudgetMonth: ((Int) -> Unit)? = null,
+    onSelectBudgetMonth: ((String) -> Unit)? = null,
     mutationInFlight: Boolean = false,
     mutationBlocked: Boolean = false,
 ) {
@@ -939,6 +940,10 @@ fun CanonicalBudget2026Screen(
     var editingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingSubcategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingOverallBudget by rememberSaveable { mutableStateOf(false) }
+    var selectBudgetMonthOpen by rememberSaveable { mutableStateOf(false) }
+    var selectedMonthDraft by rememberSaveable(state.budgetSelectedMonthIso) {
+        mutableStateOf(state.budgetSelectedMonthIso)
+    }
 
     val savedBudget = BudgetDraft(savedLimit, savedThreshold)
     val draftBudget = BudgetDraft(limitDraft, thresholdDraft)
@@ -984,6 +989,45 @@ fun CanonicalBudget2026Screen(
     }
 
     BackHandler(enabled = dirty || mutationInFlight || saveRequested) { requestBack() }
+
+    if (selectBudgetMonthOpen && onSelectBudgetMonth != null) {
+        AlertDialog(
+            onDismissRequest = { selectBudgetMonthOpen = false },
+            title = { Text("Επιλογή μήνα προϋπολογισμού") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    Text(
+                        "Γράψε τον μήνα σε μορφή YYYY-MM, π.χ. 2026-12. " +
+                            "Η επιλογή δεν αλλάζει οικονομικές κινήσεις.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = selectedMonthDraft,
+                        onValueChange = { selectedMonthDraft = it.take(7) },
+                        label = { Text("Μήνας (YYYY-MM)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("s7_budget_month_input"),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked &&
+                        runCatching {
+                            java.time.YearMonth.parse(selectedMonthDraft).toString() == selectedMonthDraft
+                        }.getOrDefault(false),
+                    modifier = Modifier.testTag("s7_budget_month_apply"),
+                    onClick = {
+                        onSelectBudgetMonth(selectedMonthDraft)
+                        selectBudgetMonthOpen = false
+                    },
+                ) { Text("Μετάβαση") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectBudgetMonthOpen = false }) { Text("Ακύρωση") }
+            },
+        )
+    }
 
     if (deletingOverallBudget && state.overallBudgetId != null) {
         AlertDialog(
@@ -1100,6 +1144,16 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (onSelectBudgetMonth != null) {
+                                TextButton(
+                                    enabled = !dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
+                                    onClick = {
+                                        selectedMonthDraft = state.budgetSelectedMonthIso
+                                        selectBudgetMonthOpen = true
+                                    },
+                                    modifier = Modifier.fillMaxWidth().testTag("s7_budget_pick_month"),
+                                ) { Text("Επιλογή συγκεκριμένου μήνα") }
+                            }
                             Row(modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween) {
                                 TextButton(
@@ -1161,6 +1215,16 @@ fun CanonicalBudget2026Screen(
                                         amountVisibilityText(formatPlanS7Euro(state.budgetProjectedRemaining), amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+                                if (state.budgetProjectedStatus != "ok") {
+                                    Text(
+                                        if (state.budgetProjectedStatus == "exceeded")
+                                            "Με τις γνωστές υποχρεώσεις προβλέπεται υπέρβαση του συνολικού ορίου."
+                                        else "Με τις γνωστές υποχρεώσεις προβλέπεται προσέγγιση του ορίου ειδοποίησης.",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.testTag("s7_budget_projected_warning"),
+                                    )
+                                }
                             }
                             if (progress.thresholdReached) {
                                 Text(
@@ -1215,6 +1279,15 @@ fun CanonicalBudget2026Screen(
                                         amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+                                if (budget.projectedStatus != "ok") {
+                                    Text(
+                                        if (budget.projectedStatus == "exceeded")
+                                            "Προβλεπόμενη υπέρβαση με τις γνωστές υποχρεώσεις."
+                                        else "Προβλεπόμενη προσέγγιση του ορίου προειδοποίησης.",
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                }
                             }
                             if (budget.carried > 0.0) {
                                 Text(
@@ -1342,6 +1415,15 @@ fun CanonicalBudget2026Screen(
                                         amountVisibilityText(formatPlanS7Euro(budget.projectedRemaining), amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
+                                if (budget.projectedStatus != "ok") {
+                                    Text(
+                                        if (budget.projectedStatus == "exceeded")
+                                            "Προβλεπόμενη υπέρβαση με τις γνωστές υποχρεώσεις."
+                                        else "Προβλεπόμενη προσέγγιση του ορίου προειδοποίησης.",
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                }
                             }
                             if (budget.carried > 0.0) {
                                 Text(

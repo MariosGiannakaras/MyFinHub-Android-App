@@ -716,6 +716,9 @@ internal fun MyFinHubAppContent(
                         onShiftBudgetMonth = { delta ->
                             onPlanAction(PlanAction.ShiftBudgetMonth(delta))
                         },
+                        onSelectBudgetMonth = { monthIso ->
+                            onPlanAction(PlanAction.SelectBudgetMonth(monthIso))
+                        },
                         onSaveCategoryBudget = onSaveCategoryBudget,
                         onDeleteCategoryBudget = onDeleteCategoryBudget,
                         onSaveSubcategoryBudget = onSaveSubcategoryBudget,

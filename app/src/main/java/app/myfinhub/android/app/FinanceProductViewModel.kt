@@ -1382,8 +1382,15 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     fun onPlanAction(action: PlanAction) {
         val ready = mutableState.value as? FinanceProductState.Ready ?: return
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
-        if (action is PlanAction.ShiftBudgetMonth) {
-            if (action.delta !in setOf(-1, 1)) return
+        if (action is PlanAction.ShiftBudgetMonth ||
+            action is PlanAction.SelectBudgetMonth
+        ) {
+            if (action is PlanAction.ShiftBudgetMonth &&
+                action.delta !in setOf(-1, 1)) return
+            if (action is PlanAction.SelectBudgetMonth &&
+                runCatching {
+                    YearMonth.parse(action.monthIso).toString() == action.monthIso
+                }.getOrDefault(false).not()) return
             val current = ready.projection.planState
             val changed = reducePlan(current, action)
             val updated = projectCanonicalPlanState(

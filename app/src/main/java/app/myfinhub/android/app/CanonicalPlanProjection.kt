@@ -354,6 +354,8 @@ internal fun projectCanonicalPlanState(
             ?.projectedDue ?: 0.0,
         budgetProjectedRemaining = budgetProgressRows.firstOrNull { it.scope == "overall" }
             ?.projectedRemaining ?: 0.0,
+        budgetProjectedStatus = budgetProgressRows.firstOrNull { it.scope == "overall" }
+            ?.projectedStatus ?: "ok",
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
