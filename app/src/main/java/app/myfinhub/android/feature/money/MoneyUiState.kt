@@ -121,6 +121,10 @@ data class LoanItem(
     val liabilityRepayment: Boolean = false,
     val defaultAccountId: String = "",
     val typicalPaymentDay: Int? = null,
+    val kind: String = "",
+    val totalInstallments: Int = 0,
+    val firstExpectedDate: String = "",
+    val expenseCategory: String = "",
 )
 
 data class LendingItem(

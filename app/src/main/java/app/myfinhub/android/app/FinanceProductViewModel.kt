@@ -37,6 +37,8 @@ import app.myfinhub.android.core.data.DeleteCategoryBudget
 import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
 import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
 import app.myfinhub.android.core.data.UpsertCanonicalTransactionRule
+import app.myfinhub.android.core.data.UpsertCanonicalLoanMetadata
+import app.myfinhub.android.feature.money.LoanMetadataEditRequest
 import app.myfinhub.android.core.data.DeleteCanonicalTransactionRule
 import app.myfinhub.android.core.data.ReorderCanonicalTransactionRule
 import app.myfinhub.android.core.data.obj
@@ -684,6 +686,99 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
         if (ready.projection.moneyState.savingsGoalItems.none { it.id == goalId }) return
         applyMutation(DeleteCanonicalSavingsGoal(goalId, Instant.now().toString()))
+    }
+
+    /**
+     * Ordinary-loan metadata only: never creates a payment, funding event,
+     * transfer or silently rewrites historical installment totals.
+     */
+    fun saveLoanMetadata(request: LoanMetadataEditRequest) {
+        val ready = mutableState.value as? FinanceProductState.Ready ?: return
+        if (ready.saving || ready.issue != null || mutationLaunchInFlight) return
+        val document = ready.projection.document
+        if (request.name.trim().isEmpty() || request.name.length > 500 ||
+            request.kind !in setOf("loan", "installment") ||
+            request.installments !in 1..1200 ||
+            !request.total.isFinite() || request.total <= 0.0 ||
+            !request.installment.isFinite() || request.installment <= 0.0 ||
+            request.defaultAccountId.isBlank() ||
+            document.canonicalAccounts().count {
+                it.id == request.defaultAccountId && it.kind != "credit"
+            } != 1) return
+        if (Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
+                .containsMatchIn(request.name + " " + request.provider)) return
+        fun validMoney(value: Double): Boolean {
+            val scaled = value * 100.0
+            return scaled.isFinite() && kotlin.math.abs(kotlin.math.round(scaled) -
+                scaled) < 0.00001
+        }
+        if (!validMoney(request.total) || !validMoney(request.installment) ||
+            (request.firstExpectedDate.isNotBlank() &&
+                runCatching { LocalDate.parse(request.firstExpectedDate) }.isFailure)) return
+
+        val taxonomy = ready.projection.planState.budgetCategories
+        val seeded = document.seed.array("loans").filterIsInstance<JsonObject>()
+        val custom = document.state.array("customLoans").filterIsInstance<JsonObject>()
+        val id = request.id ?: "loan-android-${UUID.randomUUID()}"
+        if (id.isBlank()) return
+        val seedMatches = seeded.filter { it.string("id") == id }
+        val customMatches = custom.filter { it.string("id") == id }
+        if (seedMatches.size + customMatches.size > 1) return
+        val source = if (seedMatches.isNotEmpty()) "seed" else "custom"
+        val existing = when (source) {
+            "seed" -> {
+                (document.state.obj("loanOverrides")[id] as? JsonObject)
+                    ?: seedMatches.singleOrNull()
+            }
+            else -> customMatches.singleOrNull()
+        }
+        if (request.id != null && existing == null) return
+        if (request.id == null && existing != null) return
+        if (existing != null) {
+            if (existing.string("kind") != request.kind ||
+                existing.string("source") == "self-loan") return
+        }
+        val expectedCategory = existing?.string("expenseCategory")
+        if (request.expenseCategory.isBlank() ||
+            (taxonomy.isNotEmpty() && request.expenseCategory !in taxonomy &&
+                request.expenseCategory != expectedCategory)) return
+
+        val now = Instant.now().toString()
+        val metadata = mapOf(
+            "id" to JsonPrimitive(id),
+            "name" to JsonPrimitive(request.name.trim()),
+            "provider" to JsonPrimitive(request.provider.trim()),
+            "kind" to JsonPrimitive(request.kind),
+            "total" to JsonPrimitive(request.total),
+            "installment" to JsonPrimitive(request.installment),
+            "installments" to JsonPrimitive(request.installments),
+            "firstExpectedDate" to JsonPrimitive(request.firstExpectedDate),
+            "defaultAccountId" to JsonPrimitive(request.defaultAccountId),
+            "expenseCategory" to JsonPrimitive(request.expenseCategory),
+            "updatedAt" to JsonPrimitive(now),
+        )
+        val row = if (existing != null) {
+            JsonObject(existing + metadata)
+        } else {
+            JsonObject(mapOf(
+                "source" to JsonPrimitive("user"),
+                "paidCount" to JsonPrimitive(0),
+                "forgivenAmount" to JsonPrimitive(0),
+                "accountingMode" to JsonPrimitive("expense-per-installment"),
+                "day" to JsonPrimitive(""),
+                "schedule" to JsonArray(emptyList()),
+                "longTermRecurring" to JsonPrimitive(
+                    request.kind == "loan" && request.longTermRecurring
+                ),
+                "createdAt" to JsonPrimitive(now),
+            ) + metadata)
+        }
+        applyMutation(UpsertCanonicalLoanMetadata(
+            source = source,
+            loan = row,
+            expected = existing,
+            nowIso = now,
+        ))
     }
 
     /** User-confirmed loan payment uses the existing strict canonical mutation and offline replay. */
@@ -1614,6 +1709,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
                 PendingMutationKind.CREATE_SCHEDULED -> "Προγραμματισμός κίνησης"
                 PendingMutationKind.COMPLETE_SCHEDULED -> "Ολοκλήρωση προγραμματισμένης κίνησης"
                 PendingMutationKind.CLOSE_SCHEDULED -> "Παράλειψη ή ακύρωση προγραμματισμένης κίνησης"
+                PendingMutationKind.UPSERT_LOAN_METADATA -> "Στοιχεία δανείου"
                 PendingMutationKind.UPSERT_SAVINGS_GOAL -> "Αποθήκευση στόχου αποταμίευσης"
                 PendingMutationKind.DELETE_SAVINGS_GOAL -> "Διαγραφή στόχου αποταμίευσης"
                 PendingMutationKind.CREATE_CARD -> "Προσθήκη κάρτας"

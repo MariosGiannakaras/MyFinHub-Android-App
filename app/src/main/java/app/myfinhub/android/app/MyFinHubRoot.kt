@@ -408,6 +408,7 @@ fun MyFinHubRoot(
                             onCompleteScheduled = financeViewModel::completeScheduled,
                             onCloseScheduled = financeViewModel::closeScheduled,
                             onRecordLoanPayment = financeViewModel::recordLoanPayment,
+                            onSaveLoanMetadata = financeViewModel::saveLoanMetadata,
                             onSaveSavingsGoal = financeViewModel::saveSavingsGoal,
                             onDeleteSavingsGoal = financeViewModel::deleteSavingsGoal,
                             onSaveAccountIban = { id, rawIban ->
@@ -566,6 +567,7 @@ private fun FinanceProductSurface(
     onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit,
     onCloseScheduled: (String, String) -> Unit,
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit,
+    onSaveLoanMetadata: (app.myfinhub.android.feature.money.LoanMetadataEditRequest) -> Unit,
     onSaveSavingsGoal: (String?, String, String, String?) -> Unit,
     onDeleteSavingsGoal: (String) -> Unit,
     onSaveAccountIban: (String, String?) -> Unit,
@@ -668,6 +670,7 @@ private fun FinanceProductSurface(
                     onCompleteScheduled = onCompleteScheduled,
                     onCloseScheduled = onCloseScheduled,
                     onRecordLoanPayment = onRecordLoanPayment,
+                    onSaveLoanMetadata = onSaveLoanMetadata,
                     onSaveSavingsGoal = onSaveSavingsGoal,
                     onDeleteSavingsGoal = onDeleteSavingsGoal,
                     planMutationInFlight = state.saving,

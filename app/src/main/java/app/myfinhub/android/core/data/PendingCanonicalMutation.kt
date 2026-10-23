@@ -44,6 +44,7 @@ enum class PendingMutationKind {
     COMPLETE_SCHEDULED,
     CLOSE_SCHEDULED,
     UPSERT_SAVINGS_GOAL,
+    UPSERT_LOAN_METADATA,
     DELETE_SAVINGS_GOAL,
 }
 
@@ -74,6 +75,13 @@ data class PendingCanonicalMutationIntent(
         }
 
     fun asMutation(): CanonicalFinanceMutation = when (kind) {
+        PendingMutationKind.UPSERT_LOAN_METADATA -> UpsertCanonicalLoanMetadata(
+            source = payload.string("source").orEmpty(),
+            loan = payload["loan"] as? JsonObject
+                ?: throw IllegalArgumentException("Missing loan metadata row"),
+            expected = payload["expected"] as? JsonObject,
+            nowIso = payload.string("nowIso").orEmpty(),
+        )
         PendingMutationKind.UPSERT_SAVINGS_GOAL -> UpsertCanonicalSavingsGoal(
             goalId = payload.string("goalId").orEmpty(),
             name = payload.string("name").orEmpty(),
@@ -308,6 +316,9 @@ data class PendingCanonicalMutationIntent(
      * target left to mutate, so it must not poison persistence or be replayed against a missing id.
      */
     fun isSatisfiedBy(document: CanonicalFinanceDocument): Boolean = when (kind) {
+        PendingMutationKind.UPSERT_LOAN_METADATA ->
+            runCatching { (asMutation() as UpsertCanonicalLoanMetadata).satisfiedBy(document) }
+                .getOrDefault(false)
         PendingMutationKind.UPSERT_SAVINGS_GOAL -> {
             val id = payload.string("goalId").orEmpty()
             val amount = payload.number("targetAmount")
@@ -514,6 +525,16 @@ data class PendingCanonicalMutationIntent(
             intentId: String,
             syncState: PendingMutationSyncState = PendingMutationSyncState.NEVER_SENT,
         ): PendingCanonicalMutationIntent = when (mutation) {
+            is UpsertCanonicalLoanMetadata -> PendingCanonicalMutationIntent(
+                intentId = intentId, kind = PendingMutationKind.UPSERT_LOAN_METADATA,
+                payload = JsonObject(buildMap {
+                    put("source", JsonPrimitive(mutation.source))
+                    put("loan", mutation.loan)
+                    mutation.expected?.let { put("expected", it) }
+                    put("nowIso", JsonPrimitive(mutation.nowIso))
+                }),
+                syncState = syncState,
+            )
             is UpsertCanonicalSavingsGoal -> PendingCanonicalMutationIntent(
                 intentId = intentId, kind = PendingMutationKind.UPSERT_SAVINGS_GOAL,
                 payload = JsonObject(buildMap {

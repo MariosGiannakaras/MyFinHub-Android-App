@@ -181,6 +181,7 @@ internal fun MyFinHubAppContent(
     onCompleteScheduled: (app.myfinhub.android.feature.plan.ScheduledCompletionRequest) -> Unit = {},
     onCloseScheduled: (String, String) -> Unit = { _, _ -> },
     onRecordLoanPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
+    onSaveLoanMetadata: ((app.myfinhub.android.feature.money.LoanMetadataEditRequest) -> Unit)? = null,
     onSaveSavingsGoal: ((String?, String, String, String?) -> Unit)? = null,
     onDeleteSavingsGoal: ((String) -> Unit)? = null,
     planMutationInFlight: Boolean = false,
@@ -576,6 +577,8 @@ internal fun MyFinHubAppContent(
                         state = moneyState,
                         onBack = { moneyBackStack.removeLastOrNull() },
                         onRecordPayment = onRecordLoanPayment,
+                        onSaveLoanMetadata = onSaveLoanMetadata,
+                        expenseCategories = planState.budgetCategories,
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                     )
                 }

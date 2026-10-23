@@ -510,6 +510,10 @@ val activityItems = buildActivityItems(
                 liabilityRepayment = loan.isLiabilityRepayment,
                 defaultAccountId = loan.defaultAccountId,
                 typicalPaymentDay = loan.typicalPaymentDay,
+                kind = loan.kind,
+                totalInstallments = loan.totalInstallments,
+                firstExpectedDate = loan.firstExpectedDate,
+                expenseCategory = loan.expenseCategory,
             )
         },
         loanPaymentsById = document.canonicalLoanPaymentHistory(asOf)

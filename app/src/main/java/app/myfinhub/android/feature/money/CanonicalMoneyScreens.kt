@@ -941,6 +941,7 @@ private fun CanonicalLoanFinanceRow(
     history: List<LoanPaymentHistoryItem>,
     accounts: List<MoneyAccount>,
     onPay: () -> Unit,
+    onEdit: (() -> Unit)? = null,
 ) {
     var showHistory by rememberSaveable(loan.id) { mutableStateOf(false) }
     var historyLimit by rememberSaveable(loan.id) { mutableStateOf(10) }
@@ -995,6 +996,14 @@ private fun CanonicalLoanFinanceRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (onEdit != null && !duplicateIdentity) {
+                TextButton(
+                    onClick = onEdit,
+                    enabled = !mutationBlocked,
+                    modifier = Modifier.fillMaxWidth()
+                        .testTag("loan_edit_" + loan.id),
+                ) { Text("Επεξεργασία στοιχείων δανείου") }
             }
             if (history.isNotEmpty() && !duplicateIdentity) {
                 TextButton(
@@ -1057,10 +1066,14 @@ fun CanonicalLoansScreen(
     state: MoneyUiState,
     onBack: () -> Unit,
     onRecordPayment: (String, String, String, Int, Double?, String?) -> Unit = { _, _, _, _, _, _ -> },
+    onSaveLoanMetadata: ((LoanMetadataEditRequest) -> Unit)? = null,
+    expenseCategories: List<String> = emptyList(),
     mutationBlocked: Boolean = false,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var selectedLoanId by rememberSaveable { mutableStateOf<String?>(null) }
+    var creatingLoan by rememberSaveable { mutableStateOf(false) }
+    var editingLoanId by rememberSaveable { mutableStateOf<String?>(null) }
     var sortKey by rememberSaveable { mutableStateOf("remaining") }
     var ascending by rememberSaveable { mutableStateOf(false) }
     var activeLimit by rememberSaveable { mutableStateOf(20) }
@@ -1086,6 +1099,26 @@ fun CanonicalLoansScreen(
             (it.value.isSelfLoan || it.value.remainingInstallments > 0)
     }
     val completed = sorted.filterNot { it in active }
+    val editorLoan = editingLoanId?.let { targetId ->
+        state.loans.singleOrNull {
+            it.id == targetId && !it.isSelfLoan &&
+                it.kind in setOf("loan", "installment")
+        }
+    }
+    if (onSaveLoanMetadata != null && (creatingLoan || editorLoan != null)) {
+        CanonicalLoanMetadataEditor(
+            initial = editorLoan,
+            accounts = state.accounts,
+            categories = expenseCategories,
+            mutationBlocked = mutationBlocked,
+            onDismiss = { creatingLoan = false; editingLoanId = null },
+            onSave = { request ->
+                onSaveLoanMetadata(request)
+                creatingLoan = false
+                editingLoanId = null
+            },
+        )
+    }
     state.loans.singleOrNull { it.id == selectedLoanId &&
         canonicalLoanPaymentIsUnambiguous(it, state.loans) }?.let { loan ->
         CanonicalLoanPaymentDialog(
@@ -1130,6 +1163,14 @@ fun CanonicalLoansScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (onSaveLoanMetadata != null) {
+                            TextButton(
+                                onClick = { creatingLoan = true },
+                                enabled = !mutationBlocked,
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("loan_create_new"),
+                            ) { Text("Νέο δάνειο ή αγορά σε δόσεις") }
+                        }
                     }
                 }
             }
@@ -1202,6 +1243,11 @@ fun CanonicalLoansScreen(
                         history = state.loanPaymentsById[indexed.value.id].orEmpty(),
                         accounts = state.accounts,
                         onPay = { selectedLoanId = indexed.value.id },
+                        onEdit = if (onSaveLoanMetadata != null &&
+                            !indexed.value.isSelfLoan &&
+                            indexed.value.kind in setOf("loan", "installment") &&
+                            state.loans.count { it.id == indexed.value.id } == 1
+                        ) ({ editingLoanId = indexed.value.id }) else null,
                     )
                 }
                 if (active.size > activeLimit) item {
@@ -1233,6 +1279,11 @@ fun CanonicalLoansScreen(
                             history = state.loanPaymentsById[indexed.value.id].orEmpty(),
                             accounts = state.accounts,
                             onPay = {},
+                            onEdit = if (onSaveLoanMetadata != null &&
+                                !indexed.value.isSelfLoan &&
+                                indexed.value.kind in setOf("loan", "installment") &&
+                                state.loans.count { it.id == indexed.value.id } == 1
+                            ) ({ editingLoanId = indexed.value.id }) else null,
                         )
                     }
                     if (completed.size > completedLimit) item {
