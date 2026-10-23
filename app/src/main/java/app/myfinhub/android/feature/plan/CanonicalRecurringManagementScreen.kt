@@ -82,7 +82,7 @@ fun CanonicalRecurringManagementScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            // Duplicate historical IDs remain independent display rows. Index            item("new-recurring") {
+            item("new-recurring") {
                 TextButton(
                     enabled = !mutationBlocked && state.scheduledAccounts.isNotEmpty(),
                     onClick = { creating = true },
@@ -91,6 +91,7 @@ fun CanonicalRecurringManagementScreen(
                 ) { Text("Νέο πάγιο / συνδρομή") }
             }
 
+            // Duplicate historical IDs remain independent display rows. Index
             // contributes to stable Compose identity; finance actions are gated.
             itemsIndexed(state.recurringManageItems, key = { index, item ->
                 item.id + "#row#" + index
@@ -286,7 +287,6 @@ fun CanonicalRecurringManagementScreen(
             }
         }
     }
-}
     if (creating) {
         CanonicalRecurringCreateDialog(
             accounts = state.scheduledAccounts,
