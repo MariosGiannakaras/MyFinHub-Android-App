@@ -247,6 +247,8 @@ data class PlanUiState(
     val budgetProjectedDue: Double = 0.0,
     val budgetProjectedRemaining: Double = 0.0,
     val budgetProjectedStatus: String = "ok",
+    /** Known future scheduled/recurring expenses, not finance ledger entries. */
+    val budgetKnownCommitments: List<app.myfinhub.android.core.data.CanonicalBudgetCommitment> = emptyList(),
     val budgetMonthLabel: String = "",
     /** Independent reporting month: YYYY-MM, preserved across finance reprojections. */
     val budgetSelectedMonthIso: String = "",

@@ -14,6 +14,7 @@ import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
 import app.myfinhub.android.core.data.canonicalAccounts
+import app.myfinhub.android.core.data.canonicalBudgetProjectedCommitments
 import app.myfinhub.android.core.data.customCashAccountCanBeDeleted
 import app.myfinhub.android.core.data.canonicalCategoryTaxonomy
 import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
@@ -356,6 +357,9 @@ internal fun projectCanonicalPlanState(
             ?.projectedRemaining ?: 0.0,
         budgetProjectedStatus = budgetProgressRows.firstOrNull { it.scope == "overall" }
             ?.projectedStatus ?: "ok",
+        budgetKnownCommitments = document.canonicalBudgetProjectedCommitments(
+            month.toString(), today.toString(),
+        ),
         budgetMonthLabel = month.atDay(1).format(
             DateTimeFormatter.ofPattern("MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),

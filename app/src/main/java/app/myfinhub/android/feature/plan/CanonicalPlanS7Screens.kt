@@ -933,6 +933,9 @@ fun CanonicalBudget2026Screen(
     // on demand. Never silently hide historical category budgets.
     var visibleCategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
     var visibleSubcategoryBudgetLimit by rememberSaveable { mutableStateOf(24) }
+    var visibleBudgetCommitmentLimit by rememberSaveable(state.budgetSelectedMonthIso) {
+        mutableStateOf(24)
+    }
     var creatingCategoryBudget by remember { mutableStateOf(false) }
     var editingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
     var deletingCategoryBudget by remember { mutableStateOf<CategoryBudget?>(null) }
@@ -1234,6 +1237,62 @@ fun CanonicalBudget2026Screen(
                                     modifier = Modifier.testTag("s7_budget_threshold_warning"),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            if (state.budgetKnownCommitments.isNotEmpty()) {
+                item("budget-commitments-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Γνωστές εκκρεμείς υποχρεώσεις",
+                        subtitle = "Προγραμματισμένες χρεώσεις και επόμενα πάγια · δεν έχουν εξοφληθεί",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(
+                    state.budgetKnownCommitments.take(visibleBudgetCommitmentLimit),
+                    key = { index, row -> "budget-upcoming-" + row.source + "-" + row.id + "-" + index },
+                ) { index, row ->
+                    MyFinHubSectionCard(
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("s7_budget_commitment_$index"),
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                            Text(
+                                row.category + (row.subcategory?.let { " › " + it } ?: ""),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                row.date + " · " +
+                                    if (row.source == "recurring") "Επόμενο πάγιο"
+                                    else "Προγραμματισμένη χρέωση",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            MyFinHubAmountText(
+                                amountVisibilityText(formatPlanS7Euro(row.amount), amountsVisible),
+                                FinanceTone.Expense,
+                            )
+                        }
+                    }
+                }
+                if (state.budgetKnownCommitments.size > visibleBudgetCommitmentLimit) {
+                    item("budget-commitments-more") {
+                        TextButton(
+                            onClick = {
+                                visibleBudgetCommitmentLimit =
+                                    (visibleBudgetCommitmentLimit + 24)
+                                        .coerceAtMost(state.budgetKnownCommitments.size)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("s7_budget_commitments_more"),
+                        ) {
+                            Text(
+                                "Περισσότερες υποχρεώσεις (" +
+                                    (state.budgetKnownCommitments.size - visibleBudgetCommitmentLimit) + ")",
+                            )
                         }
                     }
                 }
