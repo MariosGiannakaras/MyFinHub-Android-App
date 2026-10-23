@@ -473,6 +473,7 @@ internal fun MyFinHubAppContent(
                             onAction = onQuickEntryAction,
                             onBack = { activeBackStack.removeLastOrNull() },
                             mutationInFlight = quickEntryMutationInFlight,
+                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         )
                     }
                 }
