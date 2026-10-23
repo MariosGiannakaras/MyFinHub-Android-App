@@ -929,7 +929,16 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         val recurring = ready.projection.document.allCanonicalRecurringItems()
             .filter { it.id == recurringId }.singleOrNull() ?: return
         if (recurring.effectiveStatus == status) return
-        applyMutation(SetCanonicalRecurringStatus(recurringId, status, Instant.now().toString()))
+        val source = ready.projection.document.canonicalRecurringEditSource(recurringId)
+            ?: return
+        // Carry the exact source row through durable pending replay. Without this
+        // expected snapshot an offline status action could overwrite remote edits.
+        applyMutation(SetCanonicalRecurringStatus(
+            recurringId = recurringId,
+            status = status,
+            nowIso = Instant.now().toString(),
+            expected = source.row,
+        ))
     }
 
     /** Owner-selected identity link for a single canonical event, never an inferred OCR match. */
