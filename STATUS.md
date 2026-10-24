@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #327 recurring duplicate-ID physical-row subcategory budget attribution passed four exact final-head checks and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. Earlier #325 refund reports and #326 duplicate imported credit statement events likewise merged. New W4.3 source PR #328 conservatively reconstructs Web historical lending as-of balances from complete cent-exact seed histories and respects explicit imported legacyPaidAmount for loan obligations, including zero, rather than assuming nominal installments. Golden JVM tests authored but not yet CI accepted or merged. W2–W5 broader parity, visual assets and physical S24 owner #149 acceptance still open. No signed release, main promotion, SMS or permanent card-delete UI.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 historical lending/loan principal/writeoff PR #328 passed all four exact-head gates and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487. W4.1 recurring subcategory end-to-end PR #329 was source-reconciled with latest develop and awaits rerun CI. New independent W4.3 PR #330 aligns historical savings-goal presentation with Web savingsGoals.ts: nonpositive, missing or invalid archived target amounts remain visible with 0% progress instead of silently vanishing. Read-only tests authored, not CI accepted or merged. Wider W2–W5, full provider SVG assets and owner physical S24 #149 acceptance remain open. No signed release, SMS or card permanent deletion UI.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
+1. Validate W4.3 PR #330 historical savings goal projections with imported zero/negative/missing target values and nonmutating read-only tests. Require four exact-head Android CI/Project Tracking/screenshot/hosted S24 gates before merge. Independently validate reconciled recurring subcategory PR #329; never let stale tracking overwrite merged work. Continue W2–W5 product code.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
-Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
+Issue #155, PR #330, branch android/w4-savings-goal-historic-target-parity-20261024
+Current W4.3: PR #328 W4.3 as-of lending, imported loan principal and writeoff accepted by 4/4 hosted checks and merged develop 897f4d2b. Concurrent PR #329 W4.1 recurring subcategory source reconciled onto develop, awaiting new CI. Independent PR #330 W4.3 keeps invalid historical savings goal targets visible with exactly zero progress (Web savingsGoalProgress), while current positive goals still share the same backing balance. Kotlin golden authored, not locally executed or merged. Progress 1/6 implementations · 11/24 subtasks; physical S24 #149 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
+Next Validate PR #330 and PR #329 separately on their latest exact immutable head against develop; merge only after 4/4 successful checks and if required reconcile generated trackers. Continue W2–W5 features; owner S24 device signoff and signed release not implied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

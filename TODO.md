@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
+- [ ] Validate W4.3 PR #330 historical savings goal projections with imported zero/negative/missing target values and nonmutating read-only tests. Require four exact-head Android CI/Project Tracking/screenshot/hosted S24 gates before merge. Independently validate reconciled recurring subcategory PR #329; never let stale tracking overwrite merged work. Continue W2–W5 product code.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
-Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
+Issue #155, PR #330, branch android/w4-savings-goal-historic-target-parity-20261024
+Current W4.3: PR #328 W4.3 as-of lending, imported loan principal and writeoff accepted by 4/4 hosted checks and merged develop 897f4d2b. Concurrent PR #329 W4.1 recurring subcategory source reconciled onto develop, awaiting new CI. Independent PR #330 W4.3 keeps invalid historical savings goal targets visible with exactly zero progress (Web savingsGoalProgress), while current positive goals still share the same backing balance. Kotlin golden authored, not locally executed or merged. Progress 1/6 implementations · 11/24 subtasks; physical S24 #149 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
+Next Validate PR #330 and PR #329 separately on their latest exact immutable head against develop; merge only after 4/4 successful checks and if required reconcile generated trackers. Continue W2–W5 features; owner S24 device signoff and signed release not implied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
