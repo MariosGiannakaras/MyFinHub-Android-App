@@ -87,7 +87,6 @@ data class RecurringCreateRequest(
     val amount: Double,
     val accountId: String,
     val category: String,
-    val subcategory: String? = null,
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
@@ -96,6 +95,8 @@ data class RecurringCreateRequest(
     val day: Int? = null,
     val firstExpectedDate: String? = null,
     val endDate: String? = null,
+    /** Append to preserve positional constructors emitted by earlier Android UI code. */
+    val subcategory: String? = null,
 )
 
 /** A confirmed scheduled payment selects the actual money route, not a stale scheduled source. */
