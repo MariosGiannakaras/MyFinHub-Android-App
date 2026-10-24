@@ -28,6 +28,9 @@ data class CanonicalRecurringItem(
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
+    /** Keep missing versus explicitly invalid imported estimate bounds distinct. */
+    val estimateMinPresent: Boolean = false,
+    val estimateMaxPresent: Boolean = false,
     /** Web recurring item category ownership, preserved per physical record. */
     val subcategory: String? = null,
 ) {
@@ -52,6 +55,57 @@ data class CanonicalRecurringItem(
     }
 }
 
+/**
+ * Read-only Web recurringVariable.ts recurringExpectedAmount parity.
+ * Invalid imported records remain inspectable, but must never be presented as
+ * a trusted fixed amount or a valid variable range.
+ */
+data class CanonicalRecurringExpectedAmount(
+    val amount: Double,
+    val confidence: String,
+    val min: Double?,
+    val max: Double?,
+    val label: String,
+)
+
+fun CanonicalRecurringItem.canonicalExpectedAmount(): CanonicalRecurringExpectedAmount {
+    require(amountMode == "fixed" || amountMode == "variable") {
+        "Επίλεξε έγκυρο τύπο ποσού παγίου."
+    }
+    if (amountMode == "fixed") {
+        require(!estimateMinPresent && !estimateMaxPresent) {
+            "Το εύρος ποσού επιτρέπεται μόνο σε μεταβλητά πάγια."
+        }
+    } else {
+        fun exactPositiveCents(value: Double?): Long? {
+            if (value == null || !value.isFinite()) return null
+            return runCatching { moneyToCents(value) }.getOrNull()
+                ?.takeIf { it > 0L && kotlin.math.abs(value * 100.0 - it.toDouble()) < 1e-6 }
+        }
+        require(exactPositiveCents(amount) != null) {
+            "Η εκτίμηση πρέπει να είναι θετικό ποσό με δύο δεκαδικά."
+        }
+        require(estimateMinPresent == estimateMaxPresent) {
+            "Συμπλήρωσε και τα δύο άκρα του εύρους ή κανένα."
+        }
+        if (estimateMinPresent) {
+            val low = exactPositiveCents(estimateMin)
+            val high = exactPositiveCents(estimateMax)
+            require(low != null && high != null && low <= exactPositiveCents(amount)!! &&
+                exactPositiveCents(amount)!! <= high) {
+                "Το εύρος πρέπει να περιλαμβάνει την εκτίμηση και να χρησιμοποιεί λεπτά ευρώ."
+            }
+        }
+    }
+    return CanonicalRecurringExpectedAmount(
+        amount = centsToMoney(moneyToCents(amount)),
+        confidence = if (amountMode == "variable") "estimated" else "fixed",
+        min = if (amountMode == "variable") estimateMin else null,
+        max = if (amountMode == "variable") estimateMax else null,
+        label = if (amountMode == "variable") "Εκτίμηση · όχι πραγματική χρέωση" else "Σταθερό ποσό",
+    )
+}
+
 private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
     val id = string("id")?.takeIf(String::isNotBlank) ?: return null
     val rawInterval = number("recurrenceInterval")
@@ -74,9 +128,13 @@ private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
         logoAssetKey = string("logoAssetKey"),
         source = string("source"),
         endDate = string("endDate"),
-        amountMode = if (string("amountMode") == "variable") "variable" else "fixed",
-        estimateMin = number("estimateMin")?.takeIf { it.isFinite() && it >= 0.0 },
-        estimateMax = number("estimateMax")?.takeIf { it.isFinite() && it >= 0.0 },
+        // Unlike an editor draft, an imported Web row must not be silently
+        // rewritten from an unknown mode to fixed or lose invalid range bounds.
+        amountMode = string("amountMode") ?: "fixed",
+        estimateMin = number("estimateMin"),
+        estimateMax = number("estimateMax"),
+        estimateMinPresent = containsKey("estimateMin"),
+        estimateMaxPresent = containsKey("estimateMax"),
     )
 }
 
