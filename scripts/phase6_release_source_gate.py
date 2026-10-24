@@ -13,7 +13,8 @@ from typing import Any
 EXPECTED_BASE = "develop"
 EXPECTED_BRANCH_PREFIX = "android/"
 REQUIRED_CHECKS = (
-    "verify",
+    "android-verify",
+    "tracking-verify",
     "screenshot-regression",
     "s24-ultra-target-instrumented",
 )
