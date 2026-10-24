@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.1 physical-event statement cycle and duplicate-ID golden regression in PR #326 on android/w3-statement-physical-event-identity-20261024. Require 4/4 identical final head gates before merging. Continue other Android-only W2–W5 feature implementation; stop assistant CI polling at eight minutes while workflows continue. No unsafe finance writes or physical S24 acceptance inferred.
+- [ ] Verify PR #327 W4.3 physical recurring duplicate-ID/subcategory budget commitments against Web and 4/4 identical-final-head checks after rebasing onto merged #326 develop. Merge only if all gates green. Continue other W2–W5 source code independently, with <=8 minute CI observation budget and physical S24 signoff separately.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #326, branch android/w3-statement-physical-event-identity-20261024
-Current W3.1: PR #325 W4.4 corrected single-refund report logic and passed all 4 exact-head gates; squash merged develop 1abe6939. PR #326 W3.1 source now associates each canonical event with its physical JSON row, preserving historical duplicate event IDs independently across statements and correct createdAt order. A golden covers two cycles, duplicate purchase/payment IDs and repeated same-cycle IDs. Authored and source-reviewed but no new CI acceptance/merge yet. Web parity 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
+Issue #155, PR #327, branch android/w4-recurring-duplicate-commitment-parity-20261024
+Current W4.3: PR #326 W3.1 duplicate physical event statement attribution passed all four CI gates and was squash merged into develop c9b48180. W4.3 PR #327 retains recurring subcategory per physical record and preserves independent seeded/custom future commitments sharing imported duplicate IDs, without permitting ambiguous duplicate-ID edits. A future-month golden verifies separate subcategory budgets and amounts. Source authored, unmerged and CI latest head pending. 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #326 physical-row statement cycle fixtures and four immutable exact-head gates; merge only when all successful, then proceed with other open W2–W5 Android source parity. Keep owner physical S24 and release separate; no local test-execution claim.
+Next Check exact final head of rebased PR #327 for all four checks (Android CI, Project Tracking, screenshots, hosted S24 emulator) before merge. Keep duplicate-id mutation guards fail-closed, no local build claims, no release/main promotion or physical device approval.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
