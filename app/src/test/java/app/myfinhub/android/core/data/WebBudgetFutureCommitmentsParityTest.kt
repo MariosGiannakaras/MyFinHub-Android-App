@@ -48,6 +48,45 @@ class WebBudgetFutureCommitmentsParityTest {
         assertEquals(80.0, budget.projectedUsed, 0.001)
         assertEquals(120.0, budget.projectedRemaining, 0.001)
     }
+    @Test fun whitespaceOnlyCompletedEventIdDoesNotInventScheduledLiability() {
+        // Web budgetProjectedCommitments: !item.completedEventId is false for
+        // " " but true for null/empty/missing. An already linked historical
+        // scheduled record must not reappear as a forecast obligation.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "scheduled":[
+              {"id":"whitespace","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","accountId":"cash",
+               "category":"Σπίτι","amount":60,"completedEventId":"   "},
+              {"id":"linked","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","accountId":"cash",
+               "category":"Σπίτι","amount":50,"completedEventId":"actual-event"},
+              {"id":"empty","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","accountId":"cash",
+               "category":"Σπίτι","amount":10,"completedEventId":""},
+              {"id":"missing","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","accountId":"cash",
+               "category":"Σπίτι","amount":20},
+              {"id":"null","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","accountId":"cash",
+               "category":"Σπίτι","amount":30,"completedEventId":null}
+            ],
+            "budgets":[{"id":"all","month":"2026-12","scope":"overall",
+                        "amount":250}]
+          }}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val due = imported.canonicalBudgetProjectedCommitments("2026-12","2026-12-01")
+        assertEquals(listOf("empty","missing","null"), due.map { it.id })
+        assertEquals(60.0, due.sumOf { it.amount }, 0.00001)
+        assertTrue(due.all { it.source == "scheduled" })
+        val budget = imported.webBudgetProgress("2026-12","2026-12-01").single()
+        assertEquals(60.0, budget.projectedDue, 0.00001)
+        assertEquals(190.0, budget.projectedRemaining, 0.00001)
+        assertEquals(original, imported.raw)
+        assertTrue(imported.state.array("events").isEmpty())
+    }
+
     @Test fun repeatedHistoricalRecurringIdsRetainSeparateSubcategoryAndAmounts() {
         val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"recurring":[
