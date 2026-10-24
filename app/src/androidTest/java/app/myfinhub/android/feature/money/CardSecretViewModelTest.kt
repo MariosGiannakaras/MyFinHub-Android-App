@@ -62,6 +62,39 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun sameOwnerAalDowngradeImmediatelyRedactsVaultStateAndBlocksFurtherReads() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretReadCalls)
+
+        vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
+        assertTrue(vm.state.value === CardSecretUiState.AuthRejected)
+        vm.openCard("card-1")
+        assertTrue(vm.state.value === CardSecretUiState.AuthRejected)
+        assertEquals(1, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun sameOwnerBearerRotationHidesPriorSecretsUntilFreshAuthorizedRead() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(1, api.serverSecretReadCalls)
+
+        api.readDelayMillis = 180
+        vm.attachSession(session.copy(accessToken = "synthetic-rotated-bearer"))
+        assertTrue(vm.state.value is CardSecretUiState.Loading)
+        assertFalse(vm.state.value is CardSecretUiState.Revealed)
+        waitUntil { api.serverSecretReadCalls == 2 && vm.state.value is CardSecretUiState.Revealed }
+        assertEquals("card-1", (vm.state.value as CardSecretUiState.Revealed).cardId)
+    }
+
+    @Test
     fun editPanAndExpiry_savesToServerVault_andZeroesInputs() = runBlocking {
         val api = FakeCardApi(serverSecrets = CardSecrets("4242424242424242", "12/30", "321"))
         val cvvVault = FakeCvvVault()
@@ -267,6 +300,7 @@ private class FakeCardApi(
     private var serverSecrets: CardSecrets? = CardSecrets("4242424242424242", "12/30", "321"),
     var committedDeletionFailure: ApiFailureKind? = null,
 ) : MyFinHubApi {
+    var readDelayMillis: Long = 0
     var serverSecretReadCalls: Int = 0
         private set
     var serverSecretWriteCalls: Int = 0
@@ -289,6 +323,7 @@ private class FakeCardApi(
 
     override suspend fun loadCardSecrets(session: AuthSession, cardId: String): ApiResult<CardSecrets> {
         serverSecretReadCalls += 1
+        if (readDelayMillis > 0) delay(readDelayMillis)
         return serverSecrets?.let { ApiResult.Success(it) } ?: ApiResult.Failure(ApiFailureKind.INVALID_DATA)
     }
 
