@@ -114,6 +114,42 @@ class WebCashFlowForecastParityTest {
         assertEquals(3, projection.sourceCounts["loan"])
     }
 
+    @Test fun settledLoansNeverEmitSelfLoanOrMissingAccountOmissions() {
+        // Web loanMovements short-circuits when remaining installment count
+        // is zero, before account validation or self-loan omission warnings.
+        val loans = """
+          {"id":"settled-self","name":"Εξοφλημένο εσωτερικό",
+           "kind":"self-loan","total":100,"installment":50,"installments":2,
+           "paidCount":2,"defaultAccountId":"missing","day":"22"},
+          {"id":"settled-orphan","name":"Εξοφλημένο χωρίς λογαριασμό",
+           "total":80,"installment":40,"installments":2,"paidCount":2,
+           "defaultAccountId":"missing","day":"22"},
+          {"id":"open-self","name":"Ενεργό εσωτερικό",
+           "kind":"self-loan","total":100,"installment":50,"installments":2,
+           "paidCount":1,"defaultAccountId":"bank","day":"22"},
+          {"id":"open-orphan","name":"Ενεργό χωρίς λογαριασμό",
+           "total":80,"installment":40,"installments":2,"paidCount":1,
+           "defaultAccountId":"missing","day":"22"},
+          {"id":"open-bank","name":"Ενεργή δόση",
+           "total":60,"installment":30,"installments":2,"paidCount":1,
+           "defaultAccountId":"bank","day":"22"}
+        """.trimIndent()
+        val source = document(scheduled = "", recurring = "", loans = loans, events = "")
+        val before = source.raw
+        val forecast = source.cashFlowForecast(today, 30)
+        assertEquals(listOf(
+            "Το εσωτερικό δάνειο «Ενεργό εσωτερικό» δεν προβλήθηκε επειδή δεν υπάρχει ρητός λογαριασμός προορισμού για ουδέτερη εσωτερική μεταφορά.",
+            "Η δόση «Ενεργό χωρίς λογαριασμό» δεν προβλήθηκε επειδή ο λογαριασμός πληρωμής δεν είναι διαθέσιμος.",
+        ), forecast.omitted)
+        assertEquals(listOf("Ενεργή δόση"),
+            forecast.movements.filter { it.source == "loan" }.map { it.label })
+        assertEquals(1, forecast.sourceCounts["loan"])
+        assertEquals(1000.0, forecast.currentPortfolio, 0.001)
+        assertEquals(970.0, forecast.projectedPortfolio, 0.001)
+        assertEquals(before, source.raw)
+        assertTrue(source.state.array("events").isEmpty())
+    }
+
     @Test fun omittedForecastExplanationsIdentifyTheAffectedRecordsInsteadOfInternalIds() {
         val scheduled = """
           {"id":"opaque-s-1","note":"Ενοίκιο","dueDate":"2026-10-20",

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W3.1 PR #336 exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation for whitespace-only historical statementId parity, then merge only if all four succeed on the same head. Continue remaining W2–W5 product gaps without SMS, backend/Web edits, irreversible card-delete UI, production financial data, signed release or main promotion.
+- [ ] Run all four exact-final-head gates on refreshed W4.2 draft PR #337: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Merge only after 4/4 green. Continue broader W2–W5 product feature scopes; physical owner Galaxy S24 #149 is separate and pending. No production financial data, Web/backend/schema changes, SMS, irreversible card delete UI or signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #336, branch android/w3-credit-statement-whitespace-link-parity-20261024
-Current W3.1: W3.1 PR #335 first-physical-owner statement identity passed all four exact-head gates at 8fa0593e5613e4810a6611f5ed09b7d6a05345e5 and squash merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6. Draft #336 W3.1 explicit whitespace-only statementId now follows Web JavaScript truthiness rather than auto-assigning a new cycle; source and JVM golden authored, CI not accepted, no local Gradle run. Canonical Web parity 1/6 implementations · 11/24 subtasks, real S24 owner #149 pending.
+Issue #155, PR #337, branch android/w4-forecast-settled-loan-omission-20261024
+Current W4.2: W3.1 #336 whitespace-only explicit credit statement ID link parity passed 4/4 exact head e7e879df3316f47b01eb87fccbb66b6bd8706da2 and squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Draft W4.2 #337 settled historical loan forecast omitted-reason guard plus immutable-JVM golden now refreshed with full merged #336 develop ancestry and coherent canonical/generated tracking; four fresh final-head gates required. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check #336 exact-head four gates for historical credit statement whitespace IDs; merge only with all Project Tracking/Android CI/screenshot/hosted S24 green on same immutable SHA. Continue broader W2–W5 contract work. No SMS, production writes, Web/backend/schema changes, card-delete UI, signed release or main promotion.
+Next Verify W4.2 draft #337 against four immutable same-head checks on refreshed post-#336 develop baseline. Mark ready and squash merge only with all green; then continue meaningful W2–W5 feature parity. No live financial writes, SMS import #146, irreversible card-delete UI, backend/Web/schema, main promotion or signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

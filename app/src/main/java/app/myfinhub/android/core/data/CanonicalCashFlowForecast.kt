@@ -131,6 +131,14 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         // incorrectly invent a future debit for a negative legacy installment.
         val installment = loan.number("installment") ?: 0.0
         if (totalInstallments == 0 || !installment.isFinite() || installment <= 0.0) return@forEachIndexed
+        // Web forecast.ts checks loanRemainingInstallments first, before
+        // self-loan and missing-account omissions. Settled historical loans
+        // must not be reported as unprojectable future obligations.
+        // Preserve source row identity: historic duplicate IDs can have
+        // different remaining installment counts.
+        val balance = loanBalances.getOrNull(rowIndex) ?: return@forEachIndexed
+        val left = balance.remainingInstallments
+        if (left <= 0) return@forEachIndexed
         val self = loan.string("kind") == "self-loan" || loan.string("source") == "self-loan" ||
             Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
                 .containsMatchIn(name + " " + loan.string("provider").orEmpty())
@@ -150,15 +158,9 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             it.string("loanId") == loanId &&
                 it.string("date")?.let { date -> date <= asOf.toString() } == true
         }
-        // canonicalLoanBalanceRows and the effective source list have identical
-        // row order; tie the financial snapshot to its own row, never its ID.
-        val balance = loanBalances.getOrNull(rowIndex) ?: return@forEachIndexed
         // Web forecast.ts projects remaining *installment counts*, independent
-        // of the separately computed outstanding liability (e.g. forgiven debt).
-        // Keep the read-only forecast identical to Web; mutation approval still
-        // checks outstanding and rejects an actual payment without liability.
-        val left = balance.remainingInstallments
-        if (left <= 0) return@forEachIndexed
+        // of separately computed outstanding liability (e.g. forgiven debt).
+        // Real payment mutations still reject a payment without liability.
         val knownDates = payments.mapNotNull { forecastDate(it.string("date")) }
         val typical = balance.typicalPaymentDay
         if (typical == null) {
