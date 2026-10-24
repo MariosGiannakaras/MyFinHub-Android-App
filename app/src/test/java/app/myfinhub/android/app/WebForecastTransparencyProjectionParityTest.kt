@@ -56,7 +56,7 @@ class WebForecastTransparencyProjectionParityTest {
         assertEquals(2,first.omittedSourceCount)
         // Web-style diagnostics identify named records without exposing source IDs.
         assertEquals(listOf(
-            "Η προγραμματισμένη κίνηση «Unknown payer» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος.",
+            "Η προγραμματισμένη κίνηση «Unknown payer» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι διαθέσιμος.",
             "Το πάγιο «Old subscription» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος.",
         ), first.omittedWarnings)
         assertEquals(raw,document.raw)

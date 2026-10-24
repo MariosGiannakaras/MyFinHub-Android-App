@@ -62,7 +62,11 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     }
     // Match Web forecast omitted reasons: explain the affected named record,
     // never expose opaque canonical IDs as user-facing forecast diagnostics.
-    canonicalScheduled().filter { it.status == "pending" }.forEach { scheduled ->
+    // Web pendingScheduled orders dueDate/createdAt before collecting omission
+    // warnings. Preserve stable physical order when both keys are identical.
+    canonicalScheduled().filter { it.status == "pending" }
+        .sortedWith(compareBy<CanonicalScheduledItem> { it.dueDate }.thenBy { it.createdAt })
+        .forEach { scheduled ->
         val due = forecastDate(scheduled.dueDate) ?: run {
             omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή η ημερομηνία της δεν είναι έγκυρη."
             return@forEach
@@ -73,7 +77,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             val from = scheduled.fromAccountId
             val to = scheduled.toAccountId
             if (from !in ids || to !in ids || from == to) {
-                omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι."
+                omitted += "Η προγραμματισμένη μεταφορά «${scheduled.note}» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι."
                 return@forEach
             }
             add("forecast-scheduled-${scheduled.id}", date, "scheduled", scheduled.note,
@@ -81,7 +85,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         } else {
             val id = scheduled.accountId
             if (id !in ids) {
-                omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος."
+                omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι διαθέσιμος."
                 return@forEach
             }
             add("forecast-scheduled-${scheduled.id}", date, "scheduled", scheduled.note,
