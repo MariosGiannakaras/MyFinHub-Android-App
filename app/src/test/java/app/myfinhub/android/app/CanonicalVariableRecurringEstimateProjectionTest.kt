@@ -4,6 +4,7 @@ import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalRecurringMonthlyTotal
 import app.myfinhub.android.core.data.canonicalRecurringActualPayments
+import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.array
 import java.time.LocalDate
