@@ -183,4 +183,31 @@ class WebCategoryBudgetParityTest {
         assertEquals(155.0, subcategory.limit, 0.001)
     }
 
+    @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
+        val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"transactions":[
+            {"id":"old","date":"2026-10-12","type":"expense","amount":20,
+             "category":"Τρόφιμα","subcategory":"Takeaway"}
+          ]},"state":{
+            "reviewDecisions":{"old":{"status":"confirmed","semanticKind":"expense",
+              "category":"Εστιατόρια"}},
+            "budgets":[
+              {"id":"old-food","month":"2026-10","scope":"category",
+               "category":"Τρόφιμα","amount":100},
+              {"id":"new-dining","month":"2026-10","scope":"category",
+               "category":"Εστιατόρια","amount":50},
+              {"id":"new-dining-sub","month":"2026-10","scope":"subcategory",
+               "category":"Εστιατόρια","subcategory":"Takeaway","amount":30}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val spending = reviewed.categoryBudgetSpending("2026-10", "2026-10-20")
+        assertEquals(20.0, spending["Εστιατόρια"]!!, 0.001)
+        assertTrue("Τρόφιμα" !in spending)
+        val budgets = reviewed.webBudgetProgress("2026-10", "2026-10-20").associateBy { it.id }
+        assertEquals(0.0, budgets.getValue("old-food").used, 0.001)
+        assertEquals(20.0, budgets.getValue("new-dining").used, 0.001)
+        assertEquals(20.0, budgets.getValue("new-dining-sub").used, 0.001)
+    }
+
 }
