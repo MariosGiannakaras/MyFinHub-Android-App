@@ -152,9 +152,11 @@ fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String?
                 tx.type == "expense" -> tx.amount
                 else -> 0.0
             }
-            // Web budgets.ts uses the reconciled category when present,
-            // even for a legacy posting whose original category remains immutable.
-            add(decision?.string("category")?.takeIf(String::isNotBlank) ?: tx.category, expense)
+            // Web decision?.category || tx.category uses JS truthiness:
+            // whitespace-only strings are present and suppress spending after
+            // addExpense trims them; only an empty/missing string falls back.
+            // Never silently charge the original category in that case.
+            add(decision?.string("category")?.takeIf(String::isNotEmpty) ?: tx.category, expense)
         }
     }
     state.array("events").mapNotNull { it as? JsonObject }
