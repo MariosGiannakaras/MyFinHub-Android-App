@@ -131,4 +131,51 @@ class CanonicalCreditStatementsParityTest {
         assertEquals(listOf("unlinked-mixed"), mixed.unlinkedCreditStatementEventIds("visa"))
     }
 
+    @Test fun duplicateImportedEventIdsKeepPhysicalStatementLinkageAndAmount() {
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "creditStatements":[
+              {"id":"older","cardId":"c1","openDate":"2026-08-26",
+               "closeDate":"2026-09-25","dueDate":"2026-10-05","boundaryRule":"next-cycle"},
+              {"id":"newer","cardId":"c1","openDate":"2026-09-26",
+               "closeDate":"2026-10-25","dueDate":"2026-11-05","boundaryRule":"next-cycle"}
+            ],
+            "events":[
+              {"id":"duplicate","kind":"card_purchase","cardId":"c1",
+               "date":"2026-09-14","createdAt":"2026-09-14T08:00:00Z",
+               "statementId":"older","amount":90},
+              {"id":"duplicate","kind":"card_purchase","cardId":"c1",
+               "date":"2026-10-12","createdAt":"2026-10-12T08:00:00Z",
+               "statementId":"newer","amount":40},
+              {"id":"repeated-payment","kind":"card_payment","cardId":"c1",
+               "date":"2026-09-16","statementId":"older","amount":20},
+              {"id":"repeated-payment","kind":"card_payment","cardId":"c1",
+               "date":"2026-10-14","statementId":"newer","amount":5},
+              {"id":"dup-same-cycle","kind":"card_purchase","cardId":"c1",
+               "date":"2026-10-11","createdAt":"2026-10-11T11:00:00Z",
+               "statementId":"newer","amount":11},
+              {"id":"dup-same-cycle","kind":"card_purchase","cardId":"c1",
+               "date":"2026-10-11","createdAt":"2026-10-11T09:00:00Z",
+               "statementId":"newer","amount":7}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        val views = imported.creditStatementViews("c1", "2026-10-20").associateBy { it.id }
+        val older = views.getValue("older")
+        assertEquals(listOf("duplicate"), older.purchaseIds)
+        assertEquals(listOf("repeated-payment"), older.paymentIds)
+        assertEquals(90.0, older.purchaseTotal, 0.00001)
+        assertEquals(20.0, older.paymentTotal, 0.00001)
+        assertEquals(70.0, older.remaining, 0.00001)
+        val newer = views.getValue("newer")
+        assertEquals(listOf("dup-same-cycle", "dup-same-cycle", "duplicate"), newer.purchaseIds)
+        assertEquals(listOf("repeated-payment"), newer.paymentIds)
+        assertEquals(58.0, newer.purchaseTotal, 0.00001)
+        assertEquals(5.0, newer.paymentTotal, 0.00001)
+        assertEquals(53.0, newer.remaining, 0.00001)
+        assertEquals(before, imported.raw)
+        assertEquals("older", imported.recommendedPayableStatement("c1", "2026-10-20")?.id)
+    }
+
 }
