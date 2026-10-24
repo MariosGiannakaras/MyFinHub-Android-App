@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #323 (card vault/mixed credit) and PR #324 (renamed budget identities, forecast recurring commitments, Unicode password policy) passed 4/4 exact-head CI gates and squash merged into develop, latest 216633eb42ea9d11b3c3a8b3877c7d4c26e7ee77. New Android-only W4.4 reporting correction restores Web reports.ts single-refund semantics: canonical and reviewed-legacy refunds no longer double-subtract from subcategory totals, ranking and month-over-month momentum. Unit golden regressions authored, not yet CI verified or merged. Wider W2–W5 parity, full provider assets and owner physical S24 #149 signoff remain open. No permanent card delete UI, SMS import, production writes or signed release.
+Web parity 1/6 implementations · 11/24 subtasks. PR #325 W4.4 refund reports and PR #326 W3.1 physical duplicate credit statements both passed all exact-head gates and squash merged into develop, latest c9b48180f787f63cf7215dbcaf965a1aed75aba8. W4.3 PR #327 now under independent CI with Web recurring duplicate-ID physical subcategory commitments. New stacked W4.3 PR #328 implements Web lending.ts conservative date-bounded legacy receivable reconstruction for complete, cent-exact historical entries, shared by per-person lending and historical net-worth projections. Incomplete/malformed/unbalanced source data retains the documented baseline. New golden cases authored, unmerged and not CI accepted. Other W2–W5 and physical owner S24 Ultra #149 remain pending, no release or permanent card-delete UI.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately.
+1. Validate stacked W4.3 PR #328 legacy lending as-of reconstruction on top of PR #327 recurring-budget parity; preserve exact history, cent safety and fail-closed fallback. Merge PR #327 only after 4/4 checks then retarget/reconcile #328 with develop, await its four exact final-head gates before merge. Keep CI polling <=8 minutes; continue other independent Android-only feature code, no main/release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #325, branch android/w4-report-refund-parity-20261024
-Current W4.4: PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
+Current W4.3: PR #326 merged develop c9b48180 after four gates; PR #327 recurring subcategory/duplicate-liability source rebased and under CI. Stacked PR #328 W4.3 now reconstructs as-of legacy lending only when every entry has valid ISO date, exact nonnegative cent deltas, no negative chronological balance and total matching imported final amount. Keeps original final baseline if any precondition fails. Shared by net-worth receivables and person lending rows; tests authored not executed locally, no new CI acceptance yet. Count 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.
+Next Check PR #327 four exact-head gates and merge if green. Then retarget stacked PR #328 onto develop and validate historical lending as-of reconstruction, including complete and incomplete ledger fixtures, under its own four exact-head gates before merge. Maintain no signed release, no finance writes, physical owner S24 separately.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -28,6 +28,8 @@ data class CanonicalRecurringItem(
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
+    /** Web recurring item category ownership, preserved per physical record. */
+    val subcategory: String? = null,
 ) {
     /** Web estimate is not an actual paid amount. Never treat it as a settled transaction. */
     val isVariableEstimate: Boolean get() = amountMode == "variable"
@@ -62,6 +64,7 @@ private fun JsonObject.toCanonicalRecurring(): CanonicalRecurringItem? {
         accountId = string("accountId").orEmpty(),
         category = string("category").orEmpty(),
         note = string("note").orEmpty(),
+        subcategory = string("subcategory"),
         active = bool("active") == true,
         status = string("status"),
         day = number("day")?.toInt(),

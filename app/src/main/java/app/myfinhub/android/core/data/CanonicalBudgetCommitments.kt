@@ -66,17 +66,15 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
             !runCatching { moneyToCents(item.amount) > 0L }.getOrDefault(false)
         ) return@forEach
 
-        // Native projection uses the same canonical override precedence as allCanonicalRecurringItems.
-        // A duplicated ID cannot safely supply its optional subcategory identity.
-        val sourceRows = allCanonicalRecurringItems().filter { it.id == item.id }
-        if (sourceRows.size != 1) return@forEach
-        val source = canonicalRecurringEditSource(item.id)?.row
-        val subcategory = source?.string("subcategory")
+        // Web budgets.ts projects each physical recurring row, even if imported
+        // data reuses an ID. The subcategory is an intrinsic property of this
+        // precise row; resolving it by ID loses/merges unrelated obligations.
+        // Mutation/replay still rejects ambiguous duplicate IDs elsewhere.
         // Scheduled and recurring records are distinct liabilities unless linked
         // by a real canonical relationship; equal dates/names/amounts prove nothing.
         result += CanonicalBudgetCommitment(
             id = item.id, date = next, category = item.category,
-            subcategory = subcategory, amount = item.amount, source = "recurring",
+            subcategory = item.subcategory, amount = item.amount, source = "recurring",
         )
     }
     return result

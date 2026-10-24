@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. PR #323 (card vault/mixed credit) and PR #324 (renamed budget identities, forecast recurring commitments, Unicode password policy) passed 4/4 exact-head CI gates and squash merged into develop, latest 216633eb42ea9d11b3c3a8b3877c7d4c26e7ee77. New Android-only W4.4 reporting correction restores Web reports.ts single-refund semantics: canonical and reviewed-legacy refunds no longer double-subtract from subcategory totals, ranking and month-over-month momentum. Unit golden regressions authored, not yet CI verified or merged. Wider W2–W5 parity, full provider assets and owner physical S24 #149 signoff remain open. No permanent card delete UI, SMS import, production writes or signed release.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. PR #325 W4.4 refund reports and PR #326 W3.1 physical duplicate credit statements both passed all exact-head gates and squash merged into develop, latest c9b48180f787f63cf7215dbcaf965a1aed75aba8. W4.3 PR #327 now under independent CI with Web recurring duplicate-ID physical subcategory commitments. New stacked W4.3 PR #328 implements Web lending.ts conservative date-bounded legacy receivable reconstruction for complete, cent-exact historical entries, shared by per-person lending and historical net-worth projections. Incomplete/malformed/unbalanced source data retains the documented baseline. New golden cases authored, unmerged and not CI accepted. Other W2–W5 and physical owner S24 Ultra #149 remain pending, no release or permanent card-delete UI.",
     "next": [
-      "Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately."
+      "Validate stacked W4.3 PR #328 legacy lending as-of reconstruction on top of PR #327 recurring-budget parity; preserve exact history, cent safety and fail-closed fallback. Merge PR #327 only after 4/4 checks then retarget/reconcile #328 with develop, await its four exact final-head gates before merge. Keep CI polling <=8 minutes; continue other independent Android-only feature code, no main/release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-report-refund-parity-20261024",
-    "checkpoint": "PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.",
+    "branch": "android/w4-legacy-lending-asof-reconstruction-20261024",
+    "checkpoint": "PR #326 merged develop c9b48180 after four gates; PR #327 recurring subcategory/duplicate-liability source rebased and under CI. Stacked PR #328 W4.3 now reconstructs as-of legacy lending only when every entry has valid ISO date, exact nonnegative cent deltas, no negative chronological balance and total matching imported final amount. Keeps original final baseline if any precondition fails. Shared by net-worth receivables and person lending rows; tests authored not executed locally, no new CI acceptance yet. Count 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -792,7 +792,9 @@
               "PR #190 explicit user-selected credit statement repayment Quick Entry UI and canonical mutation branch reanchored after #189 provider matcher; previously one unit test incorrectly rebuilt a new payment after its original statement was partially settled; fixed to replay the original stable mutation. Fresh exact-head CI required before merge.",
               "W3.1 #190 selected statement repayment and provider integration merged to develop as 84122c3c120ef98ea0a87d73a21c6d46a79310d7 after four exact-head checks; native statement-selector fresh screenshot and S24 physical acceptance remain pending; W3.1 still in_progress.",
               "Batched W3.1 #192 post-#193: native Compose selector accessibility/emulator test, due>closed>open priority, Greek status/due/remaining option labels, omit paid and cross-card options, preserve explicit user choice; golden projection vectors added. Fresh exact-head CI pending; no physical S24 acceptance inferred.",
-              "Source checkpoint PR #323 authored, not yet merged: Web creditStatements.ts mixed-funded expense creditDelta share is now included in statement projection and event preparation; Web cards.ts card debt sums only credit-funded amounts from expense funding parts (including legacy owner), not the whole mixed purchase. Kotlin unit regression fixtures authored, not yet executed or accepted."
+              "Source checkpoint PR #323 authored, not yet merged: Web creditStatements.ts mixed-funded expense creditDelta share is now included in statement projection and event preparation; Web cards.ts card debt sums only credit-funded amounts from expense funding parts (including legacy owner), not the whole mixed purchase. Kotlin unit regression fixtures authored, not yet executed or accepted.",
+              "PR #326 source authored/unmerged: Web creditStatementEvents iterates physical imported events preserving duplicate IDs, whereas Android's eventRecords.toMap() collapsed historic duplicates across statementId/amount/createdAt. W3.1 creditStatementViews now pairs canonicalEvents with per-physical-row JSON, sorts date/createdAt/id, totals exact individual purchases/payments and preserves duplicate IDs in arrays. Golden tests authored for two statement cycles, duplicate purchase/payment IDs and same-cycle duplicates. No local Gradle execution; final-head CI pending.",
+              "PR #326 W3.1 creditStatementViews fixed physical duplicate event ID statement associations, golden two-cycle repeated purchase/payment IDs. All four exact head checks passed 9030938610605daa5d868843aefacf478154db02, squash merged develop c9b48180f787f63cf7215dbcaf965a1aed75aba8. W3.1 wider status remains in progress pending full feature acceptance."
             ]
           },
           {
@@ -937,7 +939,9 @@
               "PR #257 Web category budget raw negative net refund vs zero-clamped used, remaining/overrun, 24-by-24 pagination, duplicate historic ID Compose keys and JVM native projection + S24 Compose tests; first S24 test failed due to offscreen LazyColumn More node and was fixed using performScrollToIndex(25); all 4 final exact-head Project Tracking, Android CI unit/lint/unsigned release, screenshot and S24 emulator gates green at 51a2203ce4ba3b949b403a41a7f0e0abd251a3fb. Squash merged develop 12c85381eb1b29858138f9a8644d5a9cd539c186. W4.3 remains partial.",
               "PR #272 Web reportLoanBurden active long-term obligations as-of with explicit flag and derived installment threshold, balance/next payment clamping, short/self-loan exclusion, stable historic duplicate IDs, Greek sort and native privacy-aware Insights. Domain JVM/production projection/S24 Compose goldens passed all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at 9449dbcf0bcdec744af06b88a4fcc3c0759d28e9; squash merged develop f800a0a5e11ab16922a564fa4e3f3711ea944804. W4.3 remains partial.",
               "PR #324 source-authored, unmerged: Web budgets.ts aliases from immutable categoryIdentities labels/history now participate in Android overall/category/subcategory rollups, carryover and future committed estimates; added renamed Greek category/subcategory historical regression fixture. Unit execution/CI acceptance pending.",
-              "PR #324 source authored: budgetProjectedCommitments now matches Web's targetAsOf for future target months, never turns variable recurring estimates into booked commitments, and never deduplicates unrelated recurring and scheduled obligations by coincidental same date/name/amount. Added pure Kotlin regression vectors. CI acceptance pending."
+              "PR #324 source authored: budgetProjectedCommitments now matches Web's targetAsOf for future target months, never turns variable recurring estimates into booked commitments, and never deduplicates unrelated recurring and scheduled obligations by coincidental same date/name/amount. Added pure Kotlin regression vectors. CI acceptance pending.",
+              "PR #327 source authored/unmerged: Web recurring item subcategory now parsed and retained on each CanonicalRecurringItem; budgetProjectedCommitments uses per-physical-row subcategory and no longer excludes different seeded/custom imported recurring records sharing a duplicate ID. Both exact independent future obligations remain in category/subcategory projections. Golden fixture verifies two identical IDs, distinct subcategories, amounts and no source mutation. Other duplicate-ID write guards remain fail-closed. Tests not locally executed; CI pending.",
+              "Stacked PR #328 source authored/unmerged: Web lending.ts legacyLendingSnapshot as-of rebuild now shared between Android receivableOutstanding and canonicalLendingPersonRows. Reconstruct only complete dated seed ledger with cent-exact valid entries and final balance match; invalid/incomplete/negative intermediate source conservatively retains final original outstanding. Goldens cover 0/150/120 as-of seed, per-person event counts, unattributed deltas and five malformed history cases. No local Gradle execution, CI pending."
             ]
           },
           {
@@ -1123,10 +1127,10 @@
         ]
       }
     ],
-    "next_action": "Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.",
+    "next_action": "Check PR #327 four exact-head gates and merge if green. Then retarget stacked PR #328 onto develop and validate historical lending as-of reconstruction, including complete and incomplete ledger fixtures, under its own four exact-head gates before merge. Maintain no signed release, no finance writes, physical owner S24 separately.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 325,
-    "current_subtask": "W4.4",
+    "pr": 328,
+    "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

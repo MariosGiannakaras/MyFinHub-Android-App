@@ -48,4 +48,36 @@ class WebBudgetFutureCommitmentsParityTest {
         assertEquals(80.0, budget.projectedUsed, 0.001)
         assertEquals(120.0, budget.projectedRemaining, 0.001)
     }
+    @Test fun repeatedHistoricalRecurringIdsRetainSeparateSubcategoryAndAmounts() {
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"recurring":[
+            {"id":"duplicate","name":"Energy","amount":35,"day":17,
+              "accountId":"cash","category":"Σπίτι","subcategory":"Ενέργεια",
+              "active":true,"recurrenceUnit":"month","recurrenceInterval":1}
+          ]},"state":{
+            "recurringCustom":[
+              {"id":"duplicate","name":"Internet","amount":20,"day":17,
+               "accountId":"cash","category":"Σπίτι","subcategory":"Σύνδεση",
+               "active":true,"recurrenceUnit":"month","recurrenceInterval":1}
+            ],
+            "budgets":[
+              {"id":"energy","month":"2026-11","scope":"subcategory",
+                "category":"Σπίτι","subcategory":"Ενέργεια","amount":60},
+              {"id":"internet","month":"2026-11","scope":"subcategory",
+                "category":"Σπίτι","subcategory":"Σύνδεση","amount":50}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        val commitments = imported.canonicalBudgetProjectedCommitments("2026-11", "2026-10-24")
+        assertEquals(2, commitments.size)
+        assertEquals(listOf("duplicate", "duplicate"), commitments.map { it.id })
+        assertEquals(listOf("Ενέργεια", "Σύνδεση"), commitments.map { it.subcategory })
+        assertEquals(listOf(35.0, 20.0), commitments.map { it.amount })
+        val budgets = imported.webBudgetProgress("2026-11", "2026-10-24").associateBy { it.id }
+        assertEquals(35.0, budgets.getValue("energy").projectedDue, 0.001)
+        assertEquals(20.0, budgets.getValue("internet").projectedDue, 0.001)
+        assertEquals(before, imported.raw)
+    }
+
 }
