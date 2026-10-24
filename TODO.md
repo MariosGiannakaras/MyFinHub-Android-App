@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify W4.2 PR #332 Web-equivalent named omitted-forecast explanations with exact final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator; squash merge only after 4/4 succeed. Continue incomplete W2–W5 domains independently. No signed release, main promotion, production finance writes or physical S24 owner approval.
+- [ ] Validate W4.2 PR #333 scheduled warnings chronological Web parity and source immutability using four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, merging only if all succeed. Then continue broader W2–W5 acceptance. No signed release, main promotion, SMS, irreversible card deletion or live finance writes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #332, branch android/w4-forecast-omitted-reason-parity-20261024
-Current W4.2: PR #331 W2.4 fail-closed secure-card cleanup merged develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four exact-head gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Current draft PR #332 W4.2 changes only localized omitted-forecast explanations for missing scheduled, recurring and loan movements, replacing opaque IDs with recognizable names; JVM regression authored, exact-head hosted checks pending. Web parity still 1/6 implementations · 11/24 subtasks; owner physical S24 Ultra #149 pending.
+Issue #155, PR #333, branch android/w4-scheduled-forecast-warning-order-20261024
+Current W4.2: W4.2 PR #332 final head 2639844d931605e8e656e9834e75b3481903d158 passed four required CI gates and squash merged develop 091af3f31d149da89eae677b56568840a1b98709; Web-style forecast missing-source labels now integrated. Draft W4.2 PR #333 source and Kotlin golden test match Web pendingScheduled dueDate/createdAt order, scheduled-transfer warning and ordinary-account warning; final-head CI not accepted yet. Canonical Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact immutable final-head gates for W4.2 PR #332; merge only if Project Tracking, Android CI, screenshot and hosted S24 emulator are successful. Then resume first remaining incomplete parity scope, without main/release promotion, SMS, irreversible card-delete UI or live data writes.
+Next Check four immutable final-head gates for draft W4.2 PR #333, including JVM ordering/golden assertions; merge only when all four pass. Continue first unfinished larger W2–W5 parity scopes without Web/backend/schema work, real finance data writes, SMS, destructive card UI, signed release or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

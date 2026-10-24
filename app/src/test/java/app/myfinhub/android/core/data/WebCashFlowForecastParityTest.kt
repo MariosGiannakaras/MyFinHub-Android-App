@@ -137,8 +137,8 @@ class WebCashFlowForecastParityTest {
         val projection = document(scheduled, recurring, loans, events = "")
             .cashFlowForecast(today, 30)
         assertEquals(listOf(
-            "Η προγραμματισμένη κίνηση «Ενοίκιο» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος.",
-            "Η προγραμματισμένη κίνηση «Μεταφορά στόχου» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι.",
+            "Η προγραμματισμένη κίνηση «Ενοίκιο» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι διαθέσιμος.",
+            "Η προγραμματισμένη μεταφορά «Μεταφορά στόχου» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι.",
             "Το πάγιο «Συνδρομή μουσικής» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος.",
             "Το πάγιο «Ετήσια υπηρεσία» δεν προβλήθηκε επειδή δεν υπάρχει αρκετή πληροφορία ημερομηνίας.",
             "Η δόση «Δόση οχήματος» δεν προβλήθηκε επειδή ο λογαριασμός πληρωμής δεν είναι διαθέσιμος.",
@@ -147,6 +147,37 @@ class WebCashFlowForecastParityTest {
         assertTrue(projection.insufficientData)
         assertEquals(1000.0, projection.projectedPortfolio, 0.001)
         assertFalse(projection.omitted.joinToString().contains("opaque-"))
+    }
+
+    @Test fun scheduledOmissionsFollowWebDueDateThenCreatedAtOrderWhileMoneyStaysUnchanged() {
+        // Seed order deliberately differs from the Web pendingScheduled sort.
+        val scheduled = """
+          {"id":"late-transfer","note":"Late transfer","dueDate":"2026-10-22",
+           "createdAt":"2026-10-22T13:00:00Z","kind":"transfer","amount":100,
+           "fromAccountId":"bank","toAccountId":"missing","status":"pending"},
+          {"id":"same-later","note":"Same later","dueDate":"2026-10-19",
+           "createdAt":"2026-10-19T20:00:00Z","kind":"expense","amount":500,
+           "accountId":"missing","status":"pending"},
+          {"id":"valid-income","note":"Valid credit","dueDate":"2026-10-18",
+           "createdAt":"2026-10-18T10:00:00Z","kind":"income","amount":60,
+           "accountId":"bank","status":"pending"},
+          {"id":"same-earlier","note":"Same earlier","dueDate":"2026-10-19",
+           "createdAt":"2026-10-19T09:00:00Z","kind":"expense","amount":300,
+           "accountId":"missing","status":"pending"}
+        """.trimIndent()
+        val document = document(scheduled = scheduled, recurring = "", loans = "", events = "")
+        val original = document.raw
+        val forecast = document.cashFlowForecast(today, 30)
+        assertEquals(listOf(
+            "Η προγραμματισμένη κίνηση «Same earlier» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι διαθέσιμος.",
+            "Η προγραμματισμένη κίνηση «Same later» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι διαθέσιμος.",
+            "Η προγραμματισμένη μεταφορά «Late transfer» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι.",
+        ), forecast.omitted)
+        assertEquals(1, forecast.sourceCounts["scheduled"])
+        assertEquals(60.0, forecast.movements.single().portfolioDelta, 0.001)
+        assertEquals(1060.0, forecast.projectedPortfolio, 0.001)
+        assertEquals(original, document.raw)
+        assertFalse(forecast.omitted.joinToString().contains("late-transfer"))
     }
 
     @Test fun invalidHorizonRejectedInsteadOfClamped() {
