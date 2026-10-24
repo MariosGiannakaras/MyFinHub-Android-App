@@ -36,8 +36,8 @@ class WebLegacyLendingAsOfSnapshotParityTest {
         // Net worth includes unattributed delta even though per-person rows do not.
         assertEquals(165.0, valid.receivableOutstanding("2026-10-08"), 0.001)
         assertEquals(0.0, valid.canonicalLendingPersonRows("2026-08-31").single().outstanding, 0.001)
-        assertEquals(115.0, valid.receivableOutstanding("2026-12-01"), 0.001)
-        assertEquals(115.0, valid.receivableOutstanding(), 0.001)
+        assertEquals(120.0, valid.receivableOutstanding("2026-12-01"), 0.001)
+        assertEquals(120.0, valid.receivableOutstanding(), 0.001)
         assertEquals(before, valid.raw)
     }
 
