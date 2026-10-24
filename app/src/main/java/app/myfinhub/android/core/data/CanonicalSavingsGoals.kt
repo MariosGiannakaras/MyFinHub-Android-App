@@ -35,7 +35,10 @@ fun CanonicalFinanceDocument.canonicalSavingsGoals(asOf: LocalDate): List<Canoni
         CanonicalSavingsGoalRow(
             id = id,
             name = goal.string("name").orEmpty().ifBlank { "Στόχος αποταμίευσης" },
-            targetAmount = amount, targetDate = date?.toString(),
+            // Keep the original imported deadline visible even if its ISO
+            // value is malformed. Web renders the saved targetDate as supplied;
+            // only a *valid* date participates in deadlinePast comparisons.
+            targetAmount = amount, targetDate = rawDate,
             backingBalance = backing, progressPercent = percent,
             deadlinePast = date?.isBefore(asOf) == true,
         )
