@@ -28,11 +28,11 @@ data class CanonicalRecurringItem(
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
-    /** Keep missing versus explicitly invalid imported estimate bounds distinct. */
-    val estimateMinPresent: Boolean = false,
-    val estimateMaxPresent: Boolean = false,
     /** Web recurring item category ownership, preserved per physical record. */
     val subcategory: String? = null,
+    /** Append-only projection metadata so existing positional constructors remain compatible. */
+    val estimateMinPresent: Boolean = false,
+    val estimateMaxPresent: Boolean = false,
 ) {
     /** Web estimate is not an actual paid amount. Never treat it as a settled transaction. */
     val isVariableEstimate: Boolean get() = amountMode == "variable"
