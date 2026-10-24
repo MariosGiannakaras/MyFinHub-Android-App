@@ -50,12 +50,12 @@ class WebRecurringForecastLoanDayGoldenTest {
         assertEquals(listOf(LocalDate.parse("2026-10-15")),loans.map { it.date })
         assertEquals(-40.0, loans.single().portfolioDelta, 0.001)
         assertEquals(1, forecast.sourceCounts["loan"])
-        assertEquals(1,forecast.omitted.count { it.contains("bad-first") })
+        assertEquals(1, forecast.omitted.count { it == "Το πάγιο «Bad first» δεν προβλήθηκε επειδή δεν υπάρχει αρκετή πληροφορία ημερομηνίας." })
     }
 
     @Test fun unavailableRecurringDateIsOmittedAndDoesNotInventACharge() {
         val result = doc.cashFlowForecast(LocalDate.parse("2026-10-14"),30)
-        assertTrue(result.omitted.any { it.contains("bad-first") })
+        assertTrue(result.omitted.any { it == "Το πάγιο «Bad first» δεν προβλήθηκε επειδή δεν υπάρχει αρκετή πληροφορία ημερομηνίας." })
         assertEquals(420.0, result.projectedPortfolio, 0.001)
         assertEquals(500.0, result.currentPortfolio, 0.001)
     }
