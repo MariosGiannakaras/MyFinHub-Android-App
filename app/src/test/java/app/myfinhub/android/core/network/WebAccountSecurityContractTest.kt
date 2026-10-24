@@ -99,10 +99,10 @@ class WebAccountSecurityContractTest {
     }
 
     @Test fun webPasswordAcceptsUnicodeNumberCategoryNotOnlyDecimalDigits() {
-        // Web passwordPolicy.ts uses Unicode \\p{N}; Roman numerals and circled
+        // Web passwordPolicy.ts uses Unicode \p{N}; Roman numerals and circled
         // digits are numbers in JS regex even though JVM Char.isDigit excludes them.
-        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!\\u216B"))
-        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!\\u2468"))
+        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!Ⅻ"))
+        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!⑨"))
         assertFalse(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!No"))
     }
 }

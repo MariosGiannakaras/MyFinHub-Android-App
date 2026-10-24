@@ -28,7 +28,7 @@ fun normalizedAccountSecurityEmail(input: String): String? {
 fun validAccountSecurityPassword(current: String, replacement: String): Boolean =
     current.isNotEmpty() && current.length <= 512 &&
         replacement.length in 12..512 && replacement != current &&
-        Regex("""\\p{Ll}""").containsMatchIn(replacement) &&
-        Regex("""\\p{Lu}""").containsMatchIn(replacement) &&
-        Regex("""\\p{N}""").containsMatchIn(replacement) &&
+        Regex("""\p{Ll}""").containsMatchIn(replacement) &&
+        Regex("""\p{Lu}""").containsMatchIn(replacement) &&
+        Regex("""\p{N}""").containsMatchIn(replacement) &&
         Regex("""[\p{P}\p{S}]""").containsMatchIn(replacement)
