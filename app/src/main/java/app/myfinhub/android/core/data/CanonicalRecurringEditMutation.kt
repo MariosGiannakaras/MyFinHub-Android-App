@@ -34,7 +34,7 @@ data class EditCanonicalRecurring(
     override val description: String = "Επεξεργασία παγίου"
     private val editableFields = setOf(
         "name", "amount", "amountMode", "estimateMin", "estimateMax",
-        "accountId", "category", "recurrenceUnit", "recurrenceInterval",
+        "accountId", "category", "subcategory", "recurrenceUnit", "recurrenceInterval",
         "day", "firstExpectedDate", "endDate",
     )
 
