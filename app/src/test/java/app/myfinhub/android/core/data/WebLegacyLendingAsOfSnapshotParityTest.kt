@@ -71,4 +71,22 @@ class WebLegacyLendingAsOfSnapshotParityTest {
         assertEquals(4, canonicalLegacyLendingSnapshot(record, null).events)
         assertEquals(120.0, canonicalLegacyLendingSnapshot(record, null).outstanding, 0.001)
     }
+    @Test fun datedStringAmountsAreCentExactAndPreservePartialHistoricReconstruction() {
+        val source = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"lending":[
+            {"person":"Νίκος","outstanding":2,"entries":[
+              {"date":"2026-09-02","lent":"2.50"},
+              {"date":"2026-09-09","repaid":"0.40","haircut":"0.10"}
+            ]}
+          ]},"state":{"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = source.raw
+        assertEquals(0.0, source.receivableOutstanding("2026-09-01"), 0.000001)
+        assertEquals(2.5, source.receivableOutstanding("2026-09-04"), 0.000001)
+        assertEquals(2.0, source.receivableOutstanding("2026-09-10"), 0.000001)
+        assertEquals(1, source.canonicalLendingPersonRows("2026-09-04").single().events)
+        assertEquals(2, source.canonicalLendingPersonRows("2026-09-10").single().events)
+        assertEquals(original, source.raw)
+    }
+
 }
