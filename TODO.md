@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify PR #327 W4.3 physical recurring duplicate-ID/subcategory budget commitments against Web and 4/4 identical-final-head checks after rebasing onto merged #326 develop. Merge only if all gates green. Continue other W2–W5 source code independently, with <=8 minute CI observation budget and physical S24 signoff separately.
+- [ ] Validate W4.1 PR #329 recurring create/edit subcategory UI, canonical persistence and offline/revision replay against Web; require all 4 exact-head checks before merge. If #328 merges first, reconcile #329 against latest develop and rerun all gates. Continue W2–W5 concrete Android parity; assistant CI observation <=8 minutes; no production release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #327, branch android/w4-recurring-duplicate-commitment-parity-20261024
-Current W4.3: PR #326 W3.1 duplicate physical event statement attribution passed all four CI gates and was squash merged into develop c9b48180. W4.3 PR #327 retains recurring subcategory per physical record and preserves independent seeded/custom future commitments sharing imported duplicate IDs, without permitting ambiguous duplicate-ID edits. A future-month golden verifies separate subcategory budgets and amounts. Source authored, unmerged and CI latest head pending. 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.
+Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
+Current W4.1: Verified PR #327 W4.3 recurring duplicate-ID category commitments squash merged develop 3f7a5aba after 4 exact-head gates; separate W4.3 PR #328 lending history/principal is under independent CI. PR #329 W4.1 native recurring subcategory is authored across form, ViewModel, domain creation/editing, finance plan projection and PendingCanonicalMutation offline queue replay. Golden create/edit tests authored but current PR not yet CI accepted/merged. Web parity 1/6 implementations · 11/24 subtasks, owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check exact final head of rebased PR #327 for all four checks (Android CI, Project Tracking, screenshots, hosted S24 emulator) before merge. Keep duplicate-id mutation guards fail-closed, no local build claims, no release/main promotion or physical device approval.
+Next Validate PR #329 Web recurring category/subcategory end-to-end UI+create/edit+offline replay tests and all four exact-head gates; merge only on green and after reconciling concurrent PR #328 if necessary. Keep physical S24 acceptance and production release separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
