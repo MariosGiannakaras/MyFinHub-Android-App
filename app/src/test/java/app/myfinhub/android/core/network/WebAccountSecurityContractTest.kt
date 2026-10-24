@@ -97,4 +97,12 @@ class WebAccountSecurityContractTest {
         assertEquals("new@example.org",normalizedAccountSecurityEmail(" NEW@EXAMPLE.ORG "))
         assertEquals(null,normalizedAccountSecurityEmail("no @domain"))
     }
+
+    @Test fun webPasswordAcceptsUnicodeNumberCategoryNotOnlyDecimalDigits() {
+        // Web passwordPolicy.ts uses Unicode \\p{N}; Roman numerals and circled
+        // digits are numbers in JS regex even though JVM Char.isDigit excludes them.
+        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!\\u216B"))
+        assertTrue(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!\\u2468"))
+        assertFalse(validAccountSecurityPassword("old!P@ssWord1", "Upperlower!No"))
+    }
 }
