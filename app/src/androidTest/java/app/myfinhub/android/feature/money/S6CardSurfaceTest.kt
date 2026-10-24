@@ -206,7 +206,7 @@ class S6CardSurfaceTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Προσθήκη αριθμού / λήξης").performClick()
+        composeRule.onNodeWithText("Αλλαγή αριθμού / λήξης").performClick()
         composeRule.onNodeWithTag("card_secure_pan_editor").performTextInput("4000000000000002")
         composeRule.onNodeWithTag("card_secure_expiry_editor").performTextInput("11/31")
 
@@ -222,7 +222,7 @@ class S6CardSurfaceTest {
         }
 
         // New owner-authorized read may open a fresh editor, never the prior draft.
-        composeRule.onNodeWithText("Προσθήκη αριθμού / λήξης").performClick()
+        composeRule.onNodeWithText("Αλλαγή αριθμού / λήξης").performClick()
         composeRule.onNodeWithTag("card_secure_pan_editor").performTextInput("4111111111111111")
         composeRule.onNodeWithTag("card_secure_expiry_editor").performTextInput("12/32")
         composeRule.onNodeWithText("Αποθήκευση αριθμού / λήξης").performScrollTo().performClick()
