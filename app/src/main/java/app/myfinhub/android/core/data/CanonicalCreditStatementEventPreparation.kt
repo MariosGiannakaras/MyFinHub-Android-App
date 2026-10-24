@@ -22,10 +22,11 @@ fun CanonicalFinanceDocument.prepareCanonicalCreditStatementEvent(
 ): PreparedCanonicalCreditStatementEvent {
     val statements = state.array("creditStatements")
     val kind = event.string("kind")
+    val isCreditPurchase = canonicalStatementPurchaseAmount(event) > 0.005
     val cardId = event.string("cardId")?.takeIf(String::isNotBlank)
     val explicitId = event.string("statementId")?.takeIf(String::isNotBlank)
     if (explicitId != null) {
-        val valid = kind in setOf("card_purchase", "card_payment") &&
+        val valid = (isCreditPurchase || kind == "card_payment") &&
             cardId != null && statements.any {
                 val statement = it as? JsonObject
                 statement?.string("id") == explicitId &&
@@ -35,7 +36,7 @@ fun CanonicalFinanceDocument.prepareCanonicalCreditStatementEvent(
             if (valid) event else JsonObject(event - "statementId"), statements
         )
     }
-    if (kind != "card_purchase" || cardId == null) {
+    if (!isCreditPurchase || cardId == null) {
         return PreparedCanonicalCreditStatementEvent(event, statements)
     }
     val card = canonicalCards().firstOrNull { it.id == cardId && it.kind == "credit" }

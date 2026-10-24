@@ -2,6 +2,7 @@ package app.myfinhub.android.core.data
 
 import kotlin.math.max
 import kotlin.math.floor
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
 /** Read-only Web creditStatementViews / recommendedPayableStatement semantics. */
@@ -19,6 +20,17 @@ data class CanonicalCreditStatementView(
     val remaining: Double,
     val status: String,
 )
+
+/**
+ * The Web statement domain includes mixed-funding `expense` events as credit
+ * purchases for their credit-funded portion only (not the entire expense).
+ * A plain debit expense never becomes a statement charge.
+ */
+internal fun canonicalStatementPurchaseAmount(event: JsonObject): Double = when (event.string("kind")) {
+    "card_purchase" -> event.number("amount") ?: 0.0
+    "expense" -> if (event["funding"] is JsonArray) max(0.0, -(event.number("creditDelta") ?: 0.0)) else 0.0
+    else -> 0.0
+}
 
 /**
  * Mirrors Web creditStatements.ts roundMoney:
@@ -40,15 +52,15 @@ fun CanonicalFinanceDocument.creditStatementViews(
 ): List<CanonicalCreditStatementView> {
     // Preserve the single canonical event parser for money/kind semantics, but match Web's
     // creditStatementEvents ordering: date, createdAt, ID. The JSON array is not a timeline.
-    val eventMetadata = state.array("events")
-        .mapNotNull { raw ->
-            val event = raw as? JsonObject ?: return@mapNotNull null
-            val id = event.string("id") ?: return@mapNotNull null
-            id to (event.string("statementId") to event.string("createdAt").orEmpty())
-        }
-        .toMap()
+    val eventRecords = state.array("events").mapNotNull { it as? JsonObject }
+        .mapNotNull { raw -> raw.string("id")?.let { it to raw } }.toMap()
+    val eventMetadata = eventRecords.mapValues { (_, raw) ->
+        raw.string("statementId") to raw.string("createdAt").orEmpty()
+    }
     val events = canonicalEvents().filter { event ->
-        event.date <= asOf && event.kind in setOf("card_purchase", "card_payment") &&
+        event.date <= asOf &&
+            (event.kind == "card_payment" ||
+                (eventRecords[event.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0) > 0.005) &&
             eventMetadata[event.id]?.first != null
     }.sortedWith(
         compareBy<CanonicalEvent> { it.date }
@@ -65,9 +77,13 @@ fun CanonicalFinanceDocument.creditStatementViews(
         val closeDate = record.string("closeDate") ?: return@mapNotNull null
         val dueDate = record.string("dueDate") ?: return@mapNotNull null
         val associated = events[id].orEmpty()
-        val purchases = associated.filter { it.kind == "card_purchase" }
+        val purchases = associated.filter {
+            (eventRecords[it.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0) > 0.005
+        }
         val payments = associated.filter { it.kind == "card_payment" }
-        val purchaseTotal = roundCreditMoney(purchases.sumOf { it.amount })
+        val purchaseTotal = roundCreditMoney(purchases.sumOf {
+            eventRecords[it.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0
+        })
         val paymentTotal = roundCreditMoney(payments.sumOf { it.amount })
         val remaining = roundCreditMoney(max(0.0, purchaseTotal - paymentTotal))
         val status = when {
@@ -104,7 +120,7 @@ fun CanonicalFinanceDocument.unlinkedCreditStatementEventIds(cardId: String): Li
     state.array("events").mapNotNull { raw ->
         val e = raw as? JsonObject ?: return@mapNotNull null
         if (e.string("cardId") != cardId ||
-            e.string("kind") !in setOf("card_purchase", "card_payment") ||
+            (e.string("kind") != "card_payment" && canonicalStatementPurchaseAmount(e) <= 0.005) ||
             !e.string("statementId").isNullOrEmpty()) return@mapNotNull null
         e.string("id")
     }
