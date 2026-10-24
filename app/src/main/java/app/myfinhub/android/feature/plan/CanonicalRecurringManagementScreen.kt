@@ -355,6 +355,7 @@ private fun CanonicalRecurringCreateDialog(
         mutableStateOf(initial?.amount?.toString().orEmpty())
     }
     var category by remember(initial?.id) { mutableStateOf(initial?.category ?: "Πάγια") }
+    var subcategory by remember(initial?.id) { mutableStateOf(initial?.subcategory.orEmpty()) }
     var accountId by remember(initial?.id) {
         // Existing orphaned payer stays unresolved until explicitly replaced.
         mutableStateOf(initial?.accountId ?: accounts.firstOrNull()?.id.orEmpty())
@@ -433,6 +434,9 @@ private fun CanonicalRecurringCreateDialog(
                 OutlinedTextField(value = category, onValueChange = { category = it },
                     label = { Text("Κατηγορία") }, singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("recurring_create_category"))
+                OutlinedTextField(value = subcategory, onValueChange = { subcategory = it },
+                    label = { Text("Υποκατηγορία (προαιρετικά)") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth().testTag("recurring_create_subcategory"))
                 Box {
                     TextButton(onClick = { accountMenu = true },
                         modifier = Modifier.fillMaxWidth().testTag("recurring_create_account")) {
@@ -476,7 +480,8 @@ private fun CanonicalRecurringCreateDialog(
                     if (valid && amount != null && interval != null) onSave(
                         RecurringCreateRequest(
                             name = name.trim(), amount = amount, accountId = accountId,
-                            category = category.trim(), amountMode = mode,
+                            category = category.trim(),
+                            subcategory = subcategory.trim().ifBlank { null }, amountMode = mode,
                             estimateMin = if (variable) lower else null,
                             estimateMax = if (variable) upper else null,
                             recurrenceUnit = unit, recurrenceInterval = interval,

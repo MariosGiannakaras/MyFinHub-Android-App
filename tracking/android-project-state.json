@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W4.3 historical lending/loan principal/writeoff PR #328 passed all four exact-head gates and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487. W4.1 recurring subcategory end-to-end PR #329 was source-reconciled with latest develop and awaits rerun CI. New independent W4.3 PR #330 aligns historical savings-goal presentation with Web savingsGoals.ts: nonpositive, missing or invalid archived target amounts remain visible with 0% progress instead of silently vanishing. Read-only tests authored, not CI accepted or merged. Wider W2–W5, full provider SVG assets and owner physical S24 #149 acceptance remain open. No signed release, SMS or card permanent deletion UI.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W4.1 recurring subcategory end-to-end native create/edit, offline CAS replay and linked expense categorization passed four exact final-head gates and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0 in PR #329. PR #328 historical lending, imported loan principal and writeoff history previously passed all four checks and merged. New W4.3 source PR #330 preserves historical imported savings goals with zero, negative, missing or null target amounts as visible goal rows with 0% progress, retaining malformed original target dates verbatim rather than silently omitting legacy records. Golden JVM regressions authored; exact-head CI still pending on reconciled branch. Wider W2–W5 features and owner physical S24 #149 acceptance remain outstanding. No signed release/main promotion, SMS or permanent card-delete UI.",
     "next": [
-      "Validate W4.3 PR #330 historical savings goal projections with imported zero/negative/missing target values and nonmutating read-only tests. Require four exact-head Android CI/Project Tracking/screenshot/hosted S24 gates before merge. Independently validate reconciled recurring subcategory PR #329; never let stale tracking overwrite merged work. Continue W2–W5 product code."
+      "Verify PR #330 W4.3 historical savings-goal read projections after source reconciliation with #329 develop. Require 4/4 exact final-head Project Tracking, Android CI, screenshot regression and S24 hosted checks before merge. Then continue W2–W5 Android product code; physical S24 owner acceptance and release remain separate."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w4-savings-goal-historic-target-parity-20261024",
-    "checkpoint": "PR #328 W4.3 as-of lending, imported loan principal and writeoff accepted by 4/4 hosted checks and merged develop 897f4d2b. Concurrent PR #329 W4.1 recurring subcategory source reconciled onto develop, awaiting new CI. Independent PR #330 W4.3 keeps invalid historical savings goal targets visible with exactly zero progress (Web savingsGoalProgress), while current positive goals still share the same backing balance. Kotlin golden authored, not locally executed or merged. Progress 1/6 implementations · 11/24 subtasks; physical S24 #149 outstanding.",
+    "checkpoint": "PR #329 W4.1 recurring subcategory full native lifecycle passed four final-head CI checks and squash merged develop 624dc326. PR #330 W4.3 preserves legacy savings goals with invalid/nonpositive or missing target amounts, shows progress 0 without inventing allocations, preserves malformed targetDate text, and retains immutable source. Kotlin regression authored; reconciled onto verified develop, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -879,7 +879,9 @@
               "PR #315 final head e154534aca46f0003727690060f7ff80f23f991b passed 4/4 exact-head Project Tracking, Android CI, screenshots and hosted S24 emulator checks, squash merged develop 8d70c737008b5140cf705205e1bf8a3908f3c5c3. Native newest-first actual expense payment history + 3/10 pagination + amount privacy accepted; W4.1 remains partial.",
               "Draft #316: native form for new fixed/variable recurring bills; full Web validation, canonical recurringCustom insert and durable replay without synthetic expense; JVM and hosted Compose golden tests. Exact-head checks pending.",
               "PR #316 final head 3c8786759adf7c7a37024746cad1dbcfa58dd089 passed 4/4 exact-head Project Tracking, Android CI optimized unsigned release + Play bundle, screenshot and hosted S24 emulator gates, squash merged develop 4b9b7b31bc13034ab3e51d16d5b6c44b437b57a3. New recurring create form/strict fixed-variable and cadence validation/offline mutation accepted; W4.1 remains partial.",
-              "Draft #317: Web seeded/override/custom native recurring edit, expected-record conflict replay guard, preserved service/logo/status metadata and canonical events, JVM and Compose goldens; exact CI pending."
+              "Draft #317: Web seeded/override/custom native recurring edit, expected-record conflict replay guard, preserved service/logo/status metadata and canonical events, JVM and Compose goldens; exact CI pending.",
+              "PR #329 source authored/unmerged: Web RecurringPage category path subcategory field now available in native recurring dialog and read projection; canonical create/edit persists or clears subcategory without overwriting unrelated logos/lifecycle; ViewModel forwards UI requests; PendingCanonicalMutation encodes and decodes field through offline CAS replay. JVM golden tests authored for creation, edit, clearing and zero finance events. Tests not locally Gradle executed; exact-head CI pending.",
+              "PR #329 recurring subcategory native create/edit, offline CAS replay, read projection and linked expenses passed all four exact-head CI gates on 85269f03ee1e061536ec554714095803e1977f85 and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0. Wider W4.1 acceptance remains in progress."
             ]
           },
           {
@@ -944,6 +946,7 @@
               "Stacked PR #328 source authored/unmerged: Web lending.ts legacyLendingSnapshot as-of rebuild now shared between Android receivableOutstanding and canonicalLendingPersonRows. Reconstruct only complete dated seed ledger with cent-exact valid entries and final balance match; invalid/incomplete/negative intermediate source conservatively retains final original outstanding. Goldens cover 0/150/120 as-of seed, per-person event counts, unattributed deltas and five malformed history cases. No local Gradle execution, CI pending.",
               "PR #328 augmented W4.3 Web loans.ts legacyPaidAmount principal parity: canonicalLoanBalanceRows now honors supplied historical legacyPaidAmount including 0 instead of always recomputing paidCount × nominal installment, and applies JS Math.round at 2 decimal places to legacy baseline and linked payments. Golden tests authored: renegotiated 180€ historical vs nominal 300€, explicit zero, missing override fallback, as-of linked payments and JS rounding. Source authored, no local Gradle run or exact-head CI acceptance.",
               "PR #327 4/4 exact-head checks passed on commit 281480f2462d28f2e91587bf1230c9b78021c0a8 and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. Remaining broader W4.3 acceptance open.",
+              "PR #328 exact-head 4/4 checks passed and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487; historical-as-of legacy lending, imported loan principal and writeoff history implemented. Broader W4.3 acceptance remains open.",
               "PR #330 authored/unmerged: Web savingsGoalProgress renders historical imported nonpositive/missing goal target as progress=0 while preserving the goal row. Android CanonicalSavingsGoals previously discarded these rows; now retains ID and name, finite target if present, and displays zero progress. Existing positive-target semantics unchanged. Kotlin fixture extended with zero and added negative/missing/null target source immutability test. CI and owner acceptance pending."
             ]
           },
@@ -1130,7 +1133,7 @@
         ]
       }
     ],
-    "next_action": "Validate PR #330 and PR #329 separately on their latest exact immutable head against develop; merge only after 4/4 successful checks and if required reconcile generated trackers. Continue W2–W5 features; owner S24 device signoff and signed release not implied.",
+    "next_action": "Check all four immutable final-head gates for PR #330, merge only when successful. Continue other W2–W5 native Android feature parity; no local build execution claim, production finance writes, signed release/main promotion or owner physical S24 approval.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 330,
     "current_subtask": "W4.3",

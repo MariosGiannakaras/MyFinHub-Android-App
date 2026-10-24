@@ -112,4 +112,22 @@ class CanonicalRecurringEditMutationTest {
         assertTrue(queue.isSatisfiedBy(applied))
         assertEquals(0,applied.state.array("events").size)
     }
+    @Test fun editorUpdatesAndClearsSubcategoryWithoutDiscardingLogoOrPendingReplay() {
+        val update = edit(before, "seed", updated.copy(subcategory = "Ηλεκτρικό ρεύμα"))
+        val after = update.apply(before)
+        val row = after.canonicalRecurringEditSource("seed")!!.row
+        assertEquals("Ηλεκτρικό ρεύμα", row.string("subcategory"))
+        assertEquals("logo-certified", row.string("logoAssetKey"))
+        val queue = PendingCanonicalMutationIntent.fromMutation(update, "offline-edit-subcategory")
+        assertEquals("Ηλεκτρικό ρεύμα",
+            queue.payload.obj("recurring").string("subcategory"))
+        assertEquals(after.raw, queue.asMutation().apply(before).raw)
+
+        val reset = edit(after, "seed", updated.copy(subcategory = null))
+        val cleared = reset.apply(after).canonicalRecurringEditSource("seed")!!.row
+        assertEquals(null, cleared.string("subcategory"))
+        assertEquals("logo-certified", cleared.string("logoAssetKey"))
+        assertEquals(0, after.state.array("events").size)
+    }
+
 }

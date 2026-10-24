@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.3 PR #330 historical savings goal projections with imported zero/negative/missing target values and nonmutating read-only tests. Require four exact-head Android CI/Project Tracking/screenshot/hosted S24 gates before merge. Independently validate reconciled recurring subcategory PR #329; never let stale tracking overwrite merged work. Continue W2–W5 product code.
+- [ ] Verify PR #330 W4.3 historical savings-goal read projections after source reconciliation with #329 develop. Require 4/4 exact final-head Project Tracking, Android CI, screenshot regression and S24 hosted checks before merge. Then continue W2–W5 Android product code; physical S24 owner acceptance and release remain separate.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #330, branch android/w4-savings-goal-historic-target-parity-20261024
-Current W4.3: PR #328 W4.3 as-of lending, imported loan principal and writeoff accepted by 4/4 hosted checks and merged develop 897f4d2b. Concurrent PR #329 W4.1 recurring subcategory source reconciled onto develop, awaiting new CI. Independent PR #330 W4.3 keeps invalid historical savings goal targets visible with exactly zero progress (Web savingsGoalProgress), while current positive goals still share the same backing balance. Kotlin golden authored, not locally executed or merged. Progress 1/6 implementations · 11/24 subtasks; physical S24 #149 outstanding.
+Current W4.3: PR #329 W4.1 recurring subcategory full native lifecycle passed four final-head CI checks and squash merged develop 624dc326. PR #330 W4.3 preserves legacy savings goals with invalid/nonpositive or missing target amounts, shows progress 0 without inventing allocations, preserves malformed targetDate text, and retains immutable source. Kotlin regression authored; reconciled onto verified develop, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #330 and PR #329 separately on their latest exact immutable head against develop; merge only after 4/4 successful checks and if required reconcile generated trackers. Continue W2–W5 features; owner S24 device signoff and signed release not implied.
+Next Check all four immutable final-head gates for PR #330, merge only when successful. Continue other W2–W5 native Android feature parity; no local build execution claim, production finance writes, signed release/main promotion or owner physical S24 approval.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -58,6 +58,7 @@ data class RecurringManageItem(
     val recurrenceInterval: Int = 1,
     val day: Int? = null,
     val firstExpectedDateIso: String? = null,
+    val subcategory: String? = null,
 )
 
 /** Web actual payments: no additional persisted finance data. */
@@ -94,6 +95,8 @@ data class RecurringCreateRequest(
     val day: Int? = null,
     val firstExpectedDate: String? = null,
     val endDate: String? = null,
+    /** Append to preserve positional constructors emitted by earlier Android UI code. */
+    val subcategory: String? = null,
 )
 
 /** A confirmed scheduled payment selects the actual money route, not a stale scheduled source. */

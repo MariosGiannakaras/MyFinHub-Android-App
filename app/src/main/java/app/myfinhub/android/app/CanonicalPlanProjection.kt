@@ -192,6 +192,7 @@ internal fun projectCanonicalPlanState(
             status = recurring.effectiveStatus,
             nextDueDateIso = document.nextCanonicalRecurringDate(recurring, today)?.toString().orEmpty(),
             category = recurring.category,
+            subcategory = recurring.subcategory,
             accountId = recurring.accountId,
             cadenceLabel = recurring.cadenceLabel,
             logoAssetKey = recurring.logoAssetKey,

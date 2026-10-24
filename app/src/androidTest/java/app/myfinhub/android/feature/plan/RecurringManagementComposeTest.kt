@@ -191,4 +191,56 @@ class RecurringManagementComposeTest {
         } }
         rule.onNodeWithText("Παύση").assertIsNotEnabled()
     }
+    @Test fun recurringCreateEditorIncludesSubcategoryInSaveRequest() {
+        val calls = mutableListOf<RecurringCreateRequest>()
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state.copy(scheduledAccounts = listOf(ScheduledAccountOption("cash", "Μετρητά"))),
+                onBack = {}, onStatusChanged = { _, _ -> },
+                onCreate = { calls += it },
+            )
+        } }
+        rule.onNodeWithTag("recurring_create_open").performClick()
+        rule.onNodeWithTag("recurring_create_name").performScrollTo().performTextInput("Ρεύμα")
+        rule.onNodeWithTag("recurring_create_amount").performScrollTo().performTextInput("65")
+        rule.onNodeWithTag("recurring_create_category").performScrollTo()
+            .performTextReplacement("Σπίτι")
+        rule.onNodeWithTag("recurring_create_subcategory").performScrollTo()
+            .performTextInput("Ηλεκτρικό")
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals(1, calls.size)
+            assertEquals("Σπίτι", calls.single().category)
+            assertEquals("Ηλεκτρικό", calls.single().subcategory)
+        }
+    }
+
+    @Test fun recurringEditEditorPreservesAndCanReplaceExistingSubcategory() {
+        val calls = mutableListOf<Pair<String, RecurringCreateRequest>>()
+        val existing = state.copy(
+            recurringManageItems = listOf(
+                RecurringManageItem("provider", "Internet", 35.0, "active",
+                    category = "Σπίτι", subcategory = "Internet",
+                    accountId = "cash", recurrenceUnit = "month",
+                    recurrenceInterval = 1),
+            ),
+            scheduledAccounts = listOf(ScheduledAccountOption("cash", "Μετρητά")),
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                existing, onBack = {}, onStatusChanged = { _, _ -> },
+                onEdit = { id, request -> calls += id to request },
+            )
+        } }
+        rule.onNodeWithTag("recurring_edit_provider").performScrollTo().performClick()
+        rule.onNodeWithTag("recurring_create_subcategory").performScrollTo()
+            .performTextReplacement("Συνδέσεις")
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals("provider", calls.single().first)
+            assertEquals("Σπίτι", calls.single().second.category)
+            assertEquals("Συνδέσεις", calls.single().second.subcategory)
+        }
+    }
+
 }
