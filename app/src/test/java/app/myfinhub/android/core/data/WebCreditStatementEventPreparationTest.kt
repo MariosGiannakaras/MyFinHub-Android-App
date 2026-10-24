@@ -68,4 +68,28 @@ class WebCreditStatementEventPreparationTest {
         assertEquals(1,debitPurchase.state.array("creditStatements").size)
         assertFalse((debitPurchase.state.array("events").last() as JsonObject).containsKey("statementId"))
     }
+    @Test fun mixedFundingExpenseCreatesStatementButPlainExpenseDoesNot() {
+        val expense = JsonObject(event("m1", "2026-10-20", "expense", "visa")
+            .toMutableMap().apply {
+                put("amount", JsonPrimitive(130.0))
+                put("creditDelta", JsonPrimitive(-40.0))
+                put("funding", kotlinx.serialization.json.JsonArray(listOf(
+                    JsonObject(mapOf("kind" to JsonPrimitive("cash"), "amount" to JsonPrimitive(90.0))),
+                    JsonObject(mapOf("kind" to JsonPrimitive("credit"), "amount" to JsonPrimitive(40.0)))
+                )))
+            })
+        val first = append(data, expense)
+        val created = first.state.array("creditStatements").single() as JsonObject
+        assertEquals("visa:2026-10-25", created.string("id"))
+        assertEquals(created.string("id"),
+            (first.state.array("events").single() as JsonObject).string("statementId"))
+        val view = first.creditStatementViews("visa", "2026-10-21").single()
+        assertEquals(40.0, view.purchaseTotal, 0.00001)
+
+        val plain = event("m2", "2026-10-21", "expense", "visa")
+        val ignored = append(first, plain)
+        assertEquals(1, ignored.state.array("creditStatements").size)
+        assertFalse((ignored.state.array("events").last() as JsonObject).containsKey("statementId"))
+    }
+
 }

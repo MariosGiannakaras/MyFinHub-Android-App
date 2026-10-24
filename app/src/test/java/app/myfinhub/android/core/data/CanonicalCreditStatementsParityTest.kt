@@ -101,4 +101,34 @@ class CanonicalCreditStatementsParityTest {
         assertEquals("paid", afterPayment.status)
     }
 
+    @Test fun webMixedFundingExpenseContributesOnlyCreditShareToStatement() {
+        val mixed = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "creditStatements":[{"id":"s1","cardId":"visa","openDate":"2026-09-26",
+              "closeDate":"2026-10-25","dueDate":"2026-11-05","boundaryRule":"next-cycle"}],
+            "events":[
+              {"id":"mixed","kind":"expense","cardId":"visa","date":"2026-10-12",
+               "statementId":"s1","amount":130,"funding":[{"kind":"cash","amount":90},{"kind":"credit","amount":40}],
+               "creditDelta":-40,"createdAt":"2026-10-12T10:00:00Z"},
+              {"id":"plain","kind":"expense","cardId":"visa","date":"2026-10-13",
+               "statementId":"s1","amount":20,"creditDelta":-20},
+              {"id":"card","kind":"card_purchase","cardId":"visa","date":"2026-10-14",
+               "statementId":"s1","amount":10},
+              {"id":"payment","kind":"card_payment","cardId":"visa","date":"2026-10-15",
+               "statementId":"s1","amount":25},
+              {"id":"unlinked-mixed","kind":"expense","cardId":"visa","date":"2026-10-16",
+               "amount":60,"funding":[{"kind":"credit","amount":15}],"creditDelta":-15},
+              {"id":"unlinked-plain","kind":"expense","cardId":"visa","date":"2026-10-17",
+               "amount":20}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val view = mixed.creditStatementViews("visa", "2026-10-20").single()
+        assertEquals(listOf("mixed", "card"), view.purchaseIds)
+        assertEquals(50.0, view.purchaseTotal, 0.00001)
+        assertEquals(25.0, view.paymentTotal, 0.00001)
+        assertEquals(25.0, view.remaining, 0.00001)
+        assertEquals(listOf("unlinked-mixed"), mixed.unlinkedCreditStatementEventIds("visa"))
+    }
+
 }

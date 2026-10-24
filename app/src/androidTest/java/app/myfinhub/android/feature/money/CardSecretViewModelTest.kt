@@ -95,6 +95,75 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun closeCardRedactsAlreadyRevealedSecretsOnNavigation() = runBlocking {
+        val api = FakeCardApi()
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        vm.closeCard("card-1")
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        vm.openCard("card-1")
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+        assertEquals(2, api.serverSecretReadCalls)
+    }
+
+    @Test
+    fun closeOrHideDuringVaultReadCannotRevealLateServerResponse() = runBlocking {
+        val api = FakeCardApi()
+        api.readDelayMillis = 220
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 1 }
+        vm.closeCard("card-1")
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        delay(300)
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 2 }
+        vm.hideSecrets()
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+        delay(300)
+        assertEquals(CardSecretUiState.Hidden("card-1"), vm.state.value)
+    }
+
+    @Test
+    fun serverSecretEditsRequireCurrentlyRevealedCardAndAal2() = runBlocking {
+        val api = FakeCardApi()
+        api.readDelayMillis = 260
+        val vm = CardSecretViewModel(application, api, FakeCvvVault(), FakeCardDetailsVault())
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        val prematurePan = "4000000000000002".toCharArray()
+        val prematureExpiry = "09/31".toCharArray()
+        vm.saveServerSecrets(prematurePan, prematureExpiry)
+        assertTrue(prematurePan.all { it == '\u0000' })
+        assertTrue(prematureExpiry.all { it == '\u0000' })
+        assertEquals(0, api.serverSecretWriteCalls)
+        waitUntil { vm.state.value is CardSecretUiState.Revealed }
+
+        vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
+        val revokedPan = "4000000000000002".toCharArray()
+        val revokedExpiry = "09/31".toCharArray()
+        vm.saveServerSecrets(revokedPan, revokedExpiry)
+        assertTrue(revokedPan.all { it == '\u0000' })
+        assertTrue(revokedExpiry.all { it == '\u0000' })
+        assertEquals(0, api.serverSecretWriteCalls)
+        assertTrue(vm.state.value === CardSecretUiState.AuthRejected)
+
+        val createPan = "4000000000000002".toCharArray()
+        val createExpiry = "09/31".toCharArray()
+        val createCvv = "123".toCharArray()
+        vm.saveCardDetailsForCard("card-new", createPan, createExpiry, createCvv)
+        assertTrue(createPan.all { it == '\u0000' })
+        assertTrue(createExpiry.all { it == '\u0000' })
+        assertTrue(createCvv.all { it == '\u0000' })
+        assertEquals(0, api.serverSecretWriteCalls)
+    }
+
+    @Test
     fun editPanAndExpiry_savesToServerVault_andZeroesInputs() = runBlocking {
         val api = FakeCardApi(serverSecrets = CardSecrets("4242424242424242", "12/30", "321"))
         val cvvVault = FakeCvvVault()
@@ -160,6 +229,27 @@ class CardSecretViewModelTest {
         assertEquals("321", api.lastUpdate?.cvv)
         assertNull(detailsVault.load("card-1"))
         assertNull(cvvVault.load("card-1"))
+    }
+
+    @Test
+    fun lateLocalMigrationMustNotWriteToServerAfterCardNavigationCloses() = runBlocking {
+        val api = FakeCardApi(serverSecrets = null)
+        val local = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.loadDelayMillis = 280 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, local)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 1 }
+        vm.closeCard("card-1")
+        delay(400)
+
+        assertEquals(0, api.serverSecretWriteCalls)
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertEquals("4242424242424242", local.load("card-1")?.pan?.concatToString())
+        assertEquals("321", cvv.load("card-1")?.concatToString())
     }
 
     @Test
@@ -235,6 +325,7 @@ private class FakeCardDetailsVault(
     initialPan: CharArray? = null,
     initialExpiry: CharArray? = null,
 ) : CardDetailsVault {
+    var loadDelayMillis: Long = 0
     private var storedPan: CharArray? = initialPan?.copyOf()
     private var storedExpiry: CharArray? = initialExpiry?.copyOf()
     var savedPan: CharArray? = null
@@ -245,6 +336,7 @@ private class FakeCardDetailsVault(
         private set
 
     override suspend fun load(cardId: String): LocalCardDetails? {
+        if (loadDelayMillis > 0) delay(loadDelayMillis)
         val pan = storedPan?.copyOf() ?: return null
         val expiry = storedExpiry?.copyOf() ?: run {
             pan.fill('\u0000')

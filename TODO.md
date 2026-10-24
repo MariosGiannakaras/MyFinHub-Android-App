@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Review CI fast-fail ordering and two-lane implementation/CI reporting changes on android/ci-workflow-fast-fail-handoff-20261024, then check its exact-head required gates before merging. Resume outstanding W2.4 card interactions and remaining W3–W5 Web parity work from latest develop; preserve privacy, optimistic revisions, offline semantics and no permanent card-delete UI, SMS, shared Web/backend changes, or release.
+- [ ] Finish this cohesive Android-only W2.4/W3.1 source checkpoint on android/web-parity-source-sweep-w2-w3-20261024: validate current secure card navigation/AAL2 and Web mixed-funding statement/debt unit/instrumentation tests. PR #323 must pass four exact-head gates before squash merge, but assistant polling stops at eight minutes. Continue remaining W2–W5 source work independently; no card permanent-delete UI, SMS, shared backend/Web writes, production finance writes, or signed release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #322, branch android/ci-workflow-fast-fail-handoff-20261024
-Current W2.4: PR #321 (W2.4 secure card session/AAL2 invalidation) passed all 4 exact-head CI gates and squash merged develop c5a4232. New repo CI/workflow housekeeping branch refactors fail-fast Kotlin-before-benchmark order and canonical UI-tracking preflight; no production feature is marked completed by these changes. Web parity 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 Ultra #149 pending.
+Issue #155, PR #323, branch android/web-parity-source-sweep-w2-w3-20261024
+Current W2.4: After verified merged CI optimization #322 (develop 21ab710f), W2.4 secret ViewModel now drops values on nav close/hide, fences late overlapping reads and edits, requires current owner+AAL2 Revealed state for PAN/expiry and AAL2 for create/CVV. W3.1 statement preparation/views and debt attribution include Web mixed-funded expense credit shares only; regression fixtures added. Source is authored on branch, unmerged/unvalidated; progress 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate the repo CI fail-fast/rules optimization PR, including Python workflow regression and all required checks when triggered; no 8-minute polling wait. Then continue unfinished W2.4 and remaining W3–W5 Android-only Web parity source. Physical owner S24 #149 remains separate.
+Next Validate W2.4/W3.1 card-vault and credit-funded split expense regressions from the new source PR #323; merge only on 4/4 exact final-head gates. Then continue open W2–W5 domain/UI work without waiting longer than eight minutes for CI; physical S24 approval remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
