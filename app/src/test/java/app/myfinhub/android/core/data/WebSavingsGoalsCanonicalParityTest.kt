@@ -47,7 +47,7 @@ class WebSavingsGoalsCanonicalParityTest {
           {"seed":{"accounts":[]},"state":{"savingsGoals":[
             {"id":"negative","name":"Αρνητικός","targetAmount":-100},
             {"id":"zero","name":"Μηδέν","targetAmount":0},
-            {"id":"missing","name":"Αρχείο χωρίς ποσό"},
+            {"id":"missing","name":"Αρχείο χωρίς ποσό","targetDate":"2026-99-99"},
             {"id":"nonfinite-number","name":"Δεν επιτρέπεται τιμή","targetAmount":null},
             {"id":"valid","name":"Διατηρημένος","targetAmount":500,
               "targetDate":"2026-09-21"}
@@ -61,6 +61,9 @@ class WebSavingsGoalsCanonicalParityTest {
         assertEquals(-100.0, rows[0].targetAmount, 0.001)
         assertEquals(0.0, rows[1].targetAmount, 0.001)
         assertEquals(0.0, rows[2].targetAmount, 0.001)
+        // Web retains the imported literal deadline; invalid date is not past.
+        assertEquals("2026-99-99", rows[2].targetDate)
+        assertFalse(rows[2].deadlinePast)
         assertEquals(0.0, rows[3].targetAmount, 0.001)
         assertTrue(rows.last().deadlinePast)
         assertEquals(before, old.raw)
