@@ -4,8 +4,16 @@ import java.text.Collator
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonObject
+
+/** Web loans.ts loanPaidAmount uses JS Math.round on whole euro amounts,
+ * including explicit legacyPaidAmount. Kotlin round() ties-even and is not
+ * interchangeable with Math.round for imported sub-cent historical values.
+ */
+private fun webRoundLoanMoney(value: Double): Double =
+    floor(value * 100.0 + 0.5) / 100.0
 
 /** Web loans.ts row-level debt; all values are projected, never persisted. */
 data class CanonicalLoanBalanceRow(
@@ -55,8 +63,16 @@ fun CanonicalFinanceDocument.canonicalLoanBalanceRows(asOf: String? = null): Lis
             if (count > 0 && count.isFinite() && count % 1.0 == 0.0) count.toInt() else 1
         }
         val remainingCount = (installments - min(installments.toDouble(),baseline + linkedCount)).toInt().coerceAtLeast(0)
-        val paid = min(installments.toDouble(), baseline) * installment +
-            events.sumOf { (it.number("amount") ?: 0.0).coerceAtLeast(0.0) }
+        // Web loans.ts: the imported legacyPaidAmount (if explicitly provided,
+        // including zero) overrides the paidCount * nominal-installment estimate.
+        // Preserve real historical principal reductions instead of fabricating
+        // contractual payments for previously renegotiated legacy installments.
+        val legacyPaid = loan.number("legacyPaidAmount") ?: webRoundLoanMoney(
+            min(installments.toDouble(), baseline) *
+                (loan.number("installment") ?: 0.0)
+        )
+        val linkedPaid = events.sumOf { (it.number("amount") ?: 0.0).coerceAtLeast(0.0) }
+        val paid = webRoundLoanMoney(legacyPaid + linkedPaid)
         val outstanding = max(0.0,(loan.number("total") ?: 0.0) - paid -
             (loan.number("forgivenAmount") ?: 0.0))
         val eventDays = events.mapNotNull { e ->
