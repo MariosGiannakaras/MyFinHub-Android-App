@@ -48,7 +48,8 @@ fun CanonicalFinanceDocument.canonicalSubcategoryBudgetSpending(
                 tx.type == "expense" -> tx.amount
                 else -> 0.0
             }
-            add(tx.category, tx.subcategory, expense)
+            add(decision?.string("category")?.takeIf(String::isNotBlank) ?: tx.category,
+                tx.subcategory, expense)
         }
     }
     state.array("events").filterIsInstance<JsonObject>()

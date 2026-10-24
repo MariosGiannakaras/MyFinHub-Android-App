@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PRs #320, #321 and CI/workflow #322 are now 4/4 exact-head verified and squash merged into develop (latest 21ab710f7e1bae0ad01681198d4781a9d0cf0743). A new Android-only W2.4/W3.1 source checkpoint fixes secure-card navigation/async stale responses, owner+AAL2 vault writes, mixed-funded expense statement allocation and credit debt shares; tests authored, not yet CI validated or merged. The broader W2.4/W3.1 acceptance remains open, including full provider/card visuals and physical S24 Ultra #149 signoff. Never expose permanent card deletion UI or promote a signed release.
+Web parity 1/6 implementations · 11/24 subtasks. Android-only W2.4/W3.1 PR #323 passed all four immutable-head gates and squash merged into develop 6e12c350288de6f89d3c5c7063ad2b73b426a8ac. New W4.3/W5.3 source checkpoint includes category/subcategory budget identity aliases across historical renamed labels, carryover and projected commitments; auth password Unicode number policy now matches Web. Tests authored, not yet accepted or merged. W2–W5 wider completion, full provider assets and physical Galaxy S24 Ultra owner #149 acceptance remain open. No permanent card delete UI, SMS import or signed release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Finish this cohesive Android-only W2.4/W3.1 source checkpoint on android/web-parity-source-sweep-w2-w3-20261024: validate current secure card navigation/AAL2 and Web mixed-funding statement/debt unit/instrumentation tests. PR #323 must pass four exact-head gates before squash merge, but assistant polling stops at eight minutes. Continue remaining W2–W5 source work independently; no card permanent-delete UI, SMS, shared backend/Web writes, production finance writes, or signed release.
+1. Validate W4.3 identity-aware budget spending/carryover/commitments and W5.3 Unicode account-password policy on android/w4-w5-budget-identity-security-parity-20261024; require 4/4 exact-head checks on PR #324 before merge. Continue remaining W2–W5 app/domain work independently of CI waiting beyond eight minutes. No shared Web/backend/schema edits, permanent card deletion UI, SMS, real finance writes or release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #323, branch android/web-parity-source-sweep-w2-w3-20261024
-Current W2.4: After verified merged CI optimization #322 (develop 21ab710f), W2.4 secret ViewModel now drops values on nav close/hide, fences late overlapping reads and edits, requires current owner+AAL2 Revealed state for PAN/expiry and AAL2 for create/CVV. W3.1 statement preparation/views and debt attribution include Web mixed-funded expense credit shares only; regression fixtures added. Source is authored on branch, unmerged/unvalidated; progress 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 pending.
+Issue #155, PR #324, branch android/w4-w5-budget-identity-security-parity-20261024
+Current W4.3: Merged PR #323 into develop 6e12c350 after four exact-head gates. New PR #324 W4.3 budget alias-aware historical/carryover/projected usage and W5.3 JS Unicode category password policy fixes are authored on separate branch; fresh CI not yet accepted. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W2.4/W3.1 card-vault and credit-funded split expense regressions from the new source PR #323; merge only on 4/4 exact final-head gates. Then continue open W2–W5 domain/UI work without waiting longer than eight minutes for CI; physical S24 approval remains separate.
+Next Validate authored W4.3 and W5.3 parity unit tests and 4/4 latest immutable-head gates for PR #324; merge only if all pass. Resume W2–W5 concrete source gaps with new independent batches; keep full provider SVG visual proof and owner physical S24 acceptance separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

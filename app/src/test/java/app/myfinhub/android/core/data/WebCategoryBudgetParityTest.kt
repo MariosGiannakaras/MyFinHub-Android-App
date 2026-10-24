@@ -137,4 +137,77 @@ class WebCategoryBudgetParityTest {
             .mapNotNull { it as? kotlinx.serialization.json.JsonObject }
             .first { it.string("id")=="overall" }.number("alertThreshold")!!,0.001)
     }
+    @Test fun renamedCategoryAndSubcategoryAliasesPreserveBudgetSpendingAndCarryover() {
+        val renamed = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "settings":{"categoryIdentities":{
+              "cat-food":{"id":"cat-food","kind":"expense","label":"Διατροφή",
+                "aliases":["Τρόφιμα"],"parentId":null},
+              "sub-grocery":{"id":"sub-grocery","kind":"expense","parentId":"cat-food",
+                "label":"Σούπερ μάρκετ","aliases":["Παντοπωλείο"]}
+            }},
+            "events":[
+              {"id":"prev","kind":"expense","date":"2026-09-20","amount":15,
+                "category":"Τρόφιμα","subcategory":"Παντοπωλείο"},
+              {"id":"old-name","kind":"expense","date":"2026-10-10","amount":10,
+                "category":"Τρόφιμα","subcategory":"Παντοπωλείο"},
+              {"id":"new-name","kind":"expense","date":"2026-10-12","amount":20,
+                "category":"Διατροφή","subcategory":"Σούπερ μάρκετ"}
+            ],
+            "budgets":[
+              {"id":"old-cat","month":"2026-09","scope":"category",
+                "category":"Τρόφιμα","categoryIdentityId":"cat-food",
+                "amount":100},
+              {"id":"current-cat","month":"2026-10","scope":"category",
+                "category":"Διατροφή","categoryIdentityId":"cat-food",
+                "amount":200,"carryover":true},
+              {"id":"old-sub","month":"2026-09","scope":"subcategory",
+                "category":"Τρόφιμα","subcategory":"Παντοπωλείο",
+                "categoryIdentityId":"cat-food","subcategoryIdentityId":"sub-grocery",
+                "amount":80},
+              {"id":"current-sub","month":"2026-10","scope":"subcategory",
+                "category":"Διατροφή","subcategory":"Σούπερ μάρκετ",
+                "categoryIdentityId":"cat-food","subcategoryIdentityId":"sub-grocery",
+                "amount":90,"carryover":true}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val budgets = renamed.webBudgetProgress("2026-10", "2026-10-16").associateBy { it.id }
+        val category = budgets.getValue("current-cat")
+        assertEquals(30.0, category.used, 0.001)
+        assertEquals(85.0, category.carried, 0.001)
+        assertEquals(285.0, category.limit, 0.001)
+        val subcategory = budgets.getValue("current-sub")
+        assertEquals(30.0, subcategory.used, 0.001)
+        assertEquals(65.0, subcategory.carried, 0.001)
+        assertEquals(155.0, subcategory.limit, 0.001)
+    }
+
+    @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
+        val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"transactions":[
+            {"id":"old","date":"2026-10-12","type":"expense","amount":20,
+             "category":"Τρόφιμα","subcategory":"Takeaway"}
+          ]},"state":{
+            "reviewDecisions":{"old":{"status":"confirmed","semanticKind":"expense",
+              "category":"Εστιατόρια"}},
+            "budgets":[
+              {"id":"old-food","month":"2026-10","scope":"category",
+               "category":"Τρόφιμα","amount":100},
+              {"id":"new-dining","month":"2026-10","scope":"category",
+               "category":"Εστιατόρια","amount":50},
+              {"id":"new-dining-sub","month":"2026-10","scope":"subcategory",
+               "category":"Εστιατόρια","subcategory":"Takeaway","amount":30}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val spending = reviewed.categoryBudgetSpending("2026-10", "2026-10-20")
+        assertEquals(20.0, spending["Εστιατόρια"]!!, 0.001)
+        assertTrue("Τρόφιμα" !in spending)
+        val budgets = reviewed.webBudgetProgress("2026-10", "2026-10-20").associateBy { it.id }
+        assertEquals(0.0, budgets.getValue("old-food").used, 0.001)
+        assertEquals(20.0, budgets.getValue("new-dining").used, 0.001)
+        assertEquals(20.0, budgets.getValue("new-dining-sub").used, 0.001)
+    }
+
 }

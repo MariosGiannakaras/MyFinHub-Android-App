@@ -7,6 +7,8 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 
 /** Matches Web categories.ts categoryKey: Greek accent folding and whitespace normalization. */
@@ -58,6 +60,33 @@ fun webSubcategoryBudgetStableId(
     val sub = subcategoryIdentityId?.takeIf(String::isNotBlank) ?: webBudgetCategoryKey(subcategory)
     require(cat.isNotEmpty() && sub.isNotEmpty())
     return "budget:" + month + ":sub:" + encodeWebBudgetPart(cat) + ":" + encodeWebBudgetPart(sub)
+}
+
+/** Web budgets.ts identities(): the stable category/subcategory ID retains
+ * historical labels, so renamed postings still count against the same budget.
+ * Lookup is read-only; no financial history or taxonomy identity is rewritten.
+ */
+private fun CanonicalFinanceDocument.budgetIdentityKeys(
+    row: JsonObject,
+    field: String,
+): Set<String> {
+    val identityField = when (field) {
+        "category" -> "categoryIdentityId"
+        "subcategory" -> "subcategoryIdentityId"
+        else -> error("Unsupported budget identity field")
+    }
+    val identityId = row.string(identityField)
+    val identity = identityId?.let {
+        settingsObject().obj("categoryIdentities")[it] as? JsonObject
+    }
+    val labels = buildList {
+        row.string(field)?.let(::add)
+        identity?.string("label")?.let(::add)
+        identity?.array("aliases")?.forEach { alias ->
+            (alias as? JsonPrimitive)?.contentOrNull?.let(::add)
+        }
+    }
+    return labels.map(::webBudgetCategoryKey).filter(String::isNotEmpty).toSet()
 }
 
 /** Web budgets.ts canonical categorized spending, independent of clamped insights totals. */
@@ -116,7 +145,9 @@ fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String?
                 tx.type == "expense" -> tx.amount
                 else -> 0.0
             }
-            add(tx.category, expense)
+            // Web budgets.ts uses the reconciled category when present,
+            // even for a legacy posting whose original category remains immutable.
+            add(decision?.string("category")?.takeIf(String::isNotBlank) ?: tx.category, expense)
         }
     }
     state.array("events").mapNotNull { it as? JsonObject }
@@ -153,15 +184,21 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
             else categoryBudgetSpending(period, cutoff).entries
                 .groupBy { webBudgetCategoryKey(it.key) }
                 .mapValues { (_, values) -> values.sumOf { it.value } }
+        val categoryKeys = budgetIdentityKeys(row, "category")
         return when (row.string("scope")) {
             "overall" -> cats.values.sum()
-            "category" -> cats[webBudgetCategoryKey(row.string("category").orEmpty())] ?: 0.0
+            "category" -> cats.entries.sumOf { (key, amount) ->
+                if (key in categoryKeys) amount else 0.0
+            }
             "subcategory" -> {
                 val subs = if (period == month && cutoff == asOf) subSpending
                     else canonicalSubcategoryBudgetSpending(period, cutoff)
-                val cat = webBudgetCategoryKey(row.string("category").orEmpty())
-                val sub = webBudgetCategoryKey(row.string("subcategory").orEmpty())
-                subs[cat + "\u001f" + sub] ?: 0.0
+                val subKeys = budgetIdentityKeys(row, "subcategory")
+                subs.entries.sumOf { (pair, amount) ->
+                    val names = pair.split('\u001f', limit = 2)
+                    if (names.size == 2 && names[0] in categoryKeys && names[1] in subKeys)
+                        amount else 0.0
+                }
             }
             else -> 0.0
         }
@@ -177,11 +214,13 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
             return newId == oldId && (scope != "subcategory" ||
                 current.string("subcategoryIdentityId") == older.string("subcategoryIdentityId"))
         }
-        if (webBudgetCategoryKey(current.string("category").orEmpty()) !=
-            webBudgetCategoryKey(older.string("category").orEmpty())) return false
+        if (budgetIdentityKeys(current, "category").intersect(
+                budgetIdentityKeys(older, "category")
+            ).isEmpty()) return false
         return scope != "subcategory" ||
-            webBudgetCategoryKey(current.string("subcategory").orEmpty()) ==
-                webBudgetCategoryKey(older.string("subcategory").orEmpty())
+            budgetIdentityKeys(current, "subcategory").intersect(
+                budgetIdentityKeys(older, "subcategory")
+            ).isNotEmpty()
     }
 
     fun carry(previous: JsonObject, depth: Int): Long {
@@ -217,15 +256,14 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
         }
         val used = max(0.0, rawUsed)
         val ratio = if (limit > 0.0) used / limit else 0.0
+        val budgetCategories = budgetIdentityKeys(row, "category")
+        val budgetSubcategories = budgetIdentityKeys(row, "subcategory")
         val matchingCommitments = commitments.filter { item ->
             when (scope) {
                 "overall" -> true
-                "category" -> webBudgetCategoryKey(item.category) ==
-                    webBudgetCategoryKey(row.string("category").orEmpty())
-                "subcategory" -> webBudgetCategoryKey(item.category) ==
-                    webBudgetCategoryKey(row.string("category").orEmpty()) &&
-                    webBudgetCategoryKey(item.subcategory.orEmpty()) ==
-                        webBudgetCategoryKey(row.string("subcategory").orEmpty())
+                "category" -> webBudgetCategoryKey(item.category) in budgetCategories
+                "subcategory" -> webBudgetCategoryKey(item.category) in budgetCategories &&
+                    webBudgetCategoryKey(item.subcategory.orEmpty()) in budgetSubcategories
                 else -> false
             }
         }
