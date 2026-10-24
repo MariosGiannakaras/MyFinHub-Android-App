@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.3 identity-aware budget spending/carryover/commitments and W5.3 Unicode account-password policy on android/w4-w5-budget-identity-security-parity-20261024; require 4/4 exact-head checks on PR #324 before merge. Continue remaining W2–W5 app/domain work independently of CI waiting beyond eight minutes. No shared Web/backend/schema edits, permanent card deletion UI, SMS, real finance writes or release.
+- [ ] Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #324, branch android/w4-w5-budget-identity-security-parity-20261024
-Current W4.3: Merged PR #323 into develop 6e12c350 after four exact-head gates. New PR #324 W4.3 budget alias-aware historical/carryover/projected usage and W5.3 JS Unicode category password policy fixes are authored on separate branch; fresh CI not yet accepted. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.
+Issue #155, PR #325, branch android/w4-report-refund-parity-20261024
+Current W4.4: PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate authored W4.3 and W5.3 parity unit tests and 4/4 latest immutable-head gates for PR #324; merge only if all pass. Resume W2–W5 concrete source gaps with new independent batches; keep full provider SVG visual proof and owner physical S24 acceptance separate.
+Next Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
