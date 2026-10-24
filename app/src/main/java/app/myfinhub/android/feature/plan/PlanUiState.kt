@@ -87,6 +87,7 @@ data class RecurringCreateRequest(
     val amount: Double,
     val accountId: String,
     val category: String,
+    val subcategory: String? = null,
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
