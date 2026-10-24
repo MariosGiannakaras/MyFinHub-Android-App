@@ -53,9 +53,13 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
         .filter { it.string("date")?.startsWith("$month-") == true }
         .mapNotNull { it.string("recurringId")?.takeIf(String::isNotBlank) }.toSet()
 
+    // Web budgets.ts targets the requested future month rather than only the
+    // next payment from today. Estimates are advisory, not booked commitments.
+    val targetAsOf = maxOf(today, period.atDay(1))
     val active = activeCanonicalRecurringItems()
     active.forEach { item ->
-        val next = nextCanonicalRecurringDate(item, today)?.toString() ?: return@forEach
+        if (item.isVariableEstimate) return@forEach
+        val next = nextCanonicalRecurringDate(item, targetAsOf)?.toString() ?: return@forEach
         if (next <= asOf || next > endIso || !next.startsWith("$month-") ||
             item.category.isBlank() || item.amount <= 0.0 || !item.amount.isFinite() ||
             item.id in linkedThisMonth ||
@@ -68,21 +72,9 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
         if (sourceRows.size != 1) return@forEach
         val source = canonicalRecurringEditSource(item.id)?.row
         val subcategory = source?.string("subcategory")
-        val duplicate = scheduled.any { scheduledRow ->
-            scheduledRow.string("dueDate") == next &&
-                scheduledRow.string("accountId") == item.accountId &&
-                webBudgetCategoryKey(scheduledRow.string("note").orEmpty()) ==
-                    webBudgetCategoryKey(item.name) &&
-                runCatching {
-                    moneyToCents(scheduledRow.number("amount") ?: Double.NaN) ==
-                        moneyToCents(item.amount)
-                }.getOrDefault(false) &&
-                webBudgetCategoryKey(scheduledRow.string("category").orEmpty()) ==
-                    webBudgetCategoryKey(item.category) &&
-                webBudgetCategoryKey(scheduledRow.string("subcategory").orEmpty()) ==
-                    webBudgetCategoryKey(subcategory.orEmpty())
-        }
-        if (!duplicate) result += CanonicalBudgetCommitment(
+        // Scheduled and recurring records are distinct liabilities unless linked
+        // by a real canonical relationship; equal dates/names/amounts prove nothing.
+        result += CanonicalBudgetCommitment(
             id = item.id, date = next, category = item.category,
             subcategory = subcategory, amount = item.amount, source = "recurring",
         )
