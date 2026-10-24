@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 omission explanations, scheduled warning ordering and transfers passed all four exact-head Project Tracking, Android CI, screenshot and hosted S24 gates and squash merged develop at 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. Current W4.1 draft PR #334 preserves original imported recurring amountMode and estimate range fields rather than silently relabeling invalid legacy estimates as fixed, with strict Web recurringVariable.ts read-only validation and JVM golden test source authored. Local Gradle not run; final-head CI pending. Existing finance balances, payment ledger and offline mutations untouched; broader W2–W5 parity and physical owner S24 Ultra #149 remain outstanding. No SMS, permanent card-delete UI, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 forecast omissions and scheduled chronological warning parity passed four exact-head gates each, integrated develop 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. W4.1 PR #334 recurring imported amount-mode/range validation, native warning and Kotlin/Compose regression passed four exact-head gates at 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, squash merged develop 859ba0123622dbb29703a6fa35e88e3b540918da. Current W3.1 draft PR #335, refreshed onto #334 merge, fails closed on historical duplicate credit statement ID by checking the first physical owner exactly like Web, with pure JVM golden tests and source-preserving records. New exact-head Project Tracking, Android CI, screenshot regression, and hosted S24 gates must pass after integration refresh. Broader W2–W5 scope and physical owner S24 #149 still pending; no local Gradle execution, backend/schema or production finance write.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify W4.1 draft PR #334 recurring imported variable/fixed amount semantics, malformed historical mode and range goldens, generated tracking and all four exact-head Project Tracking/Android CI/screenshot/S24 emulator checks. Merge only with 4/4 success, then continue remaining W2–W5 feature acceptance. No real finance writes, SMS, backend/schema work, main promotion or signed release.
+1. Run all four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates on refreshed W3.1 PR #335; merge only if 4/4 success. Continue broader W2–W5 feature acceptance independently; physical owner S24 #149 pending. No live finance writes, SMS, permanent card-delete UI, signed release or main promotion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #334, branch android/w4-recurring-variable-import-validation-20261024
-Current W4.1: W4.2 #332 merged develop 091af3f31d149da89eae677b56568840a1b98709 and #333 merged develop ce2252bd129ddb78d795a2b658a582ca5686356e, both exact-head CI gates 4/4 green. Current draft #334 W4.1 retains imported recurring variable amountMode/range data losslessly, adds Web-aligned fixed/variable estimate validity and confidence projection with JVM golden source; no local Gradle test execution, four immutable final-head checks still required. Official Web parity 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
+Issue #155, PR #335, branch android/w3-credit-statement-duplicate-first-match-20261024
+Current W3.1: W4.1 PR #334 successfully merged develop 859ba0123622dbb29703a6fa35e88e3b540918da following Project Tracking, Android CI, screenshot regression and hosted S24 success on final head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6. Draft #335 W3.1 first-record statement owner validation and Kotlin immutable golden refreshed with full #334 integration baseline; new exact-head checks required and no local Gradle run claimed. Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.1 draft PR #334 strict Web recurring estimated/fixed amounts and imported record preservation against all four same-head hosted gates; merge only when successful. Continue broader remaining W2–W5 feature work, without SMS #146, irreversible card-delete UI, backend/schema, live finance data, main release/signing or pretending hosted S24 is physical acceptance.
+Next Verify refreshed W3.1 PR #335 on its final head after #334 integration: all four hosted gates, then squash merge only if passed. Continue first remaining incomplete feature scope W2–W5; no release/main promotion, live finance writes, backend/schema or prohibited SMS/card-delete scope.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
