@@ -232,6 +232,27 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun lateLocalMigrationMustNotWriteToServerAfterCardNavigationCloses() = runBlocking {
+        val api = FakeCardApi(serverSecrets = null)
+        val local = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.loadDelayMillis = 280 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val vm = CardSecretViewModel(application, api, cvv, local)
+        vm.attachSession(session)
+        vm.openCard("card-1")
+        waitUntil { api.serverSecretReadCalls == 1 }
+        vm.closeCard("card-1")
+        delay(400)
+
+        assertEquals(0, api.serverSecretWriteCalls)
+        assertEquals(CardSecretUiState.Hidden(), vm.state.value)
+        assertEquals("4242424242424242", local.load("card-1")?.pan?.concatToString())
+        assertEquals("321", cvv.load("card-1")?.concatToString())
+    }
+
+    @Test
     fun purgeCard_removesServerResidueAndBothDeviceLocalVaults() = runBlocking {
         val api = FakeCardApi()
         val cvvVault = FakeCvvVault(initial = "321".toCharArray())
@@ -304,6 +325,7 @@ private class FakeCardDetailsVault(
     initialPan: CharArray? = null,
     initialExpiry: CharArray? = null,
 ) : CardDetailsVault {
+    var loadDelayMillis: Long = 0
     private var storedPan: CharArray? = initialPan?.copyOf()
     private var storedExpiry: CharArray? = initialExpiry?.copyOf()
     var savedPan: CharArray? = null
@@ -314,6 +336,7 @@ private class FakeCardDetailsVault(
         private set
 
     override suspend fun load(cardId: String): LocalCardDetails? {
+        if (loadDelayMillis > 0) delay(loadDelayMillis)
         val pan = storedPan?.copyOf() ?: return null
         val expiry = storedExpiry?.copyOf() ?: run {
             pan.fill('\u0000')

@@ -512,6 +512,7 @@ class CardSecretViewModel internal constructor(
                     val migrated = migrateMissingLegacyValues(
                         session = session,
                         cardId = cardId,
+                        generation = generation,
                         serverPan = server.pan,
                         serverExpiry = server.expiry,
                         serverCvv = server.cvv,
@@ -528,7 +529,7 @@ class CardSecretViewModel internal constructor(
                 is ApiResult.Failure -> {
                     if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                     if (result.kind == ApiFailureKind.INVALID_DATA) {
-                        val migrated = migrateMissingLegacyValues(session, cardId, null, null, null)
+                        val migrated = migrateMissingLegacyValues(session, cardId, generation, null, null, null)
                         if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                         mutableState.value = CardSecretUiState.Revealed(
                             cardId = cardId,
@@ -550,6 +551,7 @@ class CardSecretViewModel internal constructor(
     private suspend fun migrateMissingLegacyValues(
         session: AuthSession,
         cardId: String,
+        generation: Long,
         serverPan: String?,
         serverExpiry: String?,
         serverCvv: String?,
@@ -565,6 +567,11 @@ class CardSecretViewModel internal constructor(
         val localExpiry = try { localDetails?.expiry?.concatToString() } finally { localDetails?.expiry?.fill('\u0000') }
         val localCvvText = try { localCvv?.concatToString() } finally { localCvv?.fill('\u0000') }
 
+        // Legacy migration performs a second protected write. A route disposal or
+        // token rotation while reading encrypted local values must veto that write.
+        if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) {
+            return Triple(serverPan, serverExpiry, serverCvv)
+        }
         val update = app.myfinhub.android.core.network.CardSecretUpdate(
             pan = if (serverPan == null) localPan else null,
             expiry = if (serverExpiry == null) localExpiry else null,
@@ -576,8 +583,10 @@ class CardSecretViewModel internal constructor(
 
         return when (safeApiCall { api.saveCardSecrets(session, cardId, update) }) {
             is ApiResult.Success -> {
-                deleteLegacyLocalCopies(cardId)
-                Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
+                if (stillCurrent(session, cardId) && generation == detailRequestGeneration) {
+                    deleteLegacyLocalCopies(cardId)
+                    Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
+                } else Triple(serverPan, serverExpiry, serverCvv)
             }
             is ApiResult.Failure -> Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
         }
