@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. PRs #320, #321 and CI/workflow #322 are now 4/4 exact-head verified and squash merged into develop (latest 21ab710f7e1bae0ad01681198d4781a9d0cf0743). A new Android-only W2.4/W3.1 source checkpoint fixes secure-card navigation/async stale responses, owner+AAL2 vault writes, mixed-funded expense statement allocation and credit debt shares; tests authored, not yet CI validated or merged. The broader W2.4/W3.1 acceptance remains open, including full provider/card visuals and physical S24 Ultra #149 signoff. Never expose permanent card deletion UI or promote a signed release.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. Android-only W2.4/W3.1 PR #323 passed all four immutable-head gates and squash merged into develop 6e12c350288de6f89d3c5c7063ad2b73b426a8ac. New W4.3/W5.3 source checkpoint includes category/subcategory budget identity aliases across historical renamed labels, carryover and projected commitments; auth password Unicode number policy now matches Web. Tests authored, not yet accepted or merged. W2–W5 wider completion, full provider assets and physical Galaxy S24 Ultra owner #149 acceptance remain open. No permanent card delete UI, SMS import or signed release.",
     "next": [
-      "Finish this cohesive Android-only W2.4/W3.1 source checkpoint on android/web-parity-source-sweep-w2-w3-20261024: validate current secure card navigation/AAL2 and Web mixed-funding statement/debt unit/instrumentation tests. PR #323 must pass four exact-head gates before squash merge, but assistant polling stops at eight minutes. Continue remaining W2–W5 source work independently; no card permanent-delete UI, SMS, shared backend/Web writes, production finance writes, or signed release."
+      "Validate W4.3 identity-aware budget spending/carryover/commitments and W5.3 Unicode account-password policy on android/w4-w5-budget-identity-security-parity-20261024; require 4/4 exact-head checks on PR #324 before merge. Continue remaining W2–W5 app/domain work independently of CI waiting beyond eight minutes. No shared Web/backend/schema edits, permanent card deletion UI, SMS, real finance writes or release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/web-parity-source-sweep-w2-w3-20261024",
-    "checkpoint": "After verified merged CI optimization #322 (develop 21ab710f), W2.4 secret ViewModel now drops values on nav close/hide, fences late overlapping reads and edits, requires current owner+AAL2 Revealed state for PAN/expiry and AAL2 for create/CVV. W3.1 statement preparation/views and debt attribution include Web mixed-funded expense credit shares only; regression fixtures added. Source is authored on branch, unmerged/unvalidated; progress 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 pending.",
+    "branch": "android/w4-w5-budget-identity-security-parity-20261024",
+    "checkpoint": "Merged PR #323 into develop 6e12c350 after four exact-head gates. New PR #324 W4.3 budget alias-aware historical/carryover/projected usage and W5.3 JS Unicode category password policy fixes are authored on separate branch; fresh CI not yet accepted. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -935,7 +935,8 @@
               "PR #249 Web savingsTargetRate nullish 20% default, operational monthly income-linked target, displayed savings, capped progress, previous-month comparison and JVM/Compose goldens passed 4/4 exact-head Project Tracking, Android CI unit/lint/unsigned release, screenshots and S24 emulator at 490eaf77ebf637ace0598b9833dd8e1e7e20ad50. Squash merged develop c82ccdbf540c913453fa7a25b38ba82e13d202dc. W4.3 remains partial.",
               "PR #250 Web SavingsPage five-point monthly actual and target chart days 1/8/15/22/month end, as-of future suppression, leap month, solid/dashed lines and amount visibility/accessibility; JVM Web goldens and S24 Compose regression passed 4/4 immutable-head Project Tracking, Android CI unit/lint/unsigned release, screenshots and S24 emulator at ff986b4ab04a2ac4daebb366049e096c532a1342. Squash merged develop 9e91a529be18b6a1f80b04d45015d92b00bb9435. W4.3 still partially accepted.",
               "PR #257 Web category budget raw negative net refund vs zero-clamped used, remaining/overrun, 24-by-24 pagination, duplicate historic ID Compose keys and JVM native projection + S24 Compose tests; first S24 test failed due to offscreen LazyColumn More node and was fixed using performScrollToIndex(25); all 4 final exact-head Project Tracking, Android CI unit/lint/unsigned release, screenshot and S24 emulator gates green at 51a2203ce4ba3b949b403a41a7f0e0abd251a3fb. Squash merged develop 12c85381eb1b29858138f9a8644d5a9cd539c186. W4.3 remains partial.",
-              "PR #272 Web reportLoanBurden active long-term obligations as-of with explicit flag and derived installment threshold, balance/next payment clamping, short/self-loan exclusion, stable historic duplicate IDs, Greek sort and native privacy-aware Insights. Domain JVM/production projection/S24 Compose goldens passed all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at 9449dbcf0bcdec744af06b88a4fcc3c0759d28e9; squash merged develop f800a0a5e11ab16922a564fa4e3f3711ea944804. W4.3 remains partial."
+              "PR #272 Web reportLoanBurden active long-term obligations as-of with explicit flag and derived installment threshold, balance/next payment clamping, short/self-loan exclusion, stable historic duplicate IDs, Greek sort and native privacy-aware Insights. Domain JVM/production projection/S24 Compose goldens passed all four immutable-final-head Project Tracking, Android CI unit/lint/optimized unsigned release, screenshot and S24 emulator checks at 9449dbcf0bcdec744af06b88a4fcc3c0759d28e9; squash merged develop f800a0a5e11ab16922a564fa4e3f3711ea944804. W4.3 remains partial.",
+              "PR #324 source-authored, unmerged: Web budgets.ts aliases from immutable categoryIdentities labels/history now participate in Android overall/category/subcategory rollups, carryover and future committed estimates; added renamed Greek category/subcategory historical regression fixture. Unit execution/CI acceptance pending."
             ]
           },
           {
@@ -1053,7 +1054,8 @@
             "status": "in_progress",
             "evidence": [
               "W5.3 #209 consolidated real Web PATCH /api/auth/account security flows: native email/password editors, explicit confirmation, server owner+AAL2 bearer-only, exact login session isolation, privacy gating, no local credential persistence/finance write/queued retries and Kotlin MockWebServer/Compose policy tests. Pending four exact-head CI and physical S24 acceptance.",
-              "W5.3 PR #209 real Web owner+AAL2 account-security email/password native editor and PATCH, redacted in-memory writes, session isolation, Web MockWebServer and Compose goldens merged to develop as 0d70b37b260c8db280a9aceed3a0513dc739a541 after four exact-head Android/Tracking/UI gates. Vault destructive safety/device acceptance remain open."
+              "W5.3 PR #209 real Web owner+AAL2 account-security email/password native editor and PATCH, redacted in-memory writes, session isolation, Web MockWebServer and Compose goldens merged to develop as 0d70b37b260c8db280a9aceed3a0513dc739a541 after four exact-head Android/Tracking/UI gates. Vault destructive safety/device acceptance remain open.",
+              "PR #324 source-authored, unmerged: Web passwordPolicy.ts Unicode \\p{Ll}/\\p{Lu}/\\p{N}/[\\p{P}\\p{S}] code-unit matcher mirrored instead of JVM Char.isDigit; added Roman numeral/circled number/password regression vectors. Auth API writes and owner+AAL2 behavior unchanged. Unit/CI acceptance pending."
             ]
           },
           {
@@ -1119,10 +1121,10 @@
         ]
       }
     ],
-    "next_action": "Validate W2.4/W3.1 card-vault and credit-funded split expense regressions from the new source PR #323; merge only on 4/4 exact final-head gates. Then continue open W2–W5 domain/UI work without waiting longer than eight minutes for CI; physical S24 approval remains separate.",
+    "next_action": "Validate authored W4.3 and W5.3 parity unit tests and 4/4 latest immutable-head gates for PR #324; merge only if all pass. Resume W2–W5 concrete source gaps with new independent batches; keep full provider SVG visual proof and owner physical S24 acceptance separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 323,
-    "current_subtask": "W2.4",
+    "pr": 324,
+    "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
