@@ -113,13 +113,16 @@ data class CanonicalBudgetProgress(
 )
 
 fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String? = null): Map<String, Double> {
-    val totals = linkedMapOf<String, Double>()
+    // Web spending() converts each physical allocation to cents first;
+    // summing fractional euro doubles before rounding can lose a cent.
+    val totals = linkedMapOf<String, Long>()
     fun include(date: String): Boolean =
         date.startsWith("$month-") && (asOf == null || month != asOf.take(7) || date <= asOf)
     fun add(category: String?, amount: Double) {
         val key = category?.trim().orEmpty()
         if (key.isEmpty() || !amount.isFinite() || abs(amount) <= 0.000001) return
-        totals[key] = (totals[key] ?: 0.0) + amount
+        val cents = runCatching { moneyToCents(amount) }.getOrNull() ?: return
+        totals[key] = Math.addExact(totals[key] ?: 0L, cents)
     }
     fun addParts(parts: Iterable<JsonObject>) {
         parts.forEach { part ->
@@ -165,7 +168,7 @@ fun CanonicalFinanceDocument.categoryBudgetSpending(month: String, asOf: String?
                 add(event.string("category"), expense)
             }
         }
-    return totals
+    return totals.mapValues { (_, cents) -> centsToMoney(cents) }
 }
 
 fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = null): List<CanonicalBudgetProgress> {

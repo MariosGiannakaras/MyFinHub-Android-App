@@ -263,6 +263,32 @@ class WebCategoryBudgetParityTest {
         assertTrue(imported.state.array("events").isEmpty())
     }
 
+    @Test fun fractionalImportedPostingsRoundEachExpenseToWebCentsBeforeAdding() {
+        // Web budgets.ts add(): moneyToCents(amount) per posting, then
+        // centsToMoney(sum). Two half-cent events each round to one cent.
+        // Android must not first sum 0.005 + 0.005 and yield just 0.01.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"transactions":[]},"state":{
+            "events":[
+              {"id":"a","kind":"expense","date":"2026-10-05",
+               "category":"Τρόφιμα","amount":0.005},
+              {"id":"b","kind":"expense","date":"2026-10-06",
+               "category":"Τρόφιμα","amount":0.005}
+            ],
+            "budgets":[{"id":"food","month":"2026-10","scope":"category",
+                        "category":"Τρόφιμα","amount":1}]
+          }}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        assertEquals(0.02,
+            imported.categoryBudgetSpending("2026-10","2026-10-15").getValue("Τρόφιμα"),
+            0.000001)
+        val row=imported.webBudgetProgress("2026-10","2026-10-15").single()
+        assertEquals(0.02,row.rawUsed,0.000001)
+        assertEquals(0.98,row.remaining,0.000001)
+        assertEquals(original,imported.raw)
+    }
+
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
         val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"transactions":[
