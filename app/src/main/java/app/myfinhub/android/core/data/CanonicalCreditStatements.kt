@@ -52,21 +52,23 @@ fun CanonicalFinanceDocument.creditStatementViews(
 ): List<CanonicalCreditStatementView> {
     // Preserve the single canonical event parser for money/kind semantics, but match Web's
     // creditStatementEvents ordering: date, createdAt, ID. The JSON array is not a timeline.
-    val eventRecords = state.array("events").mapNotNull { it as? JsonObject }
-        .mapNotNull { raw -> raw.string("id")?.let { it to raw } }.toMap()
-    val eventMetadata = eventRecords.mapValues { (_, raw) ->
-        raw.string("statementId") to raw.string("createdAt").orEmpty()
-    }
-    val events = canonicalEvents().filter { event ->
-        event.date <= asOf &&
-            (event.kind == "card_payment" ||
-                (eventRecords[event.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0) > 0.005) &&
-            eventMetadata[event.id]?.first != null
-    }.sortedWith(
-        compareBy<CanonicalEvent> { it.date }
-            .thenBy { eventMetadata[it.id]?.second.orEmpty() }
-            .thenBy(CanonicalEvent::id),
-    ).groupBy { event -> eventMetadata[event.id]?.first.orEmpty() }
+    // Match each parsed canonical event with its *physical* JSON source row.
+    // Historical imports can repeat event IDs. An id->JSON map would silently
+    // substitute the last duplicate's statement, amount and createdAt for every
+    // earlier row. Web creditStatementEvents operates directly on the array.
+    val rawEvents = state.array("events")
+        .mapNotNull { it as? JsonObject }
+        .filter { it.string("id") != null }
+    val events = canonicalEvents().zip(rawEvents)
+        .filter { (event, raw) ->
+            event.date <= asOf &&
+                (event.kind == "card_payment" || canonicalStatementPurchaseAmount(raw) > 0.005) &&
+                raw.string("statementId") != null
+        }.sortedWith(
+            compareBy<Pair<CanonicalEvent, JsonObject>> { it.first.date }
+                .thenBy { it.second.string("createdAt").orEmpty() }
+                .thenBy { it.first.id },
+        ).groupBy { (_, raw) -> raw.string("statementId").orEmpty() }
 
     return state.array("creditStatements").mapNotNull { raw ->
         val record = raw as? JsonObject ?: return@mapNotNull null
@@ -77,14 +79,14 @@ fun CanonicalFinanceDocument.creditStatementViews(
         val closeDate = record.string("closeDate") ?: return@mapNotNull null
         val dueDate = record.string("dueDate") ?: return@mapNotNull null
         val associated = events[id].orEmpty()
-        val purchases = associated.filter {
-            (eventRecords[it.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0) > 0.005
+        val purchases = associated.filter { (_, raw) ->
+            canonicalStatementPurchaseAmount(raw) > 0.005
         }
-        val payments = associated.filter { it.kind == "card_payment" }
-        val purchaseTotal = roundCreditMoney(purchases.sumOf {
-            eventRecords[it.id]?.let(::canonicalStatementPurchaseAmount) ?: 0.0
+        val payments = associated.filter { (event, _) -> event.kind == "card_payment" }
+        val purchaseTotal = roundCreditMoney(purchases.sumOf { (_, raw) ->
+            canonicalStatementPurchaseAmount(raw)
         })
-        val paymentTotal = roundCreditMoney(payments.sumOf { it.amount })
+        val paymentTotal = roundCreditMoney(payments.sumOf { (event, _) -> event.amount })
         val remaining = roundCreditMoney(max(0.0, purchaseTotal - paymentTotal))
         val status = when {
             remaining <= 0.005 -> "paid"
@@ -95,7 +97,7 @@ fun CanonicalFinanceDocument.creditStatementViews(
         CanonicalCreditStatementView(
             id = id, cardId = linkedCard, openDate = openDate, closeDate = closeDate,
             dueDate = dueDate, boundaryRule = record.string("boundaryRule").orEmpty(),
-            purchaseIds = purchases.map { it.id }, paymentIds = payments.map { it.id },
+            purchaseIds = purchases.map { it.first.id }, paymentIds = payments.map { it.first.id },
             purchaseTotal = purchaseTotal, paymentTotal = paymentTotal,
             remaining = remaining, status = status,
         )
