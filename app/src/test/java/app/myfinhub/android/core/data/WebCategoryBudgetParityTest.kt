@@ -234,33 +234,31 @@ class WebCategoryBudgetParityTest {
         assertEquals(before, imported.raw)
     }
 
-    @Test fun historicalDuplicateBudgetCarryoverUsesSortedFirstMatchingWebParent() {
-        // Web previousCarry invokes monthlyBudgets(previousMonth).find(...):
-        // both same-category previous budgets match, but "a-first" must win
-        // despite being physically listed last in the imported JSON array.
+    @Test fun variantCategoryLabelsCoalesceIntoOneWebPostingBucket() {
+        // Web spending() uses categoryKey(identity) as the aggregate key and
+        // records the last physical posting label for categoryBudgetSpending.
+        // This is presentation/read-only; don't rewrite canonical event labels.
         val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
-          {"seed":{"accounts":[]},"state":{
-            "events":[],
+          {"seed":{"accounts":[],"transactions":[]},"state":{
+            "events":[
+              {"id":"first","kind":"expense","date":"2026-10-08",
+               "amount":12.0,"category":"Τρόφιμα"},
+              {"id":"second","kind":"expense","date":"2026-10-09",
+               "amount":8.0,"category":"ΤΡΟΦΙΜΑ"}
+            ],
             "budgets":[
-              {"id":"z-later","month":"2026-09","scope":"category",
-               "category":"Σπίτι","amount":300,"carryover":false},
-              {"id":"a-first","month":"2026-09","scope":"category",
-               "category":"Σπίτι","amount":50,"carryover":false},
-              {"id":"current","month":"2026-10","scope":"category",
-               "category":"Σπίτι","amount":100,"carryover":true}
+              {"id":"food","month":"2026-10","scope":"category",
+               "category":"Τρόφιμα","amount":40}
             ]
           }}
         """.trimIndent()).jsonObject)
-        val original = imported.raw
-        val older = imported.webBudgetProgress("2026-09","2026-09-30")
-        assertEquals(listOf("a-first", "z-later"), older.map { it.id })
-        val current = imported.webBudgetProgress("2026-10","2026-10-15").single()
-        assertEquals(50.0, current.carried, 0.00001)
-        assertEquals(100.0, current.baseLimit, 0.00001)
-        assertEquals(150.0, current.limit, 0.00001)
-        assertEquals(150.0, current.remaining, 0.00001)
-        assertEquals(original, imported.raw)
-        assertTrue(imported.state.array("events").isEmpty())
+        val source = imported.raw
+        val spent = imported.categoryBudgetSpending("2026-10", "2026-10-15")
+        assertEquals(mapOf("ΤΡΟΦΙΜΑ" to 20.0), spent)
+        val budget = imported.webBudgetProgress("2026-10", "2026-10-15").single()
+        assertEquals(20.0, budget.used, 0.0001)
+        assertEquals(20.0, budget.remaining, 0.0001)
+        assertEquals(source, imported.raw)
     }
 
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {

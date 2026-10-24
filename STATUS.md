@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 #338 historical budget threshold read and stable ordering passed all four exact-head gates and merged develop c8230b7cb5f012d6fc3d57a673f389a260dd756f. W4.3 #339 Web projected-budget scheduled completedEventId whitespace truthiness fix passed 4/4 immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 at a6f944d12a0a05f414f7f40bb42faada385183ad, squash merged develop 9a7d865bd54d4f9826daf4dbcc5496895be93906. Current draft W4.3 PR #340 aligns historical carryover parent selection with Web monthlyBudgets sorted first match by scope, category and ID rather than physical imported JSON order. Kotlin unit golden authored for duplicated September same-category budgets (€50 versus €300), October carried €50, new limit €150, unchanged finance source. Android-only source replayed on full merged #339 develop; canonical tracker and three generated handoffs refreshed. No local Gradle run claimed, four new exact-head hosted gates pending. Broader W2–W5 implementation parity and physical S24 owner #149 pending. No production finance writes, Web/backend/schema changes, SMS #146, permanent card-delete UI, signed release or main.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 #339 budget scheduled completedEventId Web truthiness passed 4/4 final-head and merged develop 9a7d865bd54d4f9826daf4dbcc5496895be93906. W4.3 #340 first sorted matching historical carryover parent rather than physical imported JSON row passed 4/4 Project Tracking, Android CI, screenshot regression and hosted S24 at immutable head 9c1b524e782dea9a5c752ed0c7b1a63a2a4743f8, squash merged develop e4165de8c8e30bbb4c512805c4c27e14c851d41d. Current draft W4.3 PR #341 aligns read-only categoryBudgetSpending presentation with Web categoryKey-normalized buckets and last physical posting label, folding case/Greek accent aliases into one row instead of duplicating display categories. Source and Kotlin JVM golden assert Τρόφιμα and ΤΡΟΦΙΜΑ aggregate €20, preserve category budget used and immutable source. Integrated with full merged #340 develop ancestry, tracking and three generated docs; local Gradle not run, four fresh exact-head CI gates required. Broader W2–W5 Web parity incomplete; physical S24 owner approval #149 pending. No production finance writes, Web/backend/schema, SMS #146, irreversible card-delete UI, signing or main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify W4.3 #340 exact final-head tracking-verify, android-verify, screenshot-regression and hosted s24-ultra-target-instrumented gates. Merge only if 4/4 success on unchanged head. Continue remaining W2–W5 full-feature work after this narrow budget carryover fix; physical owner S24 Ultra #149 separate. No finance production writes, SMS, Web/backend/schema edits, destructive card UI, signed release or main.
+1. Run four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 gates for draft W4.3 PR #341. Only merge once all four pass on unchanged commit. Continue full feature parity W2–W5 and physical S24 owner #149 acceptance separately; no production finance data changes, SMS, Web/backend/schema, card-delete UI or release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #340, branch android/w4-budget-carryover-sorted-first-match-20261025
-Current W4.3: W4.3 #339 budget scheduled completedEventId Web truthiness passed 4/4 same final-head gates at a6f944d12a0a05f414f7f40bb42faada385183ad and squash merged develop 9a7d865bd54d4f9826daf4dbcc5496895be93906. Draft W4.3 #340, rebased through full #339 develop tree, selects first matching prior-month carryover budget in Web sorted monthly order instead of imported JSON order. Kotlin source and immutable golden authored, local Gradle not executed, all four new final-head CI gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
+Issue #155, PR #341, branch android/w4-budget-spending-normalized-labels-20261025
+Current W4.3: W4.3 PR #340 previous-month budget carryover sorted first-match 4/4 exact-head success at 9c1b524e782dea9a5c752ed0c7b1a63a2a4743f8, squash merged develop e4165de8c8e30bbb4c512805c4c27e14c851d41d. Draft W4.3 #341 categoryBudgetSpending normalizes categoryKey buckets, preserves last display label and aggregates historical case/accent variants without mutating source; authored golden (two labels → €20), refreshed onto current develop, four new exact-head hosted CI gates pending, local Gradle not run. Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check W4.3 PR #340 against all four exact-head GitHub gates (Project Tracking, Android CI, screenshot, hosted S24). Only then ready/squash merge. Continue broader W2–W5 feature parity and owner S24 physical acceptance #149, avoid production finance writes, SMS, Web/backend/schema, irreversible card delete UI, signed release or main promotion.
+Next Check W4.3 #341 four exact final-head gates Project Tracking, Android CI, screenshot and hosted S24, mark ready/merge only with all 4 green. Continue substantive W2–W5 and preserve immutable ledger, Android-only and physical S24 owner acceptance #149 boundaries; no SMS, Web/backend/schema, signed main release, irreversible card UI.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
