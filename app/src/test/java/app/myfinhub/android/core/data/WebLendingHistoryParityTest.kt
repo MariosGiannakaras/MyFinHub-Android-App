@@ -80,4 +80,37 @@ class WebLendingHistoryParityTest {
         assertTrue(aggregateOnly.canonicalLendingHistoryRows().isEmpty())
         assertEquals(95.0, aggregateOnly.canonicalLendingPersonRows().single().outstanding, 0.001)
     }
+    @Test fun canonicalLendingWriteoffsAppearAsForgivenWithoutCashLegOrInventedPayments() {
+        val history = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"lending":[{"person":"Μαρία","outstanding":80,"entries":[]}]},
+           "state":{"events":[
+             {"id":"lent","date":"2026-10-01","kind":"lending","person":"Μαρία",
+               "amount":75,"fromAccountId":"cash"},
+             {"id":"return","date":"2026-10-03","kind":"repayment","person":"Μαρία",
+               "amount":20,"toAccountId":"payroll"},
+             {"id":"forgive","date":"2026-10-05","kind":"lending_writeoff","person":"Μαρία",
+               "amount":15,"accountId":"cash"},
+             {"id":"larger","date":"2026-10-15","kind":"lending_writeoff","person":"Μαρία",
+               "amount":100},
+             {"id":"other-kind","date":"2026-10-07","kind":"expense","person":"Μαρία",
+               "amount":20}
+           ]}}
+        """.trimIndent()).jsonObject)
+        val before = history.raw
+        val rows = history.canonicalLendingHistoryRows("2026-10-06")
+        assertEquals(listOf("forgive", "return", "lent"), rows.map { it.id })
+        val forgiveness = rows.first()
+        assertEquals("forgiven", forgiveness.action)
+        assertEquals("Διαγραφή απαίτησης", forgiveness.note)
+        assertEquals(null, forgiveness.accountId)
+        assertEquals("event", forgiveness.origin)
+        assertEquals(40.0, forgiveness.runningOutstanding, 0.00001)
+        assertEquals(55.0, rows[1].runningOutstanding, 0.00001)
+        assertEquals(75.0, rows[2].runningOutstanding, 0.00001)
+        val all = history.canonicalLendingHistoryRows()
+        assertEquals(4, all.size)
+        assertEquals(0.0, all.first().runningOutstanding, 0.00001)
+        assertEquals(before, history.raw)
+    }
+
 }

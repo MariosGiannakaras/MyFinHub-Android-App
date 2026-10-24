@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #327 recurring future subcategory/duplicate-ID budget projections passed all 4 exact-head gates and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. W4.3 PR #328 lending as-of historical balances, imported paid principal and noncash writeoff history is independently under 4/4 CI checks. New Android-only W4.1 source checkpoint extends recurring subcategory end-to-end through native create/edit UI, request model, canonical finance creation/editing, read projection and offline intent encode/decode and replay. Kotlin goldens authored, not yet CI validated or merged; W4.1 wider functionality remains open. Native provider visuals and physical S24 owner #149 acceptance still outstanding. No signed release, SMS or permanent card delete UI.
+Web parity 1/6 implementations · 11/24 subtasks. PR #328 W4.3 conservative Web lending historical as-of reconstruction, imported loan legacyPaidAmount and writeoff history passed 4/4 exact-head gates, squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487. PR #327 recurring duplicate-ID budget projection also merged. New W4.1 source checkpoint PR #329 implements recurring category/subcategory end-to-end through native editor, request model, canonical create/edit, read projection and offline intent replay, including clearing optional subcategory while preserving logos and lifecycle. Goldens authored, not yet CI validated or merged on reconciled head. Further W2–W5 work, provider visuals and owner physical S24 #149 pending. No signed release, main promotion, SMS or irreversible card-delete UI.
 
 ## Immediate work
 
-- Validate W4.1 PR #329 recurring create/edit subcategory UI, canonical persistence and offline/revision replay against Web; require all 4 exact-head checks before merge. If #328 merges first, reconcile #329 against latest develop and rerun all gates. Continue W2–W5 concrete Android parity; assistant CI observation <=8 minutes; no production release.
+- Validate PR #329 Web recurring category/subcategory create/edit/offline queue end-to-end on current develop, requiring all 4 exact final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks before merge. Continue outstanding W2–W5 source parity independently, no assistant CI observation over eight minutes or production release.
 
 ## Constraints
 
@@ -55,9 +55,9 @@ Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #327 recurring future 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
-Current W4.1: Verified PR #327 W4.3 recurring duplicate-ID category commitments squash merged develop 3f7a5aba after 4 exact-head gates; separate W4.3 PR #328 lending history/principal is under independent CI. PR #329 W4.1 native recurring subcategory is authored across form, ViewModel, domain creation/editing, finance plan projection and PendingCanonicalMutation offline queue replay. Golden create/edit tests authored but current PR not yet CI accepted/merged. Web parity 1/6 implementations · 11/24 subtasks, owner S24 #149 pending.
+Current W4.1: PR #328 historical lending/principal/writeoff correction passed 4/4 exact-head gates and squash merged develop 897f4d2b. PR #329 W4.1 recurring subcategory now authored through Compose native form, PlanUiState, CanonicalPlanProjection, ViewModel, create/edit canonical mutation and PendingCanonicalMutation decoder, with creation/update/clear and offline replay JVM goldens. Reconciled on verified develop; 4/4 new latest-head CI still pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #329 Web recurring category/subcategory end-to-end UI+create/edit+offline replay tests and all four exact-head gates; merge only on green and after reconciling concurrent PR #328 if necessary. Keep physical S24 acceptance and production release separate.
+Next Validate PR #329 Android recurring category and subcategory end-to-end golden tests, any screenshot UI effects and all four exact-head checks. Merge only on green and continue wider W2–W5 feature implementation. Owner physical S24 acceptance, branch-protection admin and signed release remain separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

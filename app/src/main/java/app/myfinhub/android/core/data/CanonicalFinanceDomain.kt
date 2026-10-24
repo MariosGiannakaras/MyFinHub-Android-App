@@ -433,7 +433,7 @@ fun CanonicalFinanceDocument.loanOutstanding(asOf: String? = null): Double =
 /** Canonical net-worth receivables include unattributed deltas; as-of dates exclude future finance events. */
 fun CanonicalFinanceDocument.receivableOutstanding(asOf: String? = null): Double {
     val legacy = seed.array("lending").mapNotNull { it as? JsonObject }
-        .sumOf { it.number("outstanding") ?: 0.0 }
+        .sumOf { canonicalLegacyLendingSnapshot(it, asOf).outstanding }
     val eventDelta = state.array("events").mapNotNull { it as? JsonObject }.filter {
         // Web domain.ts eventReceivables: undefined/null dates do not satisfy
         // event.date <= asOf. All-time projection still includes historic rows.
