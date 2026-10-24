@@ -103,4 +103,26 @@ class RecurringEstimateComposeTest {
         rule.onNodeWithTag("recurring_amount_mode_rent").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Σταθερό ποσό").assertIsDisplayed()
     }
+    @Test fun malformedHistoricalEstimateShowsErrorInsteadOfFixedAmountOrTrustedRange() {
+        val state = PlanUiState(recurringManageItems = listOf(
+            RecurringManageItem("legacy", "Imported recurring", 40.0, "active",
+                amountMode = "unsupported", estimateMin = -5.0, estimateMax = 60.0,
+                amountValidationError = "Επίλεξε έγκυρο τύπο ποσού παγίου."),
+        ))
+        rule.setContent { MyFinHubTheme {
+            CanonicalRecurringManagementScreen(
+                state, onBack = {}, onStatusChanged = { _, _ -> },
+                mutationBlocked = true, paymentAccountAvailable = false,
+            )
+        } }
+        rule.onNodeWithTag("recurring_amount_mode_legacy").performScrollTo()
+            .assertTextContains("Μη έγκυρη εκτίμηση", substring = true)
+        rule.onNodeWithTag("recurring_amount_invalid_legacy").performScrollTo()
+            .assertTextContains("έγκυρο τύπο", substring = true)
+        rule.onAllNodesWithTag("recurring_estimate_range_legacy")
+            .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
+        rule.onAllNodesWithText("Σταθερό ποσό")
+            .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
+    }
+
 }
