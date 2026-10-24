@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 forecast omissions and scheduled chronological warning parity passed four exact-head gates each, integrated develop 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. W4.1 PR #334 recurring imported amount-mode/range validation, native warning and Kotlin/Compose regression passed four exact-head gates at 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, squash merged develop 859ba0123622dbb29703a6fa35e88e3b540918da. Current W3.1 draft PR #335, refreshed onto #334 merge, fails closed on historical duplicate credit statement ID by checking the first physical owner exactly like Web, with pure JVM golden tests and source-preserving records. New exact-head Project Tracking, Android CI, screenshot regression, and hosted S24 gates must pass after integration refresh. Broader W2–W5 scope and physical owner S24 #149 still pending; no local Gradle execution, backend/schema or production finance write.
+Web parity 1/6 implementations · 11/24 subtasks. W4.1 #334 strict imported recurring estimate validation passed all four immutable gates and squash merged develop 859ba0123622dbb29703a6fa35e88e3b540918da; W3.1 #335 duplicate historical statement-ID ownership also passed all four exact-head gates at 8fa0593e5613e4810a6611f5ed09b7d6a05345e5 and squash merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6. Active W3.1 PR #336 fixes statementId whitespace-only truthiness: Web treats nonempty whitespace as explicit reference and removes unresolved link without auto-creating a credit cycle; Android previously created a new cycle. JVM golden tests cover missing and matching historical whitespace IDs, explicitly empty link, live append and immutable source. No local Gradle run; four CI gates pending. Wider Web parity W2–W5 and physical S24 owner signoff #149 remain open; no production writes, backend changes or signed release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run all four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates on refreshed W3.1 PR #335; merge only if 4/4 success. Continue broader W2–W5 feature acceptance independently; physical owner S24 #149 pending. No live finance writes, SMS, permanent card-delete UI, signed release or main promotion.
+1. Validate W3.1 PR #336 exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation for whitespace-only historical statementId parity, then merge only if all four succeed on the same head. Continue remaining W2–W5 product gaps without SMS, backend/Web edits, irreversible card-delete UI, production financial data, signed release or main promotion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #335, branch android/w3-credit-statement-duplicate-first-match-20261024
-Current W3.1: W4.1 PR #334 successfully merged develop 859ba0123622dbb29703a6fa35e88e3b540918da following Project Tracking, Android CI, screenshot regression and hosted S24 success on final head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6. Draft #335 W3.1 first-record statement owner validation and Kotlin immutable golden refreshed with full #334 integration baseline; new exact-head checks required and no local Gradle run claimed. Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.
+Issue #155, PR #336, branch android/w3-credit-statement-whitespace-link-parity-20261024
+Current W3.1: W3.1 PR #335 first-physical-owner statement identity passed all four exact-head gates at 8fa0593e5613e4810a6611f5ed09b7d6a05345e5 and squash merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6. Draft #336 W3.1 explicit whitespace-only statementId now follows Web JavaScript truthiness rather than auto-assigning a new cycle; source and JVM golden authored, CI not accepted, no local Gradle run. Canonical Web parity 1/6 implementations · 11/24 subtasks, real S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify refreshed W3.1 PR #335 on its final head after #334 integration: all four hosted gates, then squash merge only if passed. Continue first remaining incomplete feature scope W2–W5; no release/main promotion, live finance writes, backend/schema or prohibited SMS/card-delete scope.
+Next Check #336 exact-head four gates for historical credit statement whitespace IDs; merge only with all Project Tracking/Android CI/screenshot/hosted S24 green on same immutable SHA. Continue broader W2–W5 contract work. No SMS, production writes, Web/backend/schema changes, card-delete UI, signed release or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
