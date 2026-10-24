@@ -37,7 +37,9 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
                 // is truthy in JavaScript and therefore *not* an unlinked due.
                 // Treating it as blank invents a second scheduled obligation.
                 row.string("completedEventId").isNullOrEmpty() &&
-                !row.string("category").isNullOrBlank() &&
+                // Web item.category is a JavaScript truthiness check:
+                // nonempty whitespace is truthy even if no budget category matches.
+                !row.string("category").isNullOrEmpty() &&
                 row.number("amount")?.let { it.isFinite() && it > 0.0 } == true
         }
     val result = scheduled.mapNotNull { row ->
@@ -64,7 +66,7 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
         if (item.isVariableEstimate) return@forEach
         val next = nextCanonicalRecurringDate(item, targetAsOf)?.toString() ?: return@forEach
         if (next <= asOf || next > endIso || !next.startsWith("$month-") ||
-            item.category.isBlank() || item.amount <= 0.0 || !item.amount.isFinite() ||
+            item.category.isEmpty() || item.amount <= 0.0 || !item.amount.isFinite() ||
             item.id in linkedThisMonth ||
             !runCatching { moneyToCents(item.amount) > 0L }.getOrDefault(false)
         ) return@forEach
