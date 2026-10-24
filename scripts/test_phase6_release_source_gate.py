@@ -26,9 +26,10 @@ def pr_payload(**overrides):
 def successful_checks():
     return {
         "check_runs": [
-            {"id": 10, "name": "verify", "status": "completed", "conclusion": "success"},
-            {"id": 11, "name": "screenshot-regression", "status": "completed", "conclusion": "success"},
-            {"id": 12, "name": "s24-ultra-target-instrumented", "status": "completed", "conclusion": "success"},
+            {"id": 10, "name": "android-verify", "status": "completed", "conclusion": "success"},
+            {"id": 11, "name": "tracking-verify", "status": "completed", "conclusion": "success"},
+            {"id": 12, "name": "screenshot-regression", "status": "completed", "conclusion": "success"},
+            {"id": 13, "name": "s24-ultra-target-instrumented", "status": "completed", "conclusion": "success"},
         ]
     }
 
@@ -74,15 +75,30 @@ class CheckValidationTest(unittest.TestCase):
         payload = successful_checks()
         payload["check_runs"].extend(
             [
-                {"id": 20, "name": "verify", "status": "completed", "conclusion": "failure"},
+                {"id": 20, "name": "android-verify", "status": "completed", "conclusion": "failure"},
             ]
         )
         with self.assertRaises(SourceGateError):
             validate_required_checks(payload)
 
+    def test_rejects_failed_project_tracking_even_if_android_build_passes(self):
+        payload = successful_checks()
+        payload["check_runs"][1]["conclusion"] = "failure"
+        with self.assertRaises(SourceGateError):
+            validate_required_checks(payload)
+
+    def test_rejects_legacy_ambiguous_verify_check(self):
+        payload = successful_checks()
+        payload["check_runs"] = [
+            {"id": 50, "name": "verify", "status": "completed", "conclusion": "success"},
+            *payload["check_runs"][2:],
+        ]
+        with self.assertRaises(SourceGateError):
+            validate_required_checks(payload)
+
     def test_rejects_in_progress_check(self):
         payload = successful_checks()
-        payload["check_runs"][1] = {
+        payload["check_runs"][2] = {
             "id": 30,
             "name": "screenshot-regression",
             "status": "in_progress",

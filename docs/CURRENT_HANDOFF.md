@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. Consolidated Android-only source PR #320 was squash merged into develop at 3c85ad3b816725de1836901fbda159247d40cba4 after 4/4 exact-head Project Tracking, Android CI, screenshot and hosted S24 checks. A new W2.4 security-editor checkpoint is now authored separately from that verified base; its compile/Compose validation is not yet complete. Native Web SVG full-pack visual parity and physical owner Galaxy S24 Ultra acceptance remain open.
+Web parity 1/6 implementations · 11/24 subtasks. Consolidated parity PR #320 and secure card-vault authority/session regression PR #321 are both 4/4 exact-head tested and squash merged into develop (latest c5a4232ed8130ea6ccf34a9103ca55cd57cd977e). W2.4 as a whole remains in progress; irreversible permanent card deletion stays disabled. Current independent repo-workflow fast-fail/rules optimization is code-authored but not yet CI-validated. Native full five-pack SVG parity and physical owner Galaxy S24 Ultra #149 acceptance remain outstanding.
 
 ## Immediate work
 
-- Continue W2.4 on android/w2-card-secure-editor-session-20261024: verify the secret editor clears and hides PAN/expiry/CVV drafts immediately when server vault authorization drops, with an S24 Compose regression. Run scoped and 4/4 exact-head gates on a PR before merging; do not infer physical S24 signoff. Continue remaining W2–W5 parity separately; preserve all owner+AAL2/card vault/offline safeguards and explicit no permanent-delete UI, no SMS, no Web/backend/schema, no signed release.
+- Review CI fast-fail ordering and two-lane implementation/CI reporting changes on android/ci-workflow-fast-fail-handoff-20261024, then check its exact-head required gates before merging. Resume outstanding W2.4 card interactions and remaining W3–W5 Web parity work from latest develop; preserve privacy, optimistic revisions, offline semantics and no permanent card-delete UI, SMS, shared Web/backend changes, or release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 subtasks. Consolidated Android-only sour
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #321, branch android/w2-card-secure-editor-session-20261024
-Current W2.4: Merged PR #320 at develop 3c85ad3b (4/4 exact-head pass). W2.4 secure card editor authority-loss draft invalidation and Compose regression are authored in a new unmerged branch, not yet CI-validated. Web parity progress remains 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.
+Issue #155, PR #322, branch android/ci-workflow-fast-fail-handoff-20261024
+Current W2.4: PR #321 (W2.4 secure card session/AAL2 invalidation) passed all 4 exact-head CI gates and squash merged develop c5a4232. New repo CI/workflow housekeeping branch refactors fail-fast Kotlin-before-benchmark order and canonical UI-tracking preflight; no production feature is marked completed by these changes. Web parity 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W2.4 secure card editor session-invalidation behavior and S24 Compose regression on android/w2-card-secure-editor-session-20261024; PR and exact-head 4/4 gates required before merge. Then continue other unfinished W2–W5 parity. No permanent-card-delete UI, real finance writes, shared backend edits, SMS import, signer or release.
+Next Validate the repo CI fail-fast/rules optimization PR, including Python workflow regression and all required checks when triggered; no 8-minute polling wait. Then continue unfinished W2.4 and remaining W3–W5 Android-only Web parity source. Physical owner S24 #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

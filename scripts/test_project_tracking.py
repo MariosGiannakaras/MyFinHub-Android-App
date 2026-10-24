@@ -116,15 +116,35 @@ class WebParityTrackingTests(unittest.TestCase):
 class WorkflowGateConsistencyTests(unittest.TestCase):
     """Protect all four CI PR jobs from mutable checkout drift."""
 
+    def test_kotlin_checks_fail_fast_before_costly_benchmark_build(self):
+        source = (tracking.ROOT / ".github" / "workflows" / "android-ci.yml").read_text(encoding="utf-8")
+        unit = source.index("      - name: Unit, instrumentation compile, lint and debug assembly")
+        benchmark = source.index("      - name: Benchmark and Baseline Profile tooling build")
+        release = source.index("      - name: Optimized unsigned release and Play bundle assembly")
+        self.assertLess(unit, benchmark)
+        self.assertLess(benchmark, release)
+        self.assertIn(":app:compileDebugAndroidTestKotlin", source)
+        self.assertIn("assembleRelease bundlePlayRelease analyzeReleaseR8Config", source)
+
+    def test_ui_jobs_fail_fast_on_stale_tracking_before_sdk_bootstrap(self):
+        source = (tracking.ROOT / ".github" / "workflows" / "android-ui-quality.yml").read_text(encoding="utf-8")
+        jobs = source.split("  s24-ultra-target-instrumented:\n", 1)
+        self.assertEqual(len(jobs), 2)
+        for job in jobs:
+            check = job.index("      - name: Fail fast on canonical tracking drift")
+            setup = job.index("      - name: Set up JDK 17")
+            self.assertLess(check, setup)
+            self.assertIn("python3 scripts/render_project_tracking.py --check", job)
+
     def test_gate_jobs_remain_present(self):
         root = tracking.ROOT / ".github" / "workflows"
         ci = (root / "android-ci.yml").read_text(encoding="utf-8")
         ui = (root / "android-ui-quality.yml").read_text(encoding="utf-8")
         checks = (root / "project-tracking.yml").read_text(encoding="utf-8")
-        self.assertIn("jobs:\n  verify:", ci)
+        self.assertIn("jobs:\n  android-verify:", ci)
         self.assertIn("  screenshot-regression:", ui)
         self.assertIn("  s24-ultra-target-instrumented:", ui)
-        self.assertIn("jobs:\n  verify:", checks)
+        self.assertIn("jobs:\n  tracking-verify:", checks)
         self.assertIn("validateDebugScreenshotTest", ui)
         self.assertIn("scripts/run-connected-android-tests.sh", ui)
         self.assertIn("python3 scripts/render_project_tracking.py --check", checks)

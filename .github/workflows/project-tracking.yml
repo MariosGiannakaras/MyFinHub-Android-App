@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  tracking-verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

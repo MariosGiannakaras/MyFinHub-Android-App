@@ -9,6 +9,15 @@
 - Each substantive response MUST report `Web parity: X/6 implementations · Y/24 subtasks`, along with current task ID, branch/PR and validated/unmerged/physical-pending state. Derive X/Y exclusively from completed, evidence-backed, integrated subtasks. Historical September redesign 10/10 and 40/40 must be labeled historical and not confused with current Web parity.
 - A new chat/agent reads AGENTS, canonical plan, JSON tracker, generated handoff, permanent issue #27, issue #155 and the live PR/check results. Resume the first unfinished subtask without user repetition; do not redo completed audits absent new evidence. Keep next action, blockers and merged evidence durable in tracker, issues/PR/commits.
 - Key owner requirements: Home's headline total = daily cash + payroll ONLY, excluding savings, other banks and cash reserve; below it Cash, Payroll, Savings with real Web-equivalent account charts and simple secondary accounts; cards use Web model/design, with credit financial activity under selected card on the same screen. Keep native Compose and shared projections/mutations; preserve security, offline and installed-data invariants. SMS import #146 stays excluded.
+## Execution lanes, latency limit and merge authority
+
+- Report **three independent lanes**: (A) implementation authored / self-review / actually executed local checks; (B) GitHub CI per-gate status tied to a specific commit; (C) PR integration and separate physical S24 owner acceptance. Never label code "tested" because tests were merely written.
+- During development, prioritize implementation and inspect source/contracts, run narrow available checks, then commit a coherent batch. Do not launch a separate Android CI run for each file, documentation change or corrected test assertion. Bundle related fixes before pushing when possible.
+- **CI observation budget: maximum eight minutes per check-in.** If a workflow remains pending, stop repeated polling, report its last verified state and continue another independent task/branch. GitHub may continue running; the eight-minute limit is on assistant waiting, **not** a workflow timeout or a reason to cancel tests.
+- Never merge with required checks failed, skipped or pending. Before merge, verify all four required PR checks (Project Tracking, Android CI, screenshot regression, hosted S24 emulator) completed successfully on the same immutable final PR head. Separately flag post-merge CI and physical Galaxy S24 Ultra signoff.
+- Detect and repair canonical tracking drift in the same substantive checkpoint; do not generate meta-only commits that restart full Android CI. Update the canonical JSON and regenerate all three derived files together. Current status must not refer to a merged branch as unmerged.
+- Do not claim physical S24 acceptance, product parity, production release, or personal local test execution from CI results.
+
 ## Active Android workstream boundary and continuity
 
 - The owner authorized repository cleanup and implementation of the September 2026 Android redesign. Earlier audit-only restrictions and old minimum-polish/final-completion claims do not govern this workstream.
@@ -102,7 +111,7 @@ If an Android requirement can be satisfied entirely inside `MyFinHub-Android-App
 - Work is tracked by Issues.
 - Use short-lived branches from `develop` and PR back into `develop` for Android-repository implementation/research batches.
 - Production/release promotion is deliberate and traceable from `develop` to `main`.
-- Keep durable decisions in `docs/`; keep changing progress in `STATUS.md`, `TODO.md`, Issues, PRs, and commits.
+- Keep durable decisions in `docs/`; update current progress only in `tracking/android-project-state.json` and regenerate `STATUS.md`, `TODO.md`, and `docs/CURRENT_HANDOFF.md`. Keep historical decisions/evidence in Issues, PRs, and commits.
 - Public source is intentional. At an explicit owner-authorized release checkpoint, protected workflows may publish approved production-signed APK/AAB/checksum artifacts to GitHub Releases and the documented private update channel. Signing keys, passwords, tokens and other secrets must never be exposed as artifacts, release assets, logs or repository content.
 - Routine development does not need signed APK production. Final APK/build/signing/distribution work happens only at an explicit release checkpoint.
 - Google Play-distributed builds must use Google Play's update mechanism and must not request MyFinHub's direct package-install/self-update permissions.
