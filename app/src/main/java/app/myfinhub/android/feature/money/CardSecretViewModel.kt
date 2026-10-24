@@ -112,6 +112,8 @@ class CardSecretViewModel internal constructor(
     private var currentCardId: String? = null
     private var pendingCleanup: PendingCardSecretCleanup? = null
     private var cleanupGeneration = 0L
+    // Each card read/navigation transition revokes all older in-flight sensitive callbacks.
+    private var detailRequestGeneration = 0L
 
     fun attachSession(session: AuthSession) {
         val previous = currentSession
@@ -122,6 +124,7 @@ class CardSecretViewModel internal constructor(
                 previous.assuranceLevel != session.assuranceLevel)
         currentSession = session
         if (vaultAuthorityChanged) {
+            detailRequestGeneration += 1
             // A previous AAL2 read cannot stay visible during bearer rotation or
             // assurance downgrade, even when the account owner ID stays the same.
             mutableState.value = CardSecretUiState.Hidden(currentCardId)
@@ -143,6 +146,7 @@ class CardSecretViewModel internal constructor(
     fun clear() {
         currentSession = null
         currentCardId = null
+        detailRequestGeneration += 1
         cleanupGeneration += 1
         pendingCleanup = null
         mutableState.value = CardSecretUiState.Hidden()
@@ -161,7 +165,11 @@ class CardSecretViewModel internal constructor(
     }
 
     fun closeCard(cardId: String) {
-        if (currentCardId == cardId.trim()) currentCardId = null
+        if (currentCardId != cardId.trim()) return
+        // Nav disposal must drop previously revealed secrets, not merely the card pointer.
+        currentCardId = null
+        detailRequestGeneration += 1
+        mutableState.value = CardSecretUiState.Hidden()
     }
 
     /**
@@ -169,6 +177,7 @@ class CardSecretViewModel internal constructor(
      * hides values behind a reveal interaction.
      */
     fun hideSecrets() {
+        detailRequestGeneration += 1
         mutableState.value = CardSecretUiState.Hidden(currentCardId)
     }
 
@@ -194,6 +203,7 @@ class CardSecretViewModel internal constructor(
         }
         if (currentCardId == normalized) {
             currentCardId = null
+            detailRequestGeneration += 1
             mutableState.value = CardSecretUiState.Hidden()
         }
         val request = PendingCardSecretCleanup(
@@ -308,7 +318,11 @@ class CardSecretViewModel internal constructor(
         val normalizedPan = try { panCopy.concatToString().filter(Char::isDigit) } finally { panCopy.fill('\u0000') }
         val normalizedExpiry = try { normalizeServerExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
 
-        if (session == null || cardId == null) {
+        if (
+            session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            cardId == null ||
+            (mutableState.value as? CardSecretUiState.Revealed)?.cardId != cardId
+        ) {
             mutableNotices.tryEmit(
                 UserNotice(
                     message = "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν επειδή η ασφαλής συνεδρία ή η κάρτα δεν είναι πλέον διαθέσιμη.",
@@ -327,6 +341,7 @@ class CardSecretViewModel internal constructor(
             return
         }
 
+        val generation = detailRequestGeneration
         mutableState.value = CardSecretUiState.Saving(cardId)
         viewModelScope.launch {
             val result = safeApiCall {
@@ -339,7 +354,10 @@ class CardSecretViewModel internal constructor(
                     ),
                 )
             }
-            if (!stillCurrent(session, cardId)) return@launch
+            if (!stillCurrent(session, cardId) ||
+                generation != detailRequestGeneration ||
+                mutableState.value !is CardSecretUiState.Saving
+            ) return@launch
             when (result) {
                 is ApiResult.Success -> loadServerDetails(cardId, "Ο αριθμός και η λήξη συγχρονίστηκαν στο ασφαλές card vault.")
                 is ApiResult.Failure -> handleServerFailure(cardId, result, "Τα στοιχεία κάρτας δεν αποθηκεύτηκαν στο ασφαλές card vault.")
@@ -362,7 +380,7 @@ class CardSecretViewModel internal constructor(
         val normalizedCvv = try { cvvCopy.concatToString().filter(Char::isDigit) } finally { cvvCopy.fill('\u0000') }
 
         if (
-            session == null ||
+            session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
             !CARD_ID_REGEX.matches(normalizedCardId) ||
             normalizedPan.length !in 12..19 ||
             normalizedExpiry == null ||
@@ -390,6 +408,10 @@ class CardSecretViewModel internal constructor(
                     ),
                 )
             }
+            if (currentSession?.userId != session.userId ||
+                currentSession?.accessToken != session.accessToken ||
+                currentSession?.assuranceLevel != AssuranceLevel.AAL2
+            ) return@launch
             when (result) {
                 is ApiResult.Success -> {
                     deleteLegacyLocalCopies(normalizedCardId)
@@ -418,7 +440,9 @@ class CardSecretViewModel internal constructor(
             cvv.fill('\u0000')
             return
         }
-        if (session == null || cardId == null || current?.cardId != cardId) {
+        if (session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
+            cardId == null || current?.cardId != cardId
+        ) {
             cvv.fill('\u0000')
             mutableNotices.tryEmit(
                 UserNotice(
@@ -439,6 +463,7 @@ class CardSecretViewModel internal constructor(
         }
 
         val normalized = try { copy.concatToString() } finally { copy.fill('\u0000') }
+        val generation = detailRequestGeneration
         mutableState.value = current.copy(cvvSaving = true, message = null)
         viewModelScope.launch {
             val result = safeApiCall {
@@ -448,7 +473,10 @@ class CardSecretViewModel internal constructor(
                     app.myfinhub.android.core.network.CardSecretUpdate(cvv = normalized),
                 )
             }
-            if (!stillCurrent(session, cardId)) return@launch
+            if (!stillCurrent(session, cardId) ||
+                generation != detailRequestGeneration ||
+                (mutableState.value as? CardSecretUiState.Revealed)?.cvvSaving != true
+            ) return@launch
             when (result) {
                 is ApiResult.Success -> {
                     deleteLegacyLocalCopies(cardId)
@@ -469,6 +497,7 @@ class CardSecretViewModel internal constructor(
     }
 
     private fun loadServerDetails(cardId: String, message: String? = null) {
+        val generation = ++detailRequestGeneration
         val session = currentSession
         if (session == null || session.assuranceLevel != AssuranceLevel.AAL2) {
             mutableState.value = CardSecretUiState.AuthRejected
@@ -478,7 +507,7 @@ class CardSecretViewModel internal constructor(
         viewModelScope.launch {
             when (val result = safeApiCall { api.loadCardSecrets(session, cardId) }) {
                 is ApiResult.Success -> {
-                    if (!stillCurrent(session, cardId)) return@launch
+                    if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                     val server = result.value
                     val migrated = migrateMissingLegacyValues(
                         session = session,
@@ -487,7 +516,7 @@ class CardSecretViewModel internal constructor(
                         serverExpiry = server.expiry,
                         serverCvv = server.cvv,
                     )
-                    if (!stillCurrent(session, cardId)) return@launch
+                    if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                     mutableState.value = CardSecretUiState.Revealed(
                         cardId = cardId,
                         pan = migrated.first,
@@ -497,10 +526,10 @@ class CardSecretViewModel internal constructor(
                     )
                 }
                 is ApiResult.Failure -> {
-                    if (!stillCurrent(session, cardId)) return@launch
+                    if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                     if (result.kind == ApiFailureKind.INVALID_DATA) {
                         val migrated = migrateMissingLegacyValues(session, cardId, null, null, null)
-                        if (!stillCurrent(session, cardId)) return@launch
+                        if (!stillCurrent(session, cardId) || generation != detailRequestGeneration) return@launch
                         mutableState.value = CardSecretUiState.Revealed(
                             cardId = cardId,
                             pan = migrated.first,
