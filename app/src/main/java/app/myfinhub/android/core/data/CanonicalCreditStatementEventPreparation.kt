@@ -26,12 +26,13 @@ fun CanonicalFinanceDocument.prepareCanonicalCreditStatementEvent(
     val cardId = event.string("cardId")?.takeIf(String::isNotBlank)
     val explicitId = event.string("statementId")?.takeIf(String::isNotBlank)
     if (explicitId != null) {
+        // Web prepareCreditStatementEvent uses Array.find(id), not any(id, card).
+        // Ambiguous historical IDs are resolved by their first physical record;
+        // a later duplicate owned by this card must not authorize a cross-card link.
+        val first = statements.firstOrNull { (it as? JsonObject)?.string("id") == explicitId }
+            as? JsonObject
         val valid = (isCreditPurchase || kind == "card_payment") &&
-            cardId != null && statements.any {
-                val statement = it as? JsonObject
-                statement?.string("id") == explicitId &&
-                    statement.string("cardId") == cardId
-            }
+            cardId != null && first?.string("cardId") == cardId
         return PreparedCanonicalCreditStatementEvent(
             if (valid) event else JsonObject(event - "statementId"), statements
         )
