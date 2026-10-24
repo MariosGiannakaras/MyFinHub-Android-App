@@ -234,6 +234,33 @@ class WebCategoryBudgetParityTest {
         assertEquals(before, imported.raw)
     }
 
+    @Test fun variantCategoryLabelsCoalesceIntoOneWebPostingBucket() {
+        // Web spending() uses categoryKey(identity) as the aggregate key and
+        // records the last physical posting label for categoryBudgetSpending.
+        // This is presentation/read-only; don't rewrite canonical event labels.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"transactions":[]},"state":{
+            "events":[
+              {"id":"first","kind":"expense","date":"2026-10-08",
+               "amount":12.0,"category":"Τρόφιμα"},
+              {"id":"second","kind":"expense","date":"2026-10-09",
+               "amount":8.0,"category":"ΤΡΟΦΙΜΑ"}
+            ],
+            "budgets":[
+              {"id":"food","month":"2026-10","scope":"category",
+               "category":"Τρόφιμα","amount":40}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val source = imported.raw
+        val spent = imported.categoryBudgetSpending("2026-10", "2026-10-15")
+        assertEquals(mapOf("ΤΡΟΦΙΜΑ" to 20.0), spent)
+        val budget = imported.webBudgetProgress("2026-10", "2026-10-15").single()
+        assertEquals(20.0, budget.used, 0.0001)
+        assertEquals(20.0, budget.remaining, 0.0001)
+        assertEquals(source, imported.raw)
+    }
+
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
         val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"transactions":[
