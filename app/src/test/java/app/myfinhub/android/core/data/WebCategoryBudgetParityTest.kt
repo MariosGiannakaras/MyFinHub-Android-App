@@ -234,6 +234,35 @@ class WebCategoryBudgetParityTest {
         assertEquals(before, imported.raw)
     }
 
+    @Test fun historicalDuplicateBudgetCarryoverUsesSortedFirstMatchingWebParent() {
+        // Web previousCarry invokes monthlyBudgets(previousMonth).find(...):
+        // both same-category previous budgets match, but "a-first" must win
+        // despite being physically listed last in the imported JSON array.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "events":[],
+            "budgets":[
+              {"id":"z-later","month":"2026-09","scope":"category",
+               "category":"Σπίτι","amount":300,"carryover":false},
+              {"id":"a-first","month":"2026-09","scope":"category",
+               "category":"Σπίτι","amount":50,"carryover":false},
+              {"id":"current","month":"2026-10","scope":"category",
+               "category":"Σπίτι","amount":100,"carryover":true}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val older = imported.webBudgetProgress("2026-09","2026-09-30")
+        assertEquals(listOf("a-first", "z-later"), older.map { it.id })
+        val current = imported.webBudgetProgress("2026-10","2026-10-15").single()
+        assertEquals(50.0, current.carried, 0.00001)
+        assertEquals(100.0, current.baseLimit, 0.00001)
+        assertEquals(150.0, current.limit, 0.00001)
+        assertEquals(150.0, current.remaining, 0.00001)
+        assertEquals(original, imported.raw)
+        assertTrue(imported.state.array("events").isEmpty())
+    }
+
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
         val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"transactions":[

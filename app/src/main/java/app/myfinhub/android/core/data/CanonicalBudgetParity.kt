@@ -223,6 +223,17 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
             ).isNotEmpty()
     }
 
+    // Web previousCarry searches monthlyBudgets(previousMonth).find(...):
+    // monthlyBudgets sorts *before* matching. Duplicate imported category
+    // budgets may have different limits; physical JSON order is not authority.
+    val webMonthOrder = Comparator<JsonObject> { first, second ->
+        (first.string("scope").orEmpty().compareTo(second.string("scope").orEmpty()))
+            .takeIf { it != 0 }
+            ?: locale.compare(first.string("category").orEmpty(),
+                second.string("category").orEmpty()).takeIf { it != 0 }
+            ?: first.string("id").orEmpty().compareTo(second.string("id").orEmpty())
+    }
+
     fun carry(previous: JsonObject, depth: Int): Long {
         if (previous.bool("carryover") != true || depth > 24) return 0L
         val prevMonth = runCatching {
@@ -230,7 +241,8 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
         }.getOrNull() ?: return 0L
         val candidates = all.filter { it.string("month") == prevMonth &&
             (it.number("amount") ?: 0.0) > 0.0 }
-        val parent = candidates.firstOrNull { sameBudget(previous, it) } ?: return 0L
+        val parent = candidates.sortedWith(webMonthOrder)
+            .firstOrNull { sameBudget(previous, it) } ?: return 0L
         val amount = parent.number("amount")?.takeIf(Double::isFinite)?.let {
             runCatching { moneyToCents(it) }.getOrNull()
         } ?: return 0L
@@ -240,13 +252,7 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
         return (amount + brought - used).coerceAtLeast(0L)
     }
 
-    return budgets.sortedWith(Comparator { a, b ->
-        (a.string("scope").orEmpty().compareTo(b.string("scope").orEmpty())).takeIf { it != 0 }
-            ?: locale.compare(a.string("category").orEmpty(), b.string("category").orEmpty()).takeIf { it != 0 }
-            // Web monthlyBudgets orders by scope, category, then ID.
-            // A subcategory label must not reorder same-category rows before ID.
-            ?: a.string("id").orEmpty().compareTo(b.string("id").orEmpty())
-    }).map { row ->
+    return budgets.sortedWith(webMonthOrder).map { row ->
         val scope = row.string("scope").orEmpty()
         val base = max(0.0, row.number("amount") ?: 0.0)
         val carried = centsToMoney(carry(row, 0))
