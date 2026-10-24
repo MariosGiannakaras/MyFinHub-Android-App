@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.2 PR #333 scheduled warnings chronological Web parity and source immutability using four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, merging only if all succeed. Then continue broader W2–W5 acceptance. No signed release, main promotion, SMS, irreversible card deletion or live finance writes.
+- [ ] Check independent W4.1 PR #334 final head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, and validate W3.1 PR #335 duplicate statement ID first-owner fail-closed behavior using all four exact-head Project Tracking/Android CI/screenshot/hosted S24 gates. Merge only when each PR has 4/4 passing on its immutable head and PR base is current; reconcile W3.1 tracking after any #334 integration. Continue broader incomplete W2–W5 scopes; no production finance writes, signed release or main.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #333, branch android/w4-scheduled-forecast-warning-order-20261024
-Current W4.2: W4.2 PR #332 final head 2639844d931605e8e656e9834e75b3481903d158 passed four required CI gates and squash merged develop 091af3f31d149da89eae677b56568840a1b98709; Web-style forecast missing-source labels now integrated. Draft W4.2 PR #333 source and Kotlin golden test match Web pendingScheduled dueDate/createdAt order, scheduled-transfer warning and ordinary-account warning; final-head CI not accepted yet. Canonical Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 still pending.
+Issue #155, PR #335, branch android/w3-credit-statement-duplicate-first-match-20261024
+Current W3.1: W4.2 #333 merged develop ce2252bd129ddb78d795a2b658a582ca5686356e after immutable exact head e3125ac1b69266ef3b619e49a1433292f955f021 4/4. Draft #334 W4.1 malformed imported recurring mode/range preservation, native Plan error UI and regression fixtures current head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6 with CI pending/not accepted. Independent draft #335 W3.1 first matching credit statement record wins for duplicate historic statement IDs, preventing later duplicate cross-card linkage; JVM golden source authored and CI pending. Canonical Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 #149 still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check four immutable final-head gates for draft W4.2 PR #333, including JVM ordering/golden assertions; merge only when all four pass. Continue first unfinished larger W2–W5 parity scopes without Web/backend/schema work, real finance data writes, SMS, destructive card UI, signed release or main promotion.
+Next Verify W4.1 #334 remaining exact-head checks, then W3.1 #335 four immutable exact-head checks and merge only if all successful; if develop advances after #334, rebase or refresh #335 tracker and repeat all four gates on new final head. Continue unfinished W2–W5, not backend/Web changes, real finance writes, SMS, card-delete UI, signed release or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
