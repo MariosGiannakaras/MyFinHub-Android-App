@@ -33,7 +33,10 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
             row.string("status") == "pending" && row.string("kind") == "expense" &&
                 due > asOf && due <= endIso && due.startsWith("$month-") &&
                 runCatching { LocalDate.parse(due) }.isSuccess &&
-                row.string("completedEventId").isNullOrBlank() &&
+                // Web budgets.ts uses !item.completedEventId. Whitespace
+                // is truthy in JavaScript and therefore *not* an unlinked due.
+                // Treating it as blank invents a second scheduled obligation.
+                row.string("completedEventId").isNullOrEmpty() &&
                 !row.string("category").isNullOrBlank() &&
                 row.number("amount")?.let { it.isFinite() && it > 0.0 } == true
         }
