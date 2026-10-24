@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #328 (exact historical receivables, imported legacy loan principal and noncash writeoff history) passed 4/4 exact-head checks and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487. New W4.1 PR #329 preserves recurring subcategory end-to-end in Android native create/edit dialogs, canonical mutations, offline CAS replay, projection and linked real expenses, with JVM+Compose regression cases. Source reconciled onto latest develop; new immutable head requires fresh 4/4 CI validation. Broader W2–W5 parity, provider visuals and owner physical S24 #149 acceptance remain open. No permanent card delete UI, SMS, production finance writes or signed release.
+Web parity 1/6 implementations · 11/24 subtasks. PR #329 W4.1 native recurring subcategory create/edit/offline replay and linked payment attribution passed all four exact-head gates and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0. Concurrent W4.3 PR #330 source retains historical savings goals with zero/missing/invalid targets and awaits exact-head checks. New Android-only W2.4 security checkpoint fences secure-card cleanup after same-owner bearer rotation or AAL downgrade, requiring explicit retry/server confirmation rather than applying stale server deletion to the legacy encrypted local stores; prevents second vault wipe after mid-flight authority changes. Instrumented regressions authored, unmerged and unvalidated by CI. Broader W2–W5 implementation and physical owner S24 Ultra #149 approval remain open; no card permanent-delete UI, SMS or production release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.1 PR #329 recurring subcategory native create/edit, offline replay and linked payment categorization with all four checks on the reconciled immutable final head, then merge if green. Continue W2–W5 implementation independently; physical owner S24 remains a separate gate.
+1. Review W2.4 card cleanup session rotation and AAL downgrade security regression PR #331 on android/w2-vault-cleanup-session-rotation-20261024. Confirm concurrent W4.3 PR #330 and reconcile tracked state if it merges first; require 4/4 exact head gates before merging W2.4. Continue remaining Android Web parity source, no production finance data, signed release or main promotion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
-Current W4.1: PR #328 W4.3 historically correct receivables and imported loan principal passed four CI gates and merged develop 897f4d2b. W4.1 PR #329 now adds recurring subcategory across native UI, underlying create/edit, guarded pending offline intent replay, management projections and actual linked-payment event; regression tests authored and source reconciled onto latest develop, CI pending. Web parity remains 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 #149 outstanding.
+Issue #155, PR #331, branch android/w2-vault-cleanup-session-rotation-20261024
+Current W2.4: PR #329 W4.1 complete recurring subcategory pathway passed four exact head checks and merged develop 624dc326. Concurrent W4.3 PR #330 preserves invalid historical savings goals and is under CI. New W2.4 PR #331 addresses secure card cleanup authority changes: in-flight deletion is invalidated by same-owner token/AAL rotation; no subsequent legacy-local secret removal happens on stale bearer, and retry requires an explicit fresh server confirmation. Coroutine instrumentation tests authored, source reviewed, CI and owner physical S24 Ultra #149 pending. Count remains 1/6 implementations · 11/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify 4/4 Project Tracking, Android CI, screenshot and S24 hosted emulator exact-head checks for PR #329. Merge if green and proceed with W2–W5 source functionality; do not claim physical owner acceptance or production release.
+Next Validate W2.4 PR #331 secure cleanup races (bearer rotation during server delete and AAL downgrade during local vault deletion) on all four exact-head CI gates; reconcile #330 if merged first. No irreversible card-delete UI, SMS import, Web/backend mutation, main/signed release or physical owner S24 acceptance inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
