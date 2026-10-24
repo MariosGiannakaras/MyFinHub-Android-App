@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #323 (card vault/mixed credit) and PR #324 (renamed budget identities, forecast recurring commitments, Unicode password policy) passed 4/4 exact-head CI gates and squash merged into develop, latest 216633eb42ea9d11b3c3a8b3877c7d4c26e7ee77. New Android-only W4.4 reporting correction restores Web reports.ts single-refund semantics: canonical and reviewed-legacy refunds no longer double-subtract from subcategory totals, ranking and month-over-month momentum. Unit golden regressions authored, not yet CI verified or merged. Wider W2–W5 parity, full provider assets and owner physical S24 #149 signoff remain open. No permanent card delete UI, SMS import, production writes or signed release.
+Web parity 1/6 implementations · 11/24 subtasks. PR #325 W4.4 reporting refund correction passed all four exact-head gates and squash merged into develop 1abe693941e73f60dfbb5aed9d116bcb47148735. Concurrent W3.1 PR #326 preserves duplicate physical credit statement event rows (CI pending). New W4.3 source checkpoint now preserves recurring item subcategory on its own physical seed/override/custom record, and projects each explicit future recurring liability even when imported rows reuse an ID. It no longer omits or misattributes commitments because of id-only lookup; Web goldens authored, not yet merged or CI accepted. Broader W2–W5 parity, five-pack provider visuals and physical owner S24 #149 signoff remain open. No signed release, SMS or irreversible card deletion UI.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately.
+1. Validate W4.3 duplicate-id recurring and subcategory future budget projections in PR #327, android/w4-recurring-duplicate-commitment-parity-20261024. Check four immutable-head gates and merge only after all pass. Concurrent W3.1 PR #326 awaits its independent 4/4 checks; reconcile both source branches with latest develop before merge to avoid stale tracking. Continue W2–W5 feature code, physical owner S24 separate.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #325, branch android/w4-report-refund-parity-20261024
-Current W4.4: PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #327, branch android/w4-recurring-duplicate-commitment-parity-20261024
+Current W4.3: After verified squash-merged W4.4 PR #325 develop 1abe6939, W3.1 physical statement row fix PR #326 is concurrently under four gates. New W4.3 budget source now retains recurring subcategory as first-class per-physical-row field; Web budgets.ts projects both seeded and custom recurring rows with repeated imported IDs, rather than discarding them due to ambiguous id-based edit source. Golden tests verify distinct subcategory commitments and limits with same ID; code authored but not CI accepted. Progress 1/6 implementations · 11/24 subtasks, owner S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.
+Next Validate W4.3 recurring duplicate-id and subcategory budget PR #327; preserve every physical liability without enabling duplicate-ID mutation, then merge only at 4/4 exact-head checks. Separately complete pending W3.1 PR #326 with current develop reconciliation. Do not claim physical S24, signed release or local Gradle run.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
