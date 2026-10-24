@@ -282,6 +282,66 @@ class CardSecretViewModelTest {
     }
 
     @Test
+    fun bearerRotationDuringCommittedSecretCleanupRequiresExplicitServerRecheck() = runBlocking {
+        val api = FakeCardApi().also { it.committedDeleteDelayMillis = 240 }
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        )
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        vm.purgeCard("card-1")
+        waitUntil { api.committedSecretDeleteCalls == 1 }
+        vm.attachSession(session.copy(accessToken = "rotated-owner-bearer"))
+        waitUntil { vm.cleanupState.value is CardSecretCleanupUiState.Failure }
+        delay(280)
+
+        val revoked = vm.cleanupState.value as CardSecretCleanupUiState.Failure
+        assertTrue(revoked.serverCleanupPending)
+        assertTrue(revoked.localCleanupPending)
+        assertNull(details.deletedCardId)
+        assertNull(cvv.deletedCardId)
+        assertEquals("4242424242424242", details.load("card-1")?.pan?.concatToString())
+        assertEquals("321", cvv.load("card-1")?.concatToString())
+
+        api.committedDeleteDelayMillis = 0
+        vm.retryPurgeCard("card-1")
+        waitUntil { vm.cleanupState.value is CardSecretCleanupUiState.Complete }
+        assertEquals(2, api.committedSecretDeleteCalls)
+        assertEquals("card-1", details.deletedCardId)
+        assertEquals("card-1", cvv.deletedCardId)
+    }
+
+    @Test
+    fun assuranceDowngradeDuringFirstLocalDeleteDoesNotDeleteSecondVault() = runBlocking {
+        val api = FakeCardApi()
+        val cvv = FakeCvvVault(initial = "321".toCharArray())
+        val details = FakeCardDetailsVault(
+            initialPan = "4242424242424242".toCharArray(),
+            initialExpiry = "12/30".toCharArray(),
+        ).also { it.deleteDelayMillis = 240 }
+        val vm = CardSecretViewModel(application, api, cvv, details)
+        vm.attachSession(session)
+        vm.purgeCard("card-1")
+        waitUntil { api.committedSecretDeleteCalls == 1 }
+        // The first local delete has begun by now; changing assurance must
+        // invalidate any subsequent deletion even if that suspension resumes.
+        vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
+        delay(300)
+        assertNull(cvv.deletedCardId)
+        assertEquals("321", cvv.load("card-1")?.concatToString())
+        val state = vm.cleanupState.value as CardSecretCleanupUiState.Failure
+        assertTrue(state.serverCleanupPending)
+        assertTrue(state.localCleanupPending)
+        vm.attachSession(session)
+        details.deleteDelayMillis = 0
+        vm.retryPurgeCard("card-1")
+        waitUntil { vm.cleanupState.value is CardSecretCleanupUiState.Complete }
+        assertEquals("card-1", cvv.deletedCardId)
+    }
+
+    @Test
     fun rejectedCommittedDeletionMustNotEraseLegacyDeviceSecretsOrAutoRetry() = runBlocking {
         val api = FakeCardApi(committedDeletionFailure = ApiFailureKind.INVALID_DATA)
         val cvv = FakeCvvVault(initial = "321".toCharArray())
@@ -326,6 +386,7 @@ private class FakeCardDetailsVault(
     initialExpiry: CharArray? = null,
 ) : CardDetailsVault {
     var loadDelayMillis: Long = 0
+    var deleteDelayMillis: Long = 0
     private var storedPan: CharArray? = initialPan?.copyOf()
     private var storedExpiry: CharArray? = initialExpiry?.copyOf()
     var savedPan: CharArray? = null
@@ -357,6 +418,7 @@ private class FakeCardDetailsVault(
     }
 
     override suspend fun delete(cardId: String) {
+        if (deleteDelayMillis > 0) delay(deleteDelayMillis)
         deletedCardId = cardId
         storedPan?.fill('\u0000')
         storedExpiry?.fill('\u0000')
@@ -393,6 +455,7 @@ private class FakeCardApi(
     var committedDeletionFailure: ApiFailureKind? = null,
 ) : MyFinHubApi {
     var readDelayMillis: Long = 0
+    var committedDeleteDelayMillis: Long = 0
     var serverSecretReadCalls: Int = 0
         private set
     var serverSecretWriteCalls: Int = 0
@@ -448,6 +511,7 @@ private class FakeCardApi(
         cardId: String,
     ): ApiResult<CardSecretDeleteReceipt> {
         committedSecretDeleteCalls += 1
+        if (committedDeleteDelayMillis > 0) delay(committedDeleteDelayMillis)
         committedDeletionFailure?.let { return ApiResult.Failure(it) }
         return deleteCardSecrets(session, cardId)
     }

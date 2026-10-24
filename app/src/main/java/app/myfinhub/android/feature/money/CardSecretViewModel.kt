@@ -125,12 +125,31 @@ class CardSecretViewModel internal constructor(
         currentSession = session
         if (vaultAuthorityChanged) {
             detailRequestGeneration += 1
+            // A pending secure cleanup is bound to the authenticated bearer.
+            // Invalidate the older asynchronous deletion before it can remove
+            // local values under a different session authority.
+            cleanupGeneration += 1
+            if (!ownerChanged && mutableCleanupState.value is CardSecretCleanupUiState.Cleaning) {
+                // We cannot infer whether the old server request committed. Require
+                // a deliberate idempotent server confirmation before local removal.
+                val retry = pendingCleanup?.copy(
+                    serverCleanupPending = true,
+                    localCleanupPending = true,
+                )
+                pendingCleanup = retry
+                if (retry != null) {
+                    mutableCleanupState.value = CardSecretCleanupUiState.Failure(
+                        cardId = retry.cardId,
+                        serverCleanupPending = true,
+                        localCleanupPending = true,
+                    )
+                }
+            }
             // A previous AAL2 read cannot stay visible during bearer rotation or
             // assurance downgrade, even when the account owner ID stays the same.
             mutableState.value = CardSecretUiState.Hidden(currentCardId)
             if (ownerChanged) {
                 currentCardId = null
-                cleanupGeneration += 1
                 pendingCleanup = null
                 mutableCleanupState.value = CardSecretCleanupUiState.Idle
             } else if (session.assuranceLevel == AssuranceLevel.AAL2) {
@@ -228,6 +247,7 @@ class CardSecretViewModel internal constructor(
     private fun launchCleanup(request: PendingCardSecretCleanup, generation: Long) {
         mutableCleanupState.value = CardSecretCleanupUiState.Cleaning(request.cardId)
         viewModelScope.launch {
+            if (generation != cleanupGeneration) return@launch
             var serverFailure: ApiResult.Failure? = null
             if (request.serverCleanupPending) {
                 val session = currentSession
@@ -248,6 +268,10 @@ class CardSecretViewModel internal constructor(
             if (request.localCleanupPending && serverFailure == null) {
                 try {
                     cardDetailsVault.delete(request.cardId)
+                    // A bearer rotation may have occurred while the first
+                    // encrypted store was deleting. Never touch the second store
+                    // under a revoked cleanup generation.
+                    if (generation != cleanupGeneration) return@launch
                     cvvVault.delete(request.cardId)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
