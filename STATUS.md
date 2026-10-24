@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #325 W4.4 refund reports and #326 W3.1 duplicate physical statement events passed 4/4 checks and squash merged develop c9b48180f787f63cf7215dbcaf965a1aed75aba8. W4.3 PR #327 independent recurring duplicate-ID budget projection pending CI. Stacked W4.3 PR #328 now includes (a) Web lending.ts conservative, cent-exact dated legacy receivable reconstruction and (b) Web loans.ts imported legacyPaidAmount principal override and JS rounding for outstanding and installment projection. New golden tests authored, not yet CI accepted or merged. Wider W2–W5 parity and owner physical S24 Ultra #149 pending; no irreversible card delete, SMS or signed release.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #327 recurring duplicate-ID physical-row subcategory budget attribution passed four exact final-head checks and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. Earlier #325 refund reports and #326 duplicate imported credit statement events likewise merged. New W4.3 source PR #328 conservatively reconstructs Web historical lending as-of balances from complete cent-exact seed histories and respects explicit imported legacyPaidAmount for loan obligations, including zero, rather than assuming nominal installments. Golden JVM tests authored but not yet CI accepted or merged. W2–W5 broader parity, visual assets and physical S24 owner #149 acceptance still open. No signed release, main promotion, SMS or permanent card-delete UI.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Complete 4/4 exact-head checks and merge PR #327, then retarget/reconcile stacked PR #328 on develop and validate historical lending as-of and imported loan legacyPaidAmount parity tests. The entire final #328 head must pass Project Tracking, Android CI, screenshots and hosted S24 emulator. Continue W2–W5 independently without >8 minute assistant CI polling or production release.
+1. Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
-Current W4.3: W3.1 PR #326 integrated develop c9b48180 after four checks. PR #327 W4.3 recurring physical-row budget projections under CI. Stacked PR #328 adds conservative legacy lending snapshot reconstruction for historical net worth/person rows, plus Web loans.ts legacyPaidAmount override (including explicit zero) and exact JS cent rounding, so renegotiated imported principal is not silently replaced by nominal paidCount × installment. Kotlin goldens authored but not locally executed or merged; owner physical S24 #149 outstanding. Web parity 1/6 implementations · 11/24 subtasks.
+Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Merge #327 only after four exact-head gates succeed, retarget stacked #328 to develop and validate BOTH legacy lending reconstruction and imported loan paid amount golden tests on its exact head before integration. No signed release, live ledger mutation or owner S24 acceptance inferred.
+Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
