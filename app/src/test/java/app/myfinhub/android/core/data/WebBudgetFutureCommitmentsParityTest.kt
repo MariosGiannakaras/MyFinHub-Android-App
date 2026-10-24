@@ -87,6 +87,40 @@ class WebBudgetFutureCommitmentsParityTest {
         assertTrue(imported.state.array("events").isEmpty())
     }
 
+    @Test fun importedWhitespaceCategoriesRemainTruthyWebBudgetCommitments() {
+        // Web budgets.ts checks item.category, not category.trim():
+        // nonempty whitespace is truthy and counts in an overall budget.
+        // Empty strings are falsy and excluded from the future projection.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "scheduled":[
+              {"id":"space-scheduled","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","category":"   ","amount":20},
+              {"id":"empty-scheduled","kind":"expense","status":"pending",
+               "dueDate":"2026-12-15","category":"","amount":90}
+            ],
+            "recurringCustom":[
+              {"id":"space-recurring","name":"Service","amount":30,
+               "accountId":"cash","category":" ","day":15,
+               "active":true,"recurrenceUnit":"month","recurrenceInterval":1},
+              {"id":"empty-recurring","name":"Other","amount":40,
+               "accountId":"cash","category":"","day":15,
+               "active":true,"recurrenceUnit":"month","recurrenceInterval":1}
+            ],
+            "budgets":[{"id":"all","month":"2026-12","scope":"overall","amount":100}]
+          }}
+        """.trimIndent()).jsonObject)
+        val untouched = imported.raw
+        val commitments = imported.canonicalBudgetProjectedCommitments("2026-12", "2026-10-25")
+        assertEquals(listOf("space-scheduled","space-recurring"), commitments.map { it.id })
+        assertEquals(listOf("scheduled","recurring"), commitments.map { it.source })
+        assertEquals(50.0, commitments.sumOf { it.amount }, 0.00001)
+        val budget = imported.webBudgetProgress("2026-12", "2026-10-25").single()
+        assertEquals(50.0, budget.projectedDue, 0.00001)
+        assertEquals(50.0, budget.projectedRemaining, 0.00001)
+        assertEquals(untouched, imported.raw)
+    }
+
     @Test fun repeatedHistoricalRecurringIdsRetainSeparateSubcategoryAndAmounts() {
         val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"recurring":[
