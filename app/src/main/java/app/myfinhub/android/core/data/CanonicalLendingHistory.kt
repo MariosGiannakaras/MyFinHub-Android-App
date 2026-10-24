@@ -77,20 +77,31 @@ fun CanonicalFinanceDocument.canonicalLendingHistoryRows(asOf: String? = null): 
         val amount = event.finiteLendingNumber("amount")
         val kind = event.string("kind").orEmpty().trim()
         if (person.isEmpty() || date.isEmpty() || amount <= 0.0 ||
-            (!asOf.isNullOrEmpty() && date > asOf) || kind !in setOf("lending", "repayment")
+            (!asOf.isNullOrEmpty() && date > asOf) || kind !in setOf("lending", "repayment", "lending_writeoff")
         ) return@forEach
-        val accountId = event.string("accountId").orEmpty().trim().ifEmpty {
-            event.string(if (kind == "repayment") "toAccountId" else "fromAccountId")
-                .orEmpty().trim()
-        }.takeIf(String::isNotEmpty)
+        // Web lendingHistory never attaches a posting account to a writeoff:
+        // forgiveness changes a receivable but is not a cash transfer.
+        val accountId = if (kind == "lending_writeoff") null else
+            event.string("accountId").orEmpty().trim().ifEmpty {
+                event.string(if (kind == "repayment") "toAccountId" else "fromAccountId")
+                    .orEmpty().trim()
+            }.takeIf(String::isNotEmpty)
         val note = event.string("note").orEmpty().trim().ifEmpty {
-            if (kind == "repayment") "Επιστροφή δανεικών" else "Πλήρωσα για άλλον"
+            when (kind) {
+                "repayment" -> "Επιστροφή δανεικών"
+                "lending_writeoff" -> "Διαγραφή απαίτησης"
+                else -> "Πλήρωσα για άλλον"
+            }
         }
         raw += LendingHistoryMovement(
             id = event.string("id").orEmpty().trim().ifEmpty { "event-$person-$date-${raw.size}" },
             person = person,
             date = date,
-            action = if (kind == "lending") "lent" else "repaid",
+            action = when (kind) {
+                "lending" -> "lent"
+                "repayment" -> "repaid"
+                else -> "forgiven"
+            },
             amount = amount,
             note = note,
             accountId = accountId,
