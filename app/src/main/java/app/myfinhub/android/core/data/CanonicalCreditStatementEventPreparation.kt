@@ -24,7 +24,9 @@ fun CanonicalFinanceDocument.prepareCanonicalCreditStatementEvent(
     val kind = event.string("kind")
     val isCreditPurchase = canonicalStatementPurchaseAmount(event) > 0.005
     val cardId = event.string("cardId")?.takeIf(String::isNotBlank)
-    val explicitId = event.string("statementId")?.takeIf(String::isNotBlank)
+    // JS if(event.statementId) treats whitespace-only IDs as explicit links.
+    // Never generate a new billing cycle when such a malformed link fails lookup.
+    val explicitId = event.string("statementId")?.takeIf(String::isNotEmpty)
     if (explicitId != null) {
         // Web prepareCreditStatementEvent uses Array.find(id), not any(id, card).
         // Ambiguous historical IDs are resolved by their first physical record;

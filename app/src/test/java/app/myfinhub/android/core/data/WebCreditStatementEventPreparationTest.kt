@@ -123,6 +123,54 @@ class WebCreditStatementEventPreparationTest {
         assertTrue(imported.state.array("events").isEmpty())
     }
 
+    @Test fun whitespaceOnlyExplicitStatementIdIsRejectedWithoutAutoAssigningCycle() {
+        // Web if(event.statementId) treats nonempty whitespace as an explicit
+        // reference; find(id) misses it and removes it without creating a cycle.
+        val original = data.raw
+        val purchase = event("space-purchase", "2026-10-24",
+            "card_purchase", "visa", "   ")
+        val prepared = data.prepareCanonicalCreditStatementEvent(purchase, now)
+        assertFalse(prepared.event.containsKey("statementId"))
+        assertEquals(0, prepared.statements.size)
+        assertEquals(original, data.raw)
+
+        // The real append path must also avoid manufacturing statement metadata.
+        val appended = append(data, purchase)
+        assertEquals(0, appended.state.array("creditStatements").size)
+        assertFalse((appended.state.array("events").single() as JsonObject)
+            .containsKey("statementId"))
+
+        // An explicitly empty string is falsy in JS: auto-cycle creation is valid.
+        val empty = data.prepareCanonicalCreditStatementEvent(
+            event("empty-purchase", "2026-10-24", "card_purchase", "visa", ""), now)
+        assertEquals("visa:2026-10-25", empty.event.string("statementId"))
+        assertEquals(1, empty.statements.size)
+        assertEquals(original, data.raw)
+    }
+
+    @Test fun historicalWhitespaceIdCanOnlyLinkToMatchingExplicitRecord() {
+        // Web Array.find(id) still allows this unusual legacy identity when
+        // it exists and belongs to the same card; never rewrite history.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{"creditStatements":[
+            {"id":" ","cardId":"visa","closeDate":"2026-10-25",
+             "openDate":"2026-09-25","dueDate":"2026-11-05"}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val accepted = imported.prepareCanonicalCreditStatementEvent(
+            event("whitespace-matched", "2026-10-24", "card_purchase",
+                "visa", " "), now)
+        assertEquals(" ", accepted.event.string("statementId"))
+        assertEquals(1, accepted.statements.size)
+        val denied = imported.prepareCanonicalCreditStatementEvent(
+            event("whitespace-wrong-card", "2026-10-24", "card_purchase",
+                "different", " "), now)
+        assertFalse(denied.event.containsKey("statementId"))
+        assertEquals(1, denied.statements.size)
+        assertEquals(original, imported.raw)
+    }
+
     @Test fun mixedFundingExpenseCreatesStatementButPlainExpenseDoesNot() {
         val expense = JsonObject(event("m1", "2026-10-20", "expense", "visa")
             .toMutableMap().apply {

@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.1 #334 recurring invalid imported estimate protection passed four gates and merged develop 859ba0123622dbb29703a6fa35e88e3b540918da; W3.1 #335 duplicate statement ID first-owner Web parity passed four same-head gates at 8fa0593e5613e4810a6611f5ed09b7d6a05345e5 and merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6. Separate W3.1 #336 draft e7e879df3316f47b01eb87fccbb66b6bd8706da2 fixes explicit whitespace statementId handling; tracking/screenshot succeeded but Android CI and hosted S24 were still running at last checked checkpoint. Active W4.2 draft PR #337 covers settled historical loan forecast omission parity: zero remaining installment count suppresses inapplicable self-loan/missing-account warnings before other checks, while genuinely open loans still forecast and warn. Code and JVM golden source authored; no local Gradle executed, four final-head gates required. #336 and #337 are independent unmerged branches; #337 must refresh onto current develop if #336 merges. No live data, Web/backend/schema writes, SMS, signed release, main promotion or owner physical S24 approval.
+Web parity 1/6 implementations · 11/24 subtasks. W3.1 #335 duplicate historical credit statement first-owner match merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6 following 4/4 exact-head gates. W3.1 #336 explicit whitespace-only statementId import Web truthiness and no fabricated credit cycle passed 4/4 same-head CI (e7e879df3316f47b01eb87fccbb66b6bd8706da2), squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Prior W4.1 #334 and W4.2 #332–333 also integrated. Current W4.2 draft #337, refreshed onto #336 merged develop, moves remaining-installment zero check before self-loan and missing-payer omission warnings in forecast, matches Web loanMovements; preserves real open-loan forecast and original canonical finance state. Golden Kotlin source authored; local Gradle not run; repeat all 4 exact final-head Project Tracking/Android CI/screenshot/hosted S24 checks after refresh. Broader W2–W5 parity and physical S24 owner #149 pending. No SMS, permanent card-delete UI, backend/schema edits, real finance writes, signed release or main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify independent W3.1 #336 remaining Android CI and hosted S24 checks and merge only with all four green; separately run all four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 gates for W4.2 PR #337. If #336 advances develop first, refresh #337 onto merged baseline with tracking and rerun four checks. Maintain 1/6 and 11/24 parity until full subtasks accepted; no actual finance data or release changes.
+1. Run all four exact-final-head gates on refreshed W4.2 draft PR #337: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Merge only after 4/4 green. Continue broader W2–W5 product feature scopes; physical owner Galaxy S24 #149 is separate and pending. No production financial data, Web/backend/schema changes, SMS, irreversible card delete UI or signed release.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #337, branch android/w4-forecast-settled-loan-omission-20261024
-Current W4.2: W3.1 #335 merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6 after 4/4 exact-head checks 8fa0593e5613e4810a6611f5ed09b7d6a05345e5. W3.1 #336 explicit whitespace statement ID draft e7e879df3316f47b01eb87fccbb66b6bd8706da2 awaiting Android CI/hosted S24 at last check. Current W4.2 #337 source corrects false forecast omitted warnings for already-settled historical loans, with JVM goldens for settled self-loan/orphan, live self-loan/orphan and actual open installment; source only, local Gradle not run, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks. Physical S24 owner signoff #149 pending.
+Current W4.2: W3.1 #336 whitespace-only explicit credit statement ID link parity passed 4/4 exact head e7e879df3316f47b01eb87fccbb66b6bd8706da2 and squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Draft W4.2 #337 settled historical loan forecast omitted-reason guard plus immutable-JVM golden now refreshed with full merged #336 develop ancestry and coherent canonical/generated tracking; four fresh final-head gates required. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft #336 final-head gates and only merge if four pass. Check draft #337 W4.2 settled-loan forecast omission code and all four exact-head gates, refresh onto post-#336 develop if necessary before merge. Continue substantial W2–W5 feature acceptance, preserve source and financial truth. No SMS #146, card-delete UI, real finance writes, backend/schema changes, main release/signing.
+Next Verify W4.2 draft #337 against four immutable same-head checks on refreshed post-#336 develop baseline. Mark ready and squash merge only with all green; then continue meaningful W2–W5 feature parity. No live financial writes, SMS import #146, irreversible card-delete UI, backend/Web/schema, main promotion or signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
