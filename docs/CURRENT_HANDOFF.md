@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #329 W4.1 native recurring subcategory create/edit/offline replay and linked payment attribution passed all four exact-head gates and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0. Concurrent W4.3 PR #330 source retains historical savings goals with zero/missing/invalid targets and awaits exact-head checks. New Android-only W2.4 security checkpoint fences secure-card cleanup after same-owner bearer rotation or AAL downgrade, requiring explicit retry/server confirmation rather than applying stale server deletion to the legacy encrypted local stores; prevents second vault wipe after mid-flight authority changes. Instrumented regressions authored, unmerged and unvalidated by CI. Broader W2–W5 implementation and physical owner S24 Ultra #149 approval remain open; no card permanent-delete UI, SMS or production release.
+Web parity 1/6 implementations · 11/24 subtasks. PR #330 W4.3 preserves imported savings goals with zero/negative/missing historical targets, passed all four immutable exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks and squash merged into develop e9b8d073fea34fe16cf89663931b4a89fac66f59. Earlier #329 W4.1 recurring subcategory create/edit/offline replay likewise merged. Current W2.4 PR #331 source now invalidates secure-card committed cleanup on same-owner bearer rotation or AAL downgrade, preserving the second local encrypted vault and requiring deliberate fresh owner+AAL2 server reconfirmation before sensitive secret cleanup; Kotlin instrumentation regressions authored but not yet exact-head CI accepted/merged. Broad W2–W5 parity, provider visual assets and physical owner S24 Ultra #149 signoff remain open. No SMS, permanent card deletion UI, signed release or main promotion.
 
 ## Immediate work
 
-- Review W2.4 card cleanup session rotation and AAL downgrade security regression PR #331 on android/w2-vault-cleanup-session-rotation-20261024. Confirm concurrent W4.3 PR #330 and reconcile tracked state if it merges first; require 4/4 exact head gates before merging W2.4. Continue remaining Android Web parity source, no production finance data, signed release or main promotion.
+- Check W2.4 PR #331 fail-closed secure card cleanup across same-owner token rotation and AAL downgrade, now reconciled with merged W4.3 #330 develop. Require four immutable final head gates before squash merge. Continue other W2–W5 feature parity independently. No signed release, live finance writes or physical owner S24 approval.
 
 ## Constraints
 
@@ -55,9 +55,9 @@ Web parity 1/6 implementations · 11/24 subtasks. PR #329 W4.1 native recurring 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #331, branch android/w2-vault-cleanup-session-rotation-20261024
-Current W2.4: PR #329 W4.1 complete recurring subcategory pathway passed four exact head checks and merged develop 624dc326. Concurrent W4.3 PR #330 preserves invalid historical savings goals and is under CI. New W2.4 PR #331 addresses secure card cleanup authority changes: in-flight deletion is invalidated by same-owner token/AAL rotation; no subsequent legacy-local secret removal happens on stale bearer, and retry requires an explicit fresh server confirmation. Coroutine instrumentation tests authored, source reviewed, CI and owner physical S24 Ultra #149 pending. Count remains 1/6 implementations · 11/24 subtasks.
+Current W2.4: PR #330 W4.3 legacy savings goals retained and passed four final-head CI checks, squash merged develop e9b8d073. PR #331 W2.4 secure-card cleanup now stops after owner-same bearer/AAL2 change and does not continue deleting encrypted PAN/CVV stores based on stale server response; explicit fresh server confirmation and AAL2 retry required. Two hosted instrumented race regression tests authored, reconciled with latest develop but final-head CI pending. Official count 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W2.4 PR #331 secure cleanup races (bearer rotation during server delete and AAL downgrade during local vault deletion) on all four exact-head CI gates; reconcile #330 if merged first. No irreversible card-delete UI, SMS import, Web/backend mutation, main/signed release or physical owner S24 acceptance inferred.
+Next Verify 4/4 immutable final-head gates for W2.4 PR #331 with secure deletion session-change regressions; merge only when all successful. Continue other W2–W5 source functionality with no irreversible card-delete UI, SMS, Web/backend/schema mutation, signed release, main promotion or physical owner S24 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
