@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 omission explanations, scheduled warning ordering and transfers passed all four exact-head Project Tracking, Android CI, screenshot and hosted S24 gates and squash merged develop at 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. Current W4.1 draft PR #334 preserves original imported recurring amountMode and estimate range fields rather than silently relabeling invalid legacy estimates as fixed, with strict Web recurringVariable.ts read-only validation and JVM golden test source authored. Local Gradle not run; final-head CI pending. Existing finance balances, payment ledger and offline mutations untouched; broader W2–W5 parity and physical owner S24 Ultra #149 remain outstanding. No SMS, permanent card-delete UI, signed release or main promotion.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 forecast omissions and scheduled chronological warning parity passed four exact-head gates each, integrated develop 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. W4.1 PR #334 recurring imported amount-mode/range validation, native warning and Kotlin/Compose regression passed four exact-head gates at 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, squash merged develop 859ba0123622dbb29703a6fa35e88e3b540918da. Current W3.1 draft PR #335, refreshed onto #334 merge, fails closed on historical duplicate credit statement ID by checking the first physical owner exactly like Web, with pure JVM golden tests and source-preserving records. New exact-head Project Tracking, Android CI, screenshot regression, and hosted S24 gates must pass after integration refresh. Broader W2–W5 scope and physical owner S24 #149 still pending; no local Gradle execution, backend/schema or production finance write.",
     "next": [
-      "Verify W4.1 draft PR #334 recurring imported variable/fixed amount semantics, malformed historical mode and range goldens, generated tracking and all four exact-head Project Tracking/Android CI/screenshot/S24 emulator checks. Merge only with 4/4 success, then continue remaining W2–W5 feature acceptance. No real finance writes, SMS, backend/schema work, main promotion or signed release."
+      "Run all four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates on refreshed W3.1 PR #335; merge only if 4/4 success. Continue broader W2–W5 feature acceptance independently; physical owner S24 #149 pending. No live finance writes, SMS, permanent card-delete UI, signed release or main promotion."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-recurring-variable-import-validation-20261024",
-    "checkpoint": "W4.2 #332 merged develop 091af3f31d149da89eae677b56568840a1b98709 and #333 merged develop ce2252bd129ddb78d795a2b658a582ca5686356e, both exact-head CI gates 4/4 green. Current draft #334 W4.1 retains imported recurring variable amountMode/range data losslessly, adds Web-aligned fixed/variable estimate validity and confidence projection with JVM golden source; no local Gradle test execution, four immutable final-head checks still required. Official Web parity 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.",
+    "branch": "android/w3-credit-statement-duplicate-first-match-20261024",
+    "checkpoint": "W4.1 PR #334 successfully merged develop 859ba0123622dbb29703a6fa35e88e3b540918da following Project Tracking, Android CI, screenshot regression and hosted S24 success on final head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6. Draft #335 W3.1 first-record statement owner validation and Kotlin immutable golden refreshed with full #334 integration baseline; new exact-head checks required and no local Gradle run claimed. Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -796,7 +796,9 @@
               "Batched W3.1 #192 post-#193: native Compose selector accessibility/emulator test, due>closed>open priority, Greek status/due/remaining option labels, omit paid and cross-card options, preserve explicit user choice; golden projection vectors added. Fresh exact-head CI pending; no physical S24 acceptance inferred.",
               "Source checkpoint PR #323 authored, not yet merged: Web creditStatements.ts mixed-funded expense creditDelta share is now included in statement projection and event preparation; Web cards.ts card debt sums only credit-funded amounts from expense funding parts (including legacy owner), not the whole mixed purchase. Kotlin unit regression fixtures authored, not yet executed or accepted.",
               "PR #326 source authored/unmerged: Web creditStatementEvents iterates physical imported events preserving duplicate IDs, whereas Android's eventRecords.toMap() collapsed historic duplicates across statementId/amount/createdAt. W3.1 creditStatementViews now pairs canonicalEvents with per-physical-row JSON, sorts date/createdAt/id, totals exact individual purchases/payments and preserves duplicate IDs in arrays. Golden tests authored for two statement cycles, duplicate purchase/payment IDs and same-cycle duplicates. No local Gradle execution; final-head CI pending.",
-              "PR #326 W3.1 creditStatementViews fixed physical duplicate event ID statement associations, golden two-cycle repeated purchase/payment IDs. All four exact head checks passed 9030938610605daa5d868843aefacf478154db02, squash merged develop c9b48180f787f63cf7215dbcaf965a1aed75aba8. W3.1 wider status remains in progress pending full feature acceptance."
+              "PR #326 W3.1 creditStatementViews fixed physical duplicate event ID statement associations, golden two-cycle repeated purchase/payment IDs. All four exact head checks passed 9030938610605daa5d868843aefacf478154db02, squash merged develop c9b48180f787f63cf7215dbcaf965a1aed75aba8. W3.1 wider status remains in progress pending full feature acceptance.",
+              "Draft #335 code/tests authored: prepareCanonicalCreditStatementEvent now matches Web creditStatements.ts find by statement ID first, rather than any duplicate with matching owner card, rejects later duplicate cross-card assignment; JVM tests cover purchase, payment, reversed physical statement order and immutable source. No local Gradle run; four CI gates pending.",
+              "PR #335 W3.1 source and regression refreshed with full merged #334 develop baseline; historic duplicate statement ID first physical owner matches Web find(id) and rejects later conflicting cross-card assignment. Previous source head bc1808fb97cf876952b602f277fbe7f89afd0ea6 passed 4/4, but it predates #334 and cannot count as current final-head acceptance."
             ]
           },
           {
@@ -884,7 +886,8 @@
               "Draft #317: Web seeded/override/custom native recurring edit, expected-record conflict replay guard, preserved service/logo/status metadata and canonical events, JVM and Compose goldens; exact CI pending.",
               "PR #329 source authored/unmerged: Web RecurringPage category path subcategory field now available in native recurring dialog and read projection; canonical create/edit persists or clears subcategory without overwriting unrelated logos/lifecycle; ViewModel forwards UI requests; PendingCanonicalMutation encodes and decodes field through offline CAS replay. JVM golden tests authored for creation, edit, clearing and zero finance events. Tests not locally Gradle executed; exact-head CI pending.",
               "PR #329 recurring subcategory native create/edit, offline CAS replay, read projection and linked expenses passed all four exact-head CI gates on 85269f03ee1e061536ec554714095803e1977f85 and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0. Wider W4.1 acceptance remains in progress.",
-              "Draft PR #334 source authored/unmerged: imported recurring amountMode/estimate range values kept verbatim rather than coerced to fixed or sanitized, Web recurringVariable.ts strict confidence/amount validation read-only API, golden test covering malformed legacy bounds and no invented expense. Local Gradle and final-head CI pending."
+              "Draft #334 imported recurring amountMode/estimate bounds preserved, strict Web expected amount read validation, native Plan warning and JVM/Compose tests; first CI failed missing test import, corrected source head 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, subsequent final-head tests not yet accepted. Separate branch; not merged.",
+              "PR #334 canonical recurring importer preserves Web amount-mode/estimate invalid historical values, read-only Web validation and native Plan Compose warning; corrected Kotlin test import and appended data class fields passed 4/4 exact-head CI 5feb862f50478e428b018ed8ff0eb84c4c97a9d6, squash merged develop 859ba0123622dbb29703a6fa35e88e3b540918da. Broader W4.1 remains in progress."
             ]
           },
           {
@@ -917,7 +920,7 @@
               "Draft #313 Web recurring fixed/variable amount mode and estimate range privacy, source-aware 30/60/90 forecast labels, real JSON and Compose regressions; exact-head gates pending.",
               "PR #332 forecast omissions now explain missing scheduled, recurring and loan records using human-readable names, and existing JVM golden assertions were updated without altering financial totals; four final-head gates passed at 2639844d931605e8e656e9834e75b3481903d158, squash merged develop 091af3f31d149da89eae677b56568840a1b98709. Wider W4.2 remains in progress.",
               "Draft #333 authored/unmerged: Web pendingScheduled sorts dueDate then createdAt before forecast warnings; Android now mirrors ordering and exact Greek scheduled transfer vs ordinary account omission wording with read-only regression fixture. Four exact-head gates pending; no local Gradle execution claimed.",
-              "PR #333 dueDate/createdAt ordered scheduled forecast omission warnings and exact Web transfer/ordinary error labels, Kotlin/Compose assertions and immutable-data golden, passed 4/4 exact-head CI at e3125ac1b69266ef3b619e49a1433292f955f021; squash merged develop ce2252bd129ddb78d795a2b658a582ca5686356e. Broader W4.2 in progress."
+              "PR #333 Web dueDate/createdAt scheduled omissions and transfer-specific messages passed exact-head e3125ac1b69266ef3b619e49a1433292f955f021 Project Tracking/Android CI/screenshot/hosted S24 (4/4), squash merged develop ce2252bd129ddb78d795a2b658a582ca5686356e; wider W4.2 in_progress."
             ]
           },
           {
@@ -1140,10 +1143,10 @@
         ]
       }
     ],
-    "next_action": "Validate W4.1 draft PR #334 strict Web recurring estimated/fixed amounts and imported record preservation against all four same-head hosted gates; merge only when successful. Continue broader remaining W2–W5 feature work, without SMS #146, irreversible card-delete UI, backend/schema, live finance data, main release/signing or pretending hosted S24 is physical acceptance.",
+    "next_action": "Verify refreshed W3.1 PR #335 on its final head after #334 integration: all four hosted gates, then squash merge only if passed. Continue first remaining incomplete feature scope W2–W5; no release/main promotion, live finance writes, backend/schema or prohibited SMS/card-delete scope.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 334,
-    "current_subtask": "W4.1",
+    "pr": 335,
+    "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

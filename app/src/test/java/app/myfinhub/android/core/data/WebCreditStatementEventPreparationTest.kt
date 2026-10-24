@@ -68,6 +68,61 @@ class WebCreditStatementEventPreparationTest {
         assertEquals(1,debitPurchase.state.array("creditStatements").size)
         assertFalse((debitPurchase.state.array("events").last() as JsonObject).containsKey("statementId"))
     }
+    @Test fun duplicateHistoricalStatementIdsUseFirstPhysicalOwnerLikeWebFind() {
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "cards":[
+              {"id":"first-card","kind":"credit","active":true},
+              {"id":"second-card","kind":"credit","active":true}
+            ],
+            "creditStatements":[
+              {"id":"shared","cardId":"first-card","openDate":"2026-09-01",
+               "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+              {"id":"shared","cardId":"second-card","openDate":"2026-09-26",
+               "closeDate":"2026-10-25","dueDate":"2026-11-05"}
+            ],
+            "events":[]
+          }}
+        """.trimIndent()).jsonObject)
+        val initial = imported.raw
+        val mismatchedPurchase = imported.prepareCanonicalCreditStatementEvent(
+            event("ambiguous-buy", "2026-10-14", "card_purchase",
+                "second-card", "shared"), now)
+        assertFalse(mismatchedPurchase.event.containsKey("statementId"))
+        assertEquals(2, mismatchedPurchase.statements.size)
+        val mismatchedPayment = imported.prepareCanonicalCreditStatementEvent(
+            event("ambiguous-pay", "2026-10-14", "card_payment",
+                "second-card", "shared"), now)
+        assertFalse(mismatchedPayment.event.containsKey("statementId"))
+        assertEquals(2, mismatchedPayment.statements.size)
+        val firstOwner = imported.prepareCanonicalCreditStatementEvent(
+            event("owner-pay", "2026-10-14", "card_payment",
+                "first-card", "shared"), now)
+        assertEquals("shared", firstOwner.event.string("statementId"))
+        assertEquals(initial, imported.raw)
+    }
+
+    @Test fun reorderedHistoricalStatementArrayChangesAuthoritativeFirstOwner() {
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "creditStatements":[
+              {"id":"duplicate","cardId":"second-card"},
+              {"id":"duplicate","cardId":"first-card"}
+            ],"events":[]
+          }}
+        """.trimIndent()).jsonObject)
+        val accepted = imported.prepareCanonicalCreditStatementEvent(
+            event("correct-first", "2026-10-14", "card_payment",
+                "second-card", "duplicate"), now)
+        assertEquals("duplicate", accepted.event.string("statementId"))
+        val rejected = imported.prepareCanonicalCreditStatementEvent(
+            event("wrong-later", "2026-10-14", "card_payment",
+                "first-card", "duplicate"), now)
+        assertFalse(rejected.event.containsKey("statementId"))
+        assertEquals(2, imported.state.array("creditStatements").size)
+        assertTrue(imported.state.array("events").isEmpty())
+    }
+
     @Test fun mixedFundingExpenseCreatesStatementButPlainExpenseDoesNot() {
         val expense = JsonObject(event("m1", "2026-10-20", "expense", "visa")
             .toMutableMap().apply {
