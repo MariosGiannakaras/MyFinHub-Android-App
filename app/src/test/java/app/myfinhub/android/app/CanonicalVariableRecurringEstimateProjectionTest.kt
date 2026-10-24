@@ -57,8 +57,31 @@ class CanonicalVariableRecurringEstimateProjectionTest {
         assertEquals("fixed", ui.getValue("fixed").amountMode)
         assertEquals(14.0, ui.getValue("override").estimateMin!!, 0.001)
         assertNull(ui.getValue("custom").estimateMin)
+        assertNull(ui.getValue("variable").amountValidationError)
+        assertNull(ui.getValue("fixed").amountValidationError)
+        assertNull(ui.getValue("override").amountValidationError)
+        assertTrue(ui.getValue("custom").amountValidationError!!
+            .contains("και τα δύο άκρα"))
         assertEquals(211.0, document.canonicalRecurringMonthlyTotal(), 0.001)
         assertTrue(document.state.array("events").isEmpty())
+    }
+
+    @Test fun malformedImportedModeIsFlaggedInManagementNotMislabelledAsFixed() {
+        val historical = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","name":"Cash","kind":"cash"}],
+            "snapshots":[{"date":"2026-10-15","balances":{"cash":300}}],
+            "recurring":[{"id":"legacy","name":"Unrecognized import","amount":30,
+              "amountMode":"unknown-import-mode","accountId":"cash","active":true,
+              "firstExpectedDate":"2026-10-20"}]},
+            "state":{"events":[],"scheduled":[],"settings":{}}}
+        """.trimIndent()).jsonObject)
+        val initial = historical.raw
+        val item = projectCanonicalPlanState(historical, today, null)
+            .recurringManageItems.single()
+        assertEquals("unknown-import-mode", item.amountMode)
+        assertTrue(item.amountValidationError!!.contains("έγκυρο τύπο"))
+        assertEquals(0, historical.canonicalEvents().size)
+        assertEquals(initial, historical.raw)
     }
 
     @Test fun linkedActualExpenseCentsExcludeUnrelatedAndFutureEntriesWithoutRewritingEstimates() {

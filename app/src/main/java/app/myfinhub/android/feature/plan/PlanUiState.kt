@@ -47,6 +47,8 @@ data class RecurringManageItem(
     val amountMode: String = "fixed",
     val estimateMin: Double? = null,
     val estimateMax: Double? = null,
+    /** Web recurringVariable.ts rejection for malformed imported historical values. */
+    val amountValidationError: String? = null,
     /** Real linked expenses through the as-of date; not planned/estimated money. */
     val lastActualPaymentDateIso: String? = null,
     val lastActualPaymentAmount: Double? = null,

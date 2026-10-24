@@ -10,6 +10,7 @@ import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.canonicalWebRecurringManagementOrder
 import app.myfinhub.android.core.data.canonicalRecurringPaymentHistory
 import app.myfinhub.android.core.data.canonicalRecurringActualPayments
+import app.myfinhub.android.core.data.canonicalExpectedAmount
 import app.myfinhub.android.core.data.canonicalTypicalRecurringPaymentDay
 import app.myfinhub.android.core.data.nextCanonicalRecurringDate
 import app.myfinhub.android.core.data.bool
@@ -213,6 +214,11 @@ internal fun projectCanonicalPlanState(
             amountMode = recurring.amountMode,
             estimateMin = recurring.estimateMin,
             estimateMax = recurring.estimateMax,
+            // Malformed imported ranges are not quietly presented as fixed bills.
+            amountValidationError = runCatching { recurring.canonicalExpectedAmount() }
+                .exceptionOrNull()?.let { error ->
+                    (error as? IllegalArgumentException)?.message ?: "Μη έγκυρο ποσό παγίου."
+                },
             recurrenceUnit = recurring.recurrenceUnit ?: "month",
             recurrenceInterval = recurring.recurrenceInterval,
             day = recurring.day,
