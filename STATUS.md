@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #330 W4.3 preserves imported savings goals with zero/negative/missing historical targets, passed all four immutable exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks and squash merged into develop e9b8d073fea34fe16cf89663931b4a89fac66f59. Earlier #329 W4.1 recurring subcategory create/edit/offline replay likewise merged. Current W2.4 PR #331 source now invalidates secure-card committed cleanup on same-owner bearer rotation or AAL downgrade, preserving the second local encrypted vault and requiring deliberate fresh owner+AAL2 server reconfirmation before sensitive secret cleanup; Kotlin instrumentation regressions authored but not yet exact-head CI accepted/merged. Broad W2–W5 parity, provider visual assets and physical owner S24 Ultra #149 signoff remain open. No SMS, permanent card deletion UI, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W2.4 PR #331 secure-card cleanup passed all four immutable exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates and squash merged develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e. Current W4.2 PR #332 aligns Android forecast omission messages with the named scheduled, recurring and loan records shown by Web, while conservatively omitting malformed dates. Pure Kotlin regression authored; exact-head CI not yet accepted. No finance projection mathematics, ledger mutation or server change. Broader W2–W5 parity, provider assets and physical owner S24 Ultra #149 acceptance remain pending. No SMS, permanent card-delete UI, signed release or main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Check W2.4 PR #331 fail-closed secure card cleanup across same-owner token rotation and AAL downgrade, now reconciled with merged W4.3 #330 develop. Require four immutable final head gates before squash merge. Continue other W2–W5 feature parity independently. No signed release, live finance writes or physical owner S24 approval.
+1. Verify W4.2 PR #332 Web-equivalent named omitted-forecast explanations with exact final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator; squash merge only after 4/4 succeed. Continue incomplete W2–W5 domains independently. No signed release, main promotion, production finance writes or physical S24 owner approval.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #331, branch android/w2-vault-cleanup-session-rotation-20261024
-Current W2.4: PR #330 W4.3 legacy savings goals retained and passed four final-head CI checks, squash merged develop e9b8d073. PR #331 W2.4 secure-card cleanup now stops after owner-same bearer/AAL2 change and does not continue deleting encrypted PAN/CVV stores based on stale server response; explicit fresh server confirmation and AAL2 retry required. Two hosted instrumented race regression tests authored, reconciled with latest develop but final-head CI pending. Official count 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
+Issue #155, PR #332, branch android/w4-forecast-omitted-reason-parity-20261024
+Current W4.2: PR #331 W2.4 fail-closed secure-card cleanup merged develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four exact-head gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Current draft PR #332 W4.2 changes only localized omitted-forecast explanations for missing scheduled, recurring and loan movements, replacing opaque IDs with recognizable names; JVM regression authored, exact-head hosted checks pending. Web parity still 1/6 implementations · 11/24 subtasks; owner physical S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify 4/4 immutable final-head gates for W2.4 PR #331 with secure deletion session-change regressions; merge only when all successful. Continue other W2–W5 source functionality with no irreversible card-delete UI, SMS, Web/backend/schema mutation, signed release, main promotion or physical owner S24 acceptance.
+Next Run four exact immutable final-head gates for W4.2 PR #332; merge only if Project Tracking, Android CI, screenshot and hosted S24 emulator are successful. Then resume first remaining incomplete parity scope, without main/release promotion, SMS, irreversible card-delete UI or live data writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
