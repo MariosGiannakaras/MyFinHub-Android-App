@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #329 Web recurring category/subcategory create/edit/offline queue end-to-end on current develop, requiring all 4 exact final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks before merge. Continue outstanding W2–W5 source parity independently, no assistant CI observation over eight minutes or production release.
+- [ ] Validate W4.1 PR #329 recurring subcategory native create/edit, offline replay and linked payment categorization with all four checks on the reconciled immutable final head, then merge if green. Continue W2–W5 implementation independently; physical owner S24 remains a separate gate.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
-Current W4.1: PR #328 historical lending/principal/writeoff correction passed 4/4 exact-head gates and squash merged develop 897f4d2b. PR #329 W4.1 recurring subcategory now authored through Compose native form, PlanUiState, CanonicalPlanProjection, ViewModel, create/edit canonical mutation and PendingCanonicalMutation decoder, with creation/update/clear and offline replay JVM goldens. Reconciled on verified develop; 4/4 new latest-head CI still pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
+Current W4.1: PR #328 W4.3 historically correct receivables and imported loan principal passed four CI gates and merged develop 897f4d2b. W4.1 PR #329 now adds recurring subcategory across native UI, underlying create/edit, guarded pending offline intent replay, management projections and actual linked-payment event; regression tests authored and source reconciled onto latest develop, CI pending. Web parity remains 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 #149 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #329 Android recurring category and subcategory end-to-end golden tests, any screenshot UI effects and all four exact-head checks. Merge only on green and continue wider W2–W5 feature implementation. Owner physical S24 acceptance, branch-protection admin and signed release remain separate.
+Next Verify 4/4 Project Tracking, Android CI, screenshot and S24 hosted emulator exact-head checks for PR #329. Merge if green and proceed with W2–W5 source functionality; do not claim physical owner acceptance or production release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
