@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develop PR #319 at d78154c142aac01b0e1c301e2334b30c91f18fdf. Owner CODE-FIRST BULK unmerged android/web-parity-code-first-bulk-20261023 without per-feature CI/PR. Authored source: budgets/savings, rules/preview, account management, recurring, credit/card profiles/rates/payoff, backup, lending/loans, counterparty directory/event links/suggestions, taxonomy/analytics. Latest source adds five-pack Web category icon selections with per-pack memory and source CAS/offline intent; native Settings exposes only bundled semantic vectors, and selected glyphs project consistently into Activity, Account detail, Insights category rows, Plan obligations and Forecast rows. Unmapped Web SVGs preserved, not yet shipped as native assets. All branch source uncompiled/untested/unmerged; physical Galaxy S24 Ultra owner acceptance #149 outstanding.
+Web parity 1/6 implementations · 11/24 subtasks. Consolidated Android-only source PR #320 was squash merged into develop at 3c85ad3b816725de1836901fbda159247d40cba4 after 4/4 exact-head Project Tracking, Android CI, screenshot and hosted S24 checks. A new W2.4 security-editor checkpoint is now authored separately from that verified base; its compile/Compose validation is not yet complete. Native Web SVG full-pack visual parity and physical owner Galaxy S24 Ultra acceptance remain open.
 
 ## Immediate work
 
-- Continue Android-only W2–W5 source gaps on android/web-parity-code-first-bulk-20261023. Now category icon semantic glyphs are applied to Activity, Account, Insights and Plan/Forecast without touching financial calculations. Full desktop SVG glyph catalog for five packs is not bundled: do not claim 1:1 visual pack parity. Continue remaining domain, provider/security/settings and rendering gaps in consolidated code batches. Only after source implementation run consolidated Kotlin/unit/security, real Compose screenshot light/dark/large font and hosted S24 emulator, correct bugs and 4/4 exact-head CI before protected develop merge. Progress remains 1/6 implementations · 11/24 subtasks until verified; owner physical S24 #149 pending. No shared Web/backend/schema, production writes, signing/release, SMS import, or permanent card deletion UI.
+- Continue W2.4 on android/w2-card-secure-editor-session-20261024: verify the secret editor clears and hides PAN/expiry/CVV drafts immediately when server vault authorization drops, with an S24 Compose regression. Run scoped and 4/4 exact-head gates on a PR before merging; do not infer physical S24 signoff. Continue remaining W2–W5 parity separately; preserve all owner+AAL2/card vault/offline safeguards and explicit no permanent-delete UI, no SMS, no Web/backend/schema, no signed release.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 completed subtasks. Last verified develo
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #320, branch android/web-parity-code-first-bulk-20261023
-Current W5.4: Web parity 1/6 implementations · 11/24 subtasks. Develop last merged #319. Code-first unmerged source now preserves per-Web-pack category glyph choices, Settings edit and offline CAS, with native semantic icon application on Activity, Account detail, Insights categories and Plan/Forecast. Remaining full SVG asset parity and other W2–W5 gaps, mass compilation/visual checks and physical owner device acceptance are pending.
+Issue #155, PR #321, branch android/w2-card-secure-editor-session-20261024
+Current W2.4: Merged PR #320 at develop 3c85ad3b (4/4 exact-head pass). W2.4 secure card editor authority-loss draft invalidation and Compose regression are authored in a new unmerged branch, not yet CI-validated. Web parity progress remains 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Continue remaining safe Android-only W2.4/W3/W4/W5 parity code on android/web-parity-code-first-bulk-20261023, consolidating commits without per-feature PR/CI. Latest source-only batch extends Web category icon preferences to Activity/Account/Insights/Plan. Do not claim full five-pack Web SVG catalogs in native. After source completion, mass Kotlin/unit/security/Compose screenshot/hosted S24 emulator exact-head gates, fix failures, then merge. Last develop #319, counts 1/6 · 11/24, physical S24 #149 separate; no Web/backend/schema/production data writes, signing, SMS or irreversible card deletion.
+Next Validate W2.4 secure card editor session-invalidation behavior and S24 Compose regression on android/w2-card-secure-editor-session-20261024; PR and exact-head 4/4 gates required before merge. Then continue other unfinished W2–W5 parity. No permanent-card-delete UI, real finance writes, shared backend edits, SMS import, signer or release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

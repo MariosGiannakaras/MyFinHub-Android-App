@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.myfinhub.android.core.auth.AuthSession
+import app.myfinhub.android.core.auth.AssuranceLevel
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.ApiFailureKind
 import app.myfinhub.android.core.network.ApiResult
@@ -113,14 +114,29 @@ class CardSecretViewModel internal constructor(
     private var cleanupGeneration = 0L
 
     fun attachSession(session: AuthSession) {
-        val previousUserId = currentSession?.userId
+        val previous = currentSession
+        val ownerChanged = previous != null && previous.userId != session.userId
+        val vaultAuthorityChanged = previous != null &&
+            (ownerChanged ||
+                previous.accessToken != session.accessToken ||
+                previous.assuranceLevel != session.assuranceLevel)
         currentSession = session
-        if (previousUserId != null && previousUserId != session.userId) {
-            currentCardId = null
-            cleanupGeneration += 1
-            pendingCleanup = null
-            mutableState.value = CardSecretUiState.Hidden()
-            mutableCleanupState.value = CardSecretCleanupUiState.Idle
+        if (vaultAuthorityChanged) {
+            // A previous AAL2 read cannot stay visible during bearer rotation or
+            // assurance downgrade, even when the account owner ID stays the same.
+            mutableState.value = CardSecretUiState.Hidden(currentCardId)
+            if (ownerChanged) {
+                currentCardId = null
+                cleanupGeneration += 1
+                pendingCleanup = null
+                mutableCleanupState.value = CardSecretCleanupUiState.Idle
+            } else if (session.assuranceLevel == AssuranceLevel.AAL2) {
+                // Re-read the currently open card under the new bearer.
+                currentCardId?.let(::loadServerDetails)
+            }
+        }
+        if (session.assuranceLevel != AssuranceLevel.AAL2) {
+            mutableState.value = CardSecretUiState.AuthRejected
         }
     }
 
@@ -454,7 +470,7 @@ class CardSecretViewModel internal constructor(
 
     private fun loadServerDetails(cardId: String, message: String? = null) {
         val session = currentSession
-        if (session == null) {
+        if (session == null || session.assuranceLevel != AssuranceLevel.AAL2) {
             mutableState.value = CardSecretUiState.AuthRejected
             return
         }
@@ -462,6 +478,7 @@ class CardSecretViewModel internal constructor(
         viewModelScope.launch {
             when (val result = safeApiCall { api.loadCardSecrets(session, cardId) }) {
                 is ApiResult.Success -> {
+                    if (!stillCurrent(session, cardId)) return@launch
                     val server = result.value
                     val migrated = migrateMissingLegacyValues(
                         session = session,
@@ -480,6 +497,7 @@ class CardSecretViewModel internal constructor(
                     )
                 }
                 is ApiResult.Failure -> {
+                    if (!stillCurrent(session, cardId)) return@launch
                     if (result.kind == ApiFailureKind.INVALID_DATA) {
                         val migrated = migrateMissingLegacyValues(session, cardId, null, null, null)
                         if (!stillCurrent(session, cardId)) return@launch
@@ -583,7 +601,11 @@ class CardSecretViewModel internal constructor(
     }
 
     private fun stillCurrent(session: AuthSession, cardId: String): Boolean =
-        currentSession?.userId == session.userId && currentCardId == cardId
+        currentSession?.userId == session.userId &&
+            currentSession?.accessToken == session.accessToken &&
+            currentSession?.assuranceLevel == AssuranceLevel.AAL2 &&
+            session.assuranceLevel == AssuranceLevel.AAL2 &&
+            currentCardId == cardId
 
     private fun normalizeServerExpiry(raw: String): String? {
         val compact = raw.trim().replace(" ", "")

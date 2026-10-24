@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -68,6 +69,19 @@ fun CanonicalCardSecureDetailsScreen(
     var expiryDraft by remember(cardId) { mutableStateOf("") }
     var validation by remember(cardId) { mutableStateOf<String?>(null) }
     var clipboardMessage by remember(cardId) { mutableStateOf<String?>(null) }
+    // Never leave a composed PAN/expiry editor or CVV draft accessible when the
+    // owner+AAL2 vault read loses authority, even if navigation retains the screen.
+    val vaultReadAuthorized = relevantState is CardSecretUiState.Revealed
+    LaunchedEffect(cardId, vaultReadAuthorized) {
+        if (!vaultReadAuthorized) {
+            editorOpen = false
+            panDraft = ""
+            expiryDraft = ""
+            cvvDraft = ""
+            validation = null
+            clipboardMessage = null
+        }
+    }
 
     LaunchedEffect(cardId) {
         onReveal()
@@ -80,9 +94,9 @@ fun CanonicalCardSecureDetailsScreen(
     BackHandler(onBack = ::closeDetailsSurface)
 
     fun openEditor() {
-        val revealed = relevantState as? CardSecretUiState.Revealed
-        panDraft = revealed?.pan.orEmpty().filter(Char::isDigit).take(19)
-        expiryDraft = revealed?.expiry.orEmpty()
+        val revealed = relevantState as? CardSecretUiState.Revealed ?: return
+        panDraft = revealed.pan.orEmpty().filter(Char::isDigit).take(19)
+        expiryDraft = revealed.expiry.orEmpty()
         validation = null
         editorOpen = true
     }
@@ -124,7 +138,7 @@ fun CanonicalCardSecureDetailsScreen(
                         "Ο αριθμός, η λήξη και το CVV αποθηκεύονται κρυπτογραφημένα στο κοινό card vault και συγχρονίζονται στις εγκεκριμένες εφαρμογές.",
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    if (editorOpen) {
+                    if (editorOpen && vaultReadAuthorized) {
                         MyFinHubOutlinedField(
                             value = panDraft,
                             onValueChange = { input ->
@@ -132,6 +146,7 @@ fun CanonicalCardSecureDetailsScreen(
                                 validation = null
                             },
                             label = "Αριθμός κάρτας",
+                            modifier = Modifier.testTag("card_secure_pan_editor"),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                         )
                         MyFinHubOutlinedField(
@@ -142,6 +157,7 @@ fun CanonicalCardSecureDetailsScreen(
                                 validation = null
                             },
                             label = "Λήξη (MM/YY ή MM/YYYY)",
+                            modifier = Modifier.testTag("card_secure_expiry_editor"),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                         )
                         validation?.let { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -164,7 +180,7 @@ fun CanonicalCardSecureDetailsScreen(
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = relevantState !is CardSecretUiState.Saving,
+                            enabled = vaultReadAuthorized,
                             icon = null,
                         )
                         TextButton(
@@ -242,7 +258,7 @@ fun CanonicalCardSecureDetailsScreen(
                         }
                     }
 
-                    if (!editorOpen && relevantState !is CardSecretUiState.Saving && relevantState !is CardSecretUiState.AuthRejected) {
+                    if (!editorOpen && vaultReadAuthorized) {
                         TextButton(onClick = ::openEditor) {
                             Text(if (relevantState is CardSecretUiState.Revealed) "Αλλαγή αριθμού / λήξης" else "Προσθήκη αριθμού / λήξης")
                         }
