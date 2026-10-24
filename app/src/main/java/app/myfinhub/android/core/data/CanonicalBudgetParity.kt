@@ -243,7 +243,8 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
     return budgets.sortedWith(Comparator { a, b ->
         (a.string("scope").orEmpty().compareTo(b.string("scope").orEmpty())).takeIf { it != 0 }
             ?: locale.compare(a.string("category").orEmpty(), b.string("category").orEmpty()).takeIf { it != 0 }
-            ?: locale.compare(a.string("subcategory").orEmpty(), b.string("subcategory").orEmpty()).takeIf { it != 0 }
+            // Web monthlyBudgets orders by scope, category, then ID.
+            // A subcategory label must not reorder same-category rows before ID.
             ?: a.string("id").orEmpty().compareTo(b.string("id").orEmpty())
     }).map { row ->
         val scope = row.string("scope").orEmpty()
@@ -272,12 +273,12 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
         })
         val projectedUsed = max(0.0, rawUsed + projectedDue)
         val projectedRatio = if (limit > 0.0) projectedUsed / limit else 0.0
+        // Web budgets.ts budgetProgress reads the persisted value directly:
+        // Math.min(.99, Math.max(.5, Number(alertThreshold ?? .8))).
+        // The write/editor compatibility layer may accept legacy percent input;
+        // never reinterpret an imported budget's raw threshold at read time.
         val rawThreshold = row.number("alertThreshold")
-        val threshold = when {
-            rawThreshold == null || !rawThreshold.isFinite() -> 0.8
-            rawThreshold > 1.0 -> rawThreshold / 100.0
-            else -> rawThreshold
-        }.coerceIn(0.5, 0.99)
+        val threshold = (rawThreshold ?: 0.8).coerceIn(0.5, 0.99)
         CanonicalBudgetProgress(
             id = row.string("id").orEmpty(),
             month = month,

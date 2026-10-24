@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-24",
+  "updated_at": "2026-10-25",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W3.1 #335 duplicate historical credit statement first-owner match merged develop 2b6f9a3f6d70d31d046fbcb3cf541ba3b7dbd9c6 following 4/4 exact-head gates. W3.1 #336 explicit whitespace-only statementId import Web truthiness and no fabricated credit cycle passed 4/4 same-head CI (e7e879df3316f47b01eb87fccbb66b6bd8706da2), squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Prior W4.1 #334 and W4.2 #332–333 also integrated. Current W4.2 draft #337, refreshed onto #336 merged develop, moves remaining-installment zero check before self-loan and missing-payer omission warnings in forecast, matches Web loanMovements; preserves real open-loan forecast and original canonical finance state. Golden Kotlin source authored; local Gradle not run; repeat all 4 exact final-head Project Tracking/Android CI/screenshot/hosted S24 checks after refresh. Broader W2–W5 parity and physical S24 owner #149 pending. No SMS, permanent card-delete UI, backend/schema edits, real finance writes, signed release or main promotion.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W3.1 #336 explicit invalid whitespace-only credit statement ID handling passed 4/4 same-head gates and squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. W4.2 #337 settled-loan false forecast omission guard and Kotlin golden passed 4/4 final-head Project Tracking, Android CI, screenshot regression and hosted S24 at fad8c3c2da14b1b536b74451268609b1991027d2, squash merged develop 25a2f62310b9738df2c999bf1860000c7317d143. Active W4.3 draft PR #338 Web budgets.ts read projection parity: historical nonnormalized alertThreshold is clamped directly to 0.5..0.99 rather than silently divided by 100, and same-scope/category budgets order by ID rather than subcategory label. Kotlin golden fixtures cover status at 90% use, imported legacy threshold 80, default/fraction/lower clamp, sorting and immutable canonical data; no local Gradle executed, final-head four CI gates pending. W4.3 broader acceptance and W2–W5 incomplete; real S24 owner #149 pending. No production finance data writes, Web/backend/schema, SMS #146, permanent card-delete UI, signed release or main promotion.",
     "next": [
-      "Run all four exact-final-head gates on refreshed W4.2 draft PR #337: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Merge only after 4/4 green. Continue broader W2–W5 product feature scopes; physical owner Galaxy S24 #149 is separate and pending. No production financial data, Web/backend/schema changes, SMS, irreversible card delete UI or signed release."
+      "Validate W4.3 #338 four immutable exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates; merge only when all four success. Continue remaining full-feature W2–W5 subtasks without false acceptance claims, finance writes or production release. Owner physical S24 #149 pending."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-forecast-settled-loan-omission-20261024",
-    "checkpoint": "W3.1 #336 whitespace-only explicit credit statement ID link parity passed 4/4 exact head e7e879df3316f47b01eb87fccbb66b6bd8706da2 and squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Draft W4.2 #337 settled historical loan forecast omitted-reason guard plus immutable-JVM golden now refreshed with full merged #336 develop ancestry and coherent canonical/generated tracking; four fresh final-head gates required. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.",
+    "branch": "android/w4-budget-alert-threshold-order-20261025",
+    "checkpoint": "W4.2 #337 forecast settled historical loan omission fix and read-only JVM golden passed 4/4 checks at fad8c3c2da14b1b536b74451268609b1991027d2, squash merged develop 25a2f62310b9738df2c999bf1860000c7317d143. Active draft W4.3 #338 budgetProgress Web read semantics: no /100 legacy alertThreshold reinterpretation, and tie-breaking order by ID not subcategory; golden tests added, local Gradle not run, all final-head hosted gates pending. Web parity 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -924,7 +924,8 @@
               "Draft #333 authored/unmerged: Web pendingScheduled sorts dueDate then createdAt before forecast warnings; Android now mirrors ordering and exact Greek scheduled transfer vs ordinary account omission wording with read-only regression fixture. Four exact-head gates pending; no local Gradle execution claimed.",
               "PR #333 Web dueDate/createdAt scheduled omissions and transfer-specific messages passed exact-head e3125ac1b69266ef3b619e49a1433292f955f021 Project Tracking/Android CI/screenshot/hosted S24 (4/4), squash merged develop ce2252bd129ddb78d795a2b658a582ca5686356e; wider W4.2 in_progress.",
               "Draft PR #337 W4.2 Kotlin source/golden authored: Web forecast.ts ignores loan rows with zero remaining installment count before emitting self-loan or invalid payer account warnings. Android previously emitted false warnings, now performs early remaining-count guard; fixtures assert only open loan warnings and one real forecast installment, source immutable and no ledger entries. No local Gradle run; four final-head checks pending; refresh if #336 merges.",
-              "Draft #337 W4.2 settled loan forecast omitted warnings guard rebased through integration with #336 develop 9681a7a2de7c275af0c388c84d503246d8c9704c; old final head 1a3c2bbbdaac03bf2dedd7ff65b248cc44a67f3d tests no longer count after base advance; all four fresh same-head gates required. Source/golden previously authored, local Gradle not run."
+              "Draft #337 W4.2 settled loan forecast omitted warnings guard rebased through integration with #336 develop 9681a7a2de7c275af0c388c84d503246d8c9704c; old final head 1a3c2bbbdaac03bf2dedd7ff65b248cc44a67f3d tests no longer count after base advance; all four fresh same-head gates required. Source/golden previously authored, local Gradle not run.",
+              "W4.2 PR #337 check remaining loan installments before omitted forecast warning, fully settled self/orphan loans not misreported; Kotlin golden, immutable exact final head fad8c3c2da14b1b536b74451268609b1991027d2 4/4 Project Tracking, Android CI, screenshot and hosted S24 green, squash merged develop 25a2f62310b9738df2c999bf1860000c7317d143. Broader W4.2 in progress."
             ]
           },
           {
@@ -961,7 +962,8 @@
               "PR #327 4/4 exact-head checks passed on commit 281480f2462d28f2e91587bf1230c9b78021c0a8 and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. Remaining broader W4.3 acceptance open.",
               "PR #328 exact-head 4/4 checks passed and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487; historical-as-of legacy lending, imported loan principal and writeoff history implemented. Broader W4.3 acceptance remains open.",
               "PR #330 authored/unmerged: Web savingsGoalProgress renders historical imported nonpositive/missing goal target as progress=0 while preserving the goal row. Android CanonicalSavingsGoals previously discarded these rows; now retains ID and name, finite target if present, and displays zero progress. Existing positive-target semantics unchanged. Kotlin fixture extended with zero and added negative/missing/null target source immutability test. CI and owner acceptance pending.",
-              "PR #330 W4.3 historical zero/missing/negative savings goals kept visible at 0% progress and malformed dates preserved; all four exact-head checks passed e1eab37941d8ef056b572c406f6152f4d8e4923d; squash merged develop e9b8d073fea34fe16cf89663931b4a89fac66f59. Broader W4.3 remains in progress."
+              "PR #330 W4.3 historical zero/missing/negative savings goals kept visible at 0% progress and malformed dates preserved; all four exact-head checks passed e1eab37941d8ef056b572c406f6152f4d8e4923d; squash merged develop e9b8d073fea34fe16cf89663931b4a89fac66f59. Broader W4.3 remains in progress.",
+              "Draft PR #338 Web budgets.ts historical raw alertThreshold clamped directly to [0.5,0.99] rather than Android divide >1 by 100; budget order same scope/category compares id before subcategory text. Kotlin JVM golden source covers 80 threshold vs 90% used status, canonical/default/lower thresholds, subcategory id ordering and source immutability. No local Gradle execution or exact-head CI accepted yet; wider W4.3 remains in progress."
             ]
           },
           {
@@ -1147,10 +1149,10 @@
         ]
       }
     ],
-    "next_action": "Verify W4.2 draft #337 against four immutable same-head checks on refreshed post-#336 develop baseline. Mark ready and squash merge only with all green; then continue meaningful W2–W5 feature parity. No live financial writes, SMS import #146, irreversible card-delete UI, backend/Web/schema, main promotion or signed release.",
+    "next_action": "Validate W4.3 draft #338 four exact-head Project Tracking, Android CI, screenshot and hosted S24 gates; only squash merge into develop after all green on same final SHA. Keep broader W2–W5 in progress and physical owner S24 acceptance #149 separate. No Web/backend/schema edits, SMS #146, card-delete UI, real finance writes, signed release or main promotion.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 337,
-    "current_subtask": "W4.2",
+    "pr": 338,
+    "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }
