@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run all four exact-final-head gates on refreshed W4.2 draft PR #337: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Merge only after 4/4 green. Continue broader W2–W5 product feature scopes; physical owner Galaxy S24 #149 is separate and pending. No production financial data, Web/backend/schema changes, SMS, irreversible card delete UI or signed release.
+- [ ] Run four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation checks for W4.3 draft PR #339 on merged #338 develop baseline. Squash merge only after 4/4 success on final head; then proceed through remaining W2–W5 Android-only parity gaps. Physical owner S24 #149 remains separate; no live finance writes, Web/backend/schema, SMS import, destructive card UI or main release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #337, branch android/w4-forecast-settled-loan-omission-20261024
-Current W4.2: W3.1 #336 whitespace-only explicit credit statement ID link parity passed 4/4 exact head e7e879df3316f47b01eb87fccbb66b6bd8706da2 and squash merged develop 9681a7a2de7c275af0c388c84d503246d8c9704c. Draft W4.2 #337 settled historical loan forecast omitted-reason guard plus immutable-JVM golden now refreshed with full merged #336 develop ancestry and coherent canonical/generated tracking; four fresh final-head gates required. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
+Issue #155, PR #339, branch android/w4-budget-scheduled-completion-link-parity-20261025
+Current W4.3: W4.3 PR #338 threshold/sort Web budget golden passed Project Tracking, Android CI, screenshot and hosted S24 (4/4 exact-head 8a9daf4772ff97196c012d9551bfa782069fea13), squash merged develop c8230b7cb5f012d6fc3d57a673f389a260dd756f. Current draft W4.3 #339 budget scheduled completion truthiness now integrates merged #338 develop; nonempty whitespace completedEventId cannot create duplicate projected obligation; Kotlin JVM golden source authored, no local Gradle and new hosted exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.2 draft #337 against four immutable same-head checks on refreshed post-#336 develop baseline. Mark ready and squash merge only with all green; then continue meaningful W2–W5 feature parity. No live financial writes, SMS import #146, irreversible card-delete UI, backend/Web/schema, main promotion or signed release.
+Next Check W4.3 PR #339 immutable exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24. If all 4 success, ready and squash merge; otherwise fix source or leave draft. Continue broader W2–W5 finance/read-only and Compose parity without marking entire subtasks done. No live finance writes, SMS, backend/Web/schema, irreversible card deletion, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

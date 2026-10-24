@@ -58,7 +58,8 @@ class WebCategoryBudgetParityTest {
         assertEquals(listOf("restaurants","food","overall"),r.map { it.id })
         assertEquals(-30.0,r.first().rawUsed,0.001)
         assertEquals(0.0,r.first().used,0.001)
-        assertEquals(0.75,r.first().alertThreshold,0.001)
+        // Raw legacy 75 is capped at Web budgetProgress's 99% read threshold.
+        assertEquals(0.99,r.first().alertThreshold,0.001)
         assertEquals("ok",r.first().status)
         assertEquals("exceeded",r[1].status)
         assertEquals(175.0,r[1].used,0.001)
@@ -181,6 +182,56 @@ class WebCategoryBudgetParityTest {
         assertEquals(30.0, subcategory.used, 0.001)
         assertEquals(65.0, subcategory.carried, 0.001)
         assertEquals(155.0, subcategory.limit, 0.001)
+    }
+
+    @Test fun rawHistoricalAlertThresholdIsWebClampedNotConvertedFromPercent() {
+        // Web budgets.ts directly clamps Number(alertThreshold ?? .8) to [.5,.99].
+        // A nonnormalized historical value 80 is 0.99 (not 0.80);
+        // the distinct mutation/editor compatibility conversion remains intact.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "events":[{"id":"rent","date":"2026-10-10","kind":"expense",
+                       "category":"Σπίτι","amount":90}],
+            "budgets":[
+              {"id":"percent-legacy","month":"2026-10","scope":"category",
+               "category":"Σπίτι","amount":100,"alertThreshold":80},
+              {"id":"small","month":"2026-10","scope":"category",
+               "category":"Άλλο","amount":100,"alertThreshold":0.2},
+              {"id":"empty","month":"2026-10","scope":"overall","amount":100},
+              {"id":"fraction","month":"2026-10","scope":"category",
+               "category":"Σπίτι","amount":100,"alertThreshold":0.85}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        val rows = imported.webBudgetProgress("2026-10","2026-10-15").associateBy { it.id }
+        val historical = rows.getValue("percent-legacy")
+        assertEquals(0.99, historical.alertThreshold, 0.00001)
+        assertEquals(90.0, historical.used, 0.00001)
+        assertEquals("ok", historical.status)
+        assertEquals("ok", historical.projectedStatus)
+        assertEquals(0.5, rows.getValue("small").alertThreshold, 0.00001)
+        assertEquals(0.8, rows.getValue("empty").alertThreshold, 0.00001)
+        assertEquals(0.85, rows.getValue("fraction").alertThreshold, 0.00001)
+        assertEquals("near", rows.getValue("fraction").status)
+        assertEquals(before, imported.raw)
+    }
+
+    @Test fun webBudgetOrderingUsesIdRatherThanSubcategoryAfterSameCategory() {
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{"budgets":[
+            {"id":"z-first-sub","month":"2026-10","scope":"subcategory",
+             "category":"Σπίτι","subcategory":"Α","amount":50},
+            {"id":"a-last-sub","month":"2026-10","scope":"subcategory",
+             "category":"Σπίτι","subcategory":"Ω","amount":75},
+            {"id":"m-middle","month":"2026-10","scope":"subcategory",
+             "category":"Σπίτι","subcategory":"Κ","amount":65}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        assertEquals(listOf("a-last-sub", "m-middle", "z-first-sub"),
+            imported.webBudgetProgress("2026-10").map { it.id })
+        assertEquals(before, imported.raw)
     }
 
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
