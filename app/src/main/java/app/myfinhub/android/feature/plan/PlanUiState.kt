@@ -59,6 +59,8 @@ data class RecurringManageItem(
     val day: Int? = null,
     val firstExpectedDateIso: String? = null,
     val subcategory: String? = null,
+    /** Append-only to preserve older positional screen/demo constructors. */
+    val amountValidationError: String? = null,
 )
 
 /** Web actual payments: no additional persisted finance data. */

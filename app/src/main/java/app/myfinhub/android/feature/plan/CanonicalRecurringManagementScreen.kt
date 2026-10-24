@@ -148,13 +148,25 @@ fun CanonicalRecurringManagementScreen(
                             style = MaterialTheme.typography.bodyMedium)
                         // Variable Web amountMode is an estimate, never a recorded payment.
                         Text(
-                            if (item.amountMode == "variable") "Εκτίμηση · όχι πραγματική πληρωμή"
-                            else "Σταθερό ποσό",
+                            when {
+                                item.amountValidationError != null -> "Μη έγκυρη εκτίμηση · απαιτείται διόρθωση"
+                                item.amountMode == "variable" -> "Εκτίμηση · όχι πραγματική πληρωμή"
+                                else -> "Σταθερό ποσό"
+                            },
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (item.amountValidationError != null) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.testTag("recurring_amount_mode_" + item.id),
                         )
-                        if (item.amountMode == "variable" &&
+                        item.amountValidationError?.let { reason ->
+                            Text(
+                                reason,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("recurring_amount_invalid_" + item.id),
+                            )
+                        }
+                        if (item.amountValidationError == null && item.amountMode == "variable" &&
                             (item.estimateMin != null || item.estimateMax != null)) {
                             Text(
                                 "Εύρος εκτίμησης: " +
@@ -361,7 +373,10 @@ private fun CanonicalRecurringCreateDialog(
         mutableStateOf(initial?.accountId ?: accounts.firstOrNull()?.id.orEmpty())
     }
     var accountMenu by remember { mutableStateOf(false) }
-    var mode by remember(initial?.id) { mutableStateOf(initial?.amountMode ?: "fixed") }
+    var mode by remember(initial?.id) {
+        // The record stays lossless on read, but repair starts from a valid choice.
+        mutableStateOf(initial?.amountMode?.takeIf { it in setOf("fixed", "variable") } ?: "fixed")
+    }
     var estimateMin by remember(initial?.id) { mutableStateOf(initial?.estimateMin?.toString().orEmpty()) }
     var estimateMax by remember(initial?.id) { mutableStateOf(initial?.estimateMax?.toString().orEmpty()) }
     var unit by remember(initial?.id) { mutableStateOf(initial?.recurrenceUnit ?: "month") }
