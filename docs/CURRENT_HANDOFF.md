@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. W2.4 PR #331 secure-card cleanup passed all four immutable exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates and squash merged develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e. Current W4.2 PR #332 aligns Android forecast omission messages with the named scheduled, recurring and loan records shown by Web, while conservatively omitting malformed dates. Pure Kotlin regression authored; exact-head CI not yet accepted. No finance projection mathematics, ledger mutation or server change. Broader W2–W5 parity, provider assets and physical owner S24 Ultra #149 acceptance remain pending. No SMS, permanent card-delete UI, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W4.2 PR #332 completed named forecast omission explanations, corrected three legacy JVM assertions, passed four immutable final-head gates at 2639844d931605e8e656e9834e75b3481903d158 and squash merged develop 091af3f31d149da89eae677b56568840a1b98709. Current W4.2 draft PR #333 aligns scheduled omission order (Web dueDate then createdAt) and exact Web transfer vs ordinary movement warnings. Read-only Kotlin golden source authored, no local Gradle execution or final-head CI acceptance yet. Forecast balance mathematics and canonical ledger unchanged; wider W2–W5 acceptance remains incomplete. Physical owner S24 Ultra #149 pending; no SMS, permanent card-delete UI, signed release or main promotion.
 
 ## Immediate work
 
-- Verify W4.2 PR #332 Web-equivalent named omitted-forecast explanations with exact final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator; squash merge only after 4/4 succeed. Continue incomplete W2–W5 domains independently. No signed release, main promotion, production finance writes or physical S24 owner approval.
+- Validate W4.2 PR #333 scheduled warnings chronological Web parity and source immutability using four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, merging only if all succeed. Then continue broader W2–W5 acceptance. No signed release, main promotion, SMS, irreversible card deletion or live finance writes.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 subtasks. W2.4 PR #331 secure-card clean
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #332, branch android/w4-forecast-omitted-reason-parity-20261024
-Current W4.2: PR #331 W2.4 fail-closed secure-card cleanup merged develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four exact-head gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Current draft PR #332 W4.2 changes only localized omitted-forecast explanations for missing scheduled, recurring and loan movements, replacing opaque IDs with recognizable names; JVM regression authored, exact-head hosted checks pending. Web parity still 1/6 implementations · 11/24 subtasks; owner physical S24 Ultra #149 pending.
+Issue #155, PR #333, branch android/w4-scheduled-forecast-warning-order-20261024
+Current W4.2: W4.2 PR #332 final head 2639844d931605e8e656e9834e75b3481903d158 passed four required CI gates and squash merged develop 091af3f31d149da89eae677b56568840a1b98709; Web-style forecast missing-source labels now integrated. Draft W4.2 PR #333 source and Kotlin golden test match Web pendingScheduled dueDate/createdAt order, scheduled-transfer warning and ordinary-account warning; final-head CI not accepted yet. Canonical Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact immutable final-head gates for W4.2 PR #332; merge only if Project Tracking, Android CI, screenshot and hosted S24 emulator are successful. Then resume first remaining incomplete parity scope, without main/release promotion, SMS, irreversible card-delete UI or live data writes.
+Next Check four immutable final-head gates for draft W4.2 PR #333, including JVM ordering/golden assertions; merge only when all four pass. Continue first unfinished larger W2–W5 parity scopes without Web/backend/schema work, real finance data writes, SMS, destructive card UI, signed release or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
