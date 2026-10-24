@@ -28,7 +28,13 @@ internal fun CanonicalFinanceDocument.creditDebtForCardAt(cardId: String, asOf: 
     var debt = 0.0
     state.entryArray("events").mapNotNull { it as? JsonObject }.forEach { event ->
         val kind = event.entryString("kind").orEmpty()
-        if (kind != "card_purchase" && kind != "card_payment") return@forEach
+        val creditParts = (event["funding"] as? JsonArray)
+            ?.mapNotNull { it as? JsonObject }
+            ?.filter { it.entryString("kind") == "credit" }
+            .orEmpty()
+        if (kind != "card_purchase" && kind != "card_payment" &&
+            !(kind == "expense" && creditParts.isNotEmpty())
+        ) return@forEach
         if (event.entryString("date").orEmpty() > asOf) return@forEach
 
         // Web cards.ts uses event.cardId truthiness, not trimmed validity:
@@ -43,7 +49,14 @@ internal fun CanonicalFinanceDocument.creditDebtForCardAt(cardId: String, asOf: 
         if (!belongsToTarget) return@forEach
 
         val amount = event.entryNumber("amount") ?: 0.0
-        debt += if (kind == "card_purchase") amount else -amount
+        debt += when (kind) {
+            "card_purchase" -> amount
+            "card_payment" -> -amount
+            // Web cards.ts sums each actual credit-funded part, not the cash-funded
+            // component or the full split purchase price.
+            "expense" -> creditParts.sumOf { it.entryNumber("amount") ?: 0.0 }
+            else -> 0.0
+        }
     }
     return max(0.0, debt)
 }

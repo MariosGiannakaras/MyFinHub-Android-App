@@ -84,4 +84,34 @@ class WebHistoricalLoanLendingCreditEdgeParityTest {
         assertEquals(360.0, doc.canonicalLoanBalanceRows("2026-10-16")
             .first { it.id == "day-label" }.remaining, 0.001)
     }
+    @Test fun mixedFundingExpenseDebtIncludesOnlyCreditLegAndPreservesOwnerAttribution() {
+        val mixed = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "cards":[
+              {"id":"first","kind":"credit","createdAt":"2025-01-01T00:00:00Z"},
+              {"id":"second","kind":"credit","createdAt":"2025-06-01T00:00:00Z"}
+            ],
+            "events":[
+              {"id":"mixed","date":"2026-10-10","kind":"expense","cardId":"second",
+               "amount":125,"funding":[
+                 {"kind":"cash","amount":85},{"kind":"credit","amount":40}
+               ],"creditDelta":-40},
+              {"id":"legacy-mixed","date":"2026-10-10","kind":"expense",
+               "amount":70,"funding":[
+                 {"kind":"cash","amount":50},{"kind":"credit","amount":20}
+               ],"creditDelta":-20},
+              {"id":"not-funded","date":"2026-10-11","kind":"expense","cardId":"second",
+               "amount":90,"creditDelta":-90},
+              {"id":"payment","date":"2026-10-12","kind":"card_payment","cardId":"second",
+               "amount":15},
+              {"id":"future","date":"2026-11-11","kind":"expense","cardId":"second",
+               "amount":60,"funding":[{"kind":"credit","amount":60}],"creditDelta":-60}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        assertEquals(20.0, mixed.creditDebtForCardAt("first", "2026-10-20"), 0.00001)
+        assertEquals(25.0, mixed.creditDebtForCardAt("second", "2026-10-20"), 0.00001)
+        assertEquals(85.0, mixed.creditDebtForCardAt("second", "2026-11-20"), 0.00001)
+    }
+
 }
