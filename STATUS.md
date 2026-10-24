@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.2 PR #332 completed named forecast omission explanations, corrected three legacy JVM assertions, passed four immutable final-head gates at 2639844d931605e8e656e9834e75b3481903d158 and squash merged develop 091af3f31d149da89eae677b56568840a1b98709. Current W4.2 draft PR #333 aligns scheduled omission order (Web dueDate then createdAt) and exact Web transfer vs ordinary movement warnings. Read-only Kotlin golden source authored, no local Gradle execution or final-head CI acceptance yet. Forecast balance mathematics and canonical ledger unchanged; wider W2–W5 acceptance remains incomplete. Physical owner S24 Ultra #149 pending; no SMS, permanent card-delete UI, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W4.2 #332 and #333 omission explanations, scheduled warning ordering and transfers passed all four exact-head Project Tracking, Android CI, screenshot and hosted S24 gates and squash merged develop at 091af3f31d149da89eae677b56568840a1b98709 and ce2252bd129ddb78d795a2b658a582ca5686356e. Current W4.1 draft PR #334 preserves original imported recurring amountMode and estimate range fields rather than silently relabeling invalid legacy estimates as fixed, with strict Web recurringVariable.ts read-only validation and JVM golden test source authored. Local Gradle not run; final-head CI pending. Existing finance balances, payment ledger and offline mutations untouched; broader W2–W5 parity and physical owner S24 Ultra #149 remain outstanding. No SMS, permanent card-delete UI, signed release or main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.2 PR #333 scheduled warnings chronological Web parity and source immutability using four immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, merging only if all succeed. Then continue broader W2–W5 acceptance. No signed release, main promotion, SMS, irreversible card deletion or live finance writes.
+1. Verify W4.1 draft PR #334 recurring imported variable/fixed amount semantics, malformed historical mode and range goldens, generated tracking and all four exact-head Project Tracking/Android CI/screenshot/S24 emulator checks. Merge only with 4/4 success, then continue remaining W2–W5 feature acceptance. No real finance writes, SMS, backend/schema work, main promotion or signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #333, branch android/w4-scheduled-forecast-warning-order-20261024
-Current W4.2: W4.2 PR #332 final head 2639844d931605e8e656e9834e75b3481903d158 passed four required CI gates and squash merged develop 091af3f31d149da89eae677b56568840a1b98709; Web-style forecast missing-source labels now integrated. Draft W4.2 PR #333 source and Kotlin golden test match Web pendingScheduled dueDate/createdAt order, scheduled-transfer warning and ordinary-account warning; final-head CI not accepted yet. Canonical Web parity 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 still pending.
+Issue #155, PR #334, branch android/w4-recurring-variable-import-validation-20261024
+Current W4.1: W4.2 #332 merged develop 091af3f31d149da89eae677b56568840a1b98709 and #333 merged develop ce2252bd129ddb78d795a2b658a582ca5686356e, both exact-head CI gates 4/4 green. Current draft #334 W4.1 retains imported recurring variable amountMode/range data losslessly, adds Web-aligned fixed/variable estimate validity and confidence projection with JVM golden source; no local Gradle test execution, four immutable final-head checks still required. Official Web parity 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check four immutable final-head gates for draft W4.2 PR #333, including JVM ordering/golden assertions; merge only when all four pass. Continue first unfinished larger W2–W5 parity scopes without Web/backend/schema work, real finance data writes, SMS, destructive card UI, signed release or main promotion.
+Next Validate W4.1 draft PR #334 strict Web recurring estimated/fixed amounts and imported record preservation against all four same-head hosted gates; merge only when successful. Continue broader remaining W2–W5 feature work, without SMS #146, irreversible card-delete UI, backend/schema, live finance data, main release/signing or pretending hosted S24 is physical acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
