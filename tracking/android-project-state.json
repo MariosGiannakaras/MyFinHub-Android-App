@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. Android-only W2.4/W3.1 PR #323 passed all four immutable-head gates and squash merged into develop 6e12c350288de6f89d3c5c7063ad2b73b426a8ac. New W4.3/W5.3 source checkpoint includes category/subcategory budget identity aliases across historical renamed labels, carryover and projected commitments; auth password Unicode number policy now matches Web. Tests authored, not yet accepted or merged. W2–W5 wider completion, full provider assets and physical Galaxy S24 Ultra owner #149 acceptance remain open. No permanent card delete UI, SMS import or signed release.",
+    "summary": "Web parity 1/6 implementations · 11/24 subtasks. PR #323 (card vault/mixed credit) and PR #324 (renamed budget identities, forecast recurring commitments, Unicode password policy) passed 4/4 exact-head CI gates and squash merged into develop, latest 216633eb42ea9d11b3c3a8b3877c7d4c26e7ee77. New Android-only W4.4 reporting correction restores Web reports.ts single-refund semantics: canonical and reviewed-legacy refunds no longer double-subtract from subcategory totals, ranking and month-over-month momentum. Unit golden regressions authored, not yet CI verified or merged. Wider W2–W5 parity, full provider assets and owner physical S24 #149 signoff remain open. No permanent card delete UI, SMS import, production writes or signed release.",
     "next": [
-      "Validate W4.3 identity-aware budget spending/carryover/commitments and W5.3 Unicode account-password policy on android/w4-w5-budget-identity-security-parity-20261024; require 4/4 exact-head checks on PR #324 before merge. Continue remaining W2–W5 app/domain work independently of CI waiting beyond eight minutes. No shared Web/backend/schema edits, permanent card deletion UI, SMS, real finance writes or release."
+      "Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w4-w5-budget-identity-security-parity-20261024",
-    "checkpoint": "Merged PR #323 into develop 6e12c350 after four exact-head gates. New PR #324 W4.3 budget alias-aware historical/carryover/projected usage and W5.3 JS Unicode category password policy fixes are authored on separate branch; fresh CI not yet accepted. Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 Ultra #149 pending.",
+    "branch": "android/w4-report-refund-parity-20261024",
+    "checkpoint": "PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -999,7 +999,8 @@
               "W4.4 #308 final head b2fcd37a2c8298337e120dc19d0c05465f5d9eed four gates success, merged develop 3572d795d61a8cd10b1c199638be503f66f1e712; #309 historical editor read/edit parity pending.",
               "W4.4 #309 complete historical import override editor merged develop b6e91a5113c07a08b90c3e0c3e1329c60e162dbe after 4/4 green immutable-head checks.",
               "Draft #310 Web note-first Activity real source row identity in list/detail/edit with category/comment separate and legacy delete tombstone explanation; source-fixture JVM/JSON tests pending CI.",
-              "W4.4 #310 real imported and canonical note-first Activity row/detail/editor identity and historical seed-preserving tombstone copy; final head d64a0cdc34114dd9ff3eaf210a93fa62d79309df 4/4 gates green, merged develop 56dbfd3fd7e58abf722fd0187a628c679921eb7e."
+              "W4.4 #310 real imported and canonical note-first Activity row/detail/editor identity and historical seed-preserving tombstone copy; final head d64a0cdc34114dd9ff3eaf210a93fa62d79309df 4/4 gates green, merged develop 56dbfd3fd7e58abf722fd0187a628c679921eb7e.",
+              "PR #325 source authored/unmerged: Web reports.ts refund impact selects refund only, but Android category momentum previously subtracted both already-negative expense and refund. Corrected single-refund behavior for canonical and reviewed legacy transactions; Web golden expectation now 150€ rather than 120€, with reviewed and split refund tests. W4.4 wider scope still in_progress."
             ]
           }
         ]
@@ -1122,10 +1123,10 @@
         ]
       }
     ],
-    "next_action": "Validate authored W4.3 and W5.3 parity unit tests and 4/4 latest immutable-head gates for PR #324; merge only if all pass. Resume W2–W5 concrete source gaps with new independent batches; keep full provider SVG visual proof and owner physical S24 acceptance separate.",
+    "next_action": "Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 324,
-    "current_subtask": "W4.3",
+    "pr": 325,
+    "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

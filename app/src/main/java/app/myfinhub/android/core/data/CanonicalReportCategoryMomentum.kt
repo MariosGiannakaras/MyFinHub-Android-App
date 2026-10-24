@@ -35,8 +35,13 @@ fun CanonicalFinanceDocument.canonicalReportSubcategoryTotals(
     effectiveLegacyTransactions().forEach { tx ->
         if (!inMonth(tx.date)) return@forEach
         val impact=legacyFlowImpact(tx)
-        if (impact.expense != 0.0) add(tx.category,tx.subcategory,impact.expense)
-        if (impact.refund != 0.0) add(tx.category,tx.subcategory,-impact.refund)
+        // Web reports.ts uses refund *instead of* its already-negative expense
+        // impact. Adding both counts a returned purchase twice.
+        if (impact.refund != 0.0) {
+            add(tx.category,tx.subcategory,-impact.refund)
+        } else if (impact.expense != 0.0) {
+            add(tx.category,tx.subcategory,impact.expense)
+        }
     }
     canonicalEvents().forEach { event ->
         if (!inMonth(event.date)) return@forEach
@@ -49,10 +54,11 @@ fun CanonicalFinanceDocument.canonicalReportSubcategoryTotals(
             }
         } else {
             val impact=eventFlowImpact(event)
-            if (impact.expense != 0.0)
-                add(event.category,event.subcategory,impact.expense)
-            if (impact.refund != 0.0)
+            if (impact.refund != 0.0) {
                 add(event.category,event.subcategory,-impact.refund)
+            } else if (impact.expense != 0.0) {
+                add(event.category,event.subcategory,impact.expense)
+            }
         }
     }
     // Kotlin's stable sort keeps the Web's insertion order for equal totals.
