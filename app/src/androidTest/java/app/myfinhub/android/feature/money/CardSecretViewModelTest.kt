@@ -324,7 +324,7 @@ class CardSecretViewModelTest {
         val vm = CardSecretViewModel(application, api, cvv, details)
         vm.attachSession(session)
         vm.purgeCard("card-1")
-        waitUntil { api.committedSecretDeleteCalls == 1 }
+        waitUntil { details.deleteStarted }
         // The first local delete has begun by now; changing assurance must
         // invalidate any subsequent deletion even if that suspension resumes.
         vm.attachSession(session.copy(assuranceLevel = AssuranceLevel.AAL1))
@@ -387,6 +387,8 @@ private class FakeCardDetailsVault(
 ) : CardDetailsVault {
     var loadDelayMillis: Long = 0
     var deleteDelayMillis: Long = 0
+    var deleteStarted = false
+        private set
     private var storedPan: CharArray? = initialPan?.copyOf()
     private var storedExpiry: CharArray? = initialExpiry?.copyOf()
     var savedPan: CharArray? = null
@@ -418,6 +420,7 @@ private class FakeCardDetailsVault(
     }
 
     override suspend fun delete(cardId: String) {
+        deleteStarted = true
         if (deleteDelayMillis > 0) delay(deleteDelayMillis)
         deletedCardId = cardId
         storedPan?.fill('\u0000')
