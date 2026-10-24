@@ -334,6 +334,11 @@ class CardSecretViewModelTest {
         val state = vm.cleanupState.value as CardSecretCleanupUiState.Failure
         assertTrue(state.serverCleanupPending)
         assertTrue(state.localCleanupPending)
+        val requestsBeforeReauth = api.committedSecretDeleteCalls
+        vm.retryPurgeCard("card-1")
+        delay(30)
+        assertEquals(requestsBeforeReauth, api.committedSecretDeleteCalls)
+        assertNull(cvv.deletedCardId)
         vm.attachSession(session)
         details.deleteDelayMillis = 0
         vm.retryPurgeCard("card-1")

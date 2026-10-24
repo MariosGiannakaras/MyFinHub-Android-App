@@ -240,6 +240,9 @@ class CardSecretViewModel internal constructor(
         val normalized = cardId.trim()
         val request = pendingCleanup?.takeIf { it.cardId == normalized } ?: return
         if (mutableCleanupState.value is CardSecretCleanupUiState.Cleaning) return
+        // A server-confirmed cleanup cannot be retried under a downgraded
+        // session; the pending record remains available after reauthentication.
+        if (currentSession?.assuranceLevel != AssuranceLevel.AAL2) return
         cleanupGeneration += 1
         launchCleanup(request, cleanupGeneration)
     }
@@ -251,7 +254,7 @@ class CardSecretViewModel internal constructor(
             var serverFailure: ApiResult.Failure? = null
             if (request.serverCleanupPending) {
                 val session = currentSession
-                if (session == null) {
+                if (session == null || session.assuranceLevel != AssuranceLevel.AAL2) {
                     serverFailure = ApiResult.Failure(ApiFailureKind.AUTH_REQUIRED)
                 } else {
                     when (val result = safeApiCall { api.deleteCommittedCardSecrets(session, request.cardId) }) {
