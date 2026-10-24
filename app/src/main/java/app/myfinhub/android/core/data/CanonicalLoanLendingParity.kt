@@ -102,9 +102,10 @@ fun CanonicalFinanceDocument.canonicalLendingPersonRows(asOf: String? = null): L
         val person=legacy.string("person").orEmpty().trim()
         if (person.isBlank()) return@forEach
         val current=rows[person] ?: CanonicalLendingPersonRow(person,0.0,0)
+        val snapshot=canonicalLegacyLendingSnapshot(legacy, asOf)
         rows[person]=current.copy(
-            outstanding=current.outstanding+(legacy.number("outstanding") ?: 0.0),
-            events=current.events+legacy.array("entries").size,
+            outstanding=current.outstanding+snapshot.outstanding,
+            events=current.events+snapshot.events,
         )
     }
     state.array("events").mapNotNull { it as? JsonObject }.forEach { event ->
