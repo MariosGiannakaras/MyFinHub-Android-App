@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify PR #330 W4.3 historical savings-goal read projections after source reconciliation with #329 develop. Require 4/4 exact final-head Project Tracking, Android CI, screenshot regression and S24 hosted checks before merge. Then continue W2–W5 Android product code; physical S24 owner acceptance and release remain separate.
+- [ ] Check W2.4 PR #331 fail-closed secure card cleanup across same-owner token rotation and AAL downgrade, now reconciled with merged W4.3 #330 develop. Require four immutable final head gates before squash merge. Continue other W2–W5 feature parity independently. No signed release, live finance writes or physical owner S24 approval.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #330, branch android/w4-savings-goal-historic-target-parity-20261024
-Current W4.3: PR #329 W4.1 recurring subcategory full native lifecycle passed four final-head CI checks and squash merged develop 624dc326. PR #330 W4.3 preserves legacy savings goals with invalid/nonpositive or missing target amounts, shows progress 0 without inventing allocations, preserves malformed targetDate text, and retains immutable source. Kotlin regression authored; reconciled onto verified develop, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #331, branch android/w2-vault-cleanup-session-rotation-20261024
+Current W2.4: PR #330 W4.3 legacy savings goals retained and passed four final-head CI checks, squash merged develop e9b8d073. PR #331 W2.4 secure-card cleanup now stops after owner-same bearer/AAL2 change and does not continue deleting encrypted PAN/CVV stores based on stale server response; explicit fresh server confirmation and AAL2 retry required. Two hosted instrumented race regression tests authored, reconciled with latest develop but final-head CI pending. Official count 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check all four immutable final-head gates for PR #330, merge only when successful. Continue other W2–W5 native Android feature parity; no local build execution claim, production finance writes, signed release/main promotion or owner physical S24 approval.
+Next Verify 4/4 immutable final-head gates for W2.4 PR #331 with secure deletion session-change regressions; merge only when all successful. Continue other W2–W5 source functionality with no irreversible card-delete UI, SMS, Web/backend/schema mutation, signed release, main promotion or physical owner S24 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
