@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Review W4.4 reports.ts refund semantics on android/w4-report-refund-parity-20261024; validate corrected golden 150€ rather than 120€ and reviewed historical refund example via the 4 required exact-head PR #325 gates. Merge if green; assistant CI observation budget eight minutes. Continue remaining W2–W5 source functionality and W6 physical device acceptance separately.
+- [ ] Validate W3.1 physical-event statement cycle and duplicate-ID golden regression in PR #326 on android/w3-statement-physical-event-identity-20261024. Require 4/4 identical final head gates before merging. Continue other Android-only W2–W5 feature implementation; stop assistant CI polling at eight minutes while workflows continue. No unsafe finance writes or physical S24 acceptance inferred.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #325, branch android/w4-report-refund-parity-20261024
-Current W4.4: PR #324 4/4 exact-head passed and squash merged develop 216633eb. New W4.4 subcategory report regression corrects Web refund projection (exclusive refund else-if expense rather than subtract refund twice), changing 120€ to 150€ and adding reviewed legacy + canonical + split refund fixture. Source authored on independent branch; not yet CI validated or merged. Evidence-based parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #326, branch android/w3-statement-physical-event-identity-20261024
+Current W3.1: PR #325 W4.4 corrected single-refund report logic and passed all 4 exact-head gates; squash merged develop 1abe6939. PR #326 W3.1 source now associates each canonical event with its physical JSON row, preserving historical duplicate event IDs independently across statements and correct createdAt order. A golden covers two cycles, duplicate purchase/payment IDs and repeated same-cycle IDs. Authored and source-reviewed but no new CI acceptance/merge yet. Web parity 1/6 implementations · 11/24 subtasks; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.4 refund/momentum parity and 4/4 exact-head gates for PR #325; merge only if green. Continue other outstanding W2–W5 concrete Android code without extended CI polling. No owner S24 acceptance or production release implied.
+Next Check PR #326 physical-row statement cycle fixtures and four immutable exact-head gates; merge only when all successful, then proceed with other open W2–W5 Android source parity. Keep owner physical S24 and release separate; no local test-execution claim.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
