@@ -6,7 +6,6 @@ import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Web forecast.ts sourceCounts and omitted[] never diverge in production UI. */
@@ -55,8 +54,11 @@ class WebForecastTransparencyProjectionParityTest {
         assertEquals(0,first.sourceCounts["loan"])
         assertEquals(0,first.sourceCounts["dated_event"])
         assertEquals(2,first.omittedSourceCount)
-        assertTrue(first.omittedWarnings.any { it.contains("missing") })
-        assertTrue(first.omittedWarnings.any { it.contains("invalid") })
+        // Web-style diagnostics identify named records without exposing source IDs.
+        assertEquals(listOf(
+            "Η προγραμματισμένη κίνηση «Unknown payer» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος.",
+            "Το πάγιο «Old subscription» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος.",
+        ), first.omittedWarnings)
         assertEquals(raw,document.raw)
     }
 }
