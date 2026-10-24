@@ -60,9 +60,11 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         rows += CanonicalForecastMovement(id, date, source, label, legs,
             legs.filter { it.accountId in ids }.sumOf(CanonicalLedgerLeg::amount))
     }
+    // Match Web forecast omitted reasons: explain the affected named record,
+    // never expose opaque canonical IDs as user-facing forecast diagnostics.
     canonicalScheduled().filter { it.status == "pending" }.forEach { scheduled ->
         val due = forecastDate(scheduled.dueDate) ?: run {
-            omitted += "Άγνωστη ημερομηνία προγραμματισμένης κίνησης: ${scheduled.id}"
+            omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή η ημερομηνία της δεν είναι έγκυρη."
             return@forEach
         }
         if (due.isAfter(end)) return@forEach
@@ -71,7 +73,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             val from = scheduled.fromAccountId
             val to = scheduled.toAccountId
             if (from !in ids || to !in ids || from == to) {
-                omitted += "Άκυρη προγραμματισμένη μεταφορά: ${scheduled.id}"
+                omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι."
                 return@forEach
             }
             add("forecast-scheduled-${scheduled.id}", date, "scheduled", scheduled.note,
@@ -79,7 +81,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         } else {
             val id = scheduled.accountId
             if (id !in ids) {
-                omitted += "Μη διαθέσιμος λογαριασμός κίνησης: ${scheduled.id}"
+                omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος."
                 return@forEach
             }
             add("forecast-scheduled-${scheduled.id}", date, "scheduled", scheduled.note,
@@ -88,12 +90,12 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     }
     activeCanonicalRecurringItems().forEach { item ->
         if (item.accountId !in ids) {
-            omitted += "Μη διαθέσιμος λογαριασμός παγίου: ${item.id}"
+            omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος."
             return@forEach
         }
         var next = nextCanonicalRecurringDate(item, asOf)
         if (next == null) {
-            omitted += "Άγνωστη ημερομηνία παγίου: ${item.id}"
+            omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή δεν υπάρχει αρκετή πληροφορία ημερομηνίας."
             return@forEach
         }
         var guard = 0
@@ -129,7 +131,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
                 .containsMatchIn(name + " " + loan.string("provider").orEmpty())
         if (self) {
-            omitted += "Εσωτερικό δάνειο χωρίς ουδέτερο λογαριασμό: $loanId"
+            omitted += "Το εσωτερικό δάνειο «$name» δεν προβλήθηκε επειδή δεν υπάρχει ρητός λογαριασμός προορισμού για ουδέτερη εσωτερική μεταφορά."
             return@forEachIndexed
         }
         // Web uses loan.defaultAccountId || settings.defaultLoanAccount, so an
@@ -137,7 +139,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         val accountId = loan.string("defaultAccountId")?.takeIf(String::isNotEmpty)
             ?: state.obj("settings").string("defaultLoanAccount")
         if (accountId !in ids) {
-            omitted += "Μη διαθέσιμος λογαριασμός δόσης: $loanId"
+            omitted += "Η δόση «$name» δεν προβλήθηκε επειδή ο λογαριασμός πληρωμής δεν είναι διαθέσιμος."
             return@forEachIndexed
         }
         val payments = state.array("events").mapNotNull { it as? JsonObject }.filter {
@@ -156,7 +158,7 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         val knownDates = payments.mapNotNull { forecastDate(it.string("date")) }
         val typical = balance.typicalPaymentDay
         if (typical == null) {
-            omitted += "Άγνωστη ημέρα δόσης: $loanId"
+            omitted += "Η δόση «$name» δεν προβλήθηκε επειδή δεν υπάρχει γνωστή ημέρα πληρωμής."
             return@forEachIndexed
         }
         val anchor = forecastDate(loan.string("firstExpectedDate"))

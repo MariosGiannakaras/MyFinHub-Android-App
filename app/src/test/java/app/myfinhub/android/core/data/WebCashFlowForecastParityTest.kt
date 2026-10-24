@@ -4,6 +4,7 @@ import java.time.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -111,6 +112,41 @@ class WebCashFlowForecastParityTest {
         val dates = projection.movements.filter { it.source == "loan" }.map { it.date.toString() }
         assertEquals(listOf("2027-02-28", "2027-03-31", "2027-04-30"), dates)
         assertEquals(3, projection.sourceCounts["loan"])
+    }
+
+    @Test fun omittedForecastExplanationsIdentifyTheAffectedRecordsInsteadOfInternalIds() {
+        val scheduled = """
+          {"id":"opaque-s-1","note":"Ενοίκιο","dueDate":"2026-10-20",
+           "kind":"expense","amount":600,"accountId":"missing","status":"pending"},
+          {"id":"opaque-s-2","note":"Μεταφορά στόχου","dueDate":"2026-10-21",
+           "kind":"transfer","amount":40,"fromAccountId":"bank",
+           "toAccountId":"missing","status":"pending"}
+        """.trimIndent()
+        val recurring = """
+          {"id":"opaque-r-1","name":"Συνδρομή μουσικής","amount":20,
+           "day":20,"active":true,"accountId":"missing"},
+          {"id":"opaque-r-2","name":"Ετήσια υπηρεσία","amount":70,
+           "recurrenceUnit":"year","active":true,"accountId":"bank"}
+        """.trimIndent()
+        val loans = """
+          {"id":"opaque-l-1","name":"Δόση οχήματος","installment":100,
+           "total":600,"installments":6,"day":"20","defaultAccountId":"missing"},
+          {"id":"opaque-l-2","name":"Δόση σπουδών","installment":80,
+           "total":400,"installments":5,"defaultAccountId":"bank"}
+        """.trimIndent()
+        val projection = document(scheduled, recurring, loans, events = "")
+            .cashFlowForecast(today, 30)
+        assertEquals(listOf(
+            "Η προγραμματισμένη κίνηση «Ενοίκιο» δεν προβλήθηκε επειδή ο λογαριασμός της δεν είναι πλέον διαθέσιμος.",
+            "Η προγραμματισμένη κίνηση «Μεταφορά στόχου» δεν προβλήθηκε επειδή οι λογαριασμοί της δεν είναι πλέον έγκυροι.",
+            "Το πάγιο «Συνδρομή μουσικής» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος.",
+            "Το πάγιο «Ετήσια υπηρεσία» δεν προβλήθηκε επειδή δεν υπάρχει αρκετή πληροφορία ημερομηνίας.",
+            "Η δόση «Δόση οχήματος» δεν προβλήθηκε επειδή ο λογαριασμός πληρωμής δεν είναι διαθέσιμος.",
+            "Η δόση «Δόση σπουδών» δεν προβλήθηκε επειδή δεν υπάρχει γνωστή ημέρα πληρωμής.",
+        ), projection.omitted)
+        assertTrue(projection.insufficientData)
+        assertEquals(1000.0, projection.projectedPortfolio, 0.001)
+        assertFalse(projection.omitted.joinToString().contains("opaque-"))
     }
 
     @Test fun invalidHorizonRejectedInsteadOfClamped() {
