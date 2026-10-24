@@ -24,15 +24,21 @@ fun CanonicalFinanceDocument.canonicalSavingsGoals(asOf: LocalDate): List<Canoni
     return state.array("savingsGoals").mapNotNull { raw ->
         val goal = raw as? JsonObject ?: return@mapNotNull null
         val id = goal.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
-        val amount = goal.number("targetAmount")
-            ?.takeIf { it.isFinite() && it > 0.0 } ?: return@mapNotNull null
+        // Web savingsGoals.ts renders historical rows with invalid/nonpositive
+        // targetAmount and reports 0% progress, rather than silently deleting
+        // an imported goal from the non-posting projection.
+        val amount = goal.number("targetAmount") ?: 0.0
         val rawDate = goal.string("targetDate")
         val date = rawDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        val percent = (backing / amount * 100.0).coerceIn(0.0,100.0)
+        val percent = if (!amount.isFinite() || amount <= 0.0) 0.0
+            else (backing / amount * 100.0).coerceIn(0.0,100.0)
         CanonicalSavingsGoalRow(
             id = id,
             name = goal.string("name").orEmpty().ifBlank { "Στόχος αποταμίευσης" },
-            targetAmount = amount, targetDate = date?.toString(),
+            // Keep the original imported deadline visible even if its ISO
+            // value is malformed. Web renders the saved targetDate as supplied;
+            // only a *valid* date participates in deadlinePast comparisons.
+            targetAmount = amount, targetDate = rawDate,
             backingBalance = backing, progressPercent = percent,
             deadlinePast = date?.isBefore(asOf) == true,
         )

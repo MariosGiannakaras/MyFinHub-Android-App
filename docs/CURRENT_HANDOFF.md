@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #328 (exact historical receivables, imported legacy loan principal and noncash writeoff history) passed 4/4 exact-head checks and squash merged develop 897f4d2b37e404e1a3c2c14348101dd8201c2487. New W4.1 PR #329 preserves recurring subcategory end-to-end in Android native create/edit dialogs, canonical mutations, offline CAS replay, projection and linked real expenses, with JVM+Compose regression cases. Source reconciled onto latest develop; new immutable head requires fresh 4/4 CI validation. Broader W2–W5 parity, provider visuals and owner physical S24 #149 acceptance remain open. No permanent card delete UI, SMS, production finance writes or signed release.
+Web parity 1/6 implementations · 11/24 subtasks. W4.1 recurring subcategory end-to-end native create/edit, offline CAS replay and linked expense categorization passed four exact final-head gates and squash merged develop 624dc326b00e9d759a551a94dd392a7d7e5a8ee0 in PR #329. PR #328 historical lending, imported loan principal and writeoff history previously passed all four checks and merged. New W4.3 source PR #330 preserves historical imported savings goals with zero, negative, missing or null target amounts as visible goal rows with 0% progress, retaining malformed original target dates verbatim rather than silently omitting legacy records. Golden JVM regressions authored; exact-head CI still pending on reconciled branch. Wider W2–W5 features and owner physical S24 #149 acceptance remain outstanding. No signed release/main promotion, SMS or permanent card-delete UI.
 
 ## Immediate work
 
-- Validate W4.1 PR #329 recurring subcategory native create/edit, offline replay and linked payment categorization with all four checks on the reconciled immutable final head, then merge if green. Continue W2–W5 implementation independently; physical owner S24 remains a separate gate.
+- Verify PR #330 W4.3 historical savings-goal read projections after source reconciliation with #329 develop. Require 4/4 exact final-head Project Tracking, Android CI, screenshot regression and S24 hosted checks before merge. Then continue W2–W5 Android product code; physical S24 owner acceptance and release remain separate.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #328 (exact historical
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
-Current W4.1: PR #328 W4.3 historically correct receivables and imported loan principal passed four CI gates and merged develop 897f4d2b. W4.1 PR #329 now adds recurring subcategory across native UI, underlying create/edit, guarded pending offline intent replay, management projections and actual linked-payment event; regression tests authored and source reconciled onto latest develop, CI pending. Web parity remains 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 #149 outstanding.
+Issue #155, PR #330, branch android/w4-savings-goal-historic-target-parity-20261024
+Current W4.3: PR #329 W4.1 recurring subcategory full native lifecycle passed four final-head CI checks and squash merged develop 624dc326. PR #330 W4.3 preserves legacy savings goals with invalid/nonpositive or missing target amounts, shows progress 0 without inventing allocations, preserves malformed targetDate text, and retains immutable source. Kotlin regression authored; reconciled onto verified develop, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify 4/4 Project Tracking, Android CI, screenshot and S24 hosted emulator exact-head checks for PR #329. Merge if green and proceed with W2–W5 source functionality; do not claim physical owner acceptance or production release.
+Next Check all four immutable final-head gates for PR #330, merge only when successful. Continue other W2–W5 native Android feature parity; no local build execution claim, production finance writes, signed release/main promotion or owner physical S24 approval.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
