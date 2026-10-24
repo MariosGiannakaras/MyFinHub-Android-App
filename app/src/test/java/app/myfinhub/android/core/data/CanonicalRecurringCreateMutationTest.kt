@@ -86,4 +86,23 @@ class CanonicalRecurringCreateMutationTest {
         assertEquals("fixed",fixed.allCanonicalRecurringItems().last().amountMode)
         assertEquals(null,fixed.allCanonicalRecurringItems().last().firstExpectedDate)
     }
+    @Test fun optionalSubcategorySurvivesCreateAndOfflineReplayWithoutPostingExpense() {
+        val request = candidate().draft.copy(
+            category = "Σπίτι", subcategory = "Λογαριασμοί",
+        )
+        val mutation = candidate(request)
+        val created = mutation.apply(before)
+        val recurring = created.allCanonicalRecurringItems().last()
+        assertEquals("Σπίτι", recurring.category)
+        assertEquals("Λογαριασμοί", recurring.subcategory)
+        assertEquals("Λογαριασμοί", (created.state.array("recurringCustom").single() as JsonObject)
+            .string("subcategory"))
+        assertEquals(0, created.state.array("events").size)
+        val queue = PendingCanonicalMutationIntent.fromMutation(mutation, "offline-subcategory")
+        assertEquals("Λογαριασμοί",
+            (queue.payload.obj("recurring")).string("subcategory"))
+        assertEquals(created.raw, queue.asMutation().apply(before).raw)
+        assertTrue(queue.isSatisfiedBy(created))
+    }
+
 }

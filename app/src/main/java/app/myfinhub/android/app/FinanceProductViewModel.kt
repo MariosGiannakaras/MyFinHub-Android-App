@@ -899,6 +899,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             draft = CanonicalRecurringCreateDraft(
                 name = request.name, amount = request.amount,
                 accountId = request.accountId, category = request.category,
+                subcategory = request.subcategory,
                 amountMode = request.amountMode,
                 estimateMin = request.estimateMin, estimateMax = request.estimateMax,
                 recurrenceUnit = request.recurrenceUnit,
@@ -922,6 +923,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             draft = CanonicalRecurringCreateDraft(
                 name = request.name, amount = request.amount,
                 accountId = request.accountId, category = request.category,
+                subcategory = request.subcategory,
                 amountMode = request.amountMode,
                 estimateMin = request.estimateMin, estimateMax = request.estimateMax,
                 recurrenceUnit = request.recurrenceUnit,

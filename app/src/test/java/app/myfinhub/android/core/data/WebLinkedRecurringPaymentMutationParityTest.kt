@@ -19,7 +19,7 @@ class WebLinkedRecurringPaymentMutationParityTest {
         "transactions":[],
         "recurring":[
           {"id":"rent","name":"Ενοίκιο","amount":100,"day":20,
-           "accountId":"salary","category":"Σπίτι","active":true},
+           "accountId":"salary","category":"Σπίτι","subcategory":"Ενοίκια","active":true},
           {"id":"paused","name":"Παλιό","amount":10,"day":16,
            "accountId":"salary","category":"Άλλο","active":true}
         ]
@@ -29,7 +29,7 @@ class WebLinkedRecurringPaymentMutationParityTest {
           "category":"Άλλο","active":false,"status":"paused"}},
         "recurringCustom":[
           {"id":"custom","name":"Cloud","amount":30,"day":18,
-           "accountId":"salary","category":"Ψηφιακά","active":true}
+           "accountId":"salary","category":"Ψηφιακά","subcategory":"Cloud","active":true}
         ],"events":[],"settings":{}
       }}
     """.trimIndent()).jsonObject)
@@ -45,6 +45,7 @@ class WebLinkedRecurringPaymentMutationParityTest {
         assertEquals("expense",event.kind)
         assertEquals(100.0,event.amount,0.001)
         assertEquals("Σπίτι",event.category)
+        assertEquals("Ενοίκια",event.subcategory)
         assertEquals("rent",(paid.state.array("events").single() as JsonObject).string("recurringId"))
         assertEquals(400.0,paid.accountBalances("2026-10-17")["salary"]!!,0.001)
         assertEquals(100.0,paid.monthlyFlow("2026-10","2026-10-17").expense,0.001)
@@ -58,6 +59,7 @@ class WebLinkedRecurringPaymentMutationParityTest {
         val custom=createCanonicalRecurringPaymentMutation(doc,"custom","2026-10-17",
             "salary","custom-charge",now,amount=32.0).apply(doc)
         assertEquals(32.0,custom.canonicalEvents().single().amount,0.001)
+        assertEquals("Cloud",custom.canonicalEvents().single().subcategory)
         assertEquals("custom",(custom.state.array("events").single() as JsonObject)
             .string("recurringId"))
         val override=createCanonicalRecurringPaymentMutation(doc,"paused","2026-10-17",

@@ -26,6 +26,7 @@ fun createCanonicalRecurringPaymentMutation(
         amount = amount ?: item.amount,
         note = note?.trim()?.takeIf(String::isNotBlank) ?: "Πληρωμή: ${item.name}",
         category = item.category,
+        subcategory = item.subcategory,
         accountId = accountId,
         recurringId = recurringId,
     )

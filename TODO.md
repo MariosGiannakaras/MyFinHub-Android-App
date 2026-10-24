@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
+- [ ] Validate W4.1 PR #329 recurring subcategory native create/edit, offline replay and linked payment categorization with all four checks on the reconciled immutable final head, then merge if green. Continue W2–W5 implementation independently; physical owner S24 remains a separate gate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
-Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
+Issue #155, PR #329, branch android/w4-recurring-subcategory-create-edit-offline-20261024
+Current W4.1: PR #328 W4.3 historically correct receivables and imported loan principal passed four CI gates and merged develop 897f4d2b. W4.1 PR #329 now adds recurring subcategory across native UI, underlying create/edit, guarded pending offline intent replay, management projections and actual linked-payment event; regression tests authored and source reconciled onto latest develop, CI pending. Web parity remains 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 #149 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
+Next Verify 4/4 Project Tracking, Android CI, screenshot and S24 hosted emulator exact-head checks for PR #329. Merge if green and proceed with W2–W5 source functionality; do not claim physical owner acceptance or production release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

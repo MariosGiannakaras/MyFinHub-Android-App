@@ -20,6 +20,8 @@ data class CanonicalRecurringCreateDraft(
     val day: Int? = null,
     val firstExpectedDate: String? = null,
     val endDate: String? = null,
+    /** Web recurring editor category-path leaf; optional for historical/uncategorized rows. */
+    val subcategory: String? = null,
 )
 
 /** Stable IDs and full draft survive offline queue serialization and server revision replay. */
@@ -84,6 +86,9 @@ data class CreateCanonicalRecurring(
             }
             put("accountId", JsonPrimitive(draft.accountId))
             put("category", JsonPrimitive(draft.category.trim()))
+            draft.subcategory?.trim()?.takeIf(String::isNotEmpty)?.let {
+                put("subcategory", JsonPrimitive(it))
+            }
             put("active", JsonPrimitive(true))
             put("status", JsonPrimitive("active"))
             put("recurrenceUnit", JsonPrimitive(draft.recurrenceUnit))
