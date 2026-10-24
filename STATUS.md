@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. PR #326 W3.1 physical duplicate credit statement events passed 4/4 exact-head CI gates and squash merged develop c9b48180f787f63cf7215dbcaf965a1aed75aba8. PR #325 single-refund report semantics and #324 renamed budget identities likewise merged. New W4.3 source retains each recurring item's own subcategory and projects both distinct legacy seeded/custom fixed obligations even with repeated historical IDs, matching Web budgets.ts. W4.3 goldens authored, unmerged and not yet CI accepted. Remaining W2–W5 functionality, native provider SVG catalog parity and physical Galaxy S24 Ultra #149 acceptance remain outstanding. No release/main promotion, SMS or permanent card-delete UI.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 PR #327 recurring duplicate-ID physical-row subcategory budget attribution passed four exact final-head checks and squash merged develop 3f7a5abae697c169846edeac937db07b65c132c2. Earlier #325 refund reports and #326 duplicate imported credit statement events likewise merged. New W4.3 source PR #328 conservatively reconstructs Web historical lending as-of balances from complete cent-exact seed histories and respects explicit imported legacyPaidAmount for loan obligations, including zero, rather than assuming nominal installments. Golden JVM tests authored but not yet CI accepted or merged. W2–W5 broader parity, visual assets and physical S24 owner #149 acceptance still open. No signed release, main promotion, SMS or permanent card-delete UI.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify PR #327 W4.3 physical recurring duplicate-ID/subcategory budget commitments against Web and 4/4 identical-final-head checks after rebasing onto merged #326 develop. Merge only if all gates green. Continue other W2–W5 source code independently, with <=8 minute CI observation budget and physical S24 signoff separately.
+1. Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #327, branch android/w4-recurring-duplicate-commitment-parity-20261024
-Current W4.3: PR #326 W3.1 duplicate physical event statement attribution passed all four CI gates and was squash merged into develop c9b48180. W4.3 PR #327 retains recurring subcategory per physical record and preserves independent seeded/custom future commitments sharing imported duplicate IDs, without permitting ambiguous duplicate-ID edits. A future-month golden verifies separate subcategory budgets and amounts. Source authored, unmerged and CI latest head pending. 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.
+Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
+Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check exact final head of rebased PR #327 for all four checks (Android CI, Project Tracking, screenshots, hosted S24 emulator) before merge. Keep duplicate-id mutation guards fail-closed, no local build claims, no release/main promotion or physical device approval.
+Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

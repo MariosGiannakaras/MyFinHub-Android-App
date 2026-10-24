@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify PR #327 W4.3 physical recurring duplicate-ID/subcategory budget commitments against Web and 4/4 identical-final-head checks after rebasing onto merged #326 develop. Merge only if all gates green. Continue other W2–W5 source code independently, with <=8 minute CI observation budget and physical S24 signoff separately.
+- [ ] Validate W4.3 PR #328 legacy lending historical snapshot reconstruction and imported loan principal baseline parity on develop; check each of four required exact-head gates, merge if green. Continue remaining W2–W5 functionality and W6 owner acceptance independently; no CI polling beyond eight minutes or release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #327, branch android/w4-recurring-duplicate-commitment-parity-20261024
-Current W4.3: PR #326 W3.1 duplicate physical event statement attribution passed all four CI gates and was squash merged into develop c9b48180. W4.3 PR #327 retains recurring subcategory per physical record and preserves independent seeded/custom future commitments sharing imported duplicate IDs, without permitting ambiguous duplicate-ID edits. A future-month golden verifies separate subcategory budgets and amounts. Source authored, unmerged and CI latest head pending. 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.
+Issue #155, PR #328, branch android/w4-legacy-lending-asof-reconstruction-20261024
+Current W4.3: PR #327 W4.3 physical duplicate-ID recurring liabilities passed four exact-head gates and merged develop 3f7a5aba; PR #328 W4.3 now unstacked to develop, with Web lending.ts exact historical-as-of seed receivables and Web loans.ts legacyPaidAmount with JS cent rounding. Five implementation/test Kotlin files authored; source-only until final-head CI. Web parity 1/6 implementations · 11/24 subtasks and physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check exact final head of rebased PR #327 for all four checks (Android CI, Project Tracking, screenshots, hosted S24 emulator) before merge. Keep duplicate-id mutation guards fail-closed, no local build claims, no release/main promotion or physical device approval.
+Next Check 4/4 final immutable head Android CI, Project Tracking, screenshot and hosted S24 gates for PR #328 after source-only lending reconstruction and imported historical loan principal corrections; merge only if green. Proceed with remaining W2–W5 code; no signed release or S24 owner physical acceptance inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
