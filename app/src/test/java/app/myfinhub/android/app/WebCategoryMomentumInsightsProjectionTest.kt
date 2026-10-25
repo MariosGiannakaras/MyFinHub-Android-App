@@ -13,6 +13,30 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WebCategoryMomentumInsightsProjectionTest {
+    @Test fun monthlyInsightsIncludeAllTwelveWebReportCategoriesNotDefaultTen() {
+        // Web ReportsPage requests categoryMomentum(..., 100, asOf).
+        // Verify it does not silently use the selector's default limit=10.
+        val events = (1..12).joinToString(",") { index ->
+            """{"id":"expense-$index","kind":"expense","date":"2026-10-12",
+                "amount":$index,"category":"Category-$index"}"""
+        }
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """{"seed":{"transactions":[]},"state":{"settings":{},"events":[$events]}}"""
+        ).jsonObject)
+        val original = doc.raw
+        val date = LocalDate.parse("2026-10-19")
+        val expected = doc.canonicalReportCategoryMomentum("2026-10", limit=100,
+            asOf=date.toString())
+        assertEquals(12, expected.size)
+        val actual = projectCanonicalInsightsState(doc, date)
+            .periodScope(INSIGHTS_PERIOD_MONTH).categoryMomentum
+        assertEquals(12, actual.size)
+        assertEquals(expected.map { it.name }, actual.map { it.name })
+        assertEquals(expected.map { it.value }, actual.map { it.currentAmount })
+        assertEquals(78.0, actual.sumOf { it.currentAmount }, 0.00001)
+        assertEquals(original, doc.raw)
+    }
+
     @Test fun canonicalWebMonthlyCategoryMomentumDoesNotLeakToSlidingRanges() {
         val doc=CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"transactions":[]},"state":{"settings":{},"events":[

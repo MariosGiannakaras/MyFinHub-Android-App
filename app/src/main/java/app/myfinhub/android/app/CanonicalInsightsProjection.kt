@@ -298,8 +298,11 @@ private fun buildInsightsScope(
             )
         } else null,
         categoryMomentum = if ((id == INSIGHTS_PERIOD_MONTH || id.startsWith("report:")))
+            // Web ReportsPage requests categoryMomentum(data, month, 100, asOf).
+            // The selector's default of 10 truncates monthly Insights and hides
+            // valid categories on higher-diversity account histories.
             document.canonicalReportCategoryMomentum(
-                month = YearMonth.from(end).toString(), asOf = end.toString(),
+                month = YearMonth.from(end).toString(), limit = 100, asOf = end.toString(),
             ).map { row ->
                 InsightCategoryMomentum(row.name, row.value, row.previous, row.change)
             }
