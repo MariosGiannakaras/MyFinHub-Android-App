@@ -61,6 +61,27 @@ class WebReportPrimaryAccountSeriesParityTest {
         assertEquals(original,doc.raw)
     }
 
+    @Test fun reportAccountIdsPreserveEmptyAndWhitespaceHistoricalKeysLikeWeb() {
+        // Web primaryAccountSeries: for(const id of ids) row[id]=balances[id]||0.
+        // Object properties for "" and " " exist even if balances are absent.
+        // Native callers usually select known account IDs, but imported and
+        // direct-selector histories must preserve the exact read-only contract.
+        val original=doc.raw
+        val rows=doc.canonicalReportPrimaryAccountSeries(
+            month="2026-10",
+            accountIds=listOf("pay"," ","","pay"),
+            count=1,
+            asOf="2026-10-19",
+        )
+        val row=rows.single()
+        assertEquals("2026-10",row.monthIso)
+        assertEquals(listOf("pay"," ",""),row.balances.keys.toList())
+        assertEquals(1100.0,row.balances.getValue("pay"),0.001)
+        assertEquals(0.0,row.balances.getValue(" "),0.001)
+        assertEquals(0.0,row.balances.getValue(""),0.001)
+        assertEquals(original,doc.raw)
+    }
+
     @Test fun decToJanBoundaryAndUnknownAccountRemainStable() {
         val points=doc.canonicalReportPrimaryAccountSeries(
             "2026-02",listOf("pay","removed"),count=3,asOf="2026-02-12")
