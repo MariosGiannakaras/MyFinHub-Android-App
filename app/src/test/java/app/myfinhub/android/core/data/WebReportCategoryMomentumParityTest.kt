@@ -68,6 +68,16 @@ class WebReportCategoryMomentumParityTest {
                 .map { it.name })
         assertTrue(doc.canonicalReportCategoryMomentum("2026-10",limit=0).isEmpty())
     }
+    @Test fun negativeMomentumLimitSlicesFromEndExactlyLikeWeb() {
+        val original=doc.raw
+        val minusOne=doc.canonicalReportCategoryMomentum("2026-10",limit=-1,asOf="2026-10-19")
+        assertEquals(listOf("Τρόφιμα › Σούπερ","Υγεία","Μεταφορές › Καύσιμα"),
+            minusOne.map { it.name })
+        assertEquals(2,doc.canonicalReportCategoryMomentum("2026-10",limit=-2,asOf="2026-10-19").size)
+        assertTrue(doc.canonicalReportCategoryMomentum("2026-10",limit=-10,asOf="2026-10-19").isEmpty())
+        assertEquals(original,doc.raw)
+    }
+
     @Test fun historicalReviewedRefundAndExplicitRefundReduceTotalsOnlyOnce() {
         val historical=CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"transactions":[

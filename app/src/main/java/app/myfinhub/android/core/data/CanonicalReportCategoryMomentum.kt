@@ -75,9 +75,12 @@ fun CanonicalFinanceDocument.canonicalReportCategoryMomentum(
     val previousMonth=YearMonth.parse(month).minusMonths(1).toString()
     val previous=canonicalReportSubcategoryTotals(previousMonth)
         .associate { it.name to it.value }
-    return canonicalReportSubcategoryTotals(month,asOf)
-        .take(limit.coerceAtLeast(0))
-        .map { row ->
+    val current = canonicalReportSubcategoryTotals(month,asOf)
+    // Web reports.ts uses JS Array.slice(0, limit); negative limits retain all
+    // but the last N rows rather than producing an empty list.
+    val endIndex = if (limit >= 0) limit.coerceAtMost(current.size)
+        else (current.size.toLong() + limit.toLong()).coerceAtLeast(0L).toInt()
+    return current.take(endIndex).map { row ->
             val previousValue=previous[row.name] ?: 0.0
             val change=when {
                 previousValue == 0.0 && row.value == 0.0 -> 0.0
