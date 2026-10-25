@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 subtasks. W4.4 #348 Insights historical whitespace category drill-down passed all 4 immutable CI gates and squash merged develop 5f5811802aa0b3e3c798702f0956b1d8a86a1d15. W4.4 #349 primaryAccountSeries historical exact account identifiers (including empty and whitespace-only keys) passed 4/4 exact-head Project Tracking, Android CI, screenshot regression and hosted S24 at b3c383b7a51bffab52f59af5ee8292a0f46dcb41, squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 PR #350 changes transaction ledger same-date ID ordering from raw Kotlin Unicode compareTo to Web JavaScript localeCompare semantics, preserving stable duplicate-ID chronological ordering across imported rows/events and matching both newest-first and oldest-first sorted states. Kotlin golden authored with mixed-case id-A/id-a, repeated id-a preserving source order and €15 unchanged finance spending. Full #349 develop ancestry included with canonical tracker and three generated docs. Local Gradle not run, all four exact-head hosted CI gates pending. Wider W4.4 and W2–W5 feature scope incomplete; owner physical Galaxy S24 Ultra #149 signoff pending. No production finance writes, SMS #146, destructive card-delete UI, Web/backend/schema changes, signing or main.",
+    "summary": "Web parity 1/6 implementations · 11/24 completed subtasks. W4.4 #350 Web locale-aware ledger ID ordering passed 4/4 exact-head checks and squash merged develop 19f52741674532a72bd670a2443c184edf55af4a. Draft Android #351 aligns exact historical Web event leg account IDs, preserving empty and whitespace-only keys and excluding only synthetic credit-card, with immutable Kotlin regression authored. Local Gradle and final-head hosted CI have not been executed for this PR yet. Separate owner-requested desktop Home card matching is in independent draft #352 with updated native source; its first CI screenshot/instrumentation corrections remain under validation. Broader Web parity and physical Galaxy S24 Ultra #149 pending; no finance production writes, Web/backend/schema modifications, SMS, card-delete UI, signing or main.",
     "next": [
-      "Run draft W4.4 PR #350 four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs; only ready/squash merge after all 4 successes on immutable head with no reviews or base drift. Continue broader W4.4 transactional filters, analytics and remaining W2–W5; owner physical S24 #149 separately pending. No finance production writes, SMS, Web/backend/schema, destructive card UI, signed release or main promotion."
+      "Validate W4.4 draft #351 on one immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 tests. Do not merge until 4/4 passed and no unresolved reviews. Independent Home desktop fidelity #352 remains draft; physical Galaxy owner #149 pending."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w44-ledger-id-locale-sort-20261025",
-    "checkpoint": "W4.4 #349 Web report primary account identity with historical whitespace and empty IDs passed 4/4 immutable final-head gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41 and squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 #350 localeCompare ID tie sort for Web TransactionsPage newest/oldest same-day rows, regression authored for mixed-case and duplicated IDs with unchanged €15 expense and immutable FinanceData, full #349 develop integration. Local Gradle not executed; four new exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.",
+    "branch": "android/w44-ledger-blank-account-leg-parity-20261025",
+    "checkpoint": "Merged W4.4 #350 passed all four exact-head CI gates on 2026-10-25. Draft #351 read-only exact Web transaction account leg key parity source and fixture authored, preserving empty/whitespace-only historical IDs, stable dedup and €10 finance total, excluding synthetic credit-card; source not yet CI tested. Concurrent independently tracked Home latest desktop-card parity draft #352 pending. 11/24 accepted subtasks, 1/6 implementations, physical S24 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1048,7 +1048,8 @@
               "PR #348 Insights read-only categories drill-down preserves exact nonempty whitespace historical categories and rejects empty identity, immutable golden €25/€10, final head e6636c00cc73250ada1b4d3bcebee25a9a9b5a63 passed all 4 gates, squash merged develop 5f5811802aa0b3e3c798702f0956b1d8a86a1d15. W4.4 wider scope remains incomplete.",
               "Draft PR #349 Web reports.ts primaryAccountSeries direct caller IDs include historical whitespace-only and empty keys, matching Web object property creation; Kotlin golden authored with pay €1100, blank IDs €0, duplicate pay dedup and original FinanceData unchanged. No local Gradle or final-head CI yet, wider W4.4 pending.",
               "PR #349 reports primaryAccountSeries exact historical empty/whitespace account identity and duplicate ID keys, immutable Kotlin golden and 4/4 same-head green GitHub gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41, squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. W4.4 wider scope in progress.",
-              "Draft PR #350 Web TransactionsPage same-day ID tie order uses localeCompare, unlike raw Unicode compareTo; Android ledger product projection and ascending Activity filter now use shared Greek collator and stable equal-ID sort. Kotlin golden authored for mixed-case IDs, seed/event duplicate stable ordering, unchanged €15 signed total and canonical FinanceData. Local Gradle not run, four same-head hosted CI gates pending; full W4.4 remains incomplete."
+              "Draft PR #350 Web TransactionsPage same-day ID tie order uses localeCompare, unlike raw Unicode compareTo; Android ledger product projection and ascending Activity filter now use shared Greek collator and stable equal-ID sort. Kotlin golden authored for mixed-case IDs, seed/event duplicate stable ordering, unchanged €15 signed total and canonical FinanceData. Local Gradle not run, four same-head hosted CI gates pending; full W4.4 remains incomplete.",
+              "Draft #351 Web TransactionsPage exact canonical event accountIds preserves historical whitespace-only and empty values (only excludes credit-card), Kotlin golden checks filters/€10/source immutability; no local Gradle or current head CI accepted, W4.4 broader pending. Owner Home draft #352 separately in progress."
             ]
           }
         ]
@@ -1171,9 +1172,9 @@
         ]
       }
     ],
-    "next_action": "Verify W4.4 PR #350 exact-head tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented. Ready/squash merge only with 4/4 green unchanged head, base and reviews. Continue wider W4.4 and W2–W5 while physical S24 Ultra #149 pending; no live finance writes, SMS, Web/backend/schema changes, irreversible card-delete UI, signed release or main.",
+    "next_action": "Draft #351: validate 4/4 immutable exact-head Kotlin, tracking, screenshot and S24 gates, then integrate only on success and unchanged develop. Separate desktop Home draft #352 still pending source/UI acceptance. Keep W4.4 in_progress, owner physical #149 pending.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 350,
+    "pr": 351,
     "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

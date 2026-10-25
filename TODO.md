@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run draft W4.4 PR #350 four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs; only ready/squash merge after all 4 successes on immutable head with no reviews or base drift. Continue broader W4.4 transactional filters, analytics and remaining W2–W5; owner physical S24 #149 separately pending. No finance production writes, SMS, Web/backend/schema, destructive card UI, signed release or main promotion.
+- [ ] Validate W4.4 draft #351 on one immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 tests. Do not merge until 4/4 passed and no unresolved reviews. Independent Home desktop fidelity #352 remains draft; physical Galaxy owner #149 pending.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #350, branch android/w44-ledger-id-locale-sort-20261025
-Current W4.4: W4.4 #349 Web report primary account identity with historical whitespace and empty IDs passed 4/4 immutable final-head gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41 and squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 #350 localeCompare ID tie sort for Web TransactionsPage newest/oldest same-day rows, regression authored for mixed-case and duplicated IDs with unchanged €15 expense and immutable FinanceData, full #349 develop integration. Local Gradle not executed; four new exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
+Issue #155, PR #351, branch android/w44-ledger-blank-account-leg-parity-20261025
+Current W4.4: Merged W4.4 #350 passed all four exact-head CI gates on 2026-10-25. Draft #351 read-only exact Web transaction account leg key parity source and fixture authored, preserving empty/whitespace-only historical IDs, stable dedup and €10 finance total, excluding synthetic credit-card; source not yet CI tested. Concurrent independently tracked Home latest desktop-card parity draft #352 pending. 11/24 accepted subtasks, 1/6 implementations, physical S24 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.4 PR #350 exact-head tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented. Ready/squash merge only with 4/4 green unchanged head, base and reviews. Continue wider W4.4 and W2–W5 while physical S24 Ultra #149 pending; no live finance writes, SMS, Web/backend/schema changes, irreversible card-delete UI, signed release or main.
+Next Draft #351: validate 4/4 immutable exact-head Kotlin, tracking, screenshot and S24 gates, then integrate only on success and unchanged develop. Separate desktop Home draft #352 still pending source/UI acceptance. Keep W4.4 in_progress, owner physical #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
