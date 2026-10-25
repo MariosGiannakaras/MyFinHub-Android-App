@@ -37,8 +37,16 @@ fun CanonicalFinanceDocument.canonicalReportCreditPortfolio(
     val fallbackLimit = settingsObject().number("creditLimit")
         ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
     val collator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
+    val idCollator = Collator.getInstance(Locale.US)
+    // Web creditCardSnapshots first reads allCards(): sorted by createdAt,
+    // then id. Its subsequent debt/nickname sort is stable, so equal debt
+    // and nickname retain that original chronology, not persisted array order.
     val cards = canonicalCards()
         .filter { it.kind == "credit" }
+        .sortedWith(Comparator { left, right ->
+            val byCreation = left.createdAt.orEmpty().compareTo(right.createdAt.orEmpty())
+            if (byCreation != 0) byCreation else idCollator.compare(left.id, right.id)
+        })
         .map { card ->
             val debt = creditDebtForCardAt(card.id, asOf)
             val limit = if (!card.active) 0.0 else

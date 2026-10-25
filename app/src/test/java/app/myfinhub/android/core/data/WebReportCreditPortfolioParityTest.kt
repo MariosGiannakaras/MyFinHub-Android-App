@@ -8,6 +8,30 @@ import org.junit.Test
 
 /** Web reportCreditCardSnapshots: archived balances remain liabilities. */
 class WebReportCreditPortfolioParityTest {
+    @Test fun tiedCreditReportRowsFollowWebAllCardsChronologyNotStoredArrayOrder() {
+        // Web allCards sorts by createdAt then id before the stable credit
+        // snapshot sort by debt and nickname. The input deliberately reverses
+        // both creation time and equal-timestamp IDs.
+        val unsorted = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"settings":{"creditLimit":500},"cards":[
+            {"id":"z-late","kind":"credit","nickname":"Κοινή κάρτα",
+             "active":true,"createdAt":"2026-04-10T12:00:00Z"},
+            {"id":"b-early","kind":"credit","nickname":"Κοινή κάρτα",
+             "active":true,"createdAt":"2026-01-10T12:00:00Z"},
+            {"id":"a-early","kind":"credit","nickname":"Κοινή κάρτα",
+             "active":true,"createdAt":"2026-01-10T12:00:00Z"}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val before = unsorted.raw
+        val report = unsorted.canonicalReportCreditPortfolio("2026-10-25")
+        assertEquals(listOf("a-early", "b-early", "z-late"), report.cards.map { it.id })
+        assertEquals(3, report.activeCards)
+        assertEquals(3, report.totalCards)
+        assertEquals(1500.0, report.limit, 0.001)
+        assertEquals(0.0, report.debt, 0.001)
+        assertEquals(before, unsorted.raw)
+    }
+
     private val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
     {"seed":{},"state":{"settings":{"creditLimit":800},"cards":[
       {"id":"a","kind":"credit","nickname":"Άλφα","active":true,

@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web↔Android parity: 1/6 implemented phases and 11/24 accepted subtasks. Home card fidelity PR #352 merged into develop d24cff8e887f7f478904fb54786a6c9d909921d8 after four exact-head green checks and visually reviewed Compose renders. Current W4.4 draft PR #353 fixes a Web TransactionsPage filtering mismatch: imported legacy history uses only truthy nonempty account endpoints, not unrelated event legs, while whitespace-only endpoints and canonical event ledger legs retain their exact IDs. A targeted regression test is authored but not yet CI-validated; no acceptance-count increase. Physical Samsung Galaxy S24 Ultra owner signoff #149 remains pending; no Web/backend/schema change, production finance writes, SMS #146, irreversible card-delete UI, signing/release or main promotion.
+Web↔Android parity: 1/6 accepted implementations and 11/24 accepted subtasks. PR #353 Web-correct legacy account filter merged into develop 8640ff2fab0ef68c5aae92d98bac38da410022c4 after all four exact-head checks. New W4.4 draft PR #354 fixes credit report card ordering when debts and nicknames tie: Web allCards first orders by creation time then ID, but Android previously inherited unsorted persisted-array order. Source parity change plus unit regression authored; exact-head CI and integration pending, no acceptance-count increase. Physical Galaxy S24 Ultra #149 owner signoff pending; no production finance writes, Web/backend/schema changes, SMS #146, irreversible card-delete UI, signing, release or main promotion.
 
 ## Immediate work
 
-- Validate W4.4 PR #353 with four immutable exact-head CI/screenshot/hosted emulator checks and integrate only when green. Preserve Web account-filter truthiness for imported legacy rows and exact event-leg attribution. Physical Galaxy S24 Ultra owner signoff #149 remains separate.
+- Validate W4.4 credit portfolio tie ordering PR #354 with four exact-head GitHub gates, ensure read-only report rows match Web createdAt/id stable fallback, then merge develop only on success. Continue finance parity; physical Galaxy S24 Ultra owner #149 signoff remains separate.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web↔Android parity: 1/6 implemented phases and 11/24 accepted subtasks. Home c
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #353, branch android/w44-ledger-legacy-account-filter-parity-20261025
-Current W4.4: PR #352 desktop-fidelity Cash/Payroll/Savings Home cards and six reviewed screenshots squash merged to develop d24cff8e887f7f478904fb54786a6c9d909921d8 after all four required CI gates. Current source-only W4.4 PR #353 corrects the imported legacy account filter to Web's [accountId,fromAccountId,toAccountId].filter(Boolean), preserving historical nonempty whitespace endpoints but excluding falsy empty IDs and unrelated event-leg hints. Canonical event filtering still uses exact non-credit ledger leg IDs, including empty strings. Targeted JUnit regression authored; exact-head checks pending. Web parity remains 1/6 implementations, 11/24 subtasks, physical S24 owner issue #149 pending.
+Issue #155, PR #354, branch android/w44-credit-report-stable-ties-20261025
+Current W4.4: Merged #353 Web legacy account endpoint filter truthiness into develop 8640ff2fab0ef68c5aae92d98bac38da410022c4 after all four same-head CI/screenshot/hosted-emulator gates. Current W4.4 draft #354 fixes credit report row ordering: Web creditCardSnapshots starts from allCards() ordered by createdAt and id, then stable sorts by debt and Greek nickname; native projection sorted only by debt and nickname and kept raw stored array order on ties. Restore deterministic source ordering and add a read-only JUnit parity fixture. Source authored, CI not yet executed. Web parity stays 1/6 implementations · 11/24 accepted subtasks, physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run PR #353 Project Tracking, Android CI, screenshot regression and hosted S24 emulator on the same final head; inspect failures and integrate develop only at 4/4 success. No UI screenshots expected to change. Then resume other W4.4 Web parity gaps, without claiming physical owner S24 #149 acceptance.
+Next Validate #354 Project Tracking, Android CI, screenshot regression and hosted S24-target instrumentation on the same immutable PR head. Preserve amounts, credit limits and untouched FinanceData; no new UI screenshots expected. Integrate only after 4/4 green and review/base check. Continue remaining W4.4 after merge; physical S24 #149 owner acceptance remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
