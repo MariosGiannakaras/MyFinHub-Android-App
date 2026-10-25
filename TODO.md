@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft Android Home desktop-card parity PR #352 with canonical tracking, four immutable same-head GitHub gates and real Compose screenshot inspection; only merge after successful code, UI, accessibility and security checks. Continue independent unmerged W4.4 #351 after its own tracking and checks. Maintain 11/24 accepted parity subtasks until new evidence. Physical S24 rc12 #149 remains pending; no release, main promotion, SMS, backend/Web writes or irreversible card deletion.
+- [ ] Revalidate draft Home fidelity PR #352 after fixing the test compile error and updating the primary-card layout: require immutable current-head Project Tracking, Android CI, screenshot regression and hosted S24 UI checks, plus direct review of changed Home light/dark/large-font screenshots. Investigate unrelated UserNotice screenshot without changing unrelated UI. W4.4 PR #351 remains draft; physical S24 #149 signoff pending.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #352, branch android/home-desktop-primary-cards-parity-20261025
-Current W6.2: Owner-requested latest desktop primary-account cards parity: current Web develop DashboardPage and accepted #595/#597 use coherent Cash/Payroll/Savings card composition, 80% monotone smooth curves, movement dots only for changed selected-month balances, historical comparison, three tone colors, always-visible non-sensitive chart under monetary privacy, consistent 30-day delta, two per-account actions. Native Compose source + Kotlin/JVM/hosted Compose test cases authored on draft PR #352; local builds/screenshots and all four current-head CI gates pending. W4.4 #351 remains separate draft; canonical source/history/auth unchanged. Accepted parity stays 1/6 implementations and 11/24 subtasks until fresh evidence.
+Current W6.2: Owner-requested latest desktop primary-account cards parity: current Web develop DashboardPage and accepted #595/#597 use coherent Cash/Payroll/Savings card composition, 80% monotone smooth curves, movement dots only for changed selected-month balances, historical comparison, three tone colors, always-visible non-sensitive chart under monetary privacy, consistent 30-day delta, two per-account actions. Native Compose source + Kotlin/JVM/hosted Compose test cases authored on draft PR #352; first hosted head failed an unsupported standalone assertExists import and produced five expected Home plus one unrelated UserNotice screenshot differences; corrected import and compact desktop-style amount/chart zone in new source batch; current-head CI and direct visual inspection pending. W4.4 #351 remains separate draft; canonical source/history/auth unchanged. Accepted parity stays 1/6 implementations and 11/24 subtasks until fresh evidence.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Draft #352: confirm Kotlin/Compose compile and targeted tests, review real rendered S24 light/dark/large-font/privacy screenshot candidates, pass Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all on one exact head; merge only when complete. Separate W4.4 #351 remains draft needing canonical tracking/CI. Physical S24 owner #149 remains pending.
+Next Draft #352 latest head: rerun four exact-head checks; inspect rendered Home screenshots before updating references, investigate unrelated UserNotice difference, merge only after all gates pass. W4.4 #351 independent unmerged, physical #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

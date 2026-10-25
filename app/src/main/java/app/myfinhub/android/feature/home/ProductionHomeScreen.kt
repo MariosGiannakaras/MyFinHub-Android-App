@@ -397,7 +397,7 @@ private fun HomePrimaryAccountCard(
                 }
                 if (!enlarged && deltaLabel != null) {
                     Text(deltaLabel, style = MaterialTheme.typography.labelSmall,
-                        color = if (delta < -.005) MaterialTheme.colorScheme.error else color,
+                        color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
                         modifier = Modifier.testTag("home_account_delta_${account.id}")
                             .semantics {
                                 contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
@@ -407,7 +407,7 @@ private fun HomePrimaryAccountCard(
             }
             if (enlarged && deltaLabel != null) {
                 Text(deltaLabel, style = MaterialTheme.typography.labelMedium,
-                    color = if (delta < -.005) MaterialTheme.colorScheme.error else color,
+                    color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
                     modifier = Modifier.testTag("home_account_delta_${account.id}")
                         .semantics {
                             contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
