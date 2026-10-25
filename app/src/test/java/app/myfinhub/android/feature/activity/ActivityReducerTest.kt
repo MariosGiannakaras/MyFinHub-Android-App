@@ -7,6 +7,38 @@ import org.junit.Test
 
 class ActivityReducerTest {
     @Test
+    fun historicalWhitespaceCategoryFromInsightsDrillsIntoExactTransactions() {
+        // Category totals keep nonempty whitespace-only imported labels.
+        // Analytics must not discard their key before contribution filtering.
+        val historic = ActivityItem(
+            id = "historic", dateLabel = "10 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Old", subtitle = "", amount = -25.0,
+            accountLabel = "Cash", category = "   ",
+            rawDate = "2026-10-10", canonicalSourceOrdinal = 0,
+            categoryContributions = mapOf("   " to 25.0),
+        )
+        val normal = ActivityItem(
+            id = "normal", dateLabel = "11 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Other", subtitle = "", amount = -10.0,
+            accountLabel = "Cash", category = "Τρόφιμα",
+            rawDate = "2026-10-11", canonicalSourceOrdinal = 1,
+            categoryContributions = mapOf("Τρόφιμα" to 10.0),
+        )
+        val original = listOf(historic, normal)
+        val state = ActivityUiState(items = original)
+        val drilled = state.forCategories(
+            listOf("", "   "), "Λοιπά", "2026-10-01", "2026-10-31",
+        )
+        assertEquals(setOf("   "), drilled.categoryFilterIds)
+        assertEquals(listOf("historic"), drilled.visibleItems.map { it.id })
+        assertEquals(25.0, drilled.visibleExpense, 0.00001)
+        assertEquals("   ", drilled.visibleItems.single().category)
+        assertEquals(original, state.items)
+        assertTrue(state.forCategories(listOf(""), "Λοιπά",
+            "2026-10-01", "2026-10-31").visibleItems.isEmpty())
+    }
+
+    @Test
     fun categoryScope_isExactInclusiveAndIndependentOfGlobalFilters() {
         fun row(id: String, date: String, category: String, amount: Double, contribution: Double) =
             ActivityItem(id, date, ActivityKind.EXPENSE, "Τρόφιμα στο σημείωμα", "", amount, "bank", category,
