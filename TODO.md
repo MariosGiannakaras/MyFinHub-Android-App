@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft W4.4 PR #349 exact-head tracking-verify, android-verify, screenshot-regression and hosted S24 instrumentation jobs. Mark ready and squash merge only on 4/4 success, unchanged head and develop, no unresolved reviews. Continue W4.4 analytics completeness and remaining W2–W5; owner physical Galaxy S24 #149 separately pending. No production finance writes, SMS, Web/backend/schema edits, destructive card UI, release or main.
+- [ ] Run draft W4.4 PR #350 four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs; only ready/squash merge after all 4 successes on immutable head with no reviews or base drift. Continue broader W4.4 transactional filters, analytics and remaining W2–W5; owner physical S24 #149 separately pending. No finance production writes, SMS, Web/backend/schema, destructive card UI, signed release or main promotion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #349, branch android/w44-report-account-id-preservation-20261025
-Current W4.4: W4.4 #348 exact historical category Insights drill-down including whitespace-only nonempty IDs passed four same-head hosted gates at e6636c00cc73250ada1b4d3bcebee25a9a9b5a63, squash merged develop 5f5811802aa0b3e3c798702f0956b1d8a86a1d15. Active draft W4.4 #349 preserves Web primaryAccountSeries exact caller-supplied account identity property keys (including historical empty/whitespace IDs), validates duplicate key and payroll €1100 as-of with authored JVM golden, retains immutable FinanceData. No local Gradle execution; four fresh exact-head CI gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 outstanding.
+Issue #155, PR #350, branch android/w44-ledger-id-locale-sort-20261025
+Current W4.4: W4.4 #349 Web report primary account identity with historical whitespace and empty IDs passed 4/4 immutable final-head gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41 and squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 #350 localeCompare ID tie sort for Web TransactionsPage newest/oldest same-day rows, regression authored for mixed-case and duplicated IDs with unchanged €15 expense and immutable FinanceData, full #349 develop integration. Local Gradle not executed; four new exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #349 immutable final-head 4/4 Project Tracking, Android CI, screenshot regression, hosted S24 tests; ready/squash merge only if all success on same head, no drift or unresolved review threads. Continue W4.4 and W2–W5 while physical Galaxy S24 Ultra owner #149 acceptance remains independent; no real finance writes, SMS, Web/backend/schema, card deletion UI, signed release or main promotion.
+Next Verify W4.4 PR #350 exact-head tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented. Ready/squash merge only with 4/4 green unchanged head, base and reviews. Continue wider W4.4 and W2–W5 while physical S24 Ultra #149 pending; no live finance writes, SMS, Web/backend/schema changes, irreversible card-delete UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

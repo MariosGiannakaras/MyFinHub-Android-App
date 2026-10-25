@@ -393,10 +393,12 @@ data class ActivityUiState(
         // canonical newest-first ledger unchanged by default and never reorder
         // category analytics drill-downs merely because the ledger was toggled.
         if (sortOldestFirst && !isAnalyticsScope) {
-            matching.sortedWith(compareBy<ActivityItem>(
-                { it.rawDate.take(10).ifBlank { "9999-12-31" } },
-                ActivityItem::id,
-            ))
+            // Web ascending ledger sort also uses id.localeCompare, rather
+            // than raw Unicode ordering, and keeps equal-ID rows stable.
+            matching.sortedWith(
+                compareBy<ActivityItem> { it.rawDate.take(10).ifBlank { "9999-12-31" } }
+                    .thenComparator { left, right -> greekLabelOrder.compare(left.id, right.id) },
+            )
         } else {
             matching
         }
