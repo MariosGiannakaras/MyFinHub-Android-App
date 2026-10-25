@@ -1,0 +1,53 @@
+# One-shot, branch-confined transfer of six *visually inspected* screenshot renderings.
+# Remove this workflow on this PR before final required checks and integration.
+name: Temporary reviewed Home screenshot baselines
+on:
+  push:
+    branches:
+      - android/home-desktop-primary-cards-parity-20261025
+    paths:
+      - '.github/workflows/home-approved-baselines-once.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-reviewed:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch ref
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: true
+      - name: Copy only previously inspected six renders, with SHA-256 pinning
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" == "android/home-desktop-primary-cards-parity-20261025" ]]
+          source_sha="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/40226674930" --jq '.head_sha')"
+          [[ "$source_sha" == "0dfb6eeef58d5ae8ac9e35c2294c23a54e63d6c5" ]]
+          gh run download 40226674930 --repo "$GITHUB_REPOSITORY" --name android-ui-screenshots-40226674930 --dir "$RUNNER_TEMP/reviewed"
+          dir='app/src/screenshotTestDebug/reference/app/myfinhub/android'
+          cat > "$RUNNER_TEMP/approved.sha256" <<'CHECKSUMS'
+          3682549803e08d25be90e3bf27903d31f41e3b3ff70cb97dd89d68daf9b0311a  app/UserNoticeScreenshotTestKt/UserNoticeSnackbarScreenshot_user_notice_snackbar_phone_eb89e693_0.png
+          20f5a78ac71ff9b0c9aea42642bd4a32a8e6217e3f15edbe2ec2d825e98bc4ce  feature/home/ProductionHomeScreenshotTestKt/ProductionHomeAllAccountsDarkScreenshot_production_home_full_accounts_dark_fdc3528a_0.png
+          227b17eef674392e8aa650170bb21fd07c71b7496b3a7f0dcde8c059a82a3bd9  feature/home/ProductionHomeScreenshotTestKt/ProductionHomeAllAccountsLightScreenshot_production_home_full_accounts_light_df291c5b_0.png
+          042241c90f2f8fb465f0f60fa74b254e075b61be0dbf4bacc750410208991c1c  feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactDarkScreenshot_production_home_compact_dark_564e04bd_0.png
+          978e0195a02cc111111539960c9e155ca7a370466dc3bba57f63574810c7a603  feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLargeFontScreenshot_production_home_compact_large_font_99387350_0.png
+          380bb7871b7bf1049519611e4b838c4179f0307701f585f585cef4349f17ee71  feature/home/ProductionHomeScreenshotTestKt/ProductionHomeCompactLightScreenshot_production_home_compact_light_73154b5c_0.png
+          CHECKSUMS
+          while read -r hash relative; do
+            src="$RUNNER_TEMP/reviewed/src/screenshotTestDebug/reference/app/myfinhub/android/$relative"
+            dest="$dir/$relative"
+            [[ -f "$src" ]] || { echo "Missing reviewed candidate $src"; exit 1; }
+            actual="$(sha256sum "$src" | cut -d' ' -f1)"
+            [[ "$actual" == "$hash" ]] || { echo "Unexpected candidate content $relative"; exit 1; }
+            install -D -m 644 "$src" "$dest"
+            git add -- "$dest"
+          done < "$RUNNER_TEMP/approved.sha256"
+          [[ "$(git diff --cached --name-only | wc -l)" -eq 6 ]]
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'test(home): accept six visually reviewed exact-head screenshot baselines'
+          git push origin "HEAD:refs/heads/android/home-desktop-primary-cards-parity-20261025"
