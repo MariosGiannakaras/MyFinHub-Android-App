@@ -228,7 +228,7 @@ private fun HomeAvailableSummary(
         MyFinHubPrimaryAction(
             label = "Νέα κίνηση",
             onClick = onOpenQuickEntry,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("home_global_quick_entry"),
         )
     }
 }
@@ -460,7 +460,9 @@ private fun HomePrimaryAccountCard(
             ) {
                 TextButton(
                     onClick = onQuickEntry,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
+                        .testTag("home_account_quick_entry_${account.id}")
+                        .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
                 ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
                 TextButton(
                     onClick = onTransactions,

@@ -133,6 +133,8 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             isPrimary = true,
             primaryRole = HomePrimaryRole.CASH,
             balanceTrend = listOf(164.20, 176.80, 153.40, 194.10, 188.60, 181.20, 185.40),
+            balanceChange30d = 21.20,
+            monthBoundaryIndex = 3,
         ),
         HomeAccount(
             id = "piraeus-payroll",
@@ -143,6 +145,8 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             isPrimary = true,
             primaryRole = HomePrimaryRole.PAYROLL,
             balanceTrend = listOf(2_128.40, 2_094.20, 2_028.70, 1_962.10, 1_884.00, 2_512.30, 2_465.80),
+            balanceChange30d = -45.80,
+            monthBoundaryIndex = 3,
             institution = "Τράπεζα Πειραιώς",
         ),
         HomeAccount(
@@ -154,6 +158,8 @@ fun syntheticHomeUiState(): HomeUiState = HomeUiState(
             isPrimary = true,
             primaryRole = HomePrimaryRole.SAVINGS,
             balanceTrend = listOf(5_940.00, 5_940.00, 6_040.00, 6_040.00, 6_140.00, 6_140.00, 6_240.00),
+            balanceChange30d = 300.0,
+            monthBoundaryIndex = 3,
             institution = "Τράπεζα Πειραιώς",
             savingsTarget = 7_000.0,
             savingsTargetRate = 0.2,

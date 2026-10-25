@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.runtime.mutableStateOf
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
@@ -41,7 +42,9 @@ class S5HomeWalletTest {
         composeRule.onNodeWithTag("home_list")
             .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
         composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_account_delta_cash").assertExists()
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_account_delta_cash"))
+        composeRule.onNodeWithTag("home_account_delta_cash").assertIsDisplayed()
         composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
     }
 
@@ -75,7 +78,7 @@ class S5HomeWalletTest {
         }
 
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
-        composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))

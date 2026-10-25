@@ -73,7 +73,7 @@ class AccessibilitySemanticsTest {
 
     private fun openQuickEntryFromHome() {
         composeRule.onNodeWithText("Αρχική").performClick()
-        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithTag("home_global_quick_entry").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
     }

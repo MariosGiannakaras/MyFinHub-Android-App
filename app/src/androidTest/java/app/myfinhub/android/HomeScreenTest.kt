@@ -2,6 +2,7 @@ package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -30,8 +31,8 @@ class HomeScreenTest {
 
         // Primary account cards precede attention now, so the top action is outside
         // the viewport after the attention section has been inspected.
-        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Νέα κίνηση"))
-        composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
+        composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag("home_global_quick_entry"))
+        composeRule.onNodeWithTag("home_global_quick_entry").performClick()
 
         composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
