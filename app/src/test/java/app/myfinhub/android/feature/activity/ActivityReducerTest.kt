@@ -7,6 +7,36 @@ import org.junit.Test
 
 class ActivityReducerTest {
     @Test
+    fun legacyAccountFilterUsesOnlyTruthyWebEndpointsNotEventLegHints() {
+        // Web legacy rows filter [accountId, from, to] by JS truthiness;
+        // actual event legs preserve their historical identities unchanged.
+        val imported = ActivityItem(
+            id = "legacy", dateLabel = "4 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Imported", subtitle = "", amount = -15.0,
+            accountLabel = "Cash", category = "Τρόφιμα",
+            rawDate = "2026-10-04", canonicalKind = "expense",
+            accountId = "", fromAccountId = "  ", toAccountId = "cash",
+            legAccountIds = setOf("event-only"),
+            isLegacyTransaction = true, canonicalSourceOrdinal = 0,
+        )
+        val event = ActivityItem(
+            id = "event", dateLabel = "5 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Canonical", subtitle = "", amount = -20.0,
+            accountLabel = "Unknown", category = "Τρόφιμα",
+            rawDate = "2026-10-05", canonicalKind = "expense",
+            accountId = "stale-hint", legAccountIds = setOf("", "event-only"),
+            canonicalSourceOrdinal = 0,
+        )
+        val state = ActivityUiState(items = listOf(imported, event))
+        assertEquals(listOf("event"), state.copy(accountFilterId = "").visibleItems.map { it.id })
+        assertEquals(listOf("legacy"), state.copy(accountFilterId = "  ").visibleItems.map { it.id })
+        assertEquals(listOf("legacy"), state.copy(accountFilterId = "cash").visibleItems.map { it.id })
+        assertEquals(listOf("event"), state.copy(accountFilterId = "event-only").visibleItems.map { it.id })
+        assertTrue(state.copy(accountFilterId = "stale-hint").visibleItems.isEmpty())
+        assertEquals(listOf(imported, event), state.items)
+    }
+
+    @Test
     fun historicalWhitespaceCategoryFromInsightsDrillsIntoExactTransactions() {
         // Category totals keep nonempty whitespace-only imported labels.
         // Analytics must not discard their key before contribution filtering.
