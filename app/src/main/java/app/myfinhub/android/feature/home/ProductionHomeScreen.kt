@@ -373,6 +373,13 @@ private fun HomePrimaryAccountCard(
     }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+            val deltaLabel = delta?.let { change ->
+                val arrow = if (change > .005) "↑" else if (change < -.005) "↓" else "→"
+                val prefix = if (change > .005) "+" else if (change < -.005) "−" else ""
+                "30ημ. $arrow " +
+                    if (amountsVisible) prefix + formatHomeEuro(kotlin.math.abs(change)) else "•••• €"
+            }
+            val enlarged = LocalDensity.current.fontScale >= 1.3f
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
@@ -388,40 +395,41 @@ private fun HomePrimaryAccountCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                if (!enlarged && deltaLabel != null) {
+                    Text(deltaLabel, style = MaterialTheme.typography.labelSmall,
+                        color = if (delta < -.005) MaterialTheme.colorScheme.error else color,
+                        modifier = Modifier.testTag("home_account_delta_${account.id}")
+                            .semantics {
+                                contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
+                                    else "Μεταβολή 30 ημερών: κρυφό ποσό"
+                            })
+                }
             }
-            // Web Dashboard: the 30-day balance delta belongs to all three
-            // cards, including Savings; it is not the savings-goal rate.
-            if (delta != null) {
-                val direction = when {
-                    delta > .005 -> "↑"
-                    delta < -.005 -> "↓"
-                    else -> "→"
-                }
-                val signed = when {
-                    delta > .005 -> "+"
-                    delta < -.005 -> "−"
-                    else -> ""
-                }
-                val value = if (amountsVisible) signed + formatHomeEuro(kotlin.math.abs(delta)) else "•••• €"
-                Text(
-                    text = "30ημ. $direction $value",
-                    style = MaterialTheme.typography.labelMedium,
+            if (enlarged && deltaLabel != null) {
+                Text(deltaLabel, style = MaterialTheme.typography.labelMedium,
                     color = if (delta < -.005) MaterialTheme.colorScheme.error else color,
                     modifier = Modifier.testTag("home_account_delta_${account.id}")
                         .semantics {
-                            contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $value"
+                            contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
                                 else "Μεταβολή 30 ημερών: κρυφό ποσό"
-                        },
+                        })
+            }
+            // Desktop Web uses a shared amount/chart zone; on compact screens
+            // the amount overlays the left while the chart fills the right.
+            // Monetary privacy never removes the chart or exposes EUR via semantics.
+            Box(modifier = Modifier.fillMaxWidth().height(90.dp)) {
+                HomeAccountTrendChart(
+                    account = account,
+                    modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
+                )
+                Text(
+                    if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.TopStart),
                 )
             }
-            MyFinHubAmountText(
-                if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
-                if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
-                style = MaterialTheme.typography.headlineMedium,
-            )
-            // Monetary privacy must not erase historical chart shape, matching
-            // the Web/Windows primary-card contract and preserving no EUR in semantics.
-            HomeAccountTrendChart(account)
             if (savings) {
                 Text(
                     "Τρέχων μήνας · Προηγ. μήνας" +
@@ -464,7 +472,7 @@ private fun HomePrimaryAccountCard(
 }
 
 @Composable
-private fun HomeAccountTrendChart(account: HomeAccount) {
+private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Modifier) {
     val mainColor = when (account.primaryRole) {
         HomePrimaryRole.CASH -> Color(0xFF31C77B)
         HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
@@ -475,7 +483,7 @@ private fun HomeAccountTrendChart(account: HomeAccount) {
     val comparison = account.previousMonthTrend
     val rawTarget = account.savingsTarget
     Canvas(
-        modifier = Modifier.fillMaxWidth().height(83.dp)
+        modifier = modifier.height(83.dp)
             .testTag("home_account_history_${account.id}")
             .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
     ) {
