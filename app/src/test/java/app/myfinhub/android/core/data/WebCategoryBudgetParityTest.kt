@@ -287,6 +287,44 @@ class WebCategoryBudgetParityTest {
         assertEquals(original,imported.raw)
     }
 
+    @Test fun whitespaceOnlyReviewedCategorySuppressesBudgetSpendingAsInWeb() {
+        // Web budgets.ts evaluates decision?.category || tx.category:
+        // "   " is truthy, but addExpense rejects it after trim().
+        // Empty-string review category is falsy and falls back to seed.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"transactions":[
+            {"id":"whitespace","date":"2026-10-10","type":"expense","amount":20,
+             "category":"Τρόφιμα","subcategory":"Λαχανικά"},
+            {"id":"empty","date":"2026-10-11","type":"expense","amount":10,
+             "category":"Τρόφιμα","subcategory":"Λαχανικά"},
+            {"id":"no-decision","date":"2026-10-12","type":"expense","amount":5,
+             "category":"Τρόφιμα","subcategory":"Λαχανικά"}
+          ]},"state":{
+            "reviewDecisions":{
+              "whitespace":{"status":"confirmed","semanticKind":"expense","category":"   "},
+              "empty":{"status":"confirmed","semanticKind":"expense","category":""}
+            },
+            "budgets":[
+              {"id":"overall","month":"2026-10","scope":"overall","amount":50},
+              {"id":"food","month":"2026-10","scope":"category",
+               "category":"Τρόφιμα","amount":50},
+              {"id":"vegetables","month":"2026-10","scope":"subcategory",
+               "category":"Τρόφιμα","subcategory":"Λαχανικά","amount":50}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        assertEquals(mapOf("Τρόφιμα" to 15.0),
+            imported.categoryBudgetSpending("2026-10","2026-10-15"))
+        val sub = imported.canonicalSubcategoryBudgetSpending("2026-10","2026-10-15")
+        assertEquals(15.0,sub.values.sum(),0.00001)
+        val budgets = imported.webBudgetProgress("2026-10","2026-10-15").associateBy { it.id }
+        assertEquals(15.0,budgets.getValue("overall").used,0.00001)
+        assertEquals(15.0,budgets.getValue("food").used,0.00001)
+        assertEquals(15.0,budgets.getValue("vegetables").used,0.00001)
+        assertEquals(original,imported.raw)
+    }
+
     @Test fun reviewedLegacyCategoryCorrectionMovesBothBudgetDimensions() {
         val reviewed = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[],"transactions":[

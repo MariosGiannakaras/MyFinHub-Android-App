@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 #340 budget previous-carry sorted parent passed 4/4 exact-head gates, merged develop e4165de8c8e30bbb4c512805c4c27e14c851d41d. W4.3 #341 categoryBudgetSpending normalized case/Greek-accent identity and most recent display label passed all four immutable Project Tracking, Android CI, screenshot regression and hosted S24 gates at f281cd5af87e80d8e47996f92eba51dcc39058cf, squash merged develop ce7b15ebca5b1d7c947de3fb91415c85fa0d0347. Active draft W4.3 #342 batches two Web budgets.ts read-only parity fixes: (1) scheduled and recurring categories with nonempty whitespace remain JavaScript-truthy in projected future overall-budget commitments while genuinely empty categories do not, (2) category spending converts individual allocation amounts to integer cents before summing, avoiding fractional-euro rounding drift. Kotlin JVM golden fixtures authored for €20+€30 projected due and two €0.005 expenses totaling €0.02; finance JSON immutable, no local Gradle run. Full #341 develop ancestry plus canonical state and 3 generated docs integrated; four exact-head hosted CI gates pending. Broader W2–W5 feature parity and physical owner Galaxy S24 Ultra #149 pending. No production finance writes, SMS #146, irreversible card-delete UI, backend/Web/schema, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 #341 Web normalized category spending and latest label passed 4/4 exact-head gates, squash merged develop ce7b15ebca5b1d7c947de3fb91415c85fa0d0347. W4.3 #342 Web budget future commitment whitespace-category truthiness and per-posting integer-cent category allocation arithmetic passed Project Tracking, Android CI, screenshot regression and hosted S24 (4/4 at immutable head 19503a87429b98e216d150d2f3764361aaa4b04f), squash merged develop d3fb520a923bda214594aa509b1240f503150aea. Active draft W4.3 #343 aligns Web reviewed legacy category truthiness: decision.category consisting only of whitespace is JavaScript-truthy, but Web spending discards it after trim; Android wrongly fell back to transaction's seed category, overcounting both category and subcategory budgets. Fixes both read-only projections and adds immutable Kotlin JVM golden with whitespace suppressed, genuine empty review fallback and €15 overall/category/subcategory use. Full #342 develop ancestry, canonical tracker and three generated handoffs refreshed. No local Gradle run, all 4 new exact-head CI gates pending. Broader W2–W5 parity and physical owner Galaxy S24 Ultra #149 pending; no production financial data writes, SMS #146, irreversible card-delete UI, backend/Web/schema changes, signed release or main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Check 4 exact-head gates on W4.3 draft PR #342 (Project Tracking, Android CI, screenshot regression, hosted S24 Ultra). Mark ready and squash merge only when 4/4 green on unchanged final head. Broader W2–W5 parity remains open; owner physical S24 #149 separate. No live finance data writes, Web/backend/schema, SMS import, destructive card UI, signed release or main.
+1. Validate all four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs for draft W4.3 #343. If and only if all 4 success on unchanged head, ready/squash merge. Continue outstanding W2–W5 native feature parity and owner physical Galaxy S24 Ultra #149 acceptance separately. No financial writes, Web/backend/schema, SMS, destructive card UI or signed release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #342, branch android/w4-budget-commitment-cents-batch-20261025
-Current W4.3: W4.3 #341 Web-normalized category spending latest-label display passed 4/4 final-head Project Tracking, Android CI, screenshot regression and hosted S24 at f281cd5af87e80d8e47996f92eba51dcc39058cf and squash merged develop ce7b15ebca5b1d7c947de3fb91415c85fa0d0347. Current draft W4.3 #342 integrates two financial-projection parity goldens: whitespace-only scheduled/recurring category truthiness in overall due commitments and per-posting integer-cent budgeting allocation arithmetic, based on merged #341 develop. Source authored, local Gradle not executed, new immutable exact-head 4/4 gates pending; broader W4.3 unfinished. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 outstanding.
+Issue #155, PR #343, branch android/w4-budget-review-category-js-truthiness-20261025
+Current W4.3: W4.3 #342 scheduled/recurring category truthiness and per-posting budget integer-cents fixes passed 4/4 immutable exact-head checks at 19503a87429b98e216d150d2f3764361aaa4b04f, squash merged develop d3fb520a923bda214594aa509b1240f503150aea. Current draft #343 Web reviewed category JS truthiness excludes whitespace-only reviewed label from category/subcategory spending while empty review strings fall back; Kotlin JVM golden authored, local Gradle not executed, new 4 exact-head hosted gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.3 PR #342 final-head four CI jobs (`tracking-verify`, `android-verify`, `screenshot-regression`, `s24-ultra-target-instrumented`) and squash merge only on all green. Continue broader W2–W5 features while respecting read-only Android parity, physical owner S24 #149 and no SMS, Web/backend/schema edits, live finance writes, destructive card UI, signed release or main.
+Next Check #343 four immutable final-head CI jobs: tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented; ready/merge only at 4/4 green. Continue broader W2–W5 feature parity, keep owner physical S24 #149 separate and no finance production writes, SMS, Web/backend/schema, irreversible card delete UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
