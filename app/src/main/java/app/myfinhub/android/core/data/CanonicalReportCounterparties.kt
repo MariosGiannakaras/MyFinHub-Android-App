@@ -34,8 +34,10 @@ fun CanonicalFinanceDocument.canonicalReportExpenseCounterparties(
         date.startsWith("$month-") && (asOf == null || month != asOf.take(7) || date <= asOf)
     fun add(label: String, category: String, amount: Double, date: String) {
         if (!amount.isFinite() || amount <= 0.005) return
-        val safeTitle = label.trim().ifEmpty { category.ifBlank { "Συναλλαγή" } }
-        val safeCategory = category.ifBlank { "Χωρίς κατηγορία" }
+        // Web reports.ts uses JS fallback truthiness:
+        // nonempty whitespace-only imported category strings count as present.
+        val safeTitle = label.trim().ifEmpty { category.ifEmpty { "Συναλλαγή" } }
+        val safeCategory = category.ifEmpty { "Χωρίς κατηγορία" }
         val key = safeTitle.lowercase(locale) + "|" + safeCategory.lowercase(locale)
         val prior = grouped[key]
         if (prior != null) {
