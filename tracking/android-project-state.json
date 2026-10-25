@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web↔Android parity: 1/6 fully accepted implementations and 11/24 accepted subtasks. W4.4 PR #351 fixed read-only historical event account leg identity, passed 4/4 immutable same-head CI and squash merged to develop 38adc338fe8ae0f5298687382aa7d3043e098f9e on 2026-10-25. Owner-prioritized new Web/Windows primary-account card parity draft #352 covers native Compose Cash/Payroll/Savings with 80%-strength monotone curves and selected-month movement dots, 30-day deltas on all three cards, savings previous month and target, finance tones, compact amount/chart overlay, privacy retaining chart geometry, and per-account Quick Entry/Transactions actions. Initial PR head passed Android CI and Project Tracking but failed hosted instrumentation due ambiguous quick-entry selectors and synthetic missing 30-day delta, plus changed Home reference screenshots and an unrelated UserNotice screenshot. Latest source fixes disambiguate actions and test tags, add sample deltas and reconcile the #351 merged develop code. New exact-head full CI and real screenshot review remain required. Physical owner Galaxy S24 #149 signoff pending; no production finance writes, backend/Web/schema edits, SMS #146, irreversible card-delete UI, signed release or main promotion.",
+    "summary": "Web↔Android parity: 1/6 implemented phases and 11/24 accepted subtasks. Home card fidelity PR #352 merged into develop d24cff8e887f7f478904fb54786a6c9d909921d8 after four exact-head green checks and visually reviewed Compose renders. Current W4.4 draft PR #353 fixes a Web TransactionsPage filtering mismatch: imported legacy history uses only truthy nonempty account endpoints, not unrelated event legs, while whitespace-only endpoints and canonical event ledger legs retain their exact IDs. A targeted regression test is authored but not yet CI-validated; no acceptance-count increase. Physical Samsung Galaxy S24 Ultra owner signoff #149 remains pending; no Web/backend/schema change, production finance writes, SMS #146, irreversible card-delete UI, signing/release or main promotion.",
     "next": [
-      "Validate current #352 merged-develop branch head with all four exact-head checks and real Compose Home light/dark/large-font/privacy screenshots against current Web desktop/mobile design. Approve refreshed Home-only screenshot references only after visually reviewing generated candidates; investigate unrelated UserNotice comparison separately. W4.4 still in progress despite merged #351; physical Galaxy #149 pending."
+      "Validate W4.4 PR #353 with four immutable exact-head CI/screenshot/hosted emulator checks and integrate only when green. Preserve Web account-filter truthiness for imported legacy rows and exact event-leg attribution. Physical Galaxy S24 Ultra owner signoff #149 remains separate."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/home-desktop-primary-cards-parity-20261025",
-    "checkpoint": "Merged #351 W4.4 historical ledger leg account-key parity after same-head 4/4 GitHub checks at 1ea3976a048a0cc2e157e1fcea7f4f453797a676; integrated develop 38adc338fe8ae0f5298687382aa7d3043e098f9e. Owner Home desktop/Web primary-card redesign #352 is still draft: 80% monotone smooth native curves, current-month daily movement markers, 30-day delta each card, Savings goal/previous-month comparison, role colors, compact amount/chart and account-scoped buttons, charts persistent under monetary privacy. First 4-gate run failed hosted S24 due multiple 'Νέα κίνηση' text matches and missing synthetic delta; revised source tags and contextual accessibility labels, test selectors and screenshot fixture sample deltas, plus merged latest develop #351 are now present on the new unvalidated head. Five Home screenshot baseline changes and one unrelated UserNotice baseline discrepancy remain to investigate; live visual acceptance not yet completed. Accepted 1/6 and 11/24, physical S24 #149 pending.",
+    "branch": "android/w44-ledger-legacy-account-filter-parity-20261025",
+    "checkpoint": "PR #352 desktop-fidelity Cash/Payroll/Savings Home cards and six reviewed screenshots squash merged to develop d24cff8e887f7f478904fb54786a6c9d909921d8 after all four required CI gates. Current source-only W4.4 PR #353 corrects the imported legacy account filter to Web's [accountId,fromAccountId,toAccountId].filter(Boolean), preserving historical nonempty whitespace endpoints but excluding falsy empty IDs and unrelated event-leg hints. Canonical event filtering still uses exact non-credit ledger leg IDs, including empty strings. Targeted JUnit regression authored; exact-head checks pending. Web parity remains 1/6 implementations, 11/24 subtasks, physical S24 owner issue #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1173,10 +1173,10 @@
         ]
       }
     ],
-    "next_action": "Complete same-head #352 tracking, Android CI, screenshot regression and hosted S24 instrumentation. Inspect actual 412dp Light/Dark/large-font screenshots and 1680dp Home views before updating Home-only golden references; do not blanket-accept unrelated UserNotice failure. Finalize only if 4/4 green and PR reviews/base valid; no physical owner #149 signoff claimed.",
+    "next_action": "Run PR #353 Project Tracking, Android CI, screenshot regression and hosted S24 emulator on the same final head; inspect failures and integrate develop only at 4/4 success. No UI screenshots expected to change. Then resume other W4.4 Web parity gaps, without claiming physical owner S24 #149 acceptance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 352,
-    "current_subtask": "W6.2",
+    "pr": 353,
+    "current_subtask": "W4.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
 }

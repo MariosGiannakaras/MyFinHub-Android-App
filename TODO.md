@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate current #352 merged-develop branch head with all four exact-head checks and real Compose Home light/dark/large-font/privacy screenshots against current Web desktop/mobile design. Approve refreshed Home-only screenshot references only after visually reviewing generated candidates; investigate unrelated UserNotice comparison separately. W4.4 still in progress despite merged #351; physical Galaxy #149 pending.
+- [ ] Validate W4.4 PR #353 with four immutable exact-head CI/screenshot/hosted emulator checks and integrate only when green. Preserve Web account-filter truthiness for imported legacy rows and exact event-leg attribution. Physical Galaxy S24 Ultra owner signoff #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #352, branch android/home-desktop-primary-cards-parity-20261025
-Current W6.2: Merged #351 W4.4 historical ledger leg account-key parity after same-head 4/4 GitHub checks at 1ea3976a048a0cc2e157e1fcea7f4f453797a676; integrated develop 38adc338fe8ae0f5298687382aa7d3043e098f9e. Owner Home desktop/Web primary-card redesign #352 is still draft: 80% monotone smooth native curves, current-month daily movement markers, 30-day delta each card, Savings goal/previous-month comparison, role colors, compact amount/chart and account-scoped buttons, charts persistent under monetary privacy. First 4-gate run failed hosted S24 due multiple 'Νέα κίνηση' text matches and missing synthetic delta; revised source tags and contextual accessibility labels, test selectors and screenshot fixture sample deltas, plus merged latest develop #351 are now present on the new unvalidated head. Five Home screenshot baseline changes and one unrelated UserNotice baseline discrepancy remain to investigate; live visual acceptance not yet completed. Accepted 1/6 and 11/24, physical S24 #149 pending.
+Issue #155, PR #353, branch android/w44-ledger-legacy-account-filter-parity-20261025
+Current W4.4: PR #352 desktop-fidelity Cash/Payroll/Savings Home cards and six reviewed screenshots squash merged to develop d24cff8e887f7f478904fb54786a6c9d909921d8 after all four required CI gates. Current source-only W4.4 PR #353 corrects the imported legacy account filter to Web's [accountId,fromAccountId,toAccountId].filter(Boolean), preserving historical nonempty whitespace endpoints but excluding falsy empty IDs and unrelated event-leg hints. Canonical event filtering still uses exact non-credit ledger leg IDs, including empty strings. Targeted JUnit regression authored; exact-head checks pending. Web parity remains 1/6 implementations, 11/24 subtasks, physical S24 owner issue #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete same-head #352 tracking, Android CI, screenshot regression and hosted S24 instrumentation. Inspect actual 412dp Light/Dark/large-font screenshots and 1680dp Home views before updating Home-only golden references; do not blanket-accept unrelated UserNotice failure. Finalize only if 4/4 green and PR reviews/base valid; no physical owner #149 signoff claimed.
+Next Run PR #353 Project Tracking, Android CI, screenshot regression and hosted S24 emulator on the same final head; inspect failures and integrate develop only at 4/4 success. No UI screenshots expected to change. Then resume other W4.4 Web parity gaps, without claiming physical owner S24 #149 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -360,7 +360,15 @@ data class ActivityUiState(
             // Unbacked screenshot fixtures retain their illustrative routes.
             val matchesAccount = when {
                 accountFilterId == null -> true
-                item.isLegacyTransaction || item.canonicalSourceOrdinal < 0 ->
+                item.isLegacyTransaction ->
+                    // Web: [accountId, fromAccountId, toAccountId].filter(Boolean).
+                    // Falsy empty legacy endpoints and unrelated event-leg hints
+                    // are not account identities; whitespace remains truthy.
+                    sequenceOf(item.accountId, item.fromAccountId, item.toAccountId)
+                        .filterNotNull()
+                        .any { it.isNotEmpty() && it == accountFilterId }
+                item.canonicalSourceOrdinal < 0 ->
+                    // Unbacked illustrative screenshot fixtures retain their routes.
                     item.accountId == accountFilterId ||
                         item.fromAccountId == accountFilterId ||
                         item.toAccountId == accountFilterId ||
