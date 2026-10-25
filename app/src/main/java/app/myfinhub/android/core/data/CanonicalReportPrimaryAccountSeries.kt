@@ -23,7 +23,10 @@ fun CanonicalFinanceDocument.canonicalReportPrimaryAccountSeries(
     asOf: String? = null,
 ): List<CanonicalReportPrimaryAccountPoint> {
     val ending=YearMonth.parse(month)
-    val ids=accountIds.distinct().filter(String::isNotBlank)
+    // Web reports.ts primaryAccountSeries writes a property for every supplied
+    // account ID, including historical empty or whitespace-only identifiers.
+    // Duplicate IDs collapse naturally as object keys, but never drop a key.
+    val ids=accountIds.distinct()
     // Web reports.ts reportMonths(month, count) uses Array.from({length:count}).
     // Do not silently cap to 60: a 61-month report must contain the selected
     // ending month instead of accidentally dropping the last requested point.
