@@ -45,6 +45,22 @@ class WebReportPrimaryAccountSeriesParityTest {
         assertEquals(before,doc.raw)
     }
 
+    @Test fun moreThanSixtyReportMonthsIncludeSelectedEndingMonthLikeWeb() {
+        // Web reportMonths("2026-10", 61) emits all 61 months. Android's old
+        // 60-row cap incorrectly shifted the series and omitted October.
+        val original=doc.raw
+        val rows=doc.canonicalReportPrimaryAccountSeries(
+            "2026-10",listOf("pay"),count=61,asOf="2026-10-19",
+        )
+        assertEquals(61,rows.size)
+        assertEquals("2021-10",rows.first().monthIso)
+        assertEquals("2026-09",rows[59].monthIso)
+        assertEquals("2026-10",rows.last().monthIso)
+        assertEquals("2026-10-19",rows.last().cutoffDateIso)
+        assertEquals(1100.0,rows.last().balances.getValue("pay"),0.001)
+        assertEquals(original,doc.raw)
+    }
+
     @Test fun decToJanBoundaryAndUnknownAccountRemainStable() {
         val points=doc.canonicalReportPrimaryAccountSeries(
             "2026-02",listOf("pay","removed"),count=3,asOf="2026-02-12")
