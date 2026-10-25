@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Revalidate draft Home fidelity PR #352 after fixing the test compile error and updating the primary-card layout: require immutable current-head Project Tracking, Android CI, screenshot regression and hosted S24 UI checks, plus direct review of changed Home light/dark/large-font screenshots. Investigate unrelated UserNotice screenshot without changing unrelated UI. W4.4 PR #351 remains draft; physical S24 #149 signoff pending.
+- [ ] Validate current #352 merged-develop branch head with all four exact-head checks and real Compose Home light/dark/large-font/privacy screenshots against current Web desktop/mobile design. Approve refreshed Home-only screenshot references only after visually reviewing generated candidates; investigate unrelated UserNotice comparison separately. W4.4 still in progress despite merged #351; physical Galaxy #149 pending.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #352, branch android/home-desktop-primary-cards-parity-20261025
-Current W6.2: Owner-requested latest desktop primary-account cards parity: current Web develop DashboardPage and accepted #595/#597 use coherent Cash/Payroll/Savings card composition, 80% monotone smooth curves, movement dots only for changed selected-month balances, historical comparison, three tone colors, always-visible non-sensitive chart under monetary privacy, consistent 30-day delta, two per-account actions. Native Compose source + Kotlin/JVM/hosted Compose test cases authored on draft PR #352; first hosted head failed an unsupported standalone assertExists import and produced five expected Home plus one unrelated UserNotice screenshot differences; corrected import and compact desktop-style amount/chart zone in new source batch; current-head CI and direct visual inspection pending. W4.4 #351 remains separate draft; canonical source/history/auth unchanged. Accepted parity stays 1/6 implementations and 11/24 subtasks until fresh evidence.
+Current W6.2: Merged #351 W4.4 historical ledger leg account-key parity after same-head 4/4 GitHub checks at 1ea3976a048a0cc2e157e1fcea7f4f453797a676; integrated develop 38adc338fe8ae0f5298687382aa7d3043e098f9e. Owner Home desktop/Web primary-card redesign #352 is still draft: 80% monotone smooth native curves, current-month daily movement markers, 30-day delta each card, Savings goal/previous-month comparison, role colors, compact amount/chart and account-scoped buttons, charts persistent under monetary privacy. First 4-gate run failed hosted S24 due multiple 'Νέα κίνηση' text matches and missing synthetic delta; revised source tags and contextual accessibility labels, test selectors and screenshot fixture sample deltas, plus merged latest develop #351 are now present on the new unvalidated head. Five Home screenshot baseline changes and one unrelated UserNotice baseline discrepancy remain to investigate; live visual acceptance not yet completed. Accepted 1/6 and 11/24, physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Draft #352 latest head: rerun four exact-head checks; inspect rendered Home screenshots before updating references, investigate unrelated UserNotice difference, merge only after all gates pass. W4.4 #351 independent unmerged, physical #149 pending.
+Next Complete same-head #352 tracking, Android CI, screenshot regression and hosted S24 instrumentation. Inspect actual 412dp Light/Dark/large-font screenshots and 1680dp Home views before updating Home-only golden references; do not blanket-accept unrelated UserNotice failure. Finalize only if 4/4 green and PR reviews/base valid; no physical owner #149 signoff claimed.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
