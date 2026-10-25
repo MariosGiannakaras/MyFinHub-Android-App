@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate all four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs for draft W4.3 #343. If and only if all 4 success on unchanged head, ready/squash merge. Continue outstanding W2–W5 native feature parity and owner physical Galaxy S24 Ultra #149 acceptance separately. No financial writes, Web/backend/schema, SMS, destructive card UI or signed release.
+- [ ] Validate draft W4.4 PR #344 on unchanged final head with four GitHub gates: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Only squash merge after 4/4 green. Continue W4.4 transactions and analytics completeness and wider W2–W5; owner physical Galaxy S24 #149 separate. No live finance writes, Web/backend/schema, SMS, irreversible card-delete UI or signed/main release.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #343, branch android/w4-budget-review-category-js-truthiness-20261025
-Current W4.3: W4.3 #342 scheduled/recurring category truthiness and per-posting budget integer-cents fixes passed 4/4 immutable exact-head checks at 19503a87429b98e216d150d2f3764361aaa4b04f, squash merged develop d3fb520a923bda214594aa509b1240f503150aea. Current draft #343 Web reviewed category JS truthiness excludes whitespace-only reviewed label from category/subcategory spending while empty review strings fall back; Kotlin JVM golden authored, local Gradle not executed, new 4 exact-head hosted gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
+Issue #155, PR #344, branch android/w44-reports-negative-limit-blank-grouping-20261025
+Current W4.4: W4.3 #343 reviewed legacy category JS truthiness in category/subcategory spending passed 4/4 same-head gates at 3af166fd0db067c1bc2d0e9d5861f87d74651d47, squash merged develop 28b96beda33abca9f066f9cd1cb2bcb50822bad7. Draft W4.4 #344 Web reports.ts categoryMomentum negative JS slice limit and nonempty whitespace counterparty fallback goldens authored over latest develop. Kotlin source and tests, original FinanceData immutable, local Gradle not run; new four exact-head hosted CI gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check #343 four immutable final-head CI jobs: tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented; ready/merge only at 4/4 green. Continue broader W2–W5 feature parity, keep owner physical S24 #149 separate and no finance production writes, SMS, Web/backend/schema, irreversible card delete UI, signed release or main.
+Next Verify W4.4 PR #344 exact final-head 4/4 tracking-verify, android-verify, screenshot-regression, hosted S24. Ready and squash merge only if all green. Continue W4.4 analytical feature parity and other W2–W5 tasks; preserve physical S24 #149 acceptance as separate, no finance writes, SMS, Web/backend/schema edits, destructive card UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

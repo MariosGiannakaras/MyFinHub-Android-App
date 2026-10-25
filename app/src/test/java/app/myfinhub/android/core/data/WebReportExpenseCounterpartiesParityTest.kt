@@ -69,6 +69,24 @@ class WebReportExpenseCounterpartiesParityTest {
         assertEquals(100.0,rows[0].amount,0.001)
     }
 
+    @Test fun historicalWhitespaceOnlyCategoryRetainsWebTruthyCounterpartyGroup() {
+        // Web categoryPath(" ") gives a nonempty string; fallback does
+        // not replace that historical category with a generic label.
+        val imported=CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"transactions":[]},"state":{"events":[
+            {"id":"whitespace","kind":"expense","date":"2026-10-05",
+             "category":" ","note":"","amount":40}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val original=imported.raw
+        val row=imported.canonicalReportExpenseCounterparties("2026-10").single()
+        assertEquals(" ",row.title)
+        assertEquals(" ",row.category)
+        assertEquals(40.0,row.amount,0.00001)
+        assertEquals(1,row.count)
+        assertEquals(original,imported.raw)
+    }
+
     @Test fun sourceSharesAreCalculatedBeforeTopNClamping() {
         val rows=doc.canonicalReportExpenseCounterparties("2026-10","2026-10-15",1)
         assertEquals(1,rows.size)

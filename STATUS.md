@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.3 #341 Web normalized category spending and latest label passed 4/4 exact-head gates, squash merged develop ce7b15ebca5b1d7c947de3fb91415c85fa0d0347. W4.3 #342 Web budget future commitment whitespace-category truthiness and per-posting integer-cent category allocation arithmetic passed Project Tracking, Android CI, screenshot regression and hosted S24 (4/4 at immutable head 19503a87429b98e216d150d2f3764361aaa4b04f), squash merged develop d3fb520a923bda214594aa509b1240f503150aea. Active draft W4.3 #343 aligns Web reviewed legacy category truthiness: decision.category consisting only of whitespace is JavaScript-truthy, but Web spending discards it after trim; Android wrongly fell back to transaction's seed category, overcounting both category and subcategory budgets. Fixes both read-only projections and adds immutable Kotlin JVM golden with whitespace suppressed, genuine empty review fallback and €15 overall/category/subcategory use. Full #342 develop ancestry, canonical tracker and three generated handoffs refreshed. No local Gradle run, all 4 new exact-head CI gates pending. Broader W2–W5 parity and physical owner Galaxy S24 Ultra #149 pending; no production financial data writes, SMS #146, irreversible card-delete UI, backend/Web/schema changes, signed release or main promotion.
+Web parity 1/6 implementations · 11/24 subtasks. W4.3 #342 budget commitment category truthiness and integer-cent accumulation passed 4/4 exact-head and merged develop d3fb520a923bda214594aa509b1240f503150aea. W4.3 #343 reviewed legacy category JS truthiness in category/subcategory budget projections passed 4/4 immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 on 3af166fd0db067c1bc2d0e9d5861f87d74651d47, squash merged develop 28b96beda33abca9f066f9cd1cb2bcb50822bad7. Current draft W4.4 PR #344 aligns read-only analytics with Web reports.ts: categoryMomentum uses JavaScript slice(0,limit), including negative limits; expense counterparty title/category fallback preserves historically nonempty whitespace-only strings as JS-truthy rather than inventing generic labels. Android source and two Kotlin JVM regression goldens authored, original FinanceData immutable. Reanchored on merged #343 develop, canonical tracker and three generated handoffs included. No local Gradle run; four new final-head GitHub CI gates pending. Broader W2–W5 features and physical owner Galaxy S24 Ultra #149 acceptance pending, with no live finance writes, SMS #146, destructive card-delete UI, Web/backend/schema, signed release or main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate all four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs for draft W4.3 #343. If and only if all 4 success on unchanged head, ready/squash merge. Continue outstanding W2–W5 native feature parity and owner physical Galaxy S24 Ultra #149 acceptance separately. No financial writes, Web/backend/schema, SMS, destructive card UI or signed release.
+1. Validate draft W4.4 PR #344 on unchanged final head with four GitHub gates: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Only squash merge after 4/4 green. Continue W4.4 transactions and analytics completeness and wider W2–W5; owner physical Galaxy S24 #149 separate. No live finance writes, Web/backend/schema, SMS, irreversible card-delete UI or signed/main release.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #343, branch android/w4-budget-review-category-js-truthiness-20261025
-Current W4.3: W4.3 #342 scheduled/recurring category truthiness and per-posting budget integer-cents fixes passed 4/4 immutable exact-head checks at 19503a87429b98e216d150d2f3764361aaa4b04f, squash merged develop d3fb520a923bda214594aa509b1240f503150aea. Current draft #343 Web reviewed category JS truthiness excludes whitespace-only reviewed label from category/subcategory spending while empty review strings fall back; Kotlin JVM golden authored, local Gradle not executed, new 4 exact-head hosted gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 #149 pending.
+Issue #155, PR #344, branch android/w44-reports-negative-limit-blank-grouping-20261025
+Current W4.4: W4.3 #343 reviewed legacy category JS truthiness in category/subcategory spending passed 4/4 same-head gates at 3af166fd0db067c1bc2d0e9d5861f87d74651d47, squash merged develop 28b96beda33abca9f066f9cd1cb2bcb50822bad7. Draft W4.4 #344 Web reports.ts categoryMomentum negative JS slice limit and nonempty whitespace counterparty fallback goldens authored over latest develop. Kotlin source and tests, original FinanceData immutable, local Gradle not run; new four exact-head hosted CI gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check #343 four immutable final-head CI jobs: tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented; ready/merge only at 4/4 green. Continue broader W2–W5 feature parity, keep owner physical S24 #149 separate and no finance production writes, SMS, Web/backend/schema, irreversible card delete UI, signed release or main.
+Next Verify W4.4 PR #344 exact final-head 4/4 tracking-verify, android-verify, screenshot-regression, hosted S24. Ready and squash merge only if all green. Continue W4.4 analytical feature parity and other W2–W5 tasks; preserve physical S24 #149 acceptance as separate, no finance writes, SMS, Web/backend/schema edits, destructive card UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
