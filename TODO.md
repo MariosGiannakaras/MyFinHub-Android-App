@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.4 draft #351 on one immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 tests. Do not merge until 4/4 passed and no unresolved reviews. Independent Home desktop fidelity #352 remains draft; physical Galaxy owner #149 pending.
+- [ ] Validate current #352 merged-develop branch head with all four exact-head checks and real Compose Home light/dark/large-font/privacy screenshots against current Web desktop/mobile design. Approve refreshed Home-only screenshot references only after visually reviewing generated candidates; investigate unrelated UserNotice comparison separately. W4.4 still in progress despite merged #351; physical Galaxy #149 pending.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #351, branch android/w44-ledger-blank-account-leg-parity-20261025
-Current W4.4: Merged W4.4 #350 passed all four exact-head CI gates on 2026-10-25. Draft #351 read-only exact Web transaction account leg key parity source and fixture authored, preserving empty/whitespace-only historical IDs, stable dedup and €10 finance total, excluding synthetic credit-card; source not yet CI tested. Concurrent independently tracked Home latest desktop-card parity draft #352 pending. 11/24 accepted subtasks, 1/6 implementations, physical S24 pending.
+Issue #155, PR #352, branch android/home-desktop-primary-cards-parity-20261025
+Current W6.2: Merged #351 W4.4 historical ledger leg account-key parity after same-head 4/4 GitHub checks at 1ea3976a048a0cc2e157e1fcea7f4f453797a676; integrated develop 38adc338fe8ae0f5298687382aa7d3043e098f9e. Owner Home desktop/Web primary-card redesign #352 is still draft: 80% monotone smooth native curves, current-month daily movement markers, 30-day delta each card, Savings goal/previous-month comparison, role colors, compact amount/chart and account-scoped buttons, charts persistent under monetary privacy. First 4-gate run failed hosted S24 due multiple 'Νέα κίνηση' text matches and missing synthetic delta; revised source tags and contextual accessibility labels, test selectors and screenshot fixture sample deltas, plus merged latest develop #351 are now present on the new unvalidated head. Five Home screenshot baseline changes and one unrelated UserNotice baseline discrepancy remain to investigate; live visual acceptance not yet completed. Accepted 1/6 and 11/24, physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Draft #351: validate 4/4 immutable exact-head Kotlin, tracking, screenshot and S24 gates, then integrate only on success and unchanged develop. Separate desktop Home draft #352 still pending source/UI acceptance. Keep W4.4 in_progress, owner physical #149 pending.
+Next Complete same-head #352 tracking, Android CI, screenshot regression and hosted S24 instrumentation. Inspect actual 412dp Light/Dark/large-font screenshots and 1680dp Home views before updating Home-only golden references; do not blanket-accept unrelated UserNotice failure. Finalize only if 4/4 green and PR reviews/base valid; no physical owner #149 signoff claimed.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

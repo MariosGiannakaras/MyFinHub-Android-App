@@ -273,6 +273,26 @@ internal fun MyFinHubAppContent(
                         onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
                         onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
                         onOpenQuickEntry = { openFastExpense(homeBackStack) },
+                        onAccountQuickEntry = { accountId, role ->
+                            onQuickEntryAction(QuickEntryAction.Reset)
+                            if (role == app.myfinhub.android.feature.home.HomePrimaryRole.SAVINGS) {
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.SAVING))
+                                onQuickEntryAction(QuickEntryAction.ToAccountChanged(accountId))
+                            } else {
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+                                onQuickEntryAction(QuickEntryAction.AccountChanged(accountId))
+                            }
+                            homeBackStack.pushIfNew(AppRoute.QuickEntry)
+                        },
+                        onAccountTransactions = { accountId ->
+                            onActivityAction(ActivityAction.ApplyFilters(
+                                type = app.myfinhub.android.feature.activity.ActivityFilter.ALL,
+                                accountId = accountId, category = null,
+                                dateFrom = null, dateTo = null,
+                            ))
+                            activityBackStack.popToRoot()
+                            currentDestination = TopLevelDestination.ACTIVITY
+                        },
                         onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         onOpenAllAccounts = {
                             homeBackStack.popToRoot()

@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -9,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.runtime.mutableStateOf
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.activity.ActivityItem
@@ -24,6 +26,48 @@ import org.junit.Rule
 import org.junit.Test
 
 class S5HomeWalletTest {
+    @Test
+    fun homeCashIdentityDisplaysOneLabelAndWalletContext() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenSettings = {},
+                    onOpenQuickEntry = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+        // Web dashboard uses account title and wallet fallback, not the same title twice.
+        composeRule.onAllNodesWithText("Μετρητά", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onNodeWithText("Πορτοφόλι").assertIsDisplayed()
+    }
+
+    @Test
+    fun homeCardChartsRemainVisibleWhenAmountsAreHidden() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenSettings = {},
+                    onOpenQuickEntry = {},
+                    amountsVisibleOverride = false,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
+        composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_account_delta_cash"))
+        composeRule.onNodeWithTag("home_account_delta_cash").assertIsDisplayed()
+        composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
+    }
+
     @get:Rule
     val composeRule = createComposeRule()
 
@@ -54,7 +98,7 @@ class S5HomeWalletTest {
         }
 
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
-        composeRule.onNodeWithText("Νέα κίνηση").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
