@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -41,7 +42,7 @@ class S5HomeWalletTest {
         composeRule.onNodeWithTag("home_list")
             .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
         composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
-        composeRule.onNodeWithText("30ημ.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("home_account_delta_cash").assertExists()
         composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
     }
 

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run draft W4.4 PR #350 four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs; only ready/squash merge after all 4 successes on immutable head with no reviews or base drift. Continue broader W4.4 transactional filters, analytics and remaining W2–W5; owner physical S24 #149 separately pending. No finance production writes, SMS, Web/backend/schema, destructive card UI, signed release or main promotion.
+- [ ] Validate draft Android Home desktop-card parity PR #352 with canonical tracking, four immutable same-head GitHub gates and real Compose screenshot inspection; only merge after successful code, UI, accessibility and security checks. Continue independent unmerged W4.4 #351 after its own tracking and checks. Maintain 11/24 accepted parity subtasks until new evidence. Physical S24 rc12 #149 remains pending; no release, main promotion, SMS, backend/Web writes or irreversible card deletion.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #350, branch android/w44-ledger-id-locale-sort-20261025
-Current W4.4: W4.4 #349 Web report primary account identity with historical whitespace and empty IDs passed 4/4 immutable final-head gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41 and squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 #350 localeCompare ID tie sort for Web TransactionsPage newest/oldest same-day rows, regression authored for mixed-case and duplicated IDs with unchanged €15 expense and immutable FinanceData, full #349 develop integration. Local Gradle not executed; four new exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
+Issue #155, PR #352, branch android/home-desktop-primary-cards-parity-20261025
+Current W6.2: Owner-requested latest desktop primary-account cards parity: current Web develop DashboardPage and accepted #595/#597 use coherent Cash/Payroll/Savings card composition, 80% monotone smooth curves, movement dots only for changed selected-month balances, historical comparison, three tone colors, always-visible non-sensitive chart under monetary privacy, consistent 30-day delta, two per-account actions. Native Compose source + Kotlin/JVM/hosted Compose test cases authored on draft PR #352; local builds/screenshots and all four current-head CI gates pending. W4.4 #351 remains separate draft; canonical source/history/auth unchanged. Accepted parity stays 1/6 implementations and 11/24 subtasks until fresh evidence.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.4 PR #350 exact-head tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented. Ready/squash merge only with 4/4 green unchanged head, base and reviews. Continue wider W4.4 and W2–W5 while physical S24 Ultra #149 pending; no live finance writes, SMS, Web/backend/schema changes, irreversible card-delete UI, signed release or main.
+Next Draft #352: confirm Kotlin/Compose compile and targeted tests, review real rendered S24 light/dark/large-font/privacy screenshot candidates, pass Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all on one exact head; merge only when complete. Separate W4.4 #351 remains draft needing canonical tracking/CI. Physical S24 owner #149 remains pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
