@@ -314,6 +314,35 @@ class CanonicalProductProjectionTest {
 
 
     @Test
+    fun mixedCaseHistoricalIdsUseWebLocaleCompareForBothSortDirections() {
+        // In Web TransactionsPage, "id-a".localeCompare("id-A") < 0
+        // (also for el-GR), while Kotlin String.compareTo reverses that
+        // relative order. Equal IDs remain in original source order.
+        val document=CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Cash"}],
+            "transactions":[
+              {"id":"id-A","date":"2026-10-12","type":"expense","amount":1,
+               "accountId":"cash","note":"upper"},
+              {"id":"id-a","date":"2026-10-12","type":"expense","amount":2,
+               "accountId":"cash","note":"lower-first"},
+              {"id":"id-a","date":"2026-10-12","type":"expense","amount":3,
+               "accountId":"cash","note":"lower-second"}
+            ]},"state":{"events":[
+              {"id":"id-z","date":"2026-10-12","kind":"expense","amount":4,"note":"z"},
+              {"id":"id-a","date":"2026-10-12","kind":"expense","amount":5,"note":"lower-event"}
+            ]}}
+        """.trimIndent()).jsonObject)
+        val original=document.raw
+        val state=projectCanonicalProduct(document,LocalDate.of(2026,10,21)).activityState
+        assertEquals(listOf("z","upper","lower-first","lower-second","lower-event"),
+            state.visibleItems.map { it.note })
+        assertEquals(listOf("lower-first","lower-second","lower-event","upper","z"),
+            state.copy(sortOldestFirst=true).visibleItems.map { it.note })
+        assertEquals(15.0,state.visibleExpense,0.000001)
+        assertEquals(original,document.raw)
+    }
+
+    @Test
     fun fullMonthWebTransactionOverviewUsesOperationalTotalsAndCardExcludedSourceCounts() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
             {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],

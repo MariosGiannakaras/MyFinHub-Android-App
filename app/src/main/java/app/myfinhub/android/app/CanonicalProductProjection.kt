@@ -50,6 +50,7 @@ import app.myfinhub.android.feature.activity.ActivityMonthlyOverview
 import app.myfinhub.android.feature.activity.ActivitySplitPart
 import app.myfinhub.android.feature.activity.ActivityKind
 import app.myfinhub.android.feature.activity.ActivityUiState
+import app.myfinhub.android.feature.activity.greekActivityLabelOrder
 import app.myfinhub.android.feature.activity.activityTypeLabel
 import app.myfinhub.android.feature.activity.cleanLegacyActivityNote
 import app.myfinhub.android.feature.home.HomeAccount
@@ -700,9 +701,13 @@ private fun buildActivityItems(
     // Array.sort retains original seed-before-event source order when both
     // keys collide. createdAt/updatedAt belong to other projections (such
     // as card activity) and must not reorder this transaction ledger.
+    // Web TransactionsPage ties use id.localeCompare(...), NOT Kotlin's
+    // Unicode String.compareTo: mixed-case imported IDs otherwise reorder.
+    // Array.sort is stable, preserving original source order for equal keys.
+    val idOrder = greekActivityLabelOrder()
     return rows.sortedWith(
         compareByDescending<ActivitySortRow> { it.date }
-            .thenByDescending { it.item.id },
+            .thenComparator { left, right -> idOrder.compare(right.item.id, left.item.id) },
     ).map(ActivitySortRow::item)
 }
 private fun eventActivityKind(kind: String): ActivityKind = when (kind) {
