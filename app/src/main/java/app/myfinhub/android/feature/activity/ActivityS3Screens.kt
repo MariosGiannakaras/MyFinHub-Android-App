@@ -780,7 +780,9 @@ internal fun ActivityFilterSheetContent(
                     onApply(
                         typeId.takeIf(String::isNotBlank),
                         accountId.takeIf(String::isNotBlank),
-                        category.takeIf(String::isNotBlank),
+                        // Preserve exact historical category identity, even if
+                        // its imported label contains only spaces.
+                        category.takeIf(String::isNotEmpty),
                         dateFrom.takeIf(String::isNotBlank),
                         dateTo.takeIf(String::isNotBlank),
                     )

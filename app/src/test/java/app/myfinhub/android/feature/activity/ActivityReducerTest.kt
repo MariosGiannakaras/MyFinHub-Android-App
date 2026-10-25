@@ -113,6 +113,73 @@ class ActivityReducerTest {
     }
 
     @Test
+    fun persistedLedgerSearchMatchesUntrimmedWebSubstringBoundaries() {
+        // Web searches the lowercased raw query, never query.trim().
+        fun persisted(id: String, note: String, ordinal: Int) = ActivityItem(
+            id = id, dateLabel = "10 Οκτ", kind = ActivityKind.EXPENSE,
+            title = note, subtitle = note, amount = -12.0,
+            accountLabel = "Cash", category = "Groceries",
+            rawDate = "2026-10-10", note = note,
+            canonicalKind = "expense", canonicalSourceOrdinal = ordinal,
+        )
+        val state = ActivityUiState(items = listOf(
+            persisted("exact", "market", 0),
+            persisted("prefix", "marketplace", 1),
+        ))
+        assertEquals(listOf("exact", "prefix"),
+            state.copy(query = "MARKET").visibleItems.map { it.id })
+        assertEquals(listOf("exact"),
+            state.copy(query = "market ").visibleItems.map { it.id })
+        assertTrue(state.copy(query = " market").visibleItems.isEmpty())
+        assertTrue(state.copy(query = "   ").visibleItems.isEmpty())
+        assertEquals(listOf("exact", "prefix"),
+            state.copy(query = "").visibleItems.map { it.id })
+        assertEquals(listOf("market", "marketplace"), state.items.map { it.note })
+    }
+
+    @Test
+    fun whitespaceOnlyLegacyAndEventCategoryKeepExactWebFilterIdentity() {
+        // Nonempty whitespace is truthy under the Web legacy/event fallback.
+        val legacy = ActivityItem(
+            id = "legacy", dateLabel = "10 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "seed", subtitle = "", amount = -5.0,
+            accountLabel = "Cash", category = "   ",
+            rawDate = "2026-10-10", note = "seed", isLegacyTransaction = true,
+            canonicalSourceOrdinal = 0,
+        )
+        val event = ActivityItem(
+            id = "event", dateLabel = "10 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "event", subtitle = "", amount = -7.0,
+            accountLabel = "Cash", category = " ",
+            rawDate = "2026-10-10", note = "event",
+            canonicalKind = "expense", canonicalSourceOrdinal = 0,
+        )
+        assertEquals("   ", legacy.webLedgerCategoryLabel())
+        assertEquals(" ", event.webLedgerCategoryLabel())
+        assertEquals("Άλλο", legacy.copy(category = "").webLedgerCategoryLabel())
+        assertEquals("Έξοδο", event.copy(category = "").webLedgerCategoryLabel())
+        val state = ActivityUiState(items = listOf(legacy, event))
+        assertEquals(setOf("   ", " "), state.availableCategories.toSet())
+        val selectedLegacy = reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = "   ",
+            dateFrom = null, dateTo = null,
+        ))
+        assertEquals("   ", selectedLegacy.ledgerCategoryFilter)
+        assertEquals(listOf("legacy"), selectedLegacy.visibleItems.map { it.id })
+        val selectedEvent = reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = " ",
+            dateFrom = null, dateTo = null,
+        ))
+        assertEquals(" ", selectedEvent.ledgerCategoryFilter)
+        assertEquals(listOf("event"), selectedEvent.visibleItems.map { it.id })
+        assertEquals(null, reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = "",
+            dateFrom = null, dateTo = null,
+        )).ledgerCategoryFilter)
+        assertEquals(listOf("legacy", "event"), state.items.map { it.id })
+    }
+
+    @Test
     fun searchIncludesSplitPartLabelsCategoriesAndSubcategories() {
         val split = ActivityItem(
             "split", "21 Οκτ", ActivityKind.EXPENSE, "Σύνθετη κίνηση", "",
