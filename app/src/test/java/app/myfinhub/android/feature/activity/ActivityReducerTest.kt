@@ -160,10 +160,22 @@ class ActivityReducerTest {
         assertEquals("Έξοδο", event.copy(category = "").webLedgerCategoryLabel())
         val state = ActivityUiState(items = listOf(legacy, event))
         assertEquals(setOf("   ", " "), state.availableCategories.toSet())
-        assertEquals(listOf("legacy"),
-            state.copy(ledgerCategoryFilter = "   ").visibleItems.map { it.id })
-        assertEquals(listOf("event"),
-            state.copy(ledgerCategoryFilter = " ").visibleItems.map { it.id })
+        val selectedLegacy = reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = "   ",
+            dateFrom = null, dateTo = null,
+        ))
+        assertEquals("   ", selectedLegacy.ledgerCategoryFilter)
+        assertEquals(listOf("legacy"), selectedLegacy.visibleItems.map { it.id })
+        val selectedEvent = reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = " ",
+            dateFrom = null, dateTo = null,
+        ))
+        assertEquals(" ", selectedEvent.ledgerCategoryFilter)
+        assertEquals(listOf("event"), selectedEvent.visibleItems.map { it.id })
+        assertEquals(null, reduceActivity(state, ActivityAction.ApplyFilters(
+            type = ActivityFilter.ALL, accountId = null, category = "",
+            dateFrom = null, dateTo = null,
+        )).ledgerCategoryFilter)
         assertEquals(listOf("legacy", "event"), state.items.map { it.id })
     }
 

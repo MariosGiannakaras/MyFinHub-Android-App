@@ -584,7 +584,9 @@ fun reduceActivity(state: ActivityUiState, action: ActivityAction): ActivityUiSt
         filter = if (action.typeId.isNullOrBlank()) action.type else ActivityFilter.ALL,
         typeFilterId = action.typeId?.trim()?.takeIf(String::isNotBlank),
         accountFilterId = action.accountId,
-        ledgerCategoryFilter = action.category?.trim()?.takeIf(String::isNotBlank),
+        // Exact source category identity from the Web selector. Nonempty
+        // whitespace labels must remain filterable and must not be trimmed.
+        ledgerCategoryFilter = action.category?.takeIf(String::isNotEmpty),
         ledgerDateFrom = action.dateFrom?.trim()?.takeIf(String::isNotBlank),
         ledgerDateTo = action.dateTo?.trim()?.takeIf(String::isNotBlank),
     )
