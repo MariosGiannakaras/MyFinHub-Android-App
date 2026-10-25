@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 subtasks. W4.4 #346 exact report months >60 passed all four immutable gates and squash merged develop 21c6a3424ccfea9f9505db3c21284f9acd8e2d2d. W4.4 #347 persisted Web TransactionsPage raw whitespace-preserving search plus historical truthy category detail/filter identity passed 4/4 same-head Project Tracking, Android CI, screenshot regression and hosted S24 on 2bf7f37cab9e4018753c4a87081dc35cff0a8477, squash merged develop 26d9f732cf1d0e115aa7d8e40db2d0b96782820a. Current draft W4.4 PR #348 preserves a nonempty whitespace-only historical category identity when opening Android Insights analytics read-only drill-down: forCategories previously filter(isNotBlank), losing the valid Web category and displaying zero contributing transactions. Kotlin JVM fixture authored for one historical whitespace category €25, another €10 category excluded, empty key rejected and source immutable. Complete merged #347 develop ancestry and canonical JSON tracker plus three generated handoffs included. Local Gradle not run; all four new final-head hosted CI gates pending. Broader W4.4 and W2–W5 feature parity plus physical owner Galaxy S24 Ultra #149 acceptance pending. No live finance writes, SMS #146, irreversible card-delete UI, Web/backend/schema edits, signing or main.
+Web parity 1/6 implementations · 11/24 subtasks. W4.4 #348 Insights historical whitespace category drill-down passed all 4 immutable CI gates and squash merged develop 5f5811802aa0b3e3c798702f0956b1d8a86a1d15. W4.4 #349 primaryAccountSeries historical exact account identifiers (including empty and whitespace-only keys) passed 4/4 exact-head Project Tracking, Android CI, screenshot regression and hosted S24 at b3c383b7a51bffab52f59af5ee8292a0f46dcb41, squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 PR #350 changes transaction ledger same-date ID ordering from raw Kotlin Unicode compareTo to Web JavaScript localeCompare semantics, preserving stable duplicate-ID chronological ordering across imported rows/events and matching both newest-first and oldest-first sorted states. Kotlin golden authored with mixed-case id-A/id-a, repeated id-a preserving source order and €15 unchanged finance spending. Full #349 develop ancestry included with canonical tracker and three generated docs. Local Gradle not run, all four exact-head hosted CI gates pending. Wider W4.4 and W2–W5 feature scope incomplete; owner physical Galaxy S24 Ultra #149 signoff pending. No production finance writes, SMS #146, destructive card-delete UI, Web/backend/schema changes, signing or main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Verify draft W4.4 PR #348 Project Tracking, Android CI, screenshot regression and hosted S24 exact final-head CI. Mark ready/squash merge only after 4/4 successes on unchanged head, with no unresolved review threads or develop drift. Continue W4.4 analytics and W2–W5 features; physical owner S24 #149 separate. No finance production writes, SMS, Web/backend/schema edits, destructive card UI, signed release or main.
+1. Run draft W4.4 PR #350 four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation jobs; only ready/squash merge after all 4 successes on immutable head with no reviews or base drift. Continue broader W4.4 transactional filters, analytics and remaining W2–W5; owner physical S24 #149 separately pending. No finance production writes, SMS, Web/backend/schema, destructive card UI, signed release or main promotion.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #348, branch android/w44-analytics-whitespace-drilldown-20261025
-Current W4.4: W4.4 #347 raw search whitespace and historical exact category filter identity passed all four same-head hosted CI jobs at 2bf7f37cab9e4018753c4a87081dc35cff0a8477, squash merged develop 26d9f732cf1d0e115aa7d8e40db2d0b96782820a. Draft W4.4 #348 preserves nonempty whitespace-only category IDs in read-only Insights analytics drill-down while still rejecting truly empty IDs, Kotlin golden €25 selected, €10 excluded, original FinanceData immutable. Rebased on merged #347 develop, local Gradle not executed; four new exact-head CI gates pending. Web parity 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 pending.
+Issue #155, PR #350, branch android/w44-ledger-id-locale-sort-20261025
+Current W4.4: W4.4 #349 Web report primary account identity with historical whitespace and empty IDs passed 4/4 immutable final-head gates at b3c383b7a51bffab52f59af5ee8292a0f46dcb41 and squash merged develop 7610e87c8711da635661921eb1f353dc8dbcf862. Current draft W4.4 #350 localeCompare ID tie sort for Web TransactionsPage newest/oldest same-day rows, regression authored for mixed-case and duplicated IDs with unchanged €15 expense and immutable FinanceData, full #349 develop integration. Local Gradle not executed; four new exact-head gates pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft W4.4 #348 immutable exact-head Project Tracking, Android CI, screenshot regression and hosted S24 UI jobs. Merge only with all four success and unchanged develop. Continue broader W4.4 transactions and analytics completeness, W2–W5 feature parity, separately physical S24 #149; no finance production writes, SMS, backend/Web/schema, irreversible card delete UI, signing or main.
+Next Verify W4.4 PR #350 exact-head tracking-verify, android-verify, screenshot-regression and s24-ultra-target-instrumented. Ready/squash merge only with 4/4 green unchanged head, base and reviews. Continue wider W4.4 and W2–W5 while physical S24 Ultra #149 pending; no live finance writes, SMS, Web/backend/schema changes, irreversible card-delete UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
