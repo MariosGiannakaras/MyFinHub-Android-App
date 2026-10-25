@@ -24,6 +24,27 @@ import org.junit.Rule
 import org.junit.Test
 
 class S5HomeWalletTest {
+    @Test
+    fun homeCardChartsRemainVisibleWhenAmountsAreHidden() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenSettings = {},
+                    onOpenQuickEntry = {},
+                    amountsVisibleOverride = false,
+                )
+            }
+        }
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
+        composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
+        composeRule.onNodeWithText("30ημ.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
+    }
+
     @get:Rule
     val composeRule = createComposeRule()
 

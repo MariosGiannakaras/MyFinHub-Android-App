@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.Modifier
@@ -72,6 +75,8 @@ fun ProductionHomeScreen(
     onOpenAttention: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenQuickEntry: () -> Unit,
+    onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)? = null,
+    onAccountTransactions: ((String) -> Unit)? = null,
     onOpenAccount: (String) -> Unit = {},
     onOpenAllAccounts: () -> Unit = {},
     @Suppress("UNUSED_PARAMETER") onOpenRecent: (String) -> Unit = {},
@@ -154,6 +159,9 @@ fun ProductionHomeScreen(
                     accountMetadata = accountMetadata,
                     accountMetadataLoaded = accountMetadataLoaded,
                     onOpenAccount = onOpenAccount,
+                    onQuickEntry = onOpenQuickEntry,
+                    onAccountQuickEntry = onAccountQuickEntry,
+                    onAccountTransactions = onAccountTransactions,
                 )
             }
             if (secondaryAccounts.isNotEmpty()) {
@@ -308,6 +316,9 @@ private fun HomePrimaryAccountsSection(
     accountMetadata: Map<String, AccountMetadataRecord>,
     accountMetadataLoaded: Boolean,
     onOpenAccount: (String) -> Unit,
+    onQuickEntry: () -> Unit,
+    onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)?,
+    onAccountTransactions: ((String) -> Unit)?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
         Text("Κύριοι λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -327,11 +338,18 @@ private fun HomePrimaryAccountsSection(
                 }
             } else {
                 HomePrimaryAccountCard(
-                    account,
-                    amountsVisible,
+                    account = account,
+                    amountsVisible = amountsVisible,
                     ibanRecord = accountMetadata[account.id],
                     accountMetadataLoaded = accountMetadataLoaded,
-                    onClick = { onOpenAccount(account.id) },
+                    onQuickEntry = {
+                        if (onAccountQuickEntry != null) onAccountQuickEntry(account.id, role)
+                        else onQuickEntry()
+                    },
+                    onTransactions = {
+                        if (onAccountTransactions != null) onAccountTransactions(account.id)
+                        else onOpenAccount(account.id)
+                    },
                 )
             }
         }
@@ -344,58 +362,103 @@ private fun HomePrimaryAccountCard(
     amountsVisible: Boolean,
     ibanRecord: AccountMetadataRecord?,
     accountMetadataLoaded: Boolean,
-    onClick: () -> Unit,
+    onQuickEntry: () -> Unit,
+    onTransactions: () -> Unit,
 ) {
+    val savings = account.primaryRole == HomePrimaryRole.SAVINGS
+    val delta = account.balanceChange30d
+    val color = when {
+        savings -> Color(0xFF2463F4)
+        account.primaryRole == HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
+        else -> Color(0xFF31C77B)
+    }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
                 HomeAccountIdentityMark(account)
-                HomeAccountIdentity(account, Modifier.weight(1f))
+                Column(modifier = Modifier.weight(1f)) {
+                    HomeAccountIdentity(account, Modifier.fillMaxWidth())
+                    if (account.primaryRole != HomePrimaryRole.CASH) {
+                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                    } else {
+                        Text("Πορτοφόλι", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
-            if (account.primaryRole != HomePrimaryRole.CASH) {
-                AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+            // Web Dashboard: the 30-day balance delta belongs to all three
+            // cards, including Savings; it is not the savings-goal rate.
+            if (delta != null) {
+                val direction = when {
+                    delta > .005 -> "↑"
+                    delta < -.005 -> "↓"
+                    else -> "→"
+                }
+                val signed = when {
+                    delta > .005 -> "+"
+                    delta < -.005 -> "−"
+                    else -> ""
+                }
+                val value = if (amountsVisible) signed + formatHomeEuro(kotlin.math.abs(delta)) else "•••• €"
+                Text(
+                    text = "30ημ. $direction $value",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (delta < -.005) MaterialTheme.colorScheme.error else color,
+                    modifier = Modifier.testTag("home_account_delta_${account.id}")
+                        .semantics {
+                            contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $value"
+                                else "Μεταβολή 30 ημερών: κρυφό ποσό"
+                        },
+                )
             }
             MyFinHubAmountText(
                 if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
                 if (account.balance >= 0) FinanceTone.Income else FinanceTone.Expense,
                 style = MaterialTheme.typography.headlineMedium,
             )
-            if (amountsVisible && account.balanceTrend.size > 1) {
-                HomeAccountTrendChart(account)
-            } else {
-                Text("Η εξέλιξη υπολοίπου είναι κρυφή", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (account.primaryRole == HomePrimaryRole.SAVINGS) {
-                val goal = account.savingsTarget
-                val rate = account.savingsTargetRate
+            // Monetary privacy must not erase historical chart shape, matching
+            // the Web/Windows primary-card contract and preserving no EUR in semantics.
+            HomeAccountTrendChart(account)
+            if (savings) {
+                Text(
+                    "Τρέχων μήνας · Προηγ. μήνας" +
+                        if (account.savingsTarget != null) " · Στόχος" else "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(
                     text = when {
-                        goal != null -> "Στόχος: ${if (amountsVisible) formatHomeEuro(goal) else "•••• €"}"
-                        rate != null -> "Στόχος αποταμίευσης: ${(rate * 100).toInt()}% εσόδων"
+                        account.savingsTarget != null ->
+                            "Στόχος " + if (amountsVisible) formatHomeEuro(account.savingsTarget) else "•••• €"
+                        account.savingsTargetRate != null ->
+                            "Στόχος ${(account.savingsTargetRate * 100).toInt()}% εσόδων"
                         else -> "Δεν έχει οριστεί στόχος"
                     },
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                if (account.previousMonthTrend.size > 1) {
-                    Text("Τρέχων μήνας · Προηγούμενος μήνας", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
             } else {
-                account.balanceChange30d?.let { change ->
-                    Text("Μεταβολή 30 ημερών: " +
-                        if (!amountsVisible) "•••• €"
-                        else (if (change > 0) "+" else "") + formatHomeEuro(change),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(
+                    "Προηγ. μήνας · Τρέχων μήνας",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            TextButton(onClick = onClick, modifier = Modifier.align(Alignment.End)) {
-                Text(if (account.primaryRole == HomePrimaryRole.SAVINGS) "Μεταφορά / Κινήσεις" else "Συναλλαγές")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+            ) {
+                TextButton(
+                    onClick = onQuickEntry,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
+                TextButton(
+                    onClick = onTransactions,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                ) { Text("Συναλλαγές") }
             }
         }
     }
@@ -404,83 +467,106 @@ private fun HomePrimaryAccountCard(
 @Composable
 private fun HomeAccountTrendChart(account: HomeAccount) {
     val mainColor = when (account.primaryRole) {
-        HomePrimaryRole.CASH -> MaterialTheme.colorScheme.tertiary
-        HomePrimaryRole.PAYROLL -> MaterialTheme.colorScheme.secondary
-        HomePrimaryRole.SAVINGS, null -> MaterialTheme.colorScheme.primary
+        HomePrimaryRole.CASH -> Color(0xFF31C77B)
+        HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
+        HomePrimaryRole.SAVINGS, null -> Color(0xFF2463F4)
     }
-    val comparisonColor = MaterialTheme.colorScheme.outline
+    val comparisonColor = Color(0xFFA9C5FF)
     val values = account.balanceTrend
     val comparison = account.previousMonthTrend
     val rawTarget = account.savingsTarget
     Canvas(
-        modifier = Modifier.fillMaxWidth().height(80.dp)
+        modifier = Modifier.fillMaxWidth().height(83.dp)
+            .testTag("home_account_history_${account.id}")
             .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
     ) {
-        val original = values + comparison
-        if (values.size < 2 || original.isEmpty()) return@Canvas
+        val current = if (values.size > 1) values else listOf(values.firstOrNull() ?: account.balance,
+            values.firstOrNull() ?: account.balance)
+        val original = current + comparison
         val low = original.minOrNull() ?: 0.0
         val high = original.maxOrNull() ?: 0.0
         val observedSpan = maxOf(1.0, high - low)
-        // Web accountChartTarget: don't squash an entire curve for a remote target.
-        val allowance = maxOf(observedSpan * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * 0.08)
+        val allowance = maxOf(observedSpan * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * .08)
         val target = rawTarget?.takeIf { it.isFinite() && it >= low - allowance && it <= high + allowance }
         val all = original + listOfNotNull(target)
-        val minimum = (all.minOrNull() ?: 0.0) - observedSpan * .12
-        val maximum = (all.maxOrNull() ?: 0.0) + observedSpan * .12
+        val rawMin = all.minOrNull() ?: 0.0
+        val rawMax = all.maxOrNull() ?: 0.0
+        val rawSpan = maxOf(1.0, rawMax - rawMin)
+        val minimum = rawMin - rawSpan * .07
+        val maximum = rawMax + rawSpan * .07
         val span = maxOf(1.0, maximum - minimum)
         val horizontalPad = 3.dp.toPx()
-        val verticalPad = 4.dp.toPx()
+        val verticalPad = 3.dp.toPx()
         val availableWidth = (size.width - 2 * horizontalPad).coerceAtLeast(1f)
         val availableHeight = (size.height - 2 * verticalPad).coerceAtLeast(1f)
         fun x(index: Int): Float =
-            horizontalPad + availableWidth * index / (values.size - 1)
+            horizontalPad + availableWidth * index / current.lastIndex
         fun y(value: Double): Float =
             verticalPad + ((maximum - value) / span * availableHeight).toFloat()
-        val boundary = account.monthBoundaryIndex.coerceIn(0, values.lastIndex)
+        val boundary = account.monthBoundaryIndex.coerceIn(0, current.lastIndex)
         val boundaryX = x(boundary)
-        fun drawCurve(indices: IntRange, color: androidx.compose.ui.graphics.Color, dashed: Boolean = false) {
-            if (indices.count() < 2) return
-            val path = Path()
-            indices.forEachIndexed { index, i ->
-                if (index == 0) path.moveTo(x(i), y(values[i])) else path.lineTo(x(i), y(values[i]))
-            }
-            drawPath(path, color, style = Stroke(
-                width = 2.6.dp.toPx(),
-                pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(8f, 6f)) else null,
-            ))
-        }
+        // The three selected-month guides and the month-boundary curtain
+        // are read-only chart geometry, not additional canonical data.
         if (boundary > 0 && boundaryX > horizontalPad + 1f) {
-            drawLine(comparisonColor.copy(alpha = .35f),
+            drawLine(comparisonColor.copy(alpha = .38f),
                 androidx.compose.ui.geometry.Offset(boundaryX, 0f),
                 androidx.compose.ui.geometry.Offset(boundaryX, size.height), 1.dp.toPx())
         }
-        if (comparison.size > 1) {
-            val chartWidth = (size.width - horizontalPad - boundaryX).coerceAtLeast(1f)
-            val line = Path()
-            comparison.forEachIndexed { index, value ->
-                val xp = boundaryX + chartWidth * index / (comparison.size - 1)
-                if (index == 0) line.moveTo(xp, y(value)) else line.lineTo(xp, y(value))
+        for (fraction in listOf(.25f, .5f, .75f)) {
+            val guideX = boundaryX + (size.width - horizontalPad - boundaryX) * fraction
+            drawLine(comparisonColor.copy(alpha = .20f),
+                androidx.compose.ui.geometry.Offset(guideX, 3.dp.toPx()),
+                androidx.compose.ui.geometry.Offset(guideX, size.height - 3.dp.toPx()),
+                .8.dp.toPx())
+        }
+        val points = current.mapIndexed { index, value -> HomeCurvePoint(x(index), y(value)) }
+        fun drawCurve(first: Int, last: Int, color: Color, width: Float = 2.35f) {
+            if (last <= first) return
+            val segments = homeMonotoneSegments(points, first, last)
+            if (segments.isEmpty()) return
+            val path = Path().apply {
+                moveTo(points[first].x, points[first].y)
+                segments.forEach { segment ->
+                    cubicTo(segment.control1.x, segment.control1.y,
+                        segment.control2.x, segment.control2.y,
+                        segment.end.x, segment.end.y)
+                }
             }
-            drawPath(line, comparisonColor, style = Stroke(2.dp.toPx(),
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(7f, 5f))))
+            drawPath(path, color, style = Stroke(width = width.dp.toPx()))
+        }
+        if (comparison.size > 1) {
+            val overlay = comparison.mapIndexed { index, value ->
+                HomeCurvePoint(boundaryX + (size.width - horizontalPad - boundaryX) *
+                    index / comparison.lastIndex, y(value))
+            }
+            val path = Path().apply {
+                moveTo(overlay.first().x, overlay.first().y)
+                homeMonotoneSegments(overlay).forEach { segment ->
+                    cubicTo(segment.control1.x, segment.control1.y,
+                        segment.control2.x, segment.control2.y, segment.end.x, segment.end.y)
+                }
+            }
+            drawPath(path, comparisonColor, style = Stroke(width = 1.9.dp.toPx()))
         }
         target?.let {
-            drawLine(mainColor.copy(alpha = .55f),
+            drawLine(mainColor.copy(alpha = .65f),
                 androidx.compose.ui.geometry.Offset(boundaryX, y(it)),
                 androidx.compose.ui.geometry.Offset(size.width - horizontalPad, y(it)),
-                strokeWidth = 1.8.dp.toPx(),
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 6f)))
+                strokeWidth = 1.3.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 5f)))
         }
-        if (boundary > 1) drawCurve(0 until boundary, mainColor.copy(alpha = .65f))
-        if (boundary in 1 until values.size) {
-            drawLine(mainColor.copy(alpha = .75f),
-                androidx.compose.ui.geometry.Offset(x(boundary - 1), y(values[boundary - 1])),
-                androidx.compose.ui.geometry.Offset(x(boundary), y(values[boundary])),
-                strokeWidth = 2.dp.toPx())
+        if (boundary > 1) drawCurve(0, boundary - 1, mainColor.copy(alpha = .55f))
+        if (boundary > 0) drawCurve(boundary - 1, boundary, mainColor.copy(alpha = .72f), 1.8f)
+        drawCurve(boundary, current.lastIndex, mainColor)
+        // Web: dots for changed selected-month closing balances only.
+        for (index in maxOf(1, boundary)..(current.lastIndex - 1)) {
+            if (kotlin.math.abs(current[index] - current[index - 1]) > .005) {
+                drawCircle(mainColor, radius = 1.35.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(x(index), y(current[index])))
+            }
         }
-        drawCurve(boundary until values.size, mainColor)
         drawCircle(mainColor, radius = 2.35.dp.toPx(),
-            center = androidx.compose.ui.geometry.Offset(x(values.lastIndex), y(values.last())))
+            center = androidx.compose.ui.geometry.Offset(x(current.lastIndex), y(current.last())))
     }
 }
 
