@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify draft W4.4 PR #346 exact-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. If all 4 succeed on unchanged head, mark ready and squash merge; otherwise fix or leave draft. Continue W4.4 analytics and W2–W5 parity, separately await physical owner S24 #149 acceptance. No live finance writes, Web/backend/schema, SMS, destructive card UI, signed/main release.
+- [ ] Check W4.4 draft PR #347 exact head for four required jobs: tracking-verify, android-verify, screenshot-regression and hosted s24-ultra-target-instrumented. Squash merge only after all 4 success, unchanged develop and no unresolved reviews. Continue actual W4.4 transactions, filters and analytics after narrow fix; owner physical S24 #149 separate. No production finance writes, Web/backend/schema, SMS, destructive card UI, signed release or main.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #346, branch android/w44-report-primary-series-count-parity-20261025
-Current W4.4: W4.4 #344 negative JS report slice and whitespace counterparty fallback passed 4/4 exact-head gates at 117616a985a7eb82c41b7d09975e0b100bc27c77, squash merged develop eaa712630796926782e03553663bcd940c38a14a. Current draft W4.4 #346 primary account series count cap corrected to Web reportMonths exact count; Kotlin golden for 61 months and current selected month as-of balance authored on merged #344 develop. Local Gradle not executed; four new exact-head CI gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 Ultra #149 pending.
+Issue #155, PR #347, branch android/w44-transaction-query-and-category-whitespace-20261025
+Current W4.4: W4.4 #346 report history beyond 60 months passed 4/4 immutable final-head gates at 2f3da1e91546e4b38993e4761e69ff6f2d295989, squash merged develop 21c6a3424ccfea9f9505db3c21284f9acd8e2d2d. Current draft #347 preserves Web TransactionsPage exact whitespace user query substring matching and truthy historical category strings for filter/detail; Kotlin source and two regression cases authored, original finance state unchanged, no local Gradle execution, four new final-head hosted gates pending. Web parity 1/6 implementations · 11/24 subtasks, physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check W4.4 PR #346 four immutable final-head CI jobs (tracking-verify, android-verify, screenshot-regression, hosted s24-ultra-target-instrumented) and only ready/squash merge after all green on the same SHA. Continue full W4.4 analytics and W2–W5, preserve physical S24 #149 and no financial writes, SMS, Web/backend/schema, destructive card UI, signed/main release.
+Next Verify W4.4 #347 four exact same-head jobs, no unresolved reviews and unchanged develop, ready/squash merge only on 4/4 green. Continue W4.4 transactions/analytics completeness and wider W2–W5; owner physical S24 #149 separate, no finance writes, SMS, Web/backend/schema, card delete UI, signed/main release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

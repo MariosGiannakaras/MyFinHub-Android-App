@@ -139,7 +139,9 @@ internal fun cleanLegacyActivityNote(note: String): String {
 private val greekLedgerSearchLocale = Locale.forLanguageTag("el-GR")
 
 internal fun ActivityItem.matchesWebLedgerSearch(needle: String): Boolean {
-    if (needle.isBlank()) return true
+    // Web TransactionsPage searches user input without trimming.
+    // Leading and trailing spaces are meaningful substring boundaries.
+    if (needle.isEmpty()) return true
     // TransactionsPage searches a single space-separated string, allowing
     // phrases spanning fields. Locale case-folding must preserve accents.
     val webCategory = when {
@@ -339,7 +341,8 @@ data class ActivityUiState(
     // Activity can contain hundreds of canonical events. Compute immutable projections once per
     // state instance instead of re-filtering every time Compose reads them.
     val visibleItems: List<ActivityItem> = run {
-        val needle = query.trim()
+        // Preserve verbatim Web query.toLocaleLowerCase('el-GR') semantics.
+        val needle = query
         val selectedAnalyticsCategories = categoryFilterIds.orEmpty()
         val effectiveDateFrom = if (isAnalyticsScope) dateFrom else ledgerDateFrom
         val effectiveDateTo = if (isAnalyticsScope) dateTo else ledgerDateTo
@@ -670,7 +673,8 @@ internal fun ActivityItem.isInternalTransfer(): Boolean = canonicalKind == "tran
 
 internal fun ActivityItem.webLedgerCategoryLabel(): String {
     if (canonicalKind == "split") return "Επιμέρους κατηγορίες"
-    val selectedCategory = category?.takeIf(String::isNotBlank)
+    // Web row.category || fallback considers whitespace-only strings present.
+    val selectedCategory = category?.takeIf(String::isNotEmpty)
         ?: if (isLegacyTransaction) "Άλλο" else canonicalKind
     if (selectedCategory == canonicalKind) return when (canonicalKind) {
         "refund" -> "Επιστροφή χρημάτων"
