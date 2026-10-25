@@ -654,8 +654,11 @@ private fun buildActivityItems(
         events.forEachIndexed { index, event ->
             // Web TransactionsPage uses each event's canonical ledger legs when
             // identifying its accounts; accountId/from/to may all be absent.
+            // Web TransactionsPage preserves exact historical leg account IDs,
+            // including empty and whitespace-only keys. Only its synthetic
+            // credit-card account is excluded; never coerce/mutate FinanceData.
             val legAccounts = event.legs.map { it.accountId }
-                .filter { it.isNotBlank() && it != "credit-card" }.distinct()
+                .filter { it != "credit-card" }.distinct()
             // Web TransactionsPage accountText(e.legs): show only actual
             // non-credit ledger account IDs, even if optional from/to hints
             // claim another route. Empty real legs display an em dash.

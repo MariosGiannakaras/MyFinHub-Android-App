@@ -31,6 +31,37 @@ import org.junit.Test
 
 class CanonicalProductProjectionTest {
     @Test
+    fun historicalEmptyAndWhitespaceEventLegAccountsMatchWebTransactionsPage() {
+        // Web event accountIds = [...new Set(legs.map(accountId).filter(id => id !== 'credit-card'))].
+        // Historical IDs are preserved verbatim, even if unusable for new writes.
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Cash"}]},
+           "state":{"events":[
+             {"id":"historic-legs","kind":"expense","date":"2026-10-20","amount":10,
+              "note":"history","category":"Τρόφιμα",
+              "legs":[
+                {"accountId":"  ","amount":-5},
+                {"accountId":"","amount":0},
+                {"accountId":"credit-card","amount":0},
+                {"accountId":"cash","amount":-5},
+                {"accountId":"  ","amount":0}
+              ]}
+           ]}}
+        """.trimIndent()).jsonObject)
+        val original = document.raw
+        val state = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21)).activityState
+        val row = state.webLedgerItems.single()
+        assertEquals(listOf("  ", "", "cash"), row.legAccountIds.toList())
+        assertEquals(listOf("historic-legs"),
+            state.copy(accountFilterId = "  ").visibleItems.map { it.id })
+        assertEquals(listOf("historic-legs"),
+            state.copy(accountFilterId = "").visibleItems.map { it.id })
+        assertTrue(state.copy(accountFilterId = "credit-card").visibleItems.isEmpty())
+        assertEquals(10.0, state.visibleExpense, 0.000001)
+        assertEquals(original, document.raw)
+    }
+
+    @Test
     fun duplicatedSeedAndEventIdsKeepEachOwnSignedFlowAndAnalyticsCategoryAmounts() {
         val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Μετρητά"}],
