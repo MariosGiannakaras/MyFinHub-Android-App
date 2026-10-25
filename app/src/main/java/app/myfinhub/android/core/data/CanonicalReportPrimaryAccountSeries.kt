@@ -24,7 +24,10 @@ fun CanonicalFinanceDocument.canonicalReportPrimaryAccountSeries(
 ): List<CanonicalReportPrimaryAccountPoint> {
     val ending=YearMonth.parse(month)
     val ids=accountIds.distinct().filter(String::isNotBlank)
-    return (0 until count.coerceIn(0,60)).map { index ->
+    // Web reports.ts reportMonths(month, count) uses Array.from({length:count}).
+    // Do not silently cap to 60: a 61-month report must contain the selected
+    // ending month instead of accidentally dropping the last requested point.
+    return (0 until count.coerceAtLeast(0)).map { index ->
         val current=ending.minusMonths((count-1-index).toLong())
         val key=current.toString()
         val cutoff=if (asOf != null && key == asOf.take(7)) asOf
