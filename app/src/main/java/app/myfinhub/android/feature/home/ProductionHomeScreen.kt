@@ -387,12 +387,16 @@ private fun HomePrimaryAccountCard(
             ) {
                 HomeAccountIdentityMark(account)
                 Column(modifier = Modifier.weight(1f)) {
-                    HomeAccountIdentity(account, Modifier.fillMaxWidth())
-                    if (account.primaryRole != HomePrimaryRole.CASH) {
-                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
-                    } else {
+                    if (account.primaryRole == HomePrimaryRole.CASH) {
+                        // Web renders one cash label followed by the wallet context;
+                        // HomeAccountIdentity would duplicate "Μετρητά" here.
+                        Text(account.name, style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold)
                         Text("Πορτοφόλι", style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        HomeAccountIdentity(account, Modifier.fillMaxWidth())
+                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
                     }
                 }
                 if (!enlarged && deltaLabel != null) {

@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -25,6 +26,25 @@ import org.junit.Rule
 import org.junit.Test
 
 class S5HomeWalletTest {
+    @Test
+    fun homeCashIdentityDisplaysOneLabelAndWalletContext() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenSettings = {},
+                    onOpenQuickEntry = {},
+                    amountsVisibleOverride = true,
+                )
+            }
+        }
+        // Web dashboard uses account title and wallet fallback, not the same title twice.
+        composeRule.onAllNodesWithText("Μετρητά", useUnmergedTree = true).assertCountEquals(1)
+        composeRule.onNodeWithText("Πορτοφόλι").assertIsDisplayed()
+    }
+
     @Test
     fun homeCardChartsRemainVisibleWhenAmountsAreHidden() {
         composeRule.setContent {
