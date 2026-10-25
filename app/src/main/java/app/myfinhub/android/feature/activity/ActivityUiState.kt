@@ -464,7 +464,10 @@ data class ActivityUiState(
         forCategories(listOf(category), category, start, end)
 
     fun forCategories(categories: List<String>, label: String, start: String, end: String): ActivityUiState {
-        val exact = categories.filter(String::isNotBlank).toSet()
+        // A nonempty whitespace-only historical category is a real Web
+        // analytics identity. Reject only the genuinely empty key, otherwise
+        // its Insights row cannot drill into the contributing transactions.
+        val exact = categories.filter(String::isNotEmpty).toSet()
         return copy(
             query = "",
             filter = ActivityFilter.ALL,
