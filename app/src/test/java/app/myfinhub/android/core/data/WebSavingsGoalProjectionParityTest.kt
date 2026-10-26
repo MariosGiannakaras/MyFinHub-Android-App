@@ -108,6 +108,36 @@ class WebSavingsGoalProjectionParityTest {
         assertEquals(original, data.raw)
     }
 
+    @Test fun sharedForecastCanBeReusedAndWrongDateIsRejected() {
+        val data = fixture()
+        val forecast = data.cashFlowForecast(asOf, 90)
+        val fromShared = data.canonicalSavingsGoalProjection(
+            goal(290.0, "2027-01-30"), asOf, forecast90d = forecast)
+        val fromDirect = data.canonicalSavingsGoalProjection(
+            goal(290.0, "2027-01-30"), asOf)
+        assertEquals(fromDirect, fromShared)
+        assertThrows(IllegalArgumentException::class.java) {
+            data.canonicalSavingsGoalProjection(
+                goal(290.0, "2027-01-30"), asOf.plusDays(1), forecast90d = forecast)
+        }
+    }
+
+    @Test fun customScenarioIsPureAndCannotWriteOrAllocateSharedMoney() {
+        val data = fixture()
+        val before = data.raw
+        val projection = data.canonicalSavingsGoalProjection(
+            goal(290.0, "2027-01-30"), asOf)
+        val scenario = projection.canonicalCustomGoalScenario(12.34)!!
+        assertEquals("custom", scenario.label)
+        assertEquals(12.34, scenario.monthly, 0.00001)
+        assertEquals(139.36, scenario.totalAtDeadline, 0.00001)
+        assertEquals(150.64, scenario.gapAtDeadline, 0.00001)
+        assertThrows(IllegalArgumentException::class.java) {
+            projection.canonicalCustomGoalScenario(-1.0)
+        }
+        assertEquals(before, data.raw)
+    }
+
     @Test fun noKnownMovementsReportsLimitedDataAndNoOperatingAccountsAreZero() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{"accounts":[{"id":"s","kind":"savings"}],

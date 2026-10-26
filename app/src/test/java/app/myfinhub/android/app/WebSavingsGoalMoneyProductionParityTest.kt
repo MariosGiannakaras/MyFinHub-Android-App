@@ -37,5 +37,11 @@ class WebSavingsGoalMoneyProductionParityTest {
         assertTrue(goals[0].deadlinePast)
         assertFalse(goals[1].deadlinePast)
         assertNull(product.moneyState.savingsGoal)
+        val advisory = product.moneyState.savingsGoalAdvisories
+        assertEquals(2, advisory.size)
+        assertEquals("overdue", advisory[0].projection?.status)
+        assertEquals("reached", advisory[1].projection?.status)
+        assertTrue(advisory.all { it.error == null })
+        assertEquals(document.raw, document.raw)
     }
 }

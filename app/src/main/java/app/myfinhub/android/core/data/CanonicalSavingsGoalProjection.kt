@@ -72,6 +72,7 @@ fun CanonicalFinanceDocument.canonicalSavingsGoalProjection(
     goal: JsonObject,
     asOf: LocalDate,
     customMonthly: Double? = null,
+    forecast90d: CanonicalCashFlowForecast? = null,
 ): CanonicalSavingsGoalProjection {
     val asOfIso = asOf.toString()
     validGoalIsoDate(asOfIso)
@@ -105,7 +106,13 @@ fun CanonicalFinanceDocument.canonicalSavingsGoalProjection(
     } else if (status == "reached") 0L else null
 
     val operatingIds = accounts.filterNot(CanonicalAccount::isSavingsAccount).map { it.id }.toSet()
-    val forecast = cashFlowForecast(asOf, 90)
+    // One immutable 90-day forecast may be shared between multiple goals
+    // on the same screen, avoiding N expensive recomputations.
+    require(forecast90d == null ||
+        (forecast90d.asOf == asOf && forecast90d.horizonDays == 90)) {
+        "Μη συμβατή πρόβλεψη 90 ημερών για τον στόχο."
+    }
+    val forecast = forecast90d ?: cashFlowForecast(asOf, 90)
     val minimumOperatingCents = if (operatingIds.isEmpty()) 0L else {
         forecast.points.minOf { point ->
             point.balances.entries.filter { it.key in operatingIds }.fold(0L) { sum, (_, amount) ->
@@ -150,5 +157,25 @@ fun CanonicalFinanceDocument.canonicalSavingsGoalProjection(
             else -> "none"
         },
         scenarios = scenarios,
+    )
+}
+
+/** Optional Web goalProjections.ts custom scenario without posting or reserving money. */
+fun CanonicalSavingsGoalProjection.canonicalCustomGoalScenario(
+    customMonthly: Double,
+): CanonicalGoalScenario? {
+    val monthly = exactGoalCents(customMonthly, allowZero = true)
+    val months = contributionMonths ?: return null
+    val balance = exactGoalCents(sharedSavingsBalance, allowZero = true)
+    val targetCents = exactGoalCents(target)
+    val total = Math.addExact(balance, Math.multiplyExact(monthly, months.toLong()))
+    require(total in 0L..WEB_MAX_SAFE_CENTS) {
+        "Υπέρβαση του επιτρεπτού χρηματικού ορίου."
+    }
+    return CanonicalGoalScenario(
+        label = "custom",
+        monthly = centsToMoney(monthly),
+        totalAtDeadline = centsToMoney(total),
+        gapAtDeadline = centsToMoney((targetCents - total).coerceAtLeast(0L)),
     )
 }

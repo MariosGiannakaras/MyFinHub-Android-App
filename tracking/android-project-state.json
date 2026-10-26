@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.3 savings history order PR #365 passed all four exact-final-head checks and squash-merged to Android develop 5b98959300b576532c189d78ab561db28fbe0b56. Current consolidated draft PR #366 adds missing Web goalProjections.ts native read-only savings-goal forecast: shared backing, precise monthly suggested amount, three advisory scenarios, bounded 90-day operating liquidity and obligation/risk warnings, invalid-input safety and JVM goldens in one batch. CI pending; UI exposure and broader W4.3 acceptance remain outstanding, counters unchanged. Physical owner S24 #149 pending. No Web/backend/schema, real finance writes, SMS #146, irreversible delete UI, signing/release/main.",
+    "summary": "Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. PR #366 advisory savings goal domain passed 4/4 immutable-head tracking, Android CI, screenshot and hosted S24 checks and squash-merged Android develop 89fd22c190f88dc53fb918a25ee74d92f9f97b93. Draft consolidated PR #367 wires genuine shared goal projection and cached 90-day forecast to Money UI, adds expandable read-only Greek scenario/operating liquidity sections, privacy-safe custom what-if, invalid-data messages, 2 JVM + 3 hosted Compose regressions. All CI pending; no physical S24 owner #149 acceptance. Acceptance counters unchanged; no Web/backend/schema, actual finance writes, SMS #146, irreversible card deletion, signing/release/main.",
     "next": [
-      "Validate consolidated W4.3 PR #366 on four exact immutable final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks. Merge only if 4/4 success, reviews/base clean. Then connect new read-only goal projection to the native savings UI in a coherent separate UI/Compose batch, not one PR per small adjustment. Owner physical #149 independent."
+      "Validate batched W4.3 UI PR #367 on four same immutable final head Project Tracking, Android CI, screenshot regression, hosted S24 checks; fix and revalidate only if checks fail. Merge if 4/4 green with clean base/reviews, then proceed to further cohesive W2–W5 parity. Physical owner rc12 S24 #149 remains independent."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w43-savings-goal-scenarios-20261026",
-    "checkpoint": "W4.3 PR #365 same-day savings history Web localeCompare ordering passed four exact-final-head checks and squash-merged to develop 5b98959300b576532c189d78ab561db28fbe0b56. Draft consolidated PR #366 implements missing Web goalProjections.ts advisory savings goal engine: strict positive cent amount and optional custom scenario validation, exact monthly deadline opportunities and cent-ceiled monthly suggestions, common savings balance, 90-day known-liability and operating liquidity minima, incompleteness/liquidity warnings, and none/suggested/custom scenario vectors, all read-only without ledger writes. Five JVM goldens authored, CI pending. Native UI presentation remains for future cohesive Compose batch; overall Web parity 1/6 implementations · 11/24 accepted subtasks and owner physical S24 #149 pending.",
+    "branch": "android/w43-goal-advice-compose-batch-20261026",
+    "checkpoint": "PR #366 Web advisory goalProjections.ts read-only domain/90-day liquidity and scenarios passed all four exact-head CI gates and squash merged develop 89fd22c190f88dc53fb918a25ee74d92f9f97b93. New larger W4.3 draft #367 integrates shared forecast once, source-row-indexed projection (including imported duplicate goals), per-goal expandable Greek scenario status, custom hypothetical monthly amount and privacy masking; invalid imported goals visibly fail closed. Two Kotlin regressions and three real hosted Compose UI tests authored, CI pending; Web parity unchanged 1/6 implementations · 11/24 accepted subtasks, physical S24 owner #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1173,9 +1173,9 @@
         ]
       }
     ],
-    "next_action": "Validate W4.3 PR #366 all four same-final-head tracking, Android CI, screenshot and hosted S24 instrumentation checks; merge only on success without reviews/base blockers. Continue native savings-goal advice Compose presentation and remaining W2–W5 parity in larger related batches; keep owner physical S24 #149 separate. Never bypass security/write/release constraints.",
+    "next_action": "Check draft #367 4/4 exact-final-head tracking, Android CI, screenshot and hosted S24 emulator results. If all succeed and base/head/reviews unchanged, mark ready and squash merge develop. Continue larger batches across W2–W5, preserve finance data and no unauthorised Web/backend/schema/release changes. Physical S24 #149 separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 366,
+    "pr": 367,
     "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

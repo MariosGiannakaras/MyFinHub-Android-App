@@ -15,6 +15,8 @@ import app.myfinhub.android.core.data.availableMoney
 import app.myfinhub.android.core.data.canonicalAccounts
 import app.myfinhub.android.core.data.canonicalCards
 import app.myfinhub.android.core.data.canonicalSavingsGoals
+import app.myfinhub.android.core.data.canonicalSavingsGoalProjection
+import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.creditStatementViews
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
@@ -68,6 +70,7 @@ import app.myfinhub.android.feature.insights.InsightsUiState
 import app.myfinhub.android.feature.insights.TrendPoint
 import app.myfinhub.android.feature.money.MoneyAccount
 import app.myfinhub.android.feature.money.SavingsHistoryItem
+import app.myfinhub.android.feature.money.SavingsGoalAdvisoryUiItem
 import app.myfinhub.android.feature.money.LoanItem
 import app.myfinhub.android.feature.money.LoanPaymentHistoryItem
 import app.myfinhub.android.feature.money.LendingHistoryItem
@@ -420,6 +423,27 @@ val activityItems = buildActivityItems(
             else cardIdCollator.compare(left.id, right.id)
         })
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
+    // Web SavingsPage maps the physical source rows. Keep one advisory per
+    // displayed row instead of keying projections by possibly duplicated IDs.
+    val rawGoalRows = document.state.array("savingsGoals")
+        .filterIsInstance<JsonObject>()
+        .filter { !it.string("id").isNullOrBlank() }
+    val sharedGoalForecast = if (rawGoalRows.isNotEmpty()) {
+        runCatching { document.cashFlowForecast(today, 90) }
+    } else null
+    val goalAdvisories = rawGoalRows.map { raw ->
+        runCatching {
+            SavingsGoalAdvisoryUiItem(
+                projection = document.canonicalSavingsGoalProjection(
+                    raw, today, forecast90d = sharedGoalForecast?.getOrThrow(),
+                ),
+            )
+        }.getOrElse { error ->
+            SavingsGoalAdvisoryUiItem(
+                error = error.message ?: "Δεν είναι διαθέσιμη η προβολή στόχου.",
+            )
+        }
+    }
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->
             val provider = financialProvider(account.providerId ?: account.id, account.provider ?: account.name, account.providerId)
@@ -515,6 +539,7 @@ val activityItems = buildActivityItems(
             )
         },
         savingsGoal = savingsGoal,
+        savingsGoalAdvisories = goalAdvisories,
         savingsGoalItems = document.canonicalSavingsGoals(today).map { goal ->
             app.myfinhub.android.feature.money.SavingsGoalItem(
                 id = goal.id,
