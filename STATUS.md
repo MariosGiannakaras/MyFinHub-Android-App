@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.1 inactive recurring edit PR #364 passed all four immutable-final-head CI gates and squash-merged to Android develop 4a3959325436df1eaa8f3759d798fd5dedaef223. Current W4.3 draft PR #365 fixes same-day savings history ID ordering to match Web savings.ts localeCompare and adds read-only FinanceData regression; source authored, CI pending. Acceptance counters unchanged; owner physical Galaxy S24 Ultra rc12 #149 remains pending. No Web/backend/schema edits, production finance writes, SMS #146, irreversible delete UI, signing/release or main promotion.
+Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.3 savings history order PR #365 passed all four exact-final-head checks and squash-merged to Android develop 5b98959300b576532c189d78ab561db28fbe0b56. Current consolidated draft PR #366 adds missing Web goalProjections.ts native read-only savings-goal forecast: shared backing, precise monthly suggested amount, three advisory scenarios, bounded 90-day operating liquidity and obligation/risk warnings, invalid-input safety and JVM goldens in one batch. CI pending; UI exposure and broader W4.3 acceptance remain outstanding, counters unchanged. Physical owner S24 #149 pending. No Web/backend/schema, real finance writes, SMS #146, irreversible delete UI, signing/release/main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.3 draft PR #365 against all four exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, then merge into develop only if 4/4 success on immutable head with clean base/reviews. Continue W2–W5 parity and separate owner S24 #149 acceptance.
+1. Validate consolidated W4.3 PR #366 on four exact immutable final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks. Merge only if 4/4 success, reviews/base clean. Then connect new read-only goal projection to the native savings UI in a coherent separate UI/Compose batch, not one PR per small adjustment. Owner physical #149 independent.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #365, branch android/w43-savings-history-locale-order-20261026
-Current W4.3: PR #364 W4.1 inactive paused/stopped recurring edit without artificial anchor passed all four immutable-head tracking, Android CI, screenshot and hosted S24 emulator checks, squash merged develop 4a3959325436df1eaa8f3759d798fd5dedaef223. New W4.3 draft PR #365 fixes Web savings.ts savingsHistory same-day localeCompare ID sorting (Android previously used raw Unicode order). JVM golden asserts shuffled same-day B/a events, Pay & Save/manual/cash-offset totals, no unrelated expense, unchanged FinanceData. Source/test authored, CI pending; Web parity 1/6 implementations · 11/24 accepted subtasks, physical S24 #149 pending.
+Issue #155, PR #366, branch android/w43-savings-goal-scenarios-20261026
+Current W4.3: W4.3 PR #365 same-day savings history Web localeCompare ordering passed four exact-final-head checks and squash-merged to develop 5b98959300b576532c189d78ab561db28fbe0b56. Draft consolidated PR #366 implements missing Web goalProjections.ts advisory savings goal engine: strict positive cent amount and optional custom scenario validation, exact monthly deadline opportunities and cent-ceiled monthly suggestions, common savings balance, 90-day known-liability and operating liquidity minima, incompleteness/liquidity warnings, and none/suggested/custom scenario vectors, all read-only without ledger writes. Five JVM goldens authored, CI pending. Native UI presentation remains for future cohesive Compose batch; overall Web parity 1/6 implementations · 11/24 accepted subtasks and owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #365 same-final-head tracking, Android CI, screenshot and hosted S24 emulator checks. If 4/4 green with unchanged head/base and no blocking reviews, mark ready and squash merge to develop. Continue W2–W5 parity; physical S24 owner #149 separate. No shared Web/backend/schema, production financial writes, SMS #146, permanent card delete UI, signing/release/main.
+Next Validate W4.3 PR #366 all four same-final-head tracking, Android CI, screenshot and hosted S24 instrumentation checks; merge only on success without reviews/base blockers. Continue native savings-goal advice Compose presentation and remaining W2–W5 parity in larger related batches; keep owner physical S24 #149 separate. Never bypass security/write/release constraints.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
