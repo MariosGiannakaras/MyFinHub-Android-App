@@ -249,6 +249,7 @@ internal fun projectCanonicalPlanState(
                 toAccountId = row.toAccountId,
             )
         },
+        forecastScenarioBaselines = webForecasts.associateBy { it.horizonDays },
         forecastWindows = webForecasts.map { f ->
             app.myfinhub.android.feature.plan.ForecastWindow(
                 days = f.horizonDays,
