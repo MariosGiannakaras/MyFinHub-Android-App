@@ -87,10 +87,18 @@ internal fun CanonicalLendingSettlementPanel(
                 ) {
                     Text("Υποθετικό πρόγραμμα · ${proposal.schedule.size} δόσεις",
                         style = MaterialTheme.typography.labelLarge)
-                    proposal.schedule.forEachIndexed { index, row ->
+                    // Mirror Web's bounded six-row preview: do not build an
+                    // inaccessible 60-row card inside the parent LazyColumn.
+                    proposal.schedule.take(6).forEachIndexed { index, row ->
                         Text("${index + 1}. ${row.dueDate} · " +
                             amountVisibilityText(lendingProposalEuro(row.amount), amountsVisible),
-                            style = MaterialTheme.typography.bodySmall)
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag("lending_settlement_installment_${index + 1}"))
+                    }
+                    if (proposal.schedule.size > 6) {
+                        Text("Και ${proposal.schedule.size - 6} ακόμη προτεινόμενες δόσεις.",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.testTag("lending_settlement_more_installments"))
                     }
                     Text(proposal.note, style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)

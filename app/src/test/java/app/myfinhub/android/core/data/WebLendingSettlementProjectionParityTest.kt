@@ -80,6 +80,21 @@ class WebLendingSettlementProjectionParityTest {
         }
     }
 
+
+    @Test fun sixtyInstallmentsRemainSixtyCentExactFutureDatesWithoutPosting() {
+        val data = finance()
+        val original = data.raw
+        val result = data.webLendingSettlementProjection(
+            "Alex", "2026-08-17", "2026-10-31", 60.0, 60)
+        assertEquals(60, result.schedule.size)
+        assertEquals("2026-10-31", result.schedule.first().dueDate)
+        assertEquals("2031-09-30", result.schedule.last().dueDate)
+        assertTrue(result.schedule.all { it.amount == 1.0 && it.status == "planned" })
+        assertEquals(60.0, result.schedule.sumOf { it.amount }, 0.00001)
+        assertEquals(original, data.raw)
+        assertTrue(data.canonicalEvents().isEmpty())
+    }
+
     @Test fun recurringEveryTwoMonthsUsesOriginalDayAndDoesNotPostMoney() {
         val data = finance()
         val before = data.raw
