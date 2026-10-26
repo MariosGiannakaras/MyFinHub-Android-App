@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web↔Android parity: 1/6 accepted implementations and 11/24 accepted subtasks. W4.4 #355 Web default-active historical card compatibility merged into develop 0d23e04e243d734060c03fee7f59353b535f8485 after four exact-head green gates. New W2.4 draft PR #356 fixes wallet active-card display chronology: Web allCards() sorts by createdAt then id, while Android previously used raw storage order, affecting the first selected card. Scoped read-only projection sort and regression authored; CI, hosted device and screenshots pending. No acceptance count increase. Physical Samsung Galaxy S24 Ultra #149 pending; no production finance writes, Web/backend/schema changes, SMS #146, permanent delete UI, signing/release or main promotion.
+Web↔Android parity: 1/6 implementations and 11/24 accepted subtasks. W2.4 wallet card chronology PR #356 merged to develop 0d70e5a3b6e8e306f540d438220dff960b935adf after four exact-head gates. Active W4.4 draft #357 fixes credit report limit coercion for imported explicit null/empty creditLimit values to match Web Number semantics, preserving historical duplicate card identities. Regression authored but not yet CI validated; no acceptance-count increase. Physical Galaxy S24 Ultra #149 pending; no Web/backend/schema edits, production finance writes, SMS #146, permanent-delete UI, signing, release or main promotion.
 
 ## Immediate work
 
-- Validate W2.4 active-wallet card chronology PR #356 with all four same-head gates, inspect any screenshot changes, then integrate develop only if green. Continue remaining W4.4/W2.4 parity and physical S24 owner acceptance #149 separately.
+- Validate W4.4 credit-limit coercion draft #357 with four immutable exact-head gates, inspect failures and merge only when green. Preserve historical card identities, debts and archives; physical S24 owner acceptance issue #149 remains separate.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web↔Android parity: 1/6 accepted implementations and 11/24 accepted subtasks. 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #356, branch android/w24-wallet-card-chronology-20261026
-Current W2.4: Merged W4.4 historical card default-active Web parity PR #355 to develop 0d23e04e243d734060c03fee7f59353b535f8485 after all four exact-head tracking, Android CI, screenshot regression and hosted S24 checks; preserved only-explicit-false archival. Current W2.4 draft PR #356 addresses independent Web cards.ts allCards() chronological ordering: Web sorts active wallet cards by createdAt then id before rendering; Android canonical MoneyUiState kept original storage array order, influencing first visible and selected card. Narrow read-only active-wallet projection sort and unit regression authored, CI not yet executed. No change to canonical data, archive order or financial values. Accepted Web parity remains 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #357, branch android/w44-credit-limit-js-coercion-20261026
+Current W4.4: W2.4 wallet card chronological ordering PR #356 merged to Android develop 0d70e5a3b6e8e306f540d438220dff960b935adf after four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 gates. Current W4.4 draft #357 corrects Web Number(card.creditLimit) coercion in read-only credit reports: explicit null, empty and whitespace-only stored limits are zero; absent/invalid values use shared fallback. Previous Android canonicalCards() erased explicit-null versus absent distinction. Fix pairs each source row to its projection, preserving duplicate historical IDs, and adds a focused read-only regression. Tests authored, CI pending. Accepted Web parity remains 1/6 implementations · 11/24 subtasks; physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run W2.4 draft PR #356 four immutable exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation). Visually review genuine changed renders if any before accepting baselines. Merge only when 4/4 green and reviews/base unchanged. Keep archive order and historical finance state intact; physical S24 #149 separate.
+Next Validate W4.4 draft #357 on four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates. Do not merge without same-head green checks and reviews/base verification. Preserve finance source rows and card identities; physical owner S24 #149 separately pending. Resume wider W4.4 completeness after integration.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

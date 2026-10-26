@@ -8,6 +8,44 @@ import org.junit.Test
 
 /** Web reportCreditCardSnapshots: archived balances remain liabilities. */
 class WebReportCreditPortfolioParityTest {
+    @Test fun explicitNullAndEmptyCreditLimitsFollowWebNumberCoercionPerSourceRow() {
+        // Web Number(undefined) falls back to settings.creditLimit; Number(null),
+        // Number("") and Number("  ") are zero. Duplicated historical card IDs
+        // must retain each source row's separate limit rather than id lookup.
+        val historical = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"settings":{"creditLimit":600},"cards":[
+            {"id":"duplicate","kind":"credit","nickname":"Null limit","active":true,
+             "createdAt":"2026-01-01","creditLimit":null},
+            {"id":"duplicate","kind":"credit","nickname":"Absent limit","active":true,
+             "createdAt":"2026-01-02"},
+            {"id":"empty","kind":"credit","nickname":"Empty limit","active":true,
+             "createdAt":"2026-01-03","creditLimit":""},
+            {"id":"spaces","kind":"credit","nickname":"Whitespace limit","active":true,
+             "createdAt":"2026-01-04","creditLimit":"  "},
+            {"id":"invalid","kind":"credit","nickname":"Invalid limit","active":true,
+             "createdAt":"2026-01-05","creditLimit":"unavailable"},
+            {"id":"archived","kind":"credit","nickname":"Archived","active":false,
+             "createdAt":"2026-01-06","creditLimit":900}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = historical.raw
+        val result = historical.canonicalReportCreditPortfolio("2026-10-26")
+        assertEquals(6, result.totalCards)
+        assertEquals(5, result.activeCards)
+        assertEquals(
+            mapOf(
+                "Null limit" to 0.0, "Absent limit" to 600.0,
+                "Empty limit" to 0.0, "Whitespace limit" to 0.0,
+                "Invalid limit" to 600.0, "Archived" to 0.0,
+            ),
+            result.cards.associate { it.nickname to it.limit },
+        )
+        assertEquals(1200.0, result.limit, 0.001)
+        assertEquals(1200.0, result.available, 0.001)
+        assertEquals(0.0, result.debt, 0.001)
+        assertEquals(original, historical.raw)
+    }
+
     @Test fun missingActiveCreditCardUsesWebActiveCountAndAvailableCredit() {
         val legacy = CanonicalFinanceDocument(Json.parseToJsonElement("""
           {"seed":{},"state":{"settings":{"creditLimit":700},"cards":[

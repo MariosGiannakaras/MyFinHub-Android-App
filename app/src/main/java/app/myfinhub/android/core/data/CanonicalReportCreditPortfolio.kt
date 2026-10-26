@@ -2,6 +2,9 @@ package app.myfinhub.android.core.data
 
 import java.text.Collator
 import java.util.Locale
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /** Web reports.ts creditCardSnapshots and creditPortfolioSnapshot, read-only. */
 data class CanonicalReportCreditCard(
@@ -41,16 +44,23 @@ fun CanonicalFinanceDocument.canonicalReportCreditPortfolio(
     // Web creditCardSnapshots first reads allCards(): sorted by createdAt,
     // then id. Its subsequent debt/nickname sort is stable, so equal debt
     // and nickname retain that original chronology, not persisted array order.
-    val cards = canonicalCards()
-        .filter { it.kind == "credit" }
+    // Preserve source-row identity rather than looking up by ID: historical
+    // duplicate card IDs must not inherit another row's explicit creditLimit.
+    // Web Number(null) and Number("") are zero, unlike absent (undefined).
+    val sourceRows = state.array("cards").filterIsInstance<JsonObject>()
+        .filter { it.string("id") != null }
+    val cards = canonicalCards().zip(sourceRows)
+        .filter { (card, _) -> card.kind == "credit" }
         .sortedWith(Comparator { left, right ->
-            val byCreation = left.createdAt.orEmpty().compareTo(right.createdAt.orEmpty())
-            if (byCreation != 0) byCreation else idCollator.compare(left.id, right.id)
+            val byCreation = left.first.createdAt.orEmpty()
+                .compareTo(right.first.createdAt.orEmpty())
+            if (byCreation != 0) byCreation else idCollator.compare(left.first.id, right.first.id)
         })
-        .map { card ->
+        .map { (card, raw) ->
             val debt = creditDebtForCardAt(card.id, asOf)
             val limit = if (!card.active) 0.0 else
-                card.creditLimit?.takeIf { it.isFinite() && it >= 0.0 } ?: fallbackLimit
+                webCreditLimitOrNull(raw)?.takeIf { it.isFinite() && it >= 0.0 }
+                    ?: fallbackLimit
             CanonicalReportCreditCard(
                 id = card.id,
                 nickname = card.nickname,
@@ -77,4 +87,21 @@ fun CanonicalFinanceDocument.canonicalReportCreditPortfolio(
         usage = if (limit > 0.0) debt / limit else 0.0,
         cards = cards,
     )
+}
+
+/**
+ * JS Number(card.creditLimit): absent/invalid values use shared fallback,
+ * while explicitly null, empty or whitespace-only values mean zero.
+ * This is read-only and retains each persisted card row (including duplicate IDs).
+ */
+private fun webCreditLimitOrNull(card: JsonObject): Double? = when (val raw = card["creditLimit"]) {
+    null -> null
+    JsonNull -> 0.0
+    is JsonPrimitive -> when {
+        !raw.isString && raw.content == "true" -> 1.0
+        !raw.isString && raw.content == "false" -> 0.0
+        raw.content.isBlank() -> 0.0
+        else -> raw.content.trim().toDoubleOrNull()
+    }
+    else -> null
 }
