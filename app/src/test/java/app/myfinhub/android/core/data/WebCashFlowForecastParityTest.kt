@@ -11,6 +11,27 @@ import org.junit.Test
 
 /** Web cashFlowForecast source/day/account golden vectors (no finance writes). */
 class WebCashFlowForecastParityTest {
+    @Test fun sameDayForecastMovementIdsUseWebLocaleOrderWithoutChangingCash() {
+        // Web forecast.ts uses id.localeCompare; Java/Kotlin Unicode ordering
+        // incorrectly places upper-case B before lower-case a.
+        val ledger = document(
+            scheduled = "", recurring = "", loans = "",
+            events = """
+              {"id":"B-record","date":"2026-10-17","kind":"expense","amount":5,
+               "note":"B","legs":[{"accountId":"bank","amount":-5}]},
+              {"id":"a-record","date":"2026-10-17","kind":"expense","amount":15,
+               "note":"a","legs":[{"accountId":"bank","amount":-15}]}
+            """,
+        )
+        val before = ledger.raw
+        val projected = ledger.cashFlowForecast(today, 30)
+        assertEquals(listOf("forecast-event-a-record", "forecast-event-B-record"),
+            projected.movements.map { it.id })
+        assertEquals(2, projected.sourceCounts["dated_event"])
+        assertEquals(980.0, projected.projectedPortfolio, 0.001)
+        assertEquals(before, ledger.raw)
+    }
+
     private val today = LocalDate.parse("2026-10-15")
     private fun document(
         scheduled: String = """

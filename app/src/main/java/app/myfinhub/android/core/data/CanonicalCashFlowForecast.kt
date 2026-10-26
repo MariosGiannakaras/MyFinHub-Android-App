@@ -186,7 +186,16 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         val legs = event.legs.filter { it.accountId in ids }
         if (legs.isNotEmpty()) add("forecast-event-${event.id}", date, "dated_event", event.note, legs)
     }
-    rows.sortWith(compareBy<CanonicalForecastMovement> { it.date }.thenBy { it.source }.thenBy { it.id })
+    // Web forecast.ts uses localeCompare for same-day source and ID ties.
+    // Unicode compareTo would put imported uppercase IDs before lowercase.
+    val webTextOrder = java.text.Collator.getInstance(java.util.Locale.US)
+    rows.sortWith(Comparator { left, right ->
+        val dateOrder = left.date.compareTo(right.date)
+        if (dateOrder != 0) dateOrder else {
+            val sourceOrder = webTextOrder.compare(left.source, right.source)
+            if (sourceOrder != 0) sourceOrder else webTextOrder.compare(left.id, right.id)
+        }
+    })
     val initial = balances.toMap()
     val minimum = balances.toMutableMap()
     val low = balances.mapValues { if (it.value < 100.0) asOf else null }.toMutableMap()

@@ -27,7 +27,11 @@ fun CanonicalFinanceDocument.canonicalBudgetProjectedCommitments(
     val end = period.atEndOfMonth()
     if (!end.isAfter(today)) return emptyList()
     val endIso = end.toString()
+    // Web pendingScheduled sorts by dueDate and createdAt before selecting
+    // future budget obligations; imported rows need not be stored in due order.
     val scheduled = state.array("scheduled").filterIsInstance<JsonObject>()
+        .sortedWith(compareBy<JsonObject> { it.string("dueDate").orEmpty() }
+            .thenBy { it.string("createdAt").orEmpty() })
         .filter { row ->
             val due = row.string("dueDate").orEmpty()
             row.string("status") == "pending" && row.string("kind") == "expense" &&

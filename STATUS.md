@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web↔Android parity: 1/6 implementations and 11/24 accepted subtasks. W4.4 #358 global credit-limit coercion merged into Android develop 433a46beb17909db8cdfdc9ccdcaad6007b99eef after four exact-head CI and UI gates. Current independent W2.4 draft #359 reanchored to that develop, aligns archived wallet card order with Web descending archive date and updatedAt fallback, then createdAt/id ties. Read-only projection plus test authored, awaits same-head CI, no acceptance count increase. Physical owner S24 Ultra #149 pending; no Web/backend/schema edits, production finance writes, SMS #146, irreversible delete UI, signing, release or main promotion.
+Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. Archived Wallet card display Web-parity PR #359 merged to develop 46f853582ad58dfd6a27511c780b424394f24017 with four same-head gates green. Current W4.2/W4.3 draft PR #360 addresses read-only chronological ordering of same-day forecast movement IDs and budget scheduled dueDate/createdAt items, both now matching Web's locale/source order; source and JVM regressions authored, CI pending. No accepted completion counter increase. Physical Galaxy S24 Ultra #149 acceptance pending; no Web/backend/schema edits, production finance writes, SMS #146, irreversible delete UI, signing/release/main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Run rebased W2.4 PR #359 through four exact-head tracking, Android CI, screenshot and hosted S24 emulator checks, review any changed renders, then merge develop only if all pass. Resume other W2.4/W4.4 parity and physical Galaxy S24 #149 acceptance separately.
+1. Validate W4.2/W4.3 PR #360 with four immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates, then integrate into develop only if all pass. Resume additional Web parity gaps; owner physical S24 #149 separately pending.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #359, branch android/w24-archived-card-recency-20261026
-Current W2.4: W4.4 global credit-limit Web Number coercion PR #358 squash merged to Android develop 433a46beb17909db8cdfdc9ccdcaad6007b99eef after four same-head Project Tracking, Android CI, screenshot and hosted S24 jobs succeeded. Prior #357 and active wallet chronology #356 are also merged. Independent W2.4 draft #359, reanchored to this develop, corrects archived Wallet card presentation order to Web archivedCardsForBank's descending (archivedAt ?? updatedAt) with allCards createdAt/id tie fallback; native previously inherited persisted storage order. Read-only projection and JUnit fixture cover newest-first, updatedAt fallback, same-time IDs, active-card isolation and immutable raw FinanceData. Exact-head CI rerun required after reanchor; Web parity remains 1/6 implementations · 11/24 accepted subtasks, owner physical S24 issue #149 pending.
+Issue #155, PR #360, branch android/w42-w43-projection-chronology-20261026
+Current W4.2: W2.4 archived-card Web chronology #359 merged to Android develop 46f853582ad58dfd6a27511c780b424394f24017 following four immutable-head tracking, Android CI, screenshot and hosted emulator successes; post-merge Android CI also completed successfully. New W4.2/W4.3 draft #360 corrects two forecast/budget read-only display ordering gaps: Web forecast.ts localeCompare ID ordering for same-day movements rather than Kotlin Unicode order, and Web pendingScheduled() dueDate/createdAt chronological order when budgetProjectedCommitments lists historical unsorted scheduled rows. Two narrowly scoped source changes and two immutable-source regression fixtures authored. Exact-head CI not yet run; accepted Web parity remains 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate rebased W2.4 draft #359 on all four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator jobs. Review any visual differences; merge only if 4/4 green with current base and no unresolved review. No Web/backend/schema or production finance writes. Continue other parity gaps; physical S24 #149 acceptance independent.
+Next Validate W4.2/W4.3 draft PR #360 with four same-final-head gates: Project Tracking, Android CI, screenshot regression and hosted S24-target instrumentation. If tests fail correct code/tests and rerun all gates at final head. Merge only when 4/4 green with unchanged base and no unresolved review; continue wider Web parity and owner physical S24 #149 independently. Do not use release/main or server writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
