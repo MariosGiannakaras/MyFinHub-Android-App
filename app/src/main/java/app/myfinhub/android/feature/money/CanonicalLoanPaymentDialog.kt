@@ -16,6 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import app.myfinhub.android.core.data.moneyToCents
+import app.myfinhub.android.core.data.centsToMoney
+import app.myfinhub.android.feature.utilities.amountVisibilityText
+import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
+import kotlin.math.abs
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
@@ -25,6 +30,15 @@ import kotlin.math.min
 
 private fun loanMoneyLabel(amount: Double): String =
     NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+
+/** Reject rounded-up or sub-cent input in the read-only payment preview. */
+private fun exactLoanPreviewCents(amount: Double): Long? {
+    if (!amount.isFinite() || amount <= 0.0) return null
+    val cents = runCatching { moneyToCents(amount) }.getOrNull() ?: return null
+    if (cents <= 0L || cents > 9_007_199_254_740_991L ||
+        abs(amount * 100.0 - cents.toDouble()) > 1e-6) return null
+    return cents
+}
 
 data class CanonicalLoanPaymentPreview(
     val date: String,
@@ -45,7 +59,8 @@ fun canonicalLoanPaymentPreview(
     amountText: String,
     savings: String,
 ): CanonicalLoanPaymentPreview? {
-    if (runCatching { LocalDate.parse(date) }.isFailure || loan.remaining <= 0.005) return null
+    val outstandingCents = exactLoanPreviewCents(loan.remaining) ?: return null
+    if (runCatching { LocalDate.parse(date) }.isFailure) return null
     val usable = accounts.filter { it.canonicalKind in setOf("cash","bank","savings") }
     if (usable.none { it.id == source }) return null
     if (loan.isSelfLoan) {
@@ -55,14 +70,20 @@ fun canonicalLoanPaymentPreview(
             ?: return null
         if (target.id == source) return null
         val amount = amountText.replace(',', '.').toDoubleOrNull() ?: return null
-        if (!amount.isFinite() || amount <= 0.0 || amount > loan.remaining + 0.005) return null
-        return CanonicalLoanPaymentPreview(date, source, 1, amount, target.id, amount)
+        val amountCents = exactLoanPreviewCents(amount) ?: return null
+        if (amountCents > outstandingCents) return null
+        val exactAmount = centsToMoney(amountCents)
+        return CanonicalLoanPaymentPreview(date, source, 1, exactAmount, target.id, exactAmount)
     }
     val count = countText.toIntOrNull() ?: return null
     if (count !in 1..loan.remainingInstallments) return null
-    val shown = min(loan.remaining, loan.monthlyPayment * count)
-    if (!shown.isFinite() || shown <= 0.0) return null
-    return CanonicalLoanPaymentPreview(date, source, count, null, null, shown)
+    val nominalCents = exactLoanPreviewCents(loan.monthlyPayment) ?: return null
+    val sum = runCatching { Math.multiplyExact(nominalCents, count.toLong()) }.getOrNull()
+        ?: return null
+    val cents = min(outstandingCents, sum)
+    if (cents <= 0L) return null
+    return CanonicalLoanPaymentPreview(date, source, count, null, null,
+        centsToMoney(cents))
 }
 
 /** Explicit review/confirm before any loan-payment mutation is created. */
@@ -72,7 +93,9 @@ fun CanonicalLoanPaymentDialog(
     accounts: List<MoneyAccount>,
     onDismiss: () -> Unit,
     onConfirm: (String, String, Int, Double?, String?) -> Unit,
+    amountsVisible: Boolean? = null,
 ) {
+    val revealAmounts = amountsVisible ?: rememberAmountVisibilityPreference()
     val usable = remember(accounts) { accounts.filter { it.canonicalKind in setOf("cash","bank","savings") } }
     val savings = usable.filter { it.canonicalKind == "savings" ||
         (it.canonicalKind == "bank" && it.bankAccountCategory == "savings") }
@@ -99,7 +122,11 @@ fun CanonicalLoanPaymentDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 Text(loan.name, style = MaterialTheme.typography.titleMedium)
-                Text("Υπόλοιπο: " + loanMoneyLabel(loan.remaining))
+                Text(
+                    "Υπόλοιπο: " + amountVisibilityText(
+                        loanMoneyLabel(loan.remaining), revealAmounts),
+                    modifier = Modifier.testTag("loan_payment_remaining"),
+                )
                 OutlinedTextField(
                     value = date, onValueChange = { date = it },
                     label = { Text("Ημερομηνία YYYY-MM-DD") },
@@ -139,8 +166,10 @@ fun CanonicalLoanPaymentDialog(
                 }
                 Text(
                     if (review == null) "Έλεγξε τα στοιχεία πριν από την καταχώριση."
-                    else "Προς καταχώριση: " + loanMoneyLabel(review.shownAmount),
+                    else "Προς καταχώριση: " + amountVisibilityText(
+                        loanMoneyLabel(review.shownAmount), revealAmounts),
                     style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.testTag("loan_payment_review_amount"),
                 )
                 Text(
                     "Η κίνηση δημιουργείται μόνο μετά την επιβεβαίωση.",

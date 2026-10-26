@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web↔Android parity 1/6 broad implementations · 11/24 accepted subtasks. W4.3 PR #369 exact-final-head d918c09a48c4e9320ac386ea6ed6d0eaee6bb2d8 passed tracking, Android CI full unit/lint/optimized unsigned assembly, screenshots and S24 hosted emulator UI and squash merged Android develop c8433f3aff7d25bd9c1d99466c21fa9ba8d0b377. Its read-only Web lendingPlans.ts proposal is independent of ledger repayments and renders bounded 6-installment schedules safely under privacy. Current cohesive draft PR #370 adds projection and native read-only rendering for already-confirmed source state.lendingPlans alongside true as-of person receivables, malformed/duplicate imported plan fail-closed diagnostics, privacy-safe figures, 4 JVM + 3 Compose tests. CI pending; no server state mutation/synthetic income; S24 owner #149 physical acceptance still pending. No Web/backend/schema, production finance writes, SMS #146, irreversible card deletion, signing/release/main.",
+    "summary": "Web↔Android parity 1/6 broad implementations · 11/24 accepted subtasks. W4.3 PR #370 confirmed real Web state.lendingPlans (not repayments) and malformed/duplicate import fail-closed UI passed four final-head Project Tracking, Android CI, screenshot and hosted S24 checks at 21bdd6a2eb6941a2e678ceb6e4d80677c1fbefab, squash merged Android develop cfc60e0c73516cd7c863abeda0347a28de8eefa4. New consolidated draft PR #371 adds Web loans.ts bounded 60-segment paid-installment visualization, cent-exact read-only payment preview and fixes actual loan-confirmation-dialog privacy leak (masked outstanding/preview); 4 JVM and 3 hosted Compose regression cases plus tracker/docs. No finance mutation changed. CI pending, physical S24 owner signoff #149 pending. No Web/backend/schema changes, finance writes, SMS #146, irreversible card deletion, signing/release/main.",
     "next": [
-      "Validate new batched W4.3 confirmed lending plan PR #370 on all four exact-final-head tracking, Android CI, screenshot regression and hosted S24 emulator gates; if failing, fix and retest within same PR, merge only 4/4 green with stable base and clean reviews. Continue coherent W2–W5 parity and independent physical owner S24 Ultra rc12 #149."
+      "Validate grouped W4.3 loan progress/payment preview privacy PR #371 with four immutable exact-final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks; fix within same PR and rerun after any final head change. Merge only 4/4 green with stable base/reviews. Continue cohesive W2–W5 parity and independent physical S24 owner #149."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w43-confirmed-lending-plans-readonly-batch-20261026",
-    "checkpoint": "W4.3 PR #369 read-only hypothetical lending settlement 1–60 exact-cent installments, month-end due dates, privacy and full hosted regressions passed 4/4 identical head CI at d918c09a48c4e9320ac386ea6ed6d0eaee6bb2d8; squash merged develop c8433f3aff7d25bd9c1d99466c21fa9ba8d0b377. Next W4.3 consolidated draft PR #370 rebases seven staging source/test files onto merged develop without reverting #369 and adds four canonical tracker/docs files. Native existing Web state.lendingPlans is displayed as a confirmed but nonreceipt plan, validation rejects malformed/duplicated import without invented money, supports actual outstanding after real repayment and privacy; 4 JVM Web goldens + 3 hosted Compose regressions authored, CI pending. Counters 1/6 implementations · 11/24 subtasks, physical S24 owner #149 still pending.",
+    "branch": "android/w43-loan-progress-payment-preview-privacy-batch-20261027",
+    "checkpoint": "PR #370 native confirmed lending plans reads source state.lendingPlans separately from actual receivables, fail-closes malformed duplicate and exact-cent/ISO violations, adds masked Compose and immutable JVM tests; all four identical-head CI checks passed at 21bdd6a2eb6941a2e678ceb6e4d80677c1fbefab and squash merged develop cfc60e0c73516cd7c863abeda0347a28de8eefa4. Current batched draft #371 improves Web loans.ts visual paid installment parity with 60 capped segments/accessible count, cent-exact user payment preview, visible/hidden privacy of both outstanding and preview amounts in actual loan confirmation dialog; 4 JVM, 3 new hosted Compose cases authored and tracking+docs updated, final CI pending. W4.3 remains incomplete, physical owner S24 #149 pending, 1/6 implementations · 11/24 accepted.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1173,9 +1173,9 @@
         ]
       }
     ],
-    "next_action": "Verify W4.3 PR #370 exact-final-head four Project Tracking/Android CI/screenshot/hosted S24 emulator checks, no blocking reviews, base unchanged; merge only when green. Continue batched W2–W5 Web parity. Physical device #149 separate; no writes to Web/backend/schema or release/main.",
+    "next_action": "Check draft W4.3 #371 Project Tracking, Android CI, screenshots and hosted S24 same final immutable SHA; correct and rerun all if failing, then clean reviews/base squash merge. Continue larger batches and independent physical owner S24 #149; do not promote release/main or change Web/backend/schema/production finance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 370,
+    "pr": 371,
     "current_subtask": "W4.3",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

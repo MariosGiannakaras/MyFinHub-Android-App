@@ -996,6 +996,16 @@ private fun CanonicalLoanFinanceRow(
                 Text(loan.nextPaymentLabel, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            if (!loan.isSelfLoan && loan.totalInstallments > 0) {
+                val paidInstallments = (loan.totalInstallments -
+                    loan.remainingInstallments).coerceIn(0, loan.totalInstallments)
+                Text(
+                    "$paidInstallments / ${loan.totalInstallments} πληρωμένες δόσεις",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.testTag("loan_paid_installment_count_" + loan.id),
+                )
+                CanonicalLoanInstallmentSegments(loan)
+            }
             if (!loan.isSelfLoan && loan.remainingInstallments > 0) {
                 Text(
                     "Απομένουν ${loan.remainingInstallments} δόσεις" +
@@ -1146,7 +1156,7 @@ fun CanonicalLoansScreen(
     state.loans.singleOrNull { it.id == selectedLoanId &&
         canonicalLoanPaymentIsUnambiguous(it, state.loans) }?.let { loan ->
         CanonicalLoanPaymentDialog(
-            loan = loan, accounts = state.accounts,
+            loan = loan, accounts = state.accounts, amountsVisible = amountsVisible,
             onDismiss = { selectedLoanId = null },
             onConfirm = { date, account, count, amount, savings ->
                 if (!mutationBlocked && canonicalLoanPaymentIsUnambiguous(loan, state.loans)) {
