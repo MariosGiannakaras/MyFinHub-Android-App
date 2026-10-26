@@ -409,7 +409,16 @@ val activityItems = buildActivityItems(
                 }.sortedBy(CardAnnualRateVersion::effectiveFrom)
             id to versions
         }.toMap()
+    // Web cards.ts allCards() orders by createdAt and then localeCompare(id).
+    // Keep this display ordering local to active cards: changing the canonical
+    // source array would reorder unrelated archived/history projections.
+    val cardIdCollator = java.text.Collator.getInstance(Locale.US)
     val activeCards = canonicalCardProfiles.filter { it.active }
+        .sortedWith(Comparator { left, right ->
+            val byCreation = left.createdAt.orEmpty().compareTo(right.createdAt.orEmpty())
+            if (byCreation != 0) byCreation
+            else cardIdCollator.compare(left.id, right.id)
+        })
     val globalCreditOutstanding = (-(balances[CREDIT_ACCOUNT_ID] ?: 0.0)).coerceAtLeast(0.0)
     val money = MoneyUiState(
         accounts = accounts.filter { it.kind != "credit" }.map { account ->

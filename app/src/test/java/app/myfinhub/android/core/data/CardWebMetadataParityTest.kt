@@ -11,6 +11,30 @@ import org.junit.Test
 
 class CardWebMetadataParityTest {
     @Test
+    fun walletActiveCardsFollowWebCreatedAtThenIdWithoutReorderingArchive() {
+        // Web allCards sorts by creation and locale-aware ID. An imported
+        // persisted array can have later cards first and ties in reverse order.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"snapshots":[{"date":"2026-10-01","balances":{}}]},
+           "state":{"settings":{},"cards":[
+            {"id":"late","kind":"credit","bankId":"alpha","nickname":"Later",
+             "network":"visa","active":true,"createdAt":"2026-09-15"},
+            {"id":"b-early","kind":"debit","bankId":"alpha","nickname":"Early B",
+             "network":"visa","active":true,"createdAt":"2026-01-01"},
+            {"id":"archived","kind":"debit","bankId":"alpha","nickname":"Archived",
+             "network":"visa","active":false,"createdAt":"2025-12-01"},
+            {"id":"a-early","kind":"credit","bankId":"alpha","nickname":"Early A",
+             "network":"visa","active":true,"createdAt":"2026-01-01"}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val wallet = projectCanonicalProduct(imported, LocalDate.of(2026, 10, 14)).moneyState
+        assertEquals(listOf("a-early", "b-early", "late"), wallet.cards.map { it.id })
+        assertEquals(listOf("archived"), wallet.archivedCards.map { it.id })
+        assertEquals(original, imported.raw)
+    }
+
+    @Test
     fun missingOrNullActiveFlagKeepsWebLegacyCardsActiveInBothProjections() {
         // Web uses card.active !== false. Older imported card profiles might
         // omit active or contain null; only explicit false means archived.
