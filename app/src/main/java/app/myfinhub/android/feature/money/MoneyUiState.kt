@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.core.data.CanonicalSavingsMonthlyTargetSnapshot
 import app.myfinhub.android.core.data.CanonicalSavingsMonthlyTrend
+import app.myfinhub.android.core.data.CanonicalConfirmedLendingPlanView
 import app.myfinhub.android.core.data.CanonicalSavingsGoalProjection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -184,6 +185,8 @@ data class MoneyUiState(
     val loanPaymentsById: Map<String, List<LoanPaymentHistoryItem>> = emptyMap(),
     val lendingItems: List<LendingItem> = emptyList(),
     val lendingHistory: List<LendingHistoryItem> = emptyList(),
+    /** Web state.lendingPlans are confirmed schedules, not money movements. */
+    val confirmedLendingPlans: List<CanonicalConfirmedLendingPlanView> = emptyList(),
     val frontendMessage: String? = null,
     /** Canonical aggregate ledger debt, independent of active card visibility. Null for legacy fixtures. */
     val aggregateCreditOutstanding: Double? = null,
