@@ -454,6 +454,7 @@ fun CanonicalSavingsScreen(
     var dateDraft by rememberSaveable { mutableStateOf("") }
     var editorError by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedGoalOrdinal by rememberSaveable { mutableStateOf<Int?>(null) }
     var targetEditorVisible by rememberSaveable { mutableStateOf(false) }
     var targetPercentDraft by rememberSaveable { mutableStateOf("20") }
     var targetPercentError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -733,7 +734,9 @@ fun CanonicalSavingsScreen(
                     Text("Στόχοι αποταμίευσης",
                         style = MaterialTheme.typography.titleMedium)
                 }
-                items(state.savingsGoalItems, key = { "goal-" + it.id }) { goal ->
+                itemsIndexed(state.savingsGoalItems, key = { index, goal ->
+                    "goal-$index-${goal.id}"
+                }) { index, goal ->
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                         .testTag("savings_goal_" + goal.id)) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -761,6 +764,27 @@ fun CanonicalSavingsScreen(
                                     color = if (goal.deadlinePast) MaterialTheme.colorScheme.error
                                         else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                            }
+                            val advice = state.savingsGoalAdvisories.getOrNull(index)
+                            if (advice != null) {
+                                TextButton(
+                                    onClick = {
+                                        expandedGoalOrdinal =
+                                            if (expandedGoalOrdinal == index) null else index
+                                    },
+                                    modifier = Modifier.testTag("savings_goal_projection_" + goal.id),
+                                ) {
+                                    Text(if (expandedGoalOrdinal == index)
+                                        "Κλείσιμο προβολής" else "Προβολή στόχου")
+                                }
+                                if (expandedGoalOrdinal == index) {
+                                    CanonicalSavingsGoalAdvisoryDetails(
+                                        advice = advice,
+                                        amountsVisible = amountsVisible,
+                                        modifier = Modifier.testTag(
+                                            "savings_goal_projection_details_" + goal.id),
+                                    )
+                                }
                             }
                             if (onSaveGoal != null) {
                                 TextButton(

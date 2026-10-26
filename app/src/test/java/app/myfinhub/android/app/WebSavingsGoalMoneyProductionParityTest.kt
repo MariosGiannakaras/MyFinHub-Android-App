@@ -27,6 +27,7 @@ class WebSavingsGoalMoneyProductionParityTest {
               {"id":"trip","name":"Ταξίδι","targetAmount":250,"targetDate":"2027-04-01"}
            ]}}
         """.trimIndent()).jsonObject)
+        val original = document.raw
         val product=projectCanonicalProduct(document,LocalDate.parse("2026-10-15"))
         val goals=product.moneyState.savingsGoalItems
         assertEquals(listOf("emergency","trip"),goals.map { it.id })
@@ -37,5 +38,11 @@ class WebSavingsGoalMoneyProductionParityTest {
         assertTrue(goals[0].deadlinePast)
         assertFalse(goals[1].deadlinePast)
         assertNull(product.moneyState.savingsGoal)
+        val advisory = product.moneyState.savingsGoalAdvisories
+        assertEquals(2, advisory.size)
+        assertEquals("overdue", advisory[0].projection?.status)
+        assertEquals("reached", advisory[1].projection?.status)
+        assertTrue(advisory.all { it.error == null })
+        assertEquals(original, document.raw)
     }
 }

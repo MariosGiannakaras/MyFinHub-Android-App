@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.core.data.CanonicalSavingsMonthlyTargetSnapshot
 import app.myfinhub.android.core.data.CanonicalSavingsMonthlyTrend
+import app.myfinhub.android.core.data.CanonicalSavingsGoalProjection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,6 +74,12 @@ data class SavingsGoalItem(
     val backingBalance: Double,
     val progressPercent: Double,
     val deadlinePast: Boolean,
+)
+
+/** The Web goal advice is read-only; validation failures stay visible, not invented. */
+data class SavingsGoalAdvisoryUiItem(
+    val projection: CanonicalSavingsGoalProjection? = null,
+    val error: String? = null,
 )
 
 /** Web savings.ts read-only monthly history (not mutation identities). */
@@ -163,6 +170,8 @@ data class MoneyUiState(
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
     val savingsGoal: Double? = null,
     val savingsGoalItems: List<SavingsGoalItem> = emptyList(),
+    /** Same row order as savingsGoalItems, including historical duplicate IDs. */
+    val savingsGoalAdvisories: List<SavingsGoalAdvisoryUiItem> = emptyList(),
     val savingsCurrent: Double = 0.0,
     val savingsSources: Map<String, Double> = emptyMap(),
     val savingsMonthlyTarget: CanonicalSavingsMonthlyTargetSnapshot? = null,
