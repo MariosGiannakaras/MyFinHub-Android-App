@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.1 same-day real recurring-payment ordering PR #363 passed four exact-final-head gates and squash-merged to develop 138c71bb0898402494e9e0cff897181b1f07a227. Draft PR #364 restores Web recurringDraftError rule allowing inactive paused/stopped annual or multi-month imported bills to be edited without an invented firstExpectedDate, while active bills still require an anchor. Source and JVM/offline replay tests authored; exact-head CI pending, acceptance counters unchanged. Physical owner Galaxy S24 Ultra #149 pending. No Web/backend/schema, production finance writes, SMS #146, irreversible delete UI, signing/release/main promotion.
+Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.1 inactive recurring edit PR #364 passed all four immutable-final-head CI gates and squash-merged to Android develop 4a3959325436df1eaa8f3759d798fd5dedaef223. Current W4.3 draft PR #365 fixes same-day savings history ID ordering to match Web savings.ts localeCompare and adds read-only FinanceData regression; source authored, CI pending. Acceptance counters unchanged; owner physical Galaxy S24 Ultra rc12 #149 remains pending. No Web/backend/schema edits, production finance writes, SMS #146, irreversible delete UI, signing/release or main promotion.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft W4.1 PR #364 using four exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks. Merge into develop only when 4/4 succeed and reviews/base are clean; continue remaining W2–W5 parity and separate physical owner S24 #149 acceptance.
+1. Validate W4.3 draft PR #365 against all four exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks, then merge into develop only if 4/4 success on immutable head with clean base/reviews. Continue W2–W5 parity and separate owner S24 #149 acceptance.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #364, branch android/w41-inactive-recurring-edit-anchor-20261026
-Current W4.1: W4.1 PR #363 matched Web actual recurring-payment same-day ID sort and latest amount; all four exact-head Project Tracking/Android/screenshot/hosted S24 checks passed, squash merged develop 138c71bb0898402494e9e0cff897181b1f07a227. New draft PR #364 fixes Web recurringDraftError active-only firstExpectedDate requirement: Android edit builder wrongly required a new future anchor for stopped annual and paused multi-month historical bills. Builder now accepts inactive edit while active creation/edits remain strict; JVM source-immutable and offline CAS replay coverage authored, not yet executed by CI. Web parity remains 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
+Issue #155, PR #365, branch android/w43-savings-history-locale-order-20261026
+Current W4.3: PR #364 W4.1 inactive paused/stopped recurring edit without artificial anchor passed all four immutable-head tracking, Android CI, screenshot and hosted S24 emulator checks, squash merged develop 4a3959325436df1eaa8f3759d798fd5dedaef223. New W4.3 draft PR #365 fixes Web savings.ts savingsHistory same-day localeCompare ID sorting (Android previously used raw Unicode order). JVM golden asserts shuffled same-day B/a events, Pay & Save/manual/cash-offset totals, no unrelated expense, unchanged FinanceData. Source/test authored, CI pending; Web parity 1/6 implementations · 11/24 accepted subtasks, physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #364 all four exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator jobs; if 4/4 success on unchanged commit, reviews clean and base unchanged, mark ready and squash merge develop. Then continue W4.1 or other W2–W5 documented parity gaps. Physical S24 owner #149 separate. No Web/backend/schema changes, production writes, SMS import, irreversible card delete UI, signing/release/main.
+Next Check PR #365 same-final-head tracking, Android CI, screenshot and hosted S24 emulator checks. If 4/4 green with unchanged head/base and no blocking reviews, mark ready and squash merge to develop. Continue W2–W5 parity; physical S24 owner #149 separate. No shared Web/backend/schema, production financial writes, SMS #146, permanent card delete UI, signing/release/main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
