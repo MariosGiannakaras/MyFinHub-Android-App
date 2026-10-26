@@ -37,7 +37,10 @@ data class CanonicalReportCreditPortfolio(
 fun CanonicalFinanceDocument.canonicalReportCreditPortfolio(
     asOf: String,
 ): CanonicalReportCreditPortfolio {
-    val fallbackLimit = settingsObject().number("creditLimit")
+    // Web creditLimitForCard also evaluates Number(settings.creditLimit).
+    // Reuse the exact same legacy-number conversion as per-card limits:
+    // padded numeric strings and booleans are valid, null/empty means zero.
+    val fallbackLimit = webCreditLimitOrNull(settingsObject())
         ?.takeIf { it.isFinite() && it >= 0.0 } ?: 0.0
     val collator = Collator.getInstance(Locale.forLanguageTag("el-GR"))
     val idCollator = Collator.getInstance(Locale.US)
