@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft W4.3 PR #362 with four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates; merge to develop only after all succeed and base/reviews are clean. Continue W2–W5 parity; physical owner S24 #149 independently pending.
+- [ ] Validate W4.1 PR #363 on same immutable final head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; merge to develop only if 4/4 green and base/reviews clean. Continue wider W2–W5 parity, physical owner S24 #149 independent.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #362, branch android/w43-budget-id-locale-parity-20261026
-Current W4.3: PR #361 restored previously lost Web-sorted prior-month budget carryover candidate selection and its duplicate-budget golden; passed all four immutable-head checks and squash-merged to Android develop 60d4994626dec62c57ae398680c9b4531040c310. New W4.3 draft PR #362 matches Web budgets.ts ID localeCompare rather than Unicode String.compareTo when scope and category are equal; test asserts lowercase a sorts before uppercase B, impacting display and carryover without changing raw FinanceData. Source/test authored; exact-head CI pending. Web parity 1/6 implementations · 11/24 accepted subtasks; physical S24 issue #149 still open.
+Issue #155, PR #363, branch android/w41-actual-payment-id-order-20261026
+Current W4.1: W4.3 PR #362 mixed-case budget ID locale parity was validated by four immutable-head Project Tracking, Android CI, screenshot and hosted S24 checks, squash-merged to Android develop 84c84ab5182645b0d5aafa7fc6f9b235a7004182. In W4.1 read-only actual recurring payments, Web recurringVariable.ts sorts same-date linked expense records by id.localeCompare, while Android used Unicode id String.compareTo, incorrectly choosing which same-day amount appears as most recent. Draft PR #363 fixes this presentation ordering, retains financial totals and filtering, and adds source-immutable Kotlin regression checking €35 total and €20 latest. CI pending; Web parity 1/6 implementations · 11/24 subtasks and physical S24 #149 remain outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #362 exact-final-head tracking, Android CI, screenshot and hosted S24 emulator checks. If 4/4 green on unchanged head with no review blockers, mark ready and squash-merge to develop. Continue other W2–W5 parity gaps, keep physical S24 #149 separate, no Web/backend/schema, finance writes, SMS #146, delete UI, signed release or main.
+Next Run W4.1 draft PR #363 through all four same-final-head tracking, Android CI, screenshot and hosted S24 emulator gates; merge only with 4/4 successful and no base/review blockers. Continue remaining W2–W5 parity and owner physical S24 #149 separately. No production finance writes, Web/backend/schema, SMS import, irreversible delete UI, signing or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

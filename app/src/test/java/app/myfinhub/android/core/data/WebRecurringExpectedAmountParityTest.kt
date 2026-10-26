@@ -38,6 +38,35 @@ class WebRecurringExpectedAmountParityTest {
         assertEquals(original, data.raw)
     }
 
+    @Test fun actualPaymentsTieBreakByWebLocaleIdAndKeepLastAmountAccurate() {
+        // Web recurringVariable.ts orders same-day expenses by id.localeCompare:
+        // lowercase a precedes uppercase B; last amount is B's €20, not a's €10.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{"events":[
+            {"id":"B-paid","kind":"expense","recurringId":"rent",
+             "date":"2026-10-12","amount":20},
+            {"id":"a-paid","kind":"expense","recurringId":"rent",
+             "date":"2026-10-12","amount":10},
+            {"id":"previous","kind":"expense","recurringId":"rent",
+             "date":"2026-09-12","amount":5},
+            {"id":"not-an-expense","kind":"income","recurringId":"rent",
+             "date":"2026-10-12","amount":700},
+            {"id":"other-item","kind":"expense","recurringId":"other",
+             "date":"2026-10-12","amount":900}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val paid = imported.canonicalRecurringActualPayments(
+            "rent", "2026-09-01", "2026-10-31")
+        assertEquals(3, paid.count)
+        assertEquals(35.0, paid.totalAmount, 0.00001)
+        assertEquals(listOf("B-paid", "a-paid", "previous"),
+            paid.records.map { it.eventId })
+        assertEquals("2026-10-12", paid.lastPaymentDateIso)
+        assertEquals(20.0, paid.lastPaymentAmount!!, 0.00001)
+        assertEquals(original, imported.raw)
+    }
+
     @Test fun malformedHistoricalModesAndRangesStayVisibleButCannotMasqueradeAsValid() {
         val data = document("""
           {"id":"unknown","name":"Legacy mode","amount":20,"active":true,

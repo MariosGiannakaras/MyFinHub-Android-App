@@ -209,8 +209,14 @@ fun CanonicalFinanceDocument.canonicalRecurringActualPayments(
                 event.string("recurringId") == recurringId &&
                 event.string("date")?.let { it >= fromDateIso && it <= throughDateIso } == true
         }
-        .sortedWith(compareBy<JsonObject> { it.string("date").orEmpty() }
-            .thenBy { it.string("id").orEmpty() })
+        // Web recurringVariable.ts sorts by date.localeCompare || id.localeCompare.
+        // On equal dates, raw Kotlin Unicode order can pick a different last
+        // paid amount for imported mixed-case IDs.
+        .sortedWith(Comparator { left, right ->
+            val byDate = left.string("date").orEmpty().compareTo(right.string("date").orEmpty())
+            if (byDate != 0) byDate else Collator.getInstance(Locale.US).compare(
+                left.string("id").orEmpty(), right.string("id").orEmpty())
+        })
     var totalCents = 0L
     payments.forEach { event ->
         val amount = event.number("amount")
