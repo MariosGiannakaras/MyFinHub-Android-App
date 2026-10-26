@@ -44,7 +44,14 @@ fun CanonicalFinanceDocument.canonicalSavingsBreakdown(month: String, asOf: Stri
             fromAccountId=e.string("fromAccountId"),toAccountId=e.string("toAccountId"),
         )
     }
-    val rows=(legacy+events).sortedWith(compareByDescending<CanonicalSavingsHistoryRow> { it.date }.thenByDescending { it.id })
+    // Web savings.ts savingsHistory sorts descending by date.localeCompare and
+    // ID.localeCompare. Unicode String.compareTo puts mixed-case imported IDs
+    // in the wrong position within a day; use the Web default locale for IDs.
+    val webIdOrder = Collator.getInstance(Locale.US)
+    val rows = (legacy + events).sortedWith(Comparator { a, b ->
+        val dateOrder = b.date.compareTo(a.date) // ISO date-only, locale-independent
+        if (dateOrder != 0) dateOrder else webIdOrder.compare(b.id, a.id)
+    })
     val sources=linkedMapOf("pay_and_save" to 0.0,"manual_transfer" to 0.0,"cash_offset" to 0.0)
     rows.forEach { sources[it.source]=(sources[it.source] ?: 0.0)+it.amount }
     return CanonicalSavingsBreakdown(rows,sources,sources.values.sum())
