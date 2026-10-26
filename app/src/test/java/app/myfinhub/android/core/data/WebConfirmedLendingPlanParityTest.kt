@@ -64,6 +64,37 @@ class WebConfirmedLendingPlanParityTest {
         assertTrue(rows.all { it.total == null && it.validationError != null })
     }
 
+    @Test fun duplicateIdsAcrossDistinctPeopleAreNotTrustedAsTwoValidPlans() {
+        val other = """{"id":"lending-plan-1","person":"Maria",
+            "asOf":"2026-08-17","firstDueDate":"2026-10-31",
+            "total":10,"installments":2,"everyMonths":1,
+            "confirmedAt":"2026-08-17T10:00:00Z"}"""
+        val duplicate = plan.dropLast(1) + "," + other + "]"
+        val result = finance(duplicate).canonicalConfirmedLendingPlanRows()
+        assertEquals(2, result.size)
+        assertTrue(result.all { it.validationError != null && it.total == null })
+    }
+
+    @Test fun neverRenderConfirmedSchedulesWithMoreInstallmentsThanTotalCents() {
+        val malformed = plan.replace("\"total\":100", "\"total\":0.03")
+            .replace("\"installments\":3", "\"installments\":5")
+        val row = finance(malformed).canonicalConfirmedLendingPlanRows().single()
+        assertNull(row.total)
+        assertTrue(row.validationError != null)
+    }
+
+    @Test fun serverLimitsForPersonAndIdLengthsFailClosedWithoutLeakingMoney() {
+        val tooLongPerson = plan.replace("\"person\":\"Alex\"",
+            "\"person\":\"${"A".repeat(121)}\"")
+        val tooLongId = plan.replace("\"id\":\"lending-plan-1\"",
+            "\"id\":\"${"z".repeat(201)}\"")
+        listOf(tooLongPerson,tooLongId).forEach { input ->
+            val row = finance(input).canonicalConfirmedLendingPlanRows().single()
+            assertNull(row.total)
+            assertTrue(row.validationError != null)
+        }
+    }
+
     @Test fun subcentAndInvalidDatesOrCadenceFailClosedWithoutAmounts() {
         val bad = listOf(
             plan.replace("\"total\":100", "\"total\":100.001"),

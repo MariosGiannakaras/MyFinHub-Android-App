@@ -36,6 +36,7 @@ fun CanonicalFinanceDocument.canonicalConfirmedLendingPlanRows():
     val rows = state.array("lendingPlans").mapNotNull { it as? JsonObject }
         .filter { !it.string("person").isNullOrBlank() }
     val counts = rows.groupingBy { it.string("person").orEmpty().trim() }.eachCount()
+    val idCounts = rows.groupingBy { it.string("id").orEmpty().trim() }.eachCount()
     return rows.map { raw ->
         val person = raw.string("person").orEmpty().trim()
         val id = raw.string("id").orEmpty().trim()
@@ -46,22 +47,26 @@ fun CanonicalFinanceDocument.canonicalConfirmedLendingPlanRows():
         val count = raw.number("installments")
         val interval = raw.number("everyMonths")
         val confirmedAt = raw.string("confirmedAt").orEmpty()
-        val valid = counts[person] == 1 &&
-            id.isNotEmpty() && id.length <= 160 &&
+        val valid = counts[person] == 1 && idCounts[id] == 1 &&
+            person.length <= 120 && id.isNotEmpty() && id.length <= 200 &&
             asOf != null && due != null && !due.isBefore(asOf) &&
             amount != null && amount.isFinite() && cents != null &&
             cents > 0L && cents <= 9_007_199_254_740_991L &&
             abs(amount * 100 - cents.toDouble()) <= 1e-6 &&
             count != null && count.isFinite() && count % 1.0 == 0.0 &&
-            count in 1.0..60.0 &&
+            count in 1.0..60.0 && count <= cents.toDouble() &&
             interval != null && interval.isFinite() && interval % 1.0 == 0.0 &&
             interval in 1.0..24.0 &&
             runCatching { OffsetDateTime.parse(confirmedAt) }.isSuccess
         if (!valid) CanonicalConfirmedLendingPlanView(
             person = person,
-            validationError = if (counts[person] != 1)
-                "Πολλαπλά επιβεβαιωμένα προγράμματα για το ίδιο πρόσωπο. Απαιτείται έλεγχος."
-            else "Το εισαγόμενο πρόγραμμα επιστροφής χρειάζεται έλεγχο στοιχείων.",
+            validationError = when {
+                counts[person] != 1 ->
+                    "Πολλαπλά επιβεβαιωμένα προγράμματα για το ίδιο πρόσωπο. Απαιτείται έλεγχος."
+                idCounts[id] != 1 ->
+                    "Προγράμματα με διπλό αναγνωριστικό. Απαιτείται έλεγχος."
+                else -> "Το εισαγόμενο πρόγραμμα επιστροφής χρειάζεται έλεγχο στοιχείων."
+            },
         ) else CanonicalConfirmedLendingPlanView(
             person = person, id = id, total = centsToMoney(cents!!),
             firstDueDate = due!!.toString(), installments = count!!.toInt(),
