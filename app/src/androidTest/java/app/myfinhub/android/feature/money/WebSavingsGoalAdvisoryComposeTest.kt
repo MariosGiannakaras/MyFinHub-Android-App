@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -41,8 +40,8 @@ class WebSavingsGoalAdvisoryComposeTest {
         rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state(), onBack = {}) } }
         rule.onNodeWithTag("savings_goal_projection_goal").performScrollTo().performClick()
         rule.onNodeWithTag("savings_goal_projection_details_goal").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Προτεινόμενη συνεισφορά").assertIsDisplayed()
-        rule.onNodeWithTag("savings_goal_custom_monthly").performTextInput("12,34")
+        rule.onNodeWithText("Προτεινόμενη συνεισφορά").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("savings_goal_custom_monthly").performScrollTo().performTextInput("12,34")
         rule.onNodeWithTag("savings_goal_scenario_custom").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("savings_goal_projection_goal").performScrollTo().performClick()
         rule.onNodeWithTag("savings_goal_projection_details_goal").assertDoesNotExist()
