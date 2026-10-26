@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.cashFlowForecast
+import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import java.time.LocalDate
 import kotlinx.serialization.json.Json
