@@ -35,6 +35,7 @@ import app.myfinhub.android.core.data.canonicalLoanDefinition
 import app.myfinhub.android.core.data.isOwnLoan
 import app.myfinhub.android.core.data.canonicalLendingPersonRows
 import app.myfinhub.android.core.data.canonicalLendingHistoryRows
+import app.myfinhub.android.core.data.canonicalConfirmedLendingPlanRows
 import app.myfinhub.android.core.data.canonicalLoanPaymentHistory
 import app.myfinhub.android.core.data.canonicalSavingsBreakdown
 import app.myfinhub.android.core.data.webSavingsMonthlyTargetSnapshot
@@ -598,6 +599,7 @@ val activityItems = buildActivityItems(
                     dueLabel = "",
                 )
             },
+        confirmedLendingPlans = document.canonicalConfirmedLendingPlanRows(),
         // Web lending history includes settled people and survives zero balances.
         lendingHistory = document.canonicalLendingHistoryRows(asOf).map { row ->
             LendingHistoryItem(

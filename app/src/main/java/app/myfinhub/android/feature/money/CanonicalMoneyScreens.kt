@@ -1462,6 +1462,14 @@ fun CanonicalLendingScreen(
                                     .testTag("lending_select_person"),
                             ) { Text(if (person == focusPerson) "✓ Επιλεγμένο πρόσωπο" else "Προβολή κινήσεων") }
                             if (person == focusPerson) {
+                                state.confirmedLendingPlans.filter { it.person == person }
+                                    .forEach { confirmedPlan ->
+                                        CanonicalConfirmedLendingPlanDetails(
+                                            plan = confirmedPlan,
+                                            currentOutstanding = balance,
+                                            amountsVisible = amountsVisible,
+                                        )
+                                    }
                                 if (matches.size == 1 && balance != null && balance > 0.005 &&
                                     !state.asOfDate.isNullOrEmpty()) {
                                     TextButton(
