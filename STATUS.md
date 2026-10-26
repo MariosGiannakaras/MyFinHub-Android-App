@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. W4.3 PR #367 real savings goal projection + Greek what-if UI passed four exact-final-head Project Tracking, Android CI, screenshot and hosted S24 checks, squash-merged Android develop 7832ba2e8623dd181792df6d7469b274d94e4636. Current consolidated W4.2 draft PR #368 adds Web forecastScenarios.ts non-posting 30/60/90-day what-if scenario engine plus real native forecast panel, 5 JVM Web golden cases and 2 hosted Compose tests. CI pending; W4.2 acceptance remains partial. Owner physical S24 rc12 #149 pending. No Web/backend/schema changes, finance writes, SMS #146, irreversible card delete UI, signing/release/main.
+Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. W4.2 PR #368 latest head fad3dad4e0880007c054816e22306090f36301d9 passed all four exact-head tracking, Android CI, screenshot and hosted S24 checks. Its squash commit 1931d99ef27fefe65949c71655bf10585d21f0f7 is already on Android develop with byte-identical tree, although GitHub PR #368 API still reports open due post-merge timeout/status anomaly; never re-merge blindly. Current consolidated W4.3 draft PR #369 adds Web lendingPlans.ts read-only settlement projection, real per-person receivable validation, exact-cent future installment month-end/cadence rules, native Lending advisory UI, 5 JVM Web goldens and 3 hosted Compose tests. No lendingPlans server mutation/auto repayments. CI pending; counters unchanged, physical owner Galaxy S24 #149 pending. No Web/backend/schema changes, actual finance writes, SMS #146, irreversible card deletion, signing/release/main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W4.2 draft #368 on all four exact immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; fix/revalidate only if failing; merge only if 4/4 green and base/reviews clean. Continue larger coherent W2–W5 batches and separate physical S24 #149 acceptance.
+1. Validate batched W4.3 lending-return proposal PR #369 with all four exact final-head tracking, Android CI, screenshot and hosted S24 emulator checks, fix within same PR if needed and merge only green with base/reviews clean. Investigate #368 anomalous GitHub PR-open metadata separately; code is already on develop, do not duplicate merge. Continue larger W2–W5 batches and independent owner physical S24 #149.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #368, branch android/w42-canonical-forecast-what-if-batch-20261026
-Current W4.2: PR #367 W4.3 savings goal real shared-advice Compose, privacy, custom scenario and 90d risk passed 4/4 final-head CI and squash merged develop 7832ba2e8623dd181792df6d7469b274d94e4636. New W4.2 draft PR #368 implements complete Web forecastScenarios.ts nonposting what-if overlay on immutable 30/60/90 canonical baseline, 16-assumption limits, safe cents, account/date validation, same-day additive ledger-aware overlay, portfolio/account minima, first shortfall and source evidence; native Plan forecast UI supports draft income/expense, account, date, amount, horizon selection and read-only masked results. Five JVM and two hosted Compose goldens authored; CI pending. Broad counters 1/6 implementations · 11/24 accepted; physical owner S24 #149 pending.
+Issue #155, PR #369, branch android/w43-lending-return-plan-preview-batch-20261026
+Current W4.3: W4.2 #368 what-if forecast 30/60/90 scenario engine, Greek native panel, 5 JVM + 2 Compose tests passed four exact-final-head CI checks at fad3dad4e0880007c054816e22306090f36301d9; develop includes exact same tree as PR as squash 1931d99ef27fefe65949c71655bf10585d21f0f7. GitHub PR #368 status still open after merge endpoint timeout; check independently, never repeat commit. Draft W4.3 #369 adds Web lendingPlans.ts non-posting 1–60 exact-cent installment planning, interval 1–24 calendar month end, real as-of person receivable guard, native Greek read-only UI with privacy masking, 5 JVM goldens and 3 hosted Compose tests; CI pending. Counters 1/6 implementations · 11/24 accepted, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft W4.2 PR #368 all four exact-final-head tracking, Android CI, screenshot and hosted S24 emulator results; merge only after green and clean reviews/base. Continue cohesive W2–W5 parity and physical S24 owner #149 separately. Never modify Web/backend/schema/production finance/write release.
+Next Verify W4.3 draft #369 four exact immutable final-head tracking, Android CI, screenshots and hosted S24 emulator results; merge only with 4/4 and clean base/reviews. PR #368 develop tree already contains matching squash; resolve stale PR metadata without duplicate merge. Continue batched W2–W5; physical S24 #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

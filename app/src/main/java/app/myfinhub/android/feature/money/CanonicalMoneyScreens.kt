@@ -1335,6 +1335,7 @@ fun CanonicalLendingScreen(
     val amountsVisible = rememberAmountVisibilityPreference()
     var query by rememberSaveable { mutableStateOf("") }
     var selectedPerson by rememberSaveable { mutableStateOf<String?>(null) }
+    var settlementPerson by rememberSaveable { mutableStateOf<String?>(null) }
     var actionFilter by rememberSaveable { mutableStateOf("all") }
     var peopleLimit by rememberSaveable { mutableStateOf(24) }
     var historyLimit by rememberSaveable { mutableStateOf(30) }
@@ -1461,6 +1462,29 @@ fun CanonicalLendingScreen(
                                     .testTag("lending_select_person"),
                             ) { Text(if (person == focusPerson) "✓ Επιλεγμένο πρόσωπο" else "Προβολή κινήσεων") }
                             if (person == focusPerson) {
+                                if (matches.size == 1 && balance != null && balance > 0.005 &&
+                                    !state.asOfDate.isNullOrEmpty()) {
+                                    TextButton(
+                                        onClick = {
+                                            settlementPerson =
+                                                if (settlementPerson == person) null else person
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                            .testTag("lending_settlement_toggle"),
+                                    ) {
+                                        Text(if (settlementPerson == person)
+                                            "Κλείσιμο εκτίμησης επιστροφών"
+                                            else "Εκτίμηση επιστροφών")
+                                    }
+                                    if (settlementPerson == person) {
+                                        CanonicalLendingSettlementPanel(
+                                            person = person,
+                                            outstanding = balance,
+                                            asOf = state.asOfDate,
+                                            amountsVisible = amountsVisible,
+                                        )
+                                    }
+                                }
                                 TextButton(
                                     onClick = { onRecordLending(person) },
                                     enabled = !mutationBlocked,
