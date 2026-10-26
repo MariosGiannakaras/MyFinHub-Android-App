@@ -101,6 +101,72 @@ class CanonicalRecurringEditMutationTest {
         assertEquals(0, changed.state.array("events").size)
     }
 
+    @Test fun inactiveAnnualWithoutAnchorCanBeEditedButActiveAnnualStillRequiresOne() {
+        // Web recurringDraftError permits missing firstExpectedDate for
+        // inactive (paused/stopped) historical annual items, but not active ones.
+        val source = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Cash"}],
+            "recurring":[
+              {"id":"stopped-year","name":"Historic membership","amount":40,
+               "accountId":"cash","category":"Other","recurrenceUnit":"year",
+               "recurrenceInterval":1,"active":false,"status":"stopped"}
+            ]},
+            "state":{"events":[],"recurringOverrides":{},
+              "recurringCustom":[
+                {"id":"paused-quarter","name":"Old quarterly bill","amount":30,
+                 "accountId":"cash","category":"Other","recurrenceUnit":"month",
+                 "recurrenceInterval":3,"active":false,"status":"paused",
+                 "source":"user","metadata":"keep"}
+              ]}}
+        """.trimIndent()).jsonObject)
+        val original = source.raw
+        val annual = CanonicalRecurringCreateDraft(
+            name = "Historic membership renamed", amount = 45.0,
+            accountId = "cash", category = "Other", recurrenceUnit = "year",
+            recurrenceInterval = 1, firstExpectedDate = null,
+        )
+        val updatedAnnual = edit(source, "stopped-year", annual).apply(source)
+        val annualRow = updatedAnnual.canonicalRecurringEditSource("stopped-year")!!.row
+        assertEquals("stopped", annualRow.string("status"))
+        assertEquals(false, annualRow.bool("active"))
+        assertEquals(null, annualRow.string("firstExpectedDate"))
+        assertEquals("Historic membership renamed", annualRow.string("name"))
+        assertEquals(45.0, annualRow.number("amount")!!, 0.001)
+        assertEquals(original["seed"], updatedAnnual.raw["seed"])
+        assertEquals(0, updatedAnnual.state.array("events").size)
+
+        val quarterly = CanonicalRecurringCreateDraft(
+            name = "Quarterly reviewed", amount = 35.0,
+            accountId = "cash", category = "Other", recurrenceUnit = "month",
+            recurrenceInterval = 3, firstExpectedDate = null,
+        )
+        val pausedMutation = edit(source, "paused-quarter", quarterly)
+        val updatedPaused = pausedMutation.apply(source)
+        val pausedRow = updatedPaused.canonicalRecurringEditSource("paused-quarter")!!.row
+        assertEquals("paused", pausedRow.string("status"))
+        assertEquals(false, pausedRow.bool("active"))
+        assertEquals("keep", pausedRow.string("metadata"))
+        assertEquals(null, pausedRow.string("firstExpectedDate"))
+        assertEquals(0, updatedPaused.state.array("events").size)
+        val replay = PendingCanonicalMutationIntent.fromMutation(
+            pausedMutation, "inactive-anchor-edit")
+        assertEquals(updatedPaused.raw, replay.asMutation().apply(source).raw)
+        assertTrue(replay.isSatisfiedBy(updatedPaused))
+
+        assertThrows(IllegalArgumentException::class.java) {
+            CreateCanonicalRecurring("new-annual", now, annual).newRow()
+        }
+        val activated = source.state.updated("recurringCustom", JsonArray(
+            listOf(JsonObject((source.canonicalRecurringEditSource("paused-quarter")!!.row) +
+                mapOf("active" to JsonPrimitive(true), "status" to JsonPrimitive("active"))))
+        ))
+        val activeSource = source.copy(raw = JsonObject(source.raw + ("state" to activated)))
+        assertThrows(IllegalArgumentException::class.java) {
+            edit(activeSource, "paused-quarter", quarterly).apply(activeSource)
+        }
+        assertEquals(original, source.raw)
+    }
+
     @Test fun storedEditRoundTripsExactExpectedSource() {
         val original=edit(before,"custom",CanonicalRecurringCreateDraft(
             name="TV+",amount=22.0,accountId="cash",category="Subscriptions",
