@@ -8,6 +8,25 @@ import org.junit.Test
 
 /** Web reportCreditCardSnapshots: archived balances remain liabilities. */
 class WebReportCreditPortfolioParityTest {
+    @Test fun missingActiveCreditCardUsesWebActiveCountAndAvailableCredit() {
+        val legacy = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"settings":{"creditLimit":700},"cards":[
+            {"id":"implicit","kind":"credit","nickname":"Implicit","createdAt":"2026-01-01"},
+            {"id":"archived","kind":"credit","nickname":"Closed","active":false,"createdAt":"2026-01-02"},
+            {"id":"explicit","kind":"credit","nickname":"Active","active":true,"createdAt":"2026-01-03"}
+          ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = legacy.raw
+        val result = legacy.canonicalReportCreditPortfolio("2026-10-25")
+        assertEquals(3, result.totalCards)
+        assertEquals(2, result.activeCards)
+        assertEquals(1400.0, result.limit, 0.001)
+        assertEquals(1400.0, result.available, 0.001)
+        assertEquals(0.0, result.cards.single { it.id == "archived" }.limit, 0.001)
+        assertEquals(700.0, result.cards.single { it.id == "implicit" }.limit, 0.001)
+        assertEquals(original, legacy.raw)
+    }
+
     @Test fun tiedCreditReportRowsFollowWebAllCardsChronologyNotStoredArrayOrder() {
         // Web allCards sorts by createdAt then id before the stable credit
         // snapshot sort by debt and nickname. The input deliberately reverses
