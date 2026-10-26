@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate and integrate W4.4 draft #355 on four exact-head green PR gates, including hosted S24 and screenshot regression; then inspect remaining finance parity. Preserve historical cards and do not claim physical Galaxy S24 Ultra owner acceptance #149.
+- [ ] Validate W2.4 active-wallet card chronology PR #356 with all four same-head gates, inspect any screenshot changes, then integrate develop only if green. Continue remaining W4.4/W2.4 parity and physical S24 owner acceptance #149 separately.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #355, branch android/w44-card-active-default-parity-20261026
-Current W4.4: Merged W4.4 credit-card report stable tie ordering PR #354 into Android develop 5d9560b50d1be87d7a581e4c9da1d5363819dc05 after four exact-head CI/screenshot/hosted S24 gates. Current draft #355 fixes another verified Web parity mismatch: Web card.active !== false treats missing or null active as active, but both Android canonicalCards() and legacy cards() projections default missing values to false. Preserve explicit false archival; tests for both projections and read-only credit-portfolio active/limit metrics. Tests authored, CI pending. Accepted Web parity remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 acceptance pending.
+Issue #155, PR #356, branch android/w24-wallet-card-chronology-20261026
+Current W2.4: Merged W4.4 historical card default-active Web parity PR #355 to develop 0d23e04e243d734060c03fee7f59353b535f8485 after all four exact-head tracking, Android CI, screenshot regression and hosted S24 checks; preserved only-explicit-false archival. Current W2.4 draft PR #356 addresses independent Web cards.ts allCards() chronological ordering: Web sorts active wallet cards by createdAt then id before rendering; Android canonical MoneyUiState kept original storage array order, influencing first visible and selected card. Narrow read-only active-wallet projection sort and unit regression authored, CI not yet executed. No change to canonical data, archive order or financial values. Accepted Web parity remains 1/6 implementations · 11/24 subtasks; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run draft #355 four immutable exact-head PR gates: Project Tracking, Android CI, screenshot-regression, hosted S24 Ultra instrumentation. Inspect failures/screenshots; merge only with 4/4 success and no review/base drift. Preserve explicit archived false and unchanged raw FinanceData, never claim physical owner S24 acceptance.
+Next Run W2.4 draft PR #356 four immutable exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation). Visually review genuine changed renders if any before accepting baselines. Merge only when 4/4 green and reviews/base unchanged. Keep archive order and historical finance state intact; physical S24 #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
