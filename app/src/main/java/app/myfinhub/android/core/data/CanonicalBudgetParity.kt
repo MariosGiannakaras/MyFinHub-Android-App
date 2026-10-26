@@ -187,6 +187,10 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
     val commitments = asOf?.let { canonicalBudgetProjectedCommitments(month, it) }.orEmpty()
     val total = spending.values.sum()
     val locale = Collator.getInstance(Locale.forLanguageTag("el-GR"))
+    // Web monthlyBudgets uses category.localeCompare(..., "el") but
+    // id.localeCompare(...) without a locale. Compare IDs using the same
+    // default English locale as the Web runtime, not Unicode codepoint order.
+    val idLocale = Collator.getInstance(Locale.US)
     val all = state.array("budgets").filterIsInstance<JsonObject>()
     val budgets = all.filter { it.string("month") == month && (it.number("amount") ?: 0.0) > 0.0 }
 
@@ -239,7 +243,7 @@ fun CanonicalFinanceDocument.webBudgetProgress(month: String, asOf: String? = nu
     val webMonthOrder = Comparator<JsonObject> { a, b ->
         a.string("scope").orEmpty().compareTo(b.string("scope").orEmpty()).takeIf { it != 0 }
             ?: locale.compare(a.string("category").orEmpty(), b.string("category").orEmpty()).takeIf { it != 0 }
-            ?: a.string("id").orEmpty().compareTo(b.string("id").orEmpty())
+            ?: idLocale.compare(a.string("id").orEmpty(), b.string("id").orEmpty())
     }
 
     fun carry(previous: JsonObject, depth: Int): Long {

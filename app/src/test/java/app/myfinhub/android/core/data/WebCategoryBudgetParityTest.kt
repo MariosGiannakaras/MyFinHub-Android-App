@@ -325,6 +325,33 @@ class WebCategoryBudgetParityTest {
         assertEquals(original,imported.raw)
     }
 
+    @Test fun mixedCaseBudgetIdsUseWebLocaleOrderForDisplayAndCarryover() {
+        // Web monthlyBudgets sorts IDs via localeCompare: "a" before "B".
+        // Kotlin String.compareTo instead sorts the uppercase "B" first.
+        // This impacts both display and sorted-first historical carryover.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "events":[],
+            "budgets":[
+              {"id":"B-prior","month":"2026-09","scope":"category",
+               "category":"Σπίτι","amount":300,"carryover":false},
+              {"id":"a-prior","month":"2026-09","scope":"category",
+               "category":"Σπίτι","amount":50,"carryover":false},
+              {"id":"current","month":"2026-10","scope":"category",
+               "category":"Σπίτι","amount":100,"carryover":true}
+            ]
+          }}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        assertEquals(listOf("a-prior", "B-prior"),
+            imported.webBudgetProgress("2026-09", "2026-09-30").map { it.id })
+        val october = imported.webBudgetProgress("2026-10", "2026-10-15").single()
+        assertEquals(50.0, october.carried, 0.00001)
+        assertEquals(150.0, october.limit, 0.00001)
+        assertEquals(150.0, october.remaining, 0.00001)
+        assertEquals(before, imported.raw)
+    }
+
     @Test fun historicalDuplicateBudgetCarryoverUsesSortedFirstMatchingWebParent() {
         // Imported September rows are reverse ID order, but Web sorts before
         // selecting the first parent for October carryover.
