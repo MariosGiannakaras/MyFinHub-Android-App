@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.core.data.canonicalCustomGoalScenario
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+import java.text.NumberFormat
 import java.util.Locale
 
 /**
@@ -58,7 +59,7 @@ internal fun CanonicalSavingsGoalAdvisoryDetails(
                 horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(label, style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.weight(1f))
-                Text(amountVisibilityText(formatCanonicalEuro(amount), amountsVisible),
+                Text(amountVisibilityText(formatGoalAdvisoryEuro(amount), amountsVisible),
                     style = MaterialTheme.typography.bodyMedium)
             }
         }
@@ -118,11 +119,11 @@ internal fun CanonicalSavingsGoalAdvisoryDetails(
                     "savings_goal_scenario_" + scenario.label)) {
                     Text(title, style = MaterialTheme.typography.labelLarge)
                     Text("Ανά μήνα: " +
-                        amountVisibilityText(formatCanonicalEuro(scenario.monthly), amountsVisible))
+                        amountVisibilityText(formatGoalAdvisoryEuro(scenario.monthly), amountsVisible))
                     Text("Εκτίμηση στόχου: " +
-                        amountVisibilityText(formatCanonicalEuro(scenario.totalAtDeadline), amountsVisible))
+                        amountVisibilityText(formatGoalAdvisoryEuro(scenario.totalAtDeadline), amountsVisible))
                     Text("Εκτιμώμενο κενό: " +
-                        amountVisibilityText(formatCanonicalEuro(scenario.gapAtDeadline), amountsVisible))
+                        amountVisibilityText(formatGoalAdvisoryEuro(scenario.gapAtDeadline), amountsVisible))
                 }
             }
         }
@@ -132,3 +133,6 @@ internal fun CanonicalSavingsGoalAdvisoryDetails(
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+private fun formatGoalAdvisoryEuro(value: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
