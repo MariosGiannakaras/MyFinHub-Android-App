@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.2/W4.3 PR #360 with four immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates, then integrate into develop only if all pass. Resume additional Web parity gaps; owner physical S24 #149 separately pending.
+- [ ] Validate W4.3 PR #361 with immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates, then integrate into develop only when all four pass and base/reviews are clean. Continue broader Web parity and independent physical S24 #149 acceptance.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #360, branch android/w42-w43-projection-chronology-20261026
-Current W4.2: W2.4 archived-card Web chronology #359 merged to Android develop 46f853582ad58dfd6a27511c780b424394f24017 following four immutable-head tracking, Android CI, screenshot and hosted emulator successes; post-merge Android CI also completed successfully. New W4.2/W4.3 draft #360 corrects two forecast/budget read-only display ordering gaps: Web forecast.ts localeCompare ID ordering for same-day movements rather than Kotlin Unicode order, and Web pendingScheduled() dueDate/createdAt chronological order when budgetProjectedCommitments lists historical unsorted scheduled rows. Two narrowly scoped source changes and two immutable-source regression fixtures authored. Exact-head CI not yet run; accepted Web parity remains 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 pending.
+Issue #155, PR #361, branch android/w43-restore-sorted-carryover-parent-20261026
+Current W4.3: W4.2/W4.3 PR #360 passed all four same-head checks and was squash-merged to Android develop 99851cf96d64defaba1e45ed885a29eb393eff47. A comparison with merged W4.3 PR #340 shows its budget historical carryover sorted-parent fix and golden test had disappeared from subsequent develop source. New draft PR #361 restores Web monthlyBudgets sorted-first selection for prior budget carryover plus duplicate-budget golden without finance writes. No new test execution claimed until CI concludes; Web parity 1/6 implementations · 11/24 subtasks, physical S24 #149 still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate W4.2/W4.3 draft PR #360 with four same-final-head gates: Project Tracking, Android CI, screenshot regression and hosted S24-target instrumentation. If tests fail correct code/tests and rerun all gates at final head. Merge only when 4/4 green with unchanged base and no unresolved review; continue wider Web parity and owner physical S24 #149 independently. Do not use release/main or server writes.
+Next Verify W4.3 PR #361 against all four exact-final-head tracking, Android, screenshot and hosted S24 tests, review base/comments, then squash-merge develop only if green. Continue remaining W2–W5 parity work; physical Galaxy S24 #149 independent. No backend/Web, production finance writes, SMS, irreversible delete, signing or main promotion.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
