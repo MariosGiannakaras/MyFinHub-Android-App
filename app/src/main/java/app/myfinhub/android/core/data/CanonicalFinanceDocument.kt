@@ -85,7 +85,8 @@ data class CanonicalFinanceDocument(
             network = card.string("network").orEmpty(),
             last4 = card.string("last4"),
             creditLimit = card.number("creditLimit"),
-            active = card.bool("active") ?: false,
+            // Web cards: only explicit false archives; missing or null is active.
+            active = card.bool("active") != false,
             vaultRef = card.string("vaultRef"),
         )
     }

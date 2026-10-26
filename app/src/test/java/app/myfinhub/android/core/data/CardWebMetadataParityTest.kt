@@ -10,6 +10,26 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CardWebMetadataParityTest {
+    @Test
+    fun missingOrNullActiveFlagKeepsWebLegacyCardsActiveInBothProjections() {
+        // Web uses card.active !== false. Older imported card profiles might
+        // omit active or contain null; only explicit false means archived.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{},"state":{"cards":[
+            {"id":"missing","kind":"credit","nickname":"Missing","createdAt":"2026-01-01"},
+            {"id":"null","kind":"debit","nickname":"Null","active":null,"createdAt":"2026-01-02"},
+            {"id":"archived","kind":"credit","nickname":"Archived","active":false,"createdAt":"2026-01-03"},
+            {"id":"explicit","kind":"credit","nickname":"Explicit","active":true,"createdAt":"2026-01-04"}
+          ]}}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        assertEquals(listOf(true, true, false, true),
+            imported.canonicalCards().map { it.active })
+        assertEquals(listOf(true, true, false, true),
+            imported.cards().map { it.active })
+        assertEquals(original, imported.raw)
+    }
+
     private val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
        {"seed":{"accounts":[],"snapshots":[{"date":"2026-10-01","balances":{}}]},
         "state":{"cards":[
