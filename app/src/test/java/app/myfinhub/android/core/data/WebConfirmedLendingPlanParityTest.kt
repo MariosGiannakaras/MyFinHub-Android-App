@@ -9,15 +9,17 @@ import org.junit.Test
 
 /** Web lendingPlans.ts confirmed records are schedules, never repaid ledger events. */
 class WebConfirmedLendingPlanParityTest {
-    private fun finance(plans: String, repaid: Double = 0.0) =
-        CanonicalFinanceDocument(Json.parseToJsonElement("""
-        {"seed":{"lending":[{"person":"Alex","outstanding":100,
-          "entries":[{"date":"2026-01-01","lent":100}]}]},
-         "state":{"events":${if (repaid > 0) """
-           [{"id":"repay-1","kind":"repayment","date":"2026-08-20",
-             "person":"Alex","amount":$repaid,"receivableDelta":-$repaid}]
-         """ else "[]"},"lendingPlans":$plans}}
+    private fun finance(plans: String, repaid: Double = 0.0): CanonicalFinanceDocument {
+        val events = if (repaid > 0.0) """
+            [{"id":"repay-1","kind":"repayment","date":"2026-08-20",
+              "person":"Alex","amount":$repaid,"receivableDelta":-${repaid}}]
+        """.trimIndent() else "[]"
+        return CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"lending":[{"person":"Alex","outstanding":100,
+              "entries":[{"date":"2026-01-01","lent":100}]}]},
+             "state":{"events":$events,"lendingPlans":$plans}}
         """.trimIndent()).jsonObject)
+    }
     private val plan = """
         [{"id":"lending-plan-1","person":"Alex","asOf":"2026-08-17",
           "firstDueDate":"2026-10-31","total":100,"installments":3,
