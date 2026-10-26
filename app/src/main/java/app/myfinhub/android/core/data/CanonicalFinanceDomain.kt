@@ -263,7 +263,8 @@ fun CanonicalFinanceDocument.canonicalCards(): List<CanonicalCard> =
             network = card.string("network").orEmpty(),
             last4 = card.string("last4"),
             creditLimit = card.number("creditLimit"),
-            // Web cards: only explicit false archives; missing or null is active.\n            active = card.bool("active") != false,
+            // Web cards: only explicit false archives; missing or null is active.
+            active = card.bool("active") != false,
             vaultRef = card.string("vaultRef"),
             bankId = card.string("bankId").orEmpty(),
             designId = card.string("designId"),
