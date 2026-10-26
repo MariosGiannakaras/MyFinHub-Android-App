@@ -55,7 +55,7 @@ class WebConfirmedLendingPlanParityTest {
     }
 
     @Test fun duplicateActivePlansFailClosedInsteadOfChoosingArbitraryId() {
-        val duplicate = plan.dropLast(2) + """,
+        val duplicate = plan.dropLast(1) + """,
           {"id":"other","person":"Alex","asOf":"2026-08-17",
            "firstDueDate":"2026-11-30","total":50,"installments":3,
            "everyMonths":1,"confirmedAt":"2026-08-17T10:00:00Z"}]"""
