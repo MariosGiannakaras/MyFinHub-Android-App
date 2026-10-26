@@ -11,6 +11,42 @@ import org.junit.Test
 
 class CardWebMetadataParityTest {
     @Test
+    fun walletArchivedCardsUseWebArchiveRecencyWithUpdatedAtFallbackAndStableTies() {
+        // Web archivedCardsForBank sorts newest archivedAt (or updatedAt)
+        // first; equal dates retain the earlier allCards createdAt/ID order.
+        // Stored-array order is deliberately neither of those orders.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[],"snapshots":[{"date":"2026-10-01","balances":{}}]},
+           "state":{"settings":{},"cards":[
+             {"id":"b-tie","bankId":"alpha","kind":"debit","network":"visa",
+              "nickname":"Same B","active":false,"createdAt":"2026-01-01",
+              "archivedAt":"2026-07-10","updatedAt":"2026-07-11"},
+             {"id":"oldest","bankId":"alpha","kind":"debit","network":"visa",
+              "nickname":"Old","active":false,"createdAt":"2025-10-01",
+              "archivedAt":"2026-05-01","updatedAt":"2026-10-09"},
+             {"id":"newest","bankId":"alpha","kind":"debit","network":"visa",
+              "nickname":"Newest","active":false,"createdAt":"2026-04-01",
+              "archivedAt":"2026-09-01","updatedAt":"2026-09-02"},
+             {"id":"live","bankId":"alpha","kind":"credit","network":"visa",
+              "nickname":"Live","active":true,"createdAt":"2026-02-01"},
+             {"id":"fallback","bankId":"alpha","kind":"debit","network":"visa",
+              "nickname":"Legacy","active":false,"createdAt":"2026-03-01",
+              "updatedAt":"2026-08-12"},
+             {"id":"a-tie","bankId":"alpha","kind":"debit","network":"visa",
+              "nickname":"Same A","active":false,"createdAt":"2026-01-01",
+              "archivedAt":"2026-07-10","updatedAt":"2026-07-12"}
+           ],"events":[]}}
+        """.trimIndent()).jsonObject)
+        val original = imported.raw
+        val wallet = projectCanonicalProduct(imported, LocalDate.of(2026, 10, 14)).moneyState
+        assertEquals(listOf("newest", "fallback", "a-tie", "b-tie", "oldest"),
+            wallet.archivedCards.map { it.id })
+        assertEquals(listOf("live"), wallet.cards.map { it.id })
+        assertEquals("2026-09-01", wallet.archivedCards.first().archivedAt)
+        assertEquals(original, imported.raw)
+    }
+
+    @Test
     fun walletActiveCardsFollowWebCreatedAtThenIdWithoutReorderingArchive() {
         // Web allCards sorts by creation and locale-aware ID. An imported
         // persisted array can have later cards first and ties in reverse order.

@@ -437,7 +437,21 @@ val activityItems = buildActivityItems(
                 providerId = account.providerId,
             )
         },
-        archivedCards = canonicalCardProfiles.filterNot { it.active }.map { card ->
+        // Web archivedCardsForBank: descending (archivedAt ?? updatedAt).
+        // On equal dates preserve allCards() createdAt/id chronology, not the
+        // physical order of historical imported card records.
+        archivedCards = canonicalCardProfiles.filterNot { it.active }
+            .sortedWith(Comparator { left, right ->
+                val leftTime = left.archivedAt ?: left.updatedAt
+                val rightTime = right.archivedAt ?: right.updatedAt
+                val byArchive = rightTime.orEmpty().compareTo(leftTime.orEmpty())
+                if (byArchive != 0) byArchive else {
+                    val byCreation = left.createdAt.orEmpty().compareTo(right.createdAt.orEmpty())
+                    if (byCreation != 0) byCreation
+                    else cardIdCollator.compare(left.id, right.id)
+                }
+            })
+            .map { card ->
             // Archived card identity and debt survive: secrets stay locked and absent.
             MoneyCard(
                 id = card.id,
