@@ -8,6 +8,44 @@ import org.junit.Test
 
 /** Web budgets.ts explicit commitments, including months beyond the next due. */
 class WebBudgetFutureCommitmentsParityTest {
+    @Test fun importedScheduledBudgetsFollowWebDueDateAndCreationOrder() {
+        // Physical order is intentionally reversed; Web pendingScheduled sorts
+        // dueDate/createdAt before projecting, and appends recurring afterward.
+        val imported = CanonicalFinanceDocument(Json.parseToJsonElement("""
+          {"seed":{"accounts":[]},"state":{
+            "scheduled":[
+              {"id":"late","kind":"expense","status":"pending","dueDate":"2026-12-22",
+               "createdAt":"2026-11-01T09:00:00Z","category":"Σπίτι","amount":40},
+              {"id":"same-late","kind":"expense","status":"pending","dueDate":"2026-12-15",
+               "createdAt":"2026-11-10T20:00:00Z","category":"Σπίτι","amount":30},
+              {"id":"skipped","kind":"expense","status":"skipped","dueDate":"2026-12-02",
+               "createdAt":"2026-11-01T08:00:00Z","category":"Σπίτι","amount":500},
+              {"id":"early","kind":"expense","status":"pending","dueDate":"2026-12-08",
+               "createdAt":"2026-11-30T09:00:00Z","category":"Σπίτι","amount":10},
+              {"id":"same-early","kind":"expense","status":"pending","dueDate":"2026-12-15",
+               "createdAt":"2026-11-01T09:00:00Z","category":"Σπίτι","amount":20}
+            ],
+            "recurringCustom":[
+              {"id":"recurring","name":"Internet","amount":50,"day":20,
+               "accountId":"cash","category":"Σπίτι","active":true}
+            ],
+            "budgets":[{"id":"home","month":"2026-12","scope":"category",
+                        "category":"Σπίτι","amount":200}]
+          }}
+        """.trimIndent()).jsonObject)
+        val before = imported.raw
+        val rows = imported.canonicalBudgetProjectedCommitments("2026-12", "2026-12-01")
+        assertEquals(listOf("early","same-early","same-late","late","recurring"),
+            rows.map { it.id })
+        assertEquals(listOf("scheduled","scheduled","scheduled","scheduled","recurring"),
+            rows.map { it.source })
+        assertEquals(150.0, rows.sumOf { it.amount }, 0.001)
+        val budget = imported.webBudgetProgress("2026-12", "2026-12-01").single()
+        assertEquals(150.0, budget.projectedDue, 0.001)
+        assertEquals(50.0, budget.projectedRemaining, 0.001)
+        assertEquals(before, imported.raw)
+    }
+
     private val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
       {"seed":{"accounts":[]},"state":{
         "recurringCustom":[
