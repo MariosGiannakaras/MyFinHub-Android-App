@@ -8,6 +8,36 @@ import org.junit.Test
 
 /** Web reportCreditCardSnapshots: archived balances remain liabilities. */
 class WebReportCreditPortfolioParityTest {
+    @Test fun globalLegacyCreditLimitUsesWebNumberCoercionNotStrictJsonNumber() {
+        // Web creditLimitForCard: Number(settings.creditLimit).
+        // The card omits its own limit so the legacy global setting is used.
+        val cases = listOf(
+            "\" 700 \"" to 700.0,
+            "true" to 1.0,
+            "false" to 0.0,
+            "null" to 0.0,
+            "\"\"" to 0.0,
+            "\"  \"" to 0.0,
+            "\"invalid\"" to 0.0,
+        )
+        for ((rawLimit, expected) in cases) {
+            val source = """
+                {"seed":{},"state":{"settings":{"creditLimit":__LIMIT__},
+                  "cards":[{"id":"legacy","kind":"credit","nickname":"Imported",
+                            "active":true,"createdAt":"2026-01-01"}],
+                  "events":[]}}
+            """.trimIndent().replace("__LIMIT__", rawLimit)
+            val doc = CanonicalFinanceDocument(Json.parseToJsonElement(source).jsonObject)
+            val original = doc.raw
+            val result = doc.canonicalReportCreditPortfolio("2026-10-26")
+            assertEquals(rawLimit, expected, result.limit, 0.000001)
+            assertEquals(expected, result.available, 0.000001)
+            assertEquals(expected, result.cards.single().limit, 0.000001)
+            assertEquals(1, result.activeCards)
+            assertEquals(original, doc.raw)
+        }
+    }
+
     @Test fun explicitNullAndEmptyCreditLimitsFollowWebNumberCoercionPerSourceRow() {
         // Web Number(undefined) falls back to settings.creditLimit; Number(null),
         // Number("") and Number("  ") are zero. Duplicated historical card IDs
