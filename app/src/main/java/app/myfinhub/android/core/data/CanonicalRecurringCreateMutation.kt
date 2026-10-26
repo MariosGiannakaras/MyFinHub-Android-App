@@ -40,7 +40,7 @@ data class CreateCanonicalRecurring(
         return result
     }
 
-    fun newRow(): JsonObject {
+    fun newRow(isActive: Boolean = true): JsonObject {
         require(recurringId.isNotBlank()) { "Απαιτείται αναγνωριστικό παγίου." }
         val name = draft.name.trim()
         require(name.isNotEmpty() && name.length <= 500) { "Συμπλήρωσε όνομα παγίου." }
@@ -71,7 +71,11 @@ data class CreateCanonicalRecurring(
                 "Μη έγκυρη ημερομηνία παγίου."
             }
         }
-        require(anchor != null || (draft.recurrenceUnit == "month" && draft.recurrenceInterval == 1)) {
+        // Web recurringDraftError requires an anchor only for *active*
+        // non-monthly schedules. An inactive imported annual bill may be edited
+        // without inventing a future charge/date; new bills remain active.
+        require(!isActive || anchor != null ||
+            (draft.recurrenceUnit == "month" && draft.recurrenceInterval == 1)) {
             "Χρειάζεται ημερομηνία αναφοράς για μη μηνιαίο πάγιο."
         }
         require(draft.accountId.isNotBlank()) { "Επίλεξε λογαριασμό." }

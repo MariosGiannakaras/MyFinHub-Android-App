@@ -43,7 +43,11 @@ data class EditCanonicalRecurring(
             "Μη έγκυρη ταυτότητα επεξεργασίας παγίου."
         }
         // Reuse the SAME strict Web-derived validation as the creation editor.
-        val normalized = CreateCanonicalRecurring(recurringId, nowIso, draft).newRow()
+        // Web recurringDraftError only requires a non-monthly anchor when
+        // the source record is active. Editing paused/stopped history must not
+        // fabricate a billing date or implicitly resume the subscription.
+        val normalized = CreateCanonicalRecurring(recurringId, nowIso, draft)
+            .newRow(isActive = expected.bool("active") == true)
         return JsonObject((expected - editableFields) +
             normalized.filterKeys { it in editableFields })
     }
