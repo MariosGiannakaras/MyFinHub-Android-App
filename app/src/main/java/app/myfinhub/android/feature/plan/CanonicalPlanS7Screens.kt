@@ -577,6 +577,16 @@ fun CanonicalPlanForecastScreen(
                 }
             }
 
+            if (state.forecastScenarioBaselines.isNotEmpty()) {
+                item("forecast-what-if") {
+                    CanonicalForecastScenarioPanel(
+                        baselines = state.forecastScenarioBaselines,
+                        accounts = state.scheduledAccounts,
+                        amountsVisible = amountsVisible,
+                    )
+                }
+            }
+
             item("forecast-items-heading") {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     MyFinHubSectionHeading(

@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.plan
 
 import androidx.lifecycle.ViewModel
 import kotlinx.serialization.json.JsonObject
+import app.myfinhub.android.core.data.CanonicalCashFlowForecast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -268,6 +269,8 @@ data class PlanUiState(
     val message: String? = null,
     val itemMessage: String? = null,
     val categoryBudgetMessage: String? = null,
+    /** Web forecastScenarios.ts what-if: immutable real 30/60/90-day baselines, never FinanceData writes. */
+    val forecastScenarioBaselines: Map<Int, CanonicalCashFlowForecast> = emptyMap(),
 )
 
 sealed interface PlanAction {

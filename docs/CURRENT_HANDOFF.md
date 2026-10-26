@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. PR #366 advisory savings goal domain passed 4/4 immutable-head tracking, Android CI, screenshot and hosted S24 checks and squash-merged Android develop 89fd22c190f88dc53fb918a25ee74d92f9f97b93. Draft consolidated PR #367 wires genuine shared goal projection and cached 90-day forecast to Money UI, adds expandable read-only Greek scenario/operating liquidity sections, privacy-safe custom what-if, invalid-data messages, 2 JVM + 3 hosted Compose regressions. All CI pending; no physical S24 owner #149 acceptance. Acceptance counters unchanged; no Web/backend/schema, actual finance writes, SMS #146, irreversible card deletion, signing/release/main.
+Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. W4.3 PR #367 real savings goal projection + Greek what-if UI passed four exact-final-head Project Tracking, Android CI, screenshot and hosted S24 checks, squash-merged Android develop 7832ba2e8623dd181792df6d7469b274d94e4636. Current consolidated W4.2 draft PR #368 adds Web forecastScenarios.ts non-posting 30/60/90-day what-if scenario engine plus real native forecast panel, 5 JVM Web golden cases and 2 hosted Compose tests. CI pending; W4.2 acceptance remains partial. Owner physical S24 rc12 #149 pending. No Web/backend/schema changes, finance writes, SMS #146, irreversible card delete UI, signing/release/main.
 
 ## Immediate work
 
-- Validate batched W4.3 UI PR #367 on four same immutable final head Project Tracking, Android CI, screenshot regression, hosted S24 checks; fix and revalidate only if checks fail. Merge if 4/4 green with clean base/reviews, then proceed to further cohesive W2–W5 parity. Physical owner rc12 S24 #149 remains independent.
+- Validate W4.2 draft #368 on all four exact immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; fix/revalidate only if failing; merge only if 4/4 green and base/reviews clean. Continue larger coherent W2–W5 batches and separate physical S24 #149 acceptance.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web↔Android parity 1/6 implementations · 11/24 accepted subtasks. PR #366 adv
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #367, branch android/w43-goal-advice-compose-batch-20261026
-Current W4.3: PR #366 Web advisory goalProjections.ts read-only domain/90-day liquidity and scenarios passed all four exact-head CI gates and squash merged develop 89fd22c190f88dc53fb918a25ee74d92f9f97b93. New larger W4.3 draft #367 integrates shared forecast once, source-row-indexed projection (including imported duplicate goals), per-goal expandable Greek scenario status, custom hypothetical monthly amount and privacy masking; invalid imported goals visibly fail closed. Two Kotlin regressions and three real hosted Compose UI tests authored, CI pending; Web parity unchanged 1/6 implementations · 11/24 accepted subtasks, physical S24 owner #149 pending.
+Issue #155, PR #368, branch android/w42-canonical-forecast-what-if-batch-20261026
+Current W4.2: PR #367 W4.3 savings goal real shared-advice Compose, privacy, custom scenario and 90d risk passed 4/4 final-head CI and squash merged develop 7832ba2e8623dd181792df6d7469b274d94e4636. New W4.2 draft PR #368 implements complete Web forecastScenarios.ts nonposting what-if overlay on immutable 30/60/90 canonical baseline, 16-assumption limits, safe cents, account/date validation, same-day additive ledger-aware overlay, portfolio/account minima, first shortfall and source evidence; native Plan forecast UI supports draft income/expense, account, date, amount, horizon selection and read-only masked results. Five JVM and two hosted Compose goldens authored; CI pending. Broad counters 1/6 implementations · 11/24 accepted; physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft #367 4/4 exact-final-head tracking, Android CI, screenshot and hosted S24 emulator results. If all succeed and base/head/reviews unchanged, mark ready and squash merge develop. Continue larger batches across W2–W5, preserve finance data and no unauthorised Web/backend/schema/release changes. Physical S24 #149 separate.
+Next Check draft W4.2 PR #368 all four exact-final-head tracking, Android CI, screenshot and hosted S24 emulator results; merge only after green and clean reviews/base. Continue cohesive W2–W5 parity and physical S24 owner #149 separately. Never modify Web/backend/schema/production finance/write release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
