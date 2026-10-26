@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.2/W4.3 chronology PR #360 passed four exact-head gates and merged into develop 99851cf96d64defaba1e45ed885a29eb393eff47. W4.3 draft PR #361 restores previously merged #340 Web-sorted historical budget carryover parent selection inadvertently lost in later integration; reinstates its duplicate-budget regression. Source authored, CI pending; acceptance counters unchanged. Physical Galaxy S24 Ultra #149 acceptance pending. No Web/backend/schema changes, production finance writes, SMS #146, irreversible card delete UI, signing/release/main promotion.
+Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. PR #361 restored Web-sorted historical budget carryover selection and passed all four immutable-head checks before squash-merging to develop 60d4994626dec62c57ae398680c9b4531040c310. Current W4.3 draft PR #362 fixes mixed-case budget ID localeCompare ordering for display and historical carryover, with immutable-source regression; CI pending, accepted counters unchanged. Physical owner Galaxy S24 Ultra #149 pending. No Web/backend/schema changes, production finance writes, SMS #146, irreversible card-delete UI, signing/release/main promotion.
 
 ## Immediate work
 
-- Validate W4.3 PR #361 with immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates, then integrate into develop only when all four pass and base/reviews are clean. Continue broader Web parity and independent physical S24 #149 acceptance.
+- Validate draft W4.3 PR #362 with four exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator gates; merge to develop only after all succeed and base/reviews are clean. Continue W2–W5 parity; physical owner S24 #149 independently pending.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web↔Android parity: 1/6 implementations · 11/24 accepted subtasks. W4.2/W4.3 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #361, branch android/w43-restore-sorted-carryover-parent-20261026
-Current W4.3: W4.2/W4.3 PR #360 passed all four same-head checks and was squash-merged to Android develop 99851cf96d64defaba1e45ed885a29eb393eff47. A comparison with merged W4.3 PR #340 shows its budget historical carryover sorted-parent fix and golden test had disappeared from subsequent develop source. New draft PR #361 restores Web monthlyBudgets sorted-first selection for prior budget carryover plus duplicate-budget golden without finance writes. No new test execution claimed until CI concludes; Web parity 1/6 implementations · 11/24 subtasks, physical S24 #149 still pending.
+Issue #155, PR #362, branch android/w43-budget-id-locale-parity-20261026
+Current W4.3: PR #361 restored previously lost Web-sorted prior-month budget carryover candidate selection and its duplicate-budget golden; passed all four immutable-head checks and squash-merged to Android develop 60d4994626dec62c57ae398680c9b4531040c310. New W4.3 draft PR #362 matches Web budgets.ts ID localeCompare rather than Unicode String.compareTo when scope and category are equal; test asserts lowercase a sorts before uppercase B, impacting display and carryover without changing raw FinanceData. Source/test authored; exact-head CI pending. Web parity 1/6 implementations · 11/24 accepted subtasks; physical S24 issue #149 still open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify W4.3 PR #361 against all four exact-final-head tracking, Android, screenshot and hosted S24 tests, review base/comments, then squash-merge develop only if green. Continue remaining W2–W5 parity work; physical Galaxy S24 #149 independent. No backend/Web, production finance writes, SMS, irreversible delete, signing or main promotion.
+Next Check PR #362 exact-final-head tracking, Android CI, screenshot and hosted S24 emulator checks. If 4/4 green on unchanged head with no review blockers, mark ready and squash-merge to develop. Continue other W2–W5 parity gaps, keep physical S24 #149 separate, no Web/backend/schema, finance writes, SMS #146, delete UI, signed release or main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
