@@ -24,6 +24,7 @@ import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -165,6 +166,49 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("inline_credit_activity_event-17").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("event-17", selectedEvent) }
         assertTrue(composeRule.onAllNodesWithText("17,00", substring = true).fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun creditStatementHistoryRevealsOlderCyclesInlineWithoutNewScreen() {
+        val cycles = (1..9).map { index ->
+            CanonicalCreditStatementView(
+                id = "statement-$index",
+                cardId = "credit",
+                openDate = "2026-${index.toString().padStart(2, '0')}-01",
+                closeDate = "2026-${index.toString().padStart(2, '0')}-28",
+                dueDate = "2026-${index.toString().padStart(2, '0')}-30",
+                boundaryRule = "calendar_month",
+                purchaseIds = emptyList(),
+                paymentIds = emptyList(),
+                purchaseTotal = index.toDouble(),
+                paymentTotal = 0.0,
+                remaining = index.toDouble(),
+                status = "closed",
+            )
+        }
+        composeRule.setContent {
+            MyFinHubTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    InlineCreditCardWorkspace(
+                        card = credit,
+                        statements = cycles,
+                        amountsVisible = false,
+                        onPayCard = {},
+                        onAddPurchase = {},
+                        onOpenActivity = {},
+                        onOpenDetails = {},
+                    )
+                }
+            }
+        }
+        assertTrue(composeRule.onAllNodesWithText("2026-05-01", substring = true)
+            .fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithTag("inline_credit_more_statements").performScrollTo().performClick()
+        assertTrue(composeRule.onAllNodesWithText("2026-05-01", substring = true)
+            .fetchSemanticsNodes().isNotEmpty())
+        composeRule.onNodeWithTag("inline_credit_more_statements").performScrollTo().performClick()
+        assertTrue(composeRule.onAllNodesWithText("2026-09-01", substring = true)
+            .fetchSemanticsNodes().isNotEmpty())
     }
 
     @Test
