@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Historical accepted Web parity remains 1/6 implementations · 11/24 subtasks, not a claim of completing the owner-approved mobile scope. Android PR #378 now contains five mobile roots, account Home, independent Cards with native vertical debit+credit 3D stack and inline credit statements/activity, Plan and Reports, device-only Settings. The previous immutable run d8e63d6c8b9e8ec44e2aeec69f45046a376d1f57 passed Project Tracking, Android CI and 225/225 hosted emulator tests; screenshot regression found exactly three WalletCards visual baselines (Light/Dark/large font) impacted by 48dp accessible card pagination touch targets. Three actual native Compose images were inspected and regenerated exclusively by branch workflow 40583628241 at bot commit d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. The temporary privileged authoring workflow is deleted in the final PR tree. Final immutable four-gate validation required before merge. Physical owner's Galaxy S24 Ultra #149 remains pending; no backend/Web/schema, SMS #146, real finance writes, release/signing/main.
+Owner-approved five-root Android redesign PR #378 merged into develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e (exact head 4cffc66fced466d0c61ccea5748d3630c56db625, four required checks green including 225 hosted emulator tests and all Compose screenshots). Post-merge develop Android CI 40586345946 is independent and was in progress at last verification. Follow-up STACKED draft PR #379 implements native inline credit history and statement batching, 48dp+ row actions, Greek privacy/responsive large text, and correct net-worth navigation in the standalone Reports root; it is NOT yet tested or merged. Historical broader Web parity acceptance stays 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 Ultra #149 remains unapproved. No Web/backend/schema, SMS #146, real finance writes, main, signing or release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate final PR #378 on the same immutable SHA with Project Tracking, Android CI, screenshot regression and S24 emulator (4/4), then merge to develop only if all are green and review/branch clear. Post-merge verify develop and proceed with the next cohesive Android-only batch; physical owner's Galaxy S24 acceptance #149 remains independent.
+1. Retarget draft PR #379 onto merged Android develop, verify exact branch ancestry and owner scope, then run all four required PR gates (tracking, Android CI, screenshot regression, hosted S24 emulator). Correct build/test issues in one coherent batch; merge only with all four green. Physical owner Galaxy S24 #149 remains independent.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
-Current W2.4: PR #378 fixes 48dp card-pagination touch target. Previous head d8e63d6c 3/4 required passes (tracking, Android CI, 225 hosted emulator tests), three WalletCards golden changes only. Real Compose candidate images inspected; successful isolated bot workflow 40583628241 updated exactly three snapshots at d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. Privileged temporary render workflow removed before final checks. Historical acceptance 1/6 · 11/24, physical owner #149 pending.
+Issue #155, PR #379, branch android/inline-credit-history-batch-20261027
+Current W2.4: Owner 27 Oct five-root Android redesign #378 merged to develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e with 4/4 verified immutable required PR checks. Stacked PR #379 contains in-place bounded card movements (8/page), statement cycles (4/page), accessible rows, privacy/large-font handling, upward/downward swipe coverage, and net-position link under independent Reports instead of Accounts; branch head currently b13ec18a3c4ed690389e937bc024afa3dc88a4df before tracking update, untested/unmerged. Current broader acceptance still 1/6 · 11/24; owner physical #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify 4/4 exact-head final PR #378 gates green, reviews and mergeable clear; merge to develop and verify post-merge. Follow with an Android-only single cohesive batch for long inline credit activity history, preservation of same-screen scroll and native interaction tests, without changes to Web/backend. Physical #149 remains separate.
+Next Retarget PR #379 from the now-merged #378 branch to develop. Run all required 4/4 checks on one immutable final head; inspect actual Compose renders, UI tests and net-position origin/Back navigation; fix in a single batch. Merge only green; never claim physical owner Galaxy S24 #149 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
