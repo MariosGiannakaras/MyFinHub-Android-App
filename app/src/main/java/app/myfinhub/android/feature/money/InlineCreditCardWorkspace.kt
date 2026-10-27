@@ -4,16 +4,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
@@ -36,6 +44,16 @@ private fun creditStatementStatusLabel(status: String): String = when (status) {
     else -> "Κατάσταση"
 }
 
+/** Render only bounded canonical rows at first; more remain accessible in place. */
+internal const val INLINE_CREDIT_STATEMENT_BATCH = 4
+internal const val INLINE_CREDIT_ACTIVITY_BATCH = 8
+
+internal fun inlineCreditVisibleCount(total: Int, batches: Int, perBatch: Int): Int =
+    minOf(
+        total.coerceAtLeast(0).toLong(),
+        batches.coerceAtLeast(1).toLong() * perBatch.coerceAtLeast(1).toLong(),
+    ).toInt()
+
 /** Card and all immediate credit context coexist in one Wallet screen; details are optional. */
 @Composable
 fun InlineCreditCardWorkspace(
@@ -48,6 +66,9 @@ fun InlineCreditCardWorkspace(
     onOpenDetails: () -> Unit,
 ) {
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+    var statementBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
+    var activityBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     Column(
         modifier = Modifier.fillMaxWidth().testTag("inline_credit_card_workspace"),
         verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
@@ -99,7 +120,7 @@ fun InlineCreditCardWorkspace(
                         Text("Δεν υπάρχουν συνδεδεμένες καταστάσεις. Η οφειλή και οι κινήσεις εμφανίζονται ξεχωριστά.",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        statements.forEach { statement ->
+                        statements.take(inlineCreditVisibleCount(statements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEach { statement ->
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("${statement.openDate} – ${statement.closeDate} · ${creditStatementStatusLabel(statement.status)}",
                                     style = MaterialTheme.typography.titleSmall)
@@ -112,6 +133,16 @@ fun InlineCreditCardWorkspace(
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
+                        val shown = inlineCreditVisibleCount(
+                            statements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
+                        )
+                        if (shown < statements.size) {
+                            TextButton(
+                                onClick = { statementBatches += 1 },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("inline_credit_more_statements"),
+                            ) { Text("Περισσότερες καταστάσεις (${statements.size - shown})") }
+                        }
                     }
                 }
             }
@@ -122,20 +153,50 @@ fun InlineCreditCardWorkspace(
                         Text("Δεν υπάρχουν καταγεγραμμένες κινήσεις για την κάρτα.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        card.activity.forEach { entry ->
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    TextButton(onClick = { onOpenActivity(entry.id) }) {
-                                        Text(entry.title.ifBlank {
-                                            if (entry.kind == MoneyCardActivityKind.PAYMENT) "Πληρωμή" else "Αγορά"
-                                        })
-                                    }
-                                    Text(entry.dateLabel, style = MaterialTheme.typography.bodySmall)
+                        card.activity.take(
+                            inlineCreditVisibleCount(card.activity.size, activityBatches, INLINE_CREDIT_ACTIVITY_BATCH),
+                        ).forEach { entry ->
+                            Surface(
+                                onClick = { onOpenActivity(entry.id) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("inline_credit_activity_${entry.id}"),
+                                color = MaterialTheme.colorScheme.surface,
+                            ) {
+                                val title = entry.title.ifBlank {
+                                    if (entry.kind == MoneyCardActivityKind.PAYMENT) "Πληρωμή" else "Αγορά"
                                 }
-                                Text(creditWorkspaceMoney(entry.amount, amountsVisible),
-                                    style = MaterialTheme.typography.bodyMedium)
+                                if (largeFont) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                        Text(title, style = MaterialTheme.typography.titleSmall)
+                                        Text(entry.dateLabel, style = MaterialTheme.typography.bodySmall)
+                                        Text(creditWorkspaceMoney(entry.amount, amountsVisible),
+                                            style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(title, style = MaterialTheme.typography.titleSmall)
+                                            Text(entry.dateLabel, style = MaterialTheme.typography.bodySmall)
+                                        }
+                                        Text(creditWorkspaceMoney(entry.amount, amountsVisible),
+                                            style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                }
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        val shown = inlineCreditVisibleCount(
+                            card.activity.size, activityBatches, INLINE_CREDIT_ACTIVITY_BATCH,
+                        )
+                        if (shown < card.activity.size) {
+                            TextButton(
+                                onClick = { activityBatches += 1 },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                    .testTag("inline_credit_load_more"),
+                            ) { Text("Περισσότερες κινήσεις (${card.activity.size - shown})") }
                         }
                     }
                 }

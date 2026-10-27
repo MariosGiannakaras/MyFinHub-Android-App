@@ -17,4 +17,15 @@ class InlineCreditCardWorkspaceTest {
         assertEquals(0f, creditUtilizationRatio(card(90.0,null)), 0.0001f)
         assertEquals(0f, creditUtilizationRatio(card(90.0,0.0)), 0.0001f)
     }
+    @Test fun longCreditHistoryUsesBoundedBatchesAndSafeArithmetic() {
+        assertEquals(0, inlineCreditVisibleCount(0, 1, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(8, inlineCreditVisibleCount(31, 1, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(16, inlineCreditVisibleCount(31, 2, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(31, inlineCreditVisibleCount(31, 4, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(4, inlineCreditVisibleCount(15, 1, INLINE_CREDIT_STATEMENT_BATCH))
+        assertEquals(15, inlineCreditVisibleCount(15, 4, INLINE_CREDIT_STATEMENT_BATCH))
+        assertEquals(0, inlineCreditVisibleCount(-10, 1, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(8, inlineCreditVisibleCount(8, 0, INLINE_CREDIT_ACTIVITY_BATCH))
+        assertEquals(Int.MAX_VALUE, inlineCreditVisibleCount(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE))
+    }
 }
