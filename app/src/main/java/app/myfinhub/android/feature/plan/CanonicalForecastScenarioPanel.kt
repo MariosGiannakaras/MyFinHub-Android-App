@@ -201,6 +201,11 @@ internal fun CanonicalForecastScenarioPanel(
                                     color = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.testTag("s7_forecast_scenario_shortfall"))
                             }
+                            CanonicalForecastScenarioAccountStress(
+                                scenario = result,
+                                accounts = available,
+                                amountsVisible = amountsVisible,
+                            )
                             Text("Δηλωμένες κινήσεις: ${result.evidence.declared} · " +
                                 "Εκτιμώμενα πάγια/δάνεια: ${result.evidence.estimated} · " +
                                 "Υποθέσεις: ${result.evidence.hypothetical} · " +
