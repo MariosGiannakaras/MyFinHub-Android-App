@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -56,7 +57,7 @@ class SensitiveCardClipboardLifecycleTest {
                 )
             } else androidx.compose.material3.Text("Closed")
         } }
-        rule.onAllNodesWithText("Αντιγραφή")[0].performClick()
+        rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
         rule.runOnIdle { assertTrue(hasOurClip()) }
         rule.runOnIdle { visible.value = false }
         rule.waitForIdle()
@@ -74,7 +75,7 @@ class SensitiveCardClipboardLifecycleTest {
                 onBack = {},
             )
         } }
-        rule.onAllNodesWithText("Αντιγραφή")[0].performClick()
+        rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
         rule.runOnIdle { assertTrue(hasOurClip()) }
         rule.runOnIdle { state.value = CardSecretUiState.AuthRejected }
         rule.waitForIdle()

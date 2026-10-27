@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
