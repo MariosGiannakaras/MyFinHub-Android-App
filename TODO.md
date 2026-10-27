@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish the 48dp card-pagination touch-target correction in PR #378; refresh only affected Compose screenshot goldens through an isolated branch-only workflow, delete temporary tooling and verify all four required checks on the immutable final SHA. Merge into develop only if they all succeed; physical S24 Ultra #149 remains independent.
+- [ ] Verify all four required jobs on the final PR #378 SHA after removal of the temporary screenshot workflow: Project Tracking, Android CI, screenshot regression, hosted S24 emulator. Merge into develop ONLY with 4/4 green, reviews/branch checks clear, and retain separate physical S24 Ultra #149 owner acceptance.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
-Current W2.4: PR #378 latest tested head 69d84e97e2073381b829e0bfc0e5fd16b2a8143e: Project Tracking success, Android CI success, screenshot-regression success (102), S24 hosted 224/225 pass; sole remaining failure is 36dp credit stack pagination dot, requires 48dp min touch target. Correction and regression test authored; visual unchanged except possible dot spacing. Refresh affected reference PNGs, remove branch-only updater workflow, then validate all gates on same final head. Accepted parity remains 1/6 · 11/24; owner physical #149 pending.
+Current W2.4: PR #378 final 48dp card pagination touch-target correction authored with Compose target-size assertion, plus exactly two actual card-stack golden PNG updates committed by successful isolated bot job 40578179880 (head 4fe67e8b8dbff68b63645dd8f0af984042a682e9). Branch-only screenshot authoring workflow deleted for final verification. Prior head 69d84e97 green Project Tracking/Android CI/screenshot and 224/225 S24 hosted. New final immutable head 4/4 checks and physical owner device #149 STILL PENDING, no merge.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Commit minimum 48dp dot hit target and targeted test, refresh only changed screenshot references via temporary isolated workflow, remove temporary workflow and rerun Project Tracking/Android CI/screenshot/S24 emulator on immutable final PR head. Do not merge if any gate fails or pending.
+Next Read four exact-head final checks for PR #378 on GitHub. If Project Tracking, Android CI, screenshot and hosted emulator are all successful and no blockers, mark PR ready and merge to develop, then verify post-merge and physical #149 pending. Never merge with any required job pending/failed.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
