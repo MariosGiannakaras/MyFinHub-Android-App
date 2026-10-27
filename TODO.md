@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate synchronized W3.1 PR #375 on new exact head through four Project Tracking, Android CI, screenshot regression and hosted S24 emulator jobs; merge only with 4/4 success, stable develop and clean reviews. Resume substantive W2.4/W3–W5; owner physical rc12 #149 remains independent.
+- [ ] Validate W2.4 temporary-clipboard PR #377 on exactly one immutable final head through Project Tracking, Android CI, screenshot regression and hosted S24 instrumented tests. Inspect any UI change, correct failures together, merge only 4/4 success with clean base/reviews. Continue W2.4/W3–W5 parity without release, physical owner S24 #149 separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #375, branch android/w31-statement-linked-history-safety-batch-20261027
-Current W3.1: W4.4 split Activity details #374 and Insights derived-ratio/chart privacy #376 merged develop 0474bb52d62c6aa7c9006847157d5feb5399a07d (#376 final-head 4/4 CI). W3.1 credit card statement source-safe linked history, invalid-link warnings and incremental 15-row expansion #375 now integrated with latest develop; old head passed 4/4 against old base, new final-head tests required. Web parity remains 1/6 implementations · 11/24 subtasks; physical S24 #149 separate.
+Issue #155, PR #377, branch android/w24-sensitive-clipboard-lifecycle-20261027
+Current W2.4: W3.1 source-safe card statement history PR #375 final head d3af6fd4f97aebed1342526f3aef21426fbc1a79 passed four immutable CI gates and merged into develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W4.4 #376 already merged. Current W2.4 #377 fixes sensitive clipboard expiry lost on Compose disposal, clears copies on secure-details close/AAL2 reveal loss/Activity background, protects non-MyFinHub updated clipboard, with four hosted instrumentation regressions authored. CI pending; accepted parity still 1/6 · 11/24. Physical S24 owner #149 independent.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head full four-gate validation of synchronized W3.1 PR #375, merge only with 4/4 success, clean review and stable develop. Resume grouped W2.4/W3–W5 work; owner physical rc12 #149 separate.
+Next Run four exact-final-head Project Tracking, Android CI, screenshot and S24 hosted tests for W2.4 PR #377; inspect failures, merge only all-success, stable develop and no blocking review. Resume grouped W2.4/W3–W5. Owner physical S24 #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

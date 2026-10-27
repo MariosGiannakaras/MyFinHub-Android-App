@@ -1,11 +1,6 @@
 package app.myfinhub.android.feature.money
 
-import android.content.ClipData
-import android.content.ClipDescription
-import android.content.ClipboardManager
 import android.content.Context
-import android.os.Build
-import android.os.PersistableBundle
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,15 +18,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -46,7 +44,6 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 private const val SENSITIVE_CLIPBOARD_MILLIS = 30_000L
 
@@ -62,18 +59,38 @@ fun CanonicalCardSecureDetailsScreen(
 ) {
     val relevantState = secretState.forCard(cardId)
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
+    val clipboard = remember(cardId) { SensitiveCardClipboard(context.applicationContext) }
+    val lifecycleOwner = LocalLifecycleOwner.current
     var cvvDraft by remember(cardId) { mutableStateOf("") }
     var editorOpen by remember(cardId) { mutableStateOf(false) }
     var panDraft by remember(cardId) { mutableStateOf("") }
     var expiryDraft by remember(cardId) { mutableStateOf("") }
     var validation by remember(cardId) { mutableStateOf<String?>(null) }
     var clipboardMessage by remember(cardId) { mutableStateOf<String?>(null) }
+    // A Compose coroutine is cancelled when this screen disappears: clipboard
+    // expiry must instead be owned by the main looper and survive navigation.
+    DisposableEffect(cardId, clipboard, lifecycleOwner, relevantState is CardSecretUiState.Revealed) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) clipboard.clear()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            clipboard.clear()
+        }
+    }
+    LaunchedEffect(clipboardMessage) {
+        if (clipboardMessage != null) {
+            delay(SENSITIVE_CLIPBOARD_MILLIS)
+            clipboardMessage = null
+        }
+    }
     // Never leave a composed PAN/expiry editor or CVV draft accessible when the
     // owner+AAL2 vault read loses authority, even if navigation retains the screen.
     val vaultReadAuthorized = relevantState is CardSecretUiState.Revealed
     LaunchedEffect(cardId, vaultReadAuthorized) {
         if (!vaultReadAuthorized) {
+            clipboard.clear()
             editorOpen = false
             panDraft = ""
             expiryDraft = ""
@@ -88,6 +105,7 @@ fun CanonicalCardSecureDetailsScreen(
     }
 
     fun closeDetailsSurface() {
+        clipboard.clear()
         onBack()
     }
 
@@ -102,17 +120,11 @@ fun CanonicalCardSecureDetailsScreen(
     }
 
     fun copySensitive(label: String, value: String) {
-        val marker = "MyFinHub:$cardId:$label:${System.nanoTime()}"
-        if (!setSensitiveClipboard(context, marker, value)) {
+        if (!clipboard.copy(value)) {
             clipboardMessage = "Η αντιγραφή δεν είναι διαθέσιμη σε αυτή τη συσκευή."
             return
         }
         clipboardMessage = "$label: αντιγράφηκε προσωρινά."
-        coroutineScope.launch {
-            delay(SENSITIVE_CLIPBOARD_MILLIS)
-            clearClipboardOnlyIfUnchanged(context, marker, value)
-            clipboardMessage = null
-        }
     }
 
     Scaffold(
@@ -306,31 +318,3 @@ private fun CardSecretUiState.forCard(cardId: String): CardSecretUiState = when 
 private fun isValidSecureCardExpiry(value: String): Boolean =
     Regex("^(0[1-9]|1[0-2])/(\\d{2}|\\d{4})$").matches(value)
 
-private fun setSensitiveClipboard(context: Context, marker: String, value: String): Boolean = runCatching {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText(marker, value)
-    clip.description.extras = PersistableBundle().apply {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-        } else {
-            putBoolean("android.content.extra.IS_SENSITIVE", true)
-        }
-    }
-    clipboard.setPrimaryClip(clip)
-}.isSuccess
-
-private fun clearClipboardOnlyIfUnchanged(context: Context, marker: String, value: String) {
-    runCatching {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val current = clipboard.primaryClip ?: return
-        val unchanged = current.description.label?.toString() == marker &&
-            current.itemCount > 0 &&
-            current.getItemAt(0).coerceToText(context).toString() == value
-        if (!unchanged) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            clipboard.clearPrimaryClip()
-        } else {
-            clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
-        }
-    }
-}
