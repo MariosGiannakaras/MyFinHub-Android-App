@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.insights
 
 import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -40,14 +41,18 @@ class InsightsRatioPrivacyComposeTest {
             InsightsScreen(state=InsightsUiState(periods=listOf(scope)),onOpenSupportingActivity={})
         } }
         rule.onNodeWithTag("insights_category_Τρόφιμα").performScrollTo()
-            .assertContentDescriptionContains("••••")
+            .assertContentDescriptionContains("••••", substring=true)
+        rule.onNodeWithTag("insights_list").performScrollToNode(hasTestTag("insights_category_momentum"))
+        rule.onNodeWithTag("insights_momentum_change_0")
+            .assertTextEquals("••••")
     }
 
     @Test fun chartGraphIsSuppressedWhileAmountsHidden() {
         rule.setContent { MyFinHubTheme {
             InsightsScreen(state=InsightsUiState(periods=listOf(scope)),onOpenSupportingActivity={})
         } }
-        rule.onNodeWithTag("insights_details_toggle").performScrollTo().performClick()
+        rule.onNodeWithTag("insights_list").performScrollToNode(hasTestTag("insights_details"))
+        rule.onNodeWithTag("insights_details_toggle").performClick()
         rule.onNodeWithTag("insights_chart_hidden").performScrollTo().assertIsDisplayed()
     }
 
@@ -57,6 +62,6 @@ class InsightsRatioPrivacyComposeTest {
             InsightsScreen(state=InsightsUiState(periods=listOf(scope)),onOpenSupportingActivity={})
         } }
         rule.onNodeWithTag("insights_category_Τρόφιμα").performScrollTo()
-            .assertContentDescriptionContains("40%")
+            .assertContentDescriptionContains("40%", substring=true)
     }
 }
