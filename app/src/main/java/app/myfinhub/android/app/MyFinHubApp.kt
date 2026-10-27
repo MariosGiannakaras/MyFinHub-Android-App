@@ -509,7 +509,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.NetPosition> {
                     CanonicalNetPositionScreen(
                         state = moneyProviderState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.CardCreate> {

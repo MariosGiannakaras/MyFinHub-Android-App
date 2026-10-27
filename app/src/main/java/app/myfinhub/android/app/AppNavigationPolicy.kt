@@ -14,7 +14,6 @@ internal val AppRoute.showsGlobalNavigation: Boolean
     get() = when (this) {
         AppRoute.Home,
         AppRoute.Activity,
-        AppRoute.Insights,
         AppRoute.Money,
         AppRoute.Plan,
         AppRoute.Insights -> true
