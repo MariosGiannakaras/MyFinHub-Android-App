@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate new W4.4 draft split disclosure PR #374 with all four identical final-head Project Tracking, Android CI, screenshot and hosted S24 tests, fix in same PR only, merge after 4/4 green and clean base/reviews. Continue W2–W5 parity and physical owner S24 rc12 #149 separately; no micro-CI.
+- [ ] Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #374, branch android/w44-inline-split-details-parity-batch-20261027
-Current W4.4: W4.2 PR #373 corrected standalone assertExists import, passed four same-final-head CI checks on f1c5b7721c4c9596af70713ef0411072e894c251; squash merged develop 74be6172091b87cfd50887b89d1c41ddbc3c8cde. Next consolidated draft W4.4 #374 implements Web TransactionSplitDetails read-only inline expand/collapse under native actual Activity ledger rows, preserves separate click to navigate details, shows source part labels/category/subcategory/amount and hides each amount under privacy. Web categoryPath empty vs whitespace legacy semantics corrected; 3 JVM Web parity vectors and 3 hosted Compose interactions authored. Canonical JSON and 3 derived docs updated, CI pending. Approved counters 1/6 implementations · 11/24 subtasks. Owner physical S24 #149 distinct.
+Issue #155, PR #375, branch android/w44-insights-ratio-privacy-batch-20261027
+Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #375 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check W4.4 PR #374 immutable exact-head four Project Tracking, Android CI, screenshots and S24-target emulator checks. Fix regression within same PR if failing, rerun all after head changes. Squash merge only 4/4 green, unchanged develop and no blocking reviews. Continue W2–W5 meaningful batches, no Web/backend/production release.
+Next Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
