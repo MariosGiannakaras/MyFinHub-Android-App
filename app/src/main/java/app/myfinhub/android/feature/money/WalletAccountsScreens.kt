@@ -355,33 +355,33 @@ private fun LazyListScope.walletAccountsContent(
 
     if (showNetPosition) {
         item("net-position-link") {
-        Surface(
-            onClick = onOpenNetPosition,
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(
-                modifier = Modifier.padding(MyFinHubSpacing.md),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
+            Surface(
+                onClick = onOpenNetPosition,
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                MyFinHubIconBadge(MyFinHubIcons.Money, FinanceTone.Neutral, null)
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Καθαρή θέση", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "Λογαριασμοί + απαιτήσεις − δάνεια − πιστωτικό χρέος",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Row(
+                    modifier = Modifier.padding(MyFinHubSpacing.md),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MyFinHubIconBadge(MyFinHubIcons.Money, FinanceTone.Neutral, null)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Καθαρή θέση", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Λογαριασμοί + απαιτήσεις − δάνεια − πιστωτικό χρέος",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    MyFinHubAmountText(
+                        walletAmountText(canonicalNetPosition(state), amountsVisible),
+                        if (canonicalNetPosition(state) >= 0.0) FinanceTone.Income else FinanceTone.Expense,
                     )
                 }
-                MyFinHubAmountText(
-                    walletAmountText(canonicalNetPosition(state), amountsVisible),
-                    if (canonicalNetPosition(state) >= 0.0) FinanceTone.Income else FinanceTone.Expense,
-                )
             }
         }
-    }
     }
 }
 
