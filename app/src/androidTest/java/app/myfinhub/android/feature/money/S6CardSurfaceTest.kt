@@ -104,7 +104,7 @@ class S6CardSurfaceTest {
             MyFinHubTheme {
                 CreditCardStack(
                     cards = listOf(debit, credit),
-                    secretState = CardSecretUiState.Locked,
+                    secretState = CardSecretUiState.Hidden(),
                     onActiveCardChanged = { activeCard = it },
                     onOpenCard = { detailOpened = it },
                     onDeleteCard = {},
@@ -113,13 +113,19 @@ class S6CardSurfaceTest {
         }
         composeRule.waitForIdle()
         composeRule.runOnIdle { assertEquals("debit", activeCard) }
-        composeRule.onNodeWithTag("credit_card_stack").performTouchInput { swipeUp() }
+        composeRule.onNodeWithTag("credit_card_debit").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeUp(startY = bottom - inset, endY = top + inset, durationMillis = 400L)
+        }
         composeRule.waitForIdle()
         composeRule.runOnIdle {
             assertEquals("credit", activeCard)
             assertEquals(null, detailOpened)
         }
-        composeRule.onNodeWithTag("credit_card_stack").performTouchInput { swipeDown() }
+        composeRule.onNodeWithTag("credit_card_credit").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeDown(startY = top + inset, endY = bottom - inset, durationMillis = 400L)
+        }
         composeRule.waitForIdle()
         composeRule.runOnIdle { assertEquals("debit", activeCard) }
     }
