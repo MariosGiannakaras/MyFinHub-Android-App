@@ -1478,6 +1478,7 @@ fun CanonicalLendingScreen(
                                             plan = confirmedPlan,
                                             currentOutstanding = balance,
                                             amountsVisible = amountsVisible,
+                                            asOf = state.asOfDate,
                                         )
                                     }
                                 if (matches.size == 1 && balance != null && balance > 0.005 &&
