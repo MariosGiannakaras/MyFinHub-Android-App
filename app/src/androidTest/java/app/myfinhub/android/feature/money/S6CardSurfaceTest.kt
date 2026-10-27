@@ -1,12 +1,18 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -85,6 +91,43 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
         composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }
+    }
+
+    @Test
+    fun longCreditHistoryExpandsInlineWithoutLeavingSelectedCard() {
+        val activities = (1..19).map { index ->
+            MoneyCardActivity(
+                id = "event-$index",
+                dateLabel = "2026-10-${index.toString().padStart(2, '0')}",
+                title = "Αγορά $index",
+                amount = index.toDouble(),
+                kind = MoneyCardActivityKind.PURCHASE,
+            )
+        }
+        var selectedEvent: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    InlineCreditCardWorkspace(
+                        card = credit.copy(activity = activities),
+                        statements = emptyList(),
+                        amountsVisible = false,
+                        onPayCard = {},
+                        onAddPurchase = {},
+                        onOpenActivity = { selectedEvent = it },
+                        onOpenDetails = {},
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_activity_event-8").assertExists()
+        assertTrue(composeRule.onAllNodesWithTag("inline_credit_activity_event-9").fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithTag("inline_credit_load_more").performScrollTo().performClick()
+        composeRule.onNodeWithTag("inline_credit_activity_event-9").assertExists()
+        composeRule.onNodeWithTag("inline_credit_load_more").performScrollTo().performClick()
+        composeRule.onNodeWithTag("inline_credit_activity_event-17").performScrollTo().performClick()
+        composeRule.runOnIdle { assertEquals("event-17", selectedEvent) }
+        assertTrue(composeRule.onAllNodesWithText("17,00", substring = true).fetchSemanticsNodes().isEmpty())
     }
 
     @Test
