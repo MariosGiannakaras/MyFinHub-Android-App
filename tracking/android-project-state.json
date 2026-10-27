@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-26",
+  "updated_at": "2026-10-27",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Web parity 1/6 implementations · 11/24 accepted subtasks. W4.4 Insights financial ratio/chart privacy PR #376 and W3.1 source-safe linked statement history PR #375 have both merged into Android develop, respectively 0474bb52d62c6aa7c9006847157d5feb5399a07d and aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513, each with four exact-final-head CI gates successful. W2.4 PR #377 batches secure card clipboard lifecycle hardening: expiring temporary sensitive copies must outlive Compose disposal, close/owner+AAL2 reveal loss/activity background clears the app-owned clipboard immediately, and expiry must never overwrite a newer unrelated copy. Four real Android instrumentation regressions authored; CI and real rendered acceptance pending. Card vault, actual finance, Web/backend/schema, SMS #146, signing/release/main untouched. Physical S24 owner rc12 acceptance #149 separate.",
+    "summary": "Web parity 1/6 implementations · 11/24 accepted subtasks. Insights financial privacy #376 and source-safe statement history #375 have merged into develop 0474bb52d62c6aa7c9006847157d5feb5399a07d and aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513 (four exact-head gates each). W2.4 PR #377 implements secure card clipboard main-looper expiry plus immediate revoke on navigation, AAL2 reveal loss or app background, without overwriting newer foreign clipboard. First head 7a7e5a5b23bf64a19732f365114c99debde12860 passed tracking/Android CI/screenshots but failed four new S24 tests because Android emulator clipboard read-back returned null despite successful writes. Reworked controller to use an injectable clipboard port; real Android port behavior remains unchanged and hosted Compose instrumentation can assert expiry/ownership/downgrade/disposal via observable in-memory port. Corrected new head must pass all four CI gates before merging. No Web/backend/schema, actual finance mutations, SMS #146, irreversible deletion UI, signing/release/main. Physical rc12 S24 owner acceptance #149 separate.",
     "next": [
-      "Validate W2.4 temporary-clipboard PR #377 on exactly one immutable final head through Project Tracking, Android CI, screenshot regression and hosted S24 instrumented tests. Inspect any UI change, correct failures together, merge only 4/4 success with clean base/reviews. Continue W2.4/W3–W5 parity without release, physical owner S24 #149 separate."
+      "Validate corrected W2.4 PR #377 with all four immutable exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; inspect all failures and merge only if 4/4 succeeded on stable base, clean reviews. Then resume substantive W2.4/W3–W5 batches. Physical owner S24 rc12 #149 independent."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/w24-sensitive-clipboard-lifecycle-20261027",
-    "checkpoint": "W3.1 source-safe card statement history PR #375 final head d3af6fd4f97aebed1342526f3aef21426fbc1a79 passed four immutable CI gates and merged into develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W4.4 #376 already merged. Current W2.4 #377 fixes sensitive clipboard expiry lost on Compose disposal, clears copies on secure-details close/AAL2 reveal loss/Activity background, protects non-MyFinHub updated clipboard, with four hosted instrumentation regressions authored. CI pending; accepted parity still 1/6 · 11/24. Physical S24 owner #149 independent.",
+    "checkpoint": "W3.1 #375 and W4.4 #376 integrated with four final-head gates each; develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W2.4 #377 sensitive clipboard expiry/navigation/AAL2 cleanup batch head 7a7e5a5 initially failed four hosted S24 tests due to Android 14+ emulator ClipboardManager.primaryClip read-back restriction, despite successful Android build/tracking/screenshots. New testable clipboard port isolates OS access while preserving production API and validates four real Compose/main-looper ownership and security scenarios. Fresh four gates required. Accepted counts remain 1/6 · 11/24; physical owner #149 separate.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1173,7 +1173,7 @@
         ]
       }
     ],
-    "next_action": "Run four exact-final-head Project Tracking, Android CI, screenshot and S24 hosted tests for W2.4 PR #377; inspect failures, merge only all-success, stable develop and no blocking review. Resume grouped W2.4/W3–W5. Owner physical S24 #149 pending.",
+    "next_action": "Run corrected W2.4 #377 four exact-final-head CI gates after clipboard Android OS read-back test isolation. Merge only on tracking+Android+screenshots+hosted S24 all success, clean base and reviews. Continue W2.4/W3–W5; physical owner #149 separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 377,
     "current_subtask": "W2.4",

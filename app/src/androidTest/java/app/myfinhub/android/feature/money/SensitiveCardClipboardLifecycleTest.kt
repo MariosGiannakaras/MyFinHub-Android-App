@@ -1,8 +1,7 @@
 package app.myfinhub.android.feature.money
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -11,88 +10,120 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.designsystem.MyFinHubTheme
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Real Android clipboard with the secure-details Compose screen in foreground. */
+/**
+ * Android 14+ clipboard reads are focus-gated in hosted instrumented emulators.
+ * Exercise the real sensitive controller, Compose screen and main-looper timer
+ * with an observable in-memory clipboard port; never relax ownership assertions.
+ */
 @RunWith(AndroidJUnit4::class)
 class SensitiveCardClipboardLifecycleTest {
     @get:Rule val rule = createComposeRule()
-    private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
-    private val clipboard get() = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    private fun hasOurClip() =
-        clipboard.primaryClip?.description?.label?.toString()?.startsWith("MyFinHub:sensitive:") == true
+    private val context: Context
+        get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    @After fun cleanUp() {
-        rule.runOnIdle {
-            // Do not leave synthetic PAN/CVV on the emulator clipboard between tests.
-            clipboard.setPrimaryClip(ClipData.newPlainText("test-finished", ""))
+    private class InMemorySensitiveClipboard : SensitiveClipboardPort {
+        @Volatile var clip: Pair<String, String>? = null
+        @Volatile var clearAttempts: Int = 0
+        override fun copy(marker: String, value: String): Boolean {
+            clip = marker to value
+            return true
+        }
+        override fun clearIfUnchanged(marker: String, value: String) {
+            clearAttempts += 1
+            if (clip == (marker to value)) clip = null
+        }
+        fun otherAppCopy(value: String) {
+            clip = "external-app" to value
         }
     }
 
     @Test fun expiryRemainsScheduledWhenNoComposeCoroutineSurvives() {
-        rule.setContent { MyFinHubTheme { androidx.compose.material3.Text("Clipboard test") } }
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, expiryMillis = 120L, port = store)
+        rule.setContent { MyFinHubTheme { androidx.compose.material3.Text("Clipboard timer") } }
         rule.runOnIdle {
-            assertTrue(SensitiveCardClipboard(context, expiryMillis = 80L).copy("321"))
-            assertTrue(hasOurClip())
+            assertTrue(controller.copy("321"))
+            assertNotNull(store.clip)
+            assertTrue(store.clip!!.first.startsWith("MyFinHub:sensitive:"))
+            assertEquals("321", store.clip!!.second)
         }
-        rule.waitUntil(4_000) { !hasOurClip() }
-        assertFalse(hasOurClip())
+        rule.waitUntil(4_000) { store.clip == null }
+        rule.runOnIdle { assertNull(store.clip) }
     }
 
     @Test fun screenDisposalImmediatelyClearsCopiedPan() {
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, port = store)
         val visible = mutableStateOf(true)
-        val state = CardSecretUiState.Revealed("card-1", "4242424242424242", "12/30", "321")
+        val revealed = CardSecretUiState.Revealed("card-1", "4242424242424242", "12/30", "321")
         rule.setContent { MyFinHubTheme {
-            if (visible.value) {
-                CanonicalCardSecureDetailsScreen(
-                    cardId = "card-1", card = null, secretState = state,
-                    onReveal = {}, onSaveServerSecrets = { _, _ -> }, onSaveCvv = {},
-                    onBack = {},
-                )
-            } else androidx.compose.material3.Text("Closed")
+            CompositionLocalProvider(LocalSensitiveClipboardController provides controller) {
+                if (visible.value) {
+                    CanonicalCardSecureDetailsScreen(
+                        cardId = "card-1", card = null, secretState = revealed,
+                        onReveal = {}, onSaveServerSecrets = { _, _ -> },
+                        onSaveCvv = {}, onBack = {},
+                    )
+                } else androidx.compose.material3.Text("Closed")
+            }
         } }
         rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
-        rule.runOnIdle { assertTrue(hasOurClip()) }
+        rule.runOnIdle {
+            assertNotNull(store.clip)
+            assertEquals("4242424242424242", store.clip!!.second)
+            assertFalse(store.clip!!.first.contains("card-1"))
+        }
         rule.runOnIdle { visible.value = false }
         rule.waitForIdle()
-        rule.runOnIdle { assertFalse(hasOurClip()) }
+        rule.runOnIdle { assertNull(store.clip) }
     }
 
     @Test fun lossOfAal2RevealImmediatelyRevokesClipboardCopy() {
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, port = store)
         val state = mutableStateOf<CardSecretUiState>(
             CardSecretUiState.Revealed("card-1", "4242424242424242", "12/30", "321")
         )
         rule.setContent { MyFinHubTheme {
-            CanonicalCardSecureDetailsScreen(
-                cardId = "card-1", card = null, secretState = state.value,
-                onReveal = {}, onSaveServerSecrets = { _, _ -> }, onSaveCvv = {},
-                onBack = {},
-            )
+            CompositionLocalProvider(LocalSensitiveClipboardController provides controller) {
+                CanonicalCardSecureDetailsScreen(
+                    cardId = "card-1", card = null, secretState = state.value,
+                    onReveal = {}, onSaveServerSecrets = { _, _ -> }, onSaveCvv = {},
+                    onBack = {},
+                )
+            }
         } }
         rule.onAllNodesWithText("Αντιγραφή")[0].performScrollTo().performClick()
-        rule.runOnIdle { assertTrue(hasOurClip()) }
+        rule.runOnIdle { assertNotNull(store.clip) }
         rule.runOnIdle { state.value = CardSecretUiState.AuthRejected }
         rule.waitForIdle()
-        rule.runOnIdle { assertFalse(hasOurClip()) }
+        rule.runOnIdle { assertNull(store.clip) }
     }
 
     @Test fun expirationCannotClearAnotherAppsNewerClipboardValue() {
-        rule.setContent { MyFinHubTheme { androidx.compose.material3.Text("Clipboard ownership test") } }
+        val store = InMemorySensitiveClipboard()
+        val controller = SensitiveCardClipboard(context, expiryMillis = 120L, port = store)
+        rule.setContent { MyFinHubTheme { androidx.compose.material3.Text("Clipboard ownership") } }
         rule.runOnIdle {
-            assertTrue(SensitiveCardClipboard(context, expiryMillis = 70L).copy("321"))
-            clipboard.setPrimaryClip(ClipData.newPlainText("external-app", "their text"))
+            assertTrue(controller.copy("321"))
+            assertNotNull(store.clip)
+            store.otherAppCopy("their text")
         }
-        Thread.sleep(240L)
-        rule.waitForIdle()
+        rule.waitUntil(4_000) { store.clearAttempts >= 1 }
         rule.runOnIdle {
-            assertEquals("their text", clipboard.primaryClip?.getItemAt(0)?.text?.toString())
-            assertEquals("external-app", clipboard.primaryClip?.description?.label?.toString())
+            assertEquals("external-app" to "their text", store.clip)
+            controller.clear()
+            assertEquals("external-app" to "their text", store.clip)
         }
     }
+
 }

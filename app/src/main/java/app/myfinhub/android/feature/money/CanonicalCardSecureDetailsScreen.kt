@@ -58,7 +58,10 @@ fun CanonicalCardSecureDetailsScreen(
 ) {
     val relevantState = secretState.forCard(cardId)
     val context = LocalContext.current
-    val clipboard = remember(cardId) { SensitiveCardClipboard(context.applicationContext) }
+    val providedClipboard = LocalSensitiveClipboardController.current
+    val clipboard = remember(cardId, providedClipboard) {
+        providedClipboard ?: SensitiveCardClipboard(context.applicationContext)
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     var cvvDraft by remember(cardId) { mutableStateOf("") }
     var editorOpen by remember(cardId) { mutableStateOf(false) }
