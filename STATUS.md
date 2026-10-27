@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-W4.4 native Activity split disclosure PR #374 passed all four immutable final-head CI gates and squash merged to develop as 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749 (2026-10-27). The current cohesive W4.4 Insights privacy batch PR #375 masks derived spending comparison, category shares, per-card utilization, report ratios, momentum and chart geometry under Hide Amounts, including category accessibility descriptions; three Compose regressions authored. This branch does not alter underlying finance values, Web/backend, SMS import #146, release signing or main. CI and rendered-screen review pending; Web parity accepted counters remain 1/6 implementations and 11/24 subtasks. Owner S24 physical acceptance #149 is separate.
+W4.4 native Activity split disclosure PR #374 passed all four immutable final-head CI gates and squash merged to develop as 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749 (2026-10-27). The current cohesive W4.4 Insights privacy batch PR #376 masks derived spending comparison, category shares, per-card utilization, report ratios, momentum and chart geometry under Hide Amounts, including category accessibility descriptions; three Compose regressions authored. This branch does not alter underlying finance values, Web/backend, SMS import #146, release signing or main. CI and rendered-screen review pending; Web parity accepted counters remain 1/6 implementations and 11/24 subtasks. Owner S24 physical acceptance #149 is separate.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+1. Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #375, branch android/w44-insights-ratio-privacy-batch-20261027
-Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #375 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
+Issue #155, PR #376, branch android/w44-insights-ratio-privacy-batch-20261027
+Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #376 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+Next Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

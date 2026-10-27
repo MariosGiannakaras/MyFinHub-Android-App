@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+- [ ] Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #375, branch android/w44-insights-ratio-privacy-batch-20261027
-Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #375 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
+Issue #155, PR #376, branch android/w44-insights-ratio-privacy-batch-20261027
+Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #376 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate privacy PR #375 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+Next Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
