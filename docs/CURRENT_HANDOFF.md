@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Historical accepted Web parity is 1/6 implementations · 11/24 subtasks; not completion of the owner-selected mobile scope. Five-root Android redesign remains a DRAFT PR #378. On 27 Oct immutable 69d84e97 passed Project Tracking, Android CI and 102 screenshot regression previews; hosted emulator ran 225 tests with the only failing accessibility issue being 36dp stacked-card pagination selector hit targets. New native fix uses 48dp touch targets but unchanged tiny dot visuals and adds Compose size regression; exactly the two affected card Compose screenshot references were regenerated on isolated branch by successful job 40578179880 at commit 4fe67e8b8dbff68b63645dd8f0af984042a682e9. Temporary privileged screenshot workflow is removed from the final PR tree. All four checks must succeed on the subsequent immutable final PR head before merge. Physical owner Galaxy S24 Ultra #149 remains separate and unapproved; no Web/backend/schema, signing/main/release, real finance data writes, SMS #146.
+Historical accepted Web parity remains 1/6 implementations · 11/24 subtasks, not a claim of completing the owner-approved mobile scope. Android PR #378 now contains five mobile roots, account Home, independent Cards with native vertical debit+credit 3D stack and inline credit statements/activity, Plan and Reports, device-only Settings. The previous immutable run d8e63d6c8b9e8ec44e2aeec69f45046a376d1f57 passed Project Tracking, Android CI and 225/225 hosted emulator tests; screenshot regression found exactly three WalletCards visual baselines (Light/Dark/large font) impacted by 48dp accessible card pagination touch targets. Three actual native Compose images were inspected and regenerated exclusively by branch workflow 40583628241 at bot commit d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. The temporary privileged authoring workflow is deleted in the final PR tree. Final immutable four-gate validation required before merge. Physical owner's Galaxy S24 Ultra #149 remains pending; no backend/Web/schema, SMS #146, real finance writes, release/signing/main.
 
 ## Immediate work
 
-- Verify all four required jobs on the final PR #378 SHA after removal of the temporary screenshot workflow: Project Tracking, Android CI, screenshot regression, hosted S24 emulator. Merge into develop ONLY with 4/4 green, reviews/branch checks clear, and retain separate physical S24 Ultra #149 owner acceptance.
+- Validate final PR #378 on the same immutable SHA with Project Tracking, Android CI, screenshot regression and S24 emulator (4/4), then merge to develop only if all are green and review/branch clear. Post-merge verify develop and proceed with the next cohesive Android-only batch; physical owner's Galaxy S24 acceptance #149 remains independent.
 
 ## Constraints
 
@@ -55,9 +55,9 @@ Historical accepted Web parity is 1/6 implementations · 11/24 subtasks; not com
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
-Current W2.4: PR #378 final 48dp card pagination touch-target correction authored with Compose target-size assertion, plus exactly two actual card-stack golden PNG updates committed by successful isolated bot job 40578179880 (head 4fe67e8b8dbff68b63645dd8f0af984042a682e9). Branch-only screenshot authoring workflow deleted for final verification. Prior head 69d84e97 green Project Tracking/Android CI/screenshot and 224/225 S24 hosted. New final immutable head 4/4 checks and physical owner device #149 STILL PENDING, no merge.
+Current W2.4: PR #378 fixes 48dp card-pagination touch target. Previous head d8e63d6c 3/4 required passes (tracking, Android CI, 225 hosted emulator tests), three WalletCards golden changes only. Real Compose candidate images inspected; successful isolated bot workflow 40583628241 updated exactly three snapshots at d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. Privileged temporary render workflow removed before final checks. Historical acceptance 1/6 · 11/24, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Read four exact-head final checks for PR #378 on GitHub. If Project Tracking, Android CI, screenshot and hosted emulator are all successful and no blockers, mark PR ready and merge to develop, then verify post-merge and physical #149 pending. Never merge with any required job pending/failed.
+Next Verify 4/4 exact-head final PR #378 gates green, reviews and mergeable clear; merge to develop and verify post-merge. Follow with an Android-only single cohesive batch for long inline credit activity history, preservation of same-screen scroll and native interaction tests, without changes to Web/backend. Physical #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
