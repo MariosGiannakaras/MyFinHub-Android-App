@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web↔Android parity 1/6 broad implementations · 11/24 accepted subtasks. W4.4 PR #374 final head c83821e0c6060f86619ac736a40d1d5734e7cd93 passed all four Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks and squash merged Android develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. Native Activity ledger split disclosures are independent, read-only and privacy safe. Current coherent W3.1 draft #375 hardens credit card statement linked-history reconciliation: missing/duplicated/wrong-kind event links fail closed, never expose raw opaque transaction IDs or phantom amounts, show 15-at-a-time rows on mobile, preserve actual events, privacy and existing statement payment guard; 5 JVM plus 4 hosted Compose tests and tracker/docs. CI pending; owner physical S24 #149 independent. No Web/backend/schema, finance writes, SMS #146, irreversible card deletion, signing/release/main.
+Web parity 1/6 implementations · 11/24 accepted subtasks. W4.4 native Activity splits #374 and Insights ratio/chart privacy #376 merged into Android develop 0474bb52d62c6aa7c9006847157d5feb5399a07d; #376 exact head d92406cd046ce0b0b5df5c7572931cc71046881c passed tracking, Android CI, four reviewed Insights screenshots and hosted S24 emulator 4/4. W3.1 PR #375 implements fail-closed statement source-link history, no opaque IDs or phantom amounts, 15-row paging, amount masking and unchanged payment guards with five JVM and four Compose regressions. Earlier #375 head passed 4/4 on old develop; now integrated with #376 and requires new same-head gates. No Web/backend/schema, real finance writes, SMS #146, irreversible card deletion, signing/release/main. Physical S24 owner rc12 #149 separate.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W3.1 card statement linked-history draft PR #375 through all four identical immutable final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks, fix within same PR then rerun all if needed, merge only 4/4 green stable develop and reviews clean. Continue W2.4/W3–W5 coherent batches; physical owner S24 rc12 #149 remains separately pending.
+1. Validate synchronized W3.1 PR #375 on new exact head through four Project Tracking, Android CI, screenshot regression and hosted S24 emulator jobs; merge only with 4/4 success, stable develop and clean reviews. Resume substantive W2.4/W3–W5; owner physical rc12 #149 remains independent.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #375, branch android/w31-statement-linked-history-safety-batch-20261027
-Current W3.1: W4.4 PR #374 Web inline split Activity disclosure plus privacy and historic category truthiness fixed final head c83821e0c6060f86619ac736a40d1d5734e7cd93 4/4 tracking/Android CI/screenshots/S24 emulator passed; squash merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New W3.1 draft #375 native credit statement linked event reconciliation removes UI exposure of raw missing historic IDs, refuses ambiguous duplicate source/physical or mismatched event kinds, uses pure source-preserving projection and 15-row incremental paging instead of render-all, privacy masks genuine amounts. Five JVM Web-derived and four hosted Compose tests authored, canonical tracker and three generated docs updated. No new synthetic statement attribution, payment, finance write or Web changes. CI pending, accepted 1/6 broad · 11/24 subtasks, physical S24 #149 separately pending.
+Current W3.1: W4.4 split Activity details #374 and Insights derived-ratio/chart privacy #376 merged develop 0474bb52d62c6aa7c9006847157d5feb5399a07d (#376 final-head 4/4 CI). W3.1 credit card statement source-safe linked history, invalid-link warnings and incremental 15-row expansion #375 now integrated with latest develop; old head passed 4/4 against old base, new final-head tests required. Web parity remains 1/6 implementations · 11/24 subtasks; physical S24 #149 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check W3.1 #375 final SHA four Project Tracking/Android CI/screenshot regression/S24 emulator checks and blocking reviews. Fix failing implementation/tests within same PR and retest all on any changed head; squash merge only if 4/4 and stable base. Continue grouped W2–W5, physical owner rc12 #149 independent, no Web/backend/schema/release/main.
+Next Run exact-head full four-gate validation of synchronized W3.1 PR #375, merge only with 4/4 success, clean review and stable develop. Resume grouped W2.4/W3–W5 work; owner physical rc12 #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

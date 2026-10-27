@@ -7,13 +7,21 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
 class WebCategoryMomentumComposeTest {
     @get:Rule val rule=createComposeRule()
 
+    @After fun resetAmountVisibility() {
+        AmountVisibilityPreference.write(InstrumentationRegistry.getInstrumentation().targetContext, false)
+    }
+
     @Test fun monthOnlyMomentumShowsPreviousBaseAndNewCategoriesReadOnly() {
+        AmountVisibilityPreference.write(InstrumentationRegistry.getInstrumentation().targetContext, true)
         val scope=InsightPeriodScope(
             id=INSIGHTS_PERIOD_MONTH,label="Μήνας",
             startDate="2026-10-01",endDate="2026-10-19",
