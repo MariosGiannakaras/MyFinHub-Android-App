@@ -161,13 +161,13 @@ jobs:
           TARGET="app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/insights/InsightsScreenshotTestKt"
           test -d "$SOURCE"
           mkdir -p "$TARGET"
-          echo '7b12aab6b87081543bd922ce9ebe4d6f4887e03b1d10223210303b70a7d64b72  $SOURCE/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png' | sha256sum --check --status
+          echo "7b12aab6b87081543bd922ce9ebe4d6f4887e03b1d10223210303b70a7d64b72  $SOURCE/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png" | sha256sum --check --status
           cp "$SOURCE/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png" "$TARGET/InsightsCompactDarkScreenshot_insights_compact_dark_79a1f2a1_0.png"
-          echo '7ee11b61186622391b7724df2d62d3437071468cc5bdc6529b0ea7204d16133b  $SOURCE/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png' | sha256sum --check --status
+          echo "7ee11b61186622391b7724df2d62d3437071468cc5bdc6529b0ea7204d16133b  $SOURCE/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png" | sha256sum --check --status
           cp "$SOURCE/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png" "$TARGET/InsightsCompactLightScreenshot_insights_compact_light_0d06167b_0.png"
-          echo '73480dd42f7fb2b8612a6fa8f82a0c6dcf4b0b7e30211bdfe8d5cc086b055263  $SOURCE/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png' | sha256sum --check --status
+          echo "73480dd42f7fb2b8612a6fa8f82a0c6dcf4b0b7e30211bdfe8d5cc086b055263  $SOURCE/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png" | sha256sum --check --status
           cp "$SOURCE/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png" "$TARGET/InsightsCompactLargeFontScreenshot_insights_compact_large_font_92696cce_0.png"
-          echo 'c635783cf263a415e280763323189031941da7a096e4fb2e0816823ad181abb3  $SOURCE/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png' | sha256sum --check --status
+          echo "c635783cf263a415e280763323189031941da7a096e4fb2e0816823ad181abb3  $SOURCE/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png" | sha256sum --check --status
           cp "$SOURCE/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png" "$TARGET/InsightsFullLargeFontScreenshot_insights_full_large_font_b9013df4_0.png"
           git add -- "$TARGET"
           if git diff --cached --quiet; then
