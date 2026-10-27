@@ -724,6 +724,7 @@ internal fun MyFinHubAppContent(
                             currentDestination = TopLevelDestination.ACTIVITY
                             activityBackStack.popToRoot()
                         },
+                        onOpenNetPosition = { insightsBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCategoryActivity = { category, start, end ->
                             insightsBackStack.pushIfNew(
                                 AppRoute.CategoryActivity(

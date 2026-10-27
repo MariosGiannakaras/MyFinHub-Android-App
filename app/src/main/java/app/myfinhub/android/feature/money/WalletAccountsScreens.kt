@@ -194,6 +194,7 @@ fun CanonicalWalletScreen(
                     amountsVisible = amountsVisible,
                     onOpenAccount = onOpenAccount,
                     onOpenNetPosition = onOpenNetPosition,
+                    showNetPosition = !accountsOnly,
                     accountMetadata = accountMetadata,
                     accountMetadataLoaded = accountMetadataLoaded,
                 )
@@ -303,6 +304,7 @@ private fun LazyListScope.walletAccountsContent(
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
+    showNetPosition: Boolean = true,
     accountMetadata: Map<String, AccountMetadataRecord>,
     accountMetadataLoaded: Boolean,
 ) {
@@ -351,7 +353,8 @@ private fun LazyListScope.walletAccountsContent(
         }
     }
 
-    item("net-position-link") {
+    if (showNetPosition) {
+        item("net-position-link") {
         Surface(
             onClick = onOpenNetPosition,
             modifier = Modifier.fillMaxWidth(),
@@ -378,6 +381,7 @@ private fun LazyListScope.walletAccountsContent(
                 )
             }
         }
+    }
     }
 }
 
