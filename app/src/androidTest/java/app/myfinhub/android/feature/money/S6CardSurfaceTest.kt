@@ -19,6 +19,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
@@ -91,6 +94,34 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
         composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }
+    }
+
+    @Test
+    fun verticalCardSwipesRotateOneMixedDebitCreditStackWithoutNavigationArrows() {
+        var activeCard: String? = null
+        var detailOpened: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = listOf(debit, credit),
+                    secretState = CardSecretUiState.Locked,
+                    onActiveCardChanged = { activeCard = it },
+                    onOpenCard = { detailOpened = it },
+                    onDeleteCard = {},
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { assertEquals("debit", activeCard) }
+        composeRule.onNodeWithTag("credit_card_stack").performTouchInput { swipeUp() }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            assertEquals("credit", activeCard)
+            assertEquals(null, detailOpened)
+        }
+        composeRule.onNodeWithTag("credit_card_stack").performTouchInput { swipeDown() }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { assertEquals("debit", activeCard) }
     }
 
     @Test
