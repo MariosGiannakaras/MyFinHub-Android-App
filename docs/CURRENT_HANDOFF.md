@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Web parity 1/6 implementations · 11/24 accepted subtasks. W4.4 native Activity splits #374 and Insights ratio/chart privacy #376 merged into Android develop 0474bb52d62c6aa7c9006847157d5feb5399a07d; #376 exact head d92406cd046ce0b0b5df5c7572931cc71046881c passed tracking, Android CI, four reviewed Insights screenshots and hosted S24 emulator 4/4. W3.1 PR #375 implements fail-closed statement source-link history, no opaque IDs or phantom amounts, 15-row paging, amount masking and unchanged payment guards with five JVM and four Compose regressions. Earlier #375 head passed 4/4 on old develop; now integrated with #376 and requires new same-head gates. No Web/backend/schema, real finance writes, SMS #146, irreversible card deletion, signing/release/main. Physical S24 owner rc12 #149 separate.
+Web parity 1/6 implementations · 11/24 accepted subtasks. Insights financial privacy #376 and source-safe statement history #375 have merged into develop 0474bb52d62c6aa7c9006847157d5feb5399a07d and aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513 (four exact-head gates each). W2.4 PR #377 implements secure card clipboard main-looper expiry plus immediate revoke on navigation, AAL2 reveal loss or app background, without overwriting newer foreign clipboard. First head 7a7e5a5b23bf64a19732f365114c99debde12860 passed tracking/Android CI/screenshots but failed four new S24 tests because Android emulator clipboard read-back returned null despite successful writes. Reworked controller to use an injectable clipboard port; real Android port behavior remains unchanged and hosted Compose instrumentation can assert expiry/ownership/downgrade/disposal via observable in-memory port. Corrected new head must pass all four CI gates before merging. No Web/backend/schema, actual finance mutations, SMS #146, irreversible deletion UI, signing/release/main. Physical rc12 S24 owner acceptance #149 separate.
 
 ## Immediate work
 
-- Validate synchronized W3.1 PR #375 on new exact head through four Project Tracking, Android CI, screenshot regression and hosted S24 emulator jobs; merge only with 4/4 success, stable develop and clean reviews. Resume substantive W2.4/W3–W5; owner physical rc12 #149 remains independent.
+- Validate corrected W2.4 PR #377 with all four immutable exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; inspect all failures and merge only if 4/4 succeeded on stable base, clean reviews. Then resume substantive W2.4/W3–W5 batches. Physical owner S24 rc12 #149 independent.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Web parity 1/6 implementations · 11/24 accepted subtasks. W4.4 native Activity 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #375, branch android/w31-statement-linked-history-safety-batch-20261027
-Current W3.1: W4.4 split Activity details #374 and Insights derived-ratio/chart privacy #376 merged develop 0474bb52d62c6aa7c9006847157d5feb5399a07d (#376 final-head 4/4 CI). W3.1 credit card statement source-safe linked history, invalid-link warnings and incremental 15-row expansion #375 now integrated with latest develop; old head passed 4/4 against old base, new final-head tests required. Web parity remains 1/6 implementations · 11/24 subtasks; physical S24 #149 separate.
+Issue #155, PR #377, branch android/w24-sensitive-clipboard-lifecycle-20261027
+Current W2.4: W3.1 #375 and W4.4 #376 integrated with four final-head gates each; develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W2.4 #377 sensitive clipboard expiry/navigation/AAL2 cleanup batch head 7a7e5a5 initially failed four hosted S24 tests due to Android 14+ emulator ClipboardManager.primaryClip read-back restriction, despite successful Android build/tracking/screenshots. New testable clipboard port isolates OS access while preserving production API and validates four real Compose/main-looper ownership and security scenarios. Fresh four gates required. Accepted counts remain 1/6 · 11/24; physical owner #149 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head full four-gate validation of synchronized W3.1 PR #375, merge only with 4/4 success, clean review and stable develop. Resume grouped W2.4/W3–W5 work; owner physical rc12 #149 separate.
+Next Run corrected W2.4 #377 four exact-final-head CI gates after clipboard Android OS read-back test isolation. Merge only on tracking+Android+screenshots+hosted S24 all success, clean base and reviews. Continue W2.4/W3–W5; physical owner #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
