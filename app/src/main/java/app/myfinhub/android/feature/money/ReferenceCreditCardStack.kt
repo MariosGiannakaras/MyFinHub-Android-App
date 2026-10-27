@@ -631,7 +631,7 @@ private fun ReferenceCardFace(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ReferenceSecretLine(
-                    text = revealed?.pan?.let(::referenceFormatPan) ?: "—",
+                    text = revealed?.pan?.let(::referenceFormatPan) ?: "•••• •••• •••• " + card.last4.takeLast(4).padStart(4, '•'),
                     color = visual.text,
                     copyLabel = "Αντιγραφή αριθμού",
                     copyEnabled = revealed?.pan != null,
@@ -644,7 +644,7 @@ private fun ReferenceCardFace(
                 ) {
                     ReferenceSecretField(
                         label = "VALID THRU",
-                        value = revealed?.expiry ?: "—",
+                        value = revealed?.expiry ?: "••/••",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή λήξης",
@@ -654,7 +654,7 @@ private fun ReferenceCardFace(
                     )
                     ReferenceSecretField(
                         label = "CVV",
-                        value = revealed?.cvv ?: "—",
+                        value = revealed?.cvv ?: "•••",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή CVV",

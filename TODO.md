@@ -60,7 +60,7 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #377, branch android/owner-five-tabs-vertical-stack-20261027
+Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
 Current W2.4: PR #377 secure clipboard lifecycle merged into develop 3204c5638247a75a9626284ef396901fa20be91c with all four exact-head gates. Owner-approved five-tab mobile navigation, vertical HTML-style 3D card restack timing and mobile-only Settings authored on an unmerged new branch. CI and physical validation pending, accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate owner-scoped product PR through all four immutable final-head gates, inspect screenshots and hosted S24; merge only with success. Adopt updated mobile acceptance contract without counting unfinished work as accepted; physical #149 independent.

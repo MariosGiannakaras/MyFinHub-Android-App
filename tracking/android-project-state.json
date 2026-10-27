@@ -1176,7 +1176,7 @@
     ],
     "next_action": "Validate owner-scoped product PR through all four immutable final-head gates, inspect screenshots and hosted S24; merge only with success. Adopt updated mobile acceptance contract without counting unfinished work as accepted; physical #149 independent.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 377,
+    "pr": 378,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

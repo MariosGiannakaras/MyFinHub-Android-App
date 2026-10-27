@@ -1,6 +1,7 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -25,12 +26,10 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("Απόκρυψη ποσών").assertIsDisplayed().performClick()
         composeRule.onNodeWithContentDescription("Εμφάνιση ποσών").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasText("Χρειάζεται προσοχή"))
-        composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
+        // Upcoming obligations live in Plan, not Home.
+        composeRule.onNodeWithText("Χρειάζεται προσοχή").assertDoesNotExist()
 
-        // Primary account cards precede attention now, so the top action is outside
-        // the viewport after the attention section has been inspected.
+        // Quick entry remains reachable from the account overview.
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag("home_global_quick_entry"))
         composeRule.onNodeWithTag("home_global_quick_entry").performClick()
 
