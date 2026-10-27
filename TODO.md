@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Retarget draft PR #379 onto merged Android develop, verify exact branch ancestry and owner scope, then run all four required PR gates (tracking, Android CI, screenshot regression, hosted S24 emulator). Correct build/test issues in one coherent batch; merge only with all four green. Physical owner Galaxy S24 #149 remains independent.
+- [ ] Verify PR #379 on its immutable final SHA with Project Tracking, Android CI, screenshot regression (all 102 previews) and hosted S24 emulator. Check all four gates/reviews and merge ONLY if all succeed; verify develop afterwards. Physical owner Galaxy S24 Ultra acceptance #149 remains a separate explicitly approved task.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #379, branch android/inline-credit-history-batch-20261027
-Current W2.4: Owner 27 Oct five-root Android redesign #378 merged to develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e with 4/4 verified immutable required PR checks. Stacked PR #379 contains in-place bounded card movements (8/page), statement cycles (4/page), accessible rows, privacy/large-font handling, upward/downward swipe coverage, and net-position link under independent Reports instead of Accounts; branch head currently b13ec18a3c4ed690389e937bc024afa3dc88a4df before tracking update, untested/unmerged. Current broader acceptance still 1/6 · 11/24; owner physical #149 pending.
+Current W2.4: PR #378 merged and verified 4/4 into develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e. PR #379 adds inline credit activity and statement progressive disclosure, large-type limit layout, Reports net-position transfer, Compose/unit tests. Three 100%-native screenshots (inline credit Light/Dark/150%) visually reviewed and updated in exact bot commit acce8720fafa0e651ec1a7449d9531249a3f95b1 after isolated successful job 40587634726. Temporary privileged workflow deleted in final PR tree. Pending final 4/4 immutable-head verification and physical owner's S24 #149; broader acceptance remains 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Retarget PR #379 from the now-merged #378 branch to develop. Run all required 4/4 checks on one immutable final head; inspect actual Compose renders, UI tests and net-position origin/Back navigation; fix in a single batch. Merge only green; never claim physical owner Galaxy S24 #149 acceptance.
+Next Validate exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for PR #379. Merge to develop only after all 4/4 succeed and reviews/branch checks clear. Owner physical Galaxy S24 #149 remains independently pending, no signed release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
