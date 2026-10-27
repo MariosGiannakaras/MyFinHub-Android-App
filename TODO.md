@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate new owner-approved mobile-root/card-stack Android PR on its exact final head through Project Tracking, Android CI, screenshot regression and hosted S24 tests; inspect real rendered Compose captures and merge only if green. Physical owner S24 rc12 #149 remains separate.
+- [ ] Verify owner-scoped Android PR #378 final immutable head on Project Tracking, Android CI, screenshot regression and S24 hosted emulator (4/4). Inspect any failures; only merge with clean base/reviews. Owner physical Galaxy S24 Ultra acceptance #149 remains independent.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
-Current W2.4: PR #377 secure clipboard lifecycle merged into develop 3204c5638247a75a9626284ef396901fa20be91c with all four exact-head gates. Owner-approved five-tab mobile navigation, vertical HTML-style 3D card restack timing and mobile-only Settings authored on an unmerged new branch. CI and physical validation pending, accepted parity 1/6 · 11/24.
+Current W2.4: Owner five-root mobile redesign #378 prepared; original emulator 3 failures and 7 golden deltas diagnosed. Added 48dp spoken Switch, updated Home/Plan settings navigation assertions, and refreshed exactly seven real rendered Compose PNG references through temporary branch-only baseline job (successful). Removed temporary updater workflow in final commit. Previous parity acceptance 1/6 · 11/24 retained; final CI and physical owner S24 acceptance pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate owner-scoped product PR through all four immutable final-head gates, inspect screenshots and hosted S24; merge only with success. Adopt updated mobile acceptance contract without counting unfinished work as accepted; physical #149 independent.
+Next Run all four exact-head PR #378 checks (Project Tracking, Android CI, screenshot regression, hosted S24) on immutable final SHA and merge only when all succeed with no review/blocker. Physical owner Galaxy S24 #149 acceptance remains separate; owner-selected mobile scope replaces blanket Web UI cloning.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
