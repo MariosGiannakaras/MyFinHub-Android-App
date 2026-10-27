@@ -1,0 +1,61 @@
+name: PR378 Wallet Card Screenshots
+on:
+  push:
+    branches: [android/owner-five-tabs-vertical-stack-20261027]
+    paths: [.github/workflows/pr378-wallet-goldens.yml]
+permissions:
+  contents: write
+concurrency:
+  group: pr378-wallet-goldens
+  cancel-in-progress: true
+jobs:
+  render-reviewed-wallet:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated owner branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/owner-five-tabs-vertical-stack-20261027
+          persist-credentials: true
+      - name: JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Render Compose previews
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+      - name: Commit exactly three reviewed WalletCards PNGs
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletCardsDarkScreenshot_wallet_cards_dark_73ffd8d2_0.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletCardsLargeFontScreenshot_wallet_cards_large_font_78193a3b_0.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/WalletAccountsScreenshotTestKt/WalletCardsLightScreenshot_wallet_cards_light_7ba61c12_0.png
+          )
+          git add -- "${paths[@]}"
+          mapfile -t staged < <(git diff --cached --name-only)
+          printf 'Reviewed WalletCard reference changes:\n%s\n' "${staged[@]}"
+          if (( ${#staged[@]} != 3 )); then
+            echo "Expected exactly three snapshots; got ${#staged[@]}" >&2
+            exit 1
+          fi
+          for f in "${staged[@]}"; do
+            allowed=false
+            for p in "${paths[@]}"; do
+              [[ "$f" == "$p" ]] && allowed=true
+            done
+            [[ "$allowed" == true ]] || { echo "Unexpected: $f" >&2; exit 1; }
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Refresh three reviewed WalletCards native Compose screenshots'
+          git push origin HEAD:refs/heads/android/owner-five-tabs-vertical-stack-20261027
