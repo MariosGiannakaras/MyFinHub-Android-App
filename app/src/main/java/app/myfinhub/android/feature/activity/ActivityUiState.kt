@@ -17,7 +17,13 @@ data class ActivitySplitPart(
     val subcategory: String?,
     val amount: Double,
 ) {
-    val categoryPath: String get() = if (subcategory.isNullOrEmpty()) category else "$category › $subcategory"
+    // Web categoryPath uses JS truthiness: an empty category is "Άλλο",
+    // but whitespace-only imported categories remain exact historic keys.
+    val categoryPath: String get() = when {
+        category.isEmpty() -> "Άλλο"
+        subcategory.isNullOrEmpty() -> category
+        else -> "$category › $subcategory"
+    }
     val displayLabel: String get() = label.trim().ifBlank { categoryPath }
 }
 

@@ -641,6 +641,7 @@ private fun ActivityFlatLedgerRow(
     val selectedColor = preferredHex?.takeIf { Regex("^#[0-9A-Fa-f]{6}$").matches(it) }
         ?.let { Color(("FF" + it.drop(1)).toLong(16).toInt()) }
 
+    Column(modifier = Modifier.fillMaxWidth()) {
     MyFinHubFinanceRow(
         icon = myFinHubCategoryIcon(
             item.category, item.kind.s3Icon(),
@@ -662,6 +663,15 @@ private fun ActivityFlatLedgerRow(
         tone = tone,
         onClick = onClick,
     )
+    // Web TransactionSplitDetails is an independent, read-only control inside
+    // the transaction row. Opening the disclosure must not navigate to details.
+    if (item.canonicalKind == "split" && item.splitParts.size >= 2) {
+        ActivityLedgerSplitDisclosure(
+            item = item,
+            amountsVisible = amountsVisible,
+        )
+    }
+    }
 }
 
 @Composable

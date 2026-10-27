@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate grouped W4.2 forecast-account stress draft #373 with four identical immutable final-head tracking, Android CI, screenshot and hosted S24 emulator checks; fix/retest within same PR if failing, squash merge only 4/4 green and clean reviews/base. Continue substantive W2–W5 parity batches. Physical S24 owner rc12 acceptance #149 remains distinct.
+- [ ] Validate new W4.4 draft split disclosure PR #374 with all four identical final-head Project Tracking, Android CI, screenshot and hosted S24 tests, fix in same PR only, merge after 4/4 green and clean base/reviews. Continue W2–W5 parity and physical owner S24 rc12 #149 separately; no micro-CI.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #373, branch android/w42-scenario-account-risk-readonly-batch-20261027
-Current W4.2: PR #372 Web confirmed lending installment schedule exact-cent month-end dates, six-at-a-time read-only display and elapsed-not-paid/privacy warnings passed four same-head CI at 4225c6e5b4142f45db18512678565e67e6abb0b8 and squash merged develop be47e3f835cae0a55d3760a231efec4953a329ad. New W4.2 draft PR #373 uses existing immutable 30/60/90 what-if forecast and Web account[] scenario risk rows, adds per-account original/projected/difference/minimum amounts (cents accurate), first low/negative risk date, missing source warning, privacy and 5-per-page native Compose drilldown, with four JVM Web goldens and three hosted S24 Compose tests, no finance mutations. Four exact-head CI pending; 1/6 implementations · 11/24 accepted subtasks, physical device #149 still pending.
+Issue #155, PR #374, branch android/w44-inline-split-details-parity-batch-20261027
+Current W4.4: W4.2 PR #373 corrected standalone assertExists import, passed four same-final-head CI checks on f1c5b7721c4c9596af70713ef0411072e894c251; squash merged develop 74be6172091b87cfd50887b89d1c41ddbc3c8cde. Next consolidated draft W4.4 #374 implements Web TransactionSplitDetails read-only inline expand/collapse under native actual Activity ledger rows, preserves separate click to navigate details, shows source part labels/category/subcategory/amount and hides each amount under privacy. Web categoryPath empty vs whitespace legacy semantics corrected; 3 JVM Web parity vectors and 3 hosted Compose interactions authored. Canonical JSON and 3 derived docs updated, CI pending. Approved counters 1/6 implementations · 11/24 subtasks. Owner physical S24 #149 distinct.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check #373 Project Tracking, Android CI, Screenshot Regression and S24 emulator checks on unchanged final SHA; on failure inspect jobs, fix in same PR and rerun four checks; merge only clean 4/4 and stable base/reviews. Then continue meaningful W2–W5. Physical S24 #149 separate, no release/main, Web or backend changes.
+Next Check W4.4 PR #374 immutable exact-head four Project Tracking, Android CI, screenshots and S24-target emulator checks. Fix regression within same PR if failing, rerun all after head changes. Squash merge only 4/4 green, unchanged develop and no blocking reviews. Continue W2–W5 meaningful batches, no Web/backend/production release.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
