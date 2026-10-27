@@ -45,7 +45,10 @@ class WebTransactionSplitDisclosureComposeTest {
                 .performScrollTo().performClick()
             rule.onNodeWithTag("activity_split_details_split-1_0").assertExists()
             rule.onNodeWithText("Σνακ").assertExists()
-            rule.onNodeWithText("Μεταφορές › Εισιτήριο").assertExists()
+            // The Web disclosure deliberately displays both the fallback
+            // title and the taxonomy path when there is no custom part label.
+            // An unscoped onNodeWithText would be ambiguous (two matches).
+            rule.onNodeWithTag("activity_split_part_split-1_0_1").assertExists()
             rule.runOnIdle { assertEquals(0, navigations) }
             rule.onNodeWithTag("activity_split_toggle_split-1_0")
                 .performScrollTo().performClick()

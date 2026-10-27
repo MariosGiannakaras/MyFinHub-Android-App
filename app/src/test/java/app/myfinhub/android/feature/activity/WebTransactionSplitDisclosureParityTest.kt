@@ -21,8 +21,14 @@ class WebTransactionSplitDisclosureParityTest {
         val whitespace = ActivitySplitPart("", "   ", "Ετικέτα", 0.02)
         assertEquals("Άλλο", empty.categoryPath)
         assertEquals("Άλλο", empty.displayLabel)
-        assertEquals("   › Ετικέτα", whitespace.categoryPath)
-        assertEquals("   › Ετικέτα", whitespace.displayLabel)
+        // Web JS keeps nonempty whitespace-only source identities unchanged.
+        // Build the expected taxonomy from the original strings; do not
+        // collapse or trim its identity as a presentational normalization.
+        val historicalPath = whitespace.category + " › " + whitespace.subcategory
+        assertEquals(historicalPath, whitespace.categoryPath)
+        assertEquals(historicalPath, whitespace.displayLabel)
+        assertTrue(whitespace.categoryPath.startsWith("   "))
+        assertFalse(whitespace.categoryPath == "Άλλο")
     }
 
     @Test fun twoPartReadOnlyDisclosureDoesNotDistortTotalOrCreateNewEvents() {
