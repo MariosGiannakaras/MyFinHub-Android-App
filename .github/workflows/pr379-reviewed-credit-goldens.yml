@@ -1,0 +1,61 @@
+name: PR379 Reviewed Inline Credit Screenshots
+on:
+  push:
+    branches: [android/inline-credit-history-batch-20261027]
+    paths: [.github/workflows/pr379-reviewed-credit-goldens.yml]
+permissions:
+  contents: write
+concurrency:
+  group: pr379-reviewed-credit-goldens
+  cancel-in-progress: true
+jobs:
+  refresh-verified-credit-preview:
+    if: github.repository == 'MariosGiannakaras/MyFinHub-Android-App' && github.ref == 'refs/heads/android/inline-credit-history-batch-20261027'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated PR branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: android/inline-credit-history-batch-20261027
+          persist-credentials: true
+      - name: JDK 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Gradle 9.7.0
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb
+        with:
+          gradle-version: '9.7.0'
+      - name: Provision Android SDK
+        run: bash scripts/install-android-sdk.sh
+      - name: Render source Compose screenshots
+        run: ./gradlew updateDebugScreenshotTest --stacktrace
+      - name: Write exactly three reviewed InlineCreditWorkspace golden PNGs
+        shell: bash
+        run: |
+          set -euo pipefail
+          allowed=(
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/InlineCreditCardWorkspaceScreenshotTestKt/InlineCreditWorkspaceDarkScreenshot_inline_credit_workspace_dark_877be978_0.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/InlineCreditCardWorkspaceScreenshotTestKt/InlineCreditWorkspaceLargeTypeScreenshot_inline_credit_workspace_large_type_e688d5b8_0.png
+            app/src/screenshotTestDebug/reference/app/myfinhub/android/feature/money/InlineCreditCardWorkspaceScreenshotTestKt/InlineCreditWorkspaceLightScreenshot_inline_credit_workspace_light_6e124b1d_0.png
+          )
+          git add -- "${allowed[@]}"
+          mapfile -t staged < <(git diff --cached --name-only)
+          printf 'Changed InlineCreditWorkspace images:\n%s\n' "${staged[@]}"
+          if (( ${#staged[@]} != 3 )); then
+            echo "Expected exactly three relevant screenshots, got ${#staged[@]}" >&2
+            exit 1
+          fi
+          for f in "${staged[@]}"; do
+            permitted=false
+            for a in "${allowed[@]}"; do
+              if [[ "$f" == "$a" ]]; then permitted=true; break; fi
+            done
+            [[ "$permitted" == true ]] || { echo "Unexpected path: $f" >&2; exit 1; }
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Refresh three reviewed Compose credit workspace screenshots'
+          git push origin HEAD:refs/heads/android/inline-credit-history-batch-20261027
