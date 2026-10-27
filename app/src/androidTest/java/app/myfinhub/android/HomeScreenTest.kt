@@ -1,7 +1,6 @@
 package app.myfinhub.android
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -10,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,7 +27,7 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("Εμφάνιση ποσών").assertIsDisplayed()
 
         // Upcoming obligations live in Plan, not Home.
-        composeRule.onNodeWithText("Χρειάζεται προσοχή").assertDoesNotExist()
+        assertTrue(runCatching { composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode() }.isFailure)
 
         // Quick entry remains reachable from the account overview.
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag("home_global_quick_entry"))

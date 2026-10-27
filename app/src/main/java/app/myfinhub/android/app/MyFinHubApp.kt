@@ -59,7 +59,7 @@ import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
-import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
+import app.myfinhub.android.feature.plan.MobileRecurringOverviewScreen
 import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
@@ -595,7 +595,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Savings> {
                     CanonicalSavingsScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onSaveGoal = onSaveSavingsGoal,
                         onDeleteGoal = onDeleteSavingsGoal,
                         onSaveMonthlySavingsRate = onSaveMonthlySavingsRate,
@@ -605,7 +605,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Loans> {
                     CanonicalLoansScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onRecordPayment = onRecordLoanPayment,
                         onSaveLoanMetadata = onSaveLoanMetadata,
                         expenseCategories = planState.budgetCategories,
@@ -615,7 +615,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Lending> {
                     CanonicalLendingScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                         onRecordRepayment = { lending ->
                             if (!planMutationInFlight && !planMutationBlocked &&
@@ -629,7 +629,7 @@ internal fun MyFinHubAppContent(
                                 if (lending.note.isNotBlank()) {
                                     onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
                                 }
-                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                                activeBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
                         onRecordLending = { person ->
@@ -642,7 +642,7 @@ internal fun MyFinHubAppContent(
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.LENDING))
                                 onQuickEntryAction(QuickEntryAction.PersonChanged(person))
-                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                                activeBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
                     )
@@ -654,35 +654,15 @@ internal fun MyFinHubAppContent(
                         onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
                         onOpenRecurring = { planBackStack.pushIfNew(AppRoute.PlanRecurring) },
                         onOpenScheduled = { planBackStack.pushIfNew(AppRoute.PlanScheduled) },
+                        onOpenSavings = { planBackStack.pushIfNew(AppRoute.Savings) },
+                        onOpenLoans = { planBackStack.pushIfNew(AppRoute.Loans) },
+                        onOpenLending = { planBackStack.pushIfNew(AppRoute.Lending) },
                     )
                 }
                 entry<AppRoute.PlanRecurring> {
-                    CanonicalRecurringManagementScreen(
-                        state = planState,
+                    MobileRecurringOverviewScreen(
+                        items = planState.recurringManageItems,
                         onBack = { planBackStack.removeLastOrNull() },
-                        onStatusChanged = onSetRecurringStatus,
-                        onCreate = onCreateRecurring,
-                        onEdit = onEditRecurring,
-                        onRecordPayment = { item ->
-                            val eligibleAccount = recurringQuickEntryAccountChoice(item, quickEntryState)
-                            if (!planMutationInFlight && !planMutationBlocked &&
-                                item.status == "active" && eligibleAccount != null
-                            ) {
-                                onQuickEntryAction(QuickEntryAction.Reset)
-                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
-                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
-                                onQuickEntryAction(QuickEntryAction.NoteChanged("Πληρωμή: " + item.title))
-                                onQuickEntryAction(QuickEntryAction.RecurringChanged(
-                                    item.id, item.category,
-                                ))
-                                onQuickEntryAction(QuickEntryAction.AccountChanged(eligibleAccount))
-                                planBackStack.pushIfNew(AppRoute.QuickEntry)
-                            }
-                        },
-                        mutationBlocked = planMutationInFlight || planMutationBlocked,
-                        paymentAccountAvailable = quickEntryState.accounts.any {
-                            it.kind != "credit" && it.id.isNotBlank()
-                        },
                     )
                 }
                 entry<AppRoute.PlanScheduled> {
