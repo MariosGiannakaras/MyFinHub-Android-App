@@ -84,9 +84,23 @@ fun InlineCreditCardWorkspace(
                     Text(creditWorkspaceMoney(outstanding, amountsVisible),
                         style = MaterialTheme.typography.headlineMedium)
                     card.limit?.takeIf { it > 0.0 }?.let { limit ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
-                            Text("Διαθέσιμα: " + creditWorkspaceMoney((limit - outstanding).coerceAtLeast(0.0), amountsVisible))
+                        if (largeFont) {
+                            Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                                Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
+                                Text("Διαθέσιμα: " + creditWorkspaceMoney(
+                                    (limit - outstanding).coerceAtLeast(0.0), amountsVisible,
+                                ))
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
+                                Text("Διαθέσιμα: " + creditWorkspaceMoney(
+                                    (limit - outstanding).coerceAtLeast(0.0), amountsVisible,
+                                ))
+                            }
                         }
                         // Privacy mode also conceals utilization, not just textual figures.
                         if (amountsVisible) {
