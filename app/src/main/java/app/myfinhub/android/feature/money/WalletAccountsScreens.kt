@@ -110,6 +110,8 @@ fun CanonicalWalletScreen(
     accountsRequest: Int = 0,
     initiallyShowCards: Boolean = false,
     initiallyShowDebts: Boolean = false,
+    cardsOnly: Boolean = false,
+    accountsOnly: Boolean = false,
     onOpenAccount: (String) -> Unit,
     onOpenNetPosition: () -> Unit,
     onOpenCard: (String) -> Unit,
@@ -150,7 +152,11 @@ fun CanonicalWalletScreen(
             },
         )
     }
-    val selected = WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
+    val selected = when {
+        cardsOnly -> WalletSection.CARDS
+        accountsOnly -> WalletSection.ACCOUNTS
+        else -> WalletSection.entries.firstOrNull { it.name == selectedName } ?: WalletSection.ACCOUNTS
+    }
     var sectionSheetOpen by rememberSaveable { mutableStateOf(false) }
     var selectedCardId by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -158,8 +164,8 @@ fun CanonicalWalletScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
-                title = "Πορτοφόλι",
-                subtitle = selected.label,
+                title = when { cardsOnly -> "Κάρτες"; accountsOnly -> "Λογαριασμοί"; else -> "Πορτοφόλι" },
+                subtitle = if (cardsOnly || accountsOnly) null else selected.label,
             )
         },
     ) { padding ->
@@ -173,12 +179,14 @@ fun CanonicalWalletScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
-            item("wallet-section-selector") {
-                WalletSectionSelector(
-                    selected = selected,
-                    onSelected = { section -> selectedName = section.name },
-                    onOpenSheet = { sectionSheetOpen = true },
-                )
+            if (!cardsOnly && !accountsOnly) {
+                item("wallet-section-selector") {
+                    WalletSectionSelector(
+                        selected = selected,
+                        onSelected = { section -> selectedName = section.name },
+                        onOpenSheet = { sectionSheetOpen = true },
+                    )
+                }
             }
             when (selected) {
                 WalletSection.ACCOUNTS -> walletAccountsContent(
@@ -217,7 +225,7 @@ fun CanonicalWalletScreen(
         }
     }
 
-    if (sectionSheetOpen) {
+    if (sectionSheetOpen && !cardsOnly && !accountsOnly) {
         ModalBottomSheet(onDismissRequest = { sectionSheetOpen = false }) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(

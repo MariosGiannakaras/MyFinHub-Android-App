@@ -25,14 +25,13 @@ class AccessibilitySemanticsTest {
     fun criticalSurfaces_haveSpokenLabelsForClickableSemantics() {
         assertClickableNodesHaveSpokenLabels("Home")
 
-        listOf("Κινήσεις", "Πορτοφόλι", "Πλάνο").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
         }
 
-        composeRule.onNodeWithText("Κινήσεις").performClick()
-        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+        composeRule.onNodeWithText("Αναφορές").performClick()
         composeRule.waitForIdle()
         assertClickableNodesHaveSpokenLabels("Ανάλυση")
 
@@ -51,14 +50,13 @@ class AccessibilitySemanticsTest {
         composeRule.enableAccessibilityChecks()
         checkCurrentSurface()
 
-        listOf("Κινήσεις", "Πορτοφόλι", "Πλάνο").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             checkCurrentSurface()
         }
 
-        composeRule.onNodeWithText("Κινήσεις").performClick()
-        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+        composeRule.onNodeWithText("Αναφορές").performClick()
         composeRule.waitForIdle()
         checkCurrentSurface()
 

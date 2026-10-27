@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Web parity 1/6 implementations · 11/24 accepted subtasks. Insights financial privacy #376 and source-safe statement history #375 have merged into develop 0474bb52d62c6aa7c9006847157d5feb5399a07d and aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513 (four exact-head gates each). W2.4 PR #377 implements secure card clipboard main-looper expiry plus immediate revoke on navigation, AAL2 reveal loss or app background, without overwriting newer foreign clipboard. First head 7a7e5a5b23bf64a19732f365114c99debde12860 passed tracking/Android CI/screenshots but failed four new S24 tests because Android emulator clipboard read-back returned null despite successful writes. Reworked controller to use an injectable clipboard port; real Android port behavior remains unchanged and hosted Compose instrumentation can assert expiry/ownership/downgrade/disposal via observable in-memory port. Corrected new head must pass all four CI gates before merging. No Web/backend/schema, actual finance mutations, SMS #146, irreversible deletion UI, signing/release/main. Physical rc12 S24 owner acceptance #149 separate.
+Historical accepted Web parity remains 1/6 implementations · 11/24 subtasks, not a claim of completing the owner-approved mobile scope. Android PR #378 now contains five mobile roots, account Home, independent Cards with native vertical debit+credit 3D stack and inline credit statements/activity, Plan and Reports, device-only Settings. The previous immutable run d8e63d6c8b9e8ec44e2aeec69f45046a376d1f57 passed Project Tracking, Android CI and 225/225 hosted emulator tests; screenshot regression found exactly three WalletCards visual baselines (Light/Dark/large font) impacted by 48dp accessible card pagination touch targets. Three actual native Compose images were inspected and regenerated exclusively by branch workflow 40583628241 at bot commit d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. The temporary privileged authoring workflow is deleted in the final PR tree. Final immutable four-gate validation required before merge. Physical owner's Galaxy S24 Ultra #149 remains pending; no backend/Web/schema, SMS #146, real finance writes, release/signing/main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate corrected W2.4 PR #377 with all four immutable exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; inspect all failures and merge only if 4/4 succeeded on stable base, clean reviews. Then resume substantive W2.4/W3–W5 batches. Physical owner S24 rc12 #149 independent.
+1. Validate final PR #378 on the same immutable SHA with Project Tracking, Android CI, screenshot regression and S24 emulator (4/4), then merge to develop only if all are green and review/branch clear. Post-merge verify develop and proceed with the next cohesive Android-only batch; physical owner's Galaxy S24 acceptance #149 remains independent.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #377, branch android/w24-sensitive-clipboard-lifecycle-20261027
-Current W2.4: W3.1 #375 and W4.4 #376 integrated with four final-head gates each; develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W2.4 #377 sensitive clipboard expiry/navigation/AAL2 cleanup batch head 7a7e5a5 initially failed four hosted S24 tests due to Android 14+ emulator ClipboardManager.primaryClip read-back restriction, despite successful Android build/tracking/screenshots. New testable clipboard port isolates OS access while preserving production API and validates four real Compose/main-looper ownership and security scenarios. Fresh four gates required. Accepted counts remain 1/6 · 11/24; physical owner #149 separate.
+Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
+Current W2.4: PR #378 fixes 48dp card-pagination touch target. Previous head d8e63d6c 3/4 required passes (tracking, Android CI, 225 hosted emulator tests), three WalletCards golden changes only. Real Compose candidate images inspected; successful isolated bot workflow 40583628241 updated exactly three snapshots at d9f85e45c7c83bcf3111d00a9044bc93cbc98aed. Privileged temporary render workflow removed before final checks. Historical acceptance 1/6 · 11/24, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run corrected W2.4 #377 four exact-final-head CI gates after clipboard Android OS read-back test isolation. Merge only on tracking+Android+screenshots+hosted S24 all success, clean base and reviews. Continue W2.4/W3–W5; physical owner #149 separate.
+Next Verify 4/4 exact-head final PR #378 gates green, reviews and mergeable clear; merge to develop and verify post-merge. Follow with an Android-only single cohesive batch for long inline credit activity history, preservation of same-screen scroll and native interaction tests, without changes to Web/backend. Physical #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

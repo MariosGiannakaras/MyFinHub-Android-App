@@ -35,22 +35,20 @@ class TopLevelParityTest {
     }
 
     private fun selectAnalysis() {
-        selectDestination("Κινήσεις")
-        composeRule.onNodeWithTag("activity_section_analysis").performClick()
+        selectDestination("Αναφορές")
     }
 
     private fun assertGlobalNavigationHidden() {
         val globalDestinationMissing = runCatching {
-            composeRule.onNodeWithText("Πορτοφόλι").fetchSemanticsNode()
+            composeRule.onNodeWithText("Κάρτες").fetchSemanticsNode()
         }.isFailure
         assertTrue("Secondary routes must hide the global navigation suite", globalDestinationMissing)
     }
 
     @Test
-    fun fourRoots_walletPlanAndAnalysis_haveRealMobileContent() {
-        selectDestination("Πορτοφόλι")
+    fun fiveRoots_cardsPlanAndReports_haveRealMobileContent() {
+        selectDestination("Κάρτες")
         composeRule.onNodeWithTag("wallet_list").assertIsDisplayed()
-        composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNode(hasScrollAction())
             .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_card-1")
@@ -113,7 +111,7 @@ class TopLevelParityTest {
 
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithText("Πορτοφόλι").assertIsDisplayed()
+        composeRule.onNodeWithText("Κάρτες").assertIsDisplayed()
     }
 
     @Test
@@ -131,9 +129,9 @@ class TopLevelParityTest {
         composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
 
         selectDestination("Πλάνο")
-        selectDestination("Κινήσεις")
+        selectDestination("Αναφορές")
         composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
-        composeRule.onNodeWithTag("activity_section_history").performClick()
+        selectDestination("Κινήσεις")
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true).assertIsDisplayed()
     }
 }

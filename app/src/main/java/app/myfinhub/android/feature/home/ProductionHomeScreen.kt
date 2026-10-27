@@ -180,14 +180,6 @@ fun ProductionHomeScreen(
                     ) { Text("Όλοι οι λογαριασμοί") }
                 }
             }
-            if (state.attentionItems.isNotEmpty()) {
-                item {
-                    HomeAttentionSection(
-                        items = state.attentionItems.take(2),
-                        onOpen = onOpenAttention,
-                    )
-                }
-            }
         }
     }
 }

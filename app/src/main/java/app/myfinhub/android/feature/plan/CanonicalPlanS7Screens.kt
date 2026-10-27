@@ -131,6 +131,9 @@ fun CanonicalPlan2026Screen(
     onOpenBudget: () -> Unit,
     onOpenRecurring: () -> Unit = {},
     onOpenScheduled: () -> Unit = {},
+    onOpenSavings: () -> Unit = {},
+    onOpenLoans: () -> Unit = {},
+    onOpenLending: () -> Unit = {},
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val urgent = planUrgentObligations(state)
@@ -176,6 +179,45 @@ fun CanonicalPlan2026Screen(
             item("budget-link") {
                 BudgetS7LinkCard(state = state, amountsVisible = amountsVisible, onClick = onOpenBudget)
             }
+            item("savings-link") {
+                MyFinHubActionCard(
+                    onClick = onOpenSavings,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_savings_link"),
+                ) {
+                    MyFinHubSectionHeading(
+                        title = "Στόχοι αποταμίευσης",
+                        subtitle = "Υπόλοιπα, πρόοδος και διαχείριση στόχου",
+                        icon = MyFinHubIcons.Savings,
+                        tone = FinanceTone.Savings,
+                    )
+                }
+            }
+            item("loans-link") {
+                MyFinHubActionCard(
+                    onClick = onOpenLoans,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_loans_link"),
+                ) {
+                    MyFinHubSectionHeading(
+                        title = "Δάνεια και οφειλές",
+                        subtitle = "Υπόλοιπα, δόσεις και αποπληρωμές",
+                        icon = MyFinHubIcons.Account,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+            }
+            item("lending-link") {
+                MyFinHubActionCard(
+                    onClick = onOpenLending,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_lending_link"),
+                ) {
+                    MyFinHubSectionHeading(
+                        title = "Χρήματα που μου οφείλουν",
+                        subtitle = "Απαιτήσεις και επιστροφές",
+                        icon = MyFinHubIcons.Money,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+            }
             if (state.recurringManageItems.isNotEmpty()) {
                 item("recurring-management-link") {
                     MyFinHubActionCard(
@@ -184,7 +226,7 @@ fun CanonicalPlan2026Screen(
                     ) {
                         MyFinHubSectionHeading(
                             title = "Πάγια & συνδρομές",
-                            subtitle = "Διαχείριση, παύση και επανενεργοποίηση",
+                            subtitle = "Προβολή επαναλαμβανόμενων χρεώσεων",
                             icon = MyFinHubIcons.Plan,
                             tone = FinanceTone.Neutral,
                         )

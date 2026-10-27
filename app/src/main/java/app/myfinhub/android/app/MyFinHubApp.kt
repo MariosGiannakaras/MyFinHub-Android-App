@@ -59,7 +59,7 @@ import app.myfinhub.android.feature.money.MoneyViewModel
 import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
-import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
+import app.myfinhub.android.feature.plan.MobileRecurringOverviewScreen
 import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
@@ -80,7 +80,7 @@ import app.myfinhub.android.feature.utilities.FrontendUtilitiesUiState
 import app.myfinhub.android.feature.utilities.NoticeHistoryScreen
 import app.myfinhub.android.core.ui.PrivacySafeNoticeRecord
 import app.myfinhub.android.feature.utilities.ProductionDiagnosticsScreen
-import app.myfinhub.android.feature.utilities.ProductionSettingsScreen
+import app.myfinhub.android.feature.utilities.MobileDeviceSettingsScreen
 import app.myfinhub.android.feature.utilities.reduceFrontendUtilities
 
 @Composable
@@ -239,12 +239,14 @@ internal fun MyFinHubAppContent(
     val activityBackStack = rememberNavBackStack(AppRoute.Activity)
     val moneyBackStack = rememberNavBackStack(AppRoute.Money)
     val planBackStack = rememberNavBackStack(AppRoute.Plan)
+    val insightsBackStack = rememberNavBackStack(AppRoute.Insights)
 
     val activeBackStack: NavBackStack<NavKey> = when (currentDestination) {
         TopLevelDestination.HOME -> homeBackStack
         TopLevelDestination.ACTIVITY -> activityBackStack
         TopLevelDestination.MONEY -> moneyBackStack
         TopLevelDestination.PLAN -> planBackStack
+        TopLevelDestination.INSIGHTS -> insightsBackStack
     }
 
     fun openFastExpense(backStack: NavBackStack<NavKey>) {
@@ -294,12 +296,7 @@ internal fun MyFinHubAppContent(
                             currentDestination = TopLevelDestination.ACTIVITY
                         },
                         onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
-                        onOpenAllAccounts = {
-                            homeBackStack.popToRoot()
-                            moneyBackStack.popToRoot()
-                            walletAccountsRequest += 1
-                            currentDestination = TopLevelDestination.MONEY
-                        },
+                        onOpenAllAccounts = { homeBackStack.pushIfNew(AppRoute.Accounts) },
                         onOpenRecent = { eventId -> homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                     )
                 }
@@ -327,66 +324,29 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Settings> {
-                    ProductionSettingsScreen(
-                        state = frontendUtilitiesState,
-                        onAction = onFrontendUtilitiesAction,
-                        transactionRules = planState.rules,
-                        rulePreviewEvents = planState.rulePreviewEvents,
-                        counterpartyRows = planState.counterpartyDirectory,
-                        onSaveCounterparty = onSaveCounterparty,
-                        managedAccounts = planState.managedAccounts,
-                        deletableCustomCashAccountIds = planState.deletableCustomCashAccountIds,
-                        expenseTaxonomy = planState.expenseTaxonomy,
-                        incomeTaxonomy = planState.incomeTaxonomy,
-                        onReorderCategoryTaxonomy = onReorderCategoryTaxonomy,
-                        onAddCategoryTaxonomy = onAddCategoryTaxonomy,
-                        onRenameCategoryTaxonomy = onRenameCategoryTaxonomy,
-                        onMoveSubcategoryTaxonomy = onMoveSubcategoryTaxonomy,
-                        onRetireCategoryTaxonomy = onRetireCategoryTaxonomy,
-                        onSetCategoryIconColor = onSetCategoryIconColor,
-                        onSetCategoryIconPack = onSetCategoryIconPack,
-                        onSetCategoryIconGlyph = onSetCategoryIconGlyph,
-                        categoryIconPack = planState.categoryIconPack,
-                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
-                        categoryIconColors = planState.categoryIconColors,
-                        subcategoryIconColors = planState.subcategoryIconColors,
-                        onDeleteUnusedCustomCashAccount = onDeleteUnusedCustomCashAccount,
-                        defaultAccountIds = planState.defaultAccountIds,
-                        accountProviderOptions = financialProviderCatalog.map { it.id to it.displayName },
-                        onSaveManagedAccount = onSaveManagedAccount,
-                        onSetDefaultManagedAccount = onSetDefaultManagedAccount,
-                        onToggleRuleEnabled = onToggleTransactionRule,
-                        onSaveTransactionRule = onSaveTransactionRule,
-                        onDeleteTransactionRule = onDeleteTransactionRule,
-                        onReorderTransactionRule = onReorderTransactionRule,
-                        ruleCategories = planState.budgetCategories,
-                        ruleSubcategories = planState.ruleSubcategories,
-                        ruleAccountOptions = moneyState.accounts
-                            .filter { it.canonicalKind != "credit" && it.id.isNotBlank() }
-                            .map { it.id to it.name },
-                        rulesMutationBlocked = planMutationInFlight || planMutationBlocked,
-                        backupDocument = backupFinanceDocument,
-                        backupPendingChangeCount = backupPendingChangeCount,
-                        backupMutationBlocked = backupMutationBlocked,
-                        backupOffline = backupOffline,
+                    MobileDeviceSettingsScreen(
                         onBack = { homeBackStack.removeLastOrNull() },
-                        diagnostics = diagnostics,
-                        noticeHistoryCount = noticeHistory.size,
-                        onOpenNoticeHistory = { homeBackStack.pushIfNew(AppRoute.NoticeHistory) },
-                        deviceSessions = deviceSessions.devices,
-                        deviceSessionsLoaded = deviceSessions.loaded,
-                        serverHistory = serverHistory,
-                        serverHistoryEnabled = serverHistoryEnabled,
-                        serverHistoryLoaded = serverHistoryLoaded,
-                        onRefreshServerHistory = onRefreshServerHistory,
-                        accountSecurityEnabled = accountSecurityEnabled,
-                        accountSecuritySaving = accountSecuritySaving,
-                        accountSecurityFeedback = accountSecurityFeedback,
-                        onChangeAccountSecurity = onChangeAccountSecurity,
-                        deviceSessionRevocationInFlight = deviceSessions.revokingSessionId != null,
-                        onRevokeDeviceSession = onRevokeDeviceSession,
-                        onOpenDiagnostics = { homeBackStack.pushIfNew(AppRoute.Diagnostics) },
                         onLogout = onLogout,
+                    )
+                }
+                entry<AppRoute.Accounts> {
+                    CanonicalWalletScreen(
+                        state = moneyProviderState,
+                        accountsOnly = true,
+                        accountMetadata = accountMetadata,
+                        accountMetadataLoaded = accountMetadataLoaded,
+                        onOpenAccount = { id -> homeBackStack.pushIfNew(AppRoute.AccountDetail(id)) },
+                        onOpenNetPosition = { homeBackStack.pushIfNew(AppRoute.NetPosition) },
+                        onOpenCard = { id ->
+                            currentDestination = TopLevelDestination.MONEY
+                            moneyBackStack.pushIfNew(AppRoute.CardDetail(id))
+                        },
+                        onAddCard = {
+                            currentDestination = TopLevelDestination.MONEY
+                            moneyBackStack.pushIfNew(AppRoute.CardCreate)
+                        },
+                        onOpenLoans = { homeBackStack.pushIfNew(AppRoute.Loans) },
+                        onOpenLending = { homeBackStack.pushIfNew(AppRoute.Lending) },
                     )
                 }
                 entry<AppRoute.NoticeHistory> {
@@ -407,12 +367,7 @@ internal fun MyFinHubAppContent(
                     }
                 }
                 entry<AppRoute.Activity> {
-                    MovementRootSurface(
-                        selected = ActivitySection.HISTORY,
-                        onHistory = {},
-                        onAnalysis = { activityBackStack.pushIfNew(AppRoute.Insights) },
-                    ) {
-                        ActivityLedgerScreen(
+                    ActivityLedgerScreen(
                             state = activityState,
                             categoryIconColors = planState.categoryIconColors,
                             subcategoryIconColors = planState.subcategoryIconColors,
@@ -421,7 +376,6 @@ internal fun MyFinHubAppContent(
                             onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
                             onOpenQuickEntry = { openFastExpense(activityBackStack) },
                         )
-                    }
                 }
                 entry<AppRoute.ActivityDetail> { route ->
                     val item = activityState.uniqueItem(route.eventId)
@@ -504,7 +458,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Money> {
                     CanonicalWalletScreen(
                         state = moneyProviderState,
-                        accountsRequest = walletAccountsRequest,
+                        cardsOnly = true,
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
@@ -555,7 +509,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.NetPosition> {
                     CanonicalNetPositionScreen(
                         state = moneyProviderState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                     )
                 }
                 entry<AppRoute.CardCreate> {
@@ -641,7 +595,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Savings> {
                     CanonicalSavingsScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onSaveGoal = onSaveSavingsGoal,
                         onDeleteGoal = onDeleteSavingsGoal,
                         onSaveMonthlySavingsRate = onSaveMonthlySavingsRate,
@@ -651,7 +605,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Loans> {
                     CanonicalLoansScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onRecordPayment = onRecordLoanPayment,
                         onSaveLoanMetadata = onSaveLoanMetadata,
                         expenseCategories = planState.budgetCategories,
@@ -661,7 +615,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.Lending> {
                     CanonicalLendingScreen(
                         state = moneyState,
-                        onBack = { moneyBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         mutationBlocked = planMutationInFlight || planMutationBlocked,
                         onRecordRepayment = { lending ->
                             if (!planMutationInFlight && !planMutationBlocked &&
@@ -675,7 +629,7 @@ internal fun MyFinHubAppContent(
                                 if (lending.note.isNotBlank()) {
                                     onQuickEntryAction(QuickEntryAction.NoteChanged(lending.note))
                                 }
-                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                                activeBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
                         onRecordLending = { person ->
@@ -688,7 +642,7 @@ internal fun MyFinHubAppContent(
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.LENDING))
                                 onQuickEntryAction(QuickEntryAction.PersonChanged(person))
-                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                                activeBackStack.pushIfNew(AppRoute.QuickEntry)
                             }
                         },
                     )
@@ -700,35 +654,15 @@ internal fun MyFinHubAppContent(
                         onOpenBudget = { planBackStack.pushIfNew(AppRoute.PlanBudgets) },
                         onOpenRecurring = { planBackStack.pushIfNew(AppRoute.PlanRecurring) },
                         onOpenScheduled = { planBackStack.pushIfNew(AppRoute.PlanScheduled) },
+                        onOpenSavings = { planBackStack.pushIfNew(AppRoute.Savings) },
+                        onOpenLoans = { planBackStack.pushIfNew(AppRoute.Loans) },
+                        onOpenLending = { planBackStack.pushIfNew(AppRoute.Lending) },
                     )
                 }
                 entry<AppRoute.PlanRecurring> {
-                    CanonicalRecurringManagementScreen(
-                        state = planState,
+                    MobileRecurringOverviewScreen(
+                        items = planState.recurringManageItems,
                         onBack = { planBackStack.removeLastOrNull() },
-                        onStatusChanged = onSetRecurringStatus,
-                        onCreate = onCreateRecurring,
-                        onEdit = onEditRecurring,
-                        onRecordPayment = { item ->
-                            val eligibleAccount = recurringQuickEntryAccountChoice(item, quickEntryState)
-                            if (!planMutationInFlight && !planMutationBlocked &&
-                                item.status == "active" && eligibleAccount != null
-                            ) {
-                                onQuickEntryAction(QuickEntryAction.Reset)
-                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
-                                onQuickEntryAction(QuickEntryAction.AmountChanged(item.amount.toString()))
-                                onQuickEntryAction(QuickEntryAction.NoteChanged("Πληρωμή: " + item.title))
-                                onQuickEntryAction(QuickEntryAction.RecurringChanged(
-                                    item.id, item.category,
-                                ))
-                                onQuickEntryAction(QuickEntryAction.AccountChanged(eligibleAccount))
-                                planBackStack.pushIfNew(AppRoute.QuickEntry)
-                            }
-                        },
-                        mutationBlocked = planMutationInFlight || planMutationBlocked,
-                        paymentAccountAvailable = quickEntryState.accounts.any {
-                            it.kind != "credit" && it.id.isNotBlank()
-                        },
                     )
                 }
                 entry<AppRoute.PlanScheduled> {
@@ -781,29 +715,26 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.Insights> {
-                    MovementRootSurface(
-                        selected = ActivitySection.ANALYSIS,
-                        onHistory = { activityBackStack.popToRoot() },
-                        onAnalysis = {},
-                    ) {
-                        InsightsScreen(
-                            state = insightsState,
-                            categoryGlyphOverrides = planState.categoryGlyphOverrides,
-                            selectedPeriodId = insightsPeriodId,
-                            onPeriodSelected = { insightsPeriodId = it },
-                            onOpenSupportingActivity = { activityBackStack.popToRoot() },
-                            onOpenCategoryActivity = { category, start, end ->
-                                activityBackStack.pushIfNew(
-                                    AppRoute.CategoryActivity(
-                                        category = category.name,
-                                        start = start,
-                                        end = end,
-                                        categories = category.sourceCategories,
-                                    ),
-                                )
-                            },
-                        )
-                    }
+                    InsightsScreen(
+                        state = insightsState,
+                        categoryGlyphOverrides = planState.categoryGlyphOverrides,
+                        selectedPeriodId = insightsPeriodId,
+                        onPeriodSelected = { insightsPeriodId = it },
+                        onOpenSupportingActivity = {
+                            currentDestination = TopLevelDestination.ACTIVITY
+                            activityBackStack.popToRoot()
+                        },
+                        onOpenCategoryActivity = { category, start, end ->
+                            insightsBackStack.pushIfNew(
+                                AppRoute.CategoryActivity(
+                                    category = category.name,
+                                    start = start,
+                                    end = end,
+                                    categories = category.sourceCategories,
+                                ),
+                            )
+                        },
+                    )
                 }
             },
         )

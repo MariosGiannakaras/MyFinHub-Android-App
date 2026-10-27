@@ -8,21 +8,22 @@ import org.junit.Test
 
 class AppNavigationPolicyTest {
     @Test
-    fun topLevelContract_hasExactlyFourPermanentDestinations() {
+    fun topLevelContract_hasFiveOwnerApprovedDestinations() {
         assertEquals(
             listOf(
                 TopLevelDestination.HOME,
                 TopLevelDestination.ACTIVITY,
                 TopLevelDestination.MONEY,
                 TopLevelDestination.PLAN,
+                TopLevelDestination.INSIGHTS,
             ),
             TopLevelDestination.entries,
         )
     }
 
     @Test
-    fun insights_isActivitySibling_notFifthRoot() {
-        assertEquals(TopLevelDestination.ACTIVITY, AppRoute.Insights.topLevelDestination)
+    fun insights_isIndependentReportsRoot() {
+        assertEquals(TopLevelDestination.INSIGHTS, AppRoute.Insights.topLevelDestination)
         assertEquals(TopLevelDestination.ACTIVITY, AppRoute.Activity.topLevelDestination)
         assertTrue(AppRoute.Insights.showsGlobalNavigation)
     }
@@ -39,6 +40,7 @@ class AppNavigationPolicyTest {
 
         listOf(
             AppRoute.Settings,
+            AppRoute.Accounts,
             AppRoute.QuickEntry,
             AppRoute.CardCreate,
             AppRoute.CardDetail("card-1"),

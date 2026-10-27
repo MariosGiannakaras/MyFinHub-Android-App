@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,12 +26,10 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("Απόκρυψη ποσών").assertIsDisplayed().performClick()
         composeRule.onNodeWithContentDescription("Εμφάνιση ποσών").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasText("Χρειάζεται προσοχή"))
-        composeRule.onNodeWithText("Χρειάζεται προσοχή").assertIsDisplayed()
+        // Upcoming obligations live in Plan, not Home.
+        assertTrue(runCatching { composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode() }.isFailure)
 
-        // Primary account cards precede attention now, so the top action is outside
-        // the viewport after the attention section has been inspected.
+        // Quick entry remains reachable from the account overview.
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag("home_global_quick_entry"))
         composeRule.onNodeWithTag("home_global_quick_entry").performClick()
 

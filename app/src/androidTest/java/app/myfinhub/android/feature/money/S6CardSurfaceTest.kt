@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -76,6 +77,11 @@ class S6CardSurfaceTest {
         composeRule.onNode(hasText("Κάρτες") and hasClickAction()).performClick()
         composeRule.onNodeWithTag("credit_card_stack").assertIsDisplayed()
         composeRule.onNodeWithTag("credit_card_debit").assertIsDisplayed()
+        // Ensure the small visible pagination dot has a full accessible touch target.
+        val dotBounds = composeRule.onNodeWithTag("credit_card_dot_credit").fetchSemanticsNode().boundsInRoot
+        val minTouchPx = with(composeRule.density) { 48.dp.toPx() }
+        assertTrue("Card selector needs >=48dp width", dotBounds.width >= minTouchPx - 0.5f)
+        assertTrue("Card selector needs >=48dp height", dotBounds.height >= minTouchPx - 0.5f)
         composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
         composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }

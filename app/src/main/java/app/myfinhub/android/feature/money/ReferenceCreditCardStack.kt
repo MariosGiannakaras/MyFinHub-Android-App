@@ -208,6 +208,8 @@ fun CreditCardStack(
     var statusMessage by remember { mutableStateOf("") }
     var stackFocused by remember { mutableStateOf(false) }
     val settleOffset = remember { Animatable(0f) }
+    val restackOpacity = remember { Animatable(1f) }
+    var restacking by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val context = LocalContext.current
@@ -241,21 +243,30 @@ fun CreditCardStack(
 
     val revealed = (secretState as? CardSecretUiState.Revealed)?.takeIf { it.cardId == activeId }
 
+    // Match uploaded HTML: 150ms departure, 320ms tuck-behind, reduced-motion fallback.
     fun restack(direction: Int) {
-        if (order.size < 2 || deletingId != null || deleteArmedId != null) return
+        if (order.size < 2 || restacking || deletingId != null || deleteArmedId != null) return
+        restacking = true
         val start = dragOffset
         dragOffset = 0f
         dragging = false
         scope.launch {
-            settleOffset.snapTo(start)
-            if (!reducedMotion) {
-                settleOffset.animateTo(
-                    direction.coerceIn(-1, 1) * restackDistance,
-                    animationSpec = tween(150),
-                )
+            try {
+                settleOffset.snapTo(start)
+                restackOpacity.snapTo(1f)
+                if (!reducedMotion) {
+                    settleOffset.animateTo(
+                        direction.coerceIn(-1, 1) * with(density) { 58.dp.toPx() },
+                        animationSpec = tween(150),
+                    )
+                    restackOpacity.animateTo(0f, animationSpec = tween(320))
+                }
+                order = order.drop(1) + order.first()
+                settleOffset.snapTo(0f)
+                restackOpacity.snapTo(1f)
+            } finally {
+                restacking = false
             }
-            order = order.drop(1) + order.first()
-            settleOffset.snapTo(0f)
         }
     }
 
@@ -285,7 +296,7 @@ fun CreditCardStack(
 
     fun selectCard(cardId: String) {
         val index = order.indexOf(cardId)
-        if (index <= 0 || deletingId != null || deleteArmedId != null) return
+        if (index <= 0 || restacking || deletingId != null || deleteArmedId != null) return
         scope.launch {
             if (!reducedMotion) {
                 settleOffset.snapTo(0f)
@@ -396,11 +407,11 @@ fun CreditCardStack(
                             rotationZ = layout.rotation
                             rotationX = if (isTop) tiltX else 0f
                             rotationY = if (isTop) tiltY else 0f
-                            alpha = layoutAlpha
+                            alpha = layoutAlpha * (if (isTop) restackOpacity.value else 1f)
                             cameraDistance = 18f * density.density
                         }
                         .then(
-                            if (isTop && deleteArmedId == null && deletingId == null) {
+                            if (isTop && deleteArmedId == null && deletingId == null && !restacking) {
                                 Modifier.pointerInput(card.id) {
                                     detectDragGestures(
                                         onDragStart = {
@@ -492,6 +503,7 @@ fun CreditCardStack(
         }
 
         Row(
+            // All dot selectors are independent 48dp touch targets. The visible dots remain tiny.
             horizontalArrangement = Arrangement.spacedBy(1.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.testTag("credit_card_stack_dots"),
@@ -502,7 +514,7 @@ fun CreditCardStack(
                     val active = card.id == activeId
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
                             .clickable(
                                 enabled = !active && deletingId == null && deleteArmedId == null,
                                 role = Role.Button,
@@ -620,7 +632,7 @@ private fun ReferenceCardFace(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ReferenceSecretLine(
-                    text = revealed?.pan?.let(::referenceFormatPan) ?: "—",
+                    text = revealed?.pan?.let(::referenceFormatPan) ?: "•••• •••• •••• " + card.last4.takeLast(4).padStart(4, '•'),
                     color = visual.text,
                     copyLabel = "Αντιγραφή αριθμού",
                     copyEnabled = revealed?.pan != null,
@@ -633,7 +645,7 @@ private fun ReferenceCardFace(
                 ) {
                     ReferenceSecretField(
                         label = "VALID THRU",
-                        value = revealed?.expiry ?: "—",
+                        value = revealed?.expiry ?: "••/••",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή λήξης",
@@ -643,7 +655,7 @@ private fun ReferenceCardFace(
                     )
                     ReferenceSecretField(
                         label = "CVV",
-                        value = revealed?.cvv ?: "—",
+                        value = revealed?.cvv ?: "•••",
                         color = visual.text,
                         muted = visual.muted,
                         copyLabel = "Αντιγραφή CVV",

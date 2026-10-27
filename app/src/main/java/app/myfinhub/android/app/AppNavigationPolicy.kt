@@ -14,19 +14,19 @@ internal val AppRoute.showsGlobalNavigation: Boolean
     get() = when (this) {
         AppRoute.Home,
         AppRoute.Activity,
-        AppRoute.Insights,
         AppRoute.Money,
-        AppRoute.Plan -> true
+        AppRoute.Plan,
+        AppRoute.Insights -> true
         else -> false
     }
 
-/** Legacy Insights is deliberately mapped to the Κινήσεις root instead of being a fifth tab. */
+/** Reports are now a fifth root; accounts are reached from Home. */
 internal val AppRoute.topLevelDestination: TopLevelDestination?
     get() = when (this) {
         AppRoute.Home -> TopLevelDestination.HOME
-        AppRoute.Activity,
-        AppRoute.Insights -> TopLevelDestination.ACTIVITY
+        AppRoute.Activity -> TopLevelDestination.ACTIVITY
         AppRoute.Money -> TopLevelDestination.MONEY
         AppRoute.Plan -> TopLevelDestination.PLAN
+        AppRoute.Insights -> TopLevelDestination.INSIGHTS
         else -> null
     }
