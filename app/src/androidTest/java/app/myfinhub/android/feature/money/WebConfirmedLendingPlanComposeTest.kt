@@ -34,7 +34,9 @@ class WebConfirmedLendingPlanComposeTest {
         rule.onNodeWithTag("lending_select_person").performScrollTo().performClick()
         rule.onNodeWithText("Επιβεβαιωμένο πρόγραμμα επιστροφής")
             .performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("2026-10-31", substring = true)
+        // The date appears in both summary and installment #1. Resolve
+        // the exact intended row, not an ambiguous global text match.
+        rule.onNodeWithTag("lending_confirmed_schedule_row_1")
             .performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("δεν καταχωρίζει είσπραξη", substring = true)
             .performScrollTo().assertIsDisplayed()

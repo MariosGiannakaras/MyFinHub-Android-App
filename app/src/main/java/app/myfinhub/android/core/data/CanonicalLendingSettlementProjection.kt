@@ -39,6 +39,37 @@ private fun validLendingIsoDate(value: String): LocalDate? =
     else null
 
 /**
+ * Same Web lendingPlans.ts calendar/cent allocator for proposed AND confirmed
+ * installments. A saved plan is historical intent, not a newly booked receipt,
+ * and must not be clamped to today's potentially smaller actual receivable.
+ */
+fun canonicalLendingInstallmentSchedule(
+    firstDueDate: String,
+    amount: Double,
+    installments: Int,
+    everyMonths: Int = 1,
+): List<CanonicalLendingPlannedInstallment> {
+    val due = validLendingIsoDate(firstDueDate)
+    require(due != null) { "Η ημερομηνία προγραμματισμένης δόσης δεν είναι έγκυρη." }
+    require(installments in 1..60 && everyMonths in 1..24) {
+        "Ο αριθμός και η συχνότητα των δόσεων δεν είναι έγκυρα."
+    }
+    val cents = exactLendingCents(amount)
+    require(cents >= installments.toLong()) {
+        "Κάθε προγραμματισμένη δόση πρέπει να είναι τουλάχιστον ένα λεπτό του ευρώ."
+    }
+    val each = cents / installments
+    val remainder = cents % installments
+    val firstMonth = YearMonth.from(due)
+    return (0 until installments).map { index ->
+        val month = firstMonth.plusMonths(index.toLong() * everyMonths)
+        val date = month.atDay(min(due.dayOfMonth, month.lengthOfMonth()))
+        val centsForMonth = each + if (index == installments - 1) remainder else 0L
+        CanonicalLendingPlannedInstallment(date.toString(), centsToMoney(centsForMonth))
+    }
+}
+
+/**
  * Pure native rendering companion for Web lendingSettlementProjection().
  * The actual outstanding must come from canonical per-person Lending rows;
  * it cannot be inferred from scenario assumptions or a payment plan.
@@ -74,15 +105,10 @@ fun canonicalLendingSettlementProposal(
     require(cents >= installments.toLong()) {
         "Κάθε προτεινόμενη δόση πρέπει να είναι τουλάχιστον ένα λεπτό του ευρώ."
     }
-    val each = cents / installments
-    val remainder = cents % installments
-    val firstMonth = YearMonth.from(due)
-    val schedule = (0 until installments).map { index ->
-        val month = firstMonth.plusMonths(index.toLong() * everyMonths)
-        val date = month.atDay(min(due.dayOfMonth, month.lengthOfMonth()))
-        val centsForMonth = each + if (index == installments - 1) remainder else 0L
-        CanonicalLendingPlannedInstallment(date.toString(), centsToMoney(centsForMonth))
-    }
+    val schedule = canonicalLendingInstallmentSchedule(
+        firstDueDate = firstDueDate, amount = amount,
+        installments = installments, everyMonths = everyMonths,
+    )
     return CanonicalLendingSettlementProposal(
         name, today.toString(), centsToMoney(cents),
         centsToMoney(available), schedule,
