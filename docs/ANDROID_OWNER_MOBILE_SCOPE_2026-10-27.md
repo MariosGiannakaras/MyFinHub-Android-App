@@ -1,0 +1,12 @@
+# MyFinHub Android — owner-approved mobile scope (27 October 2026)
+
+The owner approved **five** roots: Αρχική, Κινήσεις, Κάρτες, Πλάνο, Αναφορές. Financial calculations/sync/auth remain Web-canonical, but complex Web management is not cloned to mobile. This decision supersedes the previous UI-wide Web parity ambition; it does not claim acceptance.
+
+- Home: daily cash + payroll available only, three primary Cash/Payroll/Savings rows with real charts and savings goal, compact other accounts. Quick Entry and amount privacy. **No recent transactions or upcoming obligations on Home.** Existing-account tap opens detail/IBAN/history, never creates a bank account.
+- Activity: canonical search/filter/read/edit/history, all supported entry types including credit payment/purchase, split/lending/reconciliation when enabled, and optional safe OCR. Reports belong elsewhere.
+- Cards: one identity-based **debit + credit + virtual card stack**. The user-supplied `καρτες.html` is the visual/motion contract: 1.586 aspect, bank-accurate gradients/marks, four overlapping depth layers, vertical swipe/restack (150ms departure + 320ms tuck-behind), no arrows or horizontal carousel, animated dots, reduced-motion alternative. **Outside** the stack vertical page scroll reveals the selected card's debt, limit, available credit, statement cycles, purchases, payments and activity **inline**, not on a compulsory credit details screen. A transaction tap may open the shared transaction read detail. Safe PAN/CVV stays behind the existing secure owner/auth/vault lifecycle, not the demo clipboard.
+- Plan: upcoming payments, recurring read summary, monthly budget, 30-day forecast, full savings target editing, loans/receivables.
+- Reports: monthly finance, category expenses, comparisons, trends, category drilldown, net worth.
+- Device menu: only mobile theme, privacy, PIN/biometric session, Android notifications, safe app updates and logout; no Web administration.
+- Web only: recurring authoring, 60/90-day simulations, CSV/Excel export, backup/restore, automated rule authoring, technical logs, full financial audit/admin settings. SMS import explicitly excluded.
+- Constraints: Android-only, no unapproved Web/API/schema mutations, no financial data writes, no signing/main/release. All implementation needs exact-head gates, Compose screenshot inspection and independent owner physical S24 Ultra acceptance.

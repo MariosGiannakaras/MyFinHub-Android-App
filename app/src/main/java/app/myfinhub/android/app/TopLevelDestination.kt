@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import app.myfinhub.android.R
 import app.myfinhub.android.designsystem.MyFinHubIcons
 
-/** Four permanent labelled roots from the 2026 Android redesign contract. */
+/** Five owner-approved native mobile roots. */
 enum class TopLevelDestination(
     @param:StringRes val label: Int,
     val icon: ImageVector,
@@ -13,6 +13,7 @@ enum class TopLevelDestination(
 ) {
     HOME(R.string.nav_home, MyFinHubIcons.Home, AppRoute.Home),
     ACTIVITY(R.string.nav_activity, MyFinHubIcons.Activity, AppRoute.Activity),
-    MONEY(R.string.nav_wallet, MyFinHubIcons.Money, AppRoute.Money),
+    MONEY(R.string.nav_cards, MyFinHubIcons.Card, AppRoute.Money),
     PLAN(R.string.nav_plan, MyFinHubIcons.Plan, AppRoute.Plan),
+    INSIGHTS(R.string.nav_reports, MyFinHubIcons.Insights, AppRoute.Insights),
 }

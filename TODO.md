@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate corrected W2.4 PR #377 with all four immutable exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator checks; inspect all failures and merge only if 4/4 succeeded on stable base, clean reviews. Then resume substantive W2.4/W3–W5 batches. Physical owner S24 rc12 #149 independent.
+- [ ] Validate new owner-approved mobile-root/card-stack Android PR on its exact final head through Project Tracking, Android CI, screenshot regression and hosted S24 tests; inspect real rendered Compose captures and merge only if green. Physical owner S24 rc12 #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #377, branch android/w24-sensitive-clipboard-lifecycle-20261027
-Current W2.4: W3.1 #375 and W4.4 #376 integrated with four final-head gates each; develop aee91c1fe81d8ac2f2f73d0befd155aa2f9ac513. W2.4 #377 sensitive clipboard expiry/navigation/AAL2 cleanup batch head 7a7e5a5 initially failed four hosted S24 tests due to Android 14+ emulator ClipboardManager.primaryClip read-back restriction, despite successful Android build/tracking/screenshots. New testable clipboard port isolates OS access while preserving production API and validates four real Compose/main-looper ownership and security scenarios. Fresh four gates required. Accepted counts remain 1/6 · 11/24; physical owner #149 separate.
+Issue #155, PR #377, branch android/owner-five-tabs-vertical-stack-20261027
+Current W2.4: PR #377 secure clipboard lifecycle merged into develop 3204c5638247a75a9626284ef396901fa20be91c with all four exact-head gates. Owner-approved five-tab mobile navigation, vertical HTML-style 3D card restack timing and mobile-only Settings authored on an unmerged new branch. CI and physical validation pending, accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run corrected W2.4 #377 four exact-final-head CI gates after clipboard Android OS read-back test isolation. Merge only on tracking+Android+screenshots+hosted S24 all success, clean base and reviews. Continue W2.4/W3–W5; physical owner #149 separate.
+Next Validate owner-scoped product PR through all four immutable final-head gates, inspect screenshots and hosted S24; merge only with success. Adopt updated mobile acceptance contract without counting unfinished work as accepted; physical #149 independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
