@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate new W4.4 draft split disclosure PR #374 with all four identical final-head Project Tracking, Android CI, screenshot and hosted S24 tests, fix in same PR only, merge after 4/4 green and clean base/reviews. Continue W2–W5 parity and physical owner S24 rc12 #149 separately; no micro-CI.
+- [ ] Validate W3.1 card statement linked-history draft PR #375 through all four identical immutable final-head Project Tracking, Android CI, screenshot and hosted S24 emulator checks, fix within same PR then rerun all if needed, merge only 4/4 green stable develop and reviews clean. Continue W2.4/W3–W5 coherent batches; physical owner S24 rc12 #149 remains separately pending.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #374, branch android/w44-inline-split-details-parity-batch-20261027
-Current W4.4: W4.2 PR #373 corrected standalone assertExists import, passed four same-final-head CI checks on f1c5b7721c4c9596af70713ef0411072e894c251; squash merged develop 74be6172091b87cfd50887b89d1c41ddbc3c8cde. Next consolidated draft W4.4 #374 implements Web TransactionSplitDetails read-only inline expand/collapse under native actual Activity ledger rows, preserves separate click to navigate details, shows source part labels/category/subcategory/amount and hides each amount under privacy. Web categoryPath empty vs whitespace legacy semantics corrected; 3 JVM Web parity vectors and 3 hosted Compose interactions authored. Canonical JSON and 3 derived docs updated, CI pending. Approved counters 1/6 implementations · 11/24 subtasks. Owner physical S24 #149 distinct.
+Issue #155, PR #375, branch android/w31-statement-linked-history-safety-batch-20261027
+Current W3.1: W4.4 PR #374 Web inline split Activity disclosure plus privacy and historic category truthiness fixed final head c83821e0c6060f86619ac736a40d1d5734e7cd93 4/4 tracking/Android CI/screenshots/S24 emulator passed; squash merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New W3.1 draft #375 native credit statement linked event reconciliation removes UI exposure of raw missing historic IDs, refuses ambiguous duplicate source/physical or mismatched event kinds, uses pure source-preserving projection and 15-row incremental paging instead of render-all, privacy masks genuine amounts. Five JVM Web-derived and four hosted Compose tests authored, canonical tracker and three generated docs updated. No new synthetic statement attribution, payment, finance write or Web changes. CI pending, accepted 1/6 broad · 11/24 subtasks, physical S24 #149 separately pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check W4.4 PR #374 immutable exact-head four Project Tracking, Android CI, screenshots and S24-target emulator checks. Fix regression within same PR if failing, rerun all after head changes. Squash merge only 4/4 green, unchanged develop and no blocking reviews. Continue W2–W5 meaningful batches, no Web/backend/production release.
+Next Check W3.1 #375 final SHA four Project Tracking/Android CI/screenshot regression/S24 emulator checks and blocking reviews. Fix failing implementation/tests within same PR and retest all on any changed head; squash merge only if 4/4 and stable base. Continue grouped W2–W5, physical owner rc12 #149 independent, no Web/backend/schema/release/main.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
