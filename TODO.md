@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify owner-scoped Android PR #378 final immutable head on Project Tracking, Android CI, screenshot regression and S24 hosted emulator (4/4). Inspect any failures; only merge with clean base/reviews. Owner physical Galaxy S24 Ultra acceptance #149 remains independent.
+- [ ] Finish the 48dp card-pagination touch-target correction in PR #378; refresh only affected Compose screenshot goldens through an isolated branch-only workflow, delete temporary tooling and verify all four required checks on the immutable final SHA. Merge into develop only if they all succeed; physical S24 Ultra #149 remains independent.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #378, branch android/owner-five-tabs-vertical-stack-20261027
-Current W2.4: Owner five-root mobile redesign #378 prepared; original emulator 3 failures and 7 golden deltas diagnosed. Added 48dp spoken Switch, updated Home/Plan settings navigation assertions, and refreshed exactly seven real rendered Compose PNG references through temporary branch-only baseline job (successful). Removed temporary updater workflow in final commit. Previous parity acceptance 1/6 · 11/24 retained; final CI and physical owner S24 acceptance pending.
+Current W2.4: PR #378 latest tested head 69d84e97e2073381b829e0bfc0e5fd16b2a8143e: Project Tracking success, Android CI success, screenshot-regression success (102), S24 hosted 224/225 pass; sole remaining failure is 36dp credit stack pagination dot, requires 48dp min touch target. Correction and regression test authored; visual unchanged except possible dot spacing. Refresh affected reference PNGs, remove branch-only updater workflow, then validate all gates on same final head. Accepted parity remains 1/6 · 11/24; owner physical #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four exact-head PR #378 checks (Project Tracking, Android CI, screenshot regression, hosted S24) on immutable final SHA and merge only when all succeed with no review/blocker. Physical owner Galaxy S24 #149 acceptance remains separate; owner-selected mobile scope replaces blanket Web UI cloning.
+Next Commit minimum 48dp dot hit target and targeted test, refresh only changed screenshot references via temporary isolated workflow, remove temporary workflow and rerun Project Tracking/Android CI/screenshot/S24 emulator on immutable final PR head. Do not merge if any gate fails or pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

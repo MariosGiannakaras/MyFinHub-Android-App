@@ -503,6 +503,7 @@ fun CreditCardStack(
         }
 
         Row(
+            // All dot selectors are independent 48dp touch targets. The visible dots remain tiny.
             horizontalArrangement = Arrangement.spacedBy(1.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.testTag("credit_card_stack_dots"),
@@ -513,7 +514,7 @@ fun CreditCardStack(
                     val active = card.id == activeId
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
                             .clickable(
                                 enabled = !active && deletingId == null && deleteArmedId == null,
                                 role = Role.Button,
