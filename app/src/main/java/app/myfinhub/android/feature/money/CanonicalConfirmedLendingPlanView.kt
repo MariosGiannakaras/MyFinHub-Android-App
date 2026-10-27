@@ -115,7 +115,8 @@ internal fun CanonicalConfirmedLendingPlanDetails(
             }
         }
         Text(
-            "Οι προγραμματισμένες δόσεις δεν είναι εισπράξεις. " +
+            "Η επιβεβαίωση προγράμματος δεν καταχωρίζει είσπραξη. " +
+                "Οι προγραμματισμένες δόσεις δεν είναι εισπράξεις. " +
                 "Μόνο καταγεγραμμένες επιστροφές μειώνουν την πραγματική απαίτηση.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
