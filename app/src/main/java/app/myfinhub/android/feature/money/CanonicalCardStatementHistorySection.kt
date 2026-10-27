@@ -53,7 +53,8 @@ internal fun CanonicalCardStatementHistorySection(
     if (statements.isEmpty()) return
     var visibleLimit by rememberSaveable(card.id) { mutableIntStateOf(8) }
     var expandedId by remember(card.id) { mutableStateOf<String?>(null) }
-    var showAllLinked by remember(card.id) { mutableStateOf(false) }
+    // Never eagerly render a potentially unbounded historical card statement.
+    var linkedLimit by remember(card.id, expandedId) { mutableIntStateOf(15) }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
         .testTag("card_statement_history")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -104,7 +105,7 @@ internal fun CanonicalCardStatementHistorySection(
                         TextButton(
                             onClick = {
                                 expandedId = if (expandedId == statement.id) null else statement.id
-                                showAllLinked = false
+                                linkedLimit = 15
                             },
                             modifier = Modifier.testTag("card_statement_expand_$index"),
                         ) {
@@ -114,47 +115,61 @@ internal fun CanonicalCardStatementHistorySection(
                             )
                         }
                         if (expandedId == statement.id) {
-                            val linked = listOf(
-                                "Αγορά" to statement.purchaseIds,
-                                "Πληρωμή" to statement.paymentIds,
-                            ).flatMap { (label, ids) -> ids.map { label to it } }
-                            val shown = if (showAllLinked) linked else linked.take(15)
+                            val linked = canonicalStatementLinkedRows(
+                                statement, card.activity,
+                            )
+                            val shown = linked.take(linkedLimit)
                             if (linked.isEmpty()) {
                                 Text(
                                     "Δεν υπάρχουν συνδεδεμένες κινήσεις.",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
-                            shown.forEachIndexed { rowIndex, (kind, eventId) ->
-                                val matches = card.activity.filter { it.id == eventId }
-                                val activity = matches.singleOrNull()
-                                if (activity != null) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                    ) {
+                            shown.forEachIndexed { rowIndex, row ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .testTag("card_statement_linked_row_${index}_$rowIndex"),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    if (row.openActivityId != null) {
                                         TextButton(
-                                            onClick = { onOpenActivity(activity.id) },
+                                            onClick = { onOpenActivity(row.openActivityId) },
                                             modifier = Modifier.weight(1f)
                                                 .testTag("card_statement_event_${index}_$rowIndex"),
                                         ) {
-                                            Text("$kind · " + activity.title.ifBlank { eventId })
+                                            Text("${row.kindLabel} · ${row.displayTitle}")
                                         }
+                                    } else {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                "${row.kindLabel} · ${row.displayTitle}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
+                                            Text(
+                                                row.warning ?: "Ιστορική σύνδεση προς έλεγχο",
+                                                color = MaterialTheme.colorScheme.error,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                modifier = Modifier.testTag(
+                                                    "card_statement_link_warning_${index}_$rowIndex"),
+                                            )
+                                        }
+                                    }
+                                    row.amount?.let { amount ->
                                         Text(
-                                            statementHistoryEuro(activity.amount, amountsVisible),
+                                            statementHistoryEuro(amount, amountsVisible),
                                             style = MaterialTheme.typography.bodySmall,
                                         )
                                     }
-                                } else {
-                                    Text(
-                                        "$kind · συνδεδεμένη ιστορική κίνηση · ID $eventId",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
                                 }
                             }
-                            if (!showAllLinked && linked.size > shown.size) {
-                                TextButton(onClick = { showAllLinked = true }) {
-                                    Text("Προβολή όλων των ${linked.size} συνδεδεμένων κινήσεων")
+                            if (linked.size > shown.size) {
+                                TextButton(
+                                    onClick = {
+                                        linkedLimit = (linkedLimit + 15).coerceAtMost(linked.size)
+                                    },
+                                    modifier = Modifier.testTag("card_statement_more_links_$index"),
+                                ) {
+                                    Text("Περισσότερες κινήσεις (${linked.size - shown.size})")
                                 }
                             }
                         }

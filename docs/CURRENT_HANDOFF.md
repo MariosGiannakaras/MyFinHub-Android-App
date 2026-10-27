@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-W4.4 native Activity split disclosure PR #374 passed all four immutable final-head CI gates and squash merged to develop as 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749 (2026-10-27). The current cohesive W4.4 Insights privacy batch PR #376 masks derived spending comparison, category shares, per-card utilization, report ratios, momentum and chart geometry under Hide Amounts, including category accessibility descriptions; three Compose regressions authored. This branch does not alter underlying finance values, Web/backend, SMS import #146, release signing or main. CI and rendered-screen review pending; Web parity accepted counters remain 1/6 implementations and 11/24 subtasks. Owner S24 physical acceptance #149 is separate.
+Web parity 1/6 implementations · 11/24 accepted subtasks. W4.4 native Activity splits #374 and Insights ratio/chart privacy #376 merged into Android develop 0474bb52d62c6aa7c9006847157d5feb5399a07d; #376 exact head d92406cd046ce0b0b5df5c7572931cc71046881c passed tracking, Android CI, four reviewed Insights screenshots and hosted S24 emulator 4/4. W3.1 PR #375 implements fail-closed statement source-link history, no opaque IDs or phantom amounts, 15-row paging, amount masking and unchanged payment guards with five JVM and four Compose regressions. Earlier #375 head passed 4/4 on old develop; now integrated with #376 and requires new same-head gates. No Web/backend/schema, real finance writes, SMS #146, irreversible card deletion, signing/release/main. Physical S24 owner rc12 #149 separate.
 
 ## Immediate work
 
-- Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+- Validate synchronized W3.1 PR #375 on new exact head through four Project Tracking, Android CI, screenshot regression and hosted S24 emulator jobs; merge only with 4/4 success, stable develop and clean reviews. Resume substantive W2.4/W3–W5; owner physical rc12 #149 remains independent.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ W4.4 native Activity split disclosure PR #374 passed all four immutable final-he
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #376, branch android/w44-insights-ratio-privacy-batch-20261027
-Current W4.4: W4.4 native split details #374 succeeded on four final-head gates and merged develop 25e4a79e1908fe6306af06d38a2c9d1fcfe8b749. New cohesive Insights privacy #376 implements amount-hidden derived ratio and graph geometry masking with three authored hosted Compose checks; not yet CI verified or merged. Counters unchanged 1/6 implementations · 11/24 subtasks.
+Issue #155, PR #375, branch android/w31-statement-linked-history-safety-batch-20261027
+Current W3.1: W4.4 split Activity details #374 and Insights derived-ratio/chart privacy #376 merged develop 0474bb52d62c6aa7c9006847157d5feb5399a07d (#376 final-head 4/4 CI). W3.1 credit card statement source-safe linked history, invalid-link warnings and incremental 15-row expansion #375 now integrated with latest develop; old head passed 4/4 against old base, new final-head tests required. Web parity remains 1/6 implementations · 11/24 subtasks; physical S24 #149 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate privacy PR #376 against Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation on identical final head. Review newly rendered real Compose UI and update screenshot references only after verification; correct failures together inside this PR. Merge into develop only with four passing final-head checks, clean base and reviews; then resume a substantive W2–W5 batch. Physical rc12 acceptance #149 remains separate.
+Next Run exact-head full four-gate validation of synchronized W3.1 PR #375, merge only with 4/4 success, clean review and stable develop. Resume grouped W2.4/W3–W5 work; owner physical rc12 #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
