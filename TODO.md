@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify draft PR #388 on exact immutable head using Project Tracking, Android CI, screenshot regression and S24 hosted emulator; correct any failures as one cohesive batch and merge only after all 4/4 pass. Retain independent owner physical S24 #149 acceptance; no Web/backend changes.
+- [ ] Validate Android-only PR #389 on unchanged immutable head via Project Tracking, Android CI, all Compose screenshots and hosted S24 emulator; inspect failures/screenshots and fix in a coherent batch. Merge only if all four gates green. Owner physical Galaxy S24 Ultra #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #388, branch android/plan-budget-imported-read-safety-20261028
-Current W2.4: Merged #378–#387 owner Android scope to develop 502d297ba1e671476dc739a0e194b015e759366c (head #387 4/4). New draft PR #388 audits imported category/subcategory budget and pending commitment read-only projections for NaN/Infinity/overflow; preserves valid canonical math and source rows, no direct finance writes. Kotlin and hosted Compose tests authored; 4/4 exact-head CI pending, owner physical #149 separate.
+Issue #155, PR #389, branch android/credit-inline-financial-metric-safety-20261028
+Current W2.4: Owner Android redesign and focused native work #378–#388 merged to develop bce0c994655bf36977a2915a57b0f4c401d8cba8; #388 accepted via exact-head four gates. Draft #389 adds fail-closed read-only inline credit-card finance metrics/statement/activity presentation (finite debt and limit, no fake zero or NaN/Infinity, guarded progress/available, payment unavailable with invalid debt, privacy respected), plus Kotlin boundary and hosted Compose regression tests. Immutable 4/4 PR checks and physical owner S24 #149 pending. Broader historical accepted Web parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft #388 exact-head Project Tracking, Android CI, screenshots and S24 hosted tests; inspect rendered previews and fix in one batch if needed. Merge only 4/4 success, no review/base blockers; physical Galaxy S24 #149 independent.
+Next Run exact-head all four PR #389 checks (Project Tracking, Android CI, screenshot regression, S24 hosted emulator), inspect actual renders, fix failures in one batch. Merge only 4/4 success, no review/base blockers. Owner physical Galaxy S24 #149 independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
