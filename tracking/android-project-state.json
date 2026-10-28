@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-27",
+  "updated_at": "2026-10-28",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Owner mobile redesign #378–#390 merged to Android develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf, preserving five native roots and Web-only advanced settings. Current PR #391 (Android account IBAN sensitive temporary copy) is draft, exact-head Project Tracking and screenshots green, Android CI and hosted S24 instrumentation pending. New stacked Android-only PR #392 implements lightweight local scoped search and type chips only in long account-detail histories (6+ rows) without changing the two-row screenshot layout; uses canonical Web ledger search semantics, stable IDs/order, no backend queries/finance mutations, and amount privacy. Kotlin and hosted Compose tests authored, not executed. Do not merge stacked #392 before #391 integrates and exact-head #392 checks pass. Historical Web parity accepted 1/6 implementations · 11/24 subtasks; physical S24 owner signoff #149 independent and pending.",
+    "summary": "Owner-selected Android five-root redesign and focused mobile scope #378–#391 are MERGED into develop 76ce12880d31419ff2a967256ef4c307972313cd, including #391 protected temporary IBAN clipboard with four immutable-head required checks successful. Current DRAFT PR #392, now based directly on develop, adds Web-contract account-scoped activity history search and type chips for long histories (6+ canonical rows); source order/IDs and amount privacy remain unchanged. This cohesive batch also provides in-place reset of search/type and saveable per-account search state across Android activity recreation while resetting on canonical account switch. Kotlin and hosted Compose account-filter, restore/reset/privacy regressions authored, not yet CI-validated. No backend queries, Web/schema changes, production finance writes, SMS import #146, signing/main/release. Historical broader Web parity acceptance remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 separately pending.",
     "next": [
-      "Finish exact-head four-gate validation and merge draft #391 only when all checks green. Then retarget stacked #392 account detail history search to develop, run Project Tracking/Android CI/screenshots/hosted S24 on exact head and merge only 4/4 green. Maintain physical owner S24 #149 separately."
+      "Validate PR #392 account-detail history search, type filter, reset and saveable state on unchanged final head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Inspect real previews and resolve findings as one batch; merge only 4/4 green and clean base/reviews. Maintain independent physical owner Galaxy S24 Ultra #149 pending."
     ]
   },
   "latest_production_candidate": {
@@ -634,7 +634,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/account-detail-history-filters-20261028",
-    "checkpoint": "PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (4/4). Draft PR #391 protected IBAN clipboard is being verified. Draft stacked PR #392 account-detail local history search and type filters for 6+ rows authored with canonical Web activity search, stable IDs and privacy; tests not executed. No acceptance claims; broad historical 1/6 · 11/24, owner physical #149 pending.",
+    "checkpoint": "PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf. PR #391 protected IBAN temporary copy merged into develop 76ce12880d31419ff2a967256ef4c307972313cd after exact head 47373d00237da0ab2c4b4dcf315552ad9b545a6c succeeded on all four required checks. Current draft #392 retargeted from stacked branch to develop. Implements small scoped account history search/type chips for 6+ rows plus accessible Clear Filters and saved/restored per-account UI selections, resetting on canonical ID change. Tests written but four required CI gates not yet run on updated head. Historical accepted broad parity remains 1/6 · 11/24; physical S24 owner #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1174,7 +1174,7 @@
         ]
       }
     ],
-    "next_action": "Verify and merge #391 only 4/4 green; retarget stacked #392 to develop afterward, validate four required gates on immutable head, merge only green. No physical S24 owner signoff inferred.",
+    "next_action": "Run all four required exact-head CI checks for PR #392 against develop: Project Tracking, Android CI, screenshot regression, hosted S24. Merge only on 4/4 successes and no review issues, then verify develop post-merge. Physical owner S24 acceptance #149 remains independent.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 392,
     "current_subtask": "W2.4",

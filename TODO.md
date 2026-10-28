@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Finish exact-head four-gate validation and merge draft #391 only when all checks green. Then retarget stacked #392 account detail history search to develop, run Project Tracking/Android CI/screenshots/hosted S24 on exact head and merge only 4/4 green. Maintain physical owner S24 #149 separately.
+- [ ] Validate PR #392 account-detail history search, type filter, reset and saveable state on unchanged final head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Inspect real previews and resolve findings as one batch; merge only 4/4 green and clean base/reviews. Maintain independent physical owner Galaxy S24 Ultra #149 pending.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
-Current W2.4: PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (4/4). Draft PR #391 protected IBAN clipboard is being verified. Draft stacked PR #392 account-detail local history search and type filters for 6+ rows authored with canonical Web activity search, stable IDs and privacy; tests not executed. No acceptance claims; broad historical 1/6 · 11/24, owner physical #149 pending.
+Current W2.4: PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf. PR #391 protected IBAN temporary copy merged into develop 76ce12880d31419ff2a967256ef4c307972313cd after exact head 47373d00237da0ab2c4b4dcf315552ad9b545a6c succeeded on all four required checks. Current draft #392 retargeted from stacked branch to develop. Implements small scoped account history search/type chips for 6+ rows plus accessible Clear Filters and saved/restored per-account UI selections, resetting on canonical ID change. Tests written but four required CI gates not yet run on updated head. Historical accepted broad parity remains 1/6 · 11/24; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify and merge #391 only 4/4 green; retarget stacked #392 to develop afterward, validate four required gates on immutable head, merge only green. No physical S24 owner signoff inferred.
+Next Run all four required exact-head CI checks for PR #392 against develop: Project Tracking, Android CI, screenshot regression, hosted S24. Merge only on 4/4 successes and no review issues, then verify develop post-merge. Physical owner S24 acceptance #149 remains independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

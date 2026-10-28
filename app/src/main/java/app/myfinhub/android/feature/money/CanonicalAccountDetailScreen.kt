@@ -23,6 +23,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -90,9 +91,11 @@ fun CanonicalAccountDetailScreen(
     var deletingIban by remember(account?.id) { mutableStateOf(false) }
     var editingIban by remember(account?.id) { mutableStateOf(false) }
     var newIban by remember(account?.id) { mutableStateOf("") }
-    // Search is local to this account only. Switching accounts must reset it.
-    var historyQuery by remember(account?.id) { mutableStateOf("") }
-    var historyKind by remember(account?.id) { mutableStateOf<ActivityKind?>(null) }
+    // Save a small UI-only search state across Activity recreation, but reset both
+    // selectors when the canonical account ID changes. Do not cache any finance data.
+    var historyQuery by rememberSaveable(account?.id) { mutableStateOf("") }
+    var historyKindName by rememberSaveable(account?.id) { mutableStateOf<String?>(null) }
+    val historyKind = ActivityKind.entries.firstOrNull { it.name == historyKindName }
     val historyControlsVisible = activityItems.size >= 6
     val visibleHistory = if (historyControlsVisible) {
         visibleAccountHistoryItems(activityItems, historyQuery, historyKind)
@@ -259,7 +262,7 @@ fun CanonicalAccountDetailScreen(
                             options.forEach { (kind, title) ->
                                 FilterChip(
                                     selected = historyKind == kind,
-                                    onClick = { historyKind = kind },
+                                    onClick = { historyKindName = kind?.name },
                                     label = { Text(title) },
                                     modifier = Modifier.heightIn(min = 48.dp)
                                         .testTag("account_history_kind_${kind?.name ?: "ALL"}"),
@@ -272,6 +275,16 @@ fun CanonicalAccountDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.testTag("account_history_result_count"),
                         )
+                        if (historyQuery.isNotEmpty() || historyKindName != null) {
+                            TextButton(
+                                onClick = {
+                                    historyQuery = ""
+                                    historyKindName = null
+                                },
+                                modifier = Modifier.heightIn(min = 48.dp)
+                                    .testTag("account_history_reset_filters"),
+                            ) { Text("Καθαρισμός φίλτρων") }
+                        }
                     }
                 }
             }

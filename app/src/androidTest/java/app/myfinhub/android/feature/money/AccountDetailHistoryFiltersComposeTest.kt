@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.money
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -58,7 +59,36 @@ class AccountDetailHistoryFiltersComposeTest {
         rule.onNodeWithTag("account_history_kind_INCOME").performScrollTo().performClick()
         assertTrue(rule.onAllNodesWithText("Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.")
             .fetchSemanticsNodes().isNotEmpty())
+        rule.onNodeWithTag("account_history_reset_filters")
+            .performScrollTo().performClick()
+        rule.onNodeWithTag("account_history_result_count").performScrollTo()
+        assertTrue(rule.onAllNodesWithText("12 από 12 κινήσεις")
+            .fetchSemanticsNodes().isNotEmpty())
         rule.runOnIdle { assertEquals(null, opened.value) }
+    }
+
+    @Test fun searchAndTypeSurviveActivityStateRestorationForSameAccount() {
+        val restoration = StateRestorationTester(rule)
+        restoration.setContent { MyFinHubTheme {
+            CanonicalAccountDetailScreen(
+                account = account,
+                activityItems = records,
+                onBack = {},
+                onOpenActivity = {},
+                amountsVisibleOverride = false,
+            )
+        } }
+        rule.onNodeWithTag("account_detail_history_list")
+            .performScrollToNode(hasTestTag("account_history_search"))
+        rule.onNodeWithTag("account_history_search").performTextInput("τροφίμων")
+        rule.onNodeWithTag("account_history_kind_EXPENSE").performScrollTo().performClick()
+        rule.onNodeWithTag("account_history_result_count").performScrollTo()
+        assertTrue(rule.onAllNodesWithText("6 από 12 κινήσεις").fetchSemanticsNodes().isNotEmpty())
+        restoration.emulateSavedInstanceStateRestore()
+        rule.onNodeWithTag("account_detail_history_list")
+            .performScrollToNode(hasTestTag("account_history_result_count"))
+        assertTrue(rule.onAllNodesWithText("6 από 12 κινήσεις").fetchSemanticsNodes().isNotEmpty())
+        rule.onNodeWithTag("account_history_reset_filters").performScrollTo().assertExists()
     }
 
     @Test fun switchingAccountResetsSearchAndShowsItsOwnHistory() {
@@ -74,10 +104,13 @@ class AccountDetailHistoryFiltersComposeTest {
         rule.onNodeWithTag("account_detail_history_list")
             .performScrollToNode(hasTestTag("account_history_search"))
         rule.onNodeWithTag("account_history_search").performTextInput("κανένα")
+        rule.onNodeWithTag("account_history_kind_EXPENSE").performScrollTo().performClick()
         rule.runOnIdle { selected.value = account.copy(id = "savings", name = "Αποταμίευση") }
         rule.waitForIdle()
         rule.onNodeWithTag("account_detail_history_list")
             .performScrollToNode(hasTestTag("account_history_search"))
         assertTrue(rule.onAllNodesWithText("12 από 12 κινήσεις").fetchSemanticsNodes().isNotEmpty())
+        rule.onNodeWithTag("account_history_kind_ALL").performScrollTo().assertExists()
+        assertTrue(rule.onAllNodesWithText("Καθαρισμός φίλτρων").fetchSemanticsNodes().isEmpty())
     }
 }
