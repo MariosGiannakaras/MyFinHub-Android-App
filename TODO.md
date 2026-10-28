@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #390 Greek recurring search and due-order on exact final head through Project Tracking, Android CI, screenshot regression and S24 hosted tests; inspect render changes if any and fix in one combined batch. Merge only 4/4 green with clean base/reviews; physical owner S24 #149 independent.
+- [ ] Validate draft Android-only PR #391 on its new immutable head after retarget to develop: Project Tracking, Android CI, Compose screenshots and hosted S24 emulator. Repair any failures together and merge only 4/4 green. Physical owner Galaxy S24 Ultra #149 remains a separate acceptance gate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #390, branch android/plan-recurring-search-due-20261028
-Current W2.4: Merged owner Android five-root #378–#389 into develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559. New draft #390 enables mobile read-only recurring list search (diacritic-insensitive Greek), combines status filters, sorts valid active next dues chronologically without hiding historical/invalid rows, shows visible counts, retains canonical source-index keys and amount privacy. Pure Kotlin and S24 Compose tests prepared, not yet validated. Accepted broad Web parity remains 1/6 · 11/24; owner physical #149 pending.
+Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
+Current W2.4: Owner mobile #378–#390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (PR #390 exact-head 4/4 verified). Current draft #391 retargeted to develop: shared sensitive 60-second IBAN clipboard across account overview/detail, including revocation on privacy, IBAN or account identity change and disposal, protection of foreign clipboard, with a hosted same-IBAN account-switch regression. Exact-head four required checks not yet run, physical owner #149 pending; broader accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact-head #390 gates (Project Tracking, Android CI, screenshots, hosted S24). Fix in one batch if necessary; merge only all green and preserve independent physical owner Galaxy S24 #149 acceptance.
+Next Run exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for #391; inspect errors, fix in one coherent batch; merge to develop only with 4/4 successful gates and no review blockers. Physical owner #149 is independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
