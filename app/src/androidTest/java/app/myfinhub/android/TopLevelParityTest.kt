@@ -126,6 +126,18 @@ class TopLevelParityTest {
     }
 
     @Test
+    fun scheduledManagementIsReachableDirectlyFromPlan() {
+        selectDestination("Πλάνο")
+        composeRule.onNodeWithTag("s7_plan_root")
+            .performScrollToNode(hasTestTag("s7_scheduled_management_link"))
+        composeRule.onNodeWithTag("s7_scheduled_management_link").performClick()
+        composeRule.onNodeWithTag("scheduled_management_root").assertIsDisplayed()
+        assertGlobalNavigationHidden()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
+    }
+
+    @Test
     fun secondaryRoute_hidesGlobalNavigation_andBackRestoresOrigin() {
         selectDestination("Κινήσεις")
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())

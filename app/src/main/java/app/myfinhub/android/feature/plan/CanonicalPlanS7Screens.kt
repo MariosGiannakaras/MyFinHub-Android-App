@@ -236,21 +236,22 @@ fun CanonicalPlan2026Screen(
                 }
             }
 
-            if (state.scheduledManageItems.isNotEmpty()) {
-                item("scheduled-management") {
+            // Entry is always available: a first planned payment must be reachable.
+            item("scheduled-management") {
                     MyFinHubActionCard(
                         onClick = onOpenScheduled,
                         modifier = Modifier.fillMaxWidth().testTag("s7_scheduled_management_link"),
                     ) {
                         MyFinHubSectionHeading(
                             title = "Προγραμματισμένες κινήσεις",
-                            subtitle = "Επιβεβαίωση, παράλειψη και ιστορικό",
+                            subtitle = if (state.scheduledManageItems.isEmpty())
+                                "Νέος προγραμματισμός και ιστορικό"
+                            else "Επιβεβαίωση, παράλειψη και ιστορικό",
                             icon = MyFinHubIcons.Plan,
                             tone = FinanceTone.Neutral,
                         )
                     }
                 }
-            }
             if (remaining.isNotEmpty()) {
                 item("remaining-heading") {
                     MyFinHubSectionHeading(
