@@ -60,7 +60,7 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
+Issue #155, PR #392, branch android/account-detail-history-filters-20261028
 Current W2.4: PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf. PR #391 protected IBAN temporary copy merged into develop 76ce12880d31419ff2a967256ef4c307972313cd after exact head 47373d00237da0ab2c4b4dcf315552ad9b545a6c succeeded on all four required checks. Current draft #392 retargeted from stacked branch to develop. Implements small scoped account history search/type chips for 6+ rows plus accessible Clear Filters and saved/restored per-account UI selections, resetting on canonical ID change. Tests written but four required CI gates not yet run on updated head. Historical accepted broad parity remains 1/6 · 11/24; physical S24 owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Run all four required exact-head CI checks for PR #392 against develop: Project Tracking, Android CI, screenshot regression, hosted S24. Merge only on 4/4 successes and no review issues, then verify develop post-merge. Physical owner S24 acceptance #149 remains independent.
