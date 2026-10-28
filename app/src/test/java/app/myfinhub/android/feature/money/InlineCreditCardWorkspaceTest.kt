@@ -17,6 +17,42 @@ class InlineCreditCardWorkspaceTest {
         assertEquals(0f, creditUtilizationRatio(card(90.0,null)), 0.0001f)
         assertEquals(0f, creditUtilizationRatio(card(90.0,0.0)), 0.0001f)
     }
+    @Test fun invalidImportedCreditMetricsNeverBecomePlausibleZeroOrInfiniteProgress() {
+        val invalidDebt = creditWorkspaceFinancialSnapshot(card(Double.NaN, 1500.0))
+        assertEquals(null, invalidDebt.outstanding)
+        assertEquals(null, invalidDebt.available)
+        assertEquals(null, invalidDebt.utilization)
+        assertEquals(0f, creditUtilizationRatio(card(Double.NaN, 1500.0)), 0.0001f)
+
+        val infiniteLimit = creditWorkspaceFinancialSnapshot(card(300.0, Double.POSITIVE_INFINITY))
+        assertEquals(300.0, infiniteLimit.outstanding)
+        assertEquals(null, infiniteLimit.limit)
+        assertEquals(null, infiniteLimit.available)
+        assertEquals(null, infiniteLimit.utilization)
+
+        val overflowRatio = creditWorkspaceFinancialSnapshot(card(Double.MAX_VALUE, Double.MIN_VALUE))
+        assertEquals(null, overflowRatio.utilization)
+        assertEquals(0.0, overflowRatio.available)
+        assertEquals(0f, creditUtilizationRatio(card(Double.MAX_VALUE, Double.MIN_VALUE)), 0.0001f)
+        assertEquals("Μη έγκυρο ποσό", creditWorkspaceMoney(Double.NEGATIVE_INFINITY, true))
+        assertEquals("Μη έγκυρο ποσό", creditWorkspaceMoney(Double.NaN, true))
+        assertEquals("•••• €", creditWorkspaceMoney(Double.NaN, false))
+        assertEquals("Μη έγκυρο ποσό", creditWorkspaceOptionalMoney(null, true))
+        assertEquals("•••• €", creditWorkspaceOptionalMoney(null, false))
+    }
+
+    @Test fun finiteCreditBalanceStillUsesCanonicalClampingAndUtilization() {
+        val valid = creditWorkspaceFinancialSnapshot(card(1250.0, 1000.0))
+        assertEquals(1250.0, valid.outstanding)
+        assertEquals(1000.0, valid.limit)
+        assertEquals(0.0, valid.available)
+        assertEquals(1f, valid.utilization)
+        val refund = creditWorkspaceFinancialSnapshot(card(-20.0, 1000.0))
+        assertEquals(0.0, refund.outstanding)
+        assertEquals(1000.0, refund.available)
+        assertEquals(0f, refund.utilization)
+    }
+
     @Test fun longCreditHistoryUsesBoundedBatchesAndSafeArithmetic() {
         assertEquals(0, inlineCreditVisibleCount(0, 1, INLINE_CREDIT_ACTIVITY_BATCH))
         assertEquals(8, inlineCreditVisibleCount(31, 1, INLINE_CREDIT_ACTIVITY_BATCH))

@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -76,6 +77,58 @@ class InlineCreditCardWorkspaceUiTest {
         composeRule.onNodeWithText("Καταχώριση αγοράς").performClick()
         assertEquals(1, pays)
         assertEquals(1, purchases)
+    }
+
+    @Test fun invalidImportedCreditAndHistoryAmountsFailClosedWithoutFakeNumbers() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit.copy(
+                        currentBalance = Double.NaN,
+                        limit = Double.POSITIVE_INFINITY,
+                        activity = listOf(credit.activity.first().copy(amount = Double.NEGATIVE_INFINITY)),
+                    ),
+                    statements = listOf(statement.copy(
+                        remaining = Double.NaN,
+                        purchaseTotal = Double.POSITIVE_INFINITY,
+                        paymentTotal = Double.NEGATIVE_INFINITY,
+                    )),
+                    amountsVisible = true,
+                    onPayCard = {}, onAddPurchase = {}, onOpenActivity = {}, onOpenDetails = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertExists()
+        composeRule.onNodeWithTag("inline_credit_invalid_limit").assertExists()
+        composeRule.onNodeWithTag("credit_utilization_indicator").assertDoesNotExist()
+        composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsNotEnabled()
+        composeRule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("∞", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("Αγορές και πληρωμές").assertExists()
+        composeRule.onNodeWithText("Καφές").assertExists()
+    }
+
+    @Test fun invalidAmountsRemainMaskedWhenPrivacyIsEnabled() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit.copy(
+                        currentBalance = Double.NaN,
+                        limit = Double.POSITIVE_INFINITY,
+                        activity = listOf(credit.activity.first().copy(amount = Double.NaN)),
+                    ),
+                    statements = listOf(statement.copy(remaining = Double.NaN)),
+                    amountsVisible = false,
+                    onPayCard = {}, onAddPurchase = {}, onOpenActivity = {}, onOpenDetails = {},
+                )
+            }
+        }
+        composeRule.onAllNodesWithText("•••• €", substring = true)[0].assertExists()
+        composeRule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithTag("inline_credit_invalid_limit").assertDoesNotExist()
+        composeRule.onNodeWithTag("credit_utilization_indicator").assertDoesNotExist()
+        composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsNotEnabled()
     }
 
     @Test fun debitCardNeverOffersCreditRepaymentOrStatementManagement() {

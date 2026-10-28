@@ -29,12 +29,45 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.text.NumberFormat
 import java.util.Locale
 
-internal fun creditUtilizationRatio(card: MoneyCard): Float =
-    if (card.limit == null || card.limit <= 0.0) 0f
-    else (card.currentBalance.coerceAtLeast(0.0) / card.limit).toFloat().coerceIn(0f, 1f)
+/**
+ * A missing or corrupt imported credit balance must never be converted to a
+ * plausible zero. Only finite canonical source metrics can contribute to
+ * the debt, available limit or utilization of the selected credit card.
+ */
+internal data class CreditWorkspaceFinancialSnapshot(
+    val outstanding: Double?,
+    val limit: Double?,
+    val available: Double?,
+    val utilization: Float?,
+)
 
-private fun creditWorkspaceMoney(amount: Double, visible: Boolean): String =
-    if (visible) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount) else "•••• €"
+internal fun creditWorkspaceFinancialSnapshot(card: MoneyCard): CreditWorkspaceFinancialSnapshot {
+    val outstanding = card.currentBalance.takeIf(Double::isFinite)?.coerceAtLeast(0.0)
+    val limit = card.limit?.takeIf { it.isFinite() && it > 0.0 }
+    val available = if (outstanding != null && limit != null) {
+        (limit - outstanding).takeIf(Double::isFinite)?.coerceAtLeast(0.0)
+    } else null
+    val utilization = if (outstanding != null && limit != null) {
+        (outstanding / limit).takeIf(Double::isFinite)
+            ?.coerceIn(0.0, 1.0)?.toFloat()
+    } else null
+    return CreditWorkspaceFinancialSnapshot(outstanding, limit, available, utilization)
+}
+
+internal fun creditUtilizationRatio(card: MoneyCard): Float =
+    creditWorkspaceFinancialSnapshot(card).utilization ?: 0f
+
+internal fun creditWorkspaceMoney(amount: Double, visible: Boolean): String =
+    when {
+        !visible -> "•••• €"
+        !amount.isFinite() -> "Μη έγκυρο ποσό"
+        else -> NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+    }
+
+internal fun creditWorkspaceOptionalMoney(amount: Double?, visible: Boolean): String =
+    if (amount == null) {
+        if (visible) "Μη έγκυρο ποσό" else "•••• €"
+    } else creditWorkspaceMoney(amount, visible)
 
 private fun creditStatementStatusLabel(status: String): String = when (status) {
     "due" -> "Προς εξόφληση"
@@ -67,6 +100,7 @@ fun InlineCreditCardWorkspace(
 ) {
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
+    val financial = creditWorkspaceFinancialSnapshot(card)
     var statementBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     var activityBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     Column(
@@ -79,16 +113,20 @@ fun InlineCreditCardWorkspace(
                 Text(if (card.last4.isBlank()) card.kind else "${card.kind} · •••• ${card.last4}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (credit) {
-                    val outstanding = card.currentBalance.coerceAtLeast(0.0)
                     Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.titleMedium)
-                    Text(creditWorkspaceMoney(outstanding, amountsVisible),
+                    Text(creditWorkspaceOptionalMoney(financial.outstanding, amountsVisible),
                         style = MaterialTheme.typography.headlineMedium)
-                    card.limit?.takeIf { it > 0.0 }?.let { limit ->
+                    if (card.limit != null && financial.limit == null && amountsVisible) {
+                        Text("Μη έγκυρο πιστωτικό όριο",
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("inline_credit_invalid_limit"))
+                    }
+                    financial.limit?.let { limit ->
                         if (largeFont) {
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
-                                Text("Διαθέσιμα: " + creditWorkspaceMoney(
-                                    (limit - outstanding).coerceAtLeast(0.0), amountsVisible,
+                                Text("Διαθέσιμα: " + creditWorkspaceOptionalMoney(
+                                    financial.available, amountsVisible,
                                 ))
                             }
                         } else {
@@ -97,26 +135,31 @@ fun InlineCreditCardWorkspace(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text("Όριο: " + creditWorkspaceMoney(limit, amountsVisible))
-                                Text("Διαθέσιμα: " + creditWorkspaceMoney(
-                                    (limit - outstanding).coerceAtLeast(0.0), amountsVisible,
+                                Text("Διαθέσιμα: " + creditWorkspaceOptionalMoney(
+                                    financial.available, amountsVisible,
                                 ))
                             }
                         }
                         // Privacy mode also conceals utilization, not just textual figures.
                         if (amountsVisible) {
-                            LinearProgressIndicator(
-                                progress = { creditUtilizationRatio(card) },
-                                modifier = Modifier.fillMaxWidth().testTag("credit_utilization_indicator"),
-                            )
-                            Text(
-                                "Χρήση ορίου: ${(creditUtilizationRatio(card) * 100).toInt()}%",
-                                style = MaterialTheme.typography.bodySmall,
+                            financial.utilization?.let { utilization ->
+                                LinearProgressIndicator(
+                                    progress = { utilization },
+                                    modifier = Modifier.fillMaxWidth().testTag("credit_utilization_indicator"),
+                                )
+                                Text(
+                                    "Χρήση ορίου: ${(utilization * 100).toInt()}%",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            } ?: Text(
+                                "Μη διαθέσιμη χρήση ορίου",
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                     }
                     Button(
                         onClick = onPayCard,
-                        enabled = outstanding > 0.005,
+                        enabled = (financial.outstanding ?: 0.0) > 0.005,
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text("Πληρωμή κάρτας") }
                     OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
