@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Owner-approved Android five-root redesign #378, inline credit history and Reports #379 and sensitive card-stack clipboard #380 all MERGED into develop (latest 03333b22a7118b88b146dd8de8303b2c4e93ce60), each with all four immutable-head required checks green. New cohesive Android-only PR #381 corrects native vertical swipe symmetry for 3+ debit/credit/virtual cards: up advances; down returns to the previous card, matching accessibility actions and keyboard arrows. Persists selected card stack order across Android saved instance-state recreation and reconciles removed/new source cards by stable ID, keeping inline credit details in sync. Pure order unit tests plus hosted S24 Compose 3-card and restoration tests authored; current branch not yet validated or merged. Historical accepted broader Web parity is still 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra acceptance issue #149 remains pending independently. No Web/backend/schema, production finance writes, SMS #146, main/signing/release.
+Owner-approved five-tab Android redesign #378, inline credit/report enhancements #379, sensitive Card Stack clipboard #380 and reversible/persistent vertical swipe PR #381 are all MERGED to develop (latest b1952188fe6eb8e3d4f87e0e85500628aad2a625), each with 4/4 exact-head required checks green. New cohesive Android-only PR #382 makes the combined debit/credit card selector responsive for large rosters: keeps the original centered tiny dots on a small roster but horizontally scrolls the 48dp accessible dot targets when they overflow, automatically centers the active dot after vertical swipe and prevents rapid conflicting dot/gesture animations. Fixes stale clipboard copy status across active-card switches; adds unit scroll bounds/overflow and hosted 12-card scrolling/selection tests. This branch is authored but unmerged and has not passed CI. Historical broader accepted Web parity remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 remains separate and unapproved. No Web/backend/schema, SMS #146, real finance writes, release/signing/main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate focused Android vertical Card Stack state/gesture PR #381 (Project Tracking, Android CI, screenshot regression, hosted S24 emulator) on one immutable head, correct failures in a batch and merge only 4/4 green. Independently check develop post-merge Android CI for #380 and never claim owner's physical S24 #149 acceptance.
+1. Validate PR #382's large-roster mixed-card pagination/gesture changes against four immutable-head gates: Project Tracking, Android CI, 102 screenshots and hosted S24 UI tests. Inspect actual screenshot changes if any and fix in a single batch; merge only 4/4 green. Physical owner Galaxy S24 Ultra acceptance #149 independent.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #381, branch android/vertical-card-restack-saveable-20261028
-Current W2.4: Merged PR #378 owner 5-root Android UI, #379 same-screen credit activity/Reports, and #380 shared 30-second sensitive clipboard across card stack and secure details into latest develop 03333b22a7118b88b146dd8de8303b2c4e93ce60, all with exact-head 4/4 PR gates. Next draft PR #381 fixes vertical stack up/down directional order for three or more cards; saves current card order/active selection through instance-state restoration, reconciles missing/new IDs, and adds unit/hosted Compose regression tests. Pending 4/4 on exact PR head; historical parity 1/6 · 11/24, owner physical #149 unapproved.
+Issue #155, PR #382, branch android/card-stack-overflow-dot-motion-20261028
+Current W2.4: Merged #378 through #381 to latest develop b1952188fe6eb8e3d4f87e0e85500628aad2a625 with four required checks each. New draft #382 responsive card indicators: 48dp accessible selectors scroll only on narrow width/large roster; active indicator is auto-centered, dot and vertical stack gesture transitions are mutually exclusive, and visible copy status clears on card change. Pure bounds and S24 hosted 12-card regression authored; final exact-head 4/4, device owner #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #381 exact-head 4/4 jobs and owner mobile stack semantics; after all green, merge into develop and verify post-merge. No Web/backend/schema/production finance mutation or owner physical S24 signoff inferred.
+Next Run exact-head Project Tracking/Android CI/screenshot/S24 emulator for PR #382, inspect screenshots and merge only with 4/4 success, clean reviews and stable develop. Physical owner Galaxy S24 #149 remains a separate gate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

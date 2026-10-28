@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
@@ -179,6 +180,43 @@ class CreditCardStackTest {
         composeRule.onNodeWithTag("credit_card_dot_card-c").performClick()
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) { activeCardId == "card-c" }
         composeRule.onNodeWithContentDescription("Κάρτα 3 από 3: Bonus Visa Gold, ενεργή").assertIsDisplayed()
+    }
+
+    @Test
+    fun twelveCardsKeepAll48dpPaginationTargetsReachableOnPhoneWidth() {
+        val cards = (0 until 12).map { index ->
+            MoneyCard(
+                id = "card-many-$index",
+                nickname = "Card ${index + 1}",
+                last4 = index.toString().padStart(4, '0'),
+                kind = if (index % 2 == 0) "Χρεωστική" else "Πιστωτική",
+                currentBalance = 0.0,
+                limit = if (index % 2 == 0) null else 1000.0,
+                vaultState = VaultState.AVAILABLE,
+                network = "VISA",
+                bankId = "piraeus",
+            )
+        }
+        var active: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = cards,
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = { active = it },
+                    onOpenCard = {},
+                    onDeleteCard = {},
+                )
+            }
+        }
+        composeRule.waitUntil { active == "card-many-0" }
+        composeRule.onNodeWithTag("credit_card_dot_card-many-11")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitUntil(5_000) { active == "card-many-11" }
+        composeRule.onNodeWithContentDescription("Κάρτα 12 από 12: Card 12, ενεργή")
+            .assertIsDisplayed()
     }
 
     @Test
