@@ -112,6 +112,10 @@ internal fun planForecastIncludedItems(state: PlanUiState): List<PlannedItem> {
     }
 }
 
+/** Owner's Android Plan uses only the canonical 30-day window, not Web 60/90-day UI. */
+internal fun mobilePlanForecastWindow(windows: List<ForecastWindow>): ForecastWindow? =
+    windows.firstOrNull { it.days == 30 }
+
 internal fun planForecastScopeLabel(state: PlanUiState): String {
     val start = state.forecastStartDateIso.toPlanS7DateOrNull()
     val end = state.forecastEndDateIso.toPlanS7DateOrNull()
@@ -445,6 +449,8 @@ fun CanonicalPlanForecastScreen(
     onRecordItem: (PlannedItem) -> Unit = {},
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
+    val mobileWindow = mobilePlanForecastWindow(state.forecastWindows)
+    val mobileBaseline = mobilePlanScenarioBaseline(state.forecastScenarioBaselines)
     val included = planForecastIncludedItems(state)
     val undatedCount = state.items.count { it.dueDateIso.isBlank() }
     val overdueIncluded = included.any {
@@ -509,16 +515,17 @@ fun CanonicalPlanForecastScreen(
                 }
             }
 
-            if (state.forecastWindows.isNotEmpty()) {
+            if (mobileWindow != null) {
                 item("web-forecast-comparison-heading") {
                     MyFinHubSectionHeading(
                         title = "Σύγκριση χαρτοφυλακίου",
-                        subtitle = "30, 60 και 90 ημέρες · όλα τα μη πιστωτικά υπόλοιπα",
+                        subtitle = "30 ημέρες · όλα τα μη πιστωτικά υπόλοιπα",
                         icon = MyFinHubIcons.Plan,
                         tone = FinanceTone.Neutral,
                     )
                 }
-                items(state.forecastWindows, key = { "portfolio-" + it.days }) { window ->
+                item("portfolio-30") {
+                    val window = mobileWindow
                     MyFinHubSectionCard(
                         modifier = Modifier.fillMaxWidth()
                             .testTag("s7_forecast_portfolio_" + window.days),
@@ -617,10 +624,10 @@ fun CanonicalPlanForecastScreen(
                 }
             }
 
-            if (state.forecastScenarioBaselines.isNotEmpty()) {
+            if (mobileBaseline != null) {
                 item("forecast-what-if") {
                     CanonicalForecastScenarioPanel(
-                        baselines = state.forecastScenarioBaselines,
+                        baseline = mobileBaseline,
                         accounts = state.scheduledAccounts,
                         amountsVisible = amountsVisible,
                     )

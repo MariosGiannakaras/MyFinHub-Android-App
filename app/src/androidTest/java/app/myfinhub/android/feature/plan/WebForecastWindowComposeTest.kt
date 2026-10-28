@@ -10,11 +10,11 @@ import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
 import org.junit.Test
 
-/** The real Plan forecast displays Web portfolio windows without replacing H7 spendable. */
+/** The mobile Plan intentionally displays only Web-canonical 30-day forecasts. */
 class WebForecastWindowComposeTest {
     @get:Rule val rule=createComposeRule()
 
-    @Test fun allThreePortfolioWindowsRenderWarningsAndPartialData() {
+    @Test fun onlyThirtyDayWindowIsVisibleEvenWhenWebReturnsSixtyAndNinety() {
         val state = PlanUiState(
             forecastHorizonDays = 30,
             forecastStartDateIso = "2026-10-15",
@@ -36,10 +36,12 @@ class WebForecastWindowComposeTest {
             CanonicalPlanForecastScreen(state = state, onBack = {})
         } }
         rule.onNodeWithTag("s7_forecast_portfolio_30").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("s7_forecast_portfolio_60").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Προσοχή:",substring=true).performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("s7_forecast_portfolio_90").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("2 κινήσεις παραλείφθηκαν",substring=true).assertIsDisplayed()
+        rule.onNodeWithText("30 ημέρες · όλα τα μη πιστωτικά υπόλοιπα")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_portfolio_60").assertDoesNotExist()
+        rule.onNodeWithTag("s7_forecast_portfolio_90").assertDoesNotExist()
+        rule.onNodeWithText("Προσοχή:",substring=true).assertDoesNotExist()
+        rule.onNodeWithText("2 κινήσεις παραλείφθηκαν",substring=true).assertDoesNotExist()
     }
 
 
