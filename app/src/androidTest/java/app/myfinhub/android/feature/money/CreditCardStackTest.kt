@@ -153,9 +153,11 @@ class CreditCardStackTest {
         composeRule.onNodeWithContentDescription("Κάρτα 3 από 3: Bonus Visa Gold, ενεργή")
             .assertIsDisplayed()
         composeRule.runOnIdle { cards.value = cards.value.filterNot { it.id == "card-c" } }
-        composeRule.waitUntil(5_000) { activeCardId != "card-c" }
-        composeRule.onNodeWithTag("credit_card_dot_card-a").performClick()
         composeRule.waitUntil(5_000) { activeCardId == "card-a" }
+        composeRule.onNodeWithContentDescription("Κάρτα 1 από 2: Visa Classic, ενεργή")
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("credit_card_dot_card-b").performClick()
+        composeRule.waitUntil(5_000) { activeCardId == "card-b" }
     }
 
     @Test
