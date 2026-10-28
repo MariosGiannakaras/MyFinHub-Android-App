@@ -1335,10 +1335,19 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            MyFinHubAmountText(
-                                amountVisibilityText(formatPlanS7Euro(row.amount), amountsVisible),
-                                FinanceTone.Expense,
-                            )
+                            if (mobileBudgetCommitmentValid(row.amount)) {
+                                MyFinHubAmountText(
+                                    amountVisibilityText(formatPlanS7Euro(row.amount), amountsVisible),
+                                    FinanceTone.Expense,
+                                )
+                            } else {
+                                Text(
+                                    "Μη έγκυρο ποσό εκκρεμούς υποχρέωσης · Μόνο προβολή",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.testTag("s7_budget_commitment_invalid_" + index),
+                                )
+                            }
                         }
                     }
                 }
@@ -1382,15 +1391,12 @@ fun CanonicalBudget2026Screen(
                                     "" else "_duplicate_" + index),
                         ),
                     ) {
-                        val limit = budget.effectiveLimit
-                            ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
-                        val used = budget.spent.coerceAtLeast(0.0)
-                        val threshold = (budget.alertThresholdText.toDoubleOrNull() ?: 80.0) / 100.0
-                        val ratio = if (limit > 0.0) used / limit else 0.0
-                        val remaining = limit - used
+                        val metrics = mobileBudgetRowMetrics(budget)
+                        val threshold = (budget.alertThresholdText.toIntOrNull()
+                            ?.takeIf { it in 1..100 } ?: 80) / 100.0
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
-                            if (budget.projectedDue > 0.0) {
+                            if (metrics != null && mobileBudgetProjectionValid(budget)) {
                                 Text(
                                     "Γνωστές μελλοντικές υποχρεώσεις: " +
                                         amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
@@ -1412,7 +1418,7 @@ fun CanonicalBudget2026Screen(
                                     )
                                 }
                             }
-                            if (budget.carried > 0.0) {
+                            if (metrics != null && budget.carried.isFinite() && budget.carried > 0.0) {
                                 Text(
                                     "Μεταφορά από προηγούμενο μήνα: " +
                                         amountVisibilityText(formatPlanS7Euro(budget.carried), amountsVisible),
@@ -1438,37 +1444,49 @@ fun CanonicalBudget2026Screen(
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("s7_category_budget_delete_" + budget.id),
                             ) { Text("Διαγραφή ορίου") }
-                            Text(
-                                if (amountsVisible) "${formatPlanS7Euro(used)} / ${formatPlanS7Euro(limit)}"
-                                else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            LinearProgressIndicator(
-                                progress = { ratio.toFloat().coerceIn(0f, 1f) },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Text(
-                                (if (remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
-                                    amountVisibilityText(formatPlanS7Euro(abs(remaining)), amountsVisible),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.testTag("s7_category_budget_remaining_" + index),
-                            )
-                            if (budget.rawSpent < 0.0) {
+                            if (metrics == null) {
                                 Text(
-                                    "Καθαρό αποτέλεσμα επιστροφών: " +
-                                        amountVisibilityText(formatPlanS7Euro(budget.rawSpent), amountsVisible),
+                                    "Μη έγκυρα οικονομικά δεδομένα ορίου · δεν εμφανίζεται πρόοδος.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.testTag("s7_category_budget_invalid_" + index),
+                                )
+                            } else {
+                                Text(
+                                    if (amountsVisible)
+                                        "${formatPlanS7Euro(metrics.used)} / ${formatPlanS7Euro(metrics.limit)}"
+                                    else "$HIDDEN_AMOUNT_TEXT / $HIDDEN_AMOUNT_TEXT",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                LinearProgressIndicator(
+                                    progress = { metrics.progress },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                Text(
+                                    (if (metrics.remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
+                                        amountVisibilityText(
+                                            formatPlanS7Euro(abs(metrics.remaining)), amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.testTag("s7_category_budget_refunds_" + index),
+                                    modifier = Modifier.testTag("s7_category_budget_remaining_" + index),
                                 )
-                            }
-                            if (ratio > 1.0 || ratio >= threshold) {
-                                Text(
-                                    if (ratio > 1.0) "Υπέρβαση ορίου" else "Κοντά στο όριο",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                )
+                                if (budget.rawSpent.isFinite() && budget.rawSpent < 0.0) {
+                                    Text(
+                                        "Καθαρό αποτέλεσμα επιστροφών: " +
+                                            amountVisibilityText(
+                                                formatPlanS7Euro(budget.rawSpent), amountsVisible),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.testTag("s7_category_budget_refunds_" + index),
+                                    )
+                                }
+                                if (metrics.ratio > 1.0 || metrics.ratio >= threshold) {
+                                    Text(
+                                        if (metrics.ratio > 1.0) "Υπέρβαση ορίου" else "Κοντά στο όριο",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                    )
+                                }
                             }
                         }
                     }
@@ -1505,28 +1523,34 @@ fun CanonicalBudget2026Screen(
                             .testTag("s7_subcategory_budget_" + index),
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                            val limit = budget.effectiveLimit
-                                ?: (budget.monthlyLimitText.replace(',', '.').toDoubleOrNull() ?: 0.0)
-                            val used = budget.spent.coerceAtLeast(0.0)
-                            val ratio = if (limit > 0.0) used / limit else 0.0
+                            val metrics = mobileBudgetRowMetrics(budget, sourceRemaining = true)
                             Text(budget.name, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                amountVisibilityText(formatPlanS7Euro(used), amountsVisible) + " / " +
-                                    amountVisibilityText(formatPlanS7Euro(limit), amountsVisible),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            LinearProgressIndicator(
-                                progress = { ratio.toFloat().coerceIn(0f, 1f) },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Text(
-                                (if (budget.remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
-                                    amountVisibilityText(
-                                        formatPlanS7Euro(abs(budget.remaining)), amountsVisible),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (budget.projectedDue > 0.0) {
+                            if (metrics == null) {
+                                Text(
+                                    "Μη έγκυρα οικονομικά δεδομένα υποκατηγορίας · δεν εμφανίζεται πρόοδος.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.testTag("s7_subcategory_budget_invalid_" + index),
+                                )
+                            } else {
+                                Text(
+                                    amountVisibilityText(formatPlanS7Euro(metrics.used), amountsVisible) + " / " +
+                                        amountVisibilityText(formatPlanS7Euro(metrics.limit), amountsVisible),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                LinearProgressIndicator(
+                                    progress = { metrics.progress },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                Text(
+                                    (if (metrics.remaining >= 0.0) "Υπόλοιπο: " else "Υπέρβαση: ") +
+                                        amountVisibilityText(
+                                            formatPlanS7Euro(abs(metrics.remaining)), amountsVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (metrics != null && mobileBudgetProjectionValid(budget)) {
                                 Text(
                                     "Γνωστές μελλοντικές υποχρεώσεις: " +
                                         amountVisibilityText(formatPlanS7Euro(budget.projectedDue), amountsVisible),
@@ -1548,7 +1572,7 @@ fun CanonicalBudget2026Screen(
                                     )
                                 }
                             }
-                            if (budget.carried > 0.0) {
+                            if (metrics != null && budget.carried.isFinite() && budget.carried > 0.0) {
                                 Text(
                                     "Μεταφορά υπολοίπου: " +
                                         amountVisibilityText(

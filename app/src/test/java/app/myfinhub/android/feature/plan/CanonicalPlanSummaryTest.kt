@@ -31,6 +31,41 @@ class CanonicalPlanSummaryTest {
     }
 
     @Test
+    fun categoryAndSubcategoryImportedBudgetProgressFailsClosedWithoutInventingZero() {
+        val normal = CategoryBudget(
+            id = "food", name = "Τρόφιμα", monthlyLimitText = "120,00",
+            spent = 135.0, remaining = -15.0,
+        )
+        val category = requireNotNull(mobileBudgetRowMetrics(normal))
+        assertEquals(120.0, category.limit, 0.0)
+        assertEquals(135.0, category.used, 0.0)
+        assertEquals(-15.0, category.remaining, 0.0)
+        assertEquals(1.0f, category.progress, 0.0f)
+        assertEquals(-15.0, requireNotNull(
+            mobileBudgetRowMetrics(normal, sourceRemaining = true)).remaining, 0.0)
+        assertNull(mobileBudgetRowMetrics(normal.copy(monthlyLimitText = "Infinity")))
+        assertNull(mobileBudgetRowMetrics(normal.copy(monthlyLimitText = "1,001")))
+        assertNull(mobileBudgetRowMetrics(normal.copy(effectiveLimit = Double.NaN)))
+        assertNull(mobileBudgetRowMetrics(normal.copy(effectiveLimit = 0.0)))
+        assertNull(mobileBudgetRowMetrics(normal.copy(spent = Double.POSITIVE_INFINITY)))
+        assertNull(mobileBudgetRowMetrics(normal.copy(spent = Double.NaN)))
+        assertNull(mobileBudgetRowMetrics(normal.copy(spent = Double.MAX_VALUE,
+            monthlyLimitText = "0,01")))
+        assertNull(mobileBudgetRowMetrics(normal.copy(remaining = Double.NEGATIVE_INFINITY),
+            sourceRemaining = true))
+        assertTrue(mobileBudgetProjectionValid(normal.copy(projectedDue = 1.0,
+            projectedRemaining = 10.0)))
+        assertFalse(mobileBudgetProjectionValid(normal.copy(
+            projectedDue = Double.POSITIVE_INFINITY)))
+        assertFalse(mobileBudgetProjectionValid(normal.copy(
+            projectedDue = 100.0, projectedRemaining = Double.NaN)))
+        assertFalse(mobileBudgetCommitmentValid(Double.NaN))
+        assertFalse(mobileBudgetCommitmentValid(Double.POSITIVE_INFINITY))
+        assertFalse(mobileBudgetCommitmentValid(-3.0))
+        assertTrue(mobileBudgetCommitmentValid(23.25))
+    }
+
+    @Test
     fun budgetProgress_reportsSpentRemainingPercentAndThreshold() {
         val state = PlanUiState(
             budget = BudgetDraft(monthlyLimitText = "800", alertThresholdText = "80"),
