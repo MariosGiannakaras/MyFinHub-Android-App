@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Owner 27 Oct five-root Android redesign PR #378 merged to develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e with 4/4 checks. Inline credit history/Reports PR #379 merged to develop e8c367cbdaf56282670ab76aec0524e53dfb428f (immutable head ee9055c0b37aee12a550c06207bcd194e6160e6a passed all four required PR checks); develop post-merge Project Tracking 40614507174 passed and Android CI 40614507212 was in progress at last verification. New Android-only draft PR #380 fixes a security gap in the HTML-reference Card Stack: copy PAN/expiry/CVV via the existing sensitive owner/AAL2 30s clipboard controller, never via unrestricted Compose clipboard; revoke owned copies on active card change, AAL loss, navigation/disposal or ON_STOP; do not clear foreign clipboard. Hosted Compose clipboard lifecycle tests added, exact-head CI not yet validated. Historical broader Web parity acceptance stays 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 remains separate and pending. No Web/backend/schema, real finance writes, SMS #146, main/signing/release.
+Owner mobile five-root redesign #378 and inline credit-history Reports #379 are MERGED into Android develop e8c367cbdaf56282670ab76aec0524e53dfb428f after four required immutable PR gates each. Draft Android-only PR #380 secures PAN/expiry/CVV Card Stack copying through the existing 30s sensitive clipboard policy with owner-aware cleanup on card rotation, lost AAL2 reveal, navigation/disposal and backgrounding; three hosted lifecycle tests added. Initial exact head 856ce9473876ea38a2aa9cd699d6a784e6928173 passed Project Tracking but hosted S24 prebuild failed `compileDebugAndroidTestKotlin` due to invalid import of onNode in new test (not production implementation). Removed the invalid top-level import; new final exact-head four-gate verification is pending. Historical broader Web parity acceptance remains 1/6 implementations · 11/24 subtasks. Physical owner Galaxy S24 Ultra #149 remains distinct and unapproved, no Web/backend/schema, SMS #146, main/signing/release or finance writes.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate native Card Stack clipboard lifecycle PR #380 on one immutable exact head with Project Tracking, Android CI, 102 screenshots and hosted S24 UI tests; fix any failures in one cohesive batch and merge only after 4/4 green, clean reviews and unchanged develop. Never claim physical owner S24 #149 acceptance.
+1. Check final PR #380 Project Tracking, Android CI, screenshot regression and hosted S24 emulator at same immutable SHA after compile-test-import fix. If all four green, clean reviews and develop unchanged, merge to develop, independently verify post-merge and maintain owner physical #149 as pending.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #380, branch android/stack-sensitive-clipboard-lifecycle-20261028
-Current W2.4: PR #378 (owner five-root Android redesign) merged 6b5c73bf7f886ead0d1dd744749f2c64606db13e (4/4). PR #379 (inline credit history and Reports net position) merged e8c367cbdaf56282670ab76aec0524e53dfb428f (4/4 immutable head). Current draft PR #380 secures clipboard copy in the native HTML-reference Card Stack, sharing the existing 30-second sensitive clipboard policy with secure card details and revoking on owner+AAL2 loss/card switch/background/disposal without affecting foreign clips. Three hosted lifecycle regressions authored but not yet executed. Historical broader parity 1/6 · 11/24, owner physical #149 pending.
+Current W2.4: PR #378 and #379 both merged into develop e8c367cbdaf56282670ab76aec0524e53dfb428f (4/4 exact-head checks each). PR #380 Card Stack sensitive clipboard 30-second expiry and revocation on rotation/AAL2 loss/background/disposal. Initial PR head 856ce9473876ea38a2aa9cd699d6a784e6928173 Project Tracking green but hosted S24 APK prebuild failed ONLY because new test mistakenly imported nonexistent top-level androidx.compose.ui.test.onNode. Fixed the test import for final re-run. Historical accepted parity 1/6 · 11/24 and owner physical #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft #380 Card Stack sensitive clipboard through Project Tracking, Android CI, screenshot regression and S24 hosted emulator on unchanged final head; inspect logs and fix in a batch if needed. Merge only after all 4/4 succeed; physical owner Galaxy S24 Ultra #149 independent.
+Next Validate PR #380 on immutable head after removing invalid onNode import, through all 4 required gates. Merge only on 4/4 green, no review blockers, unchanged develop. No physical owner S24 signoff inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
