@@ -3,9 +3,9 @@ package app.myfinhub.android.core.ui
 import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertExists
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -38,7 +38,7 @@ class AccountIbanRowClipboardTest {
         }
         override fun clearIfUnchanged(marker: String, value: String) {
             clearAttempts += 1
-            if (clip == marker to value) clip = null
+            if (clip == (marker to value)) clip = null
         }
         fun foreignCopy(value: String) { clip = "external" to value }
     }
@@ -66,7 +66,7 @@ class AccountIbanRowClipboardTest {
         }
         rule.runOnIdle { visible.value = false }
         rule.waitForIdle()
-        rule.onNodeWithTag("account_iban_copy").assertDoesNotExist()
+        assertTrue(rule.onAllNodesWithTag("account_iban_copy").fetchSemanticsNodes().isEmpty())
         rule.onNodeWithText("IBAN ••••").assertExists()
         rule.runOnIdle { assertNull(store.clip) }
     }
@@ -112,7 +112,7 @@ class AccountIbanRowClipboardTest {
                 )
             }
         }
-        rule.onNodeWithTag("account_iban_copy").assertDoesNotExist()
+        assertTrue(rule.onAllNodesWithTag("account_iban_copy").fetchSemanticsNodes().isEmpty())
         rule.onNodeWithText("Δεν έχει οριστεί").assertExists()
     }
 }
