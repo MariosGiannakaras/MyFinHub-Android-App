@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate cohesive budget safety PR #387 on immutable head through Project Tracking, Android CI, 102 screenshots and hosted S24 emulator; inspect any changed Compose screenshots, fix failed checks in one batch, merge only 4/4 success. Physical owner Galaxy S24 Ultra acceptance issue #149 remains separate.
+- [ ] Verify draft PR #388 on exact immutable head using Project Tracking, Android CI, screenshot regression and S24 hosted emulator; correct any failures as one cohesive batch and merge only after all 4/4 pass. Retain independent owner physical S24 #149 acceptance; no Web/backend changes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #387, branch android/budget-money-validation-source-safety-20261028
-Current W2.4: Owner #378 through #386 merged into develop 3b7f3b53634a2fd77993300db01bf5f341924a3a, each PR validated through exact-head four gates. Draft #387 consolidates strict positive two-decimal amount validation for overall/category/subcategory budgets and fails closed for nonfinite overall progress/commitment projection, with Kotlin and hosted Compose tests. Exact-head CI/physical acceptance pending; broader accepted Web parity 1/6 implementations · 11/24 subtasks.
+Issue #155, PR #388, branch android/plan-budget-imported-read-safety-20261028
+Current W2.4: Merged #378–#387 owner Android scope to develop 502d297ba1e671476dc739a0e194b015e759366c (head #387 4/4). New draft PR #388 audits imported category/subcategory budget and pending commitment read-only projections for NaN/Infinity/overflow; preserves valid canonical math and source rows, no direct finance writes. Kotlin and hosted Compose tests authored; 4/4 exact-head CI pending, owner physical #149 separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #387 Project Tracking, Android CI, screenshot regression and hosted S24 emulator on exact final head. Merge only all 4 green and clean reviews/base. No physical owner Galaxy S24 #149 signoff assumed.
+Next Check draft #388 exact-head Project Tracking, Android CI, screenshots and S24 hosted tests; inspect rendered previews and fix in one batch if needed. Merge only 4/4 success, no review/base blockers; physical Galaxy S24 #149 independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

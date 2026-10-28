@@ -67,6 +67,37 @@ class WebCategoryBudgetComposeTest {
         rule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
     }
 
+    @Test fun corruptedImportedCategoryAndSubcategoryRowsShowWarningNotFakeZeroProgress() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = PlanUiState(
+                    categoryBudgets = listOf(
+                        CategoryBudget("bad-cat", "Εισαγόμενη κατηγορία", "Infinity", "80",
+                            spent = Double.NaN, projectedDue = Double.POSITIVE_INFINITY),
+                    ),
+                    subcategoryBudgets = listOf(
+                        CategoryBudget("bad-sub", "Εισαγόμενη υποκατηγορία", "100", "80",
+                            spent = Double.POSITIVE_INFINITY,
+                            remaining = Double.NaN, projectedRemaining = Double.NaN,
+                            category = "Τρόφιμα", subcategory = "Αρτοποιείο"),
+                    ),
+                ),
+                onSaveBudget = { _, _ -> error("Invalid read-only source must not save") },
+                onBack = {},
+            )
+        } }
+        rule.onNodeWithTag("s7_category_budget_invalid_0")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_subcategory_budget_invalid_0")
+            .performScrollTo().assertIsDisplayed()
+        assertTrue(runCatching {
+            rule.onNodeWithText("Infinity", substring = true).fetchSemanticsNode()
+        }.isFailure)
+        assertTrue(runCatching {
+            rule.onNodeWithText("NaN", substring = true).fetchSemanticsNode()
+        }.isFailure)
+    }
+
     @Test fun subcentMonthlyLimitCannotDispatchARealBudgetMutation() {
         var saveCount = 0
         rule.setContent { MyFinHubTheme {
