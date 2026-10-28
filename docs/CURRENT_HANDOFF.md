@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Owner-approved five-tab Android redesign #378, inline credit/report enhancements #379, sensitive Card Stack clipboard #380 and reversible/persistent vertical swipe PR #381 are all MERGED to develop (latest b1952188fe6eb8e3d4f87e0e85500628aad2a625), each with 4/4 exact-head required checks green. New cohesive Android-only PR #382 makes the combined debit/credit card selector responsive for large rosters: keeps the original centered tiny dots on a small roster but horizontally scrolls the 48dp accessible dot targets when they overflow, automatically centers the active dot after vertical swipe and prevents rapid conflicting dot/gesture animations. Fixes stale clipboard copy status across active-card switches; adds unit scroll bounds/overflow and hosted 12-card scrolling/selection tests. This branch is authored but unmerged and has not passed CI. Historical broader accepted Web parity remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 remains separate and unapproved. No Web/backend/schema, SMS #146, real finance writes, release/signing/main.
+Owner Android five-root redesign #378 through large-roster Cards #382 MERGED into develop 926b845f60d120816f74cc15d45ebd1e076d6158, each with required 4/4 immutable-head PR checks. Android-only PR #383 consolidates read-only Plan subscriptions and actual linked recurring payment history into ONE screen: always-available Plan entry and empty state, local All/Active/Inactive filters keeping original Web order and duplicate source IDs, Greek source dates/status, fail-closed variable estimated-vs-fixed money labels, fully masked expected and actual payment values, and bounded in-place groups of 5 real booked payment rows. All recurring authoring remains Web-only. First head 6f833d4511a07766f8db872033a1c94dcee6f60d passed Tracking and screenshot but Android CI and emulator prebuild failed solely on non-existent Compose test import `assertExists`; removed invalid import and added the above owner scope in a single consolidation commit, final exact-head CI pending. Redundant parallel PR #384 closed unmerged to avoid overlapping screens. Historical broader accepted Web parity 1/6 implementations · 11/24 subtasks, physical owner S24 Ultra #149 separate and unapproved. No Web/backend/schema, production finance writes, SMS #146, release/signing/main.
 
 ## Immediate work
 
-- Validate PR #382's large-roster mixed-card pagination/gesture changes against four immutable-head gates: Project Tracking, Android CI, 102 screenshots and hosted S24 UI tests. Inspect actual screenshot changes if any and fix in a single batch; merge only 4/4 green. Physical owner Galaxy S24 Ultra acceptance #149 independent.
+- Validate consolidated PR #383 exact final SHA through Project Tracking, Android CI, screenshot regression and hosted S24 emulator; visually inspect updated Plan golden(s) and update only if justified, then rerun all gates. Merge only after all 4/4 success on unchanged head, reviews clean. Owner physical S24 Ultra #149 remains distinct.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Owner-approved five-tab Android redesign #378, inline credit/report enhancements
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #382, branch android/card-stack-overflow-dot-motion-20261028
-Current W2.4: Merged #378 through #381 to latest develop b1952188fe6eb8e3d4f87e0e85500628aad2a625 with four required checks each. New draft #382 responsive card indicators: 48dp accessible selectors scroll only on narrow width/large roster; active indicator is auto-centered, dot and vertical stack gesture transitions are mutually exclusive, and visible copy status clears on card change. Pure bounds and S24 hosted 12-card regression authored; final exact-head 4/4, device owner #149 unapproved.
+Issue #155, PR #383, branch android/mobile-recurring-history-20261028
+Current W2.4: Merged owner Android PRs #378–#382 all 4/4 to develop 926b845f60d120816f74cc15d45ebd1e076d6158. PR #383 is the single consolidated read-only recurring Plan pass, combining real booked monthly/last payment history with bounded 5-row expansion, variable expected amount validation, filters and stable original indexed identity; root Plan link always visible. The initial test-only unresolved `assertExists` import was corrected. Duplicate PR #384 closed unmerged. CI/hosted S24 and changed Plan screenshot(s) on current final head pending; historical Web parity 1/6 · 11/24, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head Project Tracking/Android CI/screenshot/S24 emulator for PR #382, inspect screenshots and merge only with 4/4 success, clean reviews and stable develop. Physical owner Galaxy S24 #149 remains a separate gate.
+Next Review exact-head 4 required PR #383 checks and changed Plan reference images. Fix only confirmed failures, merge on 4/4 green with clean reviews/base. Physical owner S24 #149 independently pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
