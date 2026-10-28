@@ -93,6 +93,30 @@ class AccountIbanRowClipboardTest {
         rule.runOnIdle { assertEquals("external" to "external IBAN recipient", store.clip) }
     }
 
+    @Test fun switchingAccountsClearsOwnedCopyEvenIfIbanIsIdentical() {
+        val store = MemoryPort()
+        val controller = SensitiveCardClipboard(context, port = store)
+        val record = mutableStateOf(valid)
+        rule.setContent {
+            MyFinHubTheme {
+                CompositionLocalProvider(LocalIbanClipboardController provides controller) {
+                    AccountIbanRow(record.value, loaded = true, amountsVisible = true)
+                }
+            }
+        }
+        rule.onNodeWithTag("account_iban_copy").performClick()
+        rule.runOnIdle { assertEquals("GR1601101250000000012300695", store.clip?.second) }
+
+        // Two owner accounts can share a canonical IBAN (e.g. imported metadata).
+        // Moving to the new account must revoke the previous row's copy entitlement.
+        rule.runOnIdle { record.value = valid.copy(accountId = "savings", revision = 2) }
+        rule.waitForIdle()
+        rule.runOnIdle { assertNull(store.clip) }
+        rule.onNodeWithText("Αντιγραφή").assertExists()
+        rule.onNodeWithTag("account_iban_copy").performClick()
+        rule.runOnIdle { assertEquals("GR1601101250000000012300695", store.clip?.second) }
+    }
+
     @Test fun expiryClearsUnchangedCopyEvenIfComposeIsNoLongerActive() {
         val store = MemoryPort()
         val controller = SensitiveCardClipboard(context, expiryMillis = 120L, port = store)

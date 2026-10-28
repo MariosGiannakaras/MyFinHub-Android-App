@@ -63,13 +63,16 @@ fun AccountIbanRow(
     val clipboard = remember(context, injected) {
         injected ?: SensitiveCardClipboard(context, expiryMillis = IBAN_CLIPBOARD_LIFETIME_MS)
     }
-    var status by remember(canonicalIban) { mutableStateOf("Αντιγραφή") }
-    var copyCount by remember(canonicalIban) { mutableIntStateOf(0) }
-    DisposableEffect(clipboard, canonicalIban) {
+    // Account identity matters even when two accounts happen to share an IBAN.
+    // Revoke the previous row's clipboard entitlement on account switch.
+    val accountId = record?.accountId
+    var status by remember(accountId, canonicalIban) { mutableStateOf("Αντιγραφή") }
+    var copyCount by remember(accountId, canonicalIban) { mutableIntStateOf(0) }
+    DisposableEffect(clipboard, accountId, canonicalIban) {
         // A changed account, hidden amount or removed row may not leave an IBAN behind.
         onDispose { clipboard.clear() }
     }
-    LaunchedEffect(copyCount, canonicalIban) {
+    LaunchedEffect(copyCount, accountId, canonicalIban) {
         if (copyCount > 0) {
             delay(IBAN_CLIPBOARD_LIFETIME_MS)
             status = "Αντιγραφή"
@@ -91,9 +94,13 @@ fun AccountIbanRow(
         if (canonicalIban != null) {
             TextButton(
                 onClick = {
-                    status = if (clipboard.copy(canonicalIban)) "Αντιγράφηκε για 60″"
-                        else "Αποτυχία αντιγραφής"
-                    copyCount += 1
+                    if (clipboard.copy(canonicalIban)) {
+                        status = "Αντιγράφηκε για 60″"
+                        copyCount += 1
+                    } else {
+                        // Failed system writes do not start a misleading success timer.
+                        status = "Αποτυχία αντιγραφής"
+                    }
                 },
                 modifier = Modifier.testTag("account_iban_copy"),
             ) {

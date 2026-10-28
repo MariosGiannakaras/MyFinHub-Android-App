@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] First verify #390 exact-head four checks and merge to develop only if all green; then retarget stacked #391 to develop and validate its Project Tracking, Android CI, screenshot regression, hosted S24 UI tests on immutable head. Correct any compilation/instrumentation errors as one batch, merge only 4/4 green; physical owner #149 pending.
+- [ ] Validate draft Android-only PR #391 on its new immutable head after retarget to develop: Project Tracking, Android CI, Compose screenshots and hosted S24 emulator. Repair any failures together and merge only 4/4 green. Physical owner Galaxy S24 Ultra #149 remains a separate acceptance gate.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
-Current W2.4: PR #390 Greek recurring search/sort is open on exact head 1cbf3a83b4a0077687064d3b82fd0f9891c4e63b; Project Tracking, screenshots, Android CI successful; hosted S24 pending at #391 creation. Stacked draft PR #391 shares temporary sensitive clipboard with IBAN copy across Home, Accounts and details: 60s TTL, normalized valid IBAN, independent external paste, privacy/disposal revocation, foreign ownership protection; Android UI tests newly authored but not executed. Old Web parity accepted 1/6 · 11/24, physical #149 pending.
+Current W2.4: Owner mobile #378–#390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (PR #390 exact-head 4/4 verified). Current draft #391 retargeted to develop: shared sensitive 60-second IBAN clipboard across account overview/detail, including revocation on privacy, IBAN or account identity change and disposal, protection of foreign clipboard, with a hosted same-IBAN account-switch regression. Exact-head four required checks not yet run, physical owner #149 pending; broader accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify parent #390 4/4 immutable head, merge if green; retarget child #391 to develop, run four exact-head checks, fix blockers in a batch, merge only green. Do not claim user physical acceptance.
+Next Run exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for #391; inspect errors, fix in one coherent batch; merge to develop only with 4/4 successful gates and no review blockers. Physical owner #149 is independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Historical broad Web parity remains 1/6 implementations · 11/24 subtasks. Owner five-root Android redesign and focused #378–#389 work merged into develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559. Parent draft #390 implements mobile Plan read-only Greek searchable/sortable recurring overview; Project Tracking and screenshots passed, Android CI passed, hosted S24 was running when stacked #391 was authored. New stacked draft #391 applies the existing temporary owner-only sensitive clipboard policy to Home, Accounts and Account detail IBAN copying: normalize valid IBAN, mark sensitive, expire after 60 seconds, revoke owned copy on privacy toggle/account change/screen departure, preserve newer foreign clipboard and permit external paste after switching apps. It moves the shared controller from feature.money to core.security with compatibility aliases; adds hosted UI clipboard tests. No Web/backend/schema, real finance writes, SMS #146, signing/main/release; #391 unvalidated/unmerged; owner physical Galaxy S24 Ultra acceptance #149 independent.
+Owner-selected five-root Android redesign and focused native enhancements #378–#390 MERGED into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf, with #390 read-only Greek recurring search/due sorting passing four exact-head PR checks and subsequent Android develop CI pending/independent. Current draft PR #391 is retargeted to develop and implements protected temporary IBAN copy across Home/Accounts/details using the existing 60-second sensitive clipboard policy extracted into core.security, ownership-preserving cleanup on Hide Amounts, IBAN change, ACCOUNT ID change even when IBAN value is identical, or row disposal, without clearing newer foreign clips. Explicitly does NOT revoke solely on app background so a bank paste remains possible. Added hosted Compose tests for normalization, privacy, expiry, foreign ownership and same-IBAN account switches. PR #391 awaits exact-head 4/4 GitHub validation; no owner physical Galaxy S24 Ultra #149 acceptance. Historical broad Web parity remains 1/6 implementations · 11/24 subtasks. No Web/backend/schema, SMS #146, finance writes, main/signing/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. First verify #390 exact-head four checks and merge to develop only if all green; then retarget stacked #391 to develop and validate its Project Tracking, Android CI, screenshot regression, hosted S24 UI tests on immutable head. Correct any compilation/instrumentation errors as one batch, merge only 4/4 green; physical owner #149 pending.
+1. Validate draft Android-only PR #391 on its new immutable head after retarget to develop: Project Tracking, Android CI, Compose screenshots and hosted S24 emulator. Repair any failures together and merge only 4/4 green. Physical owner Galaxy S24 Ultra #149 remains a separate acceptance gate.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
-Current W2.4: PR #390 Greek recurring search/sort is open on exact head 1cbf3a83b4a0077687064d3b82fd0f9891c4e63b; Project Tracking, screenshots, Android CI successful; hosted S24 pending at #391 creation. Stacked draft PR #391 shares temporary sensitive clipboard with IBAN copy across Home, Accounts and details: 60s TTL, normalized valid IBAN, independent external paste, privacy/disposal revocation, foreign ownership protection; Android UI tests newly authored but not executed. Old Web parity accepted 1/6 · 11/24, physical #149 pending.
+Current W2.4: Owner mobile #378–#390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (PR #390 exact-head 4/4 verified). Current draft #391 retargeted to develop: shared sensitive 60-second IBAN clipboard across account overview/detail, including revocation on privacy, IBAN or account identity change and disposal, protection of foreign clipboard, with a hosted same-IBAN account-switch regression. Exact-head four required checks not yet run, physical owner #149 pending; broader accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify parent #390 4/4 immutable head, merge if green; retarget child #391 to develop, run four exact-head checks, fix blockers in a batch, merge only green. Do not claim user physical acceptance.
+Next Run exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for #391; inspect errors, fix in one coherent batch; merge to develop only with 4/4 successful gates and no review blockers. Physical owner #149 is independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
