@@ -580,7 +580,7 @@ fun CreditCardStack(
             contentAlignment = Alignment.Center,
         ) {
             val dotStride = 49.dp
-            val overflow = ids.size * dotStride > maxWidth
+            val overflow = dotStride * ids.size > maxWidth
             LaunchedEffect(
                 activeId, overflow, dotScrollState.maxValue, dotScrollState.viewportSize,
             ) {
