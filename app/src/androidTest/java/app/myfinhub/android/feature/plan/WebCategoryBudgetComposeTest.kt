@@ -1,13 +1,16 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
 import org.junit.Test
@@ -57,9 +60,29 @@ class WebCategoryBudgetComposeTest {
                 onBack = {},
             )
         } }
-        rule.onNodeWithText("Πρόοδος μήνα").assertDoesNotExist()
-        rule.onNodeWithText("Γνωστές εκκρεμείς υποχρεώσεις:").assertDoesNotExist()
+        assertTrue(runCatching { rule.onNodeWithText("Πρόοδος μήνα").fetchSemanticsNode() }.isFailure)
+        assertTrue(runCatching {
+            rule.onNodeWithText("Γνωστές εκκρεμείς υποχρεώσεις:").fetchSemanticsNode()
+        }.isFailure)
         rule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
+    }
+
+    @Test fun subcentMonthlyLimitCannotDispatchARealBudgetMutation() {
+        var saveCount = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = PlanUiState(budget = BudgetDraft("900", "80")),
+                onSaveBudget = { _, _ -> saveCount++ },
+                onBack = {},
+            )
+        } }
+        rule.onNodeWithTag("s7_budget_limit").performScrollTo()
+            .performTextClearance()
+        rule.onNodeWithTag("s7_budget_limit").performTextInput("900.001")
+        rule.onNodeWithTag("s7_budget_save").performClick()
+        rule.runOnIdle { assertEquals(0, saveCount) }
+        rule.onNodeWithText("Το μηνιαίο όριο πρέπει να είναι θετικό ποσό με έως δύο δεκαδικά.")
+            .performScrollTo().assertIsDisplayed()
     }
 
     @Test fun seededWebCategoryBudgetDisplaysExceededAndNetSpendingWithoutDraftSave() {
