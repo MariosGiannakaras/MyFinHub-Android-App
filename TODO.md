@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Android-only PR #389 on unchanged immutable head via Project Tracking, Android CI, all Compose screenshots and hosted S24 emulator; inspect failures/screenshots and fix in a coherent batch. Merge only if all four gates green. Owner physical Galaxy S24 Ultra #149 remains separate.
+- [ ] Validate PR #390 Greek recurring search and due-order on exact final head through Project Tracking, Android CI, screenshot regression and S24 hosted tests; inspect render changes if any and fix in one combined batch. Merge only 4/4 green with clean base/reviews; physical owner S24 #149 independent.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #389, branch android/credit-inline-financial-metric-safety-20261028
-Current W2.4: Owner Android redesign and focused native work #378–#388 merged to develop bce0c994655bf36977a2915a57b0f4c401d8cba8; #388 accepted via exact-head four gates. Draft #389 adds fail-closed read-only inline credit-card finance metrics/statement/activity presentation (finite debt and limit, no fake zero or NaN/Infinity, guarded progress/available, payment unavailable with invalid debt, privacy respected), plus Kotlin boundary and hosted Compose regression tests. Immutable 4/4 PR checks and physical owner S24 #149 pending. Broader historical accepted Web parity 1/6 · 11/24.
+Issue #155, PR #390, branch android/plan-recurring-search-due-20261028
+Current W2.4: Merged owner Android five-root #378–#389 into develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559. New draft #390 enables mobile read-only recurring list search (diacritic-insensitive Greek), combines status filters, sorts valid active next dues chronologically without hiding historical/invalid rows, shows visible counts, retains canonical source-index keys and amount privacy. Pure Kotlin and S24 Compose tests prepared, not yet validated. Accepted broad Web parity remains 1/6 · 11/24; owner physical #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head all four PR #389 checks (Project Tracking, Android CI, screenshot regression, S24 hosted emulator), inspect actual renders, fix failures in one batch. Merge only 4/4 success, no review/base blockers. Owner physical Galaxy S24 #149 independent.
+Next Run four exact-head #390 gates (Project Tracking, Android CI, screenshots, hosted S24). Fix in one batch if necessary; merge only all green and preserve independent physical owner Galaxy S24 #149 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

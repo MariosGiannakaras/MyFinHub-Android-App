@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertTrue
@@ -61,6 +62,28 @@ class MobileRecurringOverviewTest {
         }.isFailure)
         rule.onNodeWithTag("mobile_recurring_filter_inactive").performClick()
         rule.onNodeWithTag("mobile_recurring_card_1").assertIsDisplayed()
+    }
+
+    @Test fun searchableRecurringListKeepsHistoricalRowsAndReadOnlyPolicy() {
+        val entries = listOf(
+            RecurringManageItem("duplicate", "Ασφάλεια κατοικίας", 60.0, "active", "2026-11-20"),
+            RecurringManageItem("duplicate", "Internet", 25.0, "paused", category = "Τηλεφωνία"),
+            RecurringManageItem("third", "Ασφάλεια οχήματος", 90.0, "active", "2026-10-29"),
+        )
+        rule.setContent { MyFinHubTheme {
+            MobileRecurringOverviewContent(items = entries, amountsVisible = false, onBack = {})
+        } }
+        rule.onNodeWithTag("mobile_recurring_search").performTextReplacement("ασφαλεια")
+        rule.onNodeWithTag("mobile_recurring_result_count").assertExists()
+        rule.onNodeWithTag("mobile_recurring_card_0").assertExists()
+        rule.onNodeWithTag("mobile_recurring_card_2").assertExists()
+        assertTrue(rule.onAllNodesWithTag("mobile_recurring_card_1").fetchSemanticsNodes().isEmpty())
+        rule.onNodeWithTag("mobile_recurring_sort_next_due").performClick()
+        rule.onNodeWithTag("mobile_recurring_card_2").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("mobile_recurring_search").performTextReplacement("τηλεφωνια")
+        rule.onNodeWithTag("mobile_recurring_card_1").performScrollTo().assertIsDisplayed()
+        assertTrue(rule.onAllNodesWithText("25,00", substring = true).fetchSemanticsNodes().isEmpty())
+        assertTrue(rule.onAllNodesWithText("Επεξεργασία").fetchSemanticsNodes().isEmpty())
     }
 
     @Test fun realPaymentRowsExpandInPlaceAndPrivacyMasksAllAmounts() {
