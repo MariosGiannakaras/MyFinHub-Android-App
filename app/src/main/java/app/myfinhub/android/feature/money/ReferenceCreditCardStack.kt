@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -127,6 +129,20 @@ internal fun referenceReconcileCardOrder(order: List<String>, ids: List<String>)
     return preserved + ids.filterNot(preserved.toSet()::contains).distinct()
 }
 
+/** Keep a 48dp card selector centered in a bounded, horizontally scrollable indicator strip. */
+internal fun referenceCardDotOffset(
+    activeIndex: Int,
+    stridePx: Int,
+    itemWidthPx: Int,
+    viewportPx: Int,
+    maxScrollPx: Int,
+): Int {
+    if (activeIndex < 0 || stridePx <= 0 || viewportPx <= 0 || maxScrollPx <= 0) return 0
+    val desired = activeIndex.toLong() * stridePx.toLong() -
+        (viewportPx.toLong() - itemWidthPx.toLong()) / 2L
+    return desired.coerceIn(0L, maxScrollPx.toLong()).toInt()
+}
+
 private data class ReferenceStackLayout(
     val y: Dp,
     val scale: Float,
@@ -230,6 +246,7 @@ fun CreditCardStack(
     var dragOffset by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf("") }
+    val dotScrollState = rememberScrollState()
     var stackFocused by remember { mutableStateOf(false) }
     val settleOffset = remember { Animatable(0f) }
     val restackOpacity = remember { Animatable(1f) }
@@ -266,6 +283,7 @@ fun CreditCardStack(
     LaunchedEffect(activeId) {
         deleteArmedId = null
         deleteProgress = 0f
+        statusMessage = ""
         onActiveCardChanged(activeId)
     }
 
@@ -343,13 +361,20 @@ fun CreditCardStack(
     fun selectCard(cardId: String) {
         val index = order.indexOf(cardId)
         if (index <= 0 || restacking || deletingId != null || deleteArmedId != null) return
+        // Dot tapping and vertical dragging share the same motion lock; without it
+        // two rapid selections can reorder the original stack twice out of order.
+        restacking = true
         scope.launch {
-            if (!reducedMotion) {
+            try {
+                if (!reducedMotion) {
+                    settleOffset.snapTo(0f)
+                    settleOffset.animateTo(restackDistance * .55f, tween(140))
+                }
+                order = ArrayList(order.drop(index) + order.take(index))
                 settleOffset.snapTo(0f)
-                settleOffset.animateTo(restackDistance * .55f, tween(140))
+            } finally {
+                restacking = false
             }
-            order = ArrayList(order.drop(index) + order.take(index))
-            settleOffset.snapTo(0f)
         }
     }
 
@@ -548,37 +573,64 @@ fun CreditCardStack(
             }
         }
 
-        Row(
-            // All dot selectors are independent 48dp touch targets. The visible dots remain tiny.
-            horizontalArrangement = Arrangement.spacedBy(1.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.testTag("credit_card_stack_dots"),
+        // Keep the original compact, centered dots with few cards. Only when 48dp
+        // accessible targets exceed the phone width does the indicator strip scroll.
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
         ) {
-            ids.forEachIndexed { index, cardId ->
-                val card = cardById[cardId] ?: return@forEachIndexed
-                if (card.id != deletingId) {
-                    val active = card.id == activeId
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clickable(
-                                enabled = !active && deletingId == null && deleteArmedId == null,
-                                role = Role.Button,
-                                onClick = { selectCard(card.id) },
-                            )
-                            .semantics {
-                                contentDescription = "Κάρτα ${index + 1} από ${ids.size}: ${card.nickname}${if (active) ", ενεργή" else ""}"
-                            }
-                            .testTag("credit_card_dot_${card.id}"),
-                        contentAlignment = Alignment.Center,
-                    ) {
+            val dotStride = 49.dp
+            val overflow = ids.size * dotStride > maxWidth
+            LaunchedEffect(
+                activeId, overflow, dotScrollState.maxValue, dotScrollState.viewportSize,
+            ) {
+                if (overflow && dotScrollState.viewportSize > 0) {
+                    val index = ids.indexOf(activeId)
+                    val offset = referenceCardDotOffset(
+                        activeIndex = index,
+                        stridePx = with(density) { dotStride.roundToPx() },
+                        itemWidthPx = with(density) { 48.dp.roundToPx() },
+                        viewportPx = dotScrollState.viewportSize,
+                        maxScrollPx = dotScrollState.maxValue,
+                    )
+                    if (reducedMotion) dotScrollState.scrollTo(offset)
+                    else dotScrollState.animateScrollTo(offset)
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .then(if (overflow) Modifier.fillMaxWidth().horizontalScroll(dotScrollState) else Modifier)
+                    .testTag("credit_card_stack_dots"),
+            ) {
+                ids.forEachIndexed { index, cardId ->
+                    val card = cardById[cardId] ?: return@forEachIndexed
+                    if (card.id != deletingId) {
+                        val active = card.id == activeId
                         Box(
-                            Modifier
-                                .width(if (active) 22.dp else 7.dp)
-                                .height(7.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(if (active) Color(0xFF4777D6) else Color(0xFFBDC9DB)),
-                        )
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clickable(
+                                    enabled = !active && !restacking &&
+                                        deletingId == null && deleteArmedId == null,
+                                    role = Role.Button,
+                                    onClick = { selectCard(card.id) },
+                                )
+                                .semantics {
+                                    contentDescription = "Κάρτα ${index + 1} από ${ids.size}: ${card.nickname}${if (active) ", ενεργή" else ""}"
+                                }
+                                .testTag("credit_card_dot_${card.id}"),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Box(
+                                Modifier
+                                    .width(if (active) 22.dp else 7.dp)
+                                    .height(7.dp)
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .background(if (active) Color(0xFF4777D6) else Color(0xFFBDC9DB)),
+                            )
+                        }
                     }
                 }
             }
