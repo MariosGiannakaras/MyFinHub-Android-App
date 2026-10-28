@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate owner Android account history PR #392 at its immutable final head with Project Tracking, Android CI, 102 Compose screenshots and hosted S24 emulator. The test compile import has been removed and the branch includes merged #393. Merge only after all four checks pass, reviews clean, and base develop still matches; owner physical S24 acceptance #149 remains separate.
+- [ ] Review and validate Draft Android PR #394 at its final immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Correct any findings in one coherent batch and merge to develop only with all four successful gates, unchanged base and clear reviews. Then resume outstanding W2.4/W3.1 work. Shared server PIN #345 remains separate and physical S24 acceptance #149 is not satisfied by CI.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #392, branch android/account-detail-history-filters-20261028
-Current W2.4: Security PR #393 strict Web v1.7 Card Vault NEW writes merged to develop 6c84e103220fd05377f1f3c7d11cba64e81cabd1 on 28 October 2026 with 4/4 exact-head required checks. PR #392 account history filters is rebased onto this develop through a two-parent merge commit preserving both features; initial head c2c7f4a1787daa9f42d3b7602d08ce68aed136e6 failed Android CI and S24 APK compile because test-only import androidx.compose.ui.test.assertExists is not a top-level import, while Project Tracking and screenshot regression passed. Invalid import removed. Retest 4/4 on new immutable head before any merge. Historical accepted parity 1/6 · 11/24, owner physical #149 unapproved.
+Issue #155, PR #394, branch android/credit-statement-source-guards-20261028
+Current W2.4: PR #393 Card Vault strict Web v1.7 new-write protection and PR #392 canonical account transaction search are both merged into Android develop at 702eca636254083d7d6f609f241476495592d063, with 4/4 required immutable-head checks each. New DRAFT PR #394 adds a W3.1/W2.4 selected-card statement presentation guard to inline credit and historical statement screens: exact cardId scope, bounded original ordering, finite-only historical repayment, invalid-number warnings and Hide Amounts privacy. Pure/hosted Compose regressions are AUTHORED, not run; full 4/4 PR validation pending. Web v1.7 is already live; native shared global PIN bearer-ticket/423 is still unimplemented (#345). Accepted broad parity 1/6 implementations and 11/24 subtasks, owner physical S24 #149 pending. No production, Web/backend, signing or main changes.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #392 on the new immutable head (Project Tracking, Android CI, screenshot regression, hosted S24) and fix any runtime assertion failures in one cohesive batch; merge only 4/4 success, reviews/base clear. Keep physical S24 #149 pending.
+Next Validate Draft PR #394 on its final SHA with all four Project Tracking/Android CI/screenshot/hosted S24 checks and inspect actual screenshots. Repair a genuine failure without weakening assertions, then merge only on 4/4 success and clean reviews/base. Continue W2.4 and W3.1; keep shared global PIN #345 disabled until native compatibility is verified and physical S24 #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
