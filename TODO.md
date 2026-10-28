@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate consolidated Android PR #383 on its immutable final head: Project Tracking, Android CI, screenshot regression (all previews), hosted S24 UI tests. Correct any issues in one batch and merge to develop only if all four succeed with clean reviews. Keep owner physical Galaxy S24 Ultra #149 acceptance separate; no Web/backend/schema/release changes.
+- [ ] Validate consolidated PR #383 exact final SHA through Project Tracking, Android CI, screenshot regression and hosted S24 emulator; visually inspect updated Plan golden(s) and update only if justified, then rerun all gates. Merge only after all 4/4 success on unchanged head, reviews clean. Owner physical S24 Ultra #149 remains distinct.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #383, branch android/mobile-recurring-history-20261028
-Current W2.4: Merged owner mobile five-root UI #378 through responsive card stack #382 into develop 926b845f60d120816f74cc15d45ebd1e076d6158 with four exact-head gates green on each; develop Android CI push also passed. PR #383 authored to show read-only canonical recurring actual-payment history in Plan, masked under amount visibility, localized date and status, bounded 5-row paging and no duplicate-ID LazyColumn crashes. Existing Web-only authoring remains excluded. Unit and S24 hosted regression tests written, CI pending; accepted Web parity 1/6 · 11/24 and physical #149 unapproved.
+Current W2.4: Merged owner Android PRs #378–#382 all 4/4 to develop 926b845f60d120816f74cc15d45ebd1e076d6158. PR #383 is the single consolidated read-only recurring Plan pass, combining real booked monthly/last payment history with bounded 5-row expansion, variable expected amount validation, filters and stable original indexed identity; root Plan link always visible. The initial test-only unresolved `assertExists` import was corrected. Duplicate PR #384 closed unmerged. CI/hosted S24 and changed Plan screenshot(s) on current final head pending; historical Web parity 1/6 · 11/24, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four immutable-head required GitHub checks for Android-only PR #383, inspect failures and fix cohesively, merge to develop only if Project Tracking/Android CI/screenshots/S24 emulator all successful. Physical owner Galaxy S24 Ultra #149 is separate.
+Next Review exact-head 4 required PR #383 checks and changed Plan reference images. Fix only confirmed failures, merge on 4/4 green with clean reviews/base. Physical owner S24 #149 independently pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

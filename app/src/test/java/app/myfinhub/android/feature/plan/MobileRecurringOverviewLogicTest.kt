@@ -19,6 +19,31 @@ class MobileRecurringOverviewLogicTest {
         assertEquals("unknown-state", mobileRecurringStatusLabel("unknown-state"))
     }
 
+    @Test fun filtersPreserveSourcePositionAndDuplicateIdentities() {
+        val data = listOf(
+            RecurringManageItem("reused", "First", 10.0, "active"),
+            RecurringManageItem("reused", "Second", 20.0, "paused"),
+            RecurringManageItem("last", "Third", 30.0, "stopped"),
+        )
+        assertEquals(listOf(0, 1, 2),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.ALL).map { it.index })
+        assertEquals(listOf(0),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.ACTIVE).map { it.index })
+        assertEquals(listOf(1, 2),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.INACTIVE).map { it.index })
+    }
+
+    @Test fun variableEstimateRangeInvalidSourceAndPrivacyAreNotFixedActualPayments() {
+        val estimate = RecurringManageItem("variable", "Electricity", 25.0, "active")
+            .copy(amountMode = "variable", estimateMin = 20.0, estimateMax = 50.0)
+        org.junit.Assert.assertTrue(mobileRecurringExpectedLabel(estimate, true).startsWith("Εκτιμώμενο εύρος"))
+        assertEquals("•••• €", mobileRecurringExpectedLabel(estimate, false))
+        assertEquals("Μη έγκυρη εκτίμηση",
+            mobileRecurringExpectedLabel(estimate.copy(amountValidationError = "invalid"), true))
+        assertEquals("Μη έγκυρο ποσό",
+            mobileRecurringExpectedLabel(estimate.copy(amountMode = "fixed", amount = Double.NaN), true))
+    }
+
     @Test fun paymentHistoryIsInitiallyBoundedAndEventuallyComplete() {
         assertEquals(0, mobileRecurringVisibleHistoryCount(0, 1))
         assertEquals(5, mobileRecurringVisibleHistoryCount(21, 1))

@@ -1,6 +1,5 @@
 package app.myfinhub.android.feature.plan
 
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -39,6 +38,29 @@ class MobileRecurringOverviewTest {
         rule.onNodeWithTag("mobile_recurring_card_1").assertExists()
         assertTrue(rule.onAllNodesWithText("Καταχώριση πληρωμής").fetchSemanticsNodes().isEmpty())
         assertTrue(rule.onAllNodesWithText("Επεξεργασία").fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test fun duplicateSourceRowsRetainStableOriginalIndicesWhileFiltering() {
+        val recurring = listOf(
+            RecurringManageItem("same", "Active", 15.0, "active"),
+            RecurringManageItem("same", "Paused", 20.0, "paused"),
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                MobileRecurringOverviewContent(
+                    items = recurring,
+                    onBack = {},
+                    amountsVisible = true,
+                )
+            }
+        }
+        rule.onNodeWithTag("mobile_recurring_filter_active").performClick()
+        rule.onNodeWithTag("mobile_recurring_card_0").assertIsDisplayed()
+        assertTrue(runCatching {
+            rule.onNodeWithTag("mobile_recurring_card_1").fetchSemanticsNode()
+        }.isFailure)
+        rule.onNodeWithTag("mobile_recurring_filter_inactive").performClick()
+        rule.onNodeWithTag("mobile_recurring_card_1").assertIsDisplayed()
     }
 
     @Test fun realPaymentRowsExpandInPlaceAndPrivacyMasksAllAmounts() {

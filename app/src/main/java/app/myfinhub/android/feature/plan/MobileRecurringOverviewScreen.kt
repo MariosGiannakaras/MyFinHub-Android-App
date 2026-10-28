@@ -1,13 +1,17 @@
 package app.myfinhub.android.feature.plan
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -15,6 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -32,6 +37,44 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 internal const val MOBILE_RECURRING_HISTORY_BATCH = 5
+
+internal enum class MobileRecurringFilter(val label: String) {
+    ALL("Όλα"), ACTIVE("Ενεργά"), INACTIVE("Ανενεργά"),
+}
+
+internal fun mobileRecurringVisibleRows(
+    items: List<RecurringManageItem>,
+    filter: MobileRecurringFilter,
+): List<IndexedValue<RecurringManageItem>> = items.withIndex().filter { indexed ->
+    when (filter) {
+        MobileRecurringFilter.ALL -> true
+        MobileRecurringFilter.ACTIVE -> indexed.value.status == "active"
+        MobileRecurringFilter.INACTIVE -> indexed.value.status != "active"
+    }
+}
+
+/** Never present variable/invalid planned expenses as settled or fixed ledger amounts. */
+internal fun mobileRecurringExpectedLabel(item: RecurringManageItem, amountsVisible: Boolean): String {
+    if (!amountsVisible) return "•••• €"
+    if (item.amountValidationError != null) return "Μη έγκυρη εκτίμηση"
+    val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+    return when (item.amountMode) {
+        "fixed" -> if (item.amount.isFinite() && item.amount >= 0) {
+            "Προβλεπόμενο ποσό: " + money.format(item.amount)
+        } else "Μη έγκυρο ποσό"
+        "variable" -> {
+            val min = item.estimateMin
+            val max = item.estimateMax
+            if (min != null && max != null && min.isFinite() && max.isFinite() &&
+                min >= 0 && max >= min
+            ) "Εκτιμώμενο εύρος: ${money.format(min)} – ${money.format(max)}"
+            else if (item.amount.isFinite() && item.amount >= 0)
+                "Εκτιμώμενο ποσό: " + money.format(item.amount)
+            else "Μεταβλητό ποσό"
+        }
+        else -> "Μη αναγνωρίσιμος τύπος ποσού"
+    }
+}
 private val MOBILE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/uuuu")
 
 /** Unparseable imported dates are kept intact, rather than guessed or silently dropped. */
@@ -74,7 +117,11 @@ internal fun MobileRecurringOverviewContent(
     amountsVisible: Boolean,
 ) {
     val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
-    fun displayAmount(amount: Double) = if (amountsVisible) money.format(amount) else "•••• €"
+    fun displayAmount(amount: Double) = if (!amountsVisible) "•••• €"
+        else if (amount.isFinite()) money.format(amount) else "Μη έγκυρο ποσό"
+    var filter by rememberSaveable { mutableStateOf(MobileRecurringFilter.ALL) }
+    val visibleRows = mobileRecurringVisibleRows(items, filter)
+    val activeCount = items.count { it.status == "active" }
 
     Scaffold(
         topBar = {
@@ -95,30 +142,76 @@ internal fun MobileRecurringOverviewContent(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            if (items.isEmpty()) {
-                item("empty") {
+            item("overview-summary") {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                     Text(
-                        "Δεν υπάρχουν καταγεγραμμένες επαναλαμβανόμενες υποχρεώσεις.",
+                        "${items.size} πάγια και συνδρομές · ${activeCount} ενεργά",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.testTag("mobile_recurring_summary"),
+                    )
+                    Text(
+                        "Οι προβλεπόμενες χρεώσεις δεν αποτελούν πραγματοποιημένες πληρωμές.",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            // Imported historical data can reuse a recurring ID. A raw id key would
-            // crash LazyColumn; the index makes rendering deterministic and read-only.
-            itemsIndexed(items, key = { index, recurring -> "recurring:${recurring.id}:$index" }) { index, recurring ->
+            if (items.isNotEmpty()) {
+                item("status-filters") {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    ) {
+                        MobileRecurringFilter.entries.forEach { choice ->
+                            FilterChip(
+                                selected = filter == choice,
+                                onClick = { filter = choice },
+                                label = { Text(choice.label) },
+                                modifier = Modifier.testTag(
+                                    "mobile_recurring_filter_${choice.name.lowercase()}"
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+            if (visibleRows.isEmpty()) {
+                item("empty") {
+                    Text(
+                        if (items.isEmpty()) "Δεν υπάρχουν καταγεγραμμένες επαναλαμβανόμενες υποχρεώσεις."
+                        else "Δεν υπάρχουν πάγια σε αυτή την κατηγορία.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            // Preserve the canonical index even when filters change: historical
+            // duplicated IDs remain independently viewable with stable row keys.
+            items(visibleRows, key = { "recurring:${it.value.id}:${it.index}" }) { indexed ->
+                val index = indexed.index
+                val recurring = indexed.value
                 var historyBatches by rememberSaveable(recurring.id, index) { mutableIntStateOf(1) }
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("mobile_recurring_card_$index")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                        Text(recurring.title, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            (if (recurring.amountMode == "variable") "Εκτιμώμενο ποσό: " else "Προβλεπόμενο ποσό: ") +
-                                displayAmount(recurring.amount),
+                            recurring.title.ifBlank { "Χωρίς τίτλο" },
                             style = MaterialTheme.typography.titleMedium,
                         )
+                        Text(
+                            mobileRecurringExpectedLabel(recurring, amountsVisible),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        recurring.amountValidationError?.let {
+                            Text(
+                                "Ελέγξτε την εκτίμηση στο Web.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                         Text(
                             listOfNotNull(
                                 recurring.cadenceLabel.takeIf(String::isNotBlank),
                                 recurring.nextDueDateIso.takeIf(String::isNotBlank)
+                                    ?.takeIf { recurring.status == "active" }
                                     ?.let { "Επόμενη: ${mobileRecurringDateLabel(it)}" },
                                 "Κατάσταση: " + mobileRecurringStatusLabel(recurring.status),
                             ).joinToString(" · "),
