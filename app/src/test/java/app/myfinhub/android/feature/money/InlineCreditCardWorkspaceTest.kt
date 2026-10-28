@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -64,4 +65,22 @@ class InlineCreditCardWorkspaceTest {
         assertEquals(8, inlineCreditVisibleCount(8, 0, INLINE_CREDIT_ACTIVITY_BATCH))
         assertEquals(Int.MAX_VALUE, inlineCreditVisibleCount(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE))
     }
+    private fun sourceStatement(id: String, cardId: String) = CanonicalCreditStatementView(
+        id = id, cardId = cardId, openDate = "2026-09-01", closeDate = "2026-09-30",
+        dueDate = "2026-10-25", boundaryRule = "include-closing-day",
+        purchaseIds = emptyList(), paymentIds = emptyList(),
+        purchaseTotal = 90.0, paymentTotal = 10.0, remaining = 80.0, status = "due",
+    )
+
+    @Test fun statementScopeRejectsForeignAndBlankCardIdsWithoutReorderingOrDeduplicating() {
+        val first = sourceStatement("first", "credit-1")
+        val foreign = sourceStatement("confidential-other-card", "credit-2")
+        val second = sourceStatement("second", "credit-1")
+        val rows = listOf(first, foreign, second, first)
+        assertEquals(listOf(first, second, first), canonicalStatementsForCard("credit-1", rows))
+        assertEquals(listOf(foreign), canonicalStatementsForCard("credit-2", rows))
+        assertEquals(emptyList<CanonicalCreditStatementView>(), canonicalStatementsForCard("", rows))
+        assertEquals(rows, listOf(first, foreign, second, first))
+    }
+
 }
