@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #382's large-roster mixed-card pagination/gesture changes against four immutable-head gates: Project Tracking, Android CI, 102 screenshots and hosted S24 UI tests. Inspect actual screenshot changes if any and fix in a single batch; merge only 4/4 green. Physical owner Galaxy S24 Ultra acceptance #149 independent.
+- [ ] Validate consolidated Android PR #383 on its immutable final head: Project Tracking, Android CI, screenshot regression (all previews), hosted S24 UI tests. Correct any issues in one batch and merge to develop only if all four succeed with clean reviews. Keep owner physical Galaxy S24 Ultra #149 acceptance separate; no Web/backend/schema/release changes.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #382, branch android/card-stack-overflow-dot-motion-20261028
-Current W2.4: Merged #378 through #381 to latest develop b1952188fe6eb8e3d4f87e0e85500628aad2a625 with four required checks each. New draft #382 responsive card indicators: 48dp accessible selectors scroll only on narrow width/large roster; active indicator is auto-centered, dot and vertical stack gesture transitions are mutually exclusive, and visible copy status clears on card change. Pure bounds and S24 hosted 12-card regression authored; final exact-head 4/4, device owner #149 unapproved.
+Issue #155, PR #383, branch android/mobile-recurring-history-20261028
+Current W2.4: Merged owner mobile five-root UI #378 through responsive card stack #382 into develop 926b845f60d120816f74cc15d45ebd1e076d6158 with four exact-head gates green on each; develop Android CI push also passed. PR #383 authored to show read-only canonical recurring actual-payment history in Plan, masked under amount visibility, localized date and status, bounded 5-row paging and no duplicate-ID LazyColumn crashes. Existing Web-only authoring remains excluded. Unit and S24 hosted regression tests written, CI pending; accepted Web parity 1/6 · 11/24 and physical #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head Project Tracking/Android CI/screenshot/S24 emulator for PR #382, inspect screenshots and merge only with 4/4 success, clean reviews and stable develop. Physical owner Galaxy S24 #149 remains a separate gate.
+Next Run all four immutable-head required GitHub checks for Android-only PR #383, inspect failures and fix cohesively, merge to develop only if Project Tracking/Android CI/screenshots/S24 emulator all successful. Physical owner Galaxy S24 Ultra #149 is separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

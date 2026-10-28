@@ -105,9 +105,9 @@ internal fun MobileRecurringOverviewContent(
             }
             // Imported historical data can reuse a recurring ID. A raw id key would
             // crash LazyColumn; the index makes rendering deterministic and read-only.
-            itemsIndexed(items, key = { index, recurring -> "recurring:${recurring.id}:$" + index }) { index, recurring ->
+            itemsIndexed(items, key = { index, recurring -> "recurring:${recurring.id}:$index" }) { index, recurring ->
                 var historyBatches by rememberSaveable(recurring.id, index) { mutableIntStateOf(1) }
-                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("mobile_recurring_card_$" + index)) {
+                MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("mobile_recurring_card_$index")) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(recurring.title, style = MaterialTheme.typography.titleMedium)
                         Text(
@@ -132,7 +132,7 @@ internal fun MobileRecurringOverviewContent(
                                 "Πραγματικές πληρωμές μήνα (${recurring.actualPaymentsThisMonth}): " +
                                     displayAmount(paid),
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.testTag("mobile_recurring_paid_month_$" + index),
+                                modifier = Modifier.testTag("mobile_recurring_paid_month_$index"),
                             )
                         }
                         recurring.lastActualPaymentDateIso?.takeIf(String::isNotBlank)?.let { date ->
@@ -155,14 +155,14 @@ internal fun MobileRecurringOverviewContent(
                                 Text(
                                     "${mobileRecurringDateLabel(payment.dateIso)} · ${displayAmount(payment.amount)}",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.testTag("mobile_recurring_payment_$" + index + "_$" + paymentIndex),
+                                    modifier = Modifier.testTag("mobile_recurring_payment_${index}_$paymentIndex"),
                                 )
                             }
                             if (shown < recurring.actualPaymentHistory.size) {
                                 TextButton(
                                     onClick = { historyBatches += 1 },
                                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                        .testTag("mobile_recurring_more_$" + index),
+                                        .testTag("mobile_recurring_more_$index"),
                                 ) {
                                     Text("Περισσότερες πληρωμές (${recurring.actualPaymentHistory.size - shown})")
                                 }
