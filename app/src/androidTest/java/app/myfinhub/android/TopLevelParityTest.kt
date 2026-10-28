@@ -113,6 +113,19 @@ class TopLevelParityTest {
     }
 
     @Test
+    fun recurringOverviewIsReachableEvenWhenNoSubscriptionsExist() {
+        selectDestination("Πλάνο")
+        composeRule.onNodeWithTag("s7_plan_root")
+            .performScrollToNode(hasTestTag("s7_recurring_management_link"))
+        composeRule.onNodeWithTag("s7_recurring_management_link").performClick()
+        composeRule.onNodeWithTag("mobile_recurring_overview").assertIsDisplayed()
+        composeRule.onNodeWithText("Προβολή · διαχείριση από το Web").assertIsDisplayed()
+        assertGlobalNavigationHidden()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("s7_plan_root").assertIsDisplayed()
+    }
+
+    @Test
     fun secondaryRoute_hidesGlobalNavigation_andBackRestoresOrigin() {
         selectDestination("Κινήσεις")
         composeRule.onNode(hasText("Σούπερ μάρκετ") and hasClickAction())

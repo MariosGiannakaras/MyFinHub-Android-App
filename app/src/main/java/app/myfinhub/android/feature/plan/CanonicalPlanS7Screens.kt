@@ -218,19 +218,17 @@ fun CanonicalPlan2026Screen(
                     )
                 }
             }
-            if (state.recurringManageItems.isNotEmpty()) {
-                item("recurring-management-link") {
-                    MyFinHubActionCard(
-                        onClick = onOpenRecurring,
-                        modifier = Modifier.fillMaxWidth().testTag("s7_recurring_management_link"),
-                    ) {
-                        MyFinHubSectionHeading(
-                            title = "Πάγια & συνδρομές",
-                            subtitle = "Προβολή επαναλαμβανόμενων χρεώσεων",
-                            icon = MyFinHubIcons.Plan,
-                            tone = FinanceTone.Neutral,
-                        )
-                    }
+            item("recurring-overview-link") {
+                MyFinHubActionCard(
+                    onClick = onOpenRecurring,
+                    modifier = Modifier.fillMaxWidth().testTag("s7_recurring_management_link"),
+                ) {
+                    MyFinHubSectionHeading(
+                        title = "Πάγια & συνδρομές",
+                        subtitle = "Προβολή συνδρομών και προσεχών χρεώσεων",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
                 }
             }
 
