@@ -84,6 +84,18 @@ class TopLevelParityTest {
     }
 
     @Test
+    fun netPositionIsReachedFromReportsAndBackReturnsToReports() {
+        selectDestination("Αναφορές")
+        composeRule.onNodeWithTag("insights_list")
+            .performScrollToNode(hasTestTag("insights_net_position"))
+        composeRule.onNodeWithTag("insights_net_position").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Καθαρή θέση").assertIsDisplayed()
+        assertGlobalNavigationHidden()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("insights_list").assertIsDisplayed()
+    }
+
+    @Test
     fun plan_drillsIntoForecastAndBudgetWorkflows() {
         selectDestination("Πλάνο")
 

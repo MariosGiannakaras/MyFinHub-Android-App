@@ -63,6 +63,7 @@ fun InsightsScreen(
     onOpenCategoryActivity: (InsightCategory, String, String) -> Unit = { _, _, _ -> onOpenSupportingActivity() },
     initialDetailsExpanded: Boolean = false,
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
+    onOpenNetPosition: (() -> Unit)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -139,6 +140,24 @@ fun InsightsScreen(
             }
             item("spending-comparison") {
                 SpendingComparisonCard(scope = scope, largeFont = largeFont, amountsVisible = amountsVisible)
+            }
+            onOpenNetPosition?.let { open ->
+                item("net-position-link") {
+                    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
+                            Text("Συνολική οικονομική εικόνα", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Λογαριασμοί, απαιτήσεις και υποχρεώσεις μαζί, με ανάλυση υπολογισμού.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            TextButton(
+                                onClick = open,
+                                modifier = Modifier.fillMaxWidth().testTag("insights_net_position"),
+                            ) { Text("Καθαρή οικονομική θέση") }
+                        }
+                    }
+                }
             }
             if (scope.operationalReport != null) {
                 item("operational-snapshot") {

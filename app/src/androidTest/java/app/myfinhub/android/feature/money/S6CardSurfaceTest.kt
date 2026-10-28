@@ -1,20 +1,30 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -85,6 +95,120 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithTag("credit_card_dot_credit").performClick()
         composeRule.onNodeWithTag("credit_card_credit").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals("credit", opened) }
+    }
+
+    @Test
+    fun verticalCardSwipesRotateOneMixedDebitCreditStackWithoutNavigationArrows() {
+        var activeCard: String? = null
+        var detailOpened: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = listOf(debit, credit),
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = { activeCard = it },
+                    onOpenCard = { detailOpened = it },
+                    onDeleteCard = {},
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { assertEquals("debit", activeCard) }
+        composeRule.onNodeWithTag("credit_card_debit").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeUp(startY = bottom - inset, endY = top + inset, durationMillis = 400L)
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle {
+            assertEquals("credit", activeCard)
+            assertEquals(null, detailOpened)
+        }
+        composeRule.onNodeWithTag("credit_card_credit").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeDown(startY = top + inset, endY = bottom - inset, durationMillis = 400L)
+        }
+        composeRule.waitForIdle()
+        composeRule.runOnIdle { assertEquals("debit", activeCard) }
+    }
+
+    @Test
+    fun longCreditHistoryExpandsInlineWithoutLeavingSelectedCard() {
+        val activities = (1..19).map { index ->
+            MoneyCardActivity(
+                id = "event-$index",
+                dateLabel = "2026-10-${index.toString().padStart(2, '0')}",
+                title = "Αγορά $index",
+                amount = index.toDouble(),
+                kind = MoneyCardActivityKind.PURCHASE,
+            )
+        }
+        var selectedEvent: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    InlineCreditCardWorkspace(
+                        card = credit.copy(activity = activities),
+                        statements = emptyList(),
+                        amountsVisible = false,
+                        onPayCard = {},
+                        onAddPurchase = {},
+                        onOpenActivity = { selectedEvent = it },
+                        onOpenDetails = {},
+                    )
+                }
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_activity_event-8").assertExists()
+        assertTrue(composeRule.onAllNodesWithTag("inline_credit_activity_event-9").fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithTag("inline_credit_load_more").performScrollTo().performClick()
+        composeRule.onNodeWithTag("inline_credit_activity_event-9").assertExists()
+        composeRule.onNodeWithTag("inline_credit_load_more").performScrollTo().performClick()
+        composeRule.onNodeWithTag("inline_credit_activity_event-17").performScrollTo().performClick()
+        composeRule.runOnIdle { assertEquals("event-17", selectedEvent) }
+        assertTrue(composeRule.onAllNodesWithText("17,00", substring = true).fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun creditStatementHistoryRevealsOlderCyclesInlineWithoutNewScreen() {
+        val cycles = (1..9).map { index ->
+            CanonicalCreditStatementView(
+                id = "statement-$index",
+                cardId = "credit",
+                openDate = "2026-${index.toString().padStart(2, '0')}-01",
+                closeDate = "2026-${index.toString().padStart(2, '0')}-28",
+                dueDate = "2026-${index.toString().padStart(2, '0')}-30",
+                boundaryRule = "calendar_month",
+                purchaseIds = emptyList(),
+                paymentIds = emptyList(),
+                purchaseTotal = index.toDouble(),
+                paymentTotal = 0.0,
+                remaining = index.toDouble(),
+                status = "closed",
+            )
+        }
+        composeRule.setContent {
+            MyFinHubTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    InlineCreditCardWorkspace(
+                        card = credit,
+                        statements = cycles,
+                        amountsVisible = false,
+                        onPayCard = {},
+                        onAddPurchase = {},
+                        onOpenActivity = {},
+                        onOpenDetails = {},
+                    )
+                }
+            }
+        }
+        assertTrue(composeRule.onAllNodesWithText("2026-05-01", substring = true)
+            .fetchSemanticsNodes().isEmpty())
+        composeRule.onNodeWithTag("inline_credit_more_statements").performScrollTo().performClick()
+        assertTrue(composeRule.onAllNodesWithText("2026-05-01", substring = true)
+            .fetchSemanticsNodes().isNotEmpty())
+        composeRule.onNodeWithTag("inline_credit_more_statements").performScrollTo().performClick()
+        assertTrue(composeRule.onAllNodesWithText("2026-09-01", substring = true)
+            .fetchSemanticsNodes().isNotEmpty())
     }
 
     @Test
