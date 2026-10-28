@@ -101,6 +101,7 @@ fun InlineCreditCardWorkspace(
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val financial = creditWorkspaceFinancialSnapshot(card)
+    val scopedStatements = canonicalStatementsForCard(card.id, statements)
     var statementBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     var activityBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     Column(
@@ -173,11 +174,11 @@ fun InlineCreditCardWorkspace(
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text("Καταστάσεις πιστωτικής", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    if (statements.isEmpty()) {
+                    if (scopedStatements.isEmpty()) {
                         Text("Δεν υπάρχουν συνδεδεμένες καταστάσεις. Η οφειλή και οι κινήσεις εμφανίζονται ξεχωριστά.",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        statements.take(inlineCreditVisibleCount(statements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEach { statement ->
+                        scopedStatements.take(inlineCreditVisibleCount(scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEach { statement ->
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("${statement.openDate} – ${statement.closeDate} · ${creditStatementStatusLabel(statement.status)}",
                                     style = MaterialTheme.typography.titleSmall)
@@ -191,14 +192,14 @@ fun InlineCreditCardWorkspace(
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                         val shown = inlineCreditVisibleCount(
-                            statements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
+                            scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
                         )
-                        if (shown < statements.size) {
+                        if (shown < scopedStatements.size) {
                             TextButton(
                                 onClick = { statementBatches += 1 },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                     .testTag("inline_credit_more_statements"),
-                            ) { Text("Περισσότερες καταστάσεις (${statements.size - shown})") }
+                            ) { Text("Περισσότερες καταστάσεις (${scopedStatements.size - shown})") }
                         }
                     }
                 }

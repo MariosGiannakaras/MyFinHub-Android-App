@@ -88,4 +88,56 @@ class WebCardStatementHistorySafetyComposeTest {
         rule.onNodeWithTag("card_statement_link_warning_0_0").assertExists()
         rule.onNodeWithTag("card_statement_event_0_0").assertDoesNotExist()
     }
+    @Test fun mismatchedCardStatementsNeverAppearOrEnableForeignPayment() {
+        var paid = 0
+        val own = statement(emptyList())
+        val foreign = own.copy(
+            id = "foreign-statement", cardId = "credit-2",
+            openDate = "2099-01-01", remaining = 93521.0,
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(emptyList()), listOf(own, foreign), amountsVisible = true,
+                onOpenActivity = {}, onPayStatement = { _, _ -> paid++ },
+            )
+        } }
+        rule.onNodeWithTag("card_statement_row_0").assertExists()
+        rule.onNodeWithTag("card_statement_row_1").assertDoesNotExist()
+        rule.onNodeWithText("2099-01-01", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("93.521", substring = true).assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_pay_0").performClick()
+        rule.runOnIdle { assertEquals(1, paid) }
+    }
+
+    @Test fun nonFiniteStatementMoneyIsMarkedInvalidAndCannotBePaid() {
+        var paid = 0
+        val invalid = statement(emptyList()).copy(
+            remaining = Double.POSITIVE_INFINITY, purchaseTotal = Double.NaN,
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(emptyList()), listOf(invalid), amountsVisible = true,
+                onOpenActivity = {}, onPayStatement = { _, _ -> paid++ },
+            )
+        } }
+        rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
+        rule.onNodeWithText("Πληρωτέο Μη έγκυρο ποσό", substring = true).assertExists()
+        rule.onNodeWithText("Αγορές Μη έγκυρο ποσό", substring = true).assertExists()
+        rule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.runOnIdle { assertEquals(0, paid) }
+    }
+
+    @Test fun invalidStatementAmountsStayPrivateUnderHideAmounts() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(emptyList()), listOf(statement(emptyList()).copy(remaining = Double.NaN)),
+                amountsVisible = false, onOpenActivity = {}, onPayStatement = { _, _ -> },
+            )
+        } }
+        rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
+    }
+
 }

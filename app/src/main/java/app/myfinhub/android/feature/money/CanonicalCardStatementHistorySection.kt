@@ -24,11 +24,13 @@ import app.myfinhub.android.feature.utilities.amountVisibilityText
 import java.text.NumberFormat
 import java.util.Locale
 
-private fun statementHistoryEuro(value: Double, visible: Boolean): String =
-    amountVisibilityText(
+private fun statementHistoryEuro(value: Double, visible: Boolean): String {
+    if (!value.isFinite()) return if (visible) "Μη έγκυρο ποσό" else "•••• €"
+    return amountVisibilityText(
         NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value),
         visible,
     )
+}
 
 private fun statementHistoryStatus(status: String) = when (status) {
     "open" -> "Ανοιχτή"
@@ -37,6 +39,13 @@ private fun statementHistoryStatus(status: String) = when (status) {
     "paid" -> "Εξοφλημένη"
     else -> "Άγνωστη κατάσταση"
 }
+
+/** Do not show another card's statement even if an upstream caller passes mixed imported data. */
+internal fun canonicalStatementsForCard(
+    cardId: String,
+    statements: List<CanonicalCreditStatementView>,
+): List<CanonicalCreditStatementView> =
+    if (cardId.isBlank()) emptyList() else statements.filter { it.cardId == cardId }
 
 /**
  * Canonical statement groups are authoritative. Never allocate historical events to
@@ -50,7 +59,8 @@ internal fun CanonicalCardStatementHistorySection(
     onOpenActivity: (String) -> Unit,
     onPayStatement: (String, Double) -> Unit,
 ) {
-    if (statements.isEmpty()) return
+    val scopedStatements = canonicalStatementsForCard(card.id, statements)
+    if (scopedStatements.isEmpty()) return
     var visibleLimit by rememberSaveable(card.id) { mutableIntStateOf(8) }
     var expandedId by remember(card.id) { mutableStateOf<String?>(null) }
     // Never eagerly render a potentially unbounded historical card statement.
@@ -65,8 +75,9 @@ internal fun CanonicalCardStatementHistorySection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            statements.take(visibleLimit).forEachIndexed { index, statement ->
-                val identityUnique = statements.count { it.id == statement.id } == 1
+            scopedStatements.take(visibleLimit).forEachIndexed { index, statement ->
+                val identityUnique = statement.id.isNotBlank() &&
+                    scopedStatements.count { it.id == statement.id } == 1
                 Column(
                     modifier = Modifier.fillMaxWidth()
                         .testTag("card_statement_row_$index"),
@@ -88,7 +99,7 @@ internal fun CanonicalCardStatementHistorySection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (identityUnique && statement.remaining > 0.005) {
+                    if (identityUnique && statement.remaining.isFinite() && statement.remaining > 0.005) {
                         TextButton(
                             onClick = { onPayStatement(statement.id, statement.remaining) },
                             modifier = Modifier.fillMaxWidth()
@@ -97,7 +108,7 @@ internal fun CanonicalCardStatementHistorySection(
                     }
                     if (!identityUnique) {
                         Text(
-                            "Μη μοναδικό ID κατάστασης · οι συνδεδεμένες κινήσεις είναι μόνο για προβολή.",
+                            "Μη έγκυρο ή μη μοναδικό ID κατάστασης · οι συνδεδεμένες κινήσεις είναι μόνο για προβολή.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -175,16 +186,16 @@ internal fun CanonicalCardStatementHistorySection(
                         }
                     }
                 }
-                if (index < statements.lastIndex) {
+                if (index < scopedStatements.lastIndex) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
-            if (statements.size > visibleLimit) {
+            if (scopedStatements.size > visibleLimit) {
                 TextButton(
-                    onClick = { visibleLimit = (visibleLimit + 8).coerceAtMost(statements.size) },
+                    onClick = { visibleLimit = (visibleLimit + 8).coerceAtMost(scopedStatements.size) },
                     modifier = Modifier.fillMaxWidth().testTag("card_statements_more"),
                 ) {
-                    Text("Περισσότερες καταστάσεις (${statements.size - visibleLimit})")
+                    Text("Περισσότερες καταστάσεις (${scopedStatements.size - visibleLimit})")
                 }
             }
         }

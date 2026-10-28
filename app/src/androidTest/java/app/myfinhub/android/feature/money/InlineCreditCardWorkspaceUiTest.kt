@@ -145,4 +145,23 @@ class InlineCreditCardWorkspaceUiTest {
         composeRule.onNodeWithText("Καταστάσεις πιστωτικής").assertDoesNotExist()
         composeRule.onNodeWithText("Στοιχεία / διαχείριση κάρτας").assertExists()
     }
+    @Test fun inlineCreditNeverRendersAnotherCardsStatement() {
+        val foreign = statement.copy(
+            id = "foreign-statement", cardId = "another-credit-card",
+            openDate = "2099-01-01", remaining = 93521.0,
+        )
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit, statements = listOf(foreign), amountsVisible = true,
+                    onPayCard = {}, onAddPurchase = {}, onOpenActivity = {}, onOpenDetails = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Δεν υπάρχουν συνδεδεμένες καταστάσεις.", substring = true)
+            .assertExists()
+        composeRule.onNodeWithText("2099-01-01", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("93.521", substring = true).assertDoesNotExist()
+    }
+
 }
