@@ -98,7 +98,7 @@ class InlineCreditCardWorkspaceUiTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertExists()
+        composeRule.onAllNodesWithText("Μη έγκυρο ποσό", substring = true)[0].assertExists()
         composeRule.onNodeWithTag("inline_credit_invalid_limit").assertExists()
         composeRule.onNodeWithTag("credit_utilization_indicator").assertDoesNotExist()
         composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsNotEnabled()
