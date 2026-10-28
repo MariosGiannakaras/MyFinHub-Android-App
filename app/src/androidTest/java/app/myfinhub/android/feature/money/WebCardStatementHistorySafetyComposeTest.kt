@@ -121,7 +121,8 @@ class WebCardStatementHistorySafetyComposeTest {
             )
         } }
         rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
-        rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertExists()
+        rule.onNodeWithText("Πληρωτέο Μη έγκυρο ποσό", substring = true).assertExists()
+        rule.onNodeWithText("Αγορές Μη έγκυρο ποσό", substring = true).assertExists()
         rule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
         rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
         rule.runOnIdle { assertEquals(0, paid) }
