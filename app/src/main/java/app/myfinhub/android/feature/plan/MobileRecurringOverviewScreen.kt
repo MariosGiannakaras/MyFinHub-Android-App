@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +32,7 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
+import java.text.Normalizer
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -42,15 +44,55 @@ internal enum class MobileRecurringFilter(val label: String) {
     ALL("Όλα"), ACTIVE("Ενεργά"), INACTIVE("Ανενεργά"),
 }
 
+internal enum class MobileRecurringSort(val label: String) {
+    SOURCE("Αρχική σειρά"), NEXT_DUE("Πλησιέστερη ημερομηνία"),
+}
+
+/**
+ * A user may type Greek without accents (π.χ. ασφαλεια) and still find
+ * the exact named expense. Search changes presentation only, not source data.
+ */
+internal fun mobileRecurringSearchKey(value: String): String =
+    Normalizer.normalize(value, Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+        .lowercase(Locale.ROOT)
+        .trim()
+
 internal fun mobileRecurringVisibleRows(
     items: List<RecurringManageItem>,
     filter: MobileRecurringFilter,
-): List<IndexedValue<RecurringManageItem>> = items.withIndex().filter { indexed ->
-    when (filter) {
-        MobileRecurringFilter.ALL -> true
-        MobileRecurringFilter.ACTIVE -> indexed.value.status == "active"
-        MobileRecurringFilter.INACTIVE -> indexed.value.status != "active"
+    query: String = "",
+    sort: MobileRecurringSort = MobileRecurringSort.SOURCE,
+): List<IndexedValue<RecurringManageItem>> {
+    val search = mobileRecurringSearchKey(query)
+    val matched = items.withIndex().filter { indexed ->
+        val item = indexed.value
+        val statusMatches = when (filter) {
+            MobileRecurringFilter.ALL -> true
+            MobileRecurringFilter.ACTIVE -> item.status == "active"
+            MobileRecurringFilter.INACTIVE -> item.status != "active"
+        }
+        val textMatches = search.isEmpty() || listOfNotNull(
+            item.title, item.category, item.subcategory, item.cadenceLabel,
+        ).any { mobileRecurringSearchKey(it).contains(search) }
+        statusMatches && textMatches
     }
+    if (sort == MobileRecurringSort.SOURCE) return matched
+    // Valid due dates are never guessed from malformed imported data.
+    // Active items with real due dates come first; remaining active rows,
+    // then inactive/history rows, retain source order through their index.
+    return matched.sortedWith(
+        compareBy<IndexedValue<RecurringManageItem>>(
+            { if (it.value.status == "active") 0 else 1 },
+            {
+                if (it.value.status == "active")
+                    runCatching { LocalDate.parse(it.value.nextDueDateIso) }
+                        .getOrNull() ?: LocalDate.MAX
+                else LocalDate.MAX
+            },
+            { it.index },
+        )
+    )
 }
 
 /** Never present variable/invalid planned expenses as settled or fixed ledger amounts. */
@@ -120,7 +162,9 @@ internal fun MobileRecurringOverviewContent(
     fun displayAmount(amount: Double) = if (!amountsVisible) "•••• €"
         else if (amount.isFinite()) money.format(amount) else "Μη έγκυρο ποσό"
     var filter by rememberSaveable { mutableStateOf(MobileRecurringFilter.ALL) }
-    val visibleRows = mobileRecurringVisibleRows(items, filter)
+    var query by rememberSaveable { mutableStateOf("") }
+    var sort by rememberSaveable { mutableStateOf(MobileRecurringSort.SOURCE) }
+    val visibleRows = mobileRecurringVisibleRows(items, filter, query, sort)
     val activeCount = items.count { it.status == "active" }
 
     Scaffold(
@@ -175,10 +219,45 @@ internal fun MobileRecurringOverviewContent(
                     }
                 }
             }
+            if (items.isNotEmpty()) {
+                item("search-and-sort") {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            label = { Text("Αναζήτηση παγίων") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().testTag("mobile_recurring_search"),
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        ) {
+                            MobileRecurringSort.entries.forEach { choice ->
+                                FilterChip(
+                                    selected = sort == choice,
+                                    onClick = { sort = choice },
+                                    label = { Text(choice.label) },
+                                    modifier = Modifier.testTag(
+                                        "mobile_recurring_sort_${choice.name.lowercase()}"
+                                    ),
+                                )
+                            }
+                        }
+                        Text(
+                            "${visibleRows.size} από ${items.size} καταχωρίσεις",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("mobile_recurring_result_count"),
+                        )
+                    }
+                }
+            }
             if (visibleRows.isEmpty()) {
                 item("empty") {
                     Text(
                         if (items.isEmpty()) "Δεν υπάρχουν καταγεγραμμένες επαναλαμβανόμενες υποχρεώσεις."
+                        else if (query.isNotBlank()) "Δεν βρέθηκαν πάγια με αυτά τα κριτήρια."
                         else "Δεν υπάρχουν πάγια σε αυτή την κατηγορία.",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

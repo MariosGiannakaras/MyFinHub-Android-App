@@ -33,6 +33,45 @@ class MobileRecurringOverviewLogicTest {
             mobileRecurringVisibleRows(data, MobileRecurringFilter.INACTIVE).map { it.index })
     }
 
+    @Test fun searchingGreekWithoutAccentsFindsTitleCategoryAndKeepsDuplicateSourceRows() {
+        val data = listOf(
+            RecurringManageItem("same", "Ασφάλεια κατοικίας", 50.0, "active", "2026-12-20"),
+            RecurringManageItem("same", "Internet", 30.0, "paused", category = "Τηλεφωνία"),
+            RecurringManageItem("other", "Ασφάλεια αυτοκινήτου", 100.0, "active", "2026-11-20"),
+        )
+        assertEquals("ασφαλεια", mobileRecurringSearchKey(" ΑΣΦΆΛΕΙΑ "))
+        assertEquals(listOf(0, 2), mobileRecurringVisibleRows(data,
+            MobileRecurringFilter.ALL, query = "ασφαλεια").map { it.index })
+        assertEquals(listOf(1), mobileRecurringVisibleRows(data,
+            MobileRecurringFilter.ALL, query = "τηλεφωνια").map { it.index })
+        assertEquals(listOf(0, 2), mobileRecurringVisibleRows(data,
+            MobileRecurringFilter.ACTIVE, query = "ασφαλεια").map { it.index })
+        assertEquals(emptyList<Int>(), mobileRecurringVisibleRows(data,
+            MobileRecurringFilter.INACTIVE, query = "ασφαλεια").map { it.index })
+        assertEquals(listOf(0, 1, 2), mobileRecurringVisibleRows(data,
+            MobileRecurringFilter.ALL, query = "   ").map { it.index })
+    }
+
+    @Test fun dueSortingPrioritizesRealActiveDatesAndKeepsInvalidAndPausedRowsVisible() {
+        val data = listOf(
+            RecurringManageItem("same", "Future", 30.0, "active", "2026-12-30"),
+            RecurringManageItem("same", "Paused", 35.0, "paused", "2026-10-10"),
+            RecurringManageItem("bad", "Unknown due", 50.0, "active", "not-a-date"),
+            RecurringManageItem("soon", "Soon", 10.0, "active", "2026-11-02"),
+            RecurringManageItem("no-date", "Missing date", 12.0, "active"),
+            RecurringManageItem("stopped", "Stopped", 20.0, "stopped", "2026-10-05"),
+        )
+        assertEquals(listOf(3, 0, 2, 4, 1, 5),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.ALL,
+                sort = MobileRecurringSort.NEXT_DUE).map { it.index })
+        assertEquals(listOf(3, 0, 2, 4),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.ACTIVE,
+                sort = MobileRecurringSort.NEXT_DUE).map { it.index })
+        assertEquals(listOf(1, 5),
+            mobileRecurringVisibleRows(data, MobileRecurringFilter.INACTIVE,
+                sort = MobileRecurringSort.NEXT_DUE).map { it.index })
+    }
+
     @Test fun variableEstimateRangeInvalidSourceAndPrivacyAreNotFixedActualPayments() {
         val estimate = RecurringManageItem("variable", "Electricity", 25.0, "active")
             .copy(amountMode = "variable", estimateMin = 20.0, estimateMax = 50.0)
