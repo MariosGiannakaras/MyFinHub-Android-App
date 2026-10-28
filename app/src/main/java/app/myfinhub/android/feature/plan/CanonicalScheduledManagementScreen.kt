@@ -60,7 +60,9 @@ internal fun mobileScheduledStatusLabel(status: String): String = when (status) 
 internal fun mobileScheduledActionable(row: ScheduledManageItem, idCount: Int): Boolean =
     row.id.isNotBlank() && idCount == 1 &&
         row.status in setOf("due", "upcoming") &&
-        row.kind in setOf("expense", "income", "transfer")
+        row.kind in setOf("expense", "income", "transfer") &&
+        row.amount.isFinite() && row.amount > 0 &&
+        runCatching { LocalDate.parse(row.dueDateIso) }.isSuccess
 
 internal fun mobileScheduledAmountLabel(amount: Double, visible: Boolean): String {
     if (!visible) return "•••• €"
@@ -156,6 +158,22 @@ fun CanonicalScheduledManagementScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(mobileScheduledAmountLabel(item.amount, showAmounts))
+                        // Data-integrity warnings cannot be hidden by the amount-privacy
+                        // toggle. Never display the malformed numerical value itself.
+                        if (!item.amount.isFinite() || item.amount <= 0) {
+                            Text(
+                                "Μη έγκυρο προγραμματισμένο ποσό",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        if (runCatching { LocalDate.parse(item.dueDateIso) }.isFailure) {
+                            Text(
+                                "Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                         if (!uniqueId) {
                             Text(
                                 "Ιστορικό διπλό ID · Μόνο προβολή, χωρίς πληρωμή ή αλλαγή κατάστασης",

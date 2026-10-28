@@ -19,6 +19,12 @@ class MobileScheduledPresentationTest {
         assertFalse(mobileScheduledActionable(due.copy(kind="unexpected"), 1))
         assertFalse(mobileScheduledActionable(due.copy(status="completed"), 1))
         assertFalse(mobileScheduledActionable(due.copy(status="unexpected"), 1))
+        assertFalse(mobileScheduledActionable(due.copy(amount=Double.NaN), 1))
+        assertFalse(mobileScheduledActionable(due.copy(amount=Double.POSITIVE_INFINITY), 1))
+        assertFalse(mobileScheduledActionable(due.copy(amount=0.0), 1))
+        assertFalse(mobileScheduledActionable(due.copy(amount=-0.01), 1))
+        assertFalse(mobileScheduledActionable(due.copy(dueDateIso="not-a-date"), 1))
+        assertFalse(mobileScheduledActionable(due.copy(dueDateIso=""), 1))
     }
 
     @Test fun invalidMoneyAndRawSourceDatesFailClosed() {
