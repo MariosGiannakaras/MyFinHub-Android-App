@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Owner-approved five-root Android redesign #378, inline credit/Reports #379, clipboard #380, vertical stack #381, large-roster indicators #382 and read-only recurring Plan/history #383 are MERGED into develop (latest a75935269c0532c7e47ca950f4db80d927b5ae47), each with all four required exact-head gates green. New Android-only draft PR #385 enforces owner's 30-day Plan boundary: canonical Web finance can calculate/store 60/90-day comparisons for parity, but mobile renders only one 30-day window and enables only a correctly labeled 30-day ephemeral scenario; no 60/90 selectors or portfolio cards. Adds isolated 30-day selection pure tests and hosted Compose regression tests, retaining existing 30-day breakdown, source trace, privacy and mutation-free what-if. Unmerged and unvalidated. Historical broad accepted Web parity remains 1/6 implementations · 11/24 subtasks. Physical owner S24 Ultra functional acceptance #149 separate and pending; no Web/backend/schema, SMS #146, production financial writes, signing/main/release.
+Owner-selected five-root Android redesign PR #378 through 30-day Plan forecast PR #385 are merged into develop aafa9252a901e6e0f3263a8282c68023f4ee9a30 after exact-head 4/4 required gates. New Android-only draft PR #386 makes scheduled Plan management accessible even with empty history; protects imported duplicate/unknown scheduled kinds and statuses from ambiguous writes, formats source money and dates fail-closed, rechecks a live canonical row before an open confirmation dialog can dispatch, and requires selected source/destination IDs to belong to current accounts. Adds unit presentation rules and hosted Compose empty/new schedule, unsupported imported row, live sync invalidation and Plan-navigation tests. Draft code is unvalidated/unmerged. Historical accepted broad Web parity remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 independent pending. No Web/backend/schema, SMS #146, production finance writes, signing/main/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate owner-30-day Plan UI PR #385 on immutable head through Project Tracking, Android CI, screenshot regression and hosted S24 tests. Review screenshots; fix any failures in a cohesive batch, merge only if 4/4 green and develop unchanged. Owner physical Galaxy S24 Ultra #149 independently pending.
+1. Validate Android-only PR #386 on same immutable head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator; inspect changed Plan golden(s) and fix failures in a cohesive batch, then merge only with 4/4 green. Physical owner S24 #149 remains separately pending.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #385, branch android/owner-30day-plan-forecast-only-20261028
-Current W2.4: PR #383 read-only recurring Plan/real-payment history merged to develop a75935269c0532c7e47ca950f4db80d927b5ae47 with all 4 required exact-head PR checks green. Draft PR #385 now enforces user choice 30-day-only Android forecasting UI/scenarios without changing shared Web-canonical 30/60/90 calculations. Plan scenario control and 60/90 cards removed from Android presentation; pure scope and hosted Compose tests authored but exact-head validation pending. Historical broader parity accepted 1/6 · 11/24, physical owner #149 pending.
+Issue #155, PR #386, branch android/scheduled-plan-empty-safe-20261028
+Current W2.4: Owner #378 through #385 merged into develop aafa9252a901e6e0f3263a8282c68023f4ee9a30 with all 4 required head gates each. Draft #386 fixes the scheduled Plan empty-history unreachable state and fail-closed malformed/duplicate historical source entries and stale confirmation, with hosted/UI tests. PR CI and physical #149 not yet passed; historical broader accepted parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run four exact-head PR #385 gates; inspect rendered forecast screen screenshots and hosted S24 assertions for 30-only scope and unchanged canonical calculations. Merge only with all checks success, clean reviews and unchanged develop; preserve independent physical owner S24 signoff.
+Next Check #386 Project Tracking, Android CI, screenshots and hosted S24 emulator on the immutable final head. If new Plan screenshot changes, inspect and refresh only justified goldens. Merge only 4/4 success; physical owner S24 #149 independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

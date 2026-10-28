@@ -38,7 +38,37 @@ import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val MOBILE_SCHEDULED_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/uuuu")
+
+internal fun mobileScheduledDateLabel(raw: String): String =
+    runCatching { LocalDate.parse(raw).format(MOBILE_SCHEDULED_DATE_FORMAT) }
+        .getOrElse { raw.ifBlank { "Χωρίς ημερομηνία" } }
+
+internal fun mobileScheduledStatusLabel(status: String): String = when (status) {
+    "completed" -> "Ολοκληρώθηκε"
+    "skipped" -> "Παραλείφθηκε"
+    "cancelled" -> "Ακυρώθηκε"
+    "due" -> "Εκκρεμεί"
+    "upcoming" -> "Προσεχώς"
+    else -> "Άγνωστη κατάσταση"
+}
+
+/** Imported duplicate IDs, unknown money kinds or statuses stay visible but non-writable. */
+internal fun mobileScheduledActionable(row: ScheduledManageItem, idCount: Int): Boolean =
+    row.id.isNotBlank() && idCount == 1 &&
+        row.status in setOf("due", "upcoming") &&
+        row.kind in setOf("expense", "income", "transfer") &&
+        row.amount.isFinite() && row.amount > 0 &&
+        runCatching { LocalDate.parse(row.dueDateIso) }.isSuccess
+
+internal fun mobileScheduledAmountLabel(amount: Double, visible: Boolean): String {
+    if (!visible) return "•••• €"
+    if (!amount.isFinite() || amount <= 0) return "Μη έγκυρο προγραμματισμένο ποσό"
+    return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+}
 
 /**
  * No scheduled payment is posted by navigation or viewing. Confirmation is
@@ -54,7 +84,9 @@ fun CanonicalScheduledManagementScreen(
     mutationBlocked: Boolean = false,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
-    val money = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")) }
+    val idCounts = remember(state.scheduledManageItems) {
+        state.scheduledManageItems.groupingBy { it.id }.eachCount()
+    }
     var selected by remember { mutableStateOf<ScheduledManageItem?>(null) }
     var creating by remember { mutableStateOf(false) }
     var createKind by remember { mutableStateOf("expense") }
@@ -113,23 +145,35 @@ fun CanonicalScheduledManagementScreen(
                 item.id + "#row#" + index
             }) { index, item ->
                 // Duplicate historical IDs remain visible, never writable.
-                val uniqueId = state.scheduledManageItems.count { it.id == item.id } == 1
+                val uniqueId = idCounts[item.id] == 1 && item.id.isNotBlank()
+                val actionable = mobileScheduledActionable(item, idCounts[item.id] ?: 0)
                 val rowSuffix = if (uniqueId) "" else "_"+index
                 MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                     .testTag("scheduled_item_" + item.id + rowSuffix)) {
                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                         Text(item.title, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            item.dueDateIso + " · " + when(item.status) {
-                                "completed" -> "Ολοκληρώθηκε"
-                                "skipped" -> "Παραλείφθηκε"
-                                "cancelled" -> "Ακυρώθηκε"
-                                "due" -> "Εκκρεμεί"
-                                else -> "Προσεχώς"
-                            },
+                            mobileScheduledDateLabel(item.dueDateIso) + " · " +
+                                mobileScheduledStatusLabel(item.status),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Text(amountVisibilityText(money.format(item.amount), showAmounts))
+                        Text(mobileScheduledAmountLabel(item.amount, showAmounts))
+                        // Data-integrity warnings cannot be hidden by the amount-privacy
+                        // toggle. Never display the malformed numerical value itself.
+                        if (!item.amount.isFinite() || item.amount <= 0) {
+                            Text(
+                                "Μη έγκυρο προγραμματισμένο ποσό",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        if (runCatching { LocalDate.parse(item.dueDateIso) }.isFailure) {
+                            Text(
+                                "Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                         if (!uniqueId) {
                             Text(
                                 "Ιστορικό διπλό ID · Μόνο προβολή, χωρίς πληρωμή ή αλλαγή κατάστασης",
@@ -138,10 +182,17 @@ fun CanonicalScheduledManagementScreen(
                             )
                         }
                         if(item.status in setOf("due","upcoming")) {
+                            if (!actionable) {
+                                Text(
+                                    "Ασαφής προγραμματισμένη κίνηση · Μόνο προβολή",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             Row(modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                                 TextButton(
-                                    enabled = !mutationBlocked && uniqueId,
+                                    enabled = !mutationBlocked && actionable,
                                     onClick = {
                                         selected = item
                                         action = "complete"
@@ -159,12 +210,12 @@ fun CanonicalScheduledManagementScreen(
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
                                         .testTag("scheduled_complete_" + item.id + rowSuffix),
                                 ) { Text("Καταχώριση") }
-                                TextButton(enabled = !mutationBlocked && uniqueId,
+                                TextButton(enabled = !mutationBlocked && actionable,
                                     onClick = { selected=item;action="skipped" },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
                                         .testTag("scheduled_skip_" + item.id + rowSuffix),
                                 ) { Text("Παράλειψη") }
-                                TextButton(enabled = !mutationBlocked && uniqueId,
+                                TextButton(enabled = !mutationBlocked && actionable,
                                     onClick = { selected=item;action="cancelled" },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
                                         .testTag("scheduled_cancel_" + item.id + rowSuffix),
@@ -183,8 +234,10 @@ fun CanonicalScheduledManagementScreen(
         val value=createAmount.replace(',', '.').toDoubleOrNull()
         val dateValid=runCatching { LocalDate.parse(createDate) }.isSuccess
         val isTransfer=createKind=="transfer"
+        val availableIds = state.scheduledAccounts.mapTo(mutableSetOf()) { it.id }
         val ready=value!=null && value.isFinite() && value>0 && dateValid &&
-            sourceId.isNotEmpty() && (!isTransfer || (destinationId.isNotEmpty() && destinationId!=sourceId))
+            sourceId in availableIds &&
+            (!isTransfer || (destinationId in availableIds && destinationId!=sourceId))
         AlertDialog(
             onDismissRequest={if(!mutationBlocked)creating=false},
             title={Text("Νέα προγραμματισμένη κίνηση")},
@@ -251,7 +304,7 @@ fun CanonicalScheduledManagementScreen(
                 TextButton(enabled=ready && !mutationBlocked,
                     modifier=Modifier.testTag("scheduled_new_confirm"),
                     onClick={
-                        if(value!=null && ready) onCreate(ScheduledCreateRequest(
+                        if(value!=null && ready && !mutationBlocked) onCreate(ScheduledCreateRequest(
                             kind=createKind,dueDate=createDate,amount=value,
                             note=createNote,
                             accountId=if(isTransfer)null else sourceId,
@@ -266,6 +319,10 @@ fun CanonicalScheduledManagementScreen(
     }
 
     selected?.let { item ->
+        // A changed canonical row invalidates an open confirmation dialog.
+        val currentSource = state.scheduledManageItems.singleOrNull { it.id == item.id }
+        val stillCurrent = currentSource == item &&
+            mobileScheduledActionable(item, idCounts[item.id] ?: 0)
         val amount = amountText.replace(',', '.').toDoubleOrNull()
         val dateValid = runCatching { LocalDate.parse(dateText) }.isSuccess
         val routeValid = scheduledCompletionAccountIsValid(
@@ -343,11 +400,12 @@ fun CanonicalScheduledManagementScreen(
             },
             confirmButton = {
                 TextButton(
-                    enabled = !mutationBlocked &&
+                    enabled = !mutationBlocked && stillCurrent &&
                         (action!="complete" || (dateValid && amount!=null && amount.isFinite() && amount>0 && routeValid)),
                     onClick = {
+                        if (mutationBlocked || !stillCurrent) return@TextButton
                         if(action=="complete") {
-                            if(amount!=null && dateValid && routeValid)onComplete(
+                            if(amount!=null && amount.isFinite() && amount > 0 && dateValid && routeValid)onComplete(
                                 ScheduledCompletionRequest(
                                     id=item.id,date=dateText,amount=amount,
                                     accountId=if(item.kind=="transfer")null else actualAccountId,

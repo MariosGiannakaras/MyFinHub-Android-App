@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -25,6 +26,85 @@ class ScheduledManagementComposeTest {
         ScheduledManageItem("bill","Internet","expense","2026-10-12",35.0,"due",accountId="bank"),
         ScheduledManageItem("done","Rent","expense","2026-10-10",200.0,"completed",accountId="bank"),
     ))
+
+    @Test fun emptyScheduledHistoryAllowsFirstNewSchedule() {
+        val calls = mutableListOf<ScheduledCreateRequest>()
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(data.copy(scheduledManageItems=emptyList()),onBack={},
+                onCreate={calls+=it},onComplete={_->},onClose={_,_->})
+        } }
+        compose.onNodeWithText("Δεν υπάρχουν προγραμματισμένες κινήσεις.").assertIsDisplayed()
+        compose.onNodeWithTag("scheduled_create_open").performClick()
+        compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("20")
+        compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-10")
+        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.runOnIdle {
+            assertEquals(1,calls.size)
+            assertEquals("expense",calls.single().kind)
+        }
+    }
+
+    @Test fun unknownImportedKindCannotDispatchMoneyMutation() {
+        val imported = data.copy(scheduledManageItems=listOf(
+            ScheduledManageItem("odd","Άγνωστη","unsupported","bad-date",Double.NaN,"due"),
+        ))
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(imported,onBack={},
+                onComplete={_->error("Unsupported completion")},
+                onClose={_,_->error("Unsupported close")})
+        } }
+        compose.onNodeWithTag("scheduled_complete_odd").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_skip_odd").assertIsNotEnabled()
+        compose.onNodeWithText("Μη έγκυρο προγραμματισμένο ποσό").assertIsDisplayed()
+        compose.onNodeWithText("Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης")
+            .assertIsDisplayed()
+        compose.onNodeWithText("bad-date · Εκκρεμεί").assertIsDisplayed()
+    }
+
+    @Test fun malformedDuePaymentCannotCompleteOrCloseAndStillExplainsWhy() {
+        val rows = data.copy(scheduledManageItems = listOf(
+            ScheduledManageItem(
+                id = "bad-amount", title = "Λανθασμένο ποσό", kind = "expense",
+                dueDateIso = "2026-10-12", amount = Double.POSITIVE_INFINITY,
+                status = "due", accountId = "bank",
+            ),
+            ScheduledManageItem(
+                id = "bad-date", title = "Λανθασμένη ημερομηνία", kind = "expense",
+                dueDateIso = "not-a-date", amount = 30.0,
+                status = "due", accountId = "bank",
+            ),
+        ))
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(
+                rows, onBack = {},
+                onComplete = { error("Malformed completion must not dispatch") },
+                onClose = { _, _ -> error("Malformed close must not dispatch") },
+            )
+        } }
+        for (id in listOf("bad-amount", "bad-date")) {
+            compose.onNodeWithTag("scheduled_complete_" + id).assertIsNotEnabled()
+            compose.onNodeWithTag("scheduled_skip_" + id).assertIsNotEnabled()
+            compose.onNodeWithTag("scheduled_cancel_" + id).assertIsNotEnabled()
+        }
+        compose.onNodeWithText("Μη έγκυρο προγραμματισμένο ποσό").assertIsDisplayed()
+        compose.onNodeWithText("Μη έγκυρη ημερομηνία προγραμματισμένης κίνησης")
+            .assertIsDisplayed()
+    }
+
+    @Test fun pendingConfirmationCannotPostStaleSourceAfterSync() {
+        val source = mutableStateOf(data)
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(source.value,onBack={},
+                onComplete={_->error("Stale completion")},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_complete_bill").performClick()
+        compose.runOnIdle {
+            source.value=source.value.copy(scheduledManageItems=source.value.scheduledManageItems.map {
+                if (it.id=="bill") it.copy(status="completed") else it
+            })
+        }
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsNotEnabled()
+    }
 
     @Test fun completeRequiresConfirmationAndKeepsExplicitEnteredAmountDate() {
         val calls=mutableListOf<Triple<String,String,Double>>()
