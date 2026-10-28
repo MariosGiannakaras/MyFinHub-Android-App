@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Owner-selected Android five-root redesign and focused mobile scope #378–#391 are MERGED into develop 76ce12880d31419ff2a967256ef4c307972313cd, including #391 protected temporary IBAN clipboard with four immutable-head required checks successful. Current DRAFT PR #392, now based directly on develop, adds Web-contract account-scoped activity history search and type chips for long histories (6+ canonical rows); source order/IDs and amount privacy remain unchanged. This cohesive batch also provides in-place reset of search/type and saveable per-account search state across Android activity recreation while resetting on canonical account switch. Kotlin and hosted Compose account-filter, restore/reset/privacy regressions authored, not yet CI-validated. No backend queries, Web/schema changes, production finance writes, SMS import #146, signing/main/release. Historical broader Web parity acceptance remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 separately pending.
+Owner-selected Android five-root redesign and focused #378–#391 are merged, and Android strict Web v1.7 Card Vault write-compatibility #393 is MERGED to develop 6c84e103220fd05377f1f3c7d11cba64e81cabd1 with four exact-head gates passed. Current DRAFT PR #392 (rebased/merged onto that develop) implements read-only, canonical account-scoped history search plus operation-type chips for existing accounts with 6+ movements. It preserves account scope, chronological source order, IDs, amount privacy, in-place reset and saveable per-account search state; switching canonical account ID resets search/filters. Existing Web-compatible ActivityItem.matchesWebLedgerSearch is reused, no duplicate search semantics. First PR #392 head c2c7f4a1787daa9f42d3b7602d08ce68aed136e6 passed Project Tracking and screenshots but Android CI/S24 test APK compilation failed only because a new Compose test imported non-existent top-level assertExists; the invalid import is removed for the next complete four-gate run. Security PR #393 code and its prior merged behavior are preserved. Historical broad Web parity accepted 1/6 implementations · 11/24 subtasks. Physical owner's S24 Ultra #149 independently pending. No Web/backend/schema/production finance writes, SMS #146, signing/main/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate PR #392 account-detail history search, type filter, reset and saveable state on unchanged final head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Inspect real previews and resolve findings as one batch; merge only 4/4 green and clean base/reviews. Maintain independent physical owner Galaxy S24 Ultra #149 pending.
+1. Validate owner Android account history PR #392 at its immutable final head with Project Tracking, Android CI, 102 Compose screenshots and hosted S24 emulator. The test compile import has been removed and the branch includes merged #393. Merge only after all four checks pass, reviews clean, and base develop still matches; owner physical S24 acceptance #149 remains separate.
 
 ## Non-negotiable constraints
 
@@ -51,9 +51,9 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #392, branch android/account-detail-history-filters-20261028
-Current W2.4: PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf. PR #391 protected IBAN temporary copy merged into develop 76ce12880d31419ff2a967256ef4c307972313cd after exact head 47373d00237da0ab2c4b4dcf315552ad9b545a6c succeeded on all four required checks. Current draft #392 retargeted from stacked branch to develop. Implements small scoped account history search/type chips for 6+ rows plus accessible Clear Filters and saved/restored per-account UI selections, resetting on canonical ID change. Tests written but four required CI gates not yet run on updated head. Historical accepted broad parity remains 1/6 · 11/24; physical S24 owner #149 pending.
+Current W2.4: Security PR #393 strict Web v1.7 Card Vault NEW writes merged to develop 6c84e103220fd05377f1f3c7d11cba64e81cabd1 on 28 October 2026 with 4/4 exact-head required checks. PR #392 account history filters is rebased onto this develop through a two-parent merge commit preserving both features; initial head c2c7f4a1787daa9f42d3b7602d08ce68aed136e6 failed Android CI and S24 APK compile because test-only import androidx.compose.ui.test.assertExists is not a top-level import, while Project Tracking and screenshot regression passed. Invalid import removed. Retest 4/4 on new immutable head before any merge. Historical accepted parity 1/6 · 11/24, owner physical #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run all four required exact-head CI checks for PR #392 against develop: Project Tracking, Android CI, screenshot regression, hosted S24. Merge only on 4/4 successes and no review issues, then verify develop post-merge. Physical owner S24 acceptance #149 remains independent.
+Next Validate PR #392 on the new immutable head (Project Tracking, Android CI, screenshot regression, hosted S24) and fix any runtime assertion failures in one cohesive batch; merge only 4/4 success, reviews/base clear. Keep physical S24 #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

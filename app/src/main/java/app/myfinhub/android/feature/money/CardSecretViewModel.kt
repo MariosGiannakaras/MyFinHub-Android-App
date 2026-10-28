@@ -342,8 +342,8 @@ class CardSecretViewModel internal constructor(
         pan.fill('\u0000')
         expiry.fill('\u0000')
 
-        val normalizedPan = try { panCopy.concatToString().filter(Char::isDigit) } finally { panCopy.fill('\u0000') }
-        val normalizedExpiry = try { normalizeServerExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
+        val normalizedPan = try { CardVaultWriteContract.normalizePan(panCopy.concatToString()) } finally { panCopy.fill('\u0000') }
+        val normalizedExpiry = try { CardVaultWriteContract.normalizeExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
 
         if (
             session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
@@ -359,10 +359,10 @@ class CardSecretViewModel internal constructor(
             )
             return
         }
-        if (normalizedPan.length !in 12..19 || normalizedExpiry == null) {
+        if (normalizedPan == null || normalizedExpiry == null) {
             mutableState.value = CardSecretUiState.Failure(
                 cardId = cardId,
-                message = "Έλεγξε τον αριθμό κάρτας και τη λήξη (MM/YY ή MM/YYYY).",
+                message = "Ο αριθμός πρέπει να έχει 16 ψηφία και η λήξη να μην έχει περάσει (MM/YY ή MM/YYYY).",
                 retryable = false,
             )
             return
@@ -402,16 +402,16 @@ class CardSecretViewModel internal constructor(
         expiry.fill('\u0000')
         cvv.fill('\u0000')
 
-        val normalizedPan = try { panCopy.concatToString().filter(Char::isDigit) } finally { panCopy.fill('\u0000') }
-        val normalizedExpiry = try { normalizeServerExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
-        val normalizedCvv = try { cvvCopy.concatToString().filter(Char::isDigit) } finally { cvvCopy.fill('\u0000') }
+        val normalizedPan = try { CardVaultWriteContract.normalizePan(panCopy.concatToString()) } finally { panCopy.fill('\u0000') }
+        val normalizedExpiry = try { CardVaultWriteContract.normalizeExpiry(expiryCopy.concatToString()) } finally { expiryCopy.fill('\u0000') }
+        val normalizedCvv = try { CardVaultWriteContract.normalizeCvv(cvvCopy.concatToString()) } finally { cvvCopy.fill('\u0000') }
 
         if (
             session == null || session.assuranceLevel != AssuranceLevel.AAL2 ||
             !CARD_ID_REGEX.matches(normalizedCardId) ||
-            normalizedPan.length !in 12..19 ||
+            normalizedPan == null ||
             normalizedExpiry == null ||
-            normalizedCvv.length !in 3..4
+            normalizedCvv == null
         ) {
             mutableNotices.tryEmit(
                 UserNotice(
@@ -483,9 +483,9 @@ class CardSecretViewModel internal constructor(
 
         val copy = cvv.copyOf()
         cvv.fill('\u0000')
-        if (copy.size !in 3..4 || copy.any { it !in '0'..'9' }) {
+        if (copy.size != 3 || copy.any { it !in '0'..'9' }) {
             copy.fill('\u0000')
-            mutableState.value = current.copy(message = "Το CVV πρέπει να έχει 3 ή 4 αριθμητικά ψηφία.")
+            mutableState.value = current.copy(message = "Το CVV πρέπει να έχει ακριβώς 3 αριθμητικά ψηφία.")
             return
         }
 
@@ -564,7 +564,7 @@ class CardSecretViewModel internal constructor(
                             expiry = migrated.second,
                             cvv = migrated.third,
                             message = if (migrated.first != null || migrated.second != null || migrated.third != null)
-                                "Τα παλιά τοπικά στοιχεία μεταφέρθηκαν στο κοινό card vault."
+                                "Τα παλιά τοπικά στοιχεία κάρτας φορτώθηκαν. Ο συγχρονισμός τους ίσως χρειάζεται έλεγχο."
                             else message,
                         )
                     } else {
@@ -606,6 +606,21 @@ class CardSecretViewModel internal constructor(
         )
         if (update.pan == null && update.expiry == null && update.cvv == null) {
             return Triple(serverPan, serverExpiry, serverCvv)
+        }
+
+        // Legacy encrypted values are READABLE, but NOT necessarily legal for
+        // the v1.7 server's NEW WRITE contract. Never attempt a doomed upload,
+        // and crucially never delete local secrets if only part of the source
+        // could have been uploaded. Manual correction remains possible.
+        if (!CardVaultWriteContract.isValidNewWrite(update)) {
+            mutableNotices.tryEmit(
+                UserNotice(
+                    message = "Παλιά στοιχεία κάρτας υπάρχουν μόνο στη συσκευή. Για συγχρονισμό χρειάζονται νέα έγκυρα στοιχεία.",
+                    details = "Ενέργεια: Μεταφορά παλιών στοιχείων κάρτας\nΚατηγορία: LEGACY_CARD_SECRET_WRITE_INCOMPATIBLE",
+                    diagnosticCode = "MFH-CARD-LEGACY-WRITE-INCOMPATIBLE",
+                ),
+            )
+            return Triple(serverPan ?: localPan, serverExpiry ?: localExpiry, serverCvv ?: localCvvText)
         }
 
         return when (safeApiCall { api.saveCardSecrets(session, cardId, update) }) {
@@ -671,12 +686,6 @@ class CardSecretViewModel internal constructor(
             currentSession?.assuranceLevel == AssuranceLevel.AAL2 &&
             session.assuranceLevel == AssuranceLevel.AAL2 &&
             currentCardId == cardId
-
-    private fun normalizeServerExpiry(raw: String): String? {
-        val compact = raw.trim().replace(" ", "")
-        val match = Regex("^(0[1-9]|1[0-2])/(\\d{2}|\\d{4})$").matchEntire(compact) ?: return null
-        return "${match.groupValues[1]}/${match.groupValues[2]}"
-    }
 
     private companion object {
         const val CVV_KEY_ALIAS = "myfinhub_cvv_v1"

@@ -277,9 +277,9 @@ fun CanonicalCardCreateScreen(
                     validation = when {
                         normalizedNickname.isBlank() -> "Συμπλήρωσε όνομα κάρτας."
                         normalizedBank.isBlank() -> "Συμπλήρωσε τράπεζα ή εκδότη."
-                        normalizedPan.length !in 12..19 -> "Ο αριθμός κάρτας πρέπει να έχει 12 έως 19 ψηφία."
-                        !Regex("^(0[1-9]|1[0-2])/\\d{2}$").matches(normalizedExpiry) -> "Η λήξη πρέπει να είναι MM/YY."
-                        normalizedCvv.length !in 3..4 -> "Το CVV πρέπει να έχει 3 ή 4 ψηφία."
+                        CardVaultWriteContract.normalizePan(normalizedPan) == null -> "Ο αριθμός κάρτας πρέπει να έχει ακριβώς 16 ψηφία."
+                        CardVaultWriteContract.normalizeExpiry(normalizedExpiry) == null -> "Η λήξη πρέπει να είναι μη ληγμένη, σε MM/YY."
+                        CardVaultWriteContract.normalizeCvv(normalizedCvv) == null -> "Το CVV πρέπει να έχει ακριβώς 3 ψηφία."
                         kind == "credit" && creditLimit.isNotBlank() && (limit == null || limit <= 0.0) -> "Το πιστωτικό όριο πρέπει να είναι μεγαλύτερο από μηδέν."
                         else -> null
                     }

@@ -264,6 +264,37 @@ class S6CardSurfaceTest {
     }
 
     @Test
+    fun newCardWithLegacySizedPanCannotCreateAnUnsynchronizableCard() {
+        var creates = 0
+        var secretWrites = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardCreateScreen(
+                    cards = emptyList(),
+                    onCreate = { creates++ },
+                    onSaveCardDetails = { _, pan, expiry, cvv ->
+                        secretWrites++
+                        pan.fill('\u0000')
+                        expiry.fill('\u0000')
+                        cvv.fill('\u0000')
+                    },
+                    onBack = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Όνομα κάρτας").performTextInput("Sample card")
+        composeRule.onNodeWithTag("card_create_pan").performScrollTo().performTextInput("123456789012345")
+        composeRule.onNodeWithTag("card_create_expiry").performScrollTo().performTextInput("1230")
+        composeRule.onNodeWithTag("card_create_cvv").performScrollTo().performTextInput("123")
+        composeRule.onNodeWithText("Δημιουργία κάρτας").performScrollTo().performClick()
+        composeRule.onNodeWithText("Ο αριθμός κάρτας πρέπει να έχει ακριβώς 16 ψηφία.").assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertEquals(0, creates)
+            assertEquals(0, secretWrites)
+        }
+    }
+
+    @Test
     fun cardDetail_routesToProtectedSurface_andUsesExplicitArchiveLanguage() {
         var secureCardId: String? = null
         var removedCardId: String? = null
