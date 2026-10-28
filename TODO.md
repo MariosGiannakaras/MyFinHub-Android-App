@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Android PR #393 against Web v1.7 strict Card Vault new-write contract with 4/4 immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator, including legacy encrypted migration preservation. Merge only on all green, review/base clear; confirm #392 remains independent; send confirmed Android compatibility evidence to Web release blocker #637. Shared PIN bearer-ticket #345 requires separate reviewed native implementation and real-stack integration before enabling global PIN. Physical owner S24 #149 independent.
+- [ ] Validate owner Android account history PR #392 at its immutable final head with Project Tracking, Android CI, 102 Compose screenshots and hosted S24 emulator. The test compile import has been removed and the branch includes merged #393. Merge only after all four checks pass, reviews clean, and base develop still matches; owner physical S24 acceptance #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #393, branch android/card-vault-v17-write-compat-20261028
-Current W2.4: Web v1.7.0 release candidate #637 is source-merged to Web develop 81bbdf84, production v1.6; Web server strict NEW Card Vault write exactly 16 PAN/3 CVV/nonexpired UTC expiry, permissive legacy reads. Android current develop 76ce1288 from merged #391 still accepts legacy PAN12..19, CVV3..4 and expired expiry for writes; independently unmerged #392 focuses account detail. Current new draft #393 implements shared strict card-write validation in Compose Create, Secure Details and CardSecretViewModel, safely retains locally encrypted legacy data on incompatible migration rather than attempting rejected uploads; pure and hosted regressions authored. No 4/4 CI or physical approval yet. Shared owner PIN ticket and 423 in Android issue #345 remain separate and unimplemented; never activate PIN on live clients before compatibility verified. Historical broad parity 1/6 · 11/24.
+Issue #155, PR #392, branch android/account-detail-history-filters-20261028
+Current W2.4: Security PR #393 strict Web v1.7 Card Vault NEW writes merged to develop 6c84e103220fd05377f1f3c7d11cba64e81cabd1 on 28 October 2026 with 4/4 exact-head required checks. PR #392 account history filters is rebased onto this develop through a two-parent merge commit preserving both features; initial head c2c7f4a1787daa9f42d3b7602d08ce68aed136e6 failed Android CI and S24 APK compile because test-only import androidx.compose.ui.test.assertExists is not a top-level import, while Project Tracking and screenshot regression passed. Invalid import removed. Retest 4/4 on new immutable head before any merge. Historical accepted parity 1/6 · 11/24, owner physical #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Create Android-only PR #393 from 76ce1288 and run all 4 required exact-head gates; correct failures together, then merge with clean reviews/base and independently report Web #637 Card Vault compatibility evidence. Explicitly do not claim full v1.7 release readiness because global shared PIN #345 and full PostgreSQL/Storage restore release gate remain unresolved. Physical Galaxy S24 Ultra acceptance #149 remains separate.
+Next Validate PR #392 on the new immutable head (Project Tracking, Android CI, screenshot regression, hosted S24) and fix any runtime assertion failures in one cohesive batch; merge only 4/4 success, reviews/base clear. Keep physical S24 #149 pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

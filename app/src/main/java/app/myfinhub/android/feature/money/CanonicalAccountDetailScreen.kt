@@ -3,12 +3,17 @@ package app.myfinhub.android.feature.money
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
@@ -19,8 +24,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.core.network.AccountMetadataRecord
@@ -39,12 +47,26 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.activity.ActivityItem
 import app.myfinhub.android.feature.activity.ActivityKind
+import app.myfinhub.android.feature.activity.matchesWebLedgerSearch
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.feature.utilities.AppAppearancePreference
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+/**
+ * Read-only within an already scoped account history. Reuse the canonical Web
+ * TransactionsPage search index: never filter by amounts, account names or
+ * derived presentation-only labels. Preserve original source order and IDs.
+ */
+internal fun visibleAccountHistoryItems(
+    items: List<ActivityItem>,
+    query: String,
+    kind: ActivityKind?,
+): List<ActivityItem> = items.filter { item ->
+    (kind == null || item.kind == kind) && item.matchesWebLedgerSearch(query)
+}
 
 @Composable
 fun CanonicalAccountDetailScreen(
@@ -70,6 +92,15 @@ fun CanonicalAccountDetailScreen(
     var deletingIban by remember(account?.id) { mutableStateOf(false) }
     var editingIban by remember(account?.id) { mutableStateOf(false) }
     var newIban by remember(account?.id) { mutableStateOf("") }
+    // Save a small UI-only search state across Activity recreation, but reset both
+    // selectors when the canonical account ID changes. Do not cache any finance data.
+    var historyQuery by rememberSaveable(account?.id) { mutableStateOf("") }
+    var historyKindName by rememberSaveable(account?.id) { mutableStateOf<String?>(null) }
+    val historyKind = ActivityKind.entries.firstOrNull { it.name == historyKindName }
+    val historyControlsVisible = activityItems.size >= 6
+    val visibleHistory = if (historyControlsVisible) {
+        visibleAccountHistoryItems(activityItems, historyQuery, historyKind)
+    } else activityItems
     val normalizedInput = normalizeIban(newIban)
     val inputValid = normalizedInput != null && isValidIban(normalizedInput)
     if (deletingIban && account != null && ibanRecord?.iban != null &&
@@ -146,7 +177,7 @@ fun CanonicalAccountDetailScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().testTag("account_detail_history_list"),
             contentPadding = PaddingValues(
                 start = MyFinHubDesignMetrics.screenHorizontalPadding,
                 top = padding.calculateTopPadding() + MyFinHubSpacing.xs,
@@ -207,15 +238,70 @@ fun CanonicalAccountDetailScreen(
             item {
                 Text("Κινήσεις λογαριασμού", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
+            if (historyControlsVisible) {
+                item(key = "account-history-controls") {
+                    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                        OutlinedTextField(
+                            value = historyQuery,
+                            onValueChange = { historyQuery = it },
+                            label = { Text("Αναζήτηση κινήσεων λογαριασμού") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth().testTag("account_history_search"),
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                                .testTag("account_history_filters"),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
+                        ) {
+                            val options = listOf(
+                                null to "Όλες",
+                                ActivityKind.EXPENSE to "Έξοδα",
+                                ActivityKind.INCOME to "Έσοδα",
+                                ActivityKind.TRANSFER to "Μεταφορές",
+                                ActivityKind.CARD_PAYMENT to "Πληρωμές κάρτας",
+                            )
+                            options.forEach { (kind, title) ->
+                                FilterChip(
+                                    selected = historyKind == kind,
+                                    onClick = { historyKindName = kind?.name },
+                                    label = { Text(title) },
+                                    modifier = Modifier.heightIn(min = 48.dp)
+                                        .testTag("account_history_kind_${kind?.name ?: "ALL"}"),
+                                )
+                            }
+                        }
+                        Text(
+                            "${visibleHistory.size} από ${activityItems.size} κινήσεις",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.testTag("account_history_result_count"),
+                        )
+                        if (historyQuery.isNotEmpty() || historyKindName != null) {
+                            TextButton(
+                                onClick = {
+                                    historyQuery = ""
+                                    historyKindName = null
+                                },
+                                modifier = Modifier.heightIn(min = 48.dp)
+                                    .testTag("account_history_reset_filters"),
+                            ) { Text("Καθαρισμός φίλτρων") }
+                        }
+                    }
+                }
+            }
 
-            if (activityItems.isEmpty()) {
+            if (visibleHistory.isEmpty()) {
                 item {
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-                        Text("Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            if (activityItems.isEmpty()) "Δεν υπάρχουν κινήσεις για αυτόν τον λογαριασμό."
+                            else "Δεν βρέθηκαν κινήσεις με τα επιλεγμένα φίλτρα.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             } else {
-                val sections = activityItems.groupBy { it.rawDate.take(10) }.toList()
+                val sections = visibleHistory.groupBy { it.rawDate.take(10) }.toList()
                 sections.forEach { (date, sectionItems) ->
                     item(key = "account-day-$date") {
                         Text(
