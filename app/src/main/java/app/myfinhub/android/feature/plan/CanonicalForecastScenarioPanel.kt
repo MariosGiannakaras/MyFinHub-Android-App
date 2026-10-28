@@ -38,20 +38,25 @@ private data class WhatIfDraft(
 private fun forecastScenarioEuro(amount: Double): String =
     NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
 
-/** Web ForecastScenarioPanel 30/60/90-day hypotheses; read-only and account-accurate. */
+/** Android-specific presentation contract: no 60/90-day scenario is exposed to users.
+ * The shared Web-canonical projection remains untouched for other consumers.
+ */
+internal fun mobilePlanScenarioBaseline(
+    baselines: Map<Int, CanonicalCashFlowForecast>,
+): CanonicalCashFlowForecast? = baselines[30]?.takeIf { it.horizonDays == 30 }
+
+/** Ephemeral 30-day hypothesis panel, without posting any finance events. */
 @Composable
 internal fun CanonicalForecastScenarioPanel(
-    baselines: Map<Int, CanonicalCashFlowForecast>,
+    baseline: CanonicalCashFlowForecast,
     accounts: List<ScheduledAccountOption>,
     amountsVisible: Boolean,
 ) {
-    val baselineAccounts = baselines[30]?.accounts?.map { it.accountId }?.toSet().orEmpty()
+    val baselineAccounts = baseline.accounts.map { it.accountId }.toSet()
     val available = accounts.filter { it.id in baselineAccounts }
-    var open by remember(baselines) { mutableStateOf(false) }
-    var horizon by remember(baselines) { mutableStateOf(30) }
-    var drafts by remember(baselines) { mutableStateOf(emptyList<WhatIfDraft>()) }
-    var nextId by remember(baselines) { mutableStateOf(0) }
-    val baseline = baselines[horizon]
+    var open by remember(baseline) { mutableStateOf(false) }
+    var drafts by remember(baseline) { mutableStateOf(emptyList<WhatIfDraft>()) }
+    var nextId by remember(baseline) { mutableStateOf(0) }
 
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("s7_forecast_scenario_panel")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -62,16 +67,10 @@ internal fun CanonicalForecastScenarioPanel(
                 onClick = { open = !open },
                 modifier = Modifier.testTag("s7_forecast_scenario_toggle"),
             ) { Text(if (open) "Κλείσιμο σεναρίου" else "Δοκιμή σεναρίου") }
-            if (open && baseline != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
-                    listOf(30, 60, 90).forEach { days ->
-                        TextButton(
-                            enabled = days in baselines,
-                            onClick = { horizon = days },
-                            modifier = Modifier.testTag("s7_forecast_scenario_horizon_$days"),
-                        ) { Text("$days ημέρες" + if (horizon == days) " ✓" else "") }
-                    }
-                }
+            if (open) {
+                Text("Υποθέσεις μόνο για τις επόμενες 30 ημέρες.",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.testTag("s7_mobile_forecast_30_only"))
                 Text("Οι υποθέσεις μένουν μόνο σε αυτή την οθόνη. " +
                     "Καμία οικονομική συναλλαγή δεν καταχωρίζεται.",
                     style = MaterialTheme.typography.bodySmall)

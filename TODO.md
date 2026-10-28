@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate consolidated PR #383 exact final SHA through Project Tracking, Android CI, screenshot regression and hosted S24 emulator; visually inspect updated Plan golden(s) and update only if justified, then rerun all gates. Merge only after all 4/4 success on unchanged head, reviews clean. Owner physical S24 Ultra #149 remains distinct.
+- [ ] Validate owner-30-day Plan UI PR #385 on immutable head through Project Tracking, Android CI, screenshot regression and hosted S24 tests. Review screenshots; fix any failures in a cohesive batch, merge only if 4/4 green and develop unchanged. Owner physical Galaxy S24 Ultra #149 independently pending.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #383, branch android/mobile-recurring-history-20261028
-Current W2.4: Merged owner Android PRs #378–#382 all 4/4 to develop 926b845f60d120816f74cc15d45ebd1e076d6158. PR #383 is the single consolidated read-only recurring Plan pass, combining real booked monthly/last payment history with bounded 5-row expansion, variable expected amount validation, filters and stable original indexed identity; root Plan link always visible. The initial test-only unresolved `assertExists` import was corrected. Duplicate PR #384 closed unmerged. CI/hosted S24 and changed Plan screenshot(s) on current final head pending; historical Web parity 1/6 · 11/24, physical owner #149 pending.
+Issue #155, PR #385, branch android/owner-30day-plan-forecast-only-20261028
+Current W2.4: PR #383 read-only recurring Plan/real-payment history merged to develop a75935269c0532c7e47ca950f4db80d927b5ae47 with all 4 required exact-head PR checks green. Draft PR #385 now enforces user choice 30-day-only Android forecasting UI/scenarios without changing shared Web-canonical 30/60/90 calculations. Plan scenario control and 60/90 cards removed from Android presentation; pure scope and hosted Compose tests authored but exact-head validation pending. Historical broader parity accepted 1/6 · 11/24, physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Review exact-head 4 required PR #383 checks and changed Plan reference images. Fix only confirmed failures, merge on 4/4 green with clean reviews/base. Physical owner S24 #149 independently pending.
+Next Run four exact-head PR #385 gates; inspect rendered forecast screen screenshots and hosted S24 assertions for 30-only scope and unchanged canonical calculations. Merge only with all checks success, clean reviews and unchanged develop; preserve independent physical owner S24 signoff.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

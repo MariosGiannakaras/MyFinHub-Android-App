@@ -40,6 +40,10 @@ class WebForecastScenarioComposeTest {
             CanonicalPlanForecastScreen(uiState(data), onBack = {})
         } }
         rule.onNodeWithTag("s7_forecast_scenario_toggle").performScrollTo().performClick()
+        rule.onNodeWithTag("s7_mobile_forecast_30_only")
+            .performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("s7_forecast_scenario_horizon_60").assertDoesNotExist()
+        rule.onNodeWithTag("s7_forecast_scenario_horizon_90").assertDoesNotExist()
         rule.onNodeWithTag("s7_forecast_scenario_add").performScrollTo().performClick()
         rule.onNodeWithTag("s7_forecast_scenario_amount_1")
             .performScrollTo().performTextReplacement("20")
