@@ -181,8 +181,8 @@ fun CanonicalCardSecureDetailsScreen(
                                 val normalizedPan = panDraft.filter(Char::isDigit)
                                 val normalizedExpiry = expiryDraft.trim()
                                 validation = when {
-                                    normalizedPan.length !in 12..19 -> "Ο αριθμός κάρτας πρέπει να έχει 12 έως 19 ψηφία."
-                                    !isValidSecureCardExpiry(normalizedExpiry) -> "Η λήξη πρέπει να είναι MM/YY ή MM/YYYY."
+                                    CardVaultWriteContract.normalizePan(normalizedPan) == null -> "Ο αριθμός κάρτας πρέπει να έχει ακριβώς 16 ψηφία."
+                                    CardVaultWriteContract.normalizeExpiry(normalizedExpiry) == null -> "Η λήξη πρέπει να είναι μη ληγμένη (MM/YY ή MM/YYYY)."
                                     else -> null
                                 }
                                 if (validation == null) {
@@ -263,7 +263,7 @@ fun CanonicalCardSecureDetailsScreen(
                                     onSaveCvv(chars)
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = !relevantState.cvvSaving && cvvDraft.length in 3..4,
+                                enabled = !relevantState.cvvSaving && CardVaultWriteContract.normalizeCvv(cvvDraft) != null,
                                 icon = null,
                             )
                             relevantState.message?.let {
@@ -317,6 +317,4 @@ private fun CardSecretUiState.forCard(cardId: String): CardSecretUiState = when 
     CardSecretUiState.AuthRejected -> this
 } ?: CardSecretUiState.Hidden(cardId)
 
-private fun isValidSecureCardExpiry(value: String): Boolean =
-    Regex("^(0[1-9]|1[0-2])/(\\d{2}|\\d{4})$").matches(value)
 
