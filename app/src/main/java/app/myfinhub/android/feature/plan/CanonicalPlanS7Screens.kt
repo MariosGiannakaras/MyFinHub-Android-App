@@ -74,9 +74,11 @@ internal data class CanonicalBudgetProgress(
 )
 
 internal fun canonicalBudgetProgress(state: PlanUiState): CanonicalBudgetProgress? {
-    val limit = state.budget.monthlyLimitText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 } ?: return null
+    val limit = mobileBudgetLimitOrNull(state.budget.monthlyLimitText) ?: return null
+    if (!state.budgetSpent.isFinite()) return null
     val spent = state.budgetSpent.coerceAtLeast(0.0)
     val ratio = spent / limit
+    if (!ratio.isFinite() || !(ratio * 100.0).isFinite()) return null
     val percent = (ratio * 100.0).roundToInt().coerceAtLeast(0)
     val threshold = state.budget.alertThresholdText.toIntOrNull()?.takeIf { it in 1..100 }
     return CanonicalBudgetProgress(
@@ -1159,10 +1161,10 @@ fun CanonicalBudget2026Screen(
                     },
                     enabled = dirty && !saveRequested && !mutationInFlight && !mutationBlocked,
                     onClick = {
-                        val limit = limitDraft.replace(',', '.').toDoubleOrNull()
+                        val limit = mobileBudgetLimitOrNull(limitDraft)
                         val threshold = thresholdDraft.toIntOrNull()
                         localError = when {
-                            limit == null || limit <= 0.0 -> "Το μηνιαίο όριο πρέπει να είναι μεγαλύτερο από μηδέν."
+                            limit == null -> "Το μηνιαίο όριο πρέπει να είναι θετικό ποσό με έως δύο δεκαδικά."
                             threshold == null || threshold !in 50..99 -> "Το όριο προειδοποίησης πρέπει να είναι από 50 έως 99%."
                             else -> null
                         }
@@ -1265,7 +1267,9 @@ fun CanonicalBudget2026Screen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            if (state.budgetProjectedDue > 0.0) {
+                            if (state.budgetProjectedDue.isFinite() &&
+                                state.budgetProjectedDue > 0.0 &&
+                                state.budgetProjectedRemaining.isFinite()) {
                                 Text(
                                     "Γνωστές εκκρεμείς υποχρεώσεις: " +
                                         amountVisibilityText(formatPlanS7Euro(state.budgetProjectedDue), amountsVisible),
@@ -1770,10 +1774,7 @@ private fun CanonicalCategoryBudgetEditor(
     var threshold by remember(initial?.id) {
         mutableStateOf(initial?.alertThresholdText ?: "80")
     }
-    val money = amount.replace(',', '.').toDoubleOrNull()
-    val centsValid = money != null && money.isFinite() && money > 0.0 &&
-        abs(money * 100.0 - kotlin.math.round(money * 100.0)) < 0.000001
-    val valid = category.trim().isNotEmpty() && centsValid &&
+    val valid = category.trim().isNotEmpty() && mobileBudgetLimitOrNull(amount) != null &&
         (initial != null || categories.isEmpty() || category.trim() in categories) &&
         (threshold.toIntOrNull()?.let { it in 50..99 } == true) &&
         existing.none { it.name.trim() == category.trim() && it.id != initial?.id }
@@ -1846,11 +1847,12 @@ private fun CanonicalCategoryBudgetEditor(
 }
 
 internal fun budgetDraftEquivalent(first: BudgetDraft, second: BudgetDraft): Boolean {
-    val firstLimit = first.monthlyLimitText.replace(',', '.').toDoubleOrNull()
-    val secondLimit = second.monthlyLimitText.replace(',', '.').toDoubleOrNull()
+    val firstLimit = mobileBudgetLimitOrNull(first.monthlyLimitText)
+    val secondLimit = mobileBudgetLimitOrNull(second.monthlyLimitText)
     val sameLimit = when {
-        firstLimit == null || secondLimit == null -> first.monthlyLimitText.trim() == second.monthlyLimitText.trim()
-        else -> abs(firstLimit - secondLimit) < 0.005
+        firstLimit == null || secondLimit == null ->
+            first.monthlyLimitText.trim() == second.monthlyLimitText.trim()
+        else -> firstLimit == secondLimit
     }
     return sameLimit && first.alertThresholdText.toIntOrNull() == second.alertThresholdText.toIntOrNull()
 }
@@ -1886,4 +1888,5 @@ private fun String?.toPlanS7DateOrNull(): LocalDate? = this
     ?.let { raw -> runCatching { LocalDate.parse(raw.take(10)) }.getOrNull() }
 
 private fun formatPlanS7Euro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+    if (value.isFinite()) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+    else "—"

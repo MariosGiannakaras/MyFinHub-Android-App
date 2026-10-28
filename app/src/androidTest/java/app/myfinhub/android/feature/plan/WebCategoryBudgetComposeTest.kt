@@ -7,6 +7,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +45,43 @@ class WebCategoryBudgetComposeTest {
         rule.onNodeWithTag("s7_budget_root").performScrollToIndex(25)
         rule.onNodeWithTag("s7_category_budget_more").performClick()
         rule.onNodeWithTag("s7_category_budget_25")
+            .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun corruptedImportedBudgetValuesDoNotRenderNaNOrAnInfiniteProgressCard() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = PlanUiState(
+                    budget = BudgetDraft("Infinity", "80"),
+                    budgetSpent = Double.NaN,
+                    budgetProjectedDue = Double.POSITIVE_INFINITY,
+                ),
+                onSaveBudget = { _, _ -> error("Invalid source must not dispatch") },
+                onBack = {},
+            )
+        } }
+        assertTrue(runCatching { rule.onNodeWithText("Πρόοδος μήνα").fetchSemanticsNode() }.isFailure)
+        assertTrue(runCatching {
+            rule.onNodeWithText("Γνωστές εκκρεμείς υποχρεώσεις:").fetchSemanticsNode()
+        }.isFailure)
+        rule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
+    }
+
+    @Test fun subcentMonthlyLimitCannotDispatchARealBudgetMutation() {
+        var saveCount = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = PlanUiState(budget = BudgetDraft("900", "80")),
+                onSaveBudget = { _, _ -> saveCount++ },
+                onBack = {},
+            )
+        } }
+        rule.onNodeWithTag("s7_budget_limit").performScrollTo()
+            .performTextClearance()
+        rule.onNodeWithTag("s7_budget_limit").performTextInput("900.001")
+        rule.onNodeWithTag("s7_budget_save").performClick()
+        rule.runOnIdle { assertEquals(0, saveCount) }
+        rule.onNodeWithText("Το μηνιαίο όριο πρέπει να είναι θετικό ποσό με έως δύο δεκαδικά.")
             .performScrollTo().assertIsDisplayed()
     }
 

@@ -16,6 +16,22 @@ class PlanReducerTest {
     }
 
     @Test
+    fun monthlyAndCategoryDraftsRejectNonfiniteAndSubcentLimits() {
+        for (bad in listOf("Infinity", "NaN", "900,001", "1e309", "0")) {
+            val summary = reducePlan(PlanUiState(budget = BudgetDraft(bad, "80")), PlanAction.SaveBudget)
+            assertTrue("Overall should reject $bad", summary.message.orEmpty().contains("μηνιαίο όριο"))
+            val categories = reducePlan(
+                PlanUiState(categoryBudgets = listOf(CategoryBudget(
+                    id = "food", name = "Τρόφιμα", monthlyLimitText = bad,
+                    spent = 0.0, alertThresholdText = "80",
+                ))),
+                PlanAction.SaveCategoryBudgets,
+            )
+            assertTrue("Category should reject $bad", categories.categoryBudgetMessage.orEmpty().contains("Τρόφιμα"))
+        }
+    }
+
+    @Test
     fun validBudget_isAccepted() {
         val state = PlanUiState(budget = BudgetDraft(monthlyLimitText = "850,50", alertThresholdText = "80"))
 
