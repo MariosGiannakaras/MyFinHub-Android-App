@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Owner-selected five-root Android redesign PR #378 through 30-day Plan forecast PR #385 are merged into develop aafa9252a901e6e0f3263a8282c68023f4ee9a30 after exact-head 4/4 required gates. New Android-only draft PR #386 makes scheduled Plan management accessible even with empty history; protects imported duplicate/unknown scheduled kinds and statuses from ambiguous writes, formats source money and dates fail-closed, rechecks a live canonical row before an open confirmation dialog can dispatch, and requires selected source/destination IDs to belong to current accounts. Adds unit presentation rules and hosted Compose empty/new schedule, unsupported imported row, live sync invalidation and Plan-navigation tests. Draft code is unvalidated/unmerged. Historical accepted broad Web parity remains 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra #149 independent pending. No Web/backend/schema, SMS #146, production finance writes, signing/main/release.
+Owner-selected Android five-root redesign and native Plan workflows through merged PR #386 (latest develop 3b7f3b53634a2fd77993300db01bf5f341924a3a) passed all four immutable-head required gates. New consolidated Android-only draft PR #387 hardens monthly, category and subcategory budget inputs to exact positive euro cents through one shared parser, rejects NaN/Infinity/non-finite/extra decimals/overflow in Plan reducers and on-screen save flows, and refuses to present invalid canonical overall budget progress or future commitment figures. Adds pure unit boundary/reducer regression plus hosted Compose malformed-source safety coverage. Code authored, unvalidated and unmerged. Historical accepted broad Web parity remains 1/6 implementations · 11/24 subtasks; owner physical Galaxy S24 Ultra #149 remains separately pending. No Web/backend/schema, SMS #146, finance event writes or release/signing/main.
 
 ## Immediate work
 
-- Validate Android-only PR #386 on same immutable head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator; inspect changed Plan golden(s) and fix failures in a cohesive batch, then merge only with 4/4 green. Physical owner S24 #149 remains separately pending.
+- Validate cohesive budget safety PR #387 on immutable head through Project Tracking, Android CI, 102 screenshots and hosted S24 emulator; inspect any changed Compose screenshots, fix failed checks in one batch, merge only 4/4 success. Physical owner Galaxy S24 Ultra acceptance issue #149 remains separate.
 
 ## Constraints
 
@@ -54,10 +54,10 @@ Owner-selected five-root Android redesign PR #378 through 30-day Plan forecast P
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #386, branch android/scheduled-plan-empty-safe-20261028
-Current W2.4: Owner #378 through #385 merged into develop aafa9252a901e6e0f3263a8282c68023f4ee9a30 with all 4 required head gates each. Draft #386 fixes the scheduled Plan empty-history unreachable state and fail-closed malformed/duplicate historical source entries and stale confirmation, with hosted/UI tests. PR CI and physical #149 not yet passed; historical broader accepted parity 1/6 · 11/24.
+Issue #155, PR #387, branch android/budget-money-validation-source-safety-20261028
+Current W2.4: Owner #378 through #386 merged into develop 3b7f3b53634a2fd77993300db01bf5f341924a3a, each PR validated through exact-head four gates. Draft #387 consolidates strict positive two-decimal amount validation for overall/category/subcategory budgets and fails closed for nonfinite overall progress/commitment projection, with Kotlin and hosted Compose tests. Exact-head CI/physical acceptance pending; broader accepted Web parity 1/6 implementations · 11/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check #386 Project Tracking, Android CI, screenshots and hosted S24 emulator on the immutable final head. If new Plan screenshot changes, inspect and refresh only justified goldens. Merge only 4/4 success; physical owner S24 #149 independent.
+Next Validate PR #387 Project Tracking, Android CI, screenshot regression and hosted S24 emulator on exact final head. Merge only all 4 green and clean reviews/base. No physical owner Galaxy S24 #149 signoff assumed.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

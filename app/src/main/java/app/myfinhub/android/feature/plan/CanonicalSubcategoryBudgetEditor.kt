@@ -24,8 +24,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubSpacing
-import kotlin.math.abs
-import kotlin.math.round
 
 data class SubcategoryBudgetEditRequest(
     val budgetId: String?,
@@ -55,10 +53,7 @@ fun CanonicalSubcategoryBudgetEditor(
     var carryover by remember(initial?.id) { mutableStateOf(initial?.carryover ?: false) }
     var categoriesOpen by remember { mutableStateOf(false) }
     var subcategoriesOpen by remember { mutableStateOf(false) }
-    val validAmount = amount.replace(',', '.').toDoubleOrNull()?.let { value ->
-        value.isFinite() && value > 0.0 &&
-            abs(value * 100.0 - round(value * 100.0)) < 0.000001
-    } == true
+    val validAmount = mobileBudgetLimitOrNull(amount) != null
     val availableSubcategories = categories[category].orEmpty()
     val selectedKnown = if (initial != null) {
         initial.category == category && initial.subcategory == subcategory

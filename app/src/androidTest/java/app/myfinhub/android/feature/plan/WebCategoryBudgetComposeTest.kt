@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -42,6 +43,23 @@ class WebCategoryBudgetComposeTest {
         rule.onNodeWithTag("s7_category_budget_more").performClick()
         rule.onNodeWithTag("s7_category_budget_25")
             .performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun corruptedImportedBudgetValuesDoNotRenderNaNOrAnInfiniteProgressCard() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalBudget2026Screen(
+                state = PlanUiState(
+                    budget = BudgetDraft("Infinity", "80"),
+                    budgetSpent = Double.NaN,
+                    budgetProjectedDue = Double.POSITIVE_INFINITY,
+                ),
+                onSaveBudget = { _, _ -> error("Invalid source must not dispatch") },
+                onBack = {},
+            )
+        } }
+        rule.onNodeWithText("Πρόοδος μήνα").assertDoesNotExist()
+        rule.onNodeWithText("Γνωστές εκκρεμείς υποχρεώσεις:").assertDoesNotExist()
+        rule.onNodeWithTag("s7_budget_root").assertIsDisplayed()
     }
 
     @Test fun seededWebCategoryBudgetDisplaysExceededAndNetSpendingWithoutDraftSave() {
