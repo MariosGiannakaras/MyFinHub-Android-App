@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -65,9 +66,11 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -81,7 +84,6 @@ import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -213,7 +215,11 @@ fun CreditCardStack(
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
     val context = LocalContext.current
-    val clipboard = LocalClipboardManager.current
+    val providedClipboard = LocalSensitiveClipboardController.current
+    val clipboard = remember(context, providedClipboard) {
+        providedClipboard ?: SensitiveCardClipboard(context.applicationContext)
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
     val reducedMotion = remember(context) {
         runCatching {
             Settings.Global.getFloat(
@@ -242,6 +248,21 @@ fun CreditCardStack(
     }
 
     val revealed = (secretState as? CardSecretUiState.Revealed)?.takeIf { it.cardId == activeId }
+
+    // The stack shows owner+AAL2 card secrets just like the secure detail screen.
+    // Never bypass its 30-second, ownership-aware clipboard policy with Compose's
+    // unrestricted LocalClipboardManager. Dispose the copy on card change, reveal
+    // revocation, screen disposal or app backgrounding; leave foreign clips alone.
+    DisposableEffect(clipboard, lifecycleOwner, activeId, revealed != null) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) clipboard.clear()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            clipboard.clear()
+        }
+    }
 
     // Match uploaded HTML: 150ms departure, 320ms tuck-behind, reduced-motion fallback.
     fun restack(direction: Int) {
@@ -289,9 +310,12 @@ fun CreditCardStack(
     }
 
     fun copySecret(label: String, value: String?) {
-        if (value.isNullOrBlank()) return
-        clipboard.setText(AnnotatedString(value))
-        statusMessage = "$label αντιγράφηκε"
+        if (value.isNullOrBlank() || revealed == null) return
+        statusMessage = if (clipboard.copy(value)) {
+            "$label αντιγράφηκε προσωρινά"
+        } else {
+            "Δεν ήταν δυνατή η ασφαλής αντιγραφή"
+        }
     }
 
     fun selectCard(cardId: String) {

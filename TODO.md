@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify PR #379 on its immutable final SHA with Project Tracking, Android CI, screenshot regression (all 102 previews) and hosted S24 emulator. Check all four gates/reviews and merge ONLY if all succeed; verify develop afterwards. Physical owner Galaxy S24 Ultra acceptance #149 remains a separate explicitly approved task.
+- [ ] Validate native Card Stack clipboard lifecycle PR #380 on one immutable exact head with Project Tracking, Android CI, 102 screenshots and hosted S24 UI tests; fix any failures in one cohesive batch and merge only after 4/4 green, clean reviews and unchanged develop. Never claim physical owner S24 #149 acceptance.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #379, branch android/inline-credit-history-batch-20261027
-Current W2.4: PR #378 merged and verified 4/4 into develop 6b5c73bf7f886ead0d1dd744749f2c64606db13e. PR #379 adds inline credit activity and statement progressive disclosure, large-type limit layout, Reports net-position transfer, Compose/unit tests. Three 100%-native screenshots (inline credit Light/Dark/150%) visually reviewed and updated in exact bot commit acce8720fafa0e651ec1a7449d9531249a3f95b1 after isolated successful job 40587634726. Temporary privileged workflow deleted in final PR tree. Pending final 4/4 immutable-head verification and physical owner's S24 #149; broader acceptance remains 1/6 · 11/24.
+Issue #155, PR #380, branch android/stack-sensitive-clipboard-lifecycle-20261028
+Current W2.4: PR #378 (owner five-root Android redesign) merged 6b5c73bf7f886ead0d1dd744749f2c64606db13e (4/4). PR #379 (inline credit history and Reports net position) merged e8c367cbdaf56282670ab76aec0524e53dfb428f (4/4 immutable head). Current draft PR #380 secures clipboard copy in the native HTML-reference Card Stack, sharing the existing 30-second sensitive clipboard policy with secure card details and revoking on owner+AAL2 loss/card switch/background/disposal without affecting foreign clips. Three hosted lifecycle regressions authored but not yet executed. Historical broader parity 1/6 · 11/24, owner physical #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate exact-final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for PR #379. Merge to develop only after all 4/4 succeed and reviews/branch checks clear. Owner physical Galaxy S24 #149 remains independently pending, no signed release.
+Next Validate draft #380 Card Stack sensitive clipboard through Project Tracking, Android CI, screenshot regression and S24 hosted emulator on unchanged final head; inspect logs and fix in a batch if needed. Merge only after all 4/4 succeed; physical owner Galaxy S24 Ultra #149 independent.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
