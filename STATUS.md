@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Owner mobile five-root redesign #378 and inline credit-history Reports #379 are MERGED into Android develop e8c367cbdaf56282670ab76aec0524e53dfb428f after four required immutable PR gates each. Draft Android-only PR #380 secures PAN/expiry/CVV Card Stack copying through the existing 30s sensitive clipboard policy with owner-aware cleanup on card rotation, lost AAL2 reveal, navigation/disposal and backgrounding; three hosted lifecycle tests added. Initial exact head 856ce9473876ea38a2aa9cd699d6a784e6928173 passed Project Tracking but hosted S24 prebuild failed `compileDebugAndroidTestKotlin` due to invalid import of onNode in new test (not production implementation). Removed the invalid top-level import; new final exact-head four-gate verification is pending. Historical broader Web parity acceptance remains 1/6 implementations · 11/24 subtasks. Physical owner Galaxy S24 Ultra #149 remains distinct and unapproved, no Web/backend/schema, SMS #146, main/signing/release or finance writes.
+Owner-approved Android five-root redesign #378, inline credit history and Reports #379 and sensitive card-stack clipboard #380 all MERGED into develop (latest 03333b22a7118b88b146dd8de8303b2c4e93ce60), each with all four immutable-head required checks green. New cohesive Android-only PR #381 corrects native vertical swipe symmetry for 3+ debit/credit/virtual cards: up advances; down returns to the previous card, matching accessibility actions and keyboard arrows. Persists selected card stack order across Android saved instance-state recreation and reconciles removed/new source cards by stable ID, keeping inline credit details in sync. Pure order unit tests plus hosted S24 Compose 3-card and restoration tests authored; current branch not yet validated or merged. Historical accepted broader Web parity is still 1/6 implementations · 11/24 subtasks; physical owner Galaxy S24 Ultra acceptance issue #149 remains pending independently. No Web/backend/schema, production finance writes, SMS #146, main/signing/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Check final PR #380 Project Tracking, Android CI, screenshot regression and hosted S24 emulator at same immutable SHA after compile-test-import fix. If all four green, clean reviews and develop unchanged, merge to develop, independently verify post-merge and maintain owner physical #149 as pending.
+1. Validate focused Android vertical Card Stack state/gesture PR #381 (Project Tracking, Android CI, screenshot regression, hosted S24 emulator) on one immutable head, correct failures in a batch and merge only 4/4 green. Independently check develop post-merge Android CI for #380 and never claim owner's physical S24 #149 acceptance.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #380, branch android/stack-sensitive-clipboard-lifecycle-20261028
-Current W2.4: PR #378 and #379 both merged into develop e8c367cbdaf56282670ab76aec0524e53dfb428f (4/4 exact-head checks each). PR #380 Card Stack sensitive clipboard 30-second expiry and revocation on rotation/AAL2 loss/background/disposal. Initial PR head 856ce9473876ea38a2aa9cd699d6a784e6928173 Project Tracking green but hosted S24 APK prebuild failed ONLY because new test mistakenly imported nonexistent top-level androidx.compose.ui.test.onNode. Fixed the test import for final re-run. Historical accepted parity 1/6 · 11/24 and owner physical #149 unapproved.
+Issue #155, PR #381, branch android/vertical-card-restack-saveable-20261028
+Current W2.4: Merged PR #378 owner 5-root Android UI, #379 same-screen credit activity/Reports, and #380 shared 30-second sensitive clipboard across card stack and secure details into latest develop 03333b22a7118b88b146dd8de8303b2c4e93ce60, all with exact-head 4/4 PR gates. Next draft PR #381 fixes vertical stack up/down directional order for three or more cards; saves current card order/active selection through instance-state restoration, reconciles missing/new IDs, and adds unit/hosted Compose regression tests. Pending 4/4 on exact PR head; historical parity 1/6 · 11/24, owner physical #149 unapproved.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #380 on immutable head after removing invalid onNode import, through all 4 required gates. Merge only on 4/4 green, no review blockers, unchanged develop. No physical owner S24 signoff inferred.
+Next Validate PR #381 exact-head 4/4 jobs and owner mobile stack semantics; after all green, merge into develop and verify post-merge. No Web/backend/schema/production finance mutation or owner physical S24 signoff inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
