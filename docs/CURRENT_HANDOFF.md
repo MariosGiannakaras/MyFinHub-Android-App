@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Owner-selected five-root Android redesign and focused native enhancements #378–#390 MERGED into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf, with #390 read-only Greek recurring search/due sorting passing four exact-head PR checks and subsequent Android develop CI pending/independent. Current draft PR #391 is retargeted to develop and implements protected temporary IBAN copy across Home/Accounts/details using the existing 60-second sensitive clipboard policy extracted into core.security, ownership-preserving cleanup on Hide Amounts, IBAN change, ACCOUNT ID change even when IBAN value is identical, or row disposal, without clearing newer foreign clips. Explicitly does NOT revoke solely on app background so a bank paste remains possible. Added hosted Compose tests for normalization, privacy, expiry, foreign ownership and same-IBAN account switches. PR #391 awaits exact-head 4/4 GitHub validation; no owner physical Galaxy S24 Ultra #149 acceptance. Historical broad Web parity remains 1/6 implementations · 11/24 subtasks. No Web/backend/schema, SMS #146, finance writes, main/signing/release.
+Owner mobile redesign #378–#390 merged to Android develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf, preserving five native roots and Web-only advanced settings. Current PR #391 (Android account IBAN sensitive temporary copy) is draft, exact-head Project Tracking and screenshots green, Android CI and hosted S24 instrumentation pending. New stacked Android-only PR #392 implements lightweight local scoped search and type chips only in long account-detail histories (6+ rows) without changing the two-row screenshot layout; uses canonical Web ledger search semantics, stable IDs/order, no backend queries/finance mutations, and amount privacy. Kotlin and hosted Compose tests authored, not executed. Do not merge stacked #392 before #391 integrates and exact-head #392 checks pass. Historical Web parity accepted 1/6 implementations · 11/24 subtasks; physical S24 owner signoff #149 independent and pending.
 
 ## Immediate work
 
-- Validate draft Android-only PR #391 on its new immutable head after retarget to develop: Project Tracking, Android CI, Compose screenshots and hosted S24 emulator. Repair any failures together and merge only 4/4 green. Physical owner Galaxy S24 Ultra #149 remains a separate acceptance gate.
+- Finish exact-head four-gate validation and merge draft #391 only when all checks green. Then retarget stacked #392 account detail history search to develop, run Project Tracking/Android CI/screenshots/hosted S24 on exact head and merge only 4/4 green. Maintain physical owner S24 #149 separately.
 
 ## Constraints
 
@@ -55,9 +55,9 @@ Owner-selected five-root Android redesign and focused native enhancements #378�
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
-Current W2.4: Owner mobile #378–#390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (PR #390 exact-head 4/4 verified). Current draft #391 retargeted to develop: shared sensitive 60-second IBAN clipboard across account overview/detail, including revocation on privacy, IBAN or account identity change and disposal, protection of foreign clipboard, with a hosted same-IBAN account-switch regression. Exact-head four required checks not yet run, physical owner #149 pending; broader accepted parity 1/6 · 11/24.
+Current W2.4: PR #390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (4/4). Draft PR #391 protected IBAN clipboard is being verified. Draft stacked PR #392 account-detail local history search and type filters for 6+ rows authored with canonical Web activity search, stable IDs and privacy; tests not executed. No acceptance claims; broad historical 1/6 · 11/24, owner physical #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for #391; inspect errors, fix in one coherent batch; merge to develop only with 4/4 successful gates and no review blockers. Physical owner #149 is independent.
+Next Verify and merge #391 only 4/4 green; retarget stacked #392 to develop afterward, validate four required gates on immutable head, merge only green. No physical S24 owner signoff inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
