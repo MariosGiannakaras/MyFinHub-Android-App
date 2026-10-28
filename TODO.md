@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft Android-only PR #391 on its new immutable head after retarget to develop: Project Tracking, Android CI, Compose screenshots and hosted S24 emulator. Repair any failures together and merge only 4/4 green. Physical owner Galaxy S24 Ultra #149 remains a separate acceptance gate.
+- [ ] Validate Android PR #393 against Web v1.7 strict Card Vault new-write contract with 4/4 immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator, including legacy encrypted migration preservation. Merge only on all green, review/base clear; confirm #392 remains independent; send confirmed Android compatibility evidence to Web release blocker #637. Shared PIN bearer-ticket #345 requires separate reviewed native implementation and real-stack integration before enabling global PIN. Physical owner S24 #149 independent.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #391, branch android/account-iban-temporary-clipboard-20261028
-Current W2.4: Owner mobile #378–#390 merged into develop ceb6a51f0ca832bfa1243798d2bf29b162241bcf (PR #390 exact-head 4/4 verified). Current draft #391 retargeted to develop: shared sensitive 60-second IBAN clipboard across account overview/detail, including revocation on privacy, IBAN or account identity change and disposal, protection of foreign clipboard, with a hosted same-IBAN account-switch regression. Exact-head four required checks not yet run, physical owner #149 pending; broader accepted parity 1/6 · 11/24.
+Issue #155, PR #393, branch android/card-vault-v17-write-compat-20261028
+Current W2.4: Web v1.7.0 release candidate #637 is source-merged to Web develop 81bbdf84, production v1.6; Web server strict NEW Card Vault write exactly 16 PAN/3 CVV/nonexpired UTC expiry, permissive legacy reads. Android current develop 76ce1288 from merged #391 still accepts legacy PAN12..19, CVV3..4 and expired expiry for writes; independently unmerged #392 focuses account detail. Current new draft #393 implements shared strict card-write validation in Compose Create, Secure Details and CardSecretViewModel, safely retains locally encrypted legacy data on incompatible migration rather than attempting rejected uploads; pure and hosted regressions authored. No 4/4 CI or physical approval yet. Shared owner PIN ticket and 423 in Android issue #345 remain separate and unimplemented; never activate PIN on live clients before compatibility verified. Historical broad parity 1/6 · 11/24.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator for #391; inspect errors, fix in one coherent batch; merge to develop only with 4/4 successful gates and no review blockers. Physical owner #149 is independent.
+Next Create Android-only PR #393 from 76ce1288 and run all 4 required exact-head gates; correct failures together, then merge with clean reviews/base and independently report Web #637 Card Vault compatibility evidence. Explicitly do not claim full v1.7 release readiness because global shared PIN #345 and full PostgreSQL/Storage restore release gate remain unresolved. Physical Galaxy S24 Ultra acceptance #149 remains separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

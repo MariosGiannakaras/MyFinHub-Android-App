@@ -10,7 +10,7 @@ import java.time.ZoneOffset
  * expiries can still be displayed without destroying or rewriting them.
  */
 internal object CardVaultWriteContract {
-    private val expirationPattern = Regex("""^([0-9]{2})\\s*[/\\-]\\s*([0-9]{2}|[0-9]{4})$""")
+    private val expirationPattern = Regex("""^([0-9]{2})\s*[/-]\s*([0-9]{2}|[0-9]{4})$""")
 
     fun normalizePan(raw: String): String? {
         val digits = raw.filter { it in '0'..'9' }

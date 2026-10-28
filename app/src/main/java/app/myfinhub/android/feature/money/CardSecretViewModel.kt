@@ -564,7 +564,7 @@ class CardSecretViewModel internal constructor(
                             expiry = migrated.second,
                             cvv = migrated.third,
                             message = if (migrated.first != null || migrated.second != null || migrated.third != null)
-                                "Τα παλιά τοπικά στοιχεία είναι διαθέσιμα. Ο συγχρονισμός τους απαιτεί έγκυρες τιμές."
+                                "Τα παλιά τοπικά στοιχεία κάρτας φορτώθηκαν. Ο συγχρονισμός τους ίσως χρειάζεται έλεγχο."
                             else message,
                         )
                     } else {
@@ -616,7 +616,7 @@ class CardSecretViewModel internal constructor(
             mutableNotices.tryEmit(
                 UserNotice(
                     message = "Παλιά στοιχεία κάρτας υπάρχουν μόνο στη συσκευή. Για συγχρονισμό χρειάζονται νέα έγκυρα στοιχεία.",
-                    details = "Ενέργεια: Μεταφορά παλιών στοιχείων κάρτας\\nΚατηγορία: LEGACY_CARD_SECRET_WRITE_INCOMPATIBLE",
+                    details = "Ενέργεια: Μεταφορά παλιών στοιχείων κάρτας\nΚατηγορία: LEGACY_CARD_SECRET_WRITE_INCOMPATIBLE",
                     diagnosticCode = "MFH-CARD-LEGACY-WRITE-INCOMPATIBLE",
                 ),
             )
