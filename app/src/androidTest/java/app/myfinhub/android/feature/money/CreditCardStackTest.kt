@@ -6,6 +6,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipeDown
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -91,6 +93,69 @@ class CreditCardStackTest {
         composeRule.onNodeWithText("5555 4444 3333 2222").assertIsDisplayed()
         composeRule.onNodeWithText("07/31").assertIsDisplayed()
         composeRule.onNodeWithText("729").assertIsDisplayed()
+    }
+
+    @Test
+    fun threeCardVerticalSwipesReverseDirectionAndKeepSingleSelection() {
+        var activeCardId: String? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = testCards(3),
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = { activeCardId = it },
+                    onOpenCard = {},
+                    onDeleteCard = {},
+                )
+            }
+        }
+        composeRule.waitUntil { activeCardId == "card-a" }
+        composeRule.onNodeWithTag("credit_card_card-a").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeUp(startY = bottom - inset, endY = top + inset, durationMillis = 400L)
+        }
+        composeRule.waitUntil(5_000) { activeCardId == "card-b" }
+        composeRule.onNodeWithTag("credit_card_card-b").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeUp(startY = bottom - inset, endY = top + inset, durationMillis = 400L)
+        }
+        composeRule.waitUntil(5_000) { activeCardId == "card-c" }
+        composeRule.onNodeWithTag("credit_card_card-c").performTouchInput {
+            val inset = (bottom - top) * .18f
+            swipeDown(startY = top + inset, endY = bottom - inset, durationMillis = 400L)
+        }
+        composeRule.waitUntil(5_000) { activeCardId == "card-b" }
+        composeRule.onNodeWithContentDescription("Κάρτα 2 από 3: Premium Midnight, ενεργή")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun selectedCardSurvivesSavedInstanceStateAndReconcilesRemovedCards() {
+        val cards = mutableStateOf(testCards(3))
+        var activeCardId: String? = null
+        val restoration = StateRestorationTester(composeRule)
+        restoration.setContent {
+            MyFinHubTheme {
+                CreditCardStack(
+                    cards = cards.value,
+                    secretState = CardSecretUiState.Hidden(),
+                    onActiveCardChanged = { activeCardId = it },
+                    onOpenCard = {},
+                    onDeleteCard = {},
+                )
+            }
+        }
+        composeRule.waitUntil { activeCardId == "card-a" }
+        composeRule.onNodeWithTag("credit_card_dot_card-c").performClick()
+        composeRule.waitUntil(5_000) { activeCardId == "card-c" }
+        restoration.emulateSavedInstanceStateRestore()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithContentDescription("Κάρτα 3 από 3: Bonus Visa Gold, ενεργή")
+            .assertIsDisplayed()
+        composeRule.runOnIdle { cards.value = cards.value.filterNot { it.id == "card-c" } }
+        composeRule.waitUntil(5_000) { activeCardId != "card-c" }
+        composeRule.onNodeWithTag("credit_card_dot_card-a").performClick()
+        composeRule.waitUntil(5_000) { activeCardId == "card-a" }
     }
 
     @Test

@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -106,6 +107,25 @@ import kotlinx.coroutines.launch
 private const val REFERENCE_CARD_ASPECT_RATIO = 1.586f
 private const val DELETE_THRESHOLD = .90f
 private const val MAX_VISIBLE_LAYERS = 4
+
+/**
+ * Vertical stack behavior is symmetric: upward swipe opens the next card,
+ * downward swipe returns to the previous card (wrapping at both ends).
+ * Both accessibility navigation and touch gestures must use this same rule.
+ */
+internal fun referenceCardOrderAfterSwipe(order: List<String>, direction: Int): List<String> =
+    when {
+        order.size < 2 || direction == 0 -> order
+        direction < 0 -> order.drop(1) + order.first()
+        else -> listOf(order.last()) + order.dropLast(1)
+    }
+
+/** Preserve the user's current top card while the canonical card roster changes. */
+internal fun referenceReconcileCardOrder(order: List<String>, ids: List<String>): List<String> {
+    val liveIds = ids.toSet()
+    val preserved = order.filter(liveIds::contains).distinct()
+    return preserved + ids.filterNot(preserved.toSet()::contains).distinct()
+}
 
 private data class ReferenceStackLayout(
     val y: Dp,
@@ -201,7 +221,9 @@ fun CreditCardStack(
     modifier: Modifier = Modifier,
 ) {
     val ids = cards.map(MoneyCard::id)
-    var order by remember { mutableStateOf(ids) }
+    // Retain the active card and physical stack order across activity recreation.
+    // ArrayList<String> is supported by Android Bundle's saveable-state registry.
+    var order by rememberSaveable { mutableStateOf(ArrayList(ids)) }
     var deleteArmedId by remember { mutableStateOf<String?>(null) }
     var deleteProgress by remember { mutableFloatStateOf(0f) }
     var deletingId by remember { mutableStateOf<String?>(null) }
@@ -233,7 +255,7 @@ fun CreditCardStack(
     val restackDistance = with(density) { 92.dp.toPx() }
 
     LaunchedEffect(ids) {
-        order = order.filter { it in ids } + ids.filterNot(order::contains)
+        order = ArrayList(referenceReconcileCardOrder(order, ids))
     }
 
     val cardById = remember(cards) { cards.associateBy(MoneyCard::id) }
@@ -282,7 +304,7 @@ fun CreditCardStack(
                     )
                     restackOpacity.animateTo(0f, animationSpec = tween(320))
                 }
-                order = order.drop(1) + order.first()
+                order = ArrayList(referenceCardOrderAfterSwipe(order, direction))
                 settleOffset.snapTo(0f)
                 restackOpacity.snapTo(1f)
             } finally {
@@ -326,7 +348,7 @@ fun CreditCardStack(
                 settleOffset.snapTo(0f)
                 settleOffset.animateTo(restackDistance * .55f, tween(140))
             }
-            order = order.drop(index) + order.take(index)
+            order = ArrayList(order.drop(index) + order.take(index))
             settleOffset.snapTo(0f)
         }
     }
@@ -369,8 +391,8 @@ fun CreditCardStack(
                     contentDescription = "Στοίβα καρτών. Χρησιμοποίησε τα πλήκτρα πάνω και κάτω για αλλαγή κάρτας."
                     customActions = activeCard?.let { card ->
                         listOf(
-                            CustomAccessibilityAction("Προηγούμενη κάρτα") { restack(-1); true },
-                            CustomAccessibilityAction("Επόμενη κάρτα") { restack(1); true },
+                            CustomAccessibilityAction("Προηγούμενη κάρτα") { restack(1); true },
+                            CustomAccessibilityAction("Επόμενη κάρτα") { restack(-1); true },
                             CustomAccessibilityAction("Άνοιγμα λεπτομερειών") { onOpenCard(card.id); true },
                         )
                     }.orEmpty()
@@ -380,8 +402,8 @@ fun CreditCardStack(
                         return@onPreviewKeyEvent false
                     }
                     when (event.key) {
-                        Key.DirectionUp -> { restack(-1); true }
-                        Key.DirectionDown -> { restack(1); true }
+                        Key.DirectionUp -> { restack(1); true }
+                        Key.DirectionDown -> { restack(-1); true }
                         Key.Enter, Key.Spacebar -> {
                             activeCard?.let { onOpenCard(it.id) }
                             activeCard != null
