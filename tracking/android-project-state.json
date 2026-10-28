@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Owner-approved five-root Android redesign #378–#389 MERGED to develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559, including #389 credit financial read safety with immutable 4/4 Project Tracking/Android CI/screenshot/S24 green. Current owner mobile Plan scope keeps recurring/standing charges read-only (Web authoring only). New Android-only draft PR #390 adds case/accent-insensitive Greek search across canonical recurring title/category/subcategory/cadence, filter composition, optional genuine next-due chronological sorting that leaves malformed and inactive source records visible in stable identity order, and accurate result counts. No local mutations or fabricated dates, amount privacy preserved. Kotlin sorting/search tests plus hosted S24 Compose search/privacy/duplicate-ID regressions authored, exact-head CI pending. Historical broader Web parity acceptance remains 1/6 implementations · 11/24 subtasks, owner physical Galaxy S24 Ultra #149 unapproved. No Web/backend/schema, SMS #146, finance writes, release/main/signing.",
+    "summary": "Historical broad Web parity remains 1/6 implementations · 11/24 subtasks. Owner five-root Android redesign and focused #378–#389 work merged into develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559. Parent draft #390 implements mobile Plan read-only Greek searchable/sortable recurring overview; Project Tracking and screenshots passed, Android CI passed, hosted S24 was running when stacked #391 was authored. New stacked draft #391 applies the existing temporary owner-only sensitive clipboard policy to Home, Accounts and Account detail IBAN copying: normalize valid IBAN, mark sensitive, expire after 60 seconds, revoke owned copy on privacy toggle/account change/screen departure, preserve newer foreign clipboard and permit external paste after switching apps. It moves the shared controller from feature.money to core.security with compatibility aliases; adds hosted UI clipboard tests. No Web/backend/schema, real finance writes, SMS #146, signing/main/release; #391 unvalidated/unmerged; owner physical Galaxy S24 Ultra acceptance #149 independent.",
     "next": [
-      "Validate PR #390 Greek recurring search and due-order on exact final head through Project Tracking, Android CI, screenshot regression and S24 hosted tests; inspect render changes if any and fix in one combined batch. Merge only 4/4 green with clean base/reviews; physical owner S24 #149 independent."
+      "First verify #390 exact-head four checks and merge to develop only if all green; then retarget stacked #391 to develop and validate its Project Tracking, Android CI, screenshot regression, hosted S24 UI tests on immutable head. Correct any compilation/instrumentation errors as one batch, merge only 4/4 green; physical owner #149 pending."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/plan-recurring-search-due-20261028",
-    "checkpoint": "Merged owner Android five-root #378–#389 into develop ee3fe4b3c4c90d71a6b8e2dd3759bba4bbfa6559. New draft #390 enables mobile read-only recurring list search (diacritic-insensitive Greek), combines status filters, sorts valid active next dues chronologically without hiding historical/invalid rows, shows visible counts, retains canonical source-index keys and amount privacy. Pure Kotlin and S24 Compose tests prepared, not yet validated. Accepted broad Web parity remains 1/6 · 11/24; owner physical #149 pending.",
+    "branch": "android/account-iban-temporary-clipboard-20261028",
+    "checkpoint": "PR #390 Greek recurring search/sort is open on exact head 1cbf3a83b4a0077687064d3b82fd0f9891c4e63b; Project Tracking, screenshots, Android CI successful; hosted S24 pending at #391 creation. Stacked draft PR #391 shares temporary sensitive clipboard with IBAN copy across Home, Accounts and details: 60s TTL, normalized valid IBAN, independent external paste, privacy/disposal revocation, foreign ownership protection; Android UI tests newly authored but not executed. Old Web parity accepted 1/6 · 11/24, physical #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1174,9 +1174,9 @@
         ]
       }
     ],
-    "next_action": "Run four exact-head #390 gates (Project Tracking, Android CI, screenshots, hosted S24). Fix in one batch if necessary; merge only all green and preserve independent physical owner Galaxy S24 #149 acceptance.",
+    "next_action": "Verify parent #390 4/4 immutable head, merge if green; retarget child #391 to develop, run four exact-head checks, fix blockers in a batch, merge only green. Do not claim user physical acceptance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 390,
+    "pr": 391,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
