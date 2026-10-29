@@ -3,6 +3,9 @@ package app.myfinhub.android.feature.activity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -103,6 +106,40 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.onNodeWithTag("activity_list")
             .performScrollToNode(hasText("Πρώτη ίδια ταυτότητα"))
         rule.onNodeWithText("Πρώτη ίδια ταυτότητα").assertIsDisplayed()
+    }
+
+    @Test fun blankAndDuplicateGlobalLedgerIdsStayVisibleButNotClickable() {
+        val rows = listOf(
+            ActivityItem("", "19 Οκτ", ActivityKind.EXPENSE, "Χωρίς κωδικό", "", -15.0,
+                "Μετρητά", "Τρόφιμα", rawDate = "2026-10-19", note = "Χωρίς κωδικό"),
+            ActivityItem("duplicate", "19 Οκτ", ActivityKind.EXPENSE, "Πρώτη διπλή", "", -20.0,
+                "Μετρητά", "Τρόφιμα", rawDate = "2026-10-19", note = "Πρώτη διπλή"),
+            ActivityItem("duplicate", "19 Οκτ", ActivityKind.EXPENSE, "Δεύτερη διπλή", "", -35.0,
+                "Μετρητά", "Τρόφιμα", rawDate = "2026-10-19", note = "Δεύτερη διπλή"),
+            ActivityItem("safe", "19 Οκτ", ActivityKind.EXPENSE, "Έγκυρη κίνηση", "", -10.0,
+                "Μετρητά", "Τρόφιμα", rawDate = "2026-10-19", note = "Έγκυρη κίνηση"),
+        )
+        val state = ActivityUiState(items = rows)
+        var selected: String? = null
+        rule.setContent { MyFinHubTheme {
+            ActivityLedgerScreen(
+                state = state,
+                onAction = {},
+                onOpenDetail = { selected = it },
+                onOpenQuickEntry = {},
+            )
+        } }
+        for (index in 0..2) {
+            rule.onNodeWithTag("activity_list")
+                .performScrollToNode(hasTestTag("activity_ledger_source_0_$index"))
+            rule.onNodeWithTag("activity_ledger_source_0_$index")
+                .assertIsNotEnabled()
+        }
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasTestTag("activity_ledger_source_0_3"))
+        rule.onNodeWithTag("activity_ledger_source_0_3")
+            .assertIsEnabled().performClick()
+        rule.runOnIdle { assertEquals("safe", selected) }
     }
 
     @Test fun queryOnlyProvidesSafeSignedSummaryAndOneStepClearAction() {

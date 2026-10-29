@@ -194,6 +194,17 @@ enum class ActivityFilterField {
     DATE,
 }
 
+/**
+ * A historic imported row has no safe detail destination without exactly one
+ * nonblank canonical source ID in the full ledger. Preserve that row in totals.
+ */
+internal fun activityLedgerIdentityWarning(id: String, ambiguousIds: Set<String>): String? =
+    when {
+        id.isBlank() -> "Χωρίς αναγνωριστικό · η κίνηση δεν ανοίγει"
+        id in ambiguousIds -> "Διπλό αναγνωριστικό · απαιτεί έλεγχο"
+        else -> null
+    }
+
 data class ActivitySection(val date: String, val items: List<ActivityItem>)
 
 /** Web TransactionsPage full-month summary, independent of native history filters. */

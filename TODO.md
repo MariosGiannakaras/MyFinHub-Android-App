@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #397 immutable exact head against all four gates: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Inspect source rows with legacy duplicate/blank IDs and safeguard valid account search. Merge only with 4/4 green and clean develop/reviews; preserve physical owner #149 independently.
+- [ ] Finish the immutable-head S24 retry of PR #397 (three other gates green); merge #397 only with all four green, clean reviews and unchanged develop. Then retarget stacked #398 (Activity global ledger duplicate/blank ID fail-closed navigation) to develop, verify all four required gates on its final head and merge only after success. If the unrelated Plan budget test fails again, investigate its actual save semantics; never bypass a failure. Physical owner S24 #149 remains separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #397, branch android/account-history-duplicate-identity-safe-20261029
-Current W2.4: PR #396 card-activity duplicate/blank fail-closed navigation MERGED into develop 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9 with exact-head four green PR gates. Draft PR #397 extends source-safe historical ID navigation to Account Detail: stable original-index LazyColumn keys, global ledger ID uniqueness (not merely within selected account), disabling unsafe tap and visible warning, preserving imported rows/dates/amount privacy, backed by pure and hosted Compose tests. Code authored; CI/owner physical S24 pending. Historical accepted broader parity 1/6 · 11/24; W2.4/W3.1 incomplete.
+Issue #155, PR #398, branch android/ledger-missing-id-navigation-safety-20261029
+Current W2.4: PR #396 merged in develop 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9. Draft #397 account-history ID integrity: 3/4 gates green on head 920ac16c, S24 emulator 274/275 due unrelated S7 budget-save assertion, retry of only failed job in progress. New stacked #398 global ledger ID safety disables blank/whitespace/duplicate historical activity row actions, keeps all source rows and visible warning, validates via full canonical ledger rather than filtered results. Unit/Compose tests authored and unvalidated. Web parity accepted 1/6 · 11/24, physical owner #149 pending, global PIN #345 disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #397 at identical final commit via Project Tracking, Android CI, screenshots and hosted S24; merge to develop only after all 4 successes, no review blockers and unchanged base. Owner physical Galaxy S24 #149 separate; do not enable shared global PIN ticket #345 or release/signing.
+Next Finish #397 S24 failed-job rerun, merge if 4/4 green unchanged head and reviews clear. Retarget stacked #398 from #397 branch to develop and verify exact-head Project Tracking, Android CI, screenshot and hosted S24; inspect rendered warnings and no route for invalid IDs. Do not infer physical Galaxy S24 #149 acceptance or enable global PIN ticket.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

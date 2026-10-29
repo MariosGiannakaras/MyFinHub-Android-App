@@ -361,17 +361,22 @@ fun ActivityLedgerScreen(
                         itemsIndexed(
                             section.items,
                             key = { itemIndex, item -> "row-$sectionIndex-$itemIndex-${item.id}" },
-                        ) { _, item ->
+                        ) { itemIndex, item ->
+                            // A visible row is not a navigable event unless its source
+                            // ID uniquely identifies one canonical ledger transaction.
+                            val canOpen = state.isUniqueMutationTarget(item.id)
                             ActivityFlatLedgerRow(
                                 item = item,
                                 accountOptions = state.accountOptions,
                                 amountsVisible = amountsVisible,
-                                ambiguousIdentity = item.id in state.ambiguousIds,
+                                canOpen = canOpen,
+                                identityWarning = activityLedgerIdentityWarning(item.id, state.ambiguousIds),
+                                rowTag = "activity_ledger_source_${sectionIndex}_$itemIndex",
                                 categoryIconColors = categoryIconColors,
                                 subcategoryIconColors = subcategoryIconColors,
                                 categoryGlyphOverrides = categoryGlyphOverrides,
                                 onClick = {
-                                    if (item.id !in state.ambiguousIds) onOpenDetail(item.id)
+                                    if (state.isUniqueMutationTarget(item.id)) onOpenDetail(item.id)
                                 },
                             )
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -594,7 +599,9 @@ private fun ActivityFlatLedgerRow(
     item: ActivityItem,
     accountOptions: List<ActivityAccountOption>,
     amountsVisible: Boolean,
-    ambiguousIdentity: Boolean,
+    canOpen: Boolean,
+    identityWarning: String?,
+    rowTag: String,
     categoryIconColors: Map<String, String>,
     subcategoryIconColors: Map<String, String>,
     categoryGlyphOverrides: Map<String, String>,
@@ -617,7 +624,7 @@ private fun ActivityFlatLedgerRow(
         else -> item.note
     }
     val meta = when {
-        ambiguousIdentity -> "Διπλό αναγνωριστικό · απαιτεί έλεγχο"
+        identityWarning != null -> identityWarning
         item.pendingSync -> item.pendingLabel ?: "Εκκρεμεί συγχρονισμός"
         item.isInternalTransfer() -> if (realWebRow)
             "${item.typeLabel} · ${item.accountLabel}" else "Εσωτερική μεταφορά"
@@ -662,6 +669,8 @@ private fun ActivityFlatLedgerRow(
         amountText = amountVisibilityText(formatActivityFlowEuro(item), amountsVisible),
         tone = tone,
         onClick = onClick,
+        enabled = canOpen,
+        modifier = Modifier.testTag(rowTag),
     )
     // Web TransactionSplitDetails is an independent, read-only control inside
     // the transaction row. Opening the disclosure must not navigate to details.
