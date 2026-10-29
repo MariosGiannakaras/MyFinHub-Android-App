@@ -128,6 +128,7 @@ fun CanonicalWalletScreen(
     amountsVisibleOverride: Boolean? = null,
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
+    fullActivityIdCounts: Map<String, Int>? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -210,6 +211,7 @@ fun CanonicalWalletScreen(
                     onPayCreditCard = onPayCreditCard,
                     onAddCreditPurchase = onAddCreditPurchase,
                     onOpenCreditActivity = onOpenCreditActivity,
+                    fullActivityIdCounts = fullActivityIdCounts,
                     onOpenCard = onOpenCard,
                     onAddCard = onAddCard,
                     onDeleteCard = onDeleteCard,
@@ -504,6 +506,7 @@ private fun LazyListScope.walletCardsContent(
     onPayCreditCard: (String) -> Unit,
     onAddCreditPurchase: (String) -> Unit,
     onOpenCreditActivity: (String) -> Unit,
+    fullActivityIdCounts: Map<String, Int>?,
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
     onDeleteCard: (String) -> Unit,
@@ -542,6 +545,7 @@ private fun LazyListScope.walletCardsContent(
                 onPayCard = { onPayCreditCard(active.id) },
                 onAddPurchase = { onAddCreditPurchase(active.id) },
                 onOpenActivity = onOpenCreditActivity,
+                fullActivityIdCounts = fullActivityIdCounts,
                 onOpenDetails = { onOpenCard(active.id) },
             )
         }
