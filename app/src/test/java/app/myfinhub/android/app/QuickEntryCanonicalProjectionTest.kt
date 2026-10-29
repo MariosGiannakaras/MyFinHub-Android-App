@@ -243,11 +243,12 @@ private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
 private fun duplicateSourceFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
     Json.parseToJsonElement(
         """
-        {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}],
+        {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία",
+                                "providerId":"piraeus"}],
                  "transactions":[]},
          "state":{"cards":[
-            {"id":"c1","kind":"credit","active":true,"network":"visa"},
-            {"id":"c2","kind":"credit","active":true,"network":"visa"}
+            {"id":"c1","kind":"credit","active":true,"network":"visa","bankId":"piraeus"},
+            {"id":"c2","kind":"credit","active":true,"network":"visa","bankId":"piraeus"}
          ],"creditStatements":[
             {"id":"shared","cardId":"c1","openDate":"2026-08-26",
              "closeDate":"2026-09-25","dueDate":"2026-10-05"},
