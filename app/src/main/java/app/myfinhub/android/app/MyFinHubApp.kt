@@ -259,6 +259,10 @@ internal fun MyFinHubAppContent(
     val fullActivityIdCounts = remember(activityState.items) {
         activityState.items.groupingBy { it.id }.eachCount()
     }
+    val fullStatementIdCounts = remember(moneyState.creditStatementsByCard) {
+        moneyState.creditStatementsByCard.values.flatten()
+            .groupingBy { it.id }.eachCount()
+    }
     val navigationContent: @Composable () -> Unit = {
         CompositionLocalProvider(
             LocalFinancialProviderCatalog provides financialProviderCatalog,
@@ -554,6 +558,7 @@ internal fun MyFinHubAppContent(
                         card = card,
                         cards = moneyState.cards,
                         statements = moneyState.creditStatementsByCard[route.cardId].orEmpty(),
+                        fullStatementIdCounts = fullStatementIdCounts,
                         onSelectCard = { selectedCardId ->
                             if (selectedCardId != route.cardId) {
                                 moneyBackStack.removeLastOrNull()
@@ -586,7 +591,8 @@ internal fun MyFinHubAppContent(
                         onPayStatement = { statementId, remaining ->
                             val matching = moneyState.creditStatementsByCard[route.cardId].orEmpty()
                                 .filter { it.id == statementId }
-                            if (matching.size == 1 && matching.single().remaining > 0.005 &&
+                            if (fullStatementIdCounts[statementId] == 1 &&
+                                matching.size == 1 && matching.single().remaining > 0.005 &&
                                 kotlin.math.abs(matching.single().remaining - remaining) < 0.005
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)

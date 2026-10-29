@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Android develop includes verified merged PRs #392–#398, latest #398 global Activity ledger blank/duplicate-ID safe navigation squash-merged as 35520083e43f410714d21a014f8cdab73c26dfd3 after all four exact-head gates succeeded at 21edcfdd76f7102d68a070812162a5aab85a3c4d. New Android-only W2.4 source checkpoint guards the remaining cross-card/cross-account ID collisions inside inline credit rows, Card Detail history and statement-linked rows: their previous selected-card-only checks could open a dead-end when canonical full Activity ledger IDs collided elsewhere or were absent. Preserve every row, amounts, original finance IDs and privacy; add pure/hosted Compose regressions and guarded navigation. Source authored but NEW PR CI is not yet validated. Web parity accepted remains 1/6 implementations · 11/24 subtasks; owner physical S24 Ultra #149 pending. Global PIN #345 disabled, no Web/backend/schema, live financial writes, SMS #146, main/signing/release.
+Android develop includes merged PRs #392–#399, latest #399 card activity global source-identity guards (inline credit, Card Detail and statement links) squash-merged as 820676fc17c1b7be01465bd8ea09c81debb2bba8 after all 4 exact-head CI gates succeeded at da9624818000b280813071a0ed980c9e3533b902. Next Android-only W3.1 batch addresses imported duplicate credit statement IDs across different cards: preserve historical statement rows and privacy, but block ambiguous statement-specific payments and linked-event expansion, recheck ownership at callback, and reject ambiguous explicit Quick Entry statement IDs. Kotlin unit and hosted Compose regressions authored, not yet CI validated. Web parity accepted remains 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial. Global PIN #345 disabled; physical owner S24 Ultra #149 pending; no Web/backend/schema, live finance writes, SMS #146, signing/main/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate cross-ledger card/statement activity identity PR on immutable head through Project Tracking, Android CI, screenshot regression and hosted S24 emulator; review disabled missing/duplicate activity routes and unique source navigation. Merge into develop only with four green gates, clean reviews and unchanged base. Galaxy S24 owner #149 remains a separate acceptance gate.
+1. Validate draft PR #400 cross-card historical credit statement ID integrity on one immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 emulator, then review real card statement rendering and merge only with four successes, clean reviews and unchanged develop. Do not count W3.1 complete; Galaxy S24 physical #149 separate.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #399, branch android/card-cross-ledger-identity-20261029
-Current W2.4: PR #398 global Activity ledger identity guard squash-merged develop 35520083e43f410714d21a014f8cdab73c26dfd3 after 4/4 exact-head CI at 21edcfdd76f7102d68a070812162a5aab85a3c4d. New W2.4 Android-only card/source integrity checkpoint propagates canonical full-ledger ID multiplicity into inline credit, Card Detail and statement links, guards direct navigation callbacks and covers foreign collisions/missing IDs in Kotlin + hosted Compose tests. Source authored, CI not yet verified. Web parity 1/6 implementations · 11/24 subtasks; physical owner #149 pending.
+Issue #155, PR #400, branch android/credit-statement-global-owner-20261029
+Current W2.4: PR #399 merged develop 820676fc17c1b7be01465bd8ea09c81debb2bba8 after all four final-head CI checks succeeded at da9624818000b280813071a0ed980c9e3533b902. W3.1 new Android-only source work blocks ambiguous statement ID selection across all cards in Card Detail and Quick Entry while preserving original historical statements and Hide Amounts. Tests authored but PR CI pending; Web parity 1/6 implementations · 11/24 subtasks, physical S24 #149 still pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify new cross-ledger card activity PR at exact final head: Project Tracking, Android CI, screenshot and hosted S24; inspect activity and statement rows and merge only if all gates/reviews/base pass. No global PIN #345 activation, live financial writes, or physical S24 approval inference.
+Next Verify PR #400 at unchanged final head for Project Tracking, Android CI, screenshots and hosted S24. Confirm duplicate cross-card statements remain read-only with no payment selection or linked expansion; valid unique statements remain usable. Merge only after 4/4 success and clean base/reviews; no physical S24 signoff inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
