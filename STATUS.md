@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Android develop includes verified merged PR #392 account-scoped search, #393 strict Card Vault, #394 selected-card credit statements, #395 fail-closed credit money/archive, and #396 duplicate/missing card activity ID navigation safety, latest merge 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9. PR #396 exact head 2950e6cd9b028e16d6cb860b3488402ad165eeee passed Project Tracking, Android CI, screenshot regression and hosted S24 before merge. New DRAFT Android-only PR #397 closes the analogous account-history safety gap: preserves original ledger source positions as stable LazyColumn keys for duplicate/blank imported IDs; shows every record but disables unsafe navigation and displays source integrity warnings, scoped against ALL canonical activity IDs (including collisions from other accounts). Retains valid account history/filters/search, uses shared disabled-row semantics and adds pure Kotlin + hosted Compose regressions. Source authored; exact-head CI not yet validated/merged. Evidence-backed broader Web parity stays 1/6 implementations · 11/24 subtasks, W2.4/W3.1 partial. Global shared PIN ticket/HTTP 423 #345 remains disabled, physical owner Galaxy S24 Ultra rc12 #149 acceptance separate/pending. No Web/backend/schema, production finance edits, SMS #146, main/signing/release.
+Android develop includes verified merged PRs #392–#397, latest #397 account-history source-identity safety squash-merged as 1b4a87faf2797bc1cf9102486228452b475fc1ed after all four immutable-head CI gates passed at 920ac16ca66c75f3fc4626789bd61e726288469b (Project Tracking, Android CI, screenshot regression and hosted S24 emulator). Draft PR #398 is now based on develop and extends blank/whitespace/duplicate-ID fail-closed navigation to the global Activity ledger while preserving every imported row and amount; Kotlin unit and hosted Compose regressions are authored but NOT yet CI-validated on its updated branch head. Evidence-backed Web parity remains 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial. Global shared PIN #345 remains disabled, physical owner S24 Ultra rc12 acceptance #149 separate and pending. No Web/backend/schema, live financial writes, SMS #146, main/signing/release.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #397 immutable exact head against all four gates: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Inspect source rows with legacy duplicate/blank IDs and safeguard valid account search. Merge only with 4/4 green and clean develop/reviews; preserve physical owner #149 independently.
+1. Validate draft PR #398 against Project Tracking, Android CI, screenshot regression and hosted S24 emulator on one unchanged final commit; inspect rendered warnings and disabled navigation for missing/duplicate global Activity IDs and correct navigation for unique IDs. Merge to develop only if all four exact-head gates pass with clean base and reviews. If a test fails, diagnose the actual failure rather than bypass it. Owner physical S24 #149 remains separate.
 
 ## Non-negotiable constraints
 
@@ -50,10 +50,10 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #397, branch android/account-history-duplicate-identity-safe-20261029
-Current W2.4: PR #396 card-activity duplicate/blank fail-closed navigation MERGED into develop 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9 with exact-head four green PR gates. Draft PR #397 extends source-safe historical ID navigation to Account Detail: stable original-index LazyColumn keys, global ledger ID uniqueness (not merely within selected account), disabling unsafe tap and visible warning, preserving imported rows/dates/amount privacy, backed by pure and hosted Compose tests. Code authored; CI/owner physical S24 pending. Historical accepted broader parity 1/6 · 11/24; W2.4/W3.1 incomplete.
+Issue #155, PR #398, branch android/ledger-missing-id-navigation-safety-20261029
+Current W2.4: PR #397 merged into develop at 1b4a87faf2797bc1cf9102486228452b475fc1ed after final head 920ac16c passed all four gates. Draft #398 on develop extends full-canonical-ledger fail-closed ID navigation to global Activity history: blank, whitespace or duplicated IDs remain visible with read-only warning; valid unique IDs still navigate. Unit/Compose tests authored, new exact-head four-gate CI pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical #149 pending, global PIN #345 disabled.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #397 at identical final commit via Project Tracking, Android CI, screenshots and hosted S24; merge to develop only after all 4 successes, no review blockers and unchanged base. Owner physical Galaxy S24 #149 separate; do not enable shared global PIN ticket #345 or release/signing.
+Next Verify PR #398 final-head Project Tracking, Android CI, screenshot and hosted S24 checks after base reconciliation; inspect rendered invalid-ID warnings and disabled routes, and merge into develop only with all four successes, clean reviews and unchanged base. Do not infer physical Galaxy S24 #149 acceptance or enable global PIN ticket.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

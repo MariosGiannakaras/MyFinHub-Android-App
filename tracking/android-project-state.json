@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Android develop includes verified merged PR #392 account-scoped search, #393 strict Card Vault, #394 selected-card credit statements, #395 fail-closed credit money/archive, and #396 duplicate/missing card activity ID navigation safety, latest merge 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9. PR #396 exact head 2950e6cd9b028e16d6cb860b3488402ad165eeee passed Project Tracking, Android CI, screenshot regression and hosted S24 before merge. New DRAFT Android-only PR #397 closes the analogous account-history safety gap: preserves original ledger source positions as stable LazyColumn keys for duplicate/blank imported IDs; shows every record but disables unsafe navigation and displays source integrity warnings, scoped against ALL canonical activity IDs (including collisions from other accounts). Retains valid account history/filters/search, uses shared disabled-row semantics and adds pure Kotlin + hosted Compose regressions. Source authored; exact-head CI not yet validated/merged. Evidence-backed broader Web parity stays 1/6 implementations · 11/24 subtasks, W2.4/W3.1 partial. Global shared PIN ticket/HTTP 423 #345 remains disabled, physical owner Galaxy S24 Ultra rc12 #149 acceptance separate/pending. No Web/backend/schema, production finance edits, SMS #146, main/signing/release.",
+    "summary": "Android develop includes verified merged PRs #392–#397, latest #397 account-history source-identity safety squash-merged as 1b4a87faf2797bc1cf9102486228452b475fc1ed after all four immutable-head CI gates passed at 920ac16ca66c75f3fc4626789bd61e726288469b (Project Tracking, Android CI, screenshot regression and hosted S24 emulator). Draft PR #398 is now based on develop and extends blank/whitespace/duplicate-ID fail-closed navigation to the global Activity ledger while preserving every imported row and amount; Kotlin unit and hosted Compose regressions are authored but NOT yet CI-validated on its updated branch head. Evidence-backed Web parity remains 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial. Global shared PIN #345 remains disabled, physical owner S24 Ultra rc12 acceptance #149 separate and pending. No Web/backend/schema, live financial writes, SMS #146, main/signing/release.",
     "next": [
-      "Validate draft PR #397 immutable exact head against all four gates: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Inspect source rows with legacy duplicate/blank IDs and safeguard valid account search. Merge only with 4/4 green and clean develop/reviews; preserve physical owner #149 independently."
+      "Validate draft PR #398 against Project Tracking, Android CI, screenshot regression and hosted S24 emulator on one unchanged final commit; inspect rendered warnings and disabled navigation for missing/duplicate global Activity IDs and correct navigation for unique IDs. Merge to develop only if all four exact-head gates pass with clean base and reviews. If a test fails, diagnose the actual failure rather than bypass it. Owner physical S24 #149 remains separate."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/account-history-duplicate-identity-safe-20261029",
-    "checkpoint": "PR #396 card-activity duplicate/blank fail-closed navigation MERGED into develop 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9 with exact-head four green PR gates. Draft PR #397 extends source-safe historical ID navigation to Account Detail: stable original-index LazyColumn keys, global ledger ID uniqueness (not merely within selected account), disabling unsafe tap and visible warning, preserving imported rows/dates/amount privacy, backed by pure and hosted Compose tests. Code authored; CI/owner physical S24 pending. Historical accepted broader parity 1/6 · 11/24; W2.4/W3.1 incomplete.",
+    "branch": "android/ledger-missing-id-navigation-safety-20261029",
+    "checkpoint": "PR #397 merged into develop at 1b4a87faf2797bc1cf9102486228452b475fc1ed after final head 920ac16c passed all four gates. Draft #398 on develop extends full-canonical-ledger fail-closed ID navigation to global Activity history: blank, whitespace or duplicated IDs remain visible with read-only warning; valid unique IDs still navigate. Unit/Compose tests authored, new exact-head four-gate CI pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical #149 pending, global PIN #345 disabled.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -769,7 +769,8 @@
               "Source checkpoint PR #323 authored, not yet merged: CardSecretViewModel invalidates sensitive state on navigation close/hide/purge; monotonic read generation prevents prior in-flight read/write callbacks from re-revealing PAN/expiry/CVV; server save and new card details require live AAL2 and current Revealed card; instrumented tests authored, not yet executed or accepted.",
               "PR #331 source authored/unmerged: CardSecretViewModel cleanupGeneration now invalidates in-flight committed secret cleanup on same-owner bearer change/AAL downgrade (not just owner switch). Active cleanup changes to retryable fail-closed state, requiring explicit current-bearer server recheck, never local deletion after previous server call; generation rechecked after first encrypted vault deletion before wiping second. Instrumentation fixtures delay server or local vault and verify secrets retained pending explicit retry. No local Gradle execution, exact-head CI pending.",
               "PR #331 merged into develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four successful exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Same-owner bearer/AAL transition invalidates in-flight committed cleanup and requires fresh owner+AAL2 server recheck; physical S24 owner signoff remains separate.",
-              "PR #394 credit-statement source isolation and strict finite-only repayment merged develop a15b7c3ac65ffe92a423cb620170785d1f30c100, final head cfd07bc72529a7f1d5c301eafd59820dcaec1a8b passed all four PR gates; post-merge Android CI and tracking both success. Draft PR #395 addresses separate Card Detail validity and reversibly archived encrypted-vault description; authored without CI or completion credit."
+              "PR #394 credit-statement source isolation and strict finite-only repayment merged develop a15b7c3ac65ffe92a423cb620170785d1f30c100, final head cfd07bc72529a7f1d5c301eafd59820dcaec1a8b passed all four PR gates; post-merge Android CI and tracking both success. Draft PR #395 addresses separate Card Detail validity and reversibly archived encrypted-vault description; authored without CI or completion credit.",
+              "PR #397 account-history original-index row keys and full-ledger unique activity route guards passed all four exact-head gates at 920ac16ca66c75f3fc4626789bd61e726288469b; squash merged develop 1b4a87faf2797bc1cf9102486228452b475fc1ed. W2.4 remains partial and physical owner S24 acceptance pending."
             ]
           }
         ]
@@ -1175,9 +1176,9 @@
         ]
       }
     ],
-    "next_action": "Validate PR #397 at identical final commit via Project Tracking, Android CI, screenshots and hosted S24; merge to develop only after all 4 successes, no review blockers and unchanged base. Owner physical Galaxy S24 #149 separate; do not enable shared global PIN ticket #345 or release/signing.",
+    "next_action": "Verify PR #398 final-head Project Tracking, Android CI, screenshot and hosted S24 checks after base reconciliation; inspect rendered invalid-ID warnings and disabled routes, and merge into develop only with all four successes, clean reviews and unchanged base. Do not infer physical Galaxy S24 #149 acceptance or enable global PIN ticket.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 397,
+    "pr": 398,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }
