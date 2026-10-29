@@ -72,6 +72,23 @@ data class QuickEntryStatementOption(
     val remaining: Double,
 )
 
+/**
+ * Only a globally unambiguous, currently payable statement can be chosen.
+ * Imported duplicate IDs must not enter a first-match financial target picker.
+ * The caller supplies the complete canonical statement option list.
+ */
+internal fun payableCreditStatementOptions(
+    cardId: String,
+    statements: List<QuickEntryStatementOption>,
+): List<QuickEntryStatementOption> {
+    val counts = statements.groupingBy { it.id }.eachCount()
+    return statements.filter { statement ->
+        statement.id.isNotBlank() && statement.cardId == cardId &&
+            counts[statement.id] == 1 && statement.remaining.isFinite() &&
+            statement.remaining > 0.005
+    }
+}
+
 data class QuickEntryCategoryOption(
     val name: String,
     val subcategories: List<String> = emptyList(),
@@ -502,6 +519,9 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         val selected = state.creditStatements.filter { it.id == state.statementId }
             .singleOrNull()?.takeIf { it.cardId == state.cardId }
             ?: return state.invalid("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.")
+        if (!selected.remaining.isFinite() || selected.remaining <= 0.005) {
+            return state.invalid("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.")
+        }
         if ((state.amount ?: 0.0) > selected.remaining + 0.01) {
             return state.invalid("Η πληρωμή ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης.")
         }

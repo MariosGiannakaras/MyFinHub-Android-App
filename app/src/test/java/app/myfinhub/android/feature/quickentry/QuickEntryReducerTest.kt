@@ -411,4 +411,42 @@ class QuickEntryReducerTest {
         ).validationMessage)
     }
 
+    @Test
+    fun payableStatementPickerExcludesDuplicateIdsAndUnsafeRemainingAmounts() {
+        val options = listOf(
+            QuickEntryStatementOption("same-id", "card-credit", "Πρώτη", 25.0),
+            QuickEntryStatementOption("same-id", "another-card", "Δεύτερη", 40.0),
+            QuickEntryStatementOption("paid", "card-credit", "Εξοφλημένη", 0.0),
+            QuickEntryStatementOption("negative", "card-credit", "Αρνητική", -1.0),
+            QuickEntryStatementOption("nan", "card-credit", "NaN", Double.NaN),
+            QuickEntryStatementOption("infinite", "card-credit", "Infinity", Double.POSITIVE_INFINITY),
+            QuickEntryStatementOption("", "card-credit", "Χωρίς ID", 20.0),
+            QuickEntryStatementOption("unique", "card-credit", "Έγκυρη", 35.0),
+        )
+        assertEquals(
+            listOf("unique"),
+            payableCreditStatementOptions("card-credit", options).map { it.id },
+        )
+        assertEquals(
+            emptyList<QuickEntryStatementOption>(),
+            payableCreditStatementOptions("other-card", options),
+        )
+        for (id in listOf("same-id", "paid", "negative", "nan", "infinite")) {
+            val result = reduceQuickEntry(
+                QuickEntryUiState(
+                    kind = QuickEntryKind.CARD_PAYMENT, amountText = "10",
+                    cardId = "card-credit", statementId = id, creditStatements = options,
+                ), QuickEntryAction.Save,
+            )
+            assertEquals("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.",
+                result.validationMessage)
+        }
+        assertNull(reduceQuickEntry(
+            QuickEntryUiState(
+                kind = QuickEntryKind.CARD_PAYMENT, amountText = "10",
+                cardId = "card-credit", statementId = "unique", creditStatements = options,
+            ), QuickEntryAction.Save,
+        ).validationMessage)
+    }
+
 }

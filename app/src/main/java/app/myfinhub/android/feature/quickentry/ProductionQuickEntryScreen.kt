@@ -330,18 +330,20 @@ fun ProductionQuickEntryScreen(
                 }
             }
 
-            if (state.kind == QuickEntryKind.CARD_PAYMENT && state.creditStatements.any {
-                    it.cardId == state.cardId && it.remaining > 0.005
-                }) {
-                CompactChoice(
-                    label = "Δήλωση πιστωτικής (προαιρετικά)",
-                    selectedId = state.statementId,
-                    choices = listOf("" to "Χωρίς σύνδεση με δήλωση") +
-                        state.creditStatements.filter { it.cardId == state.cardId && it.remaining > 0.005 }
-                            .map { it.id to it.label },
-                    onSelected = { onAction(QuickEntryAction.StatementChanged(it)) },
-                    searchable = true,
+            if (state.kind == QuickEntryKind.CARD_PAYMENT) {
+                val payableStatements = payableCreditStatementOptions(
+                    state.cardId, state.creditStatements,
                 )
+                if (payableStatements.isNotEmpty()) {
+                    CompactChoice(
+                        label = "Δήλωση πιστωτικής (προαιρετικά)",
+                        selectedId = state.statementId,
+                        choices = listOf("" to "Χωρίς σύνδεση με δήλωση") +
+                            payableStatements.map { it.id to it.label },
+                        onSelected = { onAction(QuickEntryAction.StatementChanged(it)) },
+                        searchable = true,
+                    )
+                }
             }
 
             if (state.kind.usesCategory) {
