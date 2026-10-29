@@ -267,10 +267,18 @@ fun createCanonicalTransactionEntryMutation(
                 require(amount <= debt + 0.01) { "Η πληρωμή δεν μπορεί να ξεπερνά την οφειλή της κάρτας." }
                 selectedStatementId = draft.statementId?.trim()?.takeIf(String::isNotBlank)
                 selectedStatementId?.let { statementId ->
+                    // One raw source ID must resolve to exactly one physical statement
+                    // across every card, even if a malformed duplicate is absent
+                    // from this card's projected statement view.
+                    require(document.canonicalStatementSourceIdCounts()[statementId] == 1) {
+                        "Η επιλεγμένη δήλωση έχει διπλό ή άγνωστο ιστορικό αναγνωριστικό."
+                    }
                     val statement = document.creditStatementViews(cardId, draft.date)
-                        .firstOrNull { it.id == statementId }
+                        .singleOrNull { it.id == statementId }
                         ?: throw IllegalArgumentException("Η επιλεγμένη δήλωση δεν ανήκει στην πιστωτική κάρτα.")
-                    require(statement.remaining > 0.005) { "Η επιλεγμένη δήλωση έχει ήδη εξοφληθεί." }
+                    require(statement.remaining.isFinite() && statement.remaining > 0.005) {
+                        "Η επιλεγμένη δήλωση έχει μη έγκυρο ή εξοφλημένο υπόλοιπο."
+                    }
                     require(amount <= statement.remaining + 0.01) {
                         "Η πληρωμή δεν μπορεί να ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης."
                     }

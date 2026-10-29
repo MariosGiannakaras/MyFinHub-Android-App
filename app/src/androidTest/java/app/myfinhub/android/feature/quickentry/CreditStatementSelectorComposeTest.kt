@@ -7,6 +7,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import app.myfinhub.android.app.projectQuickEntryState
+import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import java.time.LocalDate
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -129,6 +134,55 @@ class CreditStatementSelectorComposeTest {
         rule.runOnIdle {
             assertTrue(action is QuickEntryAction.StatementChanged)
             assertEquals("unique", (action as QuickEntryAction.StatementChanged).id)
+        }
+    }
+
+    @Test fun productionPickerUsesFullCanonicalStatementSourceNotJustSelectedCard() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement(
+            """
+            {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}]},
+             "state":{"cards":[
+                {"id":"c1","kind":"credit","active":true},
+                {"id":"c2","kind":"credit","active":true}
+             ],"creditStatements":[
+                {"id":"collision","cardId":"c1","openDate":"2026-08-26",
+                 "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+                {"id":"collision","cardId":"c2","openDate":"2026-08-26",
+                 "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+                {"id":"safe","cardId":"c1","openDate":"2026-08-26",
+                 "closeDate":"2026-09-25","dueDate":"2026-10-05"}
+             ],"events":[
+                {"id":"buy-collision","kind":"card_purchase","date":"2026-09-20",
+                 "amount":20,"cardId":"c1","statementId":"collision"},
+                {"id":"buy-safe","kind":"card_purchase","date":"2026-09-20",
+                 "amount":35,"cardId":"c1","statementId":"safe"}
+             ],"settings":{}}}
+            """.trimIndent(),
+        ).jsonObject)
+        val projected = projectQuickEntryState(
+            doc, LocalDate.parse("2026-10-15"), QuickEntryUiState(
+                kind = QuickEntryKind.CARD_PAYMENT, amountText = "10",
+                cardId = "c1", dateText = "2026-10-15",
+                statementId = "collision", dirty = true,
+            ),
+        )
+        assertEquals(listOf("safe"), projected.creditStatements.map { it.id })
+        assertEquals("", projected.statementId)
+        var selected: QuickEntryAction? = null
+        rule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = projected,
+                    onAction = { selected = it },
+                    onBack = {},
+                )
+            }
+        }
+        rule.onNodeWithText("Χωρίς σύνδεση με δήλωση").performScrollTo().performClick()
+        rule.onNodeWithText(projected.creditStatements.single().label).performClick()
+        rule.runOnIdle {
+            assertTrue(selected is QuickEntryAction.StatementChanged)
+            assertEquals("safe", (selected as QuickEntryAction.StatementChanged).id)
         }
     }
 

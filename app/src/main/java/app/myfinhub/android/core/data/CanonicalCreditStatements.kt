@@ -22,6 +22,16 @@ data class CanonicalCreditStatementView(
 )
 
 /**
+ * Source identity is counted from every physical canonical statement row, including
+ * other cards and malformed rows omitted by the read-only view projection.
+ * A locally unique selected-card view cannot authorize a shared financial ID.
+ */
+internal fun CanonicalFinanceDocument.canonicalStatementSourceIdCounts(): Map<String, Int> =
+    state.array("creditStatements")
+        .mapNotNull { (it as? JsonObject)?.string("id") }
+        .groupingBy { it }.eachCount()
+
+/**
  * The Web statement domain includes mixed-funding `expense` events as credit
  * purchases for their credit-funded portion only (not the entire expense).
  * A plain debit expense never becomes a statement charge.

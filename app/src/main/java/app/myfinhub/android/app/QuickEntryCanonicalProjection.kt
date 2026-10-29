@@ -8,6 +8,7 @@ import app.myfinhub.android.core.data.canonicalCounterpartyDirectory
 import app.myfinhub.android.core.data.canonicalCounterpartyKindForEvent
 import app.myfinhub.android.core.data.allCanonicalRecurringItems
 import app.myfinhub.android.core.data.creditStatementViews
+import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
 import app.myfinhub.android.core.data.settingsObject
 import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
@@ -102,8 +103,12 @@ internal fun projectQuickEntryState(
     val selectedAsOf = runCatching { LocalDate.parse(base.dateText) }.getOrDefault(today).toString()
     // Web recommendedPayableStatement precedence: due > closed > open.
     // Only the user may choose a link; never silently allocate a repayment.
+    val sourceStatementIdCounts = document.canonicalStatementSourceIdCounts()
     val creditStatements = document.creditStatementViews(selectedCard, selectedAsOf)
-        .filter { it.remaining > 0.005 }
+        .filter {
+            it.id.isNotBlank() && sourceStatementIdCounts[it.id] == 1 &&
+                it.remaining.isFinite() && it.remaining > 0.005
+        }
         .sortedWith(compareBy<app.myfinhub.android.core.data.CanonicalCreditStatementView> {
             when (it.status) {
                 "due" -> 0
@@ -128,7 +133,7 @@ internal fun projectQuickEntryState(
             )
         }
     val selectedStatementId = base.statementId.takeIf { id ->
-        creditStatements.any { it.id == id && it.cardId == selectedCard }
+        creditStatements.count { it.id == id && it.cardId == selectedCard } == 1
     }.orEmpty()
     val splitFallbackCategory = expenseCategories.firstOrNull()?.name ?: "Άλλο"
     val splitParts = base.splitParts.mapIndexed { index, part ->

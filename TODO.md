@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #401 Quick Entry payable statement picker and Save parity against immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Check duplicate/blank/non-finite/settled choices are unavailable and valid unique statement remains selectable; only merge with 4/4 green, clean reviews and unchanged develop. Physical owner S24 #149 separate.
+- [ ] Validate PR #402 production global credit-statement source identity across Quick Entry projection, real Compose picker and shared canonical mutation on one final SHA: Project Tracking, Android CI, screenshot regression, hosted S24. Review no loss of historical rows or legitimate linked/unlinked payments; merge only with all four successes, unchanged develop and clean reviews. Physical Galaxy S24 #149 remains independent.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #401, branch android/credit-statement-payable-picker-20261029
-Current W2.4: PR #400 W3.1 global credit statement identity source safety merged into develop a2cd680afaeabd18985146a0ff75284dd507d210 after exact-head four green gates at 1180c1ce7cef529448888575f7a244ad5b9ed371. New Android-only W3.1 source checkpoint removes unsafe duplicate/invalid/paid entries from Quick Entry statement picker, and rejects selected non-finite/settled statement values at Save. JVM/Compose tests authored, CI pending. Web parity 1/6 implementations · 11/24 subtasks; physical owner #149 pending.
+Issue #155, PR #402, branch android/quick-entry-global-statement-source-20261029
+Current W2.4: PR #401 merged develop c2affb1324a10d7ffcf10ba846d453f8d00d52ec after final-head 123ab23cc1f899803d315e789de64c539c41cd7d passed four CI gates. New W3.1 source-only #402 corrects cross-card duplicate source ID omission in production QuickEntryCanonicalProjection and validates full-source uniqueness at shared card_payment construction, including malformed foreign records; JVM and hosted Compose tests authored but new-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify PR #401 on unchanged immutable head through Project Tracking, Android CI, screenshot regression and hosted S24; inspect Quick Entry UI and valid/unlinked payment behavior; merge only if four gates pass, no blocking reviews and develop unchanged. No owner physical acceptance inferred.
+Next Verify PR #402 immutable final-head Project Tracking, Android CI, screenshots and hosted S24; check full canonical source owner, invalid/malformed cross-card duplicate selection suppression, safe unique mutation construction and historical source preservation. Merge only with 4/4 successes and clean base/reviews; do not infer owner physical S24 signoff.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
