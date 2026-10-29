@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Android develop includes merged PRs #392–#401, latest #401 Quick Entry payable statement list and strict Save parity squash-merged as c2affb1324a10d7ffcf10ba846d453f8d00d52ec after all four exact-head gates passed at 123ab23cc1f899803d315e789de64c539c41cd7d. New Android-only W3.1 production source-integrity checkpoint fixes a hidden gap: QuickEntryCanonicalProjection previously loaded statement options for the selected card ONLY, so duplicate IDs owned by other cards or malformed foreign rows were excluded before the selector/reducer uniqueness check. Count physical canonical statement IDs across all cards, omit unsafe duplicate ID options, drop stale selection, and enforce same global identity at shared transaction mutation creation. Kotlin source projection, canonical mutation, and hosted real Compose regressions authored; new-head CI not yet validated. Web parity 1/6 implementations · 11/24 subtasks, W3.1/W2.4 still partial, owner physical S24 #149 pending. Global PIN #345 disabled; no Web/backend/schema, live financial writes, SMS #146, signing/main/release.",
+    "summary": "Android develop includes merged PRs #392–#402. Latest #402 full canonical raw statement ID ownership validated on final head eadab544eace298eef4150be188d12c01418b9ef (4/4 Project Tracking, Android CI, screenshot and hosted S24 succeeded) and squash-merged as 80ae37c3cd8dd5e6ac41f7067b203b7f7dfef170. Next Android-only W3.1 replay integrity checkpoint #403 protects an already queued explicitly linked card payment against a changed or duplicated statement source on offline/server replay: reject the ambiguous/foreign/missing binding instead of silently removing statementId and persisting an unlinked repayment. Keep pure Web preparer behavior, genuinely unlinked payments and idempotent committed events unchanged. JVM regression tests authored, immutable-head CI not yet validated. Web parity 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial, physical owner S24 #149 pending. Global PIN #345 disabled; no Web/backend/schema, live finance writes, SMS #146, signing/main/release.",
     "next": [
-      "Validate PR #402 production global credit-statement source identity across Quick Entry projection, real Compose picker and shared canonical mutation on one final SHA: Project Tracking, Android CI, screenshot regression, hosted S24. Review no loss of historical rows or legitimate linked/unlinked payments; merge only with all four successes, unchanged develop and clean reviews. Physical Galaxy S24 #149 remains independent."
+      "Validate draft PR #403 offline/queued card-payment statement source replay on one final head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Review unchanged Web pure preparation and unlinked payment semantics, reject source collisions/foreign or missing owners before canonical append; merge only when all four gates succeed and develop/reviews remain clean. Owner physical Galaxy S24 #149 separate."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/quick-entry-global-statement-source-20261029",
-    "checkpoint": "PR #401 merged develop c2affb1324a10d7ffcf10ba846d453f8d00d52ec after final-head 123ab23cc1f899803d315e789de64c539c41cd7d passed four CI gates. New W3.1 source-only #402 corrects cross-card duplicate source ID omission in production QuickEntryCanonicalProjection and validates full-source uniqueness at shared card_payment construction, including malformed foreign records; JVM and hosted Compose tests authored but new-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; physical S24 #149 pending.",
+    "branch": "android/card-statement-replay-identity-20261029",
+    "checkpoint": "PR #402 W3.1 full canonical source ID guard passed four exact-head gates at eadab544eace298eef4150be188d12c01418b9ef and squash merged develop 80ae37c3cd8dd5e6ac41f7067b203b7f7dfef170. Draft #403 adds final append/replay fail-closed source owner guard on explicitly linked card payments; pure Web preparer and idempotent already-written events unchanged. Tests authored, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -811,7 +811,9 @@
               "PR #400 selected-card statement cross-ledger ID guard and Quick Entry first-match prevention passed immutable head 1180c1ce7cef529448888575f7a244ad5b9ed371 all four gates, squash merged into develop a2cd680afaeabd18985146a0ff75284dd507d210. W3.1 remains in progress.",
               "PR #401 source-only/unmerged: share payable statement picker eligibility with strict selected statement Save; exclude duplicate, blank, paid/negative/nonfinite statement IDs/remaining. Preserve valid unique and unlinked payment. JVM/hosted Compose regressions authored; exact-head CI pending.",
               "PR #401 Quick Entry payable statement selector excluded duplicate/blank/nonfinite/nonpayable options and invalid Save; immutable final head 123ab23cc1f899803d315e789de64c539c41cd7d passed 4/4 CI, squash merged develop c2affb1324a10d7ffcf10ba846d453f8d00d52ec. W3.1 still partial.",
-              "PR #402 source-authored unmerged: production Quick Entry selected-card projection hides cross-card statement ID duplicates from prior UI checks; count global raw canonical physical statement rows, including malformed foreign records, before populating picker and creating card-payment mutation. JVM/hosted Compose tests written, not CI validated."
+              "PR #402 source-authored unmerged: production Quick Entry selected-card projection hides cross-card statement ID duplicates from prior UI checks; count global raw canonical physical statement rows, including malformed foreign records, before populating picker and creating card-payment mutation. JVM/hosted Compose tests written, not CI validated.",
+              "PR #402 full canonical statement physical ID ownership guards in Quick Entry production projection and mutation builder passed all four immutable head eadab544eace298eef4150be188d12c01418b9ef checks, squash merged develop 80ae37c3cd8dd5e6ac41f7067b203b7f7dfef170. W3.1 remains partial.",
+              "PR #403 source-authored/unmerged: queued linked credit statement payment appends fail closed after statement source changes, duplicate/foreign/missing owner, while Web pure statement preparation remains Web-compatible; JVM regressions authored, exact-head CI pending."
             ]
           },
           {
@@ -1184,9 +1186,9 @@
         ]
       }
     ],
-    "next_action": "Verify PR #402 immutable final-head Project Tracking, Android CI, screenshots and hosted S24; check full canonical source owner, invalid/malformed cross-card duplicate selection suppression, safe unique mutation construction and historical source preservation. Merge only with 4/4 successes and clean base/reviews; do not infer owner physical S24 signoff.",
+    "next_action": "Check PR #403 immutable final SHA, Project Tracking/Android CI/screenshot regression/hosted S24 success and no blocking review threads; verify stale queued linked card payments cannot silently become unlinked, valid and truly unlinked remain functional. Merge only with all 4 green and unchanged develop; physical S24 #149 separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 402,
+    "pr": 403,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

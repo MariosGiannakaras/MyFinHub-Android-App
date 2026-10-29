@@ -109,6 +109,25 @@ data class AppendCanonicalEvent(
         val id = event.string("id") ?: error("Event id is required")
         val events = document.state.array("events")
         if (events.any { (it as? JsonObject)?.string("id") == id }) return document
+        // The immutable queued event may be replayed on a newer server source.
+        // For an explicitly linked card payment, do NOT silently strip its chosen
+        // statement if that ID disappeared, moved cards, or became ambiguous.
+        // An unlinked card payment keeps its established Web behavior.
+        if (event.string("kind") == "card_payment") {
+            val explicitStatementId = event.string("statementId")?.takeIf(String::isNotEmpty)
+            if (explicitStatementId != null) {
+                require(explicitStatementId.isNotBlank() &&
+                    document.canonicalStatementSourceIdCounts()[explicitStatementId] == 1
+                ) { "Η σύνδεση πληρωμής έχει μη μοναδικό ή άγνωστο ιστορικό ID κατάστασης." }
+                val owner = document.state.array("creditStatements")
+                    .filterIsInstance<JsonObject>()
+                    .singleOrNull { it.string("id") == explicitStatementId }
+                    ?.string("cardId")
+                require(!owner.isNullOrBlank() && owner == event.string("cardId")) {
+                    "Η επιλεγμένη κατάσταση δεν ανήκει πλέον σε αυτή την πιστωτική κάρτα."
+                }
+            }
+        }
         // Match Web creditStatements.ts at the canonical append/replay boundary.
         // Unlinked repayments stay unallocated until a statement is explicitly selected.
         val prepared = document.prepareCanonicalCreditStatementEvent(event, nowIso)
