@@ -79,7 +79,10 @@ class CanonicalCardPaymentReplayIdentityTest {
         assertFalse((committed.state.array("events").single() as JsonObject).containsKey("statementId"))
         assertEquals(committed.raw, pending.apply(committed).raw)
         val explicitEmpty = AppendCanonicalEvent(payment("", "empty-link"), now).apply(empty)
-        assertFalse((explicitEmpty.state.array("events").single() as JsonObject).containsKey("statementId"))
+        // Web treats an empty ID as falsy, but retains the original empty field.
+        // Only a genuinely absent statementId is represented by a missing key.
+        assertEquals("", (explicitEmpty.state.array("events").single() as JsonObject).string("statementId"))
+        assertEquals(explicitEmpty.raw, AppendCanonicalEvent(payment("", "empty-link"), now).apply(explicitEmpty).raw)
     }
 
     @Test fun alreadyCommittedEventRemainsIdempotentIfLaterSourceBecomesAmbiguous() {
