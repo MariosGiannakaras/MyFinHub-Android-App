@@ -40,6 +40,12 @@ class InlineCreditCardWorkspaceTest {
         assertEquals("•••• €", creditWorkspaceMoney(Double.NaN, false))
         assertEquals("Μη έγκυρο ποσό", creditWorkspaceOptionalMoney(null, true))
         assertEquals("•••• €", creditWorkspaceOptionalMoney(null, false))
+        assertEquals("Μη έγκυρο ποσό", creditWorkspaceSignedMoney(Double.NaN, true))
+        assertEquals("Μη έγκυρο ποσό", creditWorkspaceSignedMoney(Double.POSITIVE_INFINITY, true))
+        assertEquals("•••• €", creditWorkspaceSignedMoney(Double.NEGATIVE_INFINITY, false))
+        assertEquals("•••• €", creditWorkspaceSignedMoney(25.0, false))
+        assertEquals(true, creditWorkspaceSignedMoney(25.0, true).startsWith("+"))
+        assertEquals(false, creditWorkspaceSignedMoney(-25.0, true).startsWith("+"))
     }
 
     @Test fun finiteCreditBalanceStillUsesCanonicalClampingAndUtilization() {

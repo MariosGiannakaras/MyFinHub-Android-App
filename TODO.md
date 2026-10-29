@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Review and validate Draft Android PR #394 at its final immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Correct any findings in one coherent batch and merge to develop only with all four successful gates, unchanged base and clear reviews. Then resume outstanding W2.4/W3.1 work. Shared server PIN #345 remains separate and physical S24 acceptance #149 is not satisfied by CI.
+- [ ] Validate Draft Android PR #395 at its immutable final head with Project Tracking, Android CI, screenshot regression, and hosted S24 Ultra instrumentation. Inspect targeted existing card-detail light/dark/large-font references and source assertions. Address any failures without weakening tests; merge to develop only after four exact-head gates succeed and PR/base/reviews are clean. Continue W2.4/W3.1 and preserve separate owner physical S24 #149 and native shared PIN #345 constraints.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #394, branch android/credit-statement-source-guards-20261028
-Current W2.4: PR #393 Card Vault strict Web v1.7 new-write protection and PR #392 canonical account transaction search are both merged into Android develop at 702eca636254083d7d6f609f241476495592d063, with 4/4 required immutable-head checks each. New DRAFT PR #394 adds a W3.1/W2.4 selected-card statement presentation guard to inline credit and historical statement screens: exact cardId scope, bounded original ordering, finite-only historical repayment, invalid-number warnings and Hide Amounts privacy. Pure/hosted Compose regressions are AUTHORED, not run; full 4/4 PR validation pending. Web v1.7 is already live; native shared global PIN bearer-ticket/423 is still unimplemented (#345). Accepted broad parity 1/6 implementations and 11/24 subtasks, owner physical S24 #149 pending. No production, Web/backend, signing or main changes.
+Issue #155, PR #395, branch android/card-detail-credit-parity-20261029
+Current W2.4: PR #394 selected-card credit-statement source guards is MERGED to Android develop a15b7c3ac65ffe92a423cb620170785d1f30c100 after four immutable-head PR checks (tracking, Android CI, screenshots, hosted S24) passed; post-merge Project Tracking #40778802449 and Android CI #40778802537 also succeeded. Draft #395 now unifies Card Detail and inline Wallet credit financial validity and repayment gating for NaN/Infinity and updates reversible archive confirmation to preserve encrypted secrets (actual permanent-delete cleanup unchanged). Regression unit/Compose tests authored, not executed or accepted yet. Broad parity counters remain 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial, shared PIN #345 not integrated, physical S24 #149 independently pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate Draft PR #394 on its final SHA with all four Project Tracking/Android CI/screenshot/hosted S24 checks and inspect actual screenshots. Repair a genuine failure without weakening assertions, then merge only on 4/4 success and clean reviews/base. Continue W2.4 and W3.1; keep shared global PIN #345 disabled until native compatibility is verified and physical S24 #149 pending.
+Next Review Draft PR #395 and validate exact immutable head with Project Tracking, Android CI, screenshot regression, hosted S24 emulator. Resolve any failures in one coherent change, merge only on four green gates and clear reviews/base. Preserve archived encrypted card vault secrets, never expose permanent delete or shared PIN until authorized end-to-end; physical owner #149 separately pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
