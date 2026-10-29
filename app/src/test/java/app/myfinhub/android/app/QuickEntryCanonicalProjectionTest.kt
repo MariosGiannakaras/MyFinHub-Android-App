@@ -1,6 +1,8 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.array
+import app.myfinhub.android.core.data.string
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import java.time.LocalDate
@@ -111,6 +113,72 @@ class QuickEntryCanonicalProjectionTest {
         assertEquals("", paidAttempt.statementId)
     }
 
+    @Test
+    fun fullCanonicalStatementSourceRejectsCrossCardAndMalformedDuplicates() {
+        val doc = duplicateSourceFixture()
+        val date = LocalDate.parse("2026-10-15")
+        val attempt = QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            cardId = "c1", dateText = date.toString(),
+            statementId = "shared", fromAccountId = "payroll",
+            amountText = "10", dirty = true,
+        )
+        val projected = projectQuickEntryState(doc, date, attempt)
+        // A foreign source with the same ID is invisible in selected-card
+        // creditStatementViews but must still invalidate this option.
+        assertEquals(listOf("unique"), projected.creditStatements.map { it.id })
+        assertEquals("", projected.statementId)
+        assertEquals("10", projected.amountText)
+        assertTrue(projected.dirty)
+        val malformed = projectQuickEntryState(doc, date,
+            attempt.copy(statementId = "malformed"))
+        assertEquals("", malformed.statementId)
+        assertFalse(projected.creditStatements.any { it.id == "shared" || it.id == "malformed" })
+
+        // Defend the canonical mutation constructor against stale or manually
+        // injected UI choices, even if the UI no longer offers those IDs.
+        for (id in listOf("shared", "malformed")) {
+            val unsafe = runCatching {
+                createQuickEntryCanonicalMutation(
+                    doc, attempt.copy(statementId = id),
+                    "unsafe-$id", "2026-10-15T10:00:00Z",
+                )
+            }
+            assertTrue("Untrusted statement id $id was accepted", unsafe.isFailure)
+        }
+        val safe = createQuickEntryCanonicalMutation(
+            doc, attempt.copy(statementId = "unique"),
+            "valid-payment", "2026-10-15T10:00:00Z",
+        ).apply(doc)
+        val newEvent = safe.state.array("events").last() as kotlinx.serialization.json.JsonObject
+        assertEquals("unique", newEvent.string("statementId"))
+        assertEquals("c1", newEvent.string("cardId"))
+    }
+
+    @Test
+    fun changingCanonicalStatementSourceRemovesPreviouslyValidSelection() {
+        val doc = duplicateSourceFixture()
+        val date = LocalDate.parse("2026-10-15")
+        val previous = projectQuickEntryState(doc, date, QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT, cardId = "c1",
+            statementId = "unique", dateText = date.toString(), amountText = "10",
+        ))
+        assertEquals("unique", previous.statementId)
+        val original = doc.state.array("creditStatements")
+        val collided = doc.copy(raw = kotlinx.serialization.json.JsonObject(
+            doc.raw + ("state" to kotlinx.serialization.json.JsonObject(
+                doc.state + ("creditStatements" to kotlinx.serialization.json.JsonArray(
+                    original + kotlinx.serialization.json.Json.parseToJsonElement(
+                        """{"id":"unique","cardId":"c2"}"""
+                    )
+                ))
+            ))
+        ))
+        val refreshed = projectQuickEntryState(collided, date, previous)
+        assertEquals("", refreshed.statementId)
+        assertFalse(refreshed.creditStatements.any { it.id == "unique" })
+    }
+
 }
 
 private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
@@ -168,6 +236,38 @@ private fun projectionFixture(): CanonicalFinanceDocument = CanonicalFinanceDocu
             }
           }
         }
+        """.trimIndent(),
+    ).jsonObject,
+)
+
+private fun duplicateSourceFixture(): CanonicalFinanceDocument = CanonicalFinanceDocument(
+    Json.parseToJsonElement(
+        """
+        {"seed":{"accounts":[{"id":"payroll","kind":"bank","name":"Μισθοδοσία"}],
+                 "transactions":[]},
+         "state":{"cards":[
+            {"id":"c1","kind":"credit","active":true,"network":"visa"},
+            {"id":"c2","kind":"credit","active":true,"network":"visa"}
+         ],"creditStatements":[
+            {"id":"shared","cardId":"c1","openDate":"2026-08-26",
+             "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+            {"id":"shared","cardId":"c2","openDate":"2026-08-26",
+             "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+            {"id":"malformed","cardId":"c1","openDate":"2026-08-26",
+             "closeDate":"2026-09-25","dueDate":"2026-10-05"},
+            {"id":"malformed","cardId":"c2"},
+            {"id":"unique","cardId":"c1","openDate":"2026-08-26",
+             "closeDate":"2026-09-25","dueDate":"2026-10-05"}
+         ],"events":[
+            {"id":"purchase-shared-c1","kind":"card_purchase","date":"2026-09-20",
+             "amount":25,"cardId":"c1","statementId":"shared"},
+            {"id":"purchase-shared-c2","kind":"card_purchase","date":"2026-09-20",
+             "amount":20,"cardId":"c2","statementId":"shared"},
+            {"id":"purchase-malformed","kind":"card_purchase","date":"2026-09-20",
+             "amount":10,"cardId":"c1","statementId":"malformed"},
+            {"id":"purchase-unique","kind":"card_purchase","date":"2026-09-20",
+             "amount":30,"cardId":"c1","statementId":"unique"}
+         ],"settings":{}}}
         """.trimIndent(),
     ).jsonObject,
 )
