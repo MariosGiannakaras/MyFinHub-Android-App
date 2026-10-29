@@ -107,6 +107,7 @@ fun InlineCreditCardWorkspace(
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val financial = creditWorkspaceFinancialSnapshot(card)
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
+    val activityIdCounts = canonicalCardActivityIdCounts(card.activity)
     var statementBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     var activityBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     Column(
@@ -218,11 +219,17 @@ fun InlineCreditCardWorkspace(
                     } else {
                         card.activity.take(
                             inlineCreditVisibleCount(card.activity.size, activityBatches, INLINE_CREDIT_ACTIVITY_BATCH),
-                        ).forEach { entry ->
+                        ).forEachIndexed { index, entry ->
+                            val openId = canonicalCardActivityOpenId(entry.id, activityIdCounts)
+                            val identityWarning = canonicalCardActivityIdentityWarning(entry.id, activityIdCounts)
                             Surface(
-                                onClick = { onOpenActivity(entry.id) },
+                                onClick = { openId?.let(onOpenActivity) },
+                                enabled = openId != null,
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                    .testTag("inline_credit_activity_${entry.id}"),
+                                    .testTag(
+                                        if (openId != null) "inline_credit_activity_${entry.id}"
+                                        else "inline_credit_activity_unavailable_$index",
+                                    ),
                                 color = MaterialTheme.colorScheme.surface,
                             ) {
                                 val title = entry.title.ifBlank {
@@ -232,6 +239,10 @@ fun InlineCreditCardWorkspace(
                                     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                         Text(title, style = MaterialTheme.typography.titleSmall)
                                         Text(entry.dateLabel, style = MaterialTheme.typography.bodySmall)
+                                        identityWarning?.let { warning ->
+                                            Text(warning, style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.error)
+                                        }
                                         Text(creditWorkspaceMoney(entry.amount, amountsVisible),
                                             style = MaterialTheme.typography.bodyMedium)
                                     }
@@ -243,6 +254,10 @@ fun InlineCreditCardWorkspace(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(title, style = MaterialTheme.typography.titleSmall)
                                             Text(entry.dateLabel, style = MaterialTheme.typography.bodySmall)
+                                            identityWarning?.let { warning ->
+                                                Text(warning, style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.error)
+                                            }
                                         }
                                         Text(creditWorkspaceMoney(entry.amount, amountsVisible),
                                             style = MaterialTheme.typography.bodyMedium)

@@ -445,13 +445,19 @@ private fun CardActivitySection(
                 Text("Δεν υπάρχουν ακόμη συνδεδεμένες κινήσεις.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 val visibleActivity = if (showAll) card.activity else card.activity.take(5)
+                val activityIdCounts = canonicalCardActivityIdCounts(card.activity)
                 visibleActivity.forEachIndexed { index, item ->
+                    val openId = canonicalCardActivityOpenId(item.id, activityIdCounts)
+                    val identityWarning = canonicalCardActivityIdentityWarning(item.id, activityIdCounts)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 52.dp)
-                            .clickable { onOpenActivity(item.id) }
-                            .testTag("card_activity_${item.id}"),
+                            .clickable(enabled = openId != null) { openId?.let(onOpenActivity) }
+                            .testTag(
+                                if (openId != null) "card_activity_${item.id}"
+                                else "card_activity_unavailable_$index",
+                            ),
                         horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -463,6 +469,10 @@ private fun CardActivitySection(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.title, style = MaterialTheme.typography.titleMedium)
                             Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            identityWarning?.let { warning ->
+                                Text(warning, style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error)
+                            }
                         }
                         MyFinHubAmountText(
                             text = creditWorkspaceSignedMoney(item.amount, amountsVisible),
