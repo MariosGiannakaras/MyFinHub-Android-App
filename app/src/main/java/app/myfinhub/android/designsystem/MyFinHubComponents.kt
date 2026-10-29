@@ -288,13 +288,18 @@ fun MyFinHubFinanceRow(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     categoryAccent: Color? = null,
+    enabled: Boolean = true,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     Column(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = MyFinHubDesignMetrics.rowMinHeight)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .combinedClickable(
+                enabled = enabled,
+                onClick = onClick,
+                onLongClick = if (enabled) onLongClick else null,
+            )
             .semantics(mergeDescendants = true) {},
     ) {
         if (largeFont) {

@@ -45,6 +45,25 @@ class AccountDetailHistoryFiltersTest {
         assertEquals(listOf("transfer"), visibleAccountHistoryItems(records, "μεταφοράς", ActivityKind.TRANSFER).map { it.id })
     }
 
+    @Test fun identicalAndMissingEventIdsRetainDistinctSourcePositionsUnderFilters() {
+        val duplicate = records.first().copy(id = "same", canonicalSourceOrdinal = 0)
+        val duplicateLater = records.last().copy(id = "same", canonicalSourceOrdinal = 5)
+        val missing = records[1].copy(id = "", canonicalSourceOrdinal = 7)
+        val source = listOf(duplicate, missing, duplicateLater)
+        assertEquals(listOf(0, 1, 2),
+            visibleAccountHistorySourceRows(source, "", null).map { it.index })
+        assertEquals(listOf("same", "same"),
+            visibleAccountHistorySourceRows(source, "", null)
+                .filter { it.value.id == "same" }.map { it.value.id })
+        assertEquals(listOf(0, 2),
+            visibleAccountHistorySourceRows(source, "", null)
+                .filter { it.value.id == "same" }.map { it.index })
+        // Source positions remain stable even when an earlier item is filtered out.
+        assertEquals(listOf(2),
+            visibleAccountHistorySourceRows(source, "", ActivityKind.CARD_PAYMENT)
+                .map { it.index })
+    }
+
     @Test fun canonicalSearchDoesNotLeakViaAmountsAccountNamesOrDerivedTitles() {
         assertEquals(emptyList<String>(), visibleAccountHistoryItems(records, "800", null).map { it.id })
         assertEquals(emptyList<String>(), visibleAccountHistoryItems(records, "Ιστορικό", null).map { it.id })

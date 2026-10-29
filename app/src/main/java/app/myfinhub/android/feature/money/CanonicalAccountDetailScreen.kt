@@ -60,18 +60,28 @@ import java.util.Locale
  * TransactionsPage search index: never filter by amounts, account names or
  * derived presentation-only labels. Preserve original source order and IDs.
  */
+internal fun visibleAccountHistorySourceRows(
+    items: List<ActivityItem>,
+    query: String,
+    kind: ActivityKind?,
+): List<IndexedValue<ActivityItem>> = items.withIndex().filter { (_, item) ->
+    (kind == null || item.kind == kind) && item.matchesWebLedgerSearch(query)
+}
+
 internal fun visibleAccountHistoryItems(
     items: List<ActivityItem>,
     query: String,
     kind: ActivityKind?,
-): List<ActivityItem> = items.filter { item ->
-    (kind == null || item.kind == kind) && item.matchesWebLedgerSearch(query)
-}
+): List<ActivityItem> = visibleAccountHistorySourceRows(items, query, kind).map { it.value }
 
 @Composable
 fun CanonicalAccountDetailScreen(
     account: MoneyAccount?,
     activityItems: List<ActivityItem>,
+    // The production caller supplies counts from the ENTIRE canonical ledger:
+    // an event key may be duplicated outside this account's visible history.
+    fullActivityIdCounts: Map<String, Int> =
+        activityItems.groupingBy(ActivityItem::id).eachCount(),
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit,
     onNewTransaction: () -> Unit = {},
@@ -98,9 +108,10 @@ fun CanonicalAccountDetailScreen(
     var historyKindName by rememberSaveable(account?.id) { mutableStateOf<String?>(null) }
     val historyKind = ActivityKind.entries.firstOrNull { it.name == historyKindName }
     val historyControlsVisible = activityItems.size >= 6
-    val visibleHistory = if (historyControlsVisible) {
-        visibleAccountHistoryItems(activityItems, historyQuery, historyKind)
-    } else activityItems
+    val sourceHistoryRows = if (historyControlsVisible) {
+        visibleAccountHistorySourceRows(activityItems, historyQuery, historyKind)
+    } else activityItems.withIndex().toList()
+    val visibleHistory = sourceHistoryRows.map { it.value }
     val normalizedInput = normalizeIban(newIban)
     val inputValid = normalizedInput != null && isValidIban(normalizedInput)
     if (deletingIban && account != null && ibanRecord?.iban != null &&
@@ -301,7 +312,7 @@ fun CanonicalAccountDetailScreen(
                     }
                 }
             } else {
-                val sections = visibleHistory.groupBy { it.rawDate.take(10) }.toList()
+                val sections = sourceHistoryRows.groupBy { it.value.rawDate.take(10) }.toList()
                 sections.forEach { (date, sectionItems) ->
                     item(key = "account-day-$date") {
                         Text(
@@ -311,13 +322,22 @@ fun CanonicalAccountDetailScreen(
                             modifier = Modifier.padding(top = MyFinHubSpacing.xxs),
                         )
                     }
-                    sectionItems.forEach { item ->
-                        item(key = item.id) {
+                    sectionItems.forEach { source ->
+                        // Imported historic records may have duplicated or blank IDs.
+                        // A source-index key keeps EVERY row visible without crashing LazyColumn.
+                        item(key = "account-history-source-${source.index}") {
+                            val event = source.value
+                            val openId = canonicalCardActivityOpenId(event.id, fullActivityIdCounts)
                             AccountLedgerRow(
-                                item = item,
+                                item = event,
                                 amountsVisible = amountsVisible,
                                 categoryGlyphOverrides = categoryGlyphOverrides,
-                                onClick = { onOpenActivity(item.id) },
+                                canOpen = openId != null,
+                                warning = canonicalCardActivityIdentityWarning(
+                                    event.id, fullActivityIdCounts,
+                                ),
+                                sourceIndex = source.index,
+                                onClick = { openId?.let(onOpenActivity) },
                             )
                         }
                     }
@@ -332,6 +352,9 @@ private fun AccountLedgerRow(
     item: ActivityItem,
     amountsVisible: Boolean,
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
+    canOpen: Boolean,
+    warning: String?,
+    sourceIndex: Int,
     onClick: () -> Unit,
 ) {
     val transfer = item.kind == ActivityKind.TRANSFER
@@ -339,7 +362,8 @@ private fun AccountLedgerRow(
     val subtitle = transferRoute?.let { "Από ${it.first} → Προς ${it.second}" } ?: item.subtitle
     val meta = if (item.pendingSync) "Εκκρεμεί επιβεβαίωση" else if (transfer) "" else item.accountLabel
     val tone = if (item.pendingSync || transfer) FinanceTone.Neutral else accountActivityTone(item.kind)
-    MyFinHubFinanceRow(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        MyFinHubFinanceRow(
         icon = myFinHubCategoryIcon(
             item.category, accountActivityIcon(item.kind),
             categoryGlyphOverrides[
@@ -358,7 +382,20 @@ private fun AccountLedgerRow(
         amountText = if (amountsVisible) formatSignedAccountEuro(item.amount) else "•••• €",
         tone = tone,
         onClick = onClick,
+        enabled = canOpen,
+        modifier = Modifier.testTag("account_history_source_${sourceIndex}"),
     )
+        warning?.let { message ->
+            Text(
+                message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(
+                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                ).testTag("account_history_identity_warning_${sourceIndex}"),
+            )
+        }
+    }
 }
 
 internal fun accountTransferRouteParts(item: ActivityItem): Pair<String, String>? {
