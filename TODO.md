@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #398 against Project Tracking, Android CI, screenshot regression and hosted S24 emulator on one unchanged final commit; inspect rendered warnings and disabled navigation for missing/duplicate global Activity IDs and correct navigation for unique IDs. Merge to develop only if all four exact-head gates pass with clean base and reviews. If a test fails, diagnose the actual failure rather than bypass it. Owner physical S24 #149 remains separate.
+- [ ] Validate cross-ledger card/statement activity identity PR on immutable head through Project Tracking, Android CI, screenshot regression and hosted S24 emulator; review disabled missing/duplicate activity routes and unique source navigation. Merge into develop only with four green gates, clean reviews and unchanged base. Galaxy S24 owner #149 remains a separate acceptance gate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #398, branch android/ledger-missing-id-navigation-safety-20261029
-Current W2.4: PR #397 merged into develop at 1b4a87faf2797bc1cf9102486228452b475fc1ed after final head 920ac16c passed all four gates. Draft #398 on develop extends full-canonical-ledger fail-closed ID navigation to global Activity history: blank, whitespace or duplicated IDs remain visible with read-only warning; valid unique IDs still navigate. Unit/Compose tests authored, new exact-head four-gate CI pending. Web parity 1/6 implementations · 11/24 subtasks, owner physical #149 pending, global PIN #345 disabled.
+Issue #155, PR #399, branch android/card-cross-ledger-identity-20261029
+Current W2.4: PR #398 global Activity ledger identity guard squash-merged develop 35520083e43f410714d21a014f8cdab73c26dfd3 after 4/4 exact-head CI at 21edcfdd76f7102d68a070812162a5aab85a3c4d. New W2.4 Android-only card/source integrity checkpoint propagates canonical full-ledger ID multiplicity into inline credit, Card Detail and statement links, guards direct navigation callbacks and covers foreign collisions/missing IDs in Kotlin + hosted Compose tests. Source authored, CI not yet verified. Web parity 1/6 implementations · 11/24 subtasks; physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify PR #398 final-head Project Tracking, Android CI, screenshot and hosted S24 checks after base reconciliation; inspect rendered invalid-ID warnings and disabled routes, and merge into develop only with all four successes, clean reviews and unchanged base. Do not infer physical Galaxy S24 #149 acceptance or enable global PIN ticket.
+Next Verify new cross-ledger card activity PR at exact final head: Project Tracking, Android CI, screenshot and hosted S24; inspect activity and statement rows and merge only if all gates/reviews/base pass. No global PIN #345 activation, live financial writes, or physical S24 approval inference.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

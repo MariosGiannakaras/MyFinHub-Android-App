@@ -255,6 +255,10 @@ internal fun MyFinHubAppContent(
         backStack.pushIfNew(AppRoute.QuickEntry)
     }
 
+    // One source of truth for every read-only card/history event destination.
+    val fullActivityIdCounts = remember(activityState.items) {
+        activityState.items.groupingBy { it.id }.eachCount()
+    }
     val navigationContent: @Composable () -> Unit = {
         CompositionLocalProvider(
             LocalFinancialProviderCatalog provides financialProviderCatalog,
@@ -297,7 +301,11 @@ internal fun MyFinHubAppContent(
                         },
                         onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         onOpenAllAccounts = { homeBackStack.pushIfNew(AppRoute.Accounts) },
-                        onOpenRecent = { eventId -> homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenRecent = { eventId ->
+                            if (activityState.isUniqueMutationTarget(eventId)) {
+                                homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                            }
+                        },
                     )
                 }
                 entry<AppRoute.HomeAttention> { route ->
@@ -373,7 +381,11 @@ internal fun MyFinHubAppContent(
                             subcategoryIconColors = planState.subcategoryIconColors,
                             categoryGlyphOverrides = planState.categoryGlyphOverrides,
                             onAction = onActivityAction,
-                            onOpenDetail = { eventId -> activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                            onOpenDetail = { eventId ->
+                                if (activityState.isUniqueMutationTarget(eventId)) {
+                                    activityBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                                }
+                            },
                             onOpenQuickEntry = { openFastExpense(activityBackStack) },
                         )
                 }
@@ -435,7 +447,11 @@ internal fun MyFinHubAppContent(
                             end = route.end,
                         ),
                         onAction = onActivityAction,
-                        onOpenDetail = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenDetail = { eventId ->
+                            if (activityState.isUniqueMutationTarget(eventId)) {
+                                activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                            }
+                        },
                         onOpenQuickEntry = { openFastExpense(activeBackStack) },
                         onBack = { activeBackStack.removeLastOrNull() },
                     )
@@ -476,7 +492,12 @@ internal fun MyFinHubAppContent(
                             onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
-                        onOpenCreditActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenCreditActivity = { eventId ->
+                            if (activityState.isUniqueMutationTarget(eventId)) {
+                                activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                            }
+                        },
+                        fullActivityIdCounts = fullActivityIdCounts,
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
                         cardSecretState = cardSecretState,
                         onCardActiveChanged = onCardDetailOpened,
@@ -495,7 +516,7 @@ internal fun MyFinHubAppContent(
                         onSaveAccountIban = onSaveAccountIban,
                         accountMetadataSaving = accountMetadataSaving,
                         activityItems = accountActivityItems(route.accountId, activityState.items),
-                        fullActivityIdCounts = activityState.items.groupingBy { it.id }.eachCount(),
+                        fullActivityIdCounts = fullActivityIdCounts,
                         categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         onBack = { activeBackStack.removeLastOrNull() },
                         onOpenActivity = { eventId ->
@@ -577,7 +598,12 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onBack = { moneyBackStack.removeLastOrNull() },
-                        onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenActivity = { eventId ->
+                            if (activityState.isUniqueMutationTarget(eventId)) {
+                                activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                            }
+                        },
+                        fullActivityIdCounts = fullActivityIdCounts,
                     )
                 }
                 entry<AppRoute.CardSecureDetails> { route ->

@@ -58,6 +58,7 @@ internal fun CanonicalCardStatementHistorySection(
     amountsVisible: Boolean,
     onOpenActivity: (String) -> Unit,
     onPayStatement: (String, Double) -> Unit,
+    fullActivityIdCounts: Map<String, Int>? = null,
 ) {
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
     if (scopedStatements.isEmpty()) return
@@ -127,7 +128,7 @@ internal fun CanonicalCardStatementHistorySection(
                         }
                         if (expandedId == statement.id) {
                             val linked = canonicalStatementLinkedRows(
-                                statement, card.activity,
+                                statement, card.activity, fullActivityIdCounts,
                             )
                             val shown = linked.take(linkedLimit)
                             if (linked.isEmpty()) {

@@ -75,4 +75,51 @@ class CanonicalCardActivityIdentityComposeTest {
             .performScrollTo().assertIsEnabled().performClick()
         rule.runOnIdle { assertEquals("safe-purchase", opened) }
     }
+    @Test fun crossLedgerCollisionDisablesInlineCardRouteButKeepsUniqueRowClickable() {
+        val selected = credit.copy(activity = listOf(
+            entry("cross-card", "Υπάρχει και σε άλλη κάρτα"),
+            entry("valid-card", "Έγκυρη κίνηση"),
+        ))
+        var opened: String? = null
+        rule.setContent {
+            MyFinHubTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    InlineCreditCardWorkspace(
+                        card = selected, statements = emptyList(), amountsVisible = false,
+                        onPayCard = {}, onAddPurchase = {}, onOpenDetails = {},
+                        onOpenActivity = { opened = it },
+                        fullActivityIdCounts = mapOf("cross-card" to 2, "valid-card" to 1),
+                    )
+                }
+            }
+        }
+        rule.onNodeWithTag("inline_credit_activity_unavailable_0")
+            .performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("inline_credit_activity_valid-card")
+            .performScrollTo().assertIsEnabled().performClick()
+        rule.runOnIdle { assertEquals("valid-card", opened) }
+    }
+
+    @Test fun fullCardDetailDisablesForeignDuplicateAndMissingGlobalEvent() {
+        val selected = credit.copy(activity = listOf(
+            entry("cross-card", "Σύγκρουση"), entry("missing", "Χωρίς canonical εγγραφή"),
+            entry("valid-card", "Έγκυρη κίνηση"),
+        ))
+        var opened: String? = null
+        rule.setContent {
+            MyFinHubTheme {
+                CanonicalCardDetailScreen(
+                    card = selected, amountsVisibleOverride = false, onBack = {},
+                    fullActivityIdCounts = mapOf("cross-card" to 2, "valid-card" to 1),
+                    onOpenActivity = { opened = it },
+                )
+            }
+        }
+        rule.onNodeWithTag("card_activity_unavailable_0").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("card_activity_unavailable_1").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("card_activity_valid-card")
+            .performScrollTo().assertIsEnabled().performClick()
+        rule.runOnIdle { assertEquals("valid-card", opened) }
+    }
+
 }

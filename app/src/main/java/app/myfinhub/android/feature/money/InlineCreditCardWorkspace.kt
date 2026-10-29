@@ -102,6 +102,7 @@ fun InlineCreditCardWorkspace(
     onAddPurchase: () -> Unit,
     onOpenActivity: (String) -> Unit,
     onOpenDetails: () -> Unit,
+    fullActivityIdCounts: Map<String, Int>? = null,
 ) {
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -220,8 +221,8 @@ fun InlineCreditCardWorkspace(
                         card.activity.take(
                             inlineCreditVisibleCount(card.activity.size, activityBatches, INLINE_CREDIT_ACTIVITY_BATCH),
                         ).forEachIndexed { index, entry ->
-                            val openId = canonicalCardActivityOpenId(entry.id, activityIdCounts)
-                            val identityWarning = canonicalCardActivityIdentityWarning(entry.id, activityIdCounts)
+                            val openId = canonicalCardActivityOpenId(entry.id, activityIdCounts, fullActivityIdCounts)
+                            val identityWarning = canonicalCardActivityIdentityWarning(entry.id, activityIdCounts, fullActivityIdCounts)
                             Surface(
                                 onClick = { openId?.let(onOpenActivity) },
                                 enabled = openId != null,

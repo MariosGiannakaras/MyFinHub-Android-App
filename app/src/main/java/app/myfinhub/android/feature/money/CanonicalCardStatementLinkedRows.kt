@@ -20,6 +20,7 @@ data class CanonicalStatementLinkedRow(
 internal fun canonicalStatementLinkedRows(
     statement: CanonicalCreditStatementView,
     cardActivity: List<MoneyCardActivity>,
+    fullActivityIdCounts: Map<String, Int>? = null,
 ): List<CanonicalStatementLinkedRow> {
     val source = listOf(
         "Αγορά" to (statement.purchaseIds to MoneyCardActivityKind.PURCHASE),
@@ -33,7 +34,8 @@ internal fun canonicalStatementLinkedRows(
     return source.map { (label, kind, id) ->
         val matches = events[id].orEmpty()
         val valid = count[id] == 1 && matches.size == 1 &&
-            matches.singleOrNull()?.kind == kind && id.isNotBlank()
+            matches.singleOrNull()?.kind == kind && id.isNotBlank() &&
+            (fullActivityIdCounts == null || fullActivityIdCounts[id] == 1)
         val real = matches.singleOrNull()
         if (valid && real != null) {
             CanonicalStatementLinkedRow(
@@ -45,7 +47,10 @@ internal fun canonicalStatementLinkedRows(
         } else {
             val why = when {
                 count[id] != 1 -> "Πολλαπλή σύνδεση στην ίδια κατάσταση"
-                matches.size > 1 -> "Αμφίσημη ιστορική ταυτότητα"
+                matches.size > 1 || (fullActivityIdCounts?.get(id) ?: 0) > 1 ->
+                    "Αμφίσημη ιστορική ταυτότητα"
+                fullActivityIdCounts != null && fullActivityIdCounts[id] != 1 ->
+                    "Η συνδεδεμένη κίνηση δεν εντοπίζεται στο συνολικό ιστορικό"
                 matches.size == 1 -> "Ασυμφωνία είδους ιστορικής κίνησης"
                 else -> "Η συνδεδεμένη ιστορική κίνηση δεν είναι διαθέσιμη"
             }

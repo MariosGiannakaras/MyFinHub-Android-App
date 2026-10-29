@@ -75,6 +75,7 @@ fun CanonicalCardDetailScreen(
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
+    fullActivityIdCounts: Map<String, Int>? = null,
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
@@ -269,6 +270,7 @@ fun CanonicalCardDetailScreen(
                     amountsVisible = amountsVisible,
                     onOpenActivity = onOpenActivity,
                     onPayStatement = onPayStatement,
+                    fullActivityIdCounts = fullActivityIdCounts,
                 )
                 CardActivitySection(
                     card = card,
@@ -276,6 +278,7 @@ fun CanonicalCardDetailScreen(
                     showAll = showAllActivity,
                     onToggleAll = { showAllActivity = !showAllActivity },
                     onOpenActivity = onOpenActivity,
+                    fullActivityIdCounts = fullActivityIdCounts,
                 )
             }
 
@@ -437,6 +440,7 @@ private fun CardActivitySection(
     showAll: Boolean,
     onToggleAll: () -> Unit,
     onOpenActivity: (String) -> Unit,
+    fullActivityIdCounts: Map<String, Int>?,
 ) {
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -447,8 +451,8 @@ private fun CardActivitySection(
                 val visibleActivity = if (showAll) card.activity else card.activity.take(5)
                 val activityIdCounts = canonicalCardActivityIdCounts(card.activity)
                 visibleActivity.forEachIndexed { index, item ->
-                    val openId = canonicalCardActivityOpenId(item.id, activityIdCounts)
-                    val identityWarning = canonicalCardActivityIdentityWarning(item.id, activityIdCounts)
+                    val openId = canonicalCardActivityOpenId(item.id, activityIdCounts, fullActivityIdCounts)
+                    val identityWarning = canonicalCardActivityIdentityWarning(item.id, activityIdCounts, fullActivityIdCounts)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
