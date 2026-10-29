@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Merged Android develop now includes #393 Web v1.7 strict Card Vault new-write validation and #392 account-scoped transaction history filtering (four immutable-head PR checks each). Draft Android-only PR #394 adds selected-card-only credit statement presentation to inline Wallet and historical views, blocks nonfinite statement repayment, and masks invalid imported statement totals. This is an authored source/test batch, NOT validated, merged, signed, or installed. Broad Web parity remains 1/6 implementations and 11/24 accepted subtasks; W2.4/W3.1 remain incomplete. Web v1.7 is live, but the independent shared server PIN bearer unlock ticket / HTTP 423 Android issue #345 remains unimplemented; do not enable global PIN. Physical owner S24 Ultra rc12 functional acceptance #149 is outstanding. No Web/backend/schema, production finance writes, SMS #146, Android main, signing or release changes.",
+    "summary": "Android develop includes verified merged PR #392 account-scoped activity search, #393 strict Web v1.7 Card Vault new-write validation, and #394 selected-card credit statement source integrity, with all four exact-head gates passed for each. Post-merge push Project Tracking #40778802449 and Android CI #40778802537 on #394 merge a15b7c3ac65ffe92a423cb620170785d1f30c100 are both SUCCESS. New DRAFT PR #395 adds shared fail-closed credit amount/repayment handling on the full Card Detail screen and corrects the reversible archive copy to preserve encrypted vault secrets (which only committed permanent removal may purge). Source and Kotlin/Compose tests are authored but not yet CI-validated or merged. Evidence-backed broad Web parity remains 1/6 implementations and 11/24 subtasks; W2.4/W3.1 still incomplete. Native global shared PIN bearer ticket/HTTP 423 issue #345 remains unimplemented; do not enable it. Physical owner Galaxy S24 Ultra rc12 acceptance #149 is separate and pending. No Web/backend, production finance writes, SMS #146, main/signing or release changes.",
     "next": [
-      "Review and validate Draft Android PR #394 at its final immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Correct any findings in one coherent batch and merge to develop only with all four successful gates, unchanged base and clear reviews. Then resume outstanding W2.4/W3.1 work. Shared server PIN #345 remains separate and physical S24 acceptance #149 is not satisfied by CI."
+      "Validate Draft Android PR #395 at its immutable final head with Project Tracking, Android CI, screenshot regression, and hosted S24 Ultra instrumentation. Inspect targeted existing card-detail light/dark/large-font references and source assertions. Address any failures without weakening tests; merge to develop only after four exact-head gates succeed and PR/base/reviews are clean. Continue W2.4/W3.1 and preserve separate owner physical S24 #149 and native shared PIN #345 constraints."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/credit-statement-source-guards-20261028",
-    "checkpoint": "PR #393 Card Vault strict Web v1.7 new-write protection and PR #392 canonical account transaction search are both merged into Android develop at 702eca636254083d7d6f609f241476495592d063, with 4/4 required immutable-head checks each. New DRAFT PR #394 adds a W3.1/W2.4 selected-card statement presentation guard to inline credit and historical statement screens: exact cardId scope, bounded original ordering, finite-only historical repayment, invalid-number warnings and Hide Amounts privacy. Pure/hosted Compose regressions are AUTHORED, not run; full 4/4 PR validation pending. Web v1.7 is already live; native shared global PIN bearer-ticket/423 is still unimplemented (#345). Accepted broad parity 1/6 implementations and 11/24 subtasks, owner physical S24 #149 pending. No production, Web/backend, signing or main changes.",
+    "branch": "android/card-detail-credit-parity-20261029",
+    "checkpoint": "PR #394 selected-card credit-statement source guards is MERGED to Android develop a15b7c3ac65ffe92a423cb620170785d1f30c100 after four immutable-head PR checks (tracking, Android CI, screenshots, hosted S24) passed; post-merge Project Tracking #40778802449 and Android CI #40778802537 also succeeded. Draft #395 now unifies Card Detail and inline Wallet credit financial validity and repayment gating for NaN/Infinity and updates reversible archive confirmation to preserve encrypted secrets (actual permanent-delete cleanup unchanged). Regression unit/Compose tests authored, not executed or accepted yet. Broad parity counters remain 1/6 implementations · 11/24 subtasks; W2.4/W3.1 partial, shared PIN #345 not integrated, physical S24 #149 independently pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -768,7 +768,8 @@
               "PR #321 secure card editor draft invalidation on vault state loss and same-owner bearer/AAL2 rotation hardened with Compose and security instrumentation; exact head 0bf245d27588d6ddc47ff4208ead95cdcb2e3d03 passed Project Tracking, Android CI unit/lint/release, screenshot regression and hosted S24 emulator. Squash merged develop c5a4232ed8130ea6ccf34a9103ca55cd57cd977e. W2.4 remains partial, permanent-delete disabled; physical S24 #149 still pending.",
               "Source checkpoint PR #323 authored, not yet merged: CardSecretViewModel invalidates sensitive state on navigation close/hide/purge; monotonic read generation prevents prior in-flight read/write callbacks from re-revealing PAN/expiry/CVV; server save and new card details require live AAL2 and current Revealed card; instrumented tests authored, not yet executed or accepted.",
               "PR #331 source authored/unmerged: CardSecretViewModel cleanupGeneration now invalidates in-flight committed secret cleanup on same-owner bearer change/AAL downgrade (not just owner switch). Active cleanup changes to retryable fail-closed state, requiring explicit current-bearer server recheck, never local deletion after previous server call; generation rechecked after first encrypted vault deletion before wiping second. Instrumentation fixtures delay server or local vault and verify secrets retained pending explicit retry. No local Gradle execution, exact-head CI pending.",
-              "PR #331 merged into develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four successful exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Same-owner bearer/AAL transition invalidates in-flight committed cleanup and requires fresh owner+AAL2 server recheck; physical S24 owner signoff remains separate."
+              "PR #331 merged into develop f6e64dbf0af84c51355f59760fc9c56134ddfb3e after four successful exact-head Project Tracking, Android CI, screenshot and hosted S24 emulator gates at 601c6714aa6143e3849e589a5d80dbfc97911436. Same-owner bearer/AAL transition invalidates in-flight committed cleanup and requires fresh owner+AAL2 server recheck; physical S24 owner signoff remains separate.",
+              "PR #394 credit-statement source isolation and strict finite-only repayment merged develop a15b7c3ac65ffe92a423cb620170785d1f30c100, final head cfd07bc72529a7f1d5c301eafd59820dcaec1a8b passed all four PR gates; post-merge Android CI and tracking both success. Draft PR #395 addresses separate Card Detail validity and reversibly archived encrypted-vault description; authored without CI or completion credit."
             ]
           }
         ]
@@ -1174,9 +1175,9 @@
         ]
       }
     ],
-    "next_action": "Validate Draft PR #394 on its final SHA with all four Project Tracking/Android CI/screenshot/hosted S24 checks and inspect actual screenshots. Repair a genuine failure without weakening assertions, then merge only on 4/4 success and clean reviews/base. Continue W2.4 and W3.1; keep shared global PIN #345 disabled until native compatibility is verified and physical S24 #149 pending.",
+    "next_action": "Review Draft PR #395 and validate exact immutable head with Project Tracking, Android CI, screenshot regression, hosted S24 emulator. Resolve any failures in one coherent change, merge only on four green gates and clear reviews/base. Preserve archived encrypted card vault secrets, never expose permanent delete or shared PIN until authorized end-to-end; physical owner #149 separately pending.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 394,
+    "pr": 395,
     "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

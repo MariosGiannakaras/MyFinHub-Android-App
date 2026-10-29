@@ -69,6 +69,11 @@ internal fun creditWorkspaceOptionalMoney(amount: Double?, visible: Boolean): St
         if (visible) "Μη έγκυρο ποσό" else "•••• €"
     } else creditWorkspaceMoney(amount, visible)
 
+/** Preserve signed statement-history amounts without formatting invalid source values. */
+internal fun creditWorkspaceSignedMoney(amount: Double, visible: Boolean): String =
+    if (!visible || !amount.isFinite()) creditWorkspaceMoney(amount, visible)
+    else (if (amount > 0.005) "+" else "") + creditWorkspaceMoney(amount, true)
+
 private fun creditStatementStatusLabel(status: String): String = when (status) {
     "due" -> "Προς εξόφληση"
     "closed" -> "Κλειστή"

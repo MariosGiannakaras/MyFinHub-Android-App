@@ -49,11 +49,8 @@ import app.myfinhub.android.core.network.certifiedBrandAsset
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
-import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
-import java.text.NumberFormat
 import java.time.LocalDate
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,8 +74,10 @@ fun CanonicalCardDetailScreen(
     onPayStatement: (String, Double) -> Unit = { _, _ -> },
     onBack: () -> Unit,
     onOpenActivity: (String) -> Unit = {},
+    amountsVisibleOverride: Boolean? = null,
 ) {
-    val amountsVisible = rememberAmountVisibilityPreference()
+    val storedAmountsVisible = rememberAmountVisibilityPreference()
+    val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
     var cardPickerOpen by remember(cardId) { mutableStateOf(false) }
     var showAllActivity by remember(cardId) { mutableStateOf(false) }
     var removeDialogOpen by remember(cardId) { mutableStateOf(false) }
@@ -91,9 +90,9 @@ fun CanonicalCardDetailScreen(
     val certifiedRecord = ownerCatalog.firstOrNull { it.id == card?.bankId }
     val certifiedLogo = certifiedRecord?.certifiedBrandAsset("logo", surfaceTone)
     val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
-    val availableCredit = card?.limit?.takeIf { isCredit && it > 0.0 }?.let { limit ->
-        (limit - card.currentBalance.coerceAtLeast(0.0)).coerceAtLeast(0.0)
-    }
+    // Share the same fail-closed canonical financial snapshot as inline Wallet.
+    // Imported NaN/Infinity can never become display text or a repayment amount.
+    val creditFinancial = card?.takeIf { isCredit }?.let(::creditWorkspaceFinancialSnapshot)
 
     Scaffold(
         topBar = {
@@ -163,16 +162,25 @@ fun CanonicalCardDetailScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         MyFinHubAmountText(
-                            amountVisibilityText(formatCardEuro(card.currentBalance.coerceAtLeast(0.0)), amountsVisible),
+                            creditWorkspaceOptionalMoney(creditFinancial?.outstanding, amountsVisible),
                             FinanceTone.Expense,
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        card.limit?.takeIf { it > 0.0 }?.let { limit ->
+                        if (card.limit != null && creditFinancial?.limit == null && amountsVisible) {
+                            Text(
+                                "Μη έγκυρο πιστωτικό όριο",
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("card_detail_invalid_limit"),
+                            )
+                        }
+                        creditFinancial?.limit?.let { limit ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                CardMetric("Πιστωτικό όριο", amountVisibilityText(formatCardEuro(limit), amountsVisible))
-                                availableCredit?.let {
-                                    CardMetric("Διαθέσιμη πίστωση", amountVisibilityText(formatCardEuro(it), amountsVisible), Alignment.End)
-                                }
+                                CardMetric("Πιστωτικό όριο", creditWorkspaceMoney(limit, amountsVisible))
+                                CardMetric(
+                                    "Διαθέσιμη πίστωση",
+                                    creditWorkspaceOptionalMoney(creditFinancial?.available, amountsVisible),
+                                    Alignment.End,
+                                )
                             }
                         }
                     }
@@ -186,8 +194,8 @@ fun CanonicalCardDetailScreen(
                         MyFinHubPrimaryAction(
                             label = "Πληρωμή κάρτας",
                             onClick = onPayCard,
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = card.currentBalance > 0.005,
+                            modifier = Modifier.fillMaxWidth().testTag("card_detail_payment_action"),
+                            enabled = (creditFinancial?.outstanding ?: 0.0) > 0.005,
                             icon = null,
                         )
                         OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
@@ -355,7 +363,7 @@ fun CanonicalCardDetailScreen(
             text = {
                 Text(
                     "Η κάρτα θα μεταφερθεί στις αρχειοθετημένες και μπορεί να επανέλθει. Το ιστορικό και τυχόν οφειλή διατηρούνται. " +
-                        "Δεν ακυρώνεται στην τράπεζα. Τα προστατευμένα στοιχεία της κάρτας καθαρίζονται και θα χρειαστεί νέα καταχώριση μετά από επαναφορά.",
+                        "Δεν ακυρώνεται στην τράπεζα. Η αρχειοθέτηση δεν διαγράφει τα κρυπτογραφημένα στοιχεία της κάρτας· για να εμφανιστούν ξανά απαιτείται εξουσιοδοτημένη πρόσβαση.",
                 )
             },
             confirmButton = {
@@ -457,7 +465,7 @@ private fun CardActivitySection(
                             Text(item.dateLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         MyFinHubAmountText(
-                            text = amountVisibilityText(formatSignedCardEuro(item.amount), amountsVisible),
+                            text = creditWorkspaceSignedMoney(item.amount, amountsVisible),
                             tone = if (item.kind == MoneyCardActivityKind.PAYMENT) FinanceTone.Income else FinanceTone.Expense,
                         )
                     }
@@ -544,8 +552,3 @@ private fun CardSecretCleanupUiState.matches(cardId: String): Boolean = when (th
     is CardSecretCleanupUiState.Failure -> this.cardId == cardId
 }
 
-private fun formatCardEuro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
-
-private fun formatSignedCardEuro(value: Double): String =
-    (if (value > 0.005) "+" else "") + formatCardEuro(value)
