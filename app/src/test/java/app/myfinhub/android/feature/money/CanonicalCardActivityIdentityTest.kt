@@ -36,4 +36,20 @@ class CanonicalCardActivityIdentityTest {
         val corrected = stale.take(1)
         assertEquals("same", canonicalCardActivityOpenId("same", canonicalCardActivityIdCounts(corrected)))
     }
+    @Test fun crossLedgerCollisionsAndMissingCanonicalEventsCannotNavigate() {
+        val local = canonicalCardActivityIdCounts(
+            listOf(event("cross-card"), event("missing-global"), event("valid")),
+        )
+        val global = mapOf("cross-card" to 2, "valid" to 1)
+        assertNull(canonicalCardActivityOpenId("cross-card", local, global))
+        assertNull(canonicalCardActivityOpenId("missing-global", local, global))
+        assertEquals("valid", canonicalCardActivityOpenId("valid", local, global))
+        assertEquals("Διπλή ταυτότητα ιστορικής κίνησης · απαιτείται έλεγχος.",
+            canonicalCardActivityIdentityWarning("cross-card", local, global))
+        assertEquals("Η κίνηση δεν εντοπίζεται μοναδικά στο συνολικό ιστορικό.",
+            canonicalCardActivityIdentityWarning("missing-global", local, global))
+        // Isolated Compose previews preserve local-only navigation with no global map.
+        assertEquals("missing-global", canonicalCardActivityOpenId("missing-global", local))
+    }
+
 }

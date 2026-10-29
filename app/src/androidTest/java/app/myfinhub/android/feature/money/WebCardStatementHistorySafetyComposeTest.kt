@@ -140,4 +140,23 @@ class WebCardStatementHistorySafetyComposeTest {
         rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
     }
 
+    @Test fun crossCardCollisionDisablesStatementLinkWithoutHidingUniqueNeighbor() {
+        var opened: String? = null
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(listOf(purchase("shared-id"), purchase("valid-id"))),
+                listOf(statement(listOf("shared-id", "valid-id"))),
+                amountsVisible = true,
+                onOpenActivity = { opened = it },
+                onPayStatement = { _, _ -> },
+                fullActivityIdCounts = mapOf("shared-id" to 2, "valid-id" to 1),
+            )
+        } }
+        rule.onNodeWithTag("card_statement_expand_0").performClick()
+        rule.onNodeWithTag("card_statement_link_warning_0_0").assertExists()
+        rule.onNodeWithTag("card_statement_event_0_0").assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_event_0_1").performClick()
+        rule.runOnIdle { assertEquals("valid-id", opened) }
+    }
+
 }
