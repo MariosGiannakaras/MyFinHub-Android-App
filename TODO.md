@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #400 cross-card historical credit statement ID integrity on one immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 emulator, then review real card statement rendering and merge only with four successes, clean reviews and unchanged develop. Do not count W3.1 complete; Galaxy S24 physical #149 separate.
+- [ ] Validate draft PR #401 Quick Entry payable statement picker and Save parity against immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Check duplicate/blank/non-finite/settled choices are unavailable and valid unique statement remains selectable; only merge with 4/4 green, clean reviews and unchanged develop. Physical owner S24 #149 separate.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #400, branch android/credit-statement-global-owner-20261029
-Current W2.4: PR #399 merged develop 820676fc17c1b7be01465bd8ea09c81debb2bba8 after all four final-head CI checks succeeded at da9624818000b280813071a0ed980c9e3533b902. W3.1 new Android-only source work blocks ambiguous statement ID selection across all cards in Card Detail and Quick Entry while preserving original historical statements and Hide Amounts. Tests authored but PR CI pending; Web parity 1/6 implementations · 11/24 subtasks, physical S24 #149 still pending.
+Issue #155, PR #401, branch android/credit-statement-payable-picker-20261029
+Current W2.4: PR #400 W3.1 global credit statement identity source safety merged into develop a2cd680afaeabd18985146a0ff75284dd507d210 after exact-head four green gates at 1180c1ce7cef529448888575f7a244ad5b9ed371. New Android-only W3.1 source checkpoint removes unsafe duplicate/invalid/paid entries from Quick Entry statement picker, and rejects selected non-finite/settled statement values at Save. JVM/Compose tests authored, CI pending. Web parity 1/6 implementations · 11/24 subtasks; physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify PR #400 at unchanged final head for Project Tracking, Android CI, screenshots and hosted S24. Confirm duplicate cross-card statements remain read-only with no payment selection or linked expansion; valid unique statements remain usable. Merge only after 4/4 success and clean base/reviews; no physical S24 signoff inferred.
+Next Verify PR #401 on unchanged immutable head through Project Tracking, Android CI, screenshot regression and hosted S24; inspect Quick Entry UI and valid/unlinked payment behavior; merge only if four gates pass, no blocking reviews and develop unchanged. No owner physical acceptance inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

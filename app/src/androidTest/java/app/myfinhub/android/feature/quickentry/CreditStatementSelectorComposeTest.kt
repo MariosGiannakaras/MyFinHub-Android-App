@@ -81,4 +81,55 @@ class CreditStatementSelectorComposeTest {
         assertTrue(rule.onAllNodes(hasText("Δήλωση πιστωτικής (προαιρετικά)"))
             .fetchSemanticsNodes().isEmpty())
     }
+    @Test fun ambiguousAndNonFiniteStatementsCannotPopulateTheProductionPicker() {
+        val options = listOf(
+            QuickEntryStatementOption("same", "card-credit", "Διπλή κατάσταση", 40.0),
+            QuickEntryStatementOption("same", "another-card", "Ξένη διπλή", 35.0),
+            QuickEntryStatementOption("nan", "card-credit", "Μη έγκυρο ποσό", Double.NaN),
+            QuickEntryStatementOption("paid", "card-credit", "Εξοφλημένη", 0.0),
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = QuickEntryUiState(
+                        kind = QuickEntryKind.CARD_PAYMENT,
+                        amountText = "15", cardId = "card-credit",
+                        creditStatements = options, dirty = true,
+                    ),
+                    onAction = {}, onBack = {},
+                )
+            }
+        }
+        assertTrue(rule.onAllNodes(hasText("Δήλωση πιστωτικής (προαιρετικά)"))
+            .fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test fun globallyUniquePayableStatementRemainsSelectableWhileDuplicatesAreHidden() {
+        var action: QuickEntryAction? = null
+        val options = listOf(
+            QuickEntryStatementOption("duplicate", "card-credit", "Πρώτη διπλή", 40.0),
+            QuickEntryStatementOption("duplicate", "other-card", "Δεύτερη διπλή", 40.0),
+            QuickEntryStatementOption("unique", "card-credit", "Ασφαλής κατάσταση", 35.0),
+        )
+        rule.setContent {
+            MyFinHubTheme {
+                ProductionQuickEntryScreen(
+                    state = QuickEntryUiState(
+                        kind = QuickEntryKind.CARD_PAYMENT,
+                        amountText = "15", cardId = "card-credit",
+                        creditStatements = options, dirty = true,
+                    ),
+                    onAction = { action = it }, onBack = {},
+                )
+            }
+        }
+        rule.onNodeWithText("Δήλωση πιστωτικής (προαιρετικά)").fetchSemanticsNode()
+        rule.onNodeWithText("Χωρίς σύνδεση με δήλωση").performScrollTo().performClick()
+        rule.onNodeWithText("Ασφαλής κατάσταση").performClick()
+        rule.runOnIdle {
+            assertTrue(action is QuickEntryAction.StatementChanged)
+            assertEquals("unique", (action as QuickEntryAction.StatementChanged).id)
+        }
+    }
+
 }
