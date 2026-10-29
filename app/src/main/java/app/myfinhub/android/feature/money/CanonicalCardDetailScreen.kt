@@ -76,6 +76,7 @@ fun CanonicalCardDetailScreen(
     onOpenActivity: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
     fullActivityIdCounts: Map<String, Int>? = null,
+    fullStatementIdCounts: Map<String, Int>? = null,
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
@@ -271,6 +272,7 @@ fun CanonicalCardDetailScreen(
                     onOpenActivity = onOpenActivity,
                     onPayStatement = onPayStatement,
                     fullActivityIdCounts = fullActivityIdCounts,
+                    fullStatementIdCounts = fullStatementIdCounts,
                 )
                 CardActivitySection(
                     card = card,

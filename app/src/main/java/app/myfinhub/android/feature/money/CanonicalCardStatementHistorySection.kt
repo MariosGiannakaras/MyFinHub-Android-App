@@ -48,6 +48,18 @@ internal fun canonicalStatementsForCard(
     if (cardId.isBlank()) emptyList() else statements.filter { it.cardId == cardId }
 
 /**
+ * Even a locally unique statement ID is unsafe when the same canonical ID
+ * belongs to another card in the full statement ledger.
+ */
+internal fun canonicalStatementIdentityUnique(
+    id: String,
+    scopedStatements: List<CanonicalCreditStatementView>,
+    fullStatementIdCounts: Map<String, Int>? = null,
+): Boolean = id.isNotBlank() &&
+    scopedStatements.count { it.id == id } == 1 &&
+    (fullStatementIdCounts == null || fullStatementIdCounts[id] == 1)
+
+/**
  * Canonical statement groups are authoritative. Never allocate historical events to
  * guessed cycles, truncate a statement's true totals, or synthesize card payments.
  */
@@ -59,6 +71,7 @@ internal fun CanonicalCardStatementHistorySection(
     onOpenActivity: (String) -> Unit,
     onPayStatement: (String, Double) -> Unit,
     fullActivityIdCounts: Map<String, Int>? = null,
+    fullStatementIdCounts: Map<String, Int>? = null,
 ) {
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
     if (scopedStatements.isEmpty()) return
@@ -77,8 +90,9 @@ internal fun CanonicalCardStatementHistorySection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             scopedStatements.take(visibleLimit).forEachIndexed { index, statement ->
-                val identityUnique = statement.id.isNotBlank() &&
-                    scopedStatements.count { it.id == statement.id } == 1
+                val identityUnique = canonicalStatementIdentityUnique(
+                    statement.id, scopedStatements, fullStatementIdCounts,
+                )
                 Column(
                     modifier = Modifier.fillMaxWidth()
                         .testTag("card_statement_row_$index"),

@@ -497,9 +497,11 @@ private fun validateAndPreview(state: QuickEntryUiState): QuickEntryUiState {
         return state.invalid("Διάλεξε ενεργή πιστωτική κάρτα.")
     }
     if (state.kind == QuickEntryKind.CARD_PAYMENT && state.statementId.isNotBlank()) {
-        val selected = state.creditStatements.firstOrNull {
-            it.id == state.statementId && it.cardId == state.cardId
-        } ?: return state.invalid("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.")
+        // A statement ID is a global linkage key: no first-match fallback
+        // when legacy records collide across cards or within one card.
+        val selected = state.creditStatements.filter { it.id == state.statementId }
+            .singleOrNull()?.takeIf { it.cardId == state.cardId }
+            ?: return state.invalid("Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.")
         if ((state.amount ?: 0.0) > selected.remaining + 0.01) {
             return state.invalid("Η πληρωμή ξεπερνά το υπόλοιπο της επιλεγμένης δήλωσης.")
         }

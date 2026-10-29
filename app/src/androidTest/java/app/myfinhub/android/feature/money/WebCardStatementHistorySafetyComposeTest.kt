@@ -159,4 +159,44 @@ class WebCardStatementHistorySafetyComposeTest {
         rule.runOnIdle { assertEquals("valid-id", opened) }
     }
 
+    @Test fun foreignCardStatementIdCollisionHidesPayAndLinkedControlsWithoutDroppingRow() {
+        val colliding = statement(listOf("movement"))
+        var pays = 0
+        var opens = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(listOf(purchase("movement"))), listOf(colliding),
+                amountsVisible = false, onOpenActivity = { opens++ },
+                onPayStatement = { _, _ -> pays++ },
+                fullStatementIdCounts = mapOf("statement-1" to 2),
+            )
+        } }
+        rule.onNodeWithTag("card_statement_row_0").assertExists()
+        rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_expand_0").assertDoesNotExist()
+        rule.onNodeWithText("Μη έγκυρο ή μη μοναδικό ID κατάστασης", substring = true)
+            .assertExists()
+        rule.onNodeWithText("100,00", substring = true).assertDoesNotExist()
+        rule.runOnIdle {
+            assertEquals(0, pays)
+            assertEquals(0, opens)
+        }
+    }
+
+    @Test fun globallyUniqueStatementKeepsOriginalPaymentAndExpansionActions() {
+        var pays = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(listOf(purchase("movement"))), listOf(statement(listOf("movement"))),
+                amountsVisible = true, onOpenActivity = {},
+                onPayStatement = { _, _ -> pays++ },
+                fullStatementIdCounts = mapOf("statement-1" to 1),
+            )
+        } }
+        rule.onNodeWithTag("card_statement_pay_0").performClick()
+        rule.onNodeWithTag("card_statement_expand_0").performClick()
+        rule.onNodeWithTag("card_statement_event_0_0").assertExists()
+        rule.runOnIdle { assertEquals(1, pays) }
+    }
+
 }

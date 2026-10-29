@@ -391,4 +391,24 @@ class QuickEntryReducerTest {
         assertEquals(state, reduceQuickEntry(state, QuickEntryAction.SelectKind(QuickEntryKind.SPLIT)))
     }
 
+    @Test
+    fun duplicateStatementIdsAcrossCardsCannotSelectArbitraryPaymentTarget() {
+        val original = QuickEntryStatementOption("shared-id", "card-credit", "Πρώτη", 50.0)
+        val foreign = QuickEntryStatementOption("shared-id", "foreign-card", "Δεύτερη", 80.0)
+        val unique = QuickEntryStatementOption("valid-id", "card-credit", "Έγκυρη", 50.0)
+        val state = QuickEntryUiState(
+            kind = QuickEntryKind.CARD_PAYMENT,
+            amountText = "20",
+            statementId = "shared-id",
+            creditStatements = listOf(original, foreign, unique),
+        )
+        assertEquals(
+            "Διάλεξε έγκυρη δήλωση της πιστωτικής κάρτας.",
+            reduceQuickEntry(state, QuickEntryAction.Save).validationMessage,
+        )
+        assertNull(reduceQuickEntry(
+            state.copy(statementId = "valid-id"), QuickEntryAction.Save,
+        ).validationMessage)
+    }
+
 }
