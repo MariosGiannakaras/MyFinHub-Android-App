@@ -495,9 +495,14 @@ internal fun MyFinHubAppContent(
                         onSaveAccountIban = onSaveAccountIban,
                         accountMetadataSaving = accountMetadataSaving,
                         activityItems = accountActivityItems(route.accountId, activityState.items),
+                        fullActivityIdCounts = activityState.items.groupingBy { it.id }.eachCount(),
                         categoryGlyphOverrides = planState.categoryGlyphOverrides,
                         onBack = { activeBackStack.removeLastOrNull() },
-                        onOpenActivity = { eventId -> activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId)) },
+                        onOpenActivity = { eventId ->
+                            if (activityState.isUniqueMutationTarget(eventId)) {
+                                activeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
+                            }
+                        },
                         onNewTransaction = {
                             onQuickEntryAction(QuickEntryAction.Reset)
                             onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))

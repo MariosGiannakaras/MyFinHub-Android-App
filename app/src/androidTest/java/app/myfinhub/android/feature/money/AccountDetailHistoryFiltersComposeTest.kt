@@ -1,6 +1,8 @@
 package app.myfinhub.android.feature.money
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.onAllNodesWithText
@@ -36,6 +38,51 @@ class AccountDetailHistoryFiltersComposeTest {
             category = if (index % 2 == 0) "Εργασία" else "Τρόφιμα",
             rawDate = "2026-10-${index.toString().padStart(2, '0')}",
         )
+    }
+
+    @Test fun duplicateOrBlankSourceIdsStayVisibleButCannotOpenAnotherEvent() {
+        val scoped = listOf(
+            records[0].copy(id = "duplicate", title = "Αγορά πρώτη"),
+            records[1].copy(id = "duplicate", title = "Αγορά δεύτερη"),
+            records[2].copy(id = "", title = "Χωρίς κωδικό"),
+            records[3].copy(id = "safe", title = "Έγκυρη κίνηση"),
+        )
+        var opened: String? = null
+        rule.setContent { MyFinHubTheme {
+            CanonicalAccountDetailScreen(
+                account = account,
+                activityItems = scoped,
+                fullActivityIdCounts = mapOf("duplicate" to 2, "" to 1, "safe" to 1),
+                onBack = {},
+                onOpenActivity = { opened = it },
+                amountsVisibleOverride = false,
+            )
+        } }
+        rule.onNodeWithTag("account_history_source_0").assertIsNotEnabled()
+        rule.onNodeWithTag("account_history_source_1").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("account_history_source_2").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithTag("account_history_source_3").performScrollTo()
+            .assertIsEnabled().performClick()
+        rule.runOnIdle { assertEquals("safe", opened) }
+        rule.onNodeWithTag("account_history_identity_warning_0").assertExists()
+        rule.onNodeWithTag("account_history_identity_warning_2").assertExists()
+    }
+
+    @Test fun duplicateIdOnAnotherAccountAlsoDisablesThisAccountsRow() {
+        // This account has only one row; the full canonical ledger has a collision elsewhere.
+        var opened: String? = null
+        rule.setContent { MyFinHubTheme {
+            CanonicalAccountDetailScreen(
+                account = account,
+                activityItems = listOf(records[0].copy(id = "cross-account")),
+                fullActivityIdCounts = mapOf("cross-account" to 2),
+                onBack = {},
+                onOpenActivity = { opened = it },
+                amountsVisibleOverride = false,
+            )
+        } }
+        rule.onNodeWithTag("account_history_source_0").assertIsNotEnabled()
+        rule.runOnIdle { assertEquals(null, opened) }
     }
 
     @Test fun searchingAndKindFilteringStayInSameAccountAndKeepPrivacy() {

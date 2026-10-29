@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #396 at exact immutable head through Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation; inspect test failures and actual render differences before refreshing any golden references. Merge only after 4/4 green, reviews/base clear. Continue W2.4/W3.1 and physical owner S24 #149 separately; do not enable shared server PIN #345.
+- [ ] Validate draft PR #397 immutable exact head against all four gates: Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation. Inspect source rows with legacy duplicate/blank IDs and safeguard valid account search. Merge only with 4/4 green and clean develop/reviews; preserve physical owner #149 independently.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #396, branch android/card-activity-source-identity-safety-20261029
-Current W2.4: PR #395 Card Detail financial safety/archive copy merged Android develop 904c9247fb91e6c3493f1105cb896bd9ffd875c4 after all four exact-head PR gates succeeded. DRAFT PR #396 W2.4/W3.1 closes cross-row duplicate/blank canonical credit activity ID ambiguity on both same-page Cards workspace and optional Card Detail, disabling unsafe event routes but retaining source rows and visible warnings. Pure and hosted Compose tests authored; final CI not yet executed. Broad Web parity acceptance remains 1/6 implementations · 11/24 subtasks; owner physical #149 remains pending, server global PIN ticket #345 unimplemented.
+Issue #155, PR #397, branch android/account-history-duplicate-identity-safe-20261029
+Current W2.4: PR #396 card-activity duplicate/blank fail-closed navigation MERGED into develop 7e69b0a6457f0a2a43d9b2cfc50946bf9aa7b8a9 with exact-head four green PR gates. Draft PR #397 extends source-safe historical ID navigation to Account Detail: stable original-index LazyColumn keys, global ledger ID uniqueness (not merely within selected account), disabling unsafe tap and visible warning, preserving imported rows/dates/amount privacy, backed by pure and hosted Compose tests. Code authored; CI/owner physical S24 pending. Historical accepted broader parity 1/6 · 11/24; W2.4/W3.1 incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run 4/4 required checks on draft PR #396 final immutable SHA. Review Compose UI for ambiguous IDs, privacy and unique valid navigation; inspect failures without bypasses. Merge into develop only with all four success and clean reviews/base. Do not count W2.4 or W3.1 complete yet; physical owner S24 #149 independent.
+Next Validate PR #397 at identical final commit via Project Tracking, Android CI, screenshots and hosted S24; merge to develop only after all 4 successes, no review blockers and unchanged base. Owner physical Galaxy S24 #149 separate; do not enable shared global PIN ticket #345 or release/signing.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
