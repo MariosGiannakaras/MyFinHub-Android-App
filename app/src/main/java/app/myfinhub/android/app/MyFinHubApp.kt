@@ -53,6 +53,7 @@ import app.myfinhub.android.feature.money.CanonicalLoansScreen
 import app.myfinhub.android.feature.money.CanonicalNetPositionScreen
 import app.myfinhub.android.feature.money.CanonicalWalletScreen
 import app.myfinhub.android.feature.money.canOpenCreditStatementPayment
+import app.myfinhub.android.feature.money.canOpenCreditCardQuickEntry
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyUiState
@@ -493,13 +494,20 @@ internal fun MyFinHubAppContent(
                         onOpenNetPosition = { moneyBackStack.pushIfNew(AppRoute.NetPosition) },
                         onOpenCard = { cardId -> moneyBackStack.pushIfNew(AppRoute.CardDetail(cardId)) },
                         onPayCreditCard = { cardId ->
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
-                            onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = true,
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                         onPayCreditStatement = { cardId, statementId, remaining ->
-                            if (canOpenCreditStatementPayment(
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = true,
+                                ) && canOpenCreditStatementPayment(
                                     cardId, statementId, remaining,
                                     moneyState.creditStatementsByCard[cardId].orEmpty(),
                                     fullStatementIdCounts,
@@ -514,10 +522,15 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         onAddCreditPurchase = { cardId ->
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
-                            onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == cardId }, payment = false,
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                         onOpenCreditActivity = { eventId ->
                             if (activityState.isUniqueMutationTarget(eventId)) {
@@ -600,19 +613,31 @@ internal fun MyFinHubAppContent(
                             it.id to it.displayName
                         },
                         onAddPurchase = {
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
-                            onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = false,
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                         onPayCard = {
-                            onQuickEntryAction(QuickEntryAction.Reset)
-                            onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
-                            onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
-                            moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = true,
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(route.cardId))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
                         },
                         onPayStatement = { statementId, remaining ->
-                            if (canOpenCreditStatementPayment(
+                            if (canOpenCreditCardQuickEntry(
+                                    moneyState.cards.firstOrNull { it.id == route.cardId }, payment = true,
+                                ) && canOpenCreditStatementPayment(
                                     route.cardId, statementId, remaining,
                                     moneyState.creditStatementsByCard[route.cardId].orEmpty(),
                                     fullStatementIdCounts,

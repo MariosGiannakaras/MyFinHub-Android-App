@@ -43,6 +43,25 @@ internal data class CreditWorkspaceFinancialSnapshot(
     val utilization: Float?,
 )
 
+/**
+ * Action permissions must follow current canonical card identity, not a stale
+ * previously rendered Wallet row or a conflicting localized card label.
+ * Empty canonical kind is allowed only for legacy preview/imported card labels.
+ */
+internal fun canUseCreditCardActions(card: MoneyCard?): Boolean {
+    if (card == null || card.id.isBlank() || card.archivedAt != null) return false
+    return when (card.canonicalKind.trim().lowercase(Locale.ROOT)) {
+        "credit" -> true
+        "" -> card.kind.contains("Πιστωτ", ignoreCase = true)
+        else -> false
+    }
+}
+
+internal fun canOpenCreditCardQuickEntry(card: MoneyCard?, payment: Boolean): Boolean =
+    canUseCreditCardActions(card) &&
+        (!payment || card != null &&
+            (creditWorkspaceFinancialSnapshot(card).outstanding ?: 0.0) > 0.005)
+
 internal fun creditWorkspaceFinancialSnapshot(card: MoneyCard): CreditWorkspaceFinancialSnapshot {
     val outstanding = card.currentBalance.takeIf(Double::isFinite)?.coerceAtLeast(0.0)
     val limit = card.limit?.takeIf { it.isFinite() && it > 0.0 }
@@ -108,7 +127,7 @@ fun InlineCreditCardWorkspace(
     fullStatementIdCounts: Map<String, Int>? = null,
     onPayStatement: ((String, Double) -> Unit)? = null,
 ) {
-    val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
+    val credit = canUseCreditCardActions(card)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
     val financial = creditWorkspaceFinancialSnapshot(card)
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
