@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Deploy 2/8 accepted, Android mobile-first. PR #408 native Activity nonfinite source display/summary and monthly comparison repair passed all four exact-head gates at 014e198c8c901350474ce11a1a3073934bf28615 and squash merged develop f7795b2e156b8df7cc232ef2ccea76b23c715039; #407 duplicate D3 branch closed unmerged after #406 completed the Wallet statement-payment flow. Current PR #409 batches source-card lifecycle revalidation at EVERY native credit Quick Entry entry point (Wallet, Card Detail, statement), avoids following stale archived/deleted/misclassified cards, and preserves legacy recognized credit labeling. Kotlin and hosted Compose tests authored, single final-head CI pending. D3 Cards/Quick Entry and D4 Activity still in progress; physical Galaxy S24 owner #149 pending. Web parity bookkeeping 1/6 implementations · 11/24 subtasks unchanged; SMS #146, global PIN #345, backend/Web/schema and signing/release excluded.
+Mobile-first Android deploy progress 2/8 accepted (D1 native foundation, D2 Home/accounts). PR #409 current credit card lifecycle revalidation Kotlin/hosted Compose tests passed all four immutable-head gates at 3b120e76dfc57714bb7b2280476afbf9ca78713e, squash merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae; D3 Cards/Quick Entry still awaiting full journey acceptance. New consolidated PR #410 hardens native Activity read/detail/edit/delete and counterparty action lifecycle against pending/deleted/duplicate or globally blocked source, removes stale confirmation, safely displays invalid split-line amounts and adds Compose/JVM regressions. Exact head CI not yet accepted. D4 Activity remains in progress. Web parity 1/6 implementations · 11/24 subtasks unchanged, physical owner Galaxy S24 #149 pending, no Web/backend/schema/real finance writes/global PIN #345/SMS #146 or signing/main/release.
 
 ## Immediate work
 
-- Validate PR #409 single final-head Project Tracking, Android CI, screenshot and hosted S24 checks on current develop, including archived/card-kind conflict/invalid debt/stale callback test. Merge only on four PASS jobs, stable develop and clean reviews. Continue D3 real credit end-to-end acceptance and D4 Activity later; physical owner #149 and signed deploy remain separate gates.
+- Validate new PR #410 Android Activity end-to-end detail action/mutation source revalidation, stale confirm and invalid split amount with final four checks on one immutable head. Merge only if Project Tracking, Android CI, screenshot, hosted S24 PASS, base stable, clean reviews. D3 and D4 not prematurely marked completed; physical owner S24 #149 and signed deploy D8 remain independent.
 
 ## Constraints
 
@@ -66,7 +66,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D3
-Next: D3 Credit/Quick Entry lifecycle guard PR #409 single end-of-batch validation and integration; then validate end-to-end Cards and Activity core user journeys before accepting D3/D4. D7 physical S24 #149 and D8 signed deploy remain unapproved.
+Next: Validate PR #410 final CI and merge only if four gates succeed; then examine complete D3 and D4 user journeys. D7 physical Galaxy S24 Ultra #149 and D8 signed deploy remain pending and require owner acceptance.
 
 
 ## Active Web parity progress
@@ -75,10 +75,10 @@ Next: D3 Credit/Quick Entry lifecycle guard PR #409 single end-of-batch validati
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #409, branch android/credit-card-current-route-guards-20261030
-Current W2.4: Merged #408 f7795b2e156b8df7cc232ef2ccea76b23c715039 four final-head checks PASS (Android Activity malformed money and aggregate display). #407 duplicate older D3 draft closed unmerged preserving branch after merged #406. New draft PR #409 consolidates real native card-to-Quick Entry action gating: callbacks revalidate card still active, canonical credit kind and payment debt before route; Wallet+Card Detail+statement action, code tests and hosted Compose; final CI pending. Deploy D1–D2 2/8 accepted, D3 and D4 in progress. Web parity 1/6 implementation · 11/24 subtasks unchanged; physical owner #149 remains.
+Issue #155, PR #410, branch android/activity-safe-detail-actions-20261030
+Current W3.2: PR #409 D3 credit Quick Entry card lifecycle guard 4/4 exact head success, merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae. New draft PR #410 D4 Activity real mobile details/edit/delete/counterparty authorization rechecks current source uniqueness and pending flags on callback, confirms become inactive when blocked, invalid split-part money remains identifiable/masked. JVM and hosted Compose tests authored; CI pending. Deploy 2/8, D3 and D4 remain in progress. Web parity 1/6 implementations, 11/24 subtasks. Physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run one final-head four-gate verification for PR #409; ensure all stale credit-card entry callbacks fail closed for deleted/archived/debit/invalid-debt sources, normal purchase/payment and legacy labels still work, review clean, base stable. Merge only on four PASS and continue D3/D4 user journeys. Physical owner #149 not replaced by CI.
+Next Validate immutable PR #410 via Project Tracking, Android CI, screenshot and hosted S24, including blocked open delete dialog, stale event edit/delete/counterparty/save callbacks and safe split amount; merge only four passed gates, unchanged develop and reviews clear. Continue native Android feature completeness; physical S24 #149 and signed release separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

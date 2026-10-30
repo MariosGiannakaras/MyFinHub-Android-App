@@ -412,11 +412,23 @@ internal fun MyFinHubAppContent(
                         historicalBalance = item?.let { activityHistoricalBalance?.invoke(it) },
                         counterpartyRows = planState.counterpartyDirectory,
                         onChooseCounterparty = onLinkActivityCounterparty?.let { callback ->
-                            { selectedId -> callback(route.eventId, selectedId) }
+                            { selectedId ->
+                                if (activityState.canMutateCurrentActivity(route.eventId, activityMutationBlocked)) {
+                                    callback(route.eventId, selectedId)
+                                }
+                            }
                         },
                         onBack = { activeBackStack.removeLastOrNull() },
-                        onEdit = { activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId)) },
-                        onDelete = { onActivityAction(ActivityAction.Delete(route.eventId)) },
+                        onEdit = {
+                            if (activityState.canMutateCurrentActivity(route.eventId, activityMutationBlocked)) {
+                                activeBackStack.pushIfNew(AppRoute.ActivityEdit(route.eventId))
+                            }
+                        },
+                        onDelete = {
+                            if (activityState.canMutateCurrentActivity(route.eventId, activityMutationBlocked)) {
+                                onActivityAction(ActivityAction.Delete(route.eventId))
+                            }
+                        },
                         onDeleted = { activeBackStack.removeLastOrNull() },
                     )
                 }
@@ -434,16 +446,21 @@ internal fun MyFinHubAppContent(
                             !activityState.isUniqueMutationTarget(route.eventId),
                         onBack = { activeBackStack.removeLastOrNull() },
                         onSave = { date, note, category, subcategory, legacy ->
-                            onActivityAction(
-                                ActivityAction.SaveEdit(
-                                    id = route.eventId,
-                                    note = note,
-                                    category = category,
-                                    date = date,
-                                    subcategory = subcategory,
-                                    legacy = legacy,
-                                ),
-                            )
+                            if (activityState.canMutateCurrentActivity(
+                                    route.eventId, activityMutationBlocked || activityMutationInFlight,
+                                )
+                            ) {
+                                onActivityAction(
+                                    ActivityAction.SaveEdit(
+                                        id = route.eventId,
+                                        note = note,
+                                        category = category,
+                                        date = date,
+                                        subcategory = subcategory,
+                                        legacy = legacy,
+                                    ),
+                                )
+                            }
                         },
                         onSaved = { activeBackStack.removeLastOrNull() },
                     )

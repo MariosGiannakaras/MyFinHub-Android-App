@@ -1,5 +1,9 @@
 package app.myfinhub.android.feature.activity
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -15,6 +19,62 @@ import org.junit.Test
 /** Exercise the actual production detail LazyColumn, not a standalone mock of its parts. */
 class ActivitySplitDetailComposeTest {
     @get:Rule val rule = createComposeRule()
+
+    @Test fun openDeleteDialogIsRevokedIfSourceMutationsBecomeBlocked() {
+        val row = ActivityItem(
+            "source", "30 Οκτ", ActivityKind.EXPENSE, "Καφές", "",
+            -6.0, "Μετρητά", "Τρόφιμα", rawDate = "2026-10-30",
+        )
+        var blocked by mutableStateOf(false)
+        var deleted = 0
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityReadDetailScreen(
+                    item = row, accountOptions = emptyList(), mutationBlocked = blocked,
+                    onBack = {}, onEdit = {}, onDelete = { deleted++ }, onDeleted = {},
+                )
+            }
+        }
+        rule.onNodeWithTag("activity_detail_list")
+            .performScrollToNode(hasText("Περισσότερα"))
+        rule.onNodeWithText("Περισσότερα").performClick()
+        rule.onNodeWithText("Διαγραφή κίνησης").performClick()
+        rule.onNodeWithText("Διαγραφή κίνησης;").assertExists()
+        rule.runOnIdle { blocked = true }
+        rule.onNodeWithText("Διαγραφή κίνησης;").assertDoesNotExist()
+        rule.runOnIdle { blocked = false }
+        rule.onNodeWithText("Διαγραφή κίνησης;").assertDoesNotExist()
+        rule.runOnIdle { org.junit.Assert.assertEquals(0, deleted) }
+    }
+
+    @Test fun invalidSplitConstituentNeverDisplaysFakeEurosAndMasksUnderPrivacy() {
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        val original = AmountVisibilityPreference.read(ctx)
+        try {
+            AmountVisibilityPreference.write(ctx, true)
+            val row = ActivityItem(
+                "split-invalid", "30 Οκτ", ActivityKind.EXPENSE, "Σύνθετη κίνηση",
+                "", -10.0, "Μετρητά", "Άλλο", rawDate = "2026-10-30",
+                canonicalKind = "split",
+                splitParts = listOf(ActivitySplitPart(
+                    "Προβληματικό μέρος", "Άλλο", null, Double.POSITIVE_INFINITY)),
+            )
+            rule.setContent {
+                MyFinHubTheme {
+                    ActivityReadDetailScreen(item = row, accountOptions = emptyList(),
+                        mutationBlocked = false, onBack = {}, onEdit = {},
+                        onDelete = {}, onDeleted = {})
+                }
+            }
+            rule.onNodeWithTag("activity_detail_list")
+                .performScrollToNode(hasText("Προβληματικό μέρος"))
+            rule.onNodeWithText("Μη έγκυρο ποσό").assertExists()
+            rule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
+        } finally {
+            AmountVisibilityPreference.write(ctx, original)
+        }
+    }
+
 
     @Test fun activityEditReadOnlyAmountNeverLeaksWhenPrivacyIsHidden() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
