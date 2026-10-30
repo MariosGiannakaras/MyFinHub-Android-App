@@ -72,7 +72,7 @@ class NativeFinanceJourneysComposeTest {
             }
         }
 
-        rule.onNodeWithContentDescription("Κάρτες").performClick()
+        rule.onNodeWithContentDescription("Κάρτες", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("wallet_list")
             .performScrollToNode(hasTestTag("inline_credit_card_workspace"))
         rule.onNodeWithTag("inline_credit_pay_statement_0").performScrollTo().performClick()
@@ -104,7 +104,7 @@ class NativeFinanceJourneysComposeTest {
                 )
             }
         }
-        rule.onNodeWithContentDescription("Κινήσεις").performClick()
+        rule.onNodeWithContentDescription("Κινήσεις", useUnmergedTree = true).performClick()
         rule.onNodeWithText("Σούπερ μάρκετ").performClick()
         rule.onNodeWithText("Λεπτομέρειες κίνησης").assertIsDisplayed()
         rule.onNodeWithText("Επεξεργασία").performClick()
