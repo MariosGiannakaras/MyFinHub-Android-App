@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Owner-directed Android mobile-first batches, not mechanical Web UI cloning. #405 passed all four exact-head gates and squash merged develop 994fff2a2c1288bab03d27b192985c9901f4b9e6. Current new batch #406 completes native Wallet statement actions: direct payable statement → prefilled CARD_PAYMENT Quick Entry, source/global-ID and amount validation shared with Card Detail; concise wallet All/Payable filter for longer histories and existing Hide Amounts privacy. Kotlin/hosted Compose tests authored, full final-head CI not yet accepted. Canonical deploy progress is D1–D8: 2/8 completed, D3 Cards/Credit/Quick Entry in progress; these milestones are not percentage of code written. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Owner physical S24 #149 unapproved; no Web/backend/schema, SMS #146, global native PIN #345, real finance writes, main/signing/release.
+Mobile-first Android delivery, deploy 2/8 completed with D3 Cards/Credit/Quick Entry and D4 Activity in progress. PR #406 passed four exact-head gates and squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd (Wallet direct canonical statement→Quick Entry). Draft PR #407 now addresses a real Activity Android monetary display/summary issue: nonfinite imported transaction amounts, invalid contribution fields and overflow currently risk misleading NaN/Infinity display and percentage summaries. New read-only Kotlin guards retain historic rows but report invalid amounts instead of false totals; UI surfaces/list/detail/historical balances and month trends stay native mobile. Regression tests authored; CI not yet validated. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical owner S24 #149 pending, global native PIN #345 and SMS #146 excluded; no Web/backend/schema, live finance mutation, main/signing/release.
 
 ## Immediate work
 
-- Validate one final complete four-gate run for PR #406 Android Wallet direct statement payment and mobile filter, including source ID collision, missing/wrong card, nonfinite amount and privacy regressions. Merge only with 4/4 same-head gates, unchanged develop base and clear reviews. Continue larger user-facing Android feature batches; deploy D3 incomplete until end-to-end Cards/Quick Entry acceptance.
+- Validate one final exact-head four-gate CI suite for PR #407 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
 
 ## Constraints
 
@@ -59,14 +59,14 @@ Evidence-backed release milestones, not percent of code written.
 | D1 Native Android foundation and installed app | completed |
 | D2 Home and canonical accounts native journey | completed |
 | D3 Cards, credit and Quick Entry end-to-end | in_progress |
-| D4 Activity and transaction management | pending |
+| D4 Activity and transaction management | in_progress |
 | D5 Plan, savings, obligations and Insights | pending |
 | D6 Settings, auth, secure sync/offline and backup | pending |
 | D7 Final integrated physical S24 owner acceptance | pending |
 | D8 Production-signed release and deployment | pending |
 
 Current: D3
-Next: Finish native Cards/Credit/Quick Entry flow and merge verified PR #406, then batch Activity/transaction and other essential Android journeys. D7 requires physical owner S24 functional signoff (#149); D8 requires explicit signed deployment authorization.
+Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #407 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
 
 
 ## Active Web parity progress
@@ -75,10 +75,10 @@ Next: Finish native Cards/Credit/Quick Entry flow and merge verified PR #406, th
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #406, branch android/wallet-direct-statement-payment-20261030
-Current W2.4: Post-merge #405 994fff2a2c1288bab03d27b192985c9901f4b9e6 native Card Detail filter and global statement IDs validated 4/4. Draft PR #406 adds direct Wallet inline statement payment into Quick Entry, reusing strict ID/amount/card authorization shared with Card Detail; native filter for 3+ statement histories, payable-only safe positive finite amounts, separate historical view, no UI Web cloning. Kotlin + hosted Compose regressions authored. New deploy tracker D1–D8: 2/8 complete, D3 active. Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 pending.
+Issue #155, PR #407, branch android/activity-financial-display-safety-20261030
+Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #407 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #406 immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24. Verify direct Wallet statement→prefilled Quick Entry, invalid/global duplicate guard, privacy and native filter, stable develop and reviews. Merge only with four SUCCESS gates. Continue substantial native mobile journeys; do not claim D3 or physical S24 complete.
+Next Check draft PR #407 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

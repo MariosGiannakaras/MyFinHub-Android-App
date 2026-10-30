@@ -7,6 +7,45 @@ import org.junit.Test
 
 class ActivityReducerTest {
     @Test
+    fun invalidImportedMoneyRemainsVisibleButNeverGetsTrustworthyFilteredTotals() {
+        val bad = ActivityItem(
+            id = "invalid", dateLabel = "30 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Ιστορική εισαγωγή", subtitle = "", amount = Double.NaN,
+            accountLabel = "Μετρητά", category = "Άλλο",
+            rawDate = "2026-10-30", canonicalSourceOrdinal = 0,
+            financeIncomeContribution = 0.0,
+            financeExpenseContribution = Double.NaN,
+        )
+        val good = bad.copy(id = "good", amount = -10.0, financeExpenseContribution = 10.0)
+        val invalid = ActivityUiState(items = listOf(bad, good), query = "Ιστορική")
+        assertEquals(2, invalid.visibleItems.size)
+        assertTrue(invalid.hasInvalidVisibleAmounts)
+        assertEquals("Μη έγκυρο ποσό", formatSignedEuro(Double.NaN))
+        assertEquals("Μη έγκυρο ποσό", formatSignedEuro(Double.POSITIVE_INFINITY))
+        assertEquals("Μη έγκυρο ποσό", formatActivityFlowEuro(bad))
+        assertFalse(ActivityUiState(items = listOf(good)).hasInvalidVisibleAmounts)
+        assertFalse(formatActivityFlowEuro(good).contains("NaN"))
+        assertEquals(null, activityMonthPercentChange(Double.NaN, 100.0))
+        assertEquals(null, activityMonthPercentChange(1e308, 1e-2))
+        assertEquals(null, activityMonthPercentChange(15.0, Double.POSITIVE_INFINITY))
+        assertEquals(20, activityMonthPercentChange(120.0, 100.0))
+    }
+
+    @Test
+    fun finiteRowsThatOverflowTheAggregateMustNotShowFalseFinancialSummary() {
+        val enormous = ActivityItem(
+            id = "large", dateLabel = "30 Οκτ", kind = ActivityKind.INCOME,
+            title = "Ακραίο εισαγόμενο ποσό", subtitle = "", amount = 1e308,
+            accountLabel = "Λογαριασμός", category = "Άλλο",
+            rawDate = "2026-10-30", canonicalKind = "income",
+            financeIncomeContribution = 1e308, financeExpenseContribution = 0.0,
+        )
+        val summary = ActivityUiState(items = listOf(enormous, enormous.copy(id = "other")))
+        assertEquals(Double.POSITIVE_INFINITY, summary.visibleIncome, 0.0)
+        assertTrue(summary.hasInvalidVisibleAmounts)
+    }
+
+    @Test
     fun legacyAccountFilterUsesOnlyTruthyWebEndpointsNotEventLegHints() {
         // Web legacy rows filter [accountId, from, to] by JS truthiness;
         // actual event legs preserve their historical identities unchanged.

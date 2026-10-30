@@ -221,10 +221,14 @@ data class ActivityMonthlyOverview(
 )
 
 /** Exact Web percentChange: previous month's absolute value is the denominator. */
-internal fun activityMonthPercentChange(current: Double, previous: Double): Int? =
-    if (kotlin.math.abs(previous) > 0.005) {
-        (((current - previous) / kotlin.math.abs(previous)) * 100.0).roundToInt()
+internal fun activityMonthPercentChange(current: Double, previous: Double): Int? {
+    if (!current.isFinite() || !previous.isFinite() || kotlin.math.abs(previous) <= 0.005) return null
+    val change = ((current - previous) / kotlin.math.abs(previous)) * 100.0
+    // NaN/Infinity must never become "0%" or an arbitrary Int overflow in a real report.
+    return if (change.isFinite() && change >= Int.MIN_VALUE && change <= Int.MAX_VALUE) {
+        change.roundToInt()
     } else null
+}
 
 data class ActivityUiState(
     val query: String = "",
@@ -451,6 +455,16 @@ data class ActivityUiState(
     }
 
     val visibleNet: Double = visibleIncome - visibleExpense
+
+    /** Even a single malformed imported money field invalidates a financial total.
+     * Retain every historic row; do not silently drop it and display a plausible subtotal.
+     */
+    val hasInvalidVisibleAmounts: Boolean = visibleItems.any { item ->
+        !item.amount.isFinite() ||
+            (item.financeIncomeContribution != null && !item.financeIncomeContribution.isFinite()) ||
+            (item.financeExpenseContribution != null && !item.financeExpenseContribution.isFinite())
+    } || !visibleIncome.isFinite() || !visibleExpense.isFinite() || !visibleNet.isFinite()
+
     val visiblePendingCount: Int = visibleItems.count(ActivityItem::pendingSync)
 
     /**
