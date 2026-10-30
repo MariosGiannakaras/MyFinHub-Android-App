@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Draft Android PR #404 immutable head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Confirm valid rate forecast, invalid debt/rate rejection, hide-amount privacy and historical rate label safety; inspect screenshot artifact, merge only with four successful gates, unchanged develop and no blocking reviews. Maintain physical owner S24 #149 and global PIN #345 as separate gates.
+- [ ] Finish one coherent mobile-first PR #405 batch and validate only the final immutable head across Project Tracking, Android CI, screenshot regression and hosted S24. Check native payable filter and real full-source statement identity/repayment, privacy and touch usability without mirroring Web UI; resolve any actual CI failures within this draft before merging, preserving base/reviews and physical S24 #149 separate. Then prioritize larger end-to-end user-facing feature batches instead of micro-PRs.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #404, branch android/credit-payoff-source-integrity-20261030
-Current W3.1: PR #403 final-head 1fea197808871336a6b492829e8e500f329c59c3 passed four required gates and merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e, preserving queued linked payment identity on replay. Draft PR #404 contains only advisory credit-payoff / rate-history source safety, with JNI-free Kotlin/hosted Compose tests authored but full CI pending; accepted Web parity 1/6 implementations · 11/24 subtasks remains unchanged; physical S24 #149 pending, shared global PIN #345 not integrated.
+Issue #155, PR #405, branch android/full-raw-card-statement-identity-20261030
+Current W3.1: Owner-directed mobile-first batch on draft PR #405 android/full-raw-card-statement-identity-20261030, based on verified #404 merged develop 6f36d32b177c33308622f80f739da46bee65007c. Full raw statement ID counts protect Card Detail; native All/Payable filter and touch-sized controls make the credit history usable on a phone; original test assertion corrected. AGENTS and stable plan explicitly remove mechanical Web UI cloning and prefer one big final CI pass per coherent feature batch. Kotlin/Compose tests authored; latest edited head CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #404 exact immutable head with Project Tracking, Android CI, screenshots and hosted S24, assert invalid debt or malformed/duplicate latest rate never creates a forecast while valid data works and Hide Amounts hides forecast. Merge only on 4/4 and clean reviews/base; physical owner #149 and PIN #345 remain separate.
+Next Complete and validate PR #405 at one immutable final head (all four Project Tracking, Android CI, screenshots, hosted S24); check real mobile credit statement filter, history preservation, hidden raw-ID duplicates and payment action safety. Merge only with all gates PASS, clean reviews, stable develop; subsequent work in larger feature batches. No claim of physical S24 #149 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

@@ -18,6 +18,7 @@ import app.myfinhub.android.core.data.canonicalSavingsGoals
 import app.myfinhub.android.core.data.canonicalSavingsGoalProjection
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.creditStatementViews
+import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
 import app.myfinhub.android.core.data.creditDebtForCardAt
@@ -496,6 +497,9 @@ val activityItems = buildActivityItems(
         },
         creditStatementsByCard = activeCards.filter { it.kind == "credit" }
             .associate { card -> card.id to document.creditStatementViews(card.id, asOf) },
+        // Presentation rows omit malformed and archived-card records. Financial IDs
+        // are GLOBAL: carry all physical source multiplicity, not the visible subset.
+        creditStatementSourceIdCounts = document.canonicalStatementSourceIdCounts(),
         cards = activeCards.map { card ->
             val eventOutstanding = document.creditDebtForCardAt(card.id, asOf)
             // A card may have multiple events sharing an imported ID. Sort

@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Android develop includes verified #403 queued linked card-payment replay fail-closed (four final-head Project Tracking, Android CI, screenshots, hosted S24 checks succeeded, squash merged eed329473604dc14b73bb57cf98eed80b33e4d5e). New DRAFT PR #404 adds W3.1 read-only credit payoff source-integrity checks: reject imported nonfinite debt, invalid/ambiguous latest annual-rate versions and malformed rate history without emitting fictitious predictions; render truthful current/historical rates on Card Detail. Kotlin and hosted Compose regression tests authored but CI not yet run. Post-merge #403 push tracking succeeded and Android CI was still in progress at first check. Evidence-backed Web parity unchanged 1/6 implementations and 11/24 subtasks; W2.4/W3.1 remain partial; physical owner S24 #149 pending. Native global PIN #345 disabled; no Web/backend/schema, live finance writes, SMS #146, signing/main/release.",
+    "summary": "Android mobile-first owner directive (30 October 2026) supersedes mechanical Web UI cloning: Web is data/finance/security contract, Android UX is native Compose. Previously implemented redesign remains complete. W3.1 Draft PR #405 now bundles full raw canonical statement identity in Card Detail (including malformed and archived foreign rows), a simple phone-native All/Payable statement filter with 48dp controls and meaningful empty state, updated permanent AGENTS and scope plan, Kotlin + hosted Compose focused regressions. Fix of original #405 test sort-order assertion is included. One full exact-final-head four-gate CI pass is required when the batch is ready; no test status from old heads qualifies. Latest validated merged develop is #404 6f36d32b177c33308622f80f739da46bee65007c. Web parity bookkeeping remains 1/6 implementations and 11/24 subtasks; W2.4/W3.1 partial, owner physical S24 #149 outstanding. Native global PIN #345 disabled, SMS #146 excluded; no Web/backend/schema, live finance writes, signing/main/release.",
     "next": [
-      "Validate Draft Android PR #404 immutable head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Confirm valid rate forecast, invalid debt/rate rejection, hide-amount privacy and historical rate label safety; inspect screenshot artifact, merge only with four successful gates, unchanged develop and no blocking reviews. Maintain physical owner S24 #149 and global PIN #345 as separate gates."
+      "Finish one coherent mobile-first PR #405 batch and validate only the final immutable head across Project Tracking, Android CI, screenshot regression and hosted S24. Check native payable filter and real full-source statement identity/repayment, privacy and touch usability without mirroring Web UI; resolve any actual CI failures within this draft before merging, preserving base/reviews and physical S24 #149 separate. Then prioritize larger end-to-end user-facing feature batches instead of micro-PRs."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/credit-payoff-source-integrity-20261030",
-    "checkpoint": "PR #403 final-head 1fea197808871336a6b492829e8e500f329c59c3 passed four required gates and merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e, preserving queued linked payment identity on replay. Draft PR #404 contains only advisory credit-payoff / rate-history source safety, with JNI-free Kotlin/hosted Compose tests authored but full CI pending; accepted Web parity 1/6 implementations · 11/24 subtasks remains unchanged; physical S24 #149 pending, shared global PIN #345 not integrated.",
+    "branch": "android/full-raw-card-statement-identity-20261030",
+    "checkpoint": "Owner-directed mobile-first batch on draft PR #405 android/full-raw-card-statement-identity-20261030, based on verified #404 merged develop 6f36d32b177c33308622f80f739da46bee65007c. Full raw statement ID counts protect Card Detail; native All/Payable filter and touch-sized controls make the credit history usable on a phone; original test assertion corrected. AGENTS and stable plan explicitly remove mechanical Web UI cloning and prefer one big final CI pass per coherent feature batch. Kotlin/Compose tests authored; latest edited head CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; owner physical S24 #149 pending.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -814,7 +814,9 @@
               "PR #402 source-authored unmerged: production Quick Entry selected-card projection hides cross-card statement ID duplicates from prior UI checks; count global raw canonical physical statement rows, including malformed foreign records, before populating picker and creating card-payment mutation. JVM/hosted Compose tests written, not CI validated.",
               "PR #402 full canonical statement physical ID ownership guards in Quick Entry production projection and mutation builder passed all four immutable head eadab544eace298eef4150be188d12c01418b9ef checks, squash merged develop 80ae37c3cd8dd5e6ac41f7067b203b7f7dfef170. W3.1 remains partial.",
               "PR #403 source-authored/unmerged: queued linked credit statement payment appends fail closed after statement source changes, duplicate/foreign/missing owner, while Web pure statement preparation remains Web-compatible; JVM regressions authored, exact-head CI pending.",
-              "PR #403 linked card-payment replay safeguards passed 4/4 immutable-head tracking, Android CI, screenshot and hosted S24 checks at 1fea197808871336a6b492829e8e500f329c59c3; squash merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e. Draft #404 credit payoff invalid imported debt/annual rate and rate-history UI regressions authored, tests not accepted yet."
+              "PR #403 linked card-payment replay safeguards passed 4/4 immutable-head tracking, Android CI, screenshot and hosted S24 checks at 1fea197808871336a6b492829e8e500f329c59c3; squash merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e. Draft #404 credit payoff invalid imported debt/annual rate and rate-history UI regressions authored, tests not accepted yet.",
+              "PR #404 payoff forecast finite debt and safe active historical credit rates passed 4/4 final-head gates at 9d66651431e16d2edc8cec5d849da9d5081f7eb8, squash merged develop 6f36d32b177c33308622f80f739da46bee65007c. Draft PR #405 forwards full raw canonical statement ID counts into Card Detail repayment/expand source integrity (not merely projected visible rows); authored tests, CI pending.",
+              "Draft #405 expanded under owner 2026-10-30 directive: full physical source ID count to Card Detail plus two-option Android statement filter, native 48dp touch actions, privacy-preserving explicit empty state, extra JVM/Compose tests; new final head CI not yet validated. Changes also codify mobile-first Android and one full four-gate validation per substantial feature batch, not mechanical Web UI parity."
             ]
           },
           {
@@ -1187,9 +1189,9 @@
         ]
       }
     ],
-    "next_action": "Validate PR #404 exact immutable head with Project Tracking, Android CI, screenshots and hosted S24, assert invalid debt or malformed/duplicate latest rate never creates a forecast while valid data works and Hide Amounts hides forecast. Merge only on 4/4 and clean reviews/base; physical owner #149 and PIN #345 remain separate.",
+    "next_action": "Complete and validate PR #405 at one immutable final head (all four Project Tracking, Android CI, screenshots, hosted S24); check real mobile credit statement filter, history preservation, hidden raw-ID duplicates and payment action safety. Merge only with all gates PASS, clean reviews, stable develop; subsequent work in larger feature batches. No claim of physical S24 #149 acceptance.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 404,
+    "pr": 405,
     "current_subtask": "W3.1",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   }

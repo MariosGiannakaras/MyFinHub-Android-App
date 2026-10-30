@@ -183,6 +183,51 @@ class WebCardStatementHistorySafetyComposeTest {
         }
     }
 
+    @Test fun nativeMobileFilterShowsOnlyPayableWithoutDeletingPaidOrInvalidHistory() {
+        val due = statement(emptyList()).copy(id = "due")
+        val settled = statement(emptyList()).copy(
+            id = "paid", remaining = 0.0, status = "paid",
+        )
+        val importedInvalid = statement(emptyList()).copy(
+            id = "invalid", remaining = Double.NaN,
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(emptyList()), listOf(due, settled, importedInvalid),
+                amountsVisible = false, onOpenActivity = {},
+                onPayStatement = { _, _ -> },
+                fullStatementIdCounts = mapOf("due" to 1, "paid" to 1, "invalid" to 1),
+            )
+        } }
+        rule.onNodeWithTag("card_statement_row_2").assertExists()
+        rule.onNodeWithTag("card_statement_filter_payable").performClick()
+        rule.onNodeWithTag("card_statement_row_0").assertExists()
+        rule.onNodeWithTag("card_statement_row_1").assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_pay_0").assertExists()
+        rule.onNodeWithTag("card_statement_filter_all").performClick()
+        rule.onNodeWithTag("card_statement_row_2").assertExists()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+    }
+
+    @Test fun nativeFilterEmptyStateDoesNotInventPayableStatement() {
+        val settled = statement(emptyList()).copy(remaining = 0.0, status = "paid")
+        val importedInvalid = statement(emptyList()).copy(
+            id = "invalid", remaining = Double.NaN,
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardStatementHistorySection(
+                card(emptyList()), listOf(settled, importedInvalid),
+                amountsVisible = true, onOpenActivity = {},
+                onPayStatement = { _, _ -> },
+            )
+        } }
+        rule.onNodeWithTag("card_statement_filter_payable").performClick()
+        rule.onNodeWithTag("card_statement_filter_empty").assertExists()
+        rule.onNodeWithTag("card_statement_row_0").assertDoesNotExist()
+        rule.onNodeWithTag("card_statement_filter_all").performClick()
+        rule.onNodeWithTag("card_statement_row_1").assertExists()
+    }
+
     @Test fun globallyUniqueStatementKeepsOriginalPaymentAndExpansionActions() {
         var pays = 0
         rule.setContent { MyFinHubTheme {

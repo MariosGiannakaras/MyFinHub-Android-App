@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.money
 
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,6 +23,16 @@ class CanonicalStatementIdentityTest {
         assertTrue(canonicalStatementIdentityUnique("safe", own, globalCounts))
         assertFalse(canonicalStatementIdentityUnique("not-in-ledger", own, globalCounts))
         assertFalse(canonicalStatementIdentityUnique(" ", listOf(statement(" ", "card-A"))))
+    }
+
+    @Test fun nativePayableFilterPreservesHistoryAndExcludesInvalidMoney() {
+        val unpaid = statement("unpaid", "card-A")
+        val paid = statement("paid", "card-A").copy(remaining = 0.0, status = "paid")
+        val invalid = statement("invalid", "card-A").copy(remaining = Double.NaN)
+        val all = listOf(unpaid, paid, invalid)
+        assertEquals(all, filteredCardStatements(all, CardStatementFilter.ALL))
+        assertEquals(listOf(unpaid), filteredCardStatements(all, CardStatementFilter.PAYABLE))
+        assertEquals(3, all.size)
     }
 
     @Test fun localDuplicatesStillFailClosedAndPreviewRemainsStandalone() {
