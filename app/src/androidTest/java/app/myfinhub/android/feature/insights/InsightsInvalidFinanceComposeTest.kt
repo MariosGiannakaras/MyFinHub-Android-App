@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.insights
 
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -11,7 +12,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import org.junit.After
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -56,7 +56,7 @@ class InsightsInvalidFinanceComposeTest {
         rule.onNodeWithText("Μη έγκυρο ποσοστό", substring = true).assertExists()
         rule.onNodeWithTag("insights_operational_accounts_toggle")
             .performScrollTo().performClick()
-        rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertExists()
+        rule.onAllNodesWithText("Μη έγκυρο ποσό", substring = true)[0].assertExists()
         rule.onNodeWithTag("insights_list")
             .performScrollToNode(hasTestTag("insights_details"))
         rule.onNodeWithTag("insights_details_toggle").performClick()

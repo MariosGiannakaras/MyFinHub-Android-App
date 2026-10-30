@@ -9,9 +9,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import app.myfinhub.android.feature.home.syntheticHomeUiState
-import app.myfinhub.android.feature.insights.InsightsUiState
-import app.myfinhub.android.feature.insights.syntheticComparison
-import app.myfinhub.android.feature.insights.InsightPeriodScope
 import app.myfinhub.android.feature.plan.syntheticPlanUiState
 import org.junit.Rule
 import org.junit.Test
@@ -34,5 +31,8 @@ class NativePlanInsightsJourneyComposeTest {
             .performScrollToNode(hasTestTag("s7_budget_link"))
         rule.onNodeWithTag("s7_budget_link").performClick()
         rule.onNodeWithTag("s7_budget_root").assertExists()
+        rule.onNodeWithContentDescription("Πίσω").performClick()
+        rule.onNodeWithContentDescription("Αναφορές", useUnmergedTree = true).performClick()
+        rule.onNodeWithTag("insights_list").assertExists()
     }
 }
