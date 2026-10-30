@@ -48,7 +48,6 @@ Owner-directed native Android feature completion: PR #405 merged develop 994fff2
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
 
-
 ## Native Android deployment progress
 
 **Deploy: 2/8 milestones**

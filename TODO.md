@@ -54,7 +54,6 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 Do not append historical TODO sections here. Git history and closed issues/PRs are the history. Update `tracking/android-project-state.json` and regenerate this file instead.
 
-
 ## Native Android deployment progress
 
 **Deploy: 2/8 milestones**

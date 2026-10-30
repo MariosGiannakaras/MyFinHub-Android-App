@@ -44,7 +44,6 @@ Canonical source: `tracking/android-project-state.json`.
 
 Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.md and docs/CURRENT_HANDOFF.md are generated. Report active Web parity X/6 implementation, Y/24 subtasks, current ID and branch/PR and validation state in every substantive update. Older September redesign counters are historical. Resume first unfinished subtask from current live repository, not chat memory.
 
-
 ## Native Android deployment progress
 
 **Deploy: 2/8 milestones**
