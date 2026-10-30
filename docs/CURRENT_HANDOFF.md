@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Mobile-first Android delivery, deploy 2/8 completed with D3 Cards/Credit/Quick Entry and D4 Activity in progress. PR #406 passed four exact-head gates and squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd (Wallet direct canonical statement→Quick Entry). Draft PR #407 now addresses a real Activity Android monetary display/summary issue: nonfinite imported transaction amounts, invalid contribution fields and overflow currently risk misleading NaN/Infinity display and percentage summaries. New read-only Kotlin guards retain historic rows but report invalid amounts instead of false totals; UI surfaces/list/detail/historical balances and month trends stay native mobile. Regression tests authored; CI not yet validated. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical owner S24 #149 pending, global native PIN #345 and SMS #146 excluded; no Web/backend/schema, live finance mutation, main/signing/release.
+Mobile-first Android delivery, deploy 2/8 completed with D3 Cards/Credit/Quick Entry and D4 Activity in progress. PR #406 passed four exact-head gates and squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd (Wallet direct canonical statement→Quick Entry). Draft PR #408 now addresses a real Activity Android monetary display/summary issue: nonfinite imported transaction amounts, invalid contribution fields and overflow currently risk misleading NaN/Infinity display and percentage summaries. New read-only Kotlin guards retain historic rows but report invalid amounts instead of false totals; UI surfaces/list/detail/historical balances and month trends stay native mobile. Regression tests authored; CI not yet validated. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical owner S24 #149 pending, global native PIN #345 and SMS #146 excluded; no Web/backend/schema, live finance mutation, main/signing/release.
 
 ## Immediate work
 
-- Validate one final exact-head four-gate CI suite for PR #407 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
+- Validate one final exact-head four-gate CI suite for PR #408 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
 
 ## Constraints
 
@@ -66,7 +66,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D3
-Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #407 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
+Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #408 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
 
 
 ## Active Web parity progress
@@ -75,10 +75,10 @@ Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #407, branch android/activity-financial-display-safety-20261030
-Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #407 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
+Issue #155, PR #408, branch android/activity-financial-display-safety-20261030
+Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #408 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft PR #407 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
+Next Check draft PR #408 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

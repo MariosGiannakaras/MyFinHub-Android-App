@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one final exact-head four-gate CI suite for PR #407 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
+- [ ] Validate one final exact-head four-gate CI suite for PR #408 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
 
 ## Completed foundations
 
@@ -39,7 +39,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 - [x] Owner correction Slice H — full-product exact-head visual/regression validation, Greek date/card corrections, accepted fresh screenshot references and merge (#109)
 - [x] Protected same-signer rc8 / versionCode 10007 publication from exact validated PR #109 to the private update channel and GitHub prerelease
 - [x] Post-Phase-6 full-app Android redesign S1–S10 with physical Galaxy S24 Ultra acceptance
-- [x] Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #407/#408)
+- [x] Shared owner+AAL2 server card vault for PAN/expiry/CVV across Android, web and Windows (#126/#127; central #408/#408)
 - [x] Protected production-signed rc11 / versionCode 10010 publication from exact validated PR #130 source
 - [x] Safe repository branch cleanup completed: fully merged tips plus 62 additional merged-PR heads removed; permanent and unmerged/no-merged-evidence branches preserved
 - [x] Owner-reported rc11 installation on the supported Galaxy S24 Ultra and explicit stable-promotion authorization
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D3
-Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #407 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
+Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #408 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #407, branch android/activity-financial-display-safety-20261030
-Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #407 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
+Issue #155, PR #408, branch android/activity-financial-display-safety-20261030
+Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #408 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft PR #407 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
+Next Check draft PR #408 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
