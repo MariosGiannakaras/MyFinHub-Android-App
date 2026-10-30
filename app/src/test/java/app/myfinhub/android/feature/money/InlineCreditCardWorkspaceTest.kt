@@ -11,6 +11,27 @@ class InlineCreditCardWorkspaceTest {
         canonicalKind = "credit", vaultState = VaultState.LOCKED,
     )
 
+    @Test fun nativeCardActionsRequireCurrentActiveCanonicalCreditKindAndValidPaymentDebt() {
+        val active = card(250.0, 1000.0)
+        assertEquals(true, canOpenCreditCardQuickEntry(active, payment = false))
+        assertEquals(true, canOpenCreditCardQuickEntry(active, payment = true))
+        assertEquals(false, canOpenCreditCardQuickEntry(null, payment = false))
+        assertEquals(false, canOpenCreditCardQuickEntry(active.copy(id = ""), payment = true))
+        assertEquals(false, canOpenCreditCardQuickEntry(active.copy(archivedAt = "2026-10-30"), payment = false))
+        assertEquals(false, canOpenCreditCardQuickEntry(
+            active.copy(canonicalKind = "debit", kind = "Πιστωτική"), payment = true))
+        assertEquals(false, canOpenCreditCardQuickEntry(
+            active.copy(canonicalKind = "debit", kind = "Πιστωτική"), payment = false))
+        assertEquals(false, canOpenCreditCardQuickEntry(active.copy(currentBalance = Double.NaN), payment = true))
+        assertEquals(false, canOpenCreditCardQuickEntry(active.copy(currentBalance = 0.0), payment = true))
+        assertEquals(true, canOpenCreditCardQuickEntry(active.copy(currentBalance = 0.0), payment = false))
+        // Imported legacy label without canonical kind remains supported.
+        assertEquals(true, canOpenCreditCardQuickEntry(
+            active.copy(canonicalKind = "", kind = "Πιστωτική"), payment = false))
+        assertEquals(false, canOpenCreditCardQuickEntry(
+            active.copy(canonicalKind = "", kind = "Χρεωστική"), payment = false))
+    }
+
     @Test fun utilizationNeverExceedsOneAndMissingOrInvalidLimitsRemainSafe() {
         assertEquals(0.25f, creditUtilizationRatio(card(250.0,1000.0)), 0.0001f)
         assertEquals(1f, creditUtilizationRatio(card(1500.0,1000.0)), 0.0001f)

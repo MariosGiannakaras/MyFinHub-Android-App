@@ -173,6 +173,23 @@ class InlineCreditCardWorkspaceUiTest {
         assertEquals(0, selected)
     }
 
+    @Test fun canonicalDebitCannotAcquireCreditActionsThroughMisleadingLocalizedLabel() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit.copy(canonicalKind = "debit", kind = "Πιστωτική"),
+                    statements = listOf(statement), amountsVisible = true,
+                    onPayCard = {}, onAddPurchase = {},
+                    onOpenActivity = {}, onOpenDetails = {},
+                    onPayStatement = { _, _ -> error("Debit must never offer statement payment") },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Πληρωμή κάρτας").assertDoesNotExist()
+        composeRule.onNodeWithText("Καταχώριση αγοράς").assertDoesNotExist()
+        composeRule.onNodeWithText("Πληρωμή κατάστασης").assertDoesNotExist()
+    }
+
     @Test fun debitCardNeverOffersCreditRepaymentOrStatementManagement() {
         composeRule.setContent {
             MyFinHubTheme {

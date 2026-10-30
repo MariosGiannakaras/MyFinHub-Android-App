@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Mobile-first Android delivery, deploy 2/8 completed with D3 Cards/Credit/Quick Entry and D4 Activity in progress. PR #406 passed four exact-head gates and squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd (Wallet direct canonical statement→Quick Entry). Draft PR #408 now addresses a real Activity Android monetary display/summary issue: nonfinite imported transaction amounts, invalid contribution fields and overflow currently risk misleading NaN/Infinity display and percentage summaries. New read-only Kotlin guards retain historic rows but report invalid amounts instead of false totals; UI surfaces/list/detail/historical balances and month trends stay native mobile. Regression tests authored; CI not yet validated. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical owner S24 #149 pending, global native PIN #345 and SMS #146 excluded; no Web/backend/schema, live finance mutation, main/signing/release.",
+    "summary": "Deploy 2/8 accepted, Android mobile-first. PR #408 native Activity nonfinite source display/summary and monthly comparison repair passed all four exact-head gates at 014e198c8c901350474ce11a1a3073934bf28615 and squash merged develop f7795b2e156b8df7cc232ef2ccea76b23c715039; #407 duplicate D3 branch closed unmerged after #406 completed the Wallet statement-payment flow. Current PR #409 batches source-card lifecycle revalidation at EVERY native credit Quick Entry entry point (Wallet, Card Detail, statement), avoids following stale archived/deleted/misclassified cards, and preserves legacy recognized credit labeling. Kotlin and hosted Compose tests authored, single final-head CI pending. D3 Cards/Quick Entry and D4 Activity still in progress; physical Galaxy S24 owner #149 pending. Web parity bookkeeping 1/6 implementations · 11/24 subtasks unchanged; SMS #146, global PIN #345, backend/Web/schema and signing/release excluded.",
     "next": [
-      "Validate one final exact-head four-gate CI suite for PR #408 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding."
+      "Validate PR #409 single final-head Project Tracking, Android CI, screenshot and hosted S24 checks on current develop, including archived/card-kind conflict/invalid debt/stale callback test. Merge only on four PASS jobs, stable develop and clean reviews. Continue D3 real credit end-to-end acceptance and D4 Activity later; physical owner #149 and signed deploy remain separate gates."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/activity-financial-display-safety-20261030",
-    "checkpoint": "PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #408 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.",
+    "branch": "android/credit-card-current-route-guards-20261030",
+    "checkpoint": "Merged #408 f7795b2e156b8df7cc232ef2ccea76b23c715039 four final-head checks PASS (Android Activity malformed money and aggregate display). #407 duplicate older D3 draft closed unmerged preserving branch after merged #406. New draft PR #409 consolidates real native card-to-Quick Entry action gating: callbacks revalidate card still active, canonical credit kind and payment debt before route; Wallet+Card Detail+statement action, code tests and hosted Compose; final CI pending. Deploy D1–D2 2/8 accepted, D3 and D4 in progress. Web parity 1/6 implementation · 11/24 subtasks unchanged; physical owner #149 remains.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -774,7 +774,8 @@
               "PR #398 global Activity ledger historical blank/duplicate ID route safety merged develop 35520083e43f410714d21a014f8cdab73c26dfd3 after 4/4 final-head gates at 21edcfdd76f7102d68a070812162a5aab85a3c4d; W2.4 remains in progress.",
               "Next Android W2.4 card cross-ledger route integrity source authored/unmerged: apply full canonical Activity ID multiplicity in Wallet inline credit, Card Detail and statement-linked rows plus route callbacks; unit/hosted Compose tests authored, new-head CI pending; physical owner S24 acceptance remains pending.",
               "PR #399 globally source-safe card, inline credit and statement-linked activity routing passed all 4 exact-final-head CI gates at da9624818000b280813071a0ed980c9e3533b902; squash merged into develop 820676fc17c1b7be01465bd8ea09c81debb2bba8. W2.4 remains partial and owner physical S24 #149 is still pending.",
-              "Draft PR #406 (branch android/wallet-direct-statement-payment-20261030) adds direct statement repayment from Wallet inline credit workspace to existing native Quick Entry with all-source identity verification, finite/current source debt checks, three-plus-row native history filter and targeted tests; final-head CI pending."
+              "Draft PR #406 (branch android/wallet-direct-statement-payment-20261030) adds direct statement repayment from Wallet inline credit workspace to existing native Quick Entry with all-source identity verification, finite/current source debt checks, three-plus-row native history filter and targeted tests; final-head CI pending.",
+              "Draft PR #409 extends D3 native credit card/statement purchase/pay Quick Entry actions with current active-card and canonical kind revalidation, prevents deprecated/archived/debit/invalid-debt prefill routes, preserves actual legacy credit cards; tests authored CI pending."
             ]
           }
         ]
@@ -1191,15 +1192,15 @@
         ]
       }
     ],
-    "next_action": "Check draft PR #408 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.",
+    "next_action": "Run one final-head four-gate verification for PR #409; ensure all stale credit-card entry callbacks fail closed for deleted/archived/debit/invalid-debt sources, normal purchase/payment and legacy labels still work, review clean, base stable. Merge only on four PASS and continue D3/D4 user journeys. Physical owner #149 not replaced by CI.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 408,
-    "current_subtask": "W4.4",
+    "pr": 409,
+    "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
     "current_stage": "D3",
-    "next_action": "D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #408 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.",
+    "next_action": "D3 Credit/Quick Entry lifecycle guard PR #409 single end-of-batch validation and integration; then validate end-to-end Cards and Activity core user journeys before accepting D3/D4. D7 physical S24 #149 and D8 signed deploy remain unapproved.",
     "stages": [
       {
         "id": "D1",
@@ -1223,7 +1224,8 @@
         "status": "in_progress",
         "evidence": [
           "Merged #405 commit 994fff2a2c1288bab03d27b192985c9901f4b9e6 with exact-head 4/4 gates; direct Wallet statement payment and native history filtering now authored in draft PR #406, final-head CI pending.",
-          "PR #406 native Wallet statement→Quick Entry prefill, source-wide uniqueness/card/remaining guards and 3+ statement filters passed four exact-head gates at 93ba40b5f14929b394f3b5c0ad01ec587d69370c, squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd. D3 still open pending complete functional acceptance."
+          "PR #406 native Wallet statement→Quick Entry prefill, source-wide uniqueness/card/remaining guards and 3+ statement filters passed four exact-head gates at 93ba40b5f14929b394f3b5c0ad01ec587d69370c, squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd. D3 still open pending complete functional acceptance.",
+          "Current draft PR #409: revalidate actual selected active credit card, canonical kind and finite positive repayment balance on every Wallet and Card Detail Quick Entry callback (including statement selection), with JVM and hosted Compose checks; head CI pending."
         ]
       },
       {
@@ -1231,7 +1233,8 @@
         "title": "Activity and transaction management",
         "status": "in_progress",
         "evidence": [
-          "Draft PR #408: one consolidated Android Activity financial display/summary hardening batch for nonfinite imported amounts and overflowing filtered totals, plus malformed month percent comparison. Kotlin and hosted Compose regressions authored; final-head CI pending."
+          "Draft PR #408: one consolidated Android Activity financial display/summary hardening batch for nonfinite imported amounts and overflowing filtered totals, plus malformed month percent comparison. Kotlin and hosted Compose regressions authored; final-head CI pending.",
+          "PR #408 native Activity malformed-money formatting and invalid/overflow financial summary guard passed four same-head CI jobs on 014e198c8c901350474ce11a1a3073934bf28615, merged develop f7795b2e156b8df7cc232ef2ccea76b23c715039."
         ]
       },
       {

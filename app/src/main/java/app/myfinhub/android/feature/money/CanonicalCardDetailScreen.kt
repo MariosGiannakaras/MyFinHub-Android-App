@@ -91,7 +91,7 @@ fun CanonicalCardDetailScreen(
     val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
     val certifiedRecord = ownerCatalog.firstOrNull { it.id == card?.bankId }
     val certifiedLogo = certifiedRecord?.certifiedBrandAsset("logo", surfaceTone)
-    val isCredit = card?.let { it.canonicalKind == "credit" || it.kind.contains("Πιστωτική", ignoreCase = true) } == true
+    val isCredit = canUseCreditCardActions(card)
     // Share the same fail-closed canonical financial snapshot as inline Wallet.
     // Imported NaN/Infinity can never become display text or a repayment amount.
     val creditFinancial = card?.takeIf { isCredit }?.let(::creditWorkspaceFinancialSnapshot)

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one final exact-head four-gate CI suite for PR #408 including Activity invalid-money formatting, filtered totals, overflow, monthly trend and normal-data preservation. Merge only 4/4 success, stable develop and no blocking review. D3 remains open; D4 Activity in_progress; physical S24 owner acceptance #149 still outstanding.
+- [ ] Validate PR #409 single final-head Project Tracking, Android CI, screenshot and hosted S24 checks on current develop, including archived/card-kind conflict/invalid debt/stale callback test. Merge only on four PASS jobs, stable develop and clean reviews. Continue D3 real credit end-to-end acceptance and D4 Activity later; physical owner #149 and signed deploy remain separate gates.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D3
-Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance. D4 Activity is now in_progress: verify native Activity financial display/filtered total invalid-source safety PR #408 in one final CI batch, then proceed with core mobile transaction actions. D7 physical owner S24 #149 and D8 final signed deployment remain independent.
+Next: D3 Credit/Quick Entry lifecycle guard PR #409 single end-of-batch validation and integration; then validate end-to-end Cards and Activity core user journeys before accepting D3/D4. D7 physical S24 #149 and D8 signed deploy remain unapproved.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D3 Cards/Quick Entry remains unclosed pending full user-journey acceptance
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #408, branch android/activity-financial-display-safety-20261030
-Current W4.4: PR #406 (final head 93ba40b5f14929b394f3b5c0ad01ec587d69370c) native Wallet direct statement payment and mobile filtering passed 4/4 and merged develop e3190b8841781b6247c5abd68707c036eacadfcd. New draft PR #408 fixes Android Activity monetary display and derived summary integrity for malformed/nonfinite financial data and overflow, without mutating canonical sources or duplicating Web design. Regression tests authored; CI pending. Deploy remains 2/8 accepted, D3 and D4 active; Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 open.
+Issue #155, PR #409, branch android/credit-card-current-route-guards-20261030
+Current W2.4: Merged #408 f7795b2e156b8df7cc232ef2ccea76b23c715039 four final-head checks PASS (Android Activity malformed money and aggregate display). #407 duplicate older D3 draft closed unmerged preserving branch after merged #406. New draft PR #409 consolidates real native card-to-Quick Entry action gating: callbacks revalidate card still active, canonical credit kind and payment debt before route; Wallet+Card Detail+statement action, code tests and hosted Compose; final CI pending. Deploy D1–D2 2/8 accepted, D3 and D4 in progress. Web parity 1/6 implementation · 11/24 subtasks unchanged; physical owner #149 remains.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check draft PR #408 final-head Project Tracking, Android CI, screenshot and hosted S24; validate finite and malformed UI/read-only Activity, filtered summary, monthly change, privacy, stable develop and clear reviews. Merge 4/4 only. Continue end-to-end Android Activity/transaction actions and Cards/Quick Entry acceptance, not micro-PRs; deploy 2/8 until full gates satisfied.
+Next Run one final-head four-gate verification for PR #409; ensure all stale credit-card entry callbacks fail closed for deleted/archived/debit/invalid-debt sources, normal purchase/payment and legacy labels still work, review clean, base stable. Merge only on four PASS and continue D3/D4 user journeys. Physical owner #149 not replaced by CI.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
