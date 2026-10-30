@@ -74,6 +74,7 @@ Evidence-backed release milestones, not percent of code written.
 Current: D3
 Next: Finish native Cards/Credit/Quick Entry flow and merge verified PR #406, then batch Activity/transaction and other essential Android journeys. D7 requires physical owner S24 functional signoff (#149); D8 requires explicit signed deployment authorization.
 
+
 ## Active Web parity progress
 
 **Implementations: 1/6 · Subtasks: 11/24**

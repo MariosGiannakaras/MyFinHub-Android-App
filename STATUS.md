@@ -42,7 +42,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 Canonical source: `tracking/android-project-state.json`.
 
-Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.md and docs/CURRENT_HANDOFF.md are generated. Report active Web parity X/6 implementation, Y/24 subtasks, current ID and branch/PR and validation state in every substantive update. Older September redesign counters are historical. Resume first unfinished subtask from current live repository, not chat memory.
+Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.md and docs/CURRENT_HANDOFF.md are generated. Lead with evidence-backed deploy D1–D8 (X/8), current step and actual CI/merge/physical state; also report older Web parity X/6 implementation, Y/24 subtasks when substantively useful. Historical September redesign counters are separate. Never infer physical S24 signoff or final release from hosted CI.
 
 ## Android deploy progress
 
@@ -63,6 +63,7 @@ Evidence-backed release milestones, not percent of code written.
 
 Current: D3
 Next: Finish native Cards/Credit/Quick Entry flow and merge verified PR #406, then batch Activity/transaction and other essential Android journeys. D7 requires physical owner S24 functional signoff (#149); D8 requires explicit signed deployment authorization.
+
 
 ## Active Web parity progress
 
