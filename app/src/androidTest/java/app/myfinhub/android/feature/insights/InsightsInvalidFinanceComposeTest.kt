@@ -53,7 +53,7 @@ class InsightsInvalidFinanceComposeTest {
         rule.onNodeWithText("Μη έγκυρη σύγκριση εξόδων").assertExists()
         rule.onNodeWithTag("insights_list")
             .performScrollToNode(hasTestTag("insights_operational_report"))
-        rule.onNodeWithText("Μη έγκυρο ποσοστό", substring = true).assertExists()
+        rule.onAllNodesWithText("Μη έγκυρο ποσοστό", substring = true)[0].assertExists()
         rule.onNodeWithTag("insights_operational_accounts_toggle")
             .performScrollTo().performClick()
         rule.onAllNodesWithText("Μη έγκυρο ποσό", substring = true)[0].assertExists()
