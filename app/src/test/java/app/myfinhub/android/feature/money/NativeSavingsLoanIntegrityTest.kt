@@ -32,7 +32,8 @@ class NativeSavingsLoanIntegrityTest {
 
     @Test fun repaymentDisallowedForNonfiniteOrDuplicateLoanBalances() {
         val loan = LoanItem(id = "loan", name = "Δάνειο", lender = "Τράπεζα",
-            remaining = 120.0, monthlyPayment = 40.0, nextPaymentLabel = "5 Νοε",
+            remaining = 120.0, originalAmount = 150.0,
+            monthlyPayment = 40.0, nextPaymentLabel = "5 Νοε",
             remainingInstallments = 3)
         assertTrue(canonicalLoanPaymentIsUnambiguous(loan, listOf(loan)))
         assertFalse(canonicalLoanPaymentIsUnambiguous(loan, listOf(loan, loan)))

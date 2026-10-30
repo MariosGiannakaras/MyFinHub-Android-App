@@ -1,7 +1,5 @@
 package app.myfinhub.android.feature.money
 
-import androidx.compose.ui.test.assertDoesNotExist
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -78,7 +76,8 @@ class NativeD5SavingsLoanIntegrityComposeTest {
         AmountVisibilityPreference.write(context, true)
         val loan = LoanItem(
             id = "source-bad", name = "Ιστορικό δάνειο", lender = "Τράπεζα",
-            remaining = Double.POSITIVE_INFINITY, monthlyPayment = 30.0,
+            remaining = Double.POSITIVE_INFINITY, originalAmount = 300.0,
+            monthlyPayment = 30.0,
             nextPaymentLabel = "5 Νοε", remainingInstallments = 4,
         )
         rule.setContent { MyFinHubTheme {
