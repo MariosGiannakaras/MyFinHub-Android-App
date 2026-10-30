@@ -121,6 +121,7 @@ fun CanonicalWalletScreen(
     onDeleteCard: (String) -> Unit = {},
     onRestoreCard: (String) -> Unit = {},
     onPayCreditCard: (String) -> Unit = {},
+    onPayCreditStatement: ((String, String, Double) -> Unit)? = null,
     onAddCreditPurchase: (String) -> Unit = {},
     onOpenCreditActivity: (String) -> Unit = {},
     onOpenLoans: () -> Unit,
@@ -209,6 +210,7 @@ fun CanonicalWalletScreen(
                     selectedCardId = selectedCardId,
                     amountsVisible = amountsVisible,
                     onPayCreditCard = onPayCreditCard,
+                    onPayCreditStatement = onPayCreditStatement,
                     onAddCreditPurchase = onAddCreditPurchase,
                     onOpenCreditActivity = onOpenCreditActivity,
                     fullActivityIdCounts = fullActivityIdCounts,
@@ -504,6 +506,7 @@ private fun LazyListScope.walletCardsContent(
     selectedCardId: String?,
     amountsVisible: Boolean,
     onPayCreditCard: (String) -> Unit,
+    onPayCreditStatement: ((String, String, Double) -> Unit)?,
     onAddCreditPurchase: (String) -> Unit,
     onOpenCreditActivity: (String) -> Unit,
     fullActivityIdCounts: Map<String, Int>?,
@@ -543,6 +546,12 @@ private fun LazyListScope.walletCardsContent(
                 statements = state.creditStatementsByCard[active.id].orEmpty(),
                 amountsVisible = amountsVisible,
                 onPayCard = { onPayCreditCard(active.id) },
+                onPayStatement = onPayCreditStatement?.let { action ->
+                    { statementId: String, remaining: Double ->
+                        action(active.id, statementId, remaining)
+                    }
+                },
+                fullStatementIdCounts = state.creditStatementSourceIdCounts,
                 onAddPurchase = { onAddCreditPurchase(active.id) },
                 onOpenActivity = onOpenCreditActivity,
                 fullActivityIdCounts = fullActivityIdCounts,

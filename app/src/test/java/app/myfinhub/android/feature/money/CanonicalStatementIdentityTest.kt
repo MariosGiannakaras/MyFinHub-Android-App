@@ -35,6 +35,24 @@ class CanonicalStatementIdentityTest {
         assertEquals(3, all.size)
     }
 
+    @Test fun directStatementPaymentRequiresCorrectOwnerUniqueSourceAndExactValidDebt() {
+        val eligible = statement("s1", "credit-A")
+        val foreign = statement("s2", "credit-B")
+        val selected = listOf(eligible, foreign)
+        val counts = mapOf("s1" to 1, "s2" to 1)
+        assertTrue(canOpenCreditStatementPayment("credit-A", "s1", 25.0, selected, counts))
+        assertFalse(canOpenCreditStatementPayment("credit-B", "s1", 25.0, selected, counts))
+        assertFalse(canOpenCreditStatementPayment("credit-A", "s2", 25.0, selected, counts))
+        assertFalse(canOpenCreditStatementPayment("credit-A", "s1", 24.0, selected, counts))
+        assertFalse(canOpenCreditStatementPayment("credit-A", "s1", Double.NaN, selected, counts))
+        assertFalse(canOpenCreditStatementPayment("credit-A", "s1", 25.0, selected, mapOf("s1" to 2)))
+        assertFalse(canOpenCreditStatementPayment("credit-A", "s1", 25.0, selected + eligible, counts))
+        assertFalse(canOpenCreditStatementPayment(
+            "credit-A", "s1", 25.0, listOf(eligible.copy(remaining = Double.NaN)), counts))
+        assertFalse(canOpenCreditStatementPayment(
+            "credit-A", "s1", 25.0, listOf(eligible.copy(remaining = 0.0)), counts))
+    }
+
     @Test fun localDuplicatesStillFailClosedAndPreviewRemainsStandalone() {
         val duplicate = listOf(statement("same", "card-A"), statement("same", "card-A"))
         assertFalse(canonicalStatementIdentityUnique("same", duplicate))
