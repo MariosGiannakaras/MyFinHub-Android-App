@@ -44,8 +44,10 @@ class WebSavingsGoalComposeTest {
         rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
         rule.onNodeWithTag("savings_month_target").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Στόχος αποταμίευσης μήνα").assertIsDisplayed()
-        rule.onNodeWithText("25% των πραγματικών εσόδων").assertIsDisplayed()
-        rule.onNodeWithText("Πρόοδος στόχου: 22%").assertIsDisplayed()
+        // The monthly target card may be taller than the S24 viewport: scroll each
+        // actual value into view before asserting it, without weakening visibility.
+        rule.onNodeWithText("25% των πραγματικών εσόδων").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Πρόοδος στόχου: 22%").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun savingsMonthlyTrendIsIndependentOfAccountBalances() {
