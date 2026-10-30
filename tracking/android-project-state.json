@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Mobile-first Android deploy progress 2/8 accepted (D1 native foundation, D2 Home/accounts). PR #409 current credit card lifecycle revalidation Kotlin/hosted Compose tests passed all four immutable-head gates at 3b120e76dfc57714bb7b2280476afbf9ca78713e, squash merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae; D3 Cards/Quick Entry still awaiting full journey acceptance. New consolidated PR #410 hardens native Activity read/detail/edit/delete and counterparty action lifecycle against pending/deleted/duplicate or globally blocked source, removes stale confirmation, safely displays invalid split-line amounts and adds Compose/JVM regressions. Exact head CI not yet accepted. D4 Activity remains in progress. Web parity 1/6 implementations · 11/24 subtasks unchanged, physical owner Galaxy S24 #149 pending, no Web/backend/schema/real finance writes/global PIN #345/SMS #146 or signing/main/release.",
+    "summary": "Mobile-first Android software integration checkpoint PR #411 on merged #410 develop 1f59dd5bf3dd15bbbea96aa18c0945f192b4d4c5. Native D3 Card/Credit/Quick Entry and D4 Activity route flows have multiple merged exact-head four-gate source/security/UI tests (#405/#406/#408/#409/#410); this consolidated PR adds real app-level Compose navigation acceptance for Wallet→canonical selected statement→Quick Entry and Activity→detail→edit/back→delete confirmation/cancel. D3/D4 evidence-backed accepted statuses in PR's canonical tracker are CONDITIONAL on PR #411 passing all four final-head CI gates and integration; until then integrated deploy progress remains 2/8, after successful merge 4/8. D5 Plan/obligations/Insights becomes current focus; D6 settings/auth/offline/backup, D7 physical Galaxy S24 #149, D8 signed deploy not completed. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. No Web/backend/schema, live finance writes, native global PIN #345 or SMS #146.",
     "next": [
-      "Validate new PR #410 Android Activity end-to-end detail action/mutation source revalidation, stale confirm and invalid split amount with final four checks on one immutable head. Merge only if Project Tracking, Android CI, screenshot, hosted S24 PASS, base stable, clean reviews. D3 and D4 not prematurely marked completed; physical owner S24 #149 and signed deploy D8 remain independent."
+      "Run single final four-gate CI on PR #411 Android native finance journey acceptance; fix actual failure in same PR. Once 4/4 successful and merged, integrated deploy progress 4/8; begin D5 mobile Plan, savings, loans, lending, budgets, Insights. Do not infer owner S24 signoff or release approval."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/activity-safe-detail-actions-20261030",
-    "checkpoint": "PR #409 D3 credit Quick Entry card lifecycle guard 4/4 exact head success, merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae. New draft PR #410 D4 Activity real mobile details/edit/delete/counterparty authorization rechecks current source uniqueness and pending flags on callback, confirms become inactive when blocked, invalid split-part money remains identifiable/masked. JVM and hosted Compose tests authored; CI pending. Deploy 2/8, D3 and D4 remain in progress. Web parity 1/6 implementations, 11/24 subtasks. Physical S24 #149 pending.",
+    "branch": "android/native-finance-journey-acceptance-20261030",
+    "checkpoint": "All four final-head checks PASSED for #410 and merged develop 1f59dd5bf3dd15bbbea96aa18c0945f192b4d4c5. Draft #411 real native app-level D3 & D4 end-to-end Compose acceptance: Wallet selected statement→Quick Entry and Activity ledger→detail/editor/delete-confirm; canonical tracker promotes D3 and D4 software stages only conditional on #411 PASS 4/4 + merge. Before merge integrated deploy remains 2/8; after successful merge 4/8, D5 active; physical Galaxy S24 #149 and D8 release separate. Historic Web parity 1/6 implementations and 11/24 subtasks unchanged.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1170,7 +1170,8 @@
             "status": "in_progress",
             "evidence": [
               "W6.2 PR #211 150% font-scale native security password confirmation and recurring-management Compose accessibility regressions plus bounded vertically scrollable credential inputs; real S24 physical owner signoff and actual image review still pending, new exact-head CI required.",
-              "W6.2 #211 large-text account-security and recurring Compose tests merged as db46b69fc14bd9fc5f52b1caf24389bddab8b86a, 4/4 exact-head green; S24 physical approval outstanding."
+              "W6.2 #211 large-text account-security and recurring Compose tests merged as db46b69fc14bd9fc5f52b1caf24389bddab8b86a, 4/4 exact-head green; S24 physical approval outstanding.",
+              "PR #411 native app-level Wallet→card statement→Quick Entry and Activity ledger→detail/editor/delete-confirm hosted Compose regression authored; final-head CI pending. Deploy D3/D4 software integration acceptance conditional on 4/4 final-head CI and PR merge; physical owner S24 still D7."
             ]
           },
           {
@@ -1193,15 +1194,15 @@
         ]
       }
     ],
-    "next_action": "Validate immutable PR #410 via Project Tracking, Android CI, screenshot and hosted S24, including blocked open delete dialog, stale event edit/delete/counterparty/save callbacks and safe split amount; merge only four passed gates, unchanged develop and reviews clear. Continue native Android feature completeness; physical S24 #149 and signed release separate.",
+    "next_action": "Validate 4/4 same-head Project Tracking/Android CI/screenshots/hosted S24 for PR #411 app-level mobile D3/D4 journey tests, repair failures inside same PR, merge stable develop with clear reviews. Continue D5 Plan/Insights native features, then D6; owner physical #149 and signing held separately.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 410,
-    "current_subtask": "W3.2",
+    "pr": 411,
+    "current_subtask": "W6.2",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
-    "current_stage": "D3",
-    "next_action": "Validate PR #410 final CI and merge only if four gates succeed; then examine complete D3 and D4 user journeys. D7 physical Galaxy S24 Ultra #149 and D8 signed deploy remain pending and require owner acceptance.",
+    "current_stage": "D5",
+    "next_action": "After final exact-head four-gate validation and merge of PR #411, D3 and D4 native software integration count as accepted (4/8). Next execute one coherent D5 Plan/savings/obligations/Insights mobile acceptance and genuine defects, then D6 auth/offline/backup. D7 physical owner Galaxy S24 #149 and D8 signed deploy remain independent.",
     "stages": [
       {
         "id": "D1",
@@ -1222,29 +1223,33 @@
       {
         "id": "D3",
         "title": "Cards, credit and Quick Entry end-to-end",
-        "status": "in_progress",
+        "status": "completed",
         "evidence": [
           "Merged #405 commit 994fff2a2c1288bab03d27b192985c9901f4b9e6 with exact-head 4/4 gates; direct Wallet statement payment and native history filtering now authored in draft PR #406, final-head CI pending.",
           "PR #406 native Wallet statement→Quick Entry prefill, source-wide uniqueness/card/remaining guards and 3+ statement filters passed four exact-head gates at 93ba40b5f14929b394f3b5c0ad01ec587d69370c, squash merged develop e3190b8841781b6247c5abd68707c036eacadfcd. D3 still open pending complete functional acceptance.",
           "Current draft PR #409: revalidate actual selected active credit card, canonical kind and finite positive repayment balance on every Wallet and Card Detail Quick Entry callback (including statement selection), with JVM and hosted Compose checks; head CI pending.",
-          "PR #409 rechecked current active credit card kind/debt on every native Wallet and Card Detail Quick Entry route, 4/4 exact-head gates PASS at 3b120e76dfc57714bb7b2280476afbf9ca78713e, merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae. Full D3 acceptance pending."
+          "PR #409 rechecked current active credit card kind/debt on every native Wallet and Card Detail Quick Entry route, 4/4 exact-head gates PASS at 3b120e76dfc57714bb7b2280476afbf9ca78713e, merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae. Full D3 acceptance pending.",
+          "D3 native mobile software integration accepted at checkpoint PR #411: real Wallet → payable statement → actual Quick Entry card/statement/debt prefill Compose regression, prior verified #405/#406/#409 (each four exact-head CI gates PASS and merged), existing canonical credit mutation/replay and privacy regression suite. Requires PR #411 four-gate success and merge before user-facing 4/8 claim; physical owner signoff reserved D7."
         ]
       },
       {
         "id": "D4",
         "title": "Activity and transaction management",
-        "status": "in_progress",
+        "status": "completed",
         "evidence": [
           "Draft PR #408: one consolidated Android Activity financial display/summary hardening batch for nonfinite imported amounts and overflowing filtered totals, plus malformed month percent comparison. Kotlin and hosted Compose regressions authored; final-head CI pending.",
           "PR #408 native Activity malformed-money formatting and invalid/overflow financial summary guard passed four same-head CI jobs on 014e198c8c901350474ce11a1a3073934bf28615, merged develop f7795b2e156b8df7cc232ef2ccea76b23c715039.",
-          "Draft PR #410: Activity action authorization rereads current unique source before edit/delete/counterparty/save; open deletion/counterparty dialogs revoke on blocked mutation, historical split part nonfinite amounts labelled invalid. JVM and hosted Compose regressions authored; CI pending."
+          "Draft PR #410: Activity action authorization rereads current unique source before edit/delete/counterparty/save; open deletion/counterparty dialogs revoke on blocked mutation, historical split part nonfinite amounts labelled invalid. JVM and hosted Compose regressions authored; CI pending.",
+          "D4 native mobile software integration accepted at checkpoint PR #411: actual Activity ledger → detail → editor/back → explicit cancellation and confirmed delete ID Compose regression, prior verified #408/#410 (each four exact-head CI gates PASS and merged), prior Activity reducer/filters/offline mutation regression suite. Requires PR #411 four-gate success and merge before user-facing 4/8 claim; physical owner signoff reserved D7."
         ]
       },
       {
         "id": "D5",
         "title": "Plan, savings, obligations and Insights",
-        "status": "pending",
-        "evidence": []
+        "status": "in_progress",
+        "evidence": [
+          "Native Plan, savings, loans, budgets and Insights screens already exist; next work is the consolidated acceptance and actual functional gap closure for these phone journeys; no deploy signoff claimed."
+        ]
       },
       {
         "id": "D6",

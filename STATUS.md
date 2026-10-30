@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Mobile-first Android deploy progress 2/8 accepted (D1 native foundation, D2 Home/accounts). PR #409 current credit card lifecycle revalidation Kotlin/hosted Compose tests passed all four immutable-head gates at 3b120e76dfc57714bb7b2280476afbf9ca78713e, squash merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae; D3 Cards/Quick Entry still awaiting full journey acceptance. New consolidated PR #410 hardens native Activity read/detail/edit/delete and counterparty action lifecycle against pending/deleted/duplicate or globally blocked source, removes stale confirmation, safely displays invalid split-line amounts and adds Compose/JVM regressions. Exact head CI not yet accepted. D4 Activity remains in progress. Web parity 1/6 implementations · 11/24 subtasks unchanged, physical owner Galaxy S24 #149 pending, no Web/backend/schema/real finance writes/global PIN #345/SMS #146 or signing/main/release.
+Mobile-first Android software integration checkpoint PR #411 on merged #410 develop 1f59dd5bf3dd15bbbea96aa18c0945f192b4d4c5. Native D3 Card/Credit/Quick Entry and D4 Activity route flows have multiple merged exact-head four-gate source/security/UI tests (#405/#406/#408/#409/#410); this consolidated PR adds real app-level Compose navigation acceptance for Wallet→canonical selected statement→Quick Entry and Activity→detail→edit/back→delete confirmation/cancel. D3/D4 evidence-backed accepted statuses in PR's canonical tracker are CONDITIONAL on PR #411 passing all four final-head CI gates and integration; until then integrated deploy progress remains 2/8, after successful merge 4/8. D5 Plan/obligations/Insights becomes current focus; D6 settings/auth/offline/backup, D7 physical Galaxy S24 #149, D8 signed deploy not completed. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. No Web/backend/schema, live finance writes, native global PIN #345 or SMS #146.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate new PR #410 Android Activity end-to-end detail action/mutation source revalidation, stale confirm and invalid split amount with final four checks on one immutable head. Merge only if Project Tracking, Android CI, screenshot, hosted S24 PASS, base stable, clean reviews. D3 and D4 not prematurely marked completed; physical owner S24 #149 and signed deploy D8 remain independent.
+1. Run single final four-gate CI on PR #411 Android native finance journey acceptance; fix actual failure in same PR. Once 4/4 successful and merged, integrated deploy progress 4/8; begin D5 mobile Plan, savings, loans, lending, budgets, Insights. Do not infer owner S24 signoff or release approval.
 
 ## Non-negotiable constraints
 
@@ -46,7 +46,7 @@ Only tracking/android-project-state.json holds changing status; STATUS.md, TODO.
 
 ## Android deploy progress
 
-**Μέχρι deploy: 2/8 stages**
+**Μέχρι deploy: 4/8 stages**
 
 Evidence-backed release milestones, not percent of code written.
 
@@ -54,15 +54,15 @@ Evidence-backed release milestones, not percent of code written.
 |---|---|
 | D1 Native Android foundation and installed app | completed |
 | D2 Home and canonical accounts native journey | completed |
-| D3 Cards, credit and Quick Entry end-to-end | in_progress |
-| D4 Activity and transaction management | in_progress |
-| D5 Plan, savings, obligations and Insights | pending |
+| D3 Cards, credit and Quick Entry end-to-end | completed |
+| D4 Activity and transaction management | completed |
+| D5 Plan, savings, obligations and Insights | in_progress |
 | D6 Settings, auth, secure sync/offline and backup | pending |
 | D7 Final integrated physical S24 owner acceptance | pending |
 | D8 Production-signed release and deployment | pending |
 
-Current: D3
-Next: Validate PR #410 final CI and merge only if four gates succeed; then examine complete D3 and D4 user journeys. D7 physical Galaxy S24 Ultra #149 and D8 signed deploy remain pending and require owner acceptance.
+Current: D5
+Next: After final exact-head four-gate validation and merge of PR #411, D3 and D4 native software integration count as accepted (4/8). Next execute one coherent D5 Plan/savings/obligations/Insights mobile acceptance and genuine defects, then D6 auth/offline/backup. D7 physical owner Galaxy S24 #149 and D8 signed deploy remain independent.
 
 
 ## Active Web parity progress
@@ -71,10 +71,10 @@ Next: Validate PR #410 final CI and merge only if four gates succeed; then exami
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #410, branch android/activity-safe-detail-actions-20261030
-Current W3.2: PR #409 D3 credit Quick Entry card lifecycle guard 4/4 exact head success, merged develop 7f2250503c1f1f5fddeacabfd83b0df3242f1dae. New draft PR #410 D4 Activity real mobile details/edit/delete/counterparty authorization rechecks current source uniqueness and pending flags on callback, confirms become inactive when blocked, invalid split-part money remains identifiable/masked. JVM and hosted Compose tests authored; CI pending. Deploy 2/8, D3 and D4 remain in progress. Web parity 1/6 implementations, 11/24 subtasks. Physical S24 #149 pending.
+Issue #155, PR #411, branch android/native-finance-journey-acceptance-20261030
+Current W6.2: All four final-head checks PASSED for #410 and merged develop 1f59dd5bf3dd15bbbea96aa18c0945f192b4d4c5. Draft #411 real native app-level D3 & D4 end-to-end Compose acceptance: Wallet selected statement→Quick Entry and Activity ledger→detail/editor/delete-confirm; canonical tracker promotes D3 and D4 software stages only conditional on #411 PASS 4/4 + merge. Before merge integrated deploy remains 2/8; after successful merge 4/8, D5 active; physical Galaxy S24 #149 and D8 release separate. Historic Web parity 1/6 implementations and 11/24 subtasks unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate immutable PR #410 via Project Tracking, Android CI, screenshot and hosted S24, including blocked open delete dialog, stale event edit/delete/counterparty/save callbacks and safe split amount; merge only four passed gates, unchanged develop and reviews clear. Continue native Android feature completeness; physical S24 #149 and signed release separate.
+Next Validate 4/4 same-head Project Tracking/Android CI/screenshots/hosted S24 for PR #411 app-level mobile D3/D4 journey tests, repair failures inside same PR, merge stable develop with clear reviews. Continue D5 Plan/Insights native features, then D6; owner physical #149 and signing held separately.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
