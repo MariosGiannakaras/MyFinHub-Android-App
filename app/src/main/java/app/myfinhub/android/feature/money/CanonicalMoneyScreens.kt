@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -255,8 +256,8 @@ fun CanonicalMoneyScreen(
                         }
                     }
                     if (goal != null && goal > 0.0) {
-                        if (amountsVisible) LinearProgressIndicator(
-                            progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
+                        if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
+                            progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     } else {
@@ -477,7 +478,7 @@ fun CanonicalSavingsScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("savings_list"),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
@@ -498,8 +499,8 @@ fun CanonicalSavingsScreen(
                         )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0 && state.savingsGoalItems.isEmpty()) {
-                            if (amountsVisible) LinearProgressIndicator(
-                                progress = { (state.savingsCurrent / goal).toFloat().coerceIn(0f, 1f) },
+                            if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
+                                progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
@@ -522,11 +523,8 @@ fun CanonicalSavingsScreen(
                                 TextButton(
                                     enabled = !mutationBlocked,
                                     onClick = {
-                                        targetPercentDraft =
-                                            (performance.targetRate * 100.0).let { rate ->
-                                                if (rate == rate.toLong().toDouble()) rate.toLong().toString()
-                                                else rate.toString()
-                                            }
+                                        targetPercentDraft = safeSavingsMonthlyTargetPercent(performance.targetRate)
+                                            ?.toString().orEmpty()
                                         targetPercentError = null
                                         targetEditorVisible = true
                                     },
@@ -534,9 +532,12 @@ fun CanonicalSavingsScreen(
                                 ) { Text("Αλλαγή ποσοστού στόχου") }
                             }
                             Text(
-                                if (performance.targetRate > 0.0)
-                                    "${kotlin.math.round(performance.targetRate * 100).toInt()}% των πραγματικών εσόδων"
-                                else "Δεν έχει οριστεί ποσοστιαίος στόχος",
+                                if (!amountsVisible) "••••"
+                                else when (val pct = safeSavingsMonthlyTargetPercent(performance.targetRate)) {
+                                    null -> "Μη έγκυρος μηνιαίος στόχος"
+                                    0 -> "Δεν έχει οριστεί ποσοστιαίος στόχος"
+                                    else -> "$pct% των πραγματικών εσόδων"
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -737,6 +738,8 @@ fun CanonicalSavingsScreen(
                 itemsIndexed(state.savingsGoalItems, key = { index, goal ->
                     "goal-$index-${goal.id}"
                 }) { index, goal ->
+                    val uniqueGoal = canonicalSavingsGoalIdUnique(goal.id, state.savingsGoalItems)
+                    val safeProgress = safeSavingsGoalProgressPercent(goal.progressPercent)
                     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
                         .testTag("savings_goal_" + goal.id)) {
                         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
@@ -745,12 +748,12 @@ fun CanonicalSavingsScreen(
                                 amountVisibilityText(formatCanonicalEuro(goal.targetAmount), amountsVisible),
                                 FinanceTone.Savings,
                             )
-                            if (amountsVisible) LinearProgressIndicator(
-                                progress = { (goal.progressPercent / 100.0).toFloat().coerceIn(0f,1f) },
+                            if (amountsVisible && safeProgress != null) LinearProgressIndicator(
+                                progress = { (goal.progressPercent / 100.0).coerceIn(0.0, 1.0).toFloat() },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             Text(
-                                (if (amountsVisible) goal.progressPercent.toInt().toString() + "%"
+                                (if (amountsVisible) safeProgress?.let { "$it%" } ?: "Μη έγκυρη πρόοδος"
                                     else amountVisibilityText("100%", false)) + " · Κοινό υπόλοιπο αποταμίευσης: " +
                                     amountVisibilityText(formatCanonicalEuro(goal.backingBalance), amountsVisible),
                                 style = MaterialTheme.typography.bodySmall,
@@ -786,17 +789,22 @@ fun CanonicalSavingsScreen(
                                     )
                                 }
                             }
+                            if (!uniqueGoal) {
+                                Text("Διπλό ή κενό ID στόχου · Μόνο προβολή.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error)
+                            }
                             if (onSaveGoal != null) {
                                 TextButton(
-                                    enabled = !mutationBlocked,
-                                    onClick = { editGoal(goal) },
+                                    enabled = !mutationBlocked && uniqueGoal,
+                                    onClick = { if (uniqueGoal) editGoal(goal) },
                                     modifier = Modifier.testTag("savings_goal_edit_" + goal.id),
                                 ) { Text("Επεξεργασία στόχου") }
                             }
                             if (onDeleteGoal != null) {
                                 TextButton(
-                                    enabled = !mutationBlocked,
-                                    onClick = { confirmDeleteId = goal.id },
+                                    enabled = !mutationBlocked && uniqueGoal,
+                                    onClick = { if (uniqueGoal) confirmDeleteId = goal.id },
                                     modifier = Modifier.testTag("savings_goal_delete_" + goal.id),
                                 ) { Text("Διαγραφή στόχου") }
                             }
@@ -900,11 +908,14 @@ fun CanonicalSavingsScreen(
                         val amount = amountDraft.replace(',', '.').toDoubleOrNull()
                         val date = dateDraft.trim().takeIf(String::isNotEmpty)
                         val parsed = date?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
-                        val previous = state.savingsGoalItems.firstOrNull { it.id == editingId }
+                        val previous = state.savingsGoalItems.singleOrNull { it.id == editingId }
                         val today = state.asOfDate?.let { runCatching {
                             java.time.LocalDate.parse(it)
                         }.getOrNull() } ?: java.time.LocalDate.now()
                         editorError = when {
+                            editingId != null && (previous == null ||
+                                !canonicalSavingsGoalIdUnique(editingId.orEmpty(), state.savingsGoalItems)) ->
+                                "Ο στόχος έχει αλλάξει ή έχει διπλό ID. Άνοιξέ τον ξανά."
                             nameDraft.trim().isEmpty() || nameDraft.trim().length > 500 ->
                                 "Συμπλήρωσε όνομα στόχου έως 500 χαρακτήρες."
                             amount == null || !amount.isFinite() || amount <= 0.0 ->
@@ -914,7 +925,7 @@ fun CanonicalSavingsScreen(
                                 "Δεν μπορείς να ορίσεις νέα προθεσμία στο παρελθόν."
                             else -> null
                         }
-                        if (editorError == null) {
+                        if (editorError == null && !mutationBlocked) {
                             onSaveGoal(editingId, nameDraft.trim(), amountDraft, date)
                             editorVisible = false
                         }
@@ -926,6 +937,13 @@ fun CanonicalSavingsScreen(
             },
         )
     }
+    LaunchedEffect(confirmDeleteId, state.savingsGoalItems, mutationBlocked) {
+        val id = confirmDeleteId
+        if (id != null && (mutationBlocked ||
+                !canonicalSavingsGoalIdUnique(id, state.savingsGoalItems))) {
+            confirmDeleteId = null
+        }
+    }
     confirmDeleteId?.let { id ->
         AlertDialog(
             onDismissRequest = { if (!mutationBlocked) confirmDeleteId = null },
@@ -933,10 +951,13 @@ fun CanonicalSavingsScreen(
             text = { Text("Αφαιρείται μόνο ο στόχος, όχι η αποταμίευση ή οι κινήσεις σου.") },
             confirmButton = {
                 TextButton(
-                    enabled = !mutationBlocked && onDeleteGoal != null,
+                    enabled = !mutationBlocked && onDeleteGoal != null &&
+                        canonicalSavingsGoalIdUnique(id, state.savingsGoalItems),
                     modifier = Modifier.testTag("savings_goal_confirm_delete"),
                     onClick = {
-                        onDeleteGoal?.invoke(id)
+                        if (!mutationBlocked && canonicalSavingsGoalIdUnique(id, state.savingsGoalItems)) {
+                            onDeleteGoal?.invoke(id)
+                        }
                         confirmDeleteId = null
                     },
                 ) { Text("Διαγραφή στόχου") }
@@ -952,8 +973,9 @@ fun CanonicalSavingsScreen(
 internal fun canonicalLoanRowKey(loan: LoanItem, index: Int): String = "${loan.id}#row#${index}"
 
 internal fun canonicalLoanPaymentIsUnambiguous(loan: LoanItem, rows: List<LoanItem>): Boolean =
-    rows.count { it.id == loan.id } == 1 &&
-        loan.remaining > 0.005 && (loan.isSelfLoan || loan.remainingInstallments > 0)
+    loan.id.isNotBlank() && rows.count { it.id == loan.id } == 1 &&
+        loan.remaining.isFinite() && loan.remaining > 0.005 &&
+        (loan.isSelfLoan || loan.remainingInstallments > 0)
 
 @Composable
 private fun CanonicalLoanFinanceRow(
@@ -1128,11 +1150,12 @@ fun CanonicalLoansScreen(
             if (ascending) withTie else -withTie
         } else a.index.compareTo(b.index)
     }
+    val invalid = sorted.filter { !it.value.remaining.isFinite() }
     val active = sorted.filter {
-        it.value.remaining > 0.005 &&
+        it.value.remaining.isFinite() && it.value.remaining > 0.005 &&
             (it.value.isSelfLoan || it.value.remainingInstallments > 0)
     }
-    val completed = sorted.filterNot { it in active }
+    val completed = sorted.filterNot { it in active || it in invalid }
     val editorLoan = editingLoanId?.let { targetId ->
         state.loans.singleOrNull {
             it.id == targetId && !it.isSelfLoan &&
@@ -1176,7 +1199,7 @@ fun CanonicalLoansScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("loans_list"),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(MyFinHubSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
@@ -1289,6 +1312,27 @@ fun CanonicalLoansScreen(
                         onClick = { activeLimit = (activeLimit + 20).coerceAtMost(active.size) },
                         modifier = Modifier.fillMaxWidth().testTag("loan_more_active"),
                     ) { Text("Περισσότερα ενεργά (${active.size - activeLimit})") }
+                }
+                if (invalid.isNotEmpty()) {
+                    item {
+                        MyFinHubSectionHeading(
+                            title = "Μη έγκυρα στοιχεία δανείων",
+                            subtitle = "Ιστορικές οφειλές μόνο για προβολή",
+                            icon = MyFinHubIcons.Attention,
+                            tone = FinanceTone.Expense,
+                        )
+                    }
+                    itemsIndexed(invalid,
+                        key = { _, indexed -> "invalid-" + canonicalLoanRowKey(indexed.value, indexed.index) },
+                    ) { _, indexed ->
+                        CanonicalLoanFinanceRow(
+                            loan = indexed.value, amountsVisible = amountsVisible,
+                            mutationBlocked = true, eligible = false,
+                            duplicateIdentity = state.loans.count { it.id == indexed.value.id } > 1,
+                            history = state.loanPaymentsById[indexed.value.id].orEmpty(),
+                            accounts = state.accounts, onPay = {},
+                        )
+                    }
                 }
                 if (completed.isNotEmpty()) {
                     item {
@@ -1659,4 +1703,5 @@ private fun EmptyFinanceText(message: String) {
 }
 
 private fun formatCanonicalEuro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+    if (value.isFinite()) NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
+        .format(value) else "Μη έγκυρο ποσό"
