@@ -25,6 +25,29 @@ class CanonicalStatementIdentityTest {
         assertFalse(canonicalStatementIdentityUnique(" ", listOf(statement(" ", "card-A"))))
     }
 
+    @Test fun inlineAndDetailPaymentRequireSameCanonicalSafeSource() {
+        val due = statement("source-id", "card-A")
+        val foreign = statement("source-id", "card-B")
+        val safe = listOf(due)
+        val collisions = listOf(due, foreign)
+        assertTrue(canOpenCanonicalStatementPayment("card-A", "source-id", 25.0, safe,
+            mapOf("source-id" to 1)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", 25.0, collisions,
+            mapOf("source-id" to 2)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", 25.0, safe,
+            mapOf("source-id" to 2)))
+        assertFalse(canOpenCanonicalStatementPayment("card-B", "source-id", 25.0, safe,
+            mapOf("source-id" to 1)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", 25.01, safe,
+            mapOf("source-id" to 1)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", Double.NaN, safe,
+            mapOf("source-id" to 1)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", 0.0,
+            listOf(due.copy(remaining = 0.0)), mapOf("source-id" to 1)))
+        assertFalse(canOpenCanonicalStatementPayment("card-A", "source-id", 25.0,
+            listOf(due.copy(remaining = Double.POSITIVE_INFINITY)), mapOf("source-id" to 1)))
+    }
+
     @Test fun nativePayableFilterPreservesHistoryAndExcludesInvalidMoney() {
         val unpaid = statement("unpaid", "card-A")
         val paid = statement("paid", "card-A").copy(remaining = 0.0, status = "paid")

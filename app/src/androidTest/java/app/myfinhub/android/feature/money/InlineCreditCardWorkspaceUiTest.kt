@@ -38,6 +38,57 @@ class InlineCreditCardWorkspaceUiTest {
         status = "open",
     )
 
+    @Test fun inlineWalletPaysUniqueStatementInContextAndKeepsAmountPrivate() {
+        val payments = mutableListOf<Pair<String, Double>>()
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit,
+                    statements = listOf(statement),
+                    amountsVisible = false,
+                    onPayCard = {},
+                    onAddPurchase = {},
+                    onOpenActivity = {},
+                    onOpenDetails = {},
+                    onPayStatement = { id, amount -> payments.add(id to amount) },
+                    fullStatementIdCounts = mapOf(statement.id to 1),
+                )
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_pay_statement_0").performClick()
+        composeRule.onNodeWithText("80,00", substring = true).assertDoesNotExist()
+        assertEquals(listOf(statement.id to 80.0), payments)
+    }
+
+    @Test fun inlineWalletHidesPaymentForDuplicateForeignOrNonfiniteStatement() {
+        var pays = 0
+        val duplicate = statement.copy(id = "duplicated")
+        val paid = statement.copy(id = "settled", remaining = 0.0, status = "paid")
+        val invalid = statement.copy(id = "nonfinite", remaining = Double.NaN)
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit,
+                    statements = listOf(duplicate, paid, invalid),
+                    amountsVisible = true,
+                    onPayCard = {},
+                    onAddPurchase = {},
+                    onOpenActivity = {},
+                    onOpenDetails = {},
+                    onPayStatement = { _, _ -> pays++ },
+                    fullStatementIdCounts = mapOf(
+                        duplicate.id to 2, paid.id to 1, invalid.id to 1,
+                    ),
+                )
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_pay_statement_0").assertDoesNotExist()
+        composeRule.onNodeWithTag("inline_credit_statement_unavailable_0").assertExists()
+        composeRule.onNodeWithTag("inline_credit_pay_statement_1").assertDoesNotExist()
+        composeRule.onNodeWithTag("inline_credit_pay_statement_2").assertDoesNotExist()
+        assertEquals(0, pays)
+    }
+
     @Test fun cardDebtAndLinkedStatementPurchasesAppearWithoutOpeningDetailPage() {
         composeRule.setContent {
             MyFinHubTheme {

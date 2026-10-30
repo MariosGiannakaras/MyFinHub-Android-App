@@ -52,6 +52,7 @@ import app.myfinhub.android.feature.money.CanonicalLendingScreen
 import app.myfinhub.android.feature.money.CanonicalLoansScreen
 import app.myfinhub.android.feature.money.CanonicalNetPositionScreen
 import app.myfinhub.android.feature.money.CanonicalWalletScreen
+import app.myfinhub.android.feature.money.canOpenCanonicalStatementPayment
 import app.myfinhub.android.feature.money.CanonicalSavingsScreen
 import app.myfinhub.android.feature.money.CardSecretUiState
 import app.myfinhub.android.feature.money.MoneyUiState
@@ -497,6 +498,24 @@ internal fun MyFinHubAppContent(
                             onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
+                        onPayCreditStatement = { cardId, statementId, remaining ->
+                            val credit = moneyState.cards.firstOrNull { it.id == cardId }
+                            val scoped = moneyState.creditStatementsByCard[cardId].orEmpty()
+                            if (credit != null &&
+                                (credit.canonicalKind == "credit" ||
+                                    credit.kind.contains("Πιστωτ", ignoreCase = true)) &&
+                                canOpenCanonicalStatementPayment(
+                                    cardId, statementId, remaining, scoped, fullStatementIdCounts,
+                                )
+                            ) {
+                                onQuickEntryAction(QuickEntryAction.Reset)
+                                onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))
+                                onQuickEntryAction(QuickEntryAction.CardChanged(cardId))
+                                onQuickEntryAction(QuickEntryAction.StatementChanged(statementId))
+                                onQuickEntryAction(QuickEntryAction.AmountChanged(remaining.toString()))
+                                moneyBackStack.pushIfNew(AppRoute.QuickEntry)
+                            }
+                        },
                         onAddCreditPurchase = { cardId ->
                             onQuickEntryAction(QuickEntryAction.Reset)
                             onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PURCHASE))
@@ -509,6 +528,7 @@ internal fun MyFinHubAppContent(
                             }
                         },
                         fullActivityIdCounts = fullActivityIdCounts,
+                        fullStatementIdCounts = fullStatementIdCounts,
                         onAddCard = { moneyBackStack.pushIfNew(AppRoute.CardCreate) },
                         cardSecretState = cardSecretState,
                         onCardActiveChanged = onCardDetailOpened,
@@ -596,11 +616,11 @@ internal fun MyFinHubAppContent(
                             moneyBackStack.pushIfNew(AppRoute.QuickEntry)
                         },
                         onPayStatement = { statementId, remaining ->
-                            val matching = moneyState.creditStatementsByCard[route.cardId].orEmpty()
-                                .filter { it.id == statementId }
-                            if (fullStatementIdCounts[statementId] == 1 &&
-                                matching.size == 1 && matching.single().remaining > 0.005 &&
-                                kotlin.math.abs(matching.single().remaining - remaining) < 0.005
+                            if (canOpenCanonicalStatementPayment(
+                                    route.cardId, statementId, remaining,
+                                    moneyState.creditStatementsByCard[route.cardId].orEmpty(),
+                                    fullStatementIdCounts,
+                                )
                             ) {
                                 onQuickEntryAction(QuickEntryAction.Reset)
                                 onQuickEntryAction(QuickEntryAction.SelectKind(QuickEntryKind.CARD_PAYMENT))

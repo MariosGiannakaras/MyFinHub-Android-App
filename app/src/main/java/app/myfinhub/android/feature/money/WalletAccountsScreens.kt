@@ -121,6 +121,7 @@ fun CanonicalWalletScreen(
     onDeleteCard: (String) -> Unit = {},
     onRestoreCard: (String) -> Unit = {},
     onPayCreditCard: (String) -> Unit = {},
+    onPayCreditStatement: (String, String, Double) -> Unit = { _, _, _ -> },
     onAddCreditPurchase: (String) -> Unit = {},
     onOpenCreditActivity: (String) -> Unit = {},
     onOpenLoans: () -> Unit,
@@ -129,6 +130,7 @@ fun CanonicalWalletScreen(
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
     fullActivityIdCounts: Map<String, Int>? = null,
+    fullStatementIdCounts: Map<String, Int>? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -209,9 +211,11 @@ fun CanonicalWalletScreen(
                     selectedCardId = selectedCardId,
                     amountsVisible = amountsVisible,
                     onPayCreditCard = onPayCreditCard,
+                    onPayCreditStatement = onPayCreditStatement,
                     onAddCreditPurchase = onAddCreditPurchase,
                     onOpenCreditActivity = onOpenCreditActivity,
                     fullActivityIdCounts = fullActivityIdCounts,
+                    fullStatementIdCounts = fullStatementIdCounts,
                     onOpenCard = onOpenCard,
                     onAddCard = onAddCard,
                     onDeleteCard = onDeleteCard,
@@ -504,9 +508,11 @@ private fun LazyListScope.walletCardsContent(
     selectedCardId: String?,
     amountsVisible: Boolean,
     onPayCreditCard: (String) -> Unit,
+    onPayCreditStatement: (String, String, Double) -> Unit,
     onAddCreditPurchase: (String) -> Unit,
     onOpenCreditActivity: (String) -> Unit,
     fullActivityIdCounts: Map<String, Int>?,
+    fullStatementIdCounts: Map<String, Int>?,
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
     onDeleteCard: (String) -> Unit,
@@ -543,6 +549,10 @@ private fun LazyListScope.walletCardsContent(
                 statements = state.creditStatementsByCard[active.id].orEmpty(),
                 amountsVisible = amountsVisible,
                 onPayCard = { onPayCreditCard(active.id) },
+                onPayStatement = { statementId, amount ->
+                    onPayCreditStatement(active.id, statementId, amount)
+                },
+                fullStatementIdCounts = fullStatementIdCounts,
                 onAddPurchase = { onAddCreditPurchase(active.id) },
                 onOpenActivity = onOpenCreditActivity,
                 fullActivityIdCounts = fullActivityIdCounts,

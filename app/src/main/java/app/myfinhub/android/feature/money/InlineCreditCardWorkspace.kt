@@ -103,6 +103,8 @@ fun InlineCreditCardWorkspace(
     onOpenActivity: (String) -> Unit,
     onOpenDetails: () -> Unit,
     fullActivityIdCounts: Map<String, Int>? = null,
+    onPayStatement: ((String, Double) -> Unit)? = null,
+    fullStatementIdCounts: Map<String, Int>? = null,
 ) {
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -185,7 +187,10 @@ fun InlineCreditCardWorkspace(
                         Text("Δεν υπάρχουν συνδεδεμένες καταστάσεις. Η οφειλή και οι κινήσεις εμφανίζονται ξεχωριστά.",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        scopedStatements.take(inlineCreditVisibleCount(scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEach { statement ->
+                        scopedStatements.take(inlineCreditVisibleCount(scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEachIndexed { index, statement ->
+                            val canPay = canOpenCanonicalStatementPayment(
+                                card.id, statement.id, statement.remaining, scopedStatements, fullStatementIdCounts,
+                            )
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("${statement.openDate} – ${statement.closeDate} · ${creditStatementStatusLabel(statement.status)}",
                                     style = MaterialTheme.typography.titleSmall)
@@ -195,6 +200,24 @@ fun InlineCreditCardWorkspace(
                                     + " · Πληρωμές: " + creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (onPayStatement != null && canPay) {
+                                    TextButton(
+                                        onClick = { onPayStatement(statement.id, statement.remaining) },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                            .testTag("inline_credit_pay_statement_$index"),
+                                    ) { Text("Πληρωμή αυτής της κατάστασης") }
+                                }
+                                if (onPayStatement != null && statement.remaining.isFinite() &&
+                                    statement.remaining > 0.005 && !canPay
+                                ) {
+                                    Text(
+                                        "Η πληρωμή αυτής της κατάστασης δεν είναι διαθέσιμη. " +
+                                            "Έλεγξε το ιστορικό της κάρτας.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.testTag("inline_credit_statement_unavailable_$index"),
+                                    )
+                                }
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }

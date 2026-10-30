@@ -62,6 +62,26 @@ internal fun canonicalStatementIdentityUnique(
     scopedStatements.count { it.id == id } == 1 &&
     (fullStatementIdCounts == null || fullStatementIdCounts[id] == 1)
 
+/**
+ * Keep the same source-identity, owner and finite-amount guard at each native
+ * repayment entry point (Card Detail and the inline Wallet card).
+ * The final mutation layer still independently revalidates canonical source.
+ */
+internal fun canOpenCanonicalStatementPayment(
+    cardId: String,
+    statementId: String,
+    remaining: Double,
+    statements: List<CanonicalCreditStatementView>,
+    fullStatementIdCounts: Map<String, Int>? = null,
+): Boolean {
+    if (cardId.isBlank() || !remaining.isFinite() || remaining <= 0.005) return false
+    val scoped = canonicalStatementsForCard(cardId, statements)
+    if (!canonicalStatementIdentityUnique(statementId, scoped, fullStatementIdCounts)) return false
+    val canonical = scoped.singleOrNull { it.id == statementId } ?: return false
+    return canonical.remaining.isFinite() && canonical.remaining > 0.005 &&
+        kotlin.math.abs(canonical.remaining - remaining) < 0.005
+}
+
 /** Native statement list filter: invalid imported amounts remain visible in All, never
  * appear as payable, and cannot become a false zero/paid status.
  */
