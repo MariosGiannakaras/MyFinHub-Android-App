@@ -113,6 +113,8 @@ internal fun activityDetailCategoryLabel(item: ActivityItem): String =
     }
 
 internal fun formatSignedEuro(amount: Double): String {
+    // Imported invalid numbers are errors, not currency values or trustworthy zero.
+    if (!amount.isFinite()) return "Μη έγκυρο ποσό"
     val formatted = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
         .format(kotlin.math.abs(amount))
     return when {
@@ -130,6 +132,9 @@ internal fun formatSignedEuro(amount: Double): String {
 internal fun formatActivityFlowEuro(item: ActivityItem): String {
     val income = item.financeIncomeContribution
     val expense = item.financeExpenseContribution
+    if (!item.amount.isFinite() ||
+        (income != null && !income.isFinite()) ||
+        (expense != null && !expense.isFinite())) return "Μη έγκυρο ποσό"
     if (income == null || expense == null) return formatSignedEuro(item.amount)
     val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
         .format(kotlin.math.abs(item.amount))
@@ -295,17 +300,26 @@ fun ActivityLedgerScreen(
                                 "Βρέθηκαν ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
-                            Text(
-                                "Έσοδα: ${amountVisibilityText(formatSignedEuro(state.visibleIncome), amountsVisible)}" +
-                                    " · Έξοδα: ${amountVisibilityText(formatSignedEuro(state.visibleExpense), amountsVisible)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                "Καθαρό: ${amountVisibilityText(formatSignedEuro(state.visibleNet), amountsVisible)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            if (state.hasInvalidVisibleAmounts) {
+                                Text(
+                                    "Μη έγκυρα ποσά σε κινήσεις · η οικονομική σύνοψη δεν είναι διαθέσιμη.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.testTag("activity_invalid_amount_summary"),
+                                )
+                            } else {
+                                Text(
+                                    "Έσοδα: ${amountVisibilityText(formatSignedEuro(state.visibleIncome), amountsVisible)}" +
+                                        " · Έξοδα: ${amountVisibilityText(formatSignedEuro(state.visibleExpense), amountsVisible)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    "Καθαρό: ${amountVisibilityText(formatSignedEuro(state.visibleNet), amountsVisible)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
@@ -899,7 +913,9 @@ fun ActivityReadDetailScreen(
                         ActivityReadField(
                             "Υπόλοιπο λογαριασμού την ημέρα",
                             amountVisibilityText(
-                                NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(balance),
+                                if (balance.isFinite()) {
+                                    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(balance)
+                                } else "Μη έγκυρο ποσό",
                                 amountsVisible,
                             ),
                         )

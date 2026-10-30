@@ -142,6 +142,30 @@ class ActivityRepeatedDateGroupKeysComposeTest {
         rule.runOnIdle { assertEquals("safe", selected) }
     }
 
+    @Test fun invalidImportedAmountsRemainReadableButDoNotCreateFakeFilteredTotals() {
+        val source = ActivityItem(
+            id = "bad-source", dateLabel = "30 Οκτ", kind = ActivityKind.EXPENSE,
+            title = "Αλλοιωμένη κίνηση", subtitle = "", amount = Double.NaN,
+            accountLabel = "Μετρητά", category = "Άλλο",
+            rawDate = "2026-10-30", canonicalSourceOrdinal = 0,
+            note = "Αλλοιωμένη κίνηση",
+            financeIncomeContribution = 0.0, financeExpenseContribution = Double.NaN,
+        )
+        val filtered = ActivityUiState(items = listOf(source), query = "Αλλοιωμένη")
+        rule.setContent {
+            MyFinHubTheme {
+                ActivityLedgerScreen(state = filtered, onAction = {},
+                    onOpenDetail = {}, onOpenQuickEntry = {})
+            }
+        }
+        rule.onNodeWithTag("activity_list")
+            .performScrollToNode(hasTestTag("activity_ledger_source_0_0"))
+        rule.onNodeWithText("Αλλοιωμένη κίνηση").assertExists()
+        rule.onNodeWithTag("activity_invalid_amount_summary").assertExists()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("Infinity", substring = true).assertDoesNotExist()
+    }
+
     @Test fun queryOnlyProvidesSafeSignedSummaryAndOneStepClearAction() {
         val seed = ActivityUiState(items = listOf(
             ActivityItem("refund", "21 Οκτ", ActivityKind.EXPENSE,
