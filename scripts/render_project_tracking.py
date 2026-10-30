@@ -65,6 +65,7 @@ def load_state() -> dict:
         raise SystemExit("overall_progress is invalid")
     validate_redesign(data)
     validate_reconciliation(data)
+    validate_deployment(data)
     return data
 
 
@@ -117,6 +118,50 @@ def validate_reconciliation(s: dict) -> None:
             if sub['status']=='blocked' and not sub.get('blocker','').strip(): raise SystemExit('Web parity blocked needs reason')
             if sub['status']!='completed': undone.append(sub['id'])
     if undone and r['current_subtask'] not in undone: raise SystemExit('Web parity current subtask must be incomplete')
+
+def validate_deployment(s: dict) -> None:
+    d = s.get("deployment_progress")
+    if not d:
+        return
+    stages = d["stages"]
+    if len(stages) != 8:
+        raise SystemExit("Deploy progress must retain exactly eight gates")
+    allowed = {"completed", "in_progress", "pending", "blocked"}
+    for n, stage in enumerate(stages, 1):
+        if stage["id"] != f"D{n}" or stage["status"] not in allowed:
+            raise SystemExit("Deploy milestone gate/status invalid")
+        if not stage["title"].strip() or not stage["scope"].strip():
+            raise SystemExit("Deploy milestone needs title/scope")
+        evidence = stage.get("evidence", [])
+        if not isinstance(evidence, list) or any(not isinstance(x, str) or not x.strip() for x in evidence):
+            raise SystemExit("Invalid deploy evidence")
+        if stage["status"] == "completed" and not evidence:
+            raise SystemExit(f"Completed deploy gate {stage['id']} must have evidence")
+    if d["active_gate"] not in [stage["id"] for stage in stages if stage["status"] != "completed"]:
+        raise SystemExit("Active deploy gate must be unfinished")
+
+
+def deployment_lines(s: dict) -> list[str]:
+    d = s.get("deployment_progress")
+    if not d:
+        return []
+    stages = d["stages"]
+    done = sum(st["status"] == "completed" for st in stages)
+    lines = [
+        "",
+        "## Native Android deployment progress",
+        "",
+        f"**Deploy: {done}/{len(stages)} milestones**",
+        "",
+        "Evidence-backed delivery gates, not the percentage of source code written.",
+        "",
+        "| Gate | Status | Scope |",
+        "|---|---|---|",
+    ]
+    lines.extend(f"| {st['id']} {st['title']} | {st['status']} | {st['scope']} |" for st in stages)
+    lines.extend(["", f"Active gate: {d['active_gate']}.", f"Next: {d['next_action']}", ""])
+    return lines
+
 
 def reconciliation_lines(s: dict) -> list[str]:
     r=s.get('reconciliation_workstream')
@@ -299,7 +344,7 @@ def rendered(s: dict) -> dict[Path, str]:
         ROOT / "TODO.md": render_todo(s),
         ROOT / "docs/CURRENT_HANDOFF.md": render_handoff(s),
     }
-    progress = "\n".join(reconciliation_lines(s) + redesign_lines(s))
+    progress = "\n".join(deployment_lines(s) + reconciliation_lines(s) + redesign_lines(s))
     return {path: content + progress for path, content in outputs.items()}
 
 

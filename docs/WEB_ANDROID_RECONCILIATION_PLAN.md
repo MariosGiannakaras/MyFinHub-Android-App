@@ -15,6 +15,10 @@ Owner original approval: 2026-10-14. **Owner implementation update: 2026-10-30 â
 2. Three web-semantic primary accounts each have a chart, followed by simple secondary account rows
 3. Cards and credit share canonical bank/card identity and an integrated **native Android** credit workspace; layouts and gestures must suit a phone, not clone the Web PaymentCard UI
 
+## Eight deploy milestone gates (primary owner-facing progress)
+
+The authoritative X/8 count is derived from `tracking/android-project-state.json â†’ deployment_progress.stages`. Count a gate only after the full **native Android user journey** has evidence of completion, not because one PR merged. D1 native foundation and D2 Home/accounts are complete. D3 Cards/Credit/Quick Entry; D4 Activity/transactions; D5 Plan/Savings/Debts/Insights; D6 Settings/security/sync; D7 owner-accepted end-to-end S24; D8 approved protected signed deployment remain open. No artificial percent-of-code interpretation. Existing installed rc12 is not a new D8 release. Physical acceptance is separate from hosted emulator.
+
 ## Six implementations / 24 tracked subtasks
 
 ### W1: Canonical accounts and Home
