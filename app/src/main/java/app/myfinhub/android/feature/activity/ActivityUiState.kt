@@ -277,6 +277,12 @@ data class ActivityUiState(
     fun uniqueItem(id: String?): ActivityItem? = id?.takeIf(::isUniqueMutationTarget)
         ?.let { exact -> items.firstOrNull { it.id == exact } }
 
+    /** Every native edit/delete/counterparty callback must recheck the current source.
+     * Compose buttons can outlive a changing pending-sync/duplicate/deleted row.
+     */
+    fun canMutateCurrentActivity(id: String, mutationBlocked: Boolean): Boolean =
+        !mutationBlocked && uniqueItem(id)?.pendingSync == false
+
     /**
      * Web TransactionsPage sourceRows deliberately excludes canonical card_purchase
      * and card_payment events. Both remain in the canonical document and the

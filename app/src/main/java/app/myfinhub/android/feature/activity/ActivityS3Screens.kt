@@ -129,6 +129,12 @@ internal fun formatSignedEuro(amount: Double): String {
  * the original legacy bank type. Reviewed historic expenses can become refunds
  * or non-operational transfers. Format without changing raw canonical amounts.
  */
+/** Keep an imported split part visible as invalid source, never as NaN/∞ euros. */
+internal fun formatActivityPartEuro(amount: Double): String =
+    if (amount.isFinite()) {
+        NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+    } else "Μη έγκυρο ποσό"
+
 internal fun formatActivityFlowEuro(item: ActivityItem): String {
     val income = item.financeIncomeContribution
     val expense = item.financeExpenseContribution
@@ -850,6 +856,13 @@ fun ActivityReadDetailScreen(
     LaunchedEffect(item, deleteRequested) {
         if (deleteRequested && (item == null || item.pendingSync)) onDeleted()
     }
+    LaunchedEffect(mutationBlocked, item?.id, item?.pendingSync) {
+        // An already-open confirmation must not revive after a sync conflict clears.
+        if (mutationBlocked || item == null || item.pendingSync) {
+            confirmDelete = false
+            counterpartyMenuOpen = false
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -944,17 +957,20 @@ fun ActivityReadDetailScreen(
                                 TextButton(
                                     onClick = { counterpartyMenuOpen = true },
                                     enabled = !mutationBlocked,
-                                    modifier = Modifier.testTag("activity_choose_counterparty"),
+                                    modifier = Modifier.heightIn(min = 48.dp)
+                                        .testTag("activity_choose_counterparty"),
                                 ) { Text("Αλλαγή ταυτότητας") }
                                 DropdownMenu(
-                                    expanded = counterpartyMenuOpen,
+                                    expanded = counterpartyMenuOpen && !mutationBlocked && !item.pendingSync,
                                     onDismissRequest = { counterpartyMenuOpen = false },
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text("Καμία ταυτότητα") },
                                         onClick = {
                                             counterpartyMenuOpen = false
-                                            onChooseCounterparty(null)
+                                            if (!mutationBlocked && !item.pendingSync) {
+                                                onChooseCounterparty(null)
+                                            }
                                         },
                                     )
                                     counterpartyRows.filter { it.kind == counterpartyKind }
@@ -965,7 +981,9 @@ fun ActivityReadDetailScreen(
                                                 text = { Text(candidate.displayName) },
                                                 onClick = {
                                                     counterpartyMenuOpen = false
-                                                    onChooseCounterparty(candidate.id)
+                                                    if (!mutationBlocked && !item.pendingSync) {
+                                                        onChooseCounterparty(candidate.id)
+                                                    }
                                                 },
                                             )
                                         }
@@ -1025,7 +1043,7 @@ fun ActivityReadDetailScreen(
                             }
                             Text(
                                 amountVisibilityText(
-                                    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(part.amount),
+                                    formatActivityPartEuro(part.amount),
                                     amountsVisible,
                                 ),
                                 style = MaterialTheme.typography.titleSmall,
@@ -1072,7 +1090,7 @@ fun ActivityReadDetailScreen(
     }
 
     val deleteItem = item
-    if (confirmDelete && deleteItem != null && !deleteItem.pendingSync) {
+    if (confirmDelete && deleteItem != null && !deleteItem.pendingSync && !mutationBlocked) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text("Διαγραφή κίνησης;") },
@@ -1090,9 +1108,12 @@ fun ActivityReadDetailScreen(
                 TextButton(
                     onClick = {
                         confirmDelete = false
-                        deleteRequested = true
-                        onDelete()
+                        if (!mutationBlocked && !deleteItem.pendingSync) {
+                            deleteRequested = true
+                            onDelete()
+                        }
                     },
+                    enabled = !mutationBlocked,
                 ) { Text("Διαγραφή") }
             },
             dismissButton = {
@@ -1113,12 +1134,13 @@ private fun ActivityMoreActions(enabled: Boolean, onDelete: () -> Unit) {
         ) {
             Text("Περισσότερα")
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
                 text = { Text("Διαγραφή κίνησης") },
+                enabled = enabled,
                 onClick = {
                     expanded = false
-                    onDelete()
+                    if (enabled) onDelete()
                 },
             )
         }

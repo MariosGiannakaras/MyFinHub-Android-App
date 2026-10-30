@@ -7,6 +7,28 @@ import org.junit.Test
 
 class ActivityReducerTest {
     @Test
+    fun currentActivityActionPermissionRevokesOnPendingCollisionDeletionAndGlobalBlock() {
+        val row = ActivityItem(
+            "source", "30 Οκτ", ActivityKind.EXPENSE, "Καφές", "", -6.0,
+            "Μετρητά", "Τρόφιμα", rawDate = "2026-10-30",
+        )
+        val state = ActivityUiState(items = listOf(row))
+        assertTrue(state.canMutateCurrentActivity("source", mutationBlocked = false))
+        assertFalse(state.canMutateCurrentActivity("source", mutationBlocked = true))
+        assertFalse(state.canMutateCurrentActivity("", mutationBlocked = false))
+        assertFalse(state.canMutateCurrentActivity("missing", mutationBlocked = false))
+        assertFalse(state.copy(items = listOf(row, row.copy(title = "Αντίγραφο")))
+            .canMutateCurrentActivity("source", mutationBlocked = false))
+        assertFalse(state.copy(items = listOf(row.copy(pendingSync = true)))
+            .canMutateCurrentActivity("source", mutationBlocked = false))
+        assertFalse(state.copy(items = emptyList())
+            .canMutateCurrentActivity("source", mutationBlocked = false))
+        assertEquals("Μη έγκυρο ποσό", formatActivityPartEuro(Double.NaN))
+        assertEquals("Μη έγκυρο ποσό", formatActivityPartEuro(Double.NEGATIVE_INFINITY))
+        assertFalse(formatActivityPartEuro(12.5).contains("NaN"))
+    }
+
+    @Test
     fun invalidImportedMoneyRemainsVisibleButNeverGetsTrustworthyFilteredTotals() {
         val bad = ActivityItem(
             id = "invalid", dateLabel = "30 Οκτ", kind = ActivityKind.EXPENSE,
