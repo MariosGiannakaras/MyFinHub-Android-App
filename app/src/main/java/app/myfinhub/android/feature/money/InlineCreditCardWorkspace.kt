@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -103,6 +105,8 @@ fun InlineCreditCardWorkspace(
     onOpenActivity: (String) -> Unit,
     onOpenDetails: () -> Unit,
     fullActivityIdCounts: Map<String, Int>? = null,
+    fullStatementIdCounts: Map<String, Int>? = null,
+    onPayStatement: ((String, Double) -> Unit)? = null,
 ) {
     val credit = card.canonicalKind == "credit" || card.kind.contains("Πιστωτ", ignoreCase = true)
     val largeFont = LocalDensity.current.fontScale >= 1.3f
@@ -110,6 +114,9 @@ fun InlineCreditCardWorkspace(
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
     val activityIdCounts = canonicalCardActivityIdCounts(card.activity)
     var statementBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
+    var statementFilter by rememberSaveable(card.id) { mutableStateOf(CardStatementFilter.ALL) }
+    val filteredStatements = filteredCardStatements(scopedStatements, statementFilter)
+    val payableStatementCount = filteredCardStatements(scopedStatements, CardStatementFilter.PAYABLE).size
     var activityBatches by rememberSaveable(card.id) { mutableIntStateOf(1) }
     Column(
         modifier = Modifier.fillMaxWidth().testTag("inline_credit_card_workspace"),
@@ -185,7 +192,43 @@ fun InlineCreditCardWorkspace(
                         Text("Δεν υπάρχουν συνδεδεμένες καταστάσεις. Η οφειλή και οι κινήσεις εμφανίζονται ξεχωριστά.",
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        scopedStatements.take(inlineCreditVisibleCount(scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH)).forEach { statement ->
+                        // For a short one/two-statement history, avoid needless controls on a phone.
+                        if (scopedStatements.size > 2) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                                FilterChip(
+                                    selected = statementFilter == CardStatementFilter.ALL,
+                                    onClick = {
+                                        statementFilter = CardStatementFilter.ALL
+                                        statementBatches = 1
+                                    },
+                                    label = { Text("Όλες") },
+                                    modifier = Modifier.heightIn(min = 48.dp)
+                                        .testTag("inline_credit_filter_all"),
+                                )
+                                FilterChip(
+                                    selected = statementFilter == CardStatementFilter.PAYABLE,
+                                    onClick = {
+                                        statementFilter = CardStatementFilter.PAYABLE
+                                        statementBatches = 1
+                                    },
+                                    label = { Text("Πληρωτέες ($payableStatementCount)") },
+                                    modifier = Modifier.heightIn(min = 48.dp)
+                                        .testTag("inline_credit_filter_payable"),
+                                )
+                            }
+                        }
+                        if (filteredStatements.isEmpty()) {
+                            Text("Δεν υπάρχουν καταστάσεις προς πληρωμή.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("inline_credit_no_payable_statements"))
+                        }
+                        filteredStatements.take(inlineCreditVisibleCount(
+                            filteredStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
+                        )).forEachIndexed { index, statement ->
+                            val unique = canonicalStatementIdentityUnique(
+                                statement.id, scopedStatements, fullStatementIdCounts,
+                            )
                             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xxs)) {
                                 Text("${statement.openDate} – ${statement.closeDate} · ${creditStatementStatusLabel(statement.status)}",
                                     style = MaterialTheme.typography.titleSmall)
@@ -195,18 +238,31 @@ fun InlineCreditCardWorkspace(
                                     + " · Πληρωμές: " + creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (onPayStatement != null && unique && statement.remaining.isFinite() &&
+                                    statement.remaining > 0.005) {
+                                    TextButton(
+                                        onClick = { onPayStatement(statement.id, statement.remaining) },
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                            .testTag("inline_credit_pay_statement_$index"),
+                                    ) { Text("Πληρωμή κατάστασης") }
+                                } else if (onPayStatement != null && !unique) {
+                                    Text("Μη μοναδική κατάσταση · η πληρωμή δεν είναι διαθέσιμη.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.testTag("inline_credit_statement_identity_warning_$index"))
+                                }
                             }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                         val shown = inlineCreditVisibleCount(
-                            scopedStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
+                            filteredStatements.size, statementBatches, INLINE_CREDIT_STATEMENT_BATCH,
                         )
-                        if (shown < scopedStatements.size) {
+                        if (shown < filteredStatements.size) {
                             TextButton(
                                 onClick = { statementBatches += 1 },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                     .testTag("inline_credit_more_statements"),
-                            ) { Text("Περισσότερες καταστάσεις (${scopedStatements.size - shown})") }
+                            ) { Text("Περισσότερες καταστάσεις (${filteredStatements.size - shown})") }
                         }
                     }
                 }

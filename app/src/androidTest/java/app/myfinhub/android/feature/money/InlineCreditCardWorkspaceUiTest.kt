@@ -131,6 +131,48 @@ class InlineCreditCardWorkspaceUiTest {
         composeRule.onNodeWithText("Πληρωμή κάρτας").assertIsNotEnabled()
     }
 
+    @Test fun walletPaySpecificStatementWithoutOpeningDetailsAndKeepHistoricPrivacy() {
+        val second = statement.copy(id = "settled", remaining = 0.0, status = "paid")
+        val invalid = statement.copy(id = "invalid", remaining = Double.NaN)
+        var selected: Pair<String, Double>? = null
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit, statements = listOf(statement, second, invalid),
+                    amountsVisible = false, onPayCard = {}, onAddPurchase = {},
+                    onOpenActivity = {}, onOpenDetails = {},
+                    onPayStatement = { id, amount -> selected = id to amount },
+                    fullStatementIdCounts = mapOf(statement.id to 1, "settled" to 1, "invalid" to 1),
+                )
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_filter_payable").performClick()
+        composeRule.onNodeWithTag("inline_credit_pay_statement_0").performClick()
+        assertEquals(statement.id to 80.0, selected)
+        composeRule.onNodeWithTag("inline_credit_pay_statement_1").assertDoesNotExist()
+        composeRule.onNodeWithTag("inline_credit_filter_all").performClick()
+        composeRule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        composeRule.onNodeWithText("80,00", substring = true).assertDoesNotExist()
+    }
+
+    @Test fun duplicateSourceStatementIdNeverOpensWalletPayment() {
+        var selected = 0
+        composeRule.setContent {
+            MyFinHubTheme {
+                InlineCreditCardWorkspace(
+                    card = credit, statements = listOf(statement),
+                    amountsVisible = true, onPayCard = {}, onAddPurchase = {},
+                    onOpenActivity = {}, onOpenDetails = {},
+                    onPayStatement = { _, _ -> selected++ },
+                    fullStatementIdCounts = mapOf(statement.id to 2),
+                )
+            }
+        }
+        composeRule.onNodeWithTag("inline_credit_statement_identity_warning_0").assertExists()
+        composeRule.onNodeWithTag("inline_credit_pay_statement_0").assertDoesNotExist()
+        assertEquals(0, selected)
+    }
+
     @Test fun debitCardNeverOffersCreditRepaymentOrStatementManagement() {
         composeRule.setContent {
             MyFinHubTheme {

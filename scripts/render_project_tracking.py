@@ -65,6 +65,7 @@ def load_state() -> dict:
         raise SystemExit("overall_progress is invalid")
     validate_redesign(data)
     validate_reconciliation(data)
+    validate_deployment(data)
     return data
 
 
@@ -117,6 +118,43 @@ def validate_reconciliation(s: dict) -> None:
             if sub['status']=='blocked' and not sub.get('blocker','').strip(): raise SystemExit('Web parity blocked needs reason')
             if sub['status']!='completed': undone.append(sub['id'])
     if undone and r['current_subtask'] not in undone: raise SystemExit('Web parity current subtask must be incomplete')
+
+def validate_deployment(s: dict) -> None:
+    d = s.get("deployment_progress")
+    if not d:
+        return
+    stages = d["stages"]
+    if len(stages) != 8 or any(stage["id"] != f"D{i}" for i, stage in enumerate(stages, 1)):
+        raise SystemExit("Android deploy progress must have eight stable D1–D8 stages")
+    statuses = {"pending", "in_progress", "completed", "blocked"}
+    for stage in stages:
+        if stage["status"] not in statuses:
+            raise SystemExit(f"Android deploy stage {stage['id']} has invalid status")
+        evidence = stage.get("evidence", [])
+        if not isinstance(evidence, list) or any(not isinstance(x, str) or not x.strip() for x in evidence):
+            raise SystemExit(f"Android deploy stage {stage['id']} has invalid evidence")
+        if stage["status"] == "completed" and not evidence:
+            raise SystemExit(f"Android deploy stage {stage['id']} is completed without evidence")
+    incomplete = {stage["id"] for stage in stages if stage["status"] != "completed"}
+    if incomplete and d["current_stage"] not in incomplete:
+        raise SystemExit("Android deploy active stage must be incomplete")
+
+
+def deployment_lines(s: dict) -> list[str]:
+    d = s.get("deployment_progress")
+    if not d:
+        return []
+    stages = d["stages"]
+    done = sum(stage["status"] == "completed" for stage in stages)
+    lines = ["", "## Android deploy progress", "",
+             f"**Μέχρι deploy: {done}/{len(stages)} stages**", "",
+             "Evidence-backed release milestones, not percent of code written.", "",
+             "| Stage | Status |", "|---|---|"]
+    lines.extend(f"| {row['id']} {row['title']} | {row['status']} |" for row in stages)
+    lines += ["", f"Current: {d['current_stage']}",
+              f"Next: {d['next_action']}", ""]
+    return lines
+
 
 def reconciliation_lines(s: dict) -> list[str]:
     r=s.get('reconciliation_workstream')
@@ -299,7 +337,7 @@ def rendered(s: dict) -> dict[Path, str]:
         ROOT / "TODO.md": render_todo(s),
         ROOT / "docs/CURRENT_HANDOFF.md": render_handoff(s),
     }
-    progress = "\n".join(reconciliation_lines(s) + redesign_lines(s))
+    progress = "\n".join(deployment_lines(s) + reconciliation_lines(s) + redesign_lines(s))
     return {path: content + progress for path, content in outputs.items()}
 
 

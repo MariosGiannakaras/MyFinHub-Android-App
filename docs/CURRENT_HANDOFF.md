@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Android mobile-first owner directive (30 October 2026) supersedes mechanical Web UI cloning: Web is data/finance/security contract, Android UX is native Compose. Previously implemented redesign remains complete. W3.1 Draft PR #405 now bundles full raw canonical statement identity in Card Detail (including malformed and archived foreign rows), a simple phone-native All/Payable statement filter with 48dp controls and meaningful empty state, updated permanent AGENTS and scope plan, Kotlin + hosted Compose focused regressions. Fix of original #405 test sort-order assertion is included. One full exact-final-head four-gate CI pass is required when the batch is ready; no test status from old heads qualifies. Latest validated merged develop is #404 6f36d32b177c33308622f80f739da46bee65007c. Web parity bookkeeping remains 1/6 implementations and 11/24 subtasks; W2.4/W3.1 partial, owner physical S24 #149 outstanding. Native global PIN #345 disabled, SMS #146 excluded; no Web/backend/schema, live finance writes, signing/main/release.
+Owner-directed Android mobile-first batches, not mechanical Web UI cloning. #405 passed all four exact-head gates and squash merged develop 994fff2a2c1288bab03d27b192985c9901f4b9e6. Current new batch #406 completes native Wallet statement actions: direct payable statement → prefilled CARD_PAYMENT Quick Entry, source/global-ID and amount validation shared with Card Detail; concise wallet All/Payable filter for longer histories and existing Hide Amounts privacy. Kotlin/hosted Compose tests authored, full final-head CI not yet accepted. Canonical deploy progress is D1–D8: 2/8 completed, D3 Cards/Credit/Quick Entry in progress; these milestones are not percentage of code written. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged. Owner physical S24 #149 unapproved; no Web/backend/schema, SMS #146, global native PIN #345, real finance writes, main/signing/release.
 
 ## Immediate work
 
-- Finish one coherent mobile-first PR #405 batch and validate only the final immutable head across Project Tracking, Android CI, screenshot regression and hosted S24. Check native payable filter and real full-source statement identity/repayment, privacy and touch usability without mirroring Web UI; resolve any actual CI failures within this draft before merging, preserving base/reviews and physical S24 #149 separate. Then prioritize larger end-to-end user-facing feature batches instead of micro-PRs.
+- Validate one final complete four-gate run for PR #406 Android Wallet direct statement payment and mobile filter, including source ID collision, missing/wrong card, nonfinite amount and privacy regressions. Merge only with 4/4 same-head gates, unchanged develop base and clear reviews. Continue larger user-facing Android feature batches; deploy D3 incomplete until end-to-end Cards/Quick Entry acceptance.
 
 ## Constraints
 
@@ -48,16 +48,36 @@ Android mobile-first owner directive (30 October 2026) supersedes mechanical Web
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
 
+## Android deploy progress
+
+**Μέχρι deploy: 2/8 stages**
+
+Evidence-backed release milestones, not percent of code written.
+
+| Stage | Status |
+|---|---|
+| D1 Native Android foundation and installed app | completed |
+| D2 Home and canonical accounts native journey | completed |
+| D3 Cards, credit and Quick Entry end-to-end | in_progress |
+| D4 Activity and transaction management | pending |
+| D5 Plan, savings, obligations and Insights | pending |
+| D6 Settings, auth, secure sync/offline and backup | pending |
+| D7 Final integrated physical S24 owner acceptance | pending |
+| D8 Production-signed release and deployment | pending |
+
+Current: D3
+Next: Finish native Cards/Credit/Quick Entry flow and merge verified PR #406, then batch Activity/transaction and other essential Android journeys. D7 requires physical owner S24 functional signoff (#149); D8 requires explicit signed deployment authorization.
+
 ## Active Web parity progress
 
 **Implementations: 1/6 · Subtasks: 11/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #405, branch android/full-raw-card-statement-identity-20261030
-Current W3.1: Owner-directed mobile-first batch on draft PR #405 android/full-raw-card-statement-identity-20261030, based on verified #404 merged develop 6f36d32b177c33308622f80f739da46bee65007c. Full raw statement ID counts protect Card Detail; native All/Payable filter and touch-sized controls make the credit history usable on a phone; original test assertion corrected. AGENTS and stable plan explicitly remove mechanical Web UI cloning and prefer one big final CI pass per coherent feature batch. Kotlin/Compose tests authored; latest edited head CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; owner physical S24 #149 pending.
+Issue #155, PR #406, branch android/wallet-direct-statement-payment-20261030
+Current W2.4: Post-merge #405 994fff2a2c1288bab03d27b192985c9901f4b9e6 native Card Detail filter and global statement IDs validated 4/4. Draft PR #406 adds direct Wallet inline statement payment into Quick Entry, reusing strict ID/amount/card authorization shared with Card Detail; native filter for 3+ statement histories, payable-only safe positive finite amounts, separate historical view, no UI Web cloning. Kotlin + hosted Compose regressions authored. New deploy tracker D1–D8: 2/8 complete, D3 active. Web parity 1/6 implementations · 11/24 subtasks unchanged. Physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete and validate PR #405 at one immutable final head (all four Project Tracking, Android CI, screenshots, hosted S24); check real mobile credit statement filter, history preservation, hidden raw-ID duplicates and payment action safety. Merge only with all gates PASS, clean reviews, stable develop; subsequent work in larger feature batches. No claim of physical S24 #149 acceptance.
+Next Check PR #406 immutable final-head Project Tracking, Android CI, screenshot regression and hosted S24. Verify direct Wallet statement→prefilled Quick Entry, invalid/global duplicate guard, privacy and native filter, stable develop and reviews. Merge only with four SUCCESS gates. Continue substantial native mobile journeys; do not claim D3 or physical S24 complete.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

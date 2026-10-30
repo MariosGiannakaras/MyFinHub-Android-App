@@ -76,6 +76,24 @@ internal fun filteredCardStatements(
         statements.filter { it.remaining.isFinite() && it.remaining > 0.005 }
 }
 
+/** A selected statement must be unique, current and payable before linking it to a
+ * Quick Entry prefill. This is a read-only authorization check, not a mutation.
+ */
+internal fun canOpenCreditStatementPayment(
+    cardId: String,
+    statementId: String,
+    requestedRemaining: Double,
+    statements: List<CanonicalCreditStatementView>,
+    fullStatementIdCounts: Map<String, Int>? = null,
+): Boolean {
+    if (cardId.isBlank() || statementId.isBlank() || !requestedRemaining.isFinite()) return false
+    val scoped = canonicalStatementsForCard(cardId, statements)
+    if (!canonicalStatementIdentityUnique(statementId, scoped, fullStatementIdCounts)) return false
+    val selected = scoped.singleOrNull { it.id == statementId } ?: return false
+    return selected.remaining.isFinite() && selected.remaining > 0.005 &&
+        kotlin.math.abs(selected.remaining - requestedRemaining) < 0.005
+}
+
 /**
  * Canonical statement groups are authoritative. Never allocate historical events to
  * guessed cycles, truncate a statement's true totals, or synthesize card payments.
