@@ -13,6 +13,7 @@ class ActivityReducerTest {
             title = "Ιστορική εισαγωγή", subtitle = "", amount = Double.NaN,
             accountLabel = "Μετρητά", category = "Άλλο",
             rawDate = "2026-10-30", canonicalSourceOrdinal = 0,
+            note = "Ιστορική εισαγωγή",
             financeIncomeContribution = 0.0,
             financeExpenseContribution = Double.NaN,
         )
