@@ -1,12 +1,19 @@
-# Web ↔ Android reconciliation — canonical execution plan
+# Android mobile-first feature completion — canonical execution plan
 
-Owner approval: 2026-10-14. Product reference: current `MariosGiannakaras/MyFinHub/develop`. Android target: `MyFinHub-Android-App/develop`. Work issue: #155, current draft PR: #156. This file defines **stable scope only**. Changing status, blockers, exact PR and next action live exclusively in `tracking/android-project-state.json → reconciliation_workstream`; the generated STATUS, TODO and CURRENT_HANDOFF must match.
+Owner original approval: 2026-10-14. **Owner implementation update: 2026-10-30 — mobile-first Android, consolidated feature batches, one final full test suite per batch.** Web `MariosGiannakaras/MyFinHub/develop` is the canonical financial data/API/security reference, **not an Android interface blueprint**. Android target: `MyFinHub-Android-App/develop`. Work issue: #155; live draft PR is held only in the canonical tracker. This file defines **stable scope only**. Changing status, blockers, exact PR and next action live exclusively in `tracking/android-project-state.json → reconciliation_workstream`; the generated STATUS, TODO and CURRENT_HANDOFF must match.
+
+## Android product delivery rules (supersede web-UI replication wording)
+
+- The app is already substantially built; prefer fixing broken journeys, improving navigation and phone ergonomics, and completing only genuinely required functionality. A Web screen/widget/report is not automatically required on Android. Domain fields, bank/source identity, balances, authorization, revision semantics, and encrypted offline data **must** remain correct.
+- Use Material3 Compose interactions, touch targets of at least 48 dp on action controls, phone-appropriate information density, on-device navigation and accessibility. Never replicate desktop layouts merely to tick parity boxes.
+- Implement related corrections together on a draft feature branch, not in endless micro-PRs. Self-review and source-check the complete batch; run one **final** complete Android CI/visual/hosted-S24 pass at batch acceptance. When a final check fails, repair the cause inside the same PR, then rerun the required gates on the new immutable head. No release/main/physical device signoff may be inferred.
+- W1–W6 and 24 subtasks remain an accounting system for **functionality and safe domain behavior**, not an instruction to match every Web UI affordance. Record true evidence-backed completion only; use physical S24 review for final appearance and UX acceptance.
 
 ## Owner-locked decisions
 
 1. Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances
 2. Three web-semantic primary accounts each have a chart, followed by simple secondary account rows
-3. Cards and credit use one web-parity PaymentCard identity and integrated credit workspace
+3. Cards and credit share canonical bank/card identity and an integrated **native Android** credit workspace; layouts and gestures must suit a phone, not clone the Web PaymentCard UI
 
 ## Six implementations / 24 tracked subtasks
 
@@ -28,7 +35,7 @@ Owner approval: 2026-10-14. Product reference: current `MariosGiannakaras/MyFinH
 
 **W2.1 Canonical card metadata/lifecycle** — Read designId, formFactor, bankId, card limit, billing-cycle and historical/archived references, with single card identity source.
 
-**W2.2 Shared native card visual** — Use explicit Web card design and current provider assets across all Android surfaces, never randomized card designs.
+**W2.2 Shared native card visual** — Use canonical card identity and provider assets across native Android surfaces; make the look/touch behavior mobile-appropriate and never randomize financial identity.
 
 **W2.3 Credit information on card screen** — Below the credit card place amount/limit/utilization, statements, purchases, movements and repayments without compulsory detail page.
 
@@ -78,7 +85,7 @@ Owner approval: 2026-10-14. Product reference: current `MariosGiannakaras/MyFinH
 
 **W6.2 Real Compose accessibility/visual verification** — S24 light/dark, large text, privacy, screen-reader/touch, account charts/card visuals/credit workspace.
 
-**W6.3 Exact-head CI, deduplication and tracking handoff** — Targeted then broader checks, only remove replaced code, update tracker/docs in coherent merged checkpoints.
+**W6.3 Exact-head CI, deduplication and tracking handoff** — Perform one full four-gate final verification on each completed feature batch, never per individual source edit; only remove replaced code and update tracker/docs in coherent merged checkpoints.
 
 **W6.4 Owner physical acceptance and release isolation** — Record real S24 approval without inferring from CI; no new signed publication without release authorization.
 

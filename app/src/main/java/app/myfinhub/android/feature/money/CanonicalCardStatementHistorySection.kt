@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.data.CanonicalCreditStatementView
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
@@ -59,6 +62,20 @@ internal fun canonicalStatementIdentityUnique(
     scopedStatements.count { it.id == id } == 1 &&
     (fullStatementIdCounts == null || fullStatementIdCounts[id] == 1)
 
+/** Native statement list filter: invalid imported amounts remain visible in All, never
+ * appear as payable, and cannot become a false zero/paid status.
+ */
+internal enum class CardStatementFilter { ALL, PAYABLE }
+
+internal fun filteredCardStatements(
+    statements: List<CanonicalCreditStatementView>,
+    filter: CardStatementFilter,
+): List<CanonicalCreditStatementView> = when (filter) {
+    CardStatementFilter.ALL -> statements
+    CardStatementFilter.PAYABLE ->
+        statements.filter { it.remaining.isFinite() && it.remaining > 0.005 }
+}
+
 /**
  * Canonical statement groups are authoritative. Never allocate historical events to
  * guessed cycles, truncate a statement's true totals, or synthesize card payments.
@@ -76,7 +93,10 @@ internal fun CanonicalCardStatementHistorySection(
     val scopedStatements = canonicalStatementsForCard(card.id, statements)
     if (scopedStatements.isEmpty()) return
     var visibleLimit by rememberSaveable(card.id) { mutableIntStateOf(8) }
+    var activeFilter by rememberSaveable(card.id) { mutableStateOf(CardStatementFilter.ALL) }
     var expandedId by remember(card.id) { mutableStateOf<String?>(null) }
+    val filtered = filteredCardStatements(scopedStatements, activeFilter)
+    val payableCount = filteredCardStatements(scopedStatements, CardStatementFilter.PAYABLE).size
     // Never eagerly render a potentially unbounded historical card statement.
     var linkedLimit by remember(card.id, expandedId) { mutableIntStateOf(15) }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
@@ -89,7 +109,42 @@ internal fun CanonicalCardStatementHistorySection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            scopedStatements.take(visibleLimit).forEachIndexed { index, statement ->
+            if (scopedStatements.size > 1) {
+                // Two large, native touch targets instead of a dense desktop ledger toolbar.
+                Row(horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
+                    FilterChip(
+                        selected = activeFilter == CardStatementFilter.ALL,
+                        onClick = {
+                            activeFilter = CardStatementFilter.ALL
+                            visibleLimit = 8
+                            expandedId = null
+                        },
+                        label = { Text("Όλες") },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                            .testTag("card_statement_filter_all"),
+                    )
+                    FilterChip(
+                        selected = activeFilter == CardStatementFilter.PAYABLE,
+                        onClick = {
+                            activeFilter = CardStatementFilter.PAYABLE
+                            visibleLimit = 8
+                            expandedId = null
+                        },
+                        label = { Text("Πληρωτέες ($payableCount)") },
+                        modifier = Modifier.heightIn(min = 48.dp)
+                            .testTag("card_statement_filter_payable"),
+                    )
+                }
+            }
+            if (filtered.isEmpty()) {
+                Text(
+                    "Δεν υπάρχουν καταστάσεις προς πληρωμή.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("card_statement_filter_empty"),
+                )
+            }
+            filtered.take(visibleLimit).forEachIndexed { index, statement ->
                 val identityUnique = canonicalStatementIdentityUnique(
                     statement.id, scopedStatements, fullStatementIdCounts,
                 )
@@ -117,7 +172,7 @@ internal fun CanonicalCardStatementHistorySection(
                     if (identityUnique && statement.remaining.isFinite() && statement.remaining > 0.005) {
                         TextButton(
                             onClick = { onPayStatement(statement.id, statement.remaining) },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                 .testTag("card_statement_pay_$index"),
                         ) { Text("Πληρωμή αυτής της κατάστασης") }
                     }
@@ -133,7 +188,8 @@ internal fun CanonicalCardStatementHistorySection(
                                 expandedId = if (expandedId == statement.id) null else statement.id
                                 linkedLimit = 15
                             },
-                            modifier = Modifier.testTag("card_statement_expand_$index"),
+                            modifier = Modifier.heightIn(min = 48.dp)
+                                .testTag("card_statement_expand_$index"),
                         ) {
                             Text(
                                 if (expandedId == statement.id) "Απόκρυψη κινήσεων"
@@ -201,16 +257,17 @@ internal fun CanonicalCardStatementHistorySection(
                         }
                     }
                 }
-                if (index < scopedStatements.lastIndex) {
+                if (index < minOf(filtered.size, visibleLimit) - 1) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
-            if (scopedStatements.size > visibleLimit) {
+            if (filtered.size > visibleLimit) {
                 TextButton(
-                    onClick = { visibleLimit = (visibleLimit + 8).coerceAtMost(scopedStatements.size) },
-                    modifier = Modifier.fillMaxWidth().testTag("card_statements_more"),
+                    onClick = { visibleLimit = (visibleLimit + 8).coerceAtMost(filtered.size) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("card_statements_more"),
                 ) {
-                    Text("Περισσότερες καταστάσεις (${scopedStatements.size - visibleLimit})")
+                    Text("Περισσότερες καταστάσεις (${filtered.size - visibleLimit})")
                 }
             }
         }

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #405 at immutable final head with Project Tracking, Android CI, screenshot regression and hosted S24; verify malformed foreign/archived statement IDs cannot authorize selected-card statement actions and unique active history remains unaffected. Merge only with 4/4 successes, unchanged develop, clear reviews. Continue W2.4/W3.1; physical owner #149 and PIN #345 remain distinct.
+- [ ] Finish one coherent mobile-first PR #405 batch and validate only the final immutable head across Project Tracking, Android CI, screenshot regression and hosted S24. Check native payable filter and real full-source statement identity/repayment, privacy and touch usability without mirroring Web UI; resolve any actual CI failures within this draft before merging, preserving base/reviews and physical S24 #149 separate. Then prioritize larger end-to-end user-facing feature batches instead of micro-PRs.
 
 ## Completed foundations
 
@@ -61,9 +61,9 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #405, branch android/full-raw-card-statement-identity-20261030
-Current W3.1: PR #404 credit payoff/read-only annual rate source safety final head 9d66651431e16d2edc8cec5d849da9d5081f7eb8 passed 4/4 tracking, Android CI, screenshots and hosted S24, squash merged develop 6f36d32b177c33308622f80f739da46bee65007c. Draft #405 now adds full raw statement ID counts to production MoneyUiState and Card Detail action guard, including hidden malformed and archived rows. Pure Kotlin golden authored, CI not yet accepted. Web parity stays 1/6 implementations · 11/24 subtasks; owner physical S24 #149 outstanding.
+Current W3.1: Owner-directed mobile-first batch on draft PR #405 android/full-raw-card-statement-identity-20261030, based on verified #404 merged develop 6f36d32b177c33308622f80f739da46bee65007c. Full raw statement ID counts protect Card Detail; native All/Payable filter and touch-sized controls make the credit history usable on a phone; original test assertion corrected. AGENTS and stable plan explicitly remove mechanical Web UI cloning and prefer one big final CI pass per coherent feature batch. Kotlin/Compose tests authored; latest edited head CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; owner physical S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify draft PR #405 immutable final SHA all four Project Tracking, Android CI, screenshot and hosted S24 gates and inspect code/review threads. Ensure Card Detail authorization uses complete canonical raw statement ID multiplicity (including malformed/archived hidden rows), not only renderable views; preserve read-only historic rows and legitimate unique actions. Merge only on 4/4, unchanged base and clean reviews. Physical S24 #149 separately pending.
+Next Complete and validate PR #405 at one immutable final head (all four Project Tracking, Android CI, screenshots, hosted S24); check real mobile credit statement filter, history preservation, hidden raw-ID duplicates and payment action safety. Merge only with all gates PASS, clean reviews, stable develop; subsequent work in larger feature batches. No claim of physical S24 #149 acceptance.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
