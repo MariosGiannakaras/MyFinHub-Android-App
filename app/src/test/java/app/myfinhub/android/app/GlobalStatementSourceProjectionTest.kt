@@ -39,7 +39,7 @@ class GlobalStatementSourceProjectionTest {
         assertEquals(1, counts?.get("archived-only"))
         assertEquals(1, counts?.get("active-unique"))
         val visible = money.creditStatementsByCard["active"].orEmpty()
-        assertEquals(listOf("active-unique", "shared"), visible.map { it.id })
+        assertEquals(listOf("shared", "active-unique"), visible.map { it.id })
         assertFalse(money.creditStatementsByCard.containsKey("archived"))
         assertFalse(canonicalStatementIdentityUnique("shared", visible, counts))
         assertTrue(canonicalStatementIdentityUnique("active-unique", visible, counts))
