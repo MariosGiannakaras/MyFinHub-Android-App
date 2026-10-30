@@ -139,8 +139,12 @@ data class InsightsComparison(
     val currentNet: Double get() = currentIncome - currentExpense
     val previousNet: Double get() = previousIncome - previousExpense
     val expenseChangePercent: Double?
-        get() = previousExpense.takeIf { abs(it) > 0.005 }?.let { base ->
-            ((currentExpense - base) / abs(base)) * 100.0
+        get() {
+            if (!currentExpense.isFinite() || !previousExpense.isFinite() ||
+                abs(previousExpense) <= 0.005) return null
+            val result = ((currentExpense - previousExpense) / abs(previousExpense)) * 100.0
+            return result.takeIf { it.isFinite() &&
+                it >= Int.MIN_VALUE.toDouble() && it <= Int.MAX_VALUE.toDouble() }
         }
 }
 

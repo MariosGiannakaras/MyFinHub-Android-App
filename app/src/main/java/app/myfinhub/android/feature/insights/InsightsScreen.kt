@@ -49,8 +49,6 @@ import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -214,7 +212,7 @@ fun InsightsScreen(
                                     Text(
                                         amountVisibilityText(formatEuro(row.amount), amountsVisible) +
                                             (row.share?.let {
-                                                " · " + maskedRatio((it * 100.0).roundToInt().toString() + "%", amountsVisible)
+                                                " · " + maskedRatio(insightsRatioLabel(it), amountsVisible)
                                             } ?: ""),
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
@@ -263,8 +261,7 @@ fun InsightsScreen(
                                     )
                                     Text(
                                         if (!amountsVisible) "••••" else row.relativeChange?.let { delta ->
-                                            (if (delta > 0.0) "+" else "") +
-                                                (delta * 100.0).roundToInt() + "%"
+                                            insightsRatioLabel(delta, signed = true, missing = "Νέα βάση")
                                         } ?: "Νέα βάση",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -357,7 +354,7 @@ fun InsightsScreen(
                             Text(
                                 "Διαθέσιμο: " +
                                     amountVisibilityText(formatEuro(portfolio.available), amountsVisible) +
-                                    " · Χρήση: " + maskedRatio((portfolio.usage * 100.0).roundToInt().toString() + "%", amountsVisible),
+                                    " · Χρήση: " + maskedRatio(insightsRatioLabel(portfolio.usage), amountsVisible),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             portfolio.cards.forEachIndexed { index, card ->
@@ -381,7 +378,7 @@ fun InsightsScreen(
                                         "Διαθέσιμο: " +
                                             amountVisibilityText(formatEuro(card.available), amountsVisible) +
                                             " · Χρήση: " +
-                                            maskedRatio((card.usage * 100.0).roundToInt().toString() + "%", amountsVisible),
+                                            maskedRatio(insightsRatioLabel(card.usage), amountsVisible),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -438,7 +435,7 @@ private fun OperationalReportCard(
             Text(
                 "Ενεργές πιστωτικές: " + report.activeCreditCards + " · χρήση: " +
                     (if (amountsVisible)
-                        (report.creditUsage * 100.0).roundToInt().toString() + "%"
+                        insightsRatioLabel(report.creditUsage)
                     else "••••"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -516,6 +513,10 @@ private fun SpendingComparisonCard(scope: InsightPeriodScope, largeFont: Boolean
     val expenseChange = comparison.expenseChangePercent
     val headline = when {
         !amountsVisible -> "Σύγκριση εξόδων σε απόκρυψη"
+        !comparison.currentExpense.isFinite() || !comparison.previousExpense.isFinite() ->
+            "Μη έγκυρη σύγκριση εξόδων"
+        expenseChange == null && kotlin.math.abs(comparison.previousExpense) > 0.005 ->
+            "Μη έγκυρη σύγκριση εξόδων"
         expenseChange == null -> "Δεν υπάρχει προηγούμενη βάση εξόδων"
         expenseChange < -0.5 -> "${abs(expenseChange).roundToInt()}% λιγότερα έξοδα"
         expenseChange > 0.5 -> "${expenseChange.roundToInt()}% περισσότερα έξοδα"
@@ -578,8 +579,7 @@ private fun MonthlyReportSignalsCard(
     amountsVisible: Boolean,
 ) {
     fun percentage(value: Double?): String =
-        if (!amountsVisible) "••••" else value?.let { (if (it > 0.0) "+" else "") + (it * 100.0).roundToInt() + "%" }
-            ?: "Χωρίς προηγούμενη βάση"
+        if (!amountsVisible) "••••" else insightsRatioLabel(value, signed = true)
 
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth().testTag("insights_monthly_report_signals")) {
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
@@ -727,7 +727,7 @@ private fun CategoryRow(
     semanticIcon: String? = null,
 ) {
     val largeFont = LocalDensity.current.fontScale >= 1.3f
-    val description = "${category.name}, ${amountVisibilityText(formatEuro(category.amount), amountsVisible)}, ${maskedRatio((category.share * 100).roundToInt().toString() + "%", amountsVisible)} των εξόδων"
+    val description = "${category.name}, ${amountVisibilityText(formatEuro(category.amount), amountsVisible)}, ${maskedRatio(insightsCategoryShareLabel(category.share), amountsVisible)} των εξόδων"
     Surface(
         onClick = onOpen,
         modifier = Modifier
@@ -756,7 +756,7 @@ private fun CategoryRow(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     MyFinHubAmountText(amountVisibilityText(formatEuro(category.amount), amountsVisible), FinanceTone.Expense)
                     Text(
-                        maskedRatio((category.share * 100).roundToInt().toString() + "%", amountsVisible),
+                        maskedRatio(insightsCategoryShareLabel(category.share), amountsVisible),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -781,7 +781,7 @@ private fun CategoryRow(
                 Column(horizontalAlignment = Alignment.End) {
                     MyFinHubAmountText(amountVisibilityText(formatEuro(category.amount), amountsVisible), FinanceTone.Expense)
                     Text(
-                        maskedRatio((category.share * 100).roundToInt().toString() + "%", amountsVisible),
+                        maskedRatio(insightsCategoryShareLabel(category.share), amountsVisible),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -794,6 +794,10 @@ private fun CategoryRow(
 
 @Composable
 private fun CategoryShareBar(share: Float) {
+    if (!share.isFinite() || share < 0f || share > 1f) {
+        Text(INVALID_INSIGHT_RATIO, modifier = Modifier.testTag("insights_invalid_category_share"))
+        return
+    }
     LinearProgressIndicator(
         progress = { share.coerceIn(0f, 1f) },
         modifier = Modifier.fillMaxWidth(),
@@ -881,6 +885,12 @@ private fun MonthlyFlowChart(points: List<TrendPoint>, amountsVisible: Boolean) 
         Text("Δεν υπάρχουν αρκετές κινήσεις για μηνιαία πορεία.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
+    if (!insightsTrendCanDraw(points)) {
+        Text("Μη έγκυρα δεδομένα μηνιαίου γραφήματος",
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag("insights_chart_invalid_data"))
+        return
+    }
     val maxValue = points.maxOfOrNull { maxOf(it.income, it.expense) }?.takeIf { it > .005 } ?: 1.0
     val incomeColor = financeToneColors(FinanceTone.Income).accent
     val expenseColor = financeToneColors(FinanceTone.Expense).accent
@@ -952,10 +962,10 @@ private fun LegendMark(label: String, color: androidx.compose.ui.graphics.Color)
 private fun maskedRatio(ratio: String, amountsVisible: Boolean): String =
     if (amountsVisible) ratio else "••••"
 
-private fun formatEuro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+private fun formatEuro(value: Double): String = insightsCurrency(value)
 
 private fun formatSignedEuro(value: Double): String = when {
+    !value.isFinite() -> INVALID_INSIGHT_MONEY
     value > .005 -> "+${formatEuro(value)}"
     value < -.005 -> formatEuro(value)
     else -> formatEuro(0.0)
