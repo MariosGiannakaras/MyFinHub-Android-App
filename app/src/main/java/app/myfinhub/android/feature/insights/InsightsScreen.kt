@@ -49,7 +49,7 @@ import app.myfinhub.android.designsystem.myFinHubCategoryIcon
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.insights.INSIGHTS_PERIOD_MONTH
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
- import kotlin.math.abs
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
