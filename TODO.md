@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #403 offline/queued card-payment statement source replay on one final head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Review unchanged Web pure preparation and unlinked payment semantics, reject source collisions/foreign or missing owners before canonical append; merge only when all four gates succeed and develop/reviews remain clean. Owner physical Galaxy S24 #149 separate.
+- [ ] Validate Draft Android PR #404 immutable head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Confirm valid rate forecast, invalid debt/rate rejection, hide-amount privacy and historical rate label safety; inspect screenshot artifact, merge only with four successful gates, unchanged develop and no blocking reviews. Maintain physical owner S24 #149 and global PIN #345 as separate gates.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #403, branch android/card-statement-replay-identity-20261029
-Current W2.4: PR #402 W3.1 full canonical source ID guard passed four exact-head gates at eadab544eace298eef4150be188d12c01418b9ef and squash merged develop 80ae37c3cd8dd5e6ac41f7067b203b7f7dfef170. Draft #403 adds final append/replay fail-closed source owner guard on explicitly linked card payments; pure Web preparer and idempotent already-written events unchanged. Tests authored, exact-head CI pending. Web parity 1/6 implementations · 11/24 subtasks; owner S24 #149 pending.
+Issue #155, PR #404, branch android/credit-payoff-source-integrity-20261030
+Current W3.1: PR #403 final-head 1fea197808871336a6b492829e8e500f329c59c3 passed four required gates and merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e, preserving queued linked payment identity on replay. Draft PR #404 contains only advisory credit-payoff / rate-history source safety, with JNI-free Kotlin/hosted Compose tests authored but full CI pending; accepted Web parity 1/6 implementations · 11/24 subtasks remains unchanged; physical S24 #149 pending, shared global PIN #345 not integrated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Check PR #403 immutable final SHA, Project Tracking/Android CI/screenshot regression/hosted S24 success and no blocking review threads; verify stale queued linked card payments cannot silently become unlinked, valid and truly unlinked remain functional. Merge only with all 4 green and unchanged develop; physical S24 #149 separate.
+Next Validate PR #404 exact immutable head with Project Tracking, Android CI, screenshots and hosted S24, assert invalid debt or malformed/duplicate latest rate never creates a forecast while valid data works and Hide Amounts hides forecast. Merge only on 4/4 and clean reviews/base; physical owner #149 and PIN #345 remain separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

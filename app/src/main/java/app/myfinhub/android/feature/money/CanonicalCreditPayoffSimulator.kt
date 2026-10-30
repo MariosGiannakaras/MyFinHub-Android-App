@@ -26,19 +26,17 @@ internal fun CanonicalCreditPayoffSimulator(
     card: MoneyCard,
     amountsVisible: Boolean,
 ) {
-    val today = LocalDate.now().toString()
-    val rate = card.annualRates
-        .filter { it.effectiveFrom <= today }
-        .maxByOrNull { it.effectiveFrom }
+    val rate = selectedCreditRate(card.annualRates, LocalDate.now())
+    val debt = creditWorkspaceFinancialSnapshot(card).outstanding
     var hypotheticalPayment by remember(card.id) { mutableStateOf("") }
     val payment = hypotheticalPayment.trim().replace(',', '.').toDoubleOrNull()
-    val estimate = if (amountsVisible && rate != null && payment != null) {
-        estimateCanonicalCreditPayoff(
-            balance = card.currentBalance.coerceAtLeast(0.0),
-            annualPercent = rate.annualPercent,
-            monthlyPayment = payment,
-        )
-    } else null
+    val estimate = if (amountsVisible && rate is CreditRateSelection.Selected &&
+        debt != null && payment != null
+    ) estimateCanonicalCreditPayoff(
+        balance = debt,
+        annualPercent = rate.record.annualPercent,
+        monthlyPayment = payment,
+    ) else null
     val currency = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")) }
     MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()
         .testTag("card_credit_payoff_simulator")) {
@@ -54,7 +52,21 @@ internal fun CanonicalCreditPayoffSimulator(
             if (!amountsVisible) {
                 Text("Η πρόβλεψη αποκρύπτεται όσο είναι κρυφά τα ποσά.",
                     style = MaterialTheme.typography.bodySmall)
-            } else if (rate == null) {
+            } else if (debt == null) {
+                Text(
+                    "Η οφειλή είναι μη έγκυρη. Δεν μπορεί να υπολογιστεί πρόβλεψη.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("card_payoff_invalid_debt"),
+                )
+            } else if (rate is CreditRateSelection.Invalid) {
+                Text(
+                    "Το επιτόκιο είναι μη έγκυρο ή έχει διπλή ημερομηνία. Η πρόβλεψη αποκλείστηκε.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("card_payoff_invalid_rate"),
+                )
+            } else if (rate is CreditRateSelection.Missing) {
                 Text("Δεν υπάρχει επιτόκιο σε ισχύ. Καταχώρισε τη γνωστοποιημένη τιμή.",
                     style = MaterialTheme.typography.bodySmall)
             } else {
