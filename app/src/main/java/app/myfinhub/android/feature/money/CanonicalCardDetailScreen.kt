@@ -218,20 +218,24 @@ fun CanonicalCardDetailScreen(
                                     " · Πληρωμή: " + (card.statementDueDay?.toString() ?: "Άγνωστο"),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
-                            val currentRate = card.annualRates
-                                .filter { it.effectiveFrom <= LocalDate.now().toString() }
-                                .maxByOrNull { it.effectiveFrom }
+                            val currentRate = selectedCreditRate(card.annualRates, LocalDate.now())
                             Text(
-                                if (currentRate == null) "Ονομαστικό ετήσιο επιτόκιο: άγνωστο"
-                                else "Ονομαστικό ετήσιο επιτόκιο: " +
-                                    currentRate.annualPercent + "% · από " + currentRate.effectiveFrom,
+                                when (currentRate) {
+                                    is CreditRateSelection.Selected ->
+                                        "Ονομαστικό ετήσιο επιτόκιο: " +
+                                            currentRate.record.annualPercent + "% · από " +
+                                            currentRate.record.effectiveFrom
+                                    CreditRateSelection.Missing -> "Ονομαστικό ετήσιο επιτόκιο: άγνωστο"
+                                    CreditRateSelection.Invalid -> "Ονομαστικό ετήσιο επιτόκιο: μη έγκυρη τιμή"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             if (card.annualRates.isNotEmpty()) {
                                 Text(
                                     card.annualRates.joinToString(
-                                        prefix = "Ιστορικό: ", separator = " · "
-                                    ) { "${it.effectiveFrom}: ${it.annualPercent}%" },
+                                        prefix = "Ιστορικό: ", separator = " · ",
+                                        transform = ::displayCreditRateHistory,
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
