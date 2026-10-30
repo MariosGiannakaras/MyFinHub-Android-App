@@ -60,11 +60,16 @@ class WebCreditStatementEventPreparationTest {
         assertEquals(1,linked.state.array("creditStatements").size)
     }
 
-    @Test fun invalidCrossCardLinksAreStrippedWithoutCreatingFakeFinancialEvents() {
+    @Test fun invalidCrossCardLinksStayWebCompatibleInPurePreparationButCannotQueueAPayment() {
         val cycle = append(data,event("p1","2026-10-24","card_purchase","visa"))
-        val bad = append(cycle,event("pay1","2026-10-25","card_payment","debit","visa:2026-10-25"))
-        assertFalse((bad.state.array("events").last() as JsonObject).containsKey("statementId"))
-        val debitPurchase = append(bad,event("debit-p1","2026-10-24","card_purchase","debit"))
+        val foreign = event("pay1","2026-10-25","card_payment","debit","visa:2026-10-25")
+        // Pure Web compatibility projection still removes an invalid link.
+        val prepared = cycle.prepareCanonicalCreditStatementEvent(foreign, now)
+        assertFalse(prepared.event.containsKey("statementId"))
+        // The actual Android append/replay boundary must not silently turn a
+        // user-selected statement repayment into an unlinked money movement.
+        assertTrue(runCatching { append(cycle, foreign) }.isFailure)
+        val debitPurchase = append(cycle,event("debit-p1","2026-10-24","card_purchase","debit"))
         assertEquals(1,debitPurchase.state.array("creditStatements").size)
         assertFalse((debitPurchase.state.array("events").last() as JsonObject).containsKey("statementId"))
     }

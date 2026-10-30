@@ -1,0 +1,8 @@
+# W3.1: queued credit card payment statement owner on replay
+
+PR #402 safeguards explicit statement IDs when creating canonical transaction entries, but a queued, immutable AppendCanonicalEvent can later be applied on a fresher server canonical ledger. Web's prepareCreditStatementEvent removes invalid statementId links; silently converting the user's selected statement repayment into an unlinked financial payment is unsafe after a source revision or duplicate ID import.
+
+- At the final canonical AppendCanonicalEvent.apply boundary, after existing exact-event idempotence, validate explicit **card_payment** statementId against all physical statement source rows: exactly one matching raw ID and the same nonblank card owner. Reject unknown, whitespace-only, cross-card and duplicate-source references. Preserve the original mutation intent, events array and source records without implicit reallocation.
+- Genuinely unlinked payments and explicitly empty (falsy Web) references retain their original behavior. Pure prepareCanonicalCreditStatementEvent keeps Web-compatible behavior for read/test parity; card purchases and automatic statement cycle allocation are unchanged.
+- The same saved event ID replaying against a server where the event already exists remains a no-op, even if later imported source IDs are duplicated. Tests cover this idempotence, unique good link, duplicate same/foreign card, missing owner, and source changes after queuing.
+- This is an Android-only replay correctness checkpoint, not a Web/backend/schema change or live finance write. No PIN #345, SMS #146, signing/release or physical S24 #149 acceptance. No local Gradle tests claimed; exact-head CI required.
