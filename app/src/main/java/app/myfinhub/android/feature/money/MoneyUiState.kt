@@ -169,6 +169,8 @@ data class MoneyUiState(
     val cards: List<MoneyCard> = emptyList(),
     val archivedCards: List<MoneyCard> = emptyList(),
     val creditStatementsByCard: Map<String, List<CanonicalCreditStatementView>> = emptyMap(),
+    /** Null only for legacy/preview state; production counts ALL physical raw source rows. */
+    val creditStatementSourceIdCounts: Map<String, Int>? = null,
     val savingsGoal: Double? = null,
     val savingsGoalItems: List<SavingsGoalItem> = emptyList(),
     /** Same row order as savingsGoalItems, including historical duplicate IDs. */

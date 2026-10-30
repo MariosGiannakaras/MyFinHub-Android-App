@@ -259,9 +259,16 @@ internal fun MyFinHubAppContent(
     val fullActivityIdCounts = remember(activityState.items) {
         activityState.items.groupingBy { it.id }.eachCount()
     }
-    val fullStatementIdCounts = remember(moneyState.creditStatementsByCard) {
-        moneyState.creditStatementsByCard.values.flatten()
-            .groupingBy { it.id }.eachCount()
+    val fullStatementIdCounts = remember(
+        moneyState.creditStatementSourceIdCounts,
+        moneyState.creditStatementsByCard,
+    ) {
+        // When production supplied raw identity counts, never infer uniqueness
+        // from only the currently renderable active-card projections. Missing,
+        // archived and malformed foreign records must still block collision.
+        moneyState.creditStatementSourceIdCounts
+            ?: moneyState.creditStatementsByCard.values.flatten()
+                .groupingBy { it.id }.eachCount()
     }
     val navigationContent: @Composable () -> Unit = {
         CompositionLocalProvider(

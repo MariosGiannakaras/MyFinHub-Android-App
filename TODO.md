@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate Draft Android PR #404 immutable head across Project Tracking, Android CI, screenshot regression and hosted S24 emulator. Confirm valid rate forecast, invalid debt/rate rejection, hide-amount privacy and historical rate label safety; inspect screenshot artifact, merge only with four successful gates, unchanged develop and no blocking reviews. Maintain physical owner S24 #149 and global PIN #345 as separate gates.
+- [ ] Validate draft PR #405 at immutable final head with Project Tracking, Android CI, screenshot regression and hosted S24; verify malformed foreign/archived statement IDs cannot authorize selected-card statement actions and unique active history remains unaffected. Merge only with 4/4 successes, unchanged develop, clear reviews. Continue W2.4/W3.1; physical owner #149 and PIN #345 remain distinct.
 
 ## Completed foundations
 
@@ -60,10 +60,10 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #404, branch android/credit-payoff-source-integrity-20261030
-Current W3.1: PR #403 final-head 1fea197808871336a6b492829e8e500f329c59c3 passed four required gates and merged develop eed329473604dc14b73bb57cf98eed80b33e4d5e, preserving queued linked payment identity on replay. Draft PR #404 contains only advisory credit-payoff / rate-history source safety, with JNI-free Kotlin/hosted Compose tests authored but full CI pending; accepted Web parity 1/6 implementations · 11/24 subtasks remains unchanged; physical S24 #149 pending, shared global PIN #345 not integrated.
+Issue #155, PR #405, branch android/full-raw-card-statement-identity-20261030
+Current W3.1: PR #404 credit payoff/read-only annual rate source safety final head 9d66651431e16d2edc8cec5d849da9d5081f7eb8 passed 4/4 tracking, Android CI, screenshots and hosted S24, squash merged develop 6f36d32b177c33308622f80f739da46bee65007c. Draft #405 now adds full raw statement ID counts to production MoneyUiState and Card Detail action guard, including hidden malformed and archived rows. Pure Kotlin golden authored, CI not yet accepted. Web parity stays 1/6 implementations · 11/24 subtasks; owner physical S24 #149 outstanding.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #404 exact immutable head with Project Tracking, Android CI, screenshots and hosted S24, assert invalid debt or malformed/duplicate latest rate never creates a forecast while valid data works and Hide Amounts hides forecast. Merge only on 4/4 and clean reviews/base; physical owner #149 and PIN #345 remain separate.
+Next Verify draft PR #405 immutable final SHA all four Project Tracking, Android CI, screenshot and hosted S24 gates and inspect code/review threads. Ensure Card Detail authorization uses complete canonical raw statement ID multiplicity (including malformed/archived hidden rows), not only renderable views; preserve read-only historic rows and legitimate unique actions. Merge only on 4/4, unchanged base and clean reviews. Physical S24 #149 separately pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
