@@ -1,6 +1,6 @@
 # Native Wallet credit statement payment — 2026-10-30
 
-Consolidated Android feature batch **draft PR #406**. The full MyFinHub Android app already exists and should not duplicate Web layouts.
+Consolidated Android feature batch **draft PR #407**. The full MyFinHub Android app already exists and should not duplicate Web layouts.
 
 - Native Wallet selected credit card now presents a touch-sized **Πληρωμή αυτής της κατάστασης** action immediately under a uniquely attributable, finite positive-payable statement. This is a navigation/prefill action, **never an automatic payment**.
 - The Wallet-to-Quick Entry path uses the selected card ID, exact canonical statement ID and remaining amount. Card Detail and Wallet share `canOpenCanonicalStatementPayment`: reject duplicate global physical source IDs, wrong-card foreign rows, blank IDs, missing IDs, nonfinite/paid debt, stale amount; production uses `creditStatementSourceIdCounts` from ALL raw canonical rows. Pending mutation continues to independently revalidate on replay. No display-only amount can authorize mutation.

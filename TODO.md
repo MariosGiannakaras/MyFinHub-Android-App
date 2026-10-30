@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete draft Android PR #406 as one native Wallet card-to-Quick-Entry feature batch; run the full four-gate final-head validation once, correct only actual failures in the same PR and merge if all checks/reviews/base safe. Keep deploy 2/8 until D3 entire card/Quick Entry milestone is accepted; owner physical Galaxy S24 Ultra #149 remains a later separate gate.
+- [ ] Complete draft Android PR #407 as one native Wallet card-to-Quick-Entry feature batch; run the full four-gate final-head validation once, correct only actual failures in the same PR and merge if all checks/reviews/base safe. Keep deploy 2/8 until D3 entire card/Quick Entry milestone is accepted; owner physical Galaxy S24 Ultra #149 remains a later separate gate.
 
 ## Completed foundations
 
@@ -80,10 +80,10 @@ Next: Finish cards and Quick Entry end-to-end, then complete Activity, Planning/
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #406, branch android/wallet-statement-quick-entry-20261030
-Current W2.4: PR #405 mobile-first statement filters, full raw global statement identity and repo owner direction passed 4/4 immutable head db5729f7402aef2bfcc8762d73ba86ee9f98f88f and squash merged develop 994fff2a2c1288bab03d27b192985c9901f4b9e6. Draft PR #406 authored: native Wallet in-context statement payment opens Quick Entry with canonical owner/id, finite remaining prefill, same shared source-uniqueness gate as detail, and 48dp action. Deploy milestone source 2/8 D3 active integrated into tracking/render; CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; physical owner #149 pending.
+Issue #155, PR #407, branch android/wallet-statement-quick-entry-20261030
+Current W2.4: PR #405 mobile-first statement filters, full raw global statement identity and repo owner direction passed 4/4 immutable head db5729f7402aef2bfcc8762d73ba86ee9f98f88f and squash merged develop 994fff2a2c1288bab03d27b192985c9901f4b9e6. Draft PR #407 authored: native Wallet in-context statement payment opens Quick Entry with canonical owner/id, finite remaining prefill, same shared source-uniqueness gate as detail, and 48dp action. Deploy milestone source 2/8 D3 active integrated into tracking/render; CI pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; physical owner #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Finish consolidated mobile Wallet-to-Quick Entry PR #406 and validate one immutable final head 4/4 (Project Tracking, Android CI, screenshot regression, hosted S24). Verify unique/duplicate/foreign/nonfinite statement payment guards, privacy and navigation; merge only on 4/4 and unchanged develop/reviews. After integration continue larger native D3 feature closure, not Web UI replication. Physical owner S24 #149 separate.
+Next Finish consolidated mobile Wallet-to-Quick Entry PR #407 and validate one immutable final head 4/4 (Project Tracking, Android CI, screenshot regression, hosted S24). Verify unique/duplicate/foreign/nonfinite statement payment guards, privacy and navigation; merge only on 4/4 and unchanged develop/reviews. After integration continue larger native D3 feature closure, not Web UI replication. Physical owner S24 #149 separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
