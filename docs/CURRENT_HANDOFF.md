@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Native Android D1–D5 software integration accepted 5/8. D6 Settings device-session source-safety PR #414 passed four exact-head gates at 8de746582d1bb144673139a5180c38431c5f1aab and squash merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. Active draft PR #415 strengthens backup-export lifecycle: revalidate the live canonical finance document and pending/blocked mutations after returning from Android document picker; unit and hosted Compose regression tests authored. D6 remains incomplete until auth/session, offline/sync and full backup functional acceptance. D7 physical owner Galaxy S24 Ultra #149 and D8 authorized signed production release remain separate, pending. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345, production signer or main.
+Native Android D1–D5 software integration accepted 5/8. D6 Settings source-safe remote device revocation PR #414 passed four exact-head gates at 8de746582d1bb144673139a5180c38431c5f1aab and merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. D6 backup picker snapshot validation PR #415 passed four gates at ec80319fede39b39f7dda20989a2f069b7cef811 and merged develop 74be00ce3314a36d742441b6c06519dae236d0a3. Current draft PR #416 closes the gap between UI-hidden online pending counts and the true durable pending mutation queue used to block backup exports, with JVM regression tests. D6 auth/session, offline/sync and integrated backup acceptance are still in progress; D7 physical owner Galaxy S24 Ultra issue #149 and D8 authorized production-signed release are pending. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345, production signing or main.
 
 ## Immediate work
 
-- Validate draft PR #415 backup export picker live-snapshot and pending mutation safeguards on android/d6-backup-export-snapshot-safety-20261031. Require four exact-head CI gates, stable develop and clear reviews before merge; then continue D6 auth/session, secure offline/sync and backup acceptance. Do not infer physical owner S24 approval or signed deployment.
+- Validate draft PR #416 D6 backup export/secure pending sync integrity: use all durable pending writes, even when the online UI intentionally suppresses pending banners, to block backup; avoid double-counting NEEDS_REVIEW. Run four final immutable-head CI gates, review, merge only if successful, then continue consolidated D6 auth/session, offline sync and backup workflow acceptance. Physical owner Galaxy S24 Ultra #149 and production-signed deploy remain separate.
 
 ## Constraints
 
@@ -66,7 +66,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D6
-Next: D5 accepted and D6 Settings revocation #414 merged. Active PR #415 backup export snapshot validation. D6 auth/session, secure sync/offline and integrated backup acceptance remain pending; D7 owner physical S24 #149 and D8 authorized signed release are independent.
+Next: D5 accepted 5/8; D6 Settings #414 and backup picker #415 safely merged. Current PR #416 backup gating on unresolved durable pending intents is unmerged; remaining D6 auth/session, secure offline replay and backup functional integration pending. D7 physical Galaxy S24 #149 and D8 owner-authorized signed release independent.
 
 
 ## Active Web parity progress
@@ -75,10 +75,10 @@ Next: D5 accepted and D6 Settings revocation #414 merged. Active PR #415 backup 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #415, branch android/d6-backup-export-snapshot-safety-20261031
-Current W5.4: D5 accepted 5/8. D6 Settings device-session PR #414 exact head 8de746582d1bb144673139a5180c38431c5f1aab passed four gates and squash merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. Draft PR #415 backup export prevents stale snapshot or pending-data export after file picker; unit and hosted Compose tests authored, final validation pending. D6 remains incomplete, Web parity 1/6 · 11/24 unchanged, owner physical S24 #149 and signing pending.
+Issue #155, PR #416, branch android/d6-backup-pending-sync-integrity-20261031
+Current W5.2: D6 PR #414 Settings session revocation passed four exact-head gates at 8de746582d1bb144673139a5180c38431c5f1aab and merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. D6 PR #415 backup SAF picker stale snapshot safety passed four exact-head gates at ec80319fede39b39f7dda20989a2f069b7cef811 and squash merged develop 74be00ce3314a36d742441b6c06519dae236d0a3. Active draft PR #416 guards backup against internal durable queue regardless of online UI banner visibility, and adds JVM tests; final-head CI pending. Deploy 5/8 with D6 incomplete, Web parity 1/6 · 11/24 unchanged; owner physical S24 #149/signing pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #415 Android D6 backup export live snapshot/pending safety with four exact-head CI gates, fix actual failures within the same PR and merge only with all PASS, stable develop and clear reviews. Continue D6 auth/session, offline/sync and backup functional acceptance; do not infer physical owner S24 #149 or production signing.
+Next Verify PR #416 full durable pending sync count and backup-block safety with four exact-head CI gates, clear review and stable develop; merge only if PASS. Continue D6 auth/session, secure offline write replay and backup functional acceptance. Owner physical S24 #149 and production release remain pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
