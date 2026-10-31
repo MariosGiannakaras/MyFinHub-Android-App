@@ -159,12 +159,37 @@ sealed interface FinanceProductState {
         val pendingChangeCount: Int = 0,
         val latestPendingChange: PendingChangeUi? = null,
         val pendingReviewCount: Int = 0,
+        /** Always reflects the durable queue, even when pending UI is intentionally hidden online. */
+        val backupPendingChangeCount: Int = 0,
     ) : FinanceProductState
     data class Failure(
         val message: String,
         val retryable: Boolean,
     ) : FinanceProductState
     data object AuthRejected : FinanceProductState
+}
+
+/**
+ * UI banners may hide transient connected writes, but backup eligibility must
+ * always account for every unresolved durable mutation exactly once.
+ */
+internal data class FinancePendingCounts(
+    val visibleChangeCount: Int,
+    val visibleReviewCount: Int,
+    val blockingBackupCount: Int,
+)
+
+internal fun financePendingCounts(
+    total: Int,
+    needsReview: Int,
+    exposePending: Boolean,
+): FinancePendingCounts {
+    require(total >= 0 && needsReview in 0..total)
+    return FinancePendingCounts(
+        visibleChangeCount = if (exposePending) total else 0,
+        visibleReviewCount = if (exposePending) needsReview else 0,
+        blockingBackupCount = total,
+    )
 }
 
 enum class FinanceSyncIssueKind { REVISION_CONFLICT, SAVE_FAILED, WAITING_FOR_NETWORK }
@@ -2054,19 +2079,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
     ): FinanceProductState.Ready {
         val projection = projectCanonicalProduct(document, LocalDate.now(), previous)
         val exposePending = offline || issue != null
+        val counts = financePendingCounts(
+            total = pendingMutations.size,
+            needsReview = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
+            exposePending = exposePending,
+        )
         return FinanceProductState.Ready(
             projection = if (exposePending) markPendingTransactions(projection) else projection,
             saving = saving,
             issue = issue,
             offline = offline,
             pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
-            pendingChangeCount = if (exposePending) pendingMutations.size else 0,
+            pendingChangeCount = counts.visibleChangeCount,
             latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
-            pendingReviewCount = if (exposePending) {
-                pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW }
-            } else {
-                0
-            },
+            pendingReviewCount = counts.visibleReviewCount,
+            backupPendingChangeCount = counts.blockingBackupCount,
         )
     }
 
@@ -2077,19 +2104,21 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
         issue: FinanceSyncIssue? = null,
     ): FinanceProductState.Ready {
         val exposePending = offline || issue != null
+        val counts = financePendingCounts(
+            total = pendingMutations.size,
+            needsReview = pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW },
+            exposePending = exposePending,
+        )
         return FinanceProductState.Ready(
             projection = if (exposePending) markPendingTransactions(projection) else projection,
             saving = saving,
             issue = issue,
             offline = offline,
             pendingTransactionCount = if (exposePending) pendingTransactionIds().size else 0,
-            pendingChangeCount = if (exposePending) pendingMutations.size else 0,
+            pendingChangeCount = counts.visibleChangeCount,
             latestPendingChange = if (exposePending) latestPendingChangeUi() else null,
-            pendingReviewCount = if (exposePending) {
-                pendingMutations.count { it.syncState == PendingMutationSyncState.NEEDS_REVIEW }
-            } else {
-                0
-            },
+            pendingReviewCount = counts.visibleReviewCount,
+            backupPendingChangeCount = counts.blockingBackupCount,
         )
     }
 

@@ -647,7 +647,7 @@ private fun FinanceProductSurface(
                     financialProviderCatalog = financialProviderCatalog,
                     recurringServiceAssets = recurringServiceAssets,
                     backupFinanceDocument = projection.document.raw,
-                    backupPendingChangeCount = state.pendingChangeCount + state.pendingReviewCount,
+                    backupPendingChangeCount = state.backupPendingChangeCount,
                     backupMutationBlocked = state.saving || state.issue != null,
                     backupOffline = state.offline,
                     deviceSessions = deviceSessions,
