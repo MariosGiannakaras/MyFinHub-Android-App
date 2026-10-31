@@ -1,6 +1,10 @@
 package app.myfinhub.android.feature.utilities
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -61,6 +65,68 @@ class WebDeviceSessionsSettingsComposeTest {
         compose.onNodeWithTag("s9_device_revoke_confirm").performClick()
         compose.runOnIdle { assertTrue(revoked == other.sessionId) }
         assertTrue(compose.onAllNodesWithText(sample.sessionId).fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test fun aRefreshDoesNotResurrectARevocationConfirmation() {
+        val other = sample.copy(
+            sessionId = "5b90719d-65c1-4abc-8299-3e07b192ac11",
+            label = "Office browser", current = false,
+        )
+        var loaded by mutableStateOf(true)
+        var rows by mutableStateOf(listOf(sample, other))
+        var calls = 0
+        compose.setContent { MyFinHubTheme {
+            ProductionSettingsScreen(FrontendUtilitiesUiState(), {}, {},
+                deviceSessions = rows, deviceSessionsLoaded = loaded,
+                onRevokeDeviceSession = { calls++ })
+        } }
+        compose.onNodeWithTag("s9_device_revoke_" + other.sessionId)
+            .performScrollTo().performClick()
+        compose.onNodeWithTag("s9_device_revoke_confirm").assertIsDisplayed()
+        compose.runOnIdle { loaded = false; rows = emptyList() }
+        compose.onNodeWithTag("s9_device_revoke_confirm").assertDoesNotExist()
+        compose.runOnIdle { loaded = true; rows = listOf(sample, other) }
+        compose.onNodeWithTag("s9_device_revoke_confirm").assertDoesNotExist()
+        compose.runOnIdle { assertTrue(calls == 0) }
+    }
+
+    @Test fun revocationCannotProceedIfSelectedDeviceBecomesCurrent() {
+        val other = sample.copy(
+            sessionId = "5b90719d-65c1-4abc-8299-3e07b192ac11",
+            label = "Office browser", current = false,
+        )
+        var rows by mutableStateOf(listOf(sample, other))
+        var calls = 0
+        compose.setContent { MyFinHubTheme {
+            ProductionSettingsScreen(FrontendUtilitiesUiState(), {}, {},
+                deviceSessions = rows, deviceSessionsLoaded = true,
+                onRevokeDeviceSession = { calls++ })
+        } }
+        compose.onNodeWithTag("s9_device_revoke_" + other.sessionId)
+            .performScrollTo().performClick()
+        compose.onNodeWithTag("s9_device_revoke_confirm").assertIsDisplayed()
+        compose.runOnIdle { rows = listOf(sample, other.copy(current = true)) }
+        compose.onNodeWithTag("s9_device_revoke_confirm").assertDoesNotExist()
+        compose.onNodeWithTag("s9_device_revoke_" + other.sessionId).assertDoesNotExist()
+        compose.runOnIdle { assertTrue(calls == 0) }
+    }
+
+    @Test fun duplicateOrBlankSessionIdsNeverExposeRevocationAction() {
+        val other = sample.copy(
+            sessionId = "5b90719d-65c1-4abc-8299-3e07b192ac11",
+            label = "Office browser", current = false,
+        )
+        var calls = 0
+        compose.setContent { MyFinHubTheme {
+            ProductionSettingsScreen(FrontendUtilitiesUiState(), {}, {},
+                deviceSessions = listOf(sample, other, other.copy(label = "Duplicated"), other.copy(sessionId = "")),
+                deviceSessionsLoaded = true,
+                onRevokeDeviceSession = { calls++ })
+        } }
+        compose.onNodeWithTag("s9_device_sessions").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("s9_device_revoke_" + other.sessionId).assertDoesNotExist()
+        compose.onNodeWithTag("s9_device_revoke_").assertDoesNotExist()
+        compose.runOnIdle { assertTrue(calls == 0) }
     }
 
     @Test fun unverifiedOrOfflineSessionDoesNotDisplayPriorDeviceMetadata() {
