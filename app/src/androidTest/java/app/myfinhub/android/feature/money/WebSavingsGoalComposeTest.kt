@@ -5,13 +5,19 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.platform.app.InstrumentationRegistry
+import app.myfinhub.android.feature.utilities.AmountVisibilityPreference
 import app.myfinhub.android.designsystem.MyFinHubTheme
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
 /** The production savings surface renders two genuine goals and historic deadlines. */
 class WebSavingsGoalComposeTest {
     @get:Rule val rule=createComposeRule()
+    private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+
+    @After fun restoreDefaultPrivacy() { AmountVisibilityPreference.write(context, false) }
     @Test fun webSavingsHistoryShowsDistinctSameIdRowsAndPrefersRealUserNotes() {
         val state = MoneyUiState(
             savingsHistory = listOf(
@@ -30,6 +36,9 @@ class WebSavingsGoalComposeTest {
     }
 
     @Test fun productionMonthlyTargetShowsAmountAndHistoricalComparison() {
+        // The user-facing default hides financial figures. This test explicitly
+        // verifies visible target/progress values, so enable visibility first.
+        AmountVisibilityPreference.write(context, true)
         val state = MoneyUiState(
             savingsMonthlyTarget = app.myfinhub.android.core.data.CanonicalSavingsMonthlyTargetSnapshot(
                 month = "2026-10",
@@ -44,8 +53,10 @@ class WebSavingsGoalComposeTest {
         rule.setContent { MyFinHubTheme { CanonicalSavingsScreen(state,onBack={}) } }
         rule.onNodeWithTag("savings_month_target").performScrollTo().assertIsDisplayed()
         rule.onNodeWithText("Στόχος αποταμίευσης μήνα").assertIsDisplayed()
-        rule.onNodeWithText("25% των πραγματικών εσόδων").assertIsDisplayed()
-        rule.onNodeWithText("Πρόοδος στόχου: 22%").assertIsDisplayed()
+        // The monthly target card may be taller than the S24 viewport: scroll each
+        // actual value into view before asserting it, without weakening visibility.
+        rule.onNodeWithText("25% των πραγματικών εσόδων").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Πρόοδος στόχου: 22%").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun savingsMonthlyTrendIsIndependentOfAccountBalances() {

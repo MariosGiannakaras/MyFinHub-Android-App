@@ -23,11 +23,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-D1–D4 native Android software integration accepted: #411 failed initial hosted S24 on unmerged navbar semantics, corrected in the same PR head 6df932190eb9cbeb61d941727a2fb4188abebf2b, four exact-head checks PASS, squash merged develop e52d7e402b77e99ec8233e1b5369da998a80118d. Deploy now 4/8 accepted; D5 Plan/obligations/savings/Insights in progress. Draft PR #412 consolidates actual phone Plan→Forecast/Budget navigation acceptance and native Insights invalid-imported euro/percentage/monthly-chart rendering guards. For corrupted sources show invalid indicators rather than plausible 0%, and preserve Hide Amounts privacy; Plan/Insights screens otherwise remain native and intact. Kotlin and hosted Compose tests authored; final-head CI pending. D6 security/offline/settings/backup, D7 physical owner Galaxy S24 #149, D8 signed deploy remain incomplete. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema or financial writes/SMS #146/global PIN #345.
+Native Android mobile software accepted D1–D4 (4/8). PR #412 native Plan→Forecast/Budget→Reports and Insights safe invalid amount, ratio/category share, chart, privacy JVM/Compose tests passed four exact-head gates at a4e1bc2e7bc15ad4a48b55ec2e6639de44b1de57, squash merged develop 233f0381581634b43856fa810a33037aacf64221. Current PR #413 consolidates D5 savings-goal source-ID and nonfinite progress integrity, secure write/cancel revalidation, read-only invalid/overflowed loan balances, and full native Plan→Savings/Loans/Scheduled/Recurring navigation hosted Compose + JVM and privacy tests. D5 is only provisionally marked software-integration completed in this PR's tracker, D6 settings/security/offline/backup active; integrated deployment counter stays 4/8 until four final-head PR #413 checks PASS and PR merged, then 5/8. D7 physical Galaxy S24 owner #149 and D8 signed release remain separately pending. Historic Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance mutations, global PIN #345 or SMS #146.
 
 ## Immediate work
 
-- Validate single final four-gate CI for D5 PR #412: Insights money, percentage, category share, monthly chart and privacy, plus full native Plan→Forecast→Budget navigation. Fix actual failures only within the PR and merge when 4/4 PASS at same head, stable develop, clear reviews. D5 stays open for savings, obligations, reports end-to-end; D6–D8 pending.
+- Validate PR #413 single final immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 UI checks, covering source ID collisions, stale savings target confirmation, nonfinite goal rates/loan debt, privacy and full Plan savings/loans/scheduled/recurring route acceptance. Fix only real failures in same PR; merge with four PASS, stable develop and clear reviews. Then D6 secure settings/auth/offline/backup. Owner physical S24 #149 and signed release remain independent.
 
 ## Constraints
 
@@ -50,7 +50,7 @@ D1–D4 native Android software integration accepted: #411 failed initial hosted
 
 ## Android deploy progress
 
-**Μέχρι deploy: 4/8 stages**
+**Μέχρι deploy: 5/8 stages**
 
 Evidence-backed release milestones, not percent of code written.
 
@@ -60,13 +60,13 @@ Evidence-backed release milestones, not percent of code written.
 | D2 Home and canonical accounts native journey | completed |
 | D3 Cards, credit and Quick Entry end-to-end | completed |
 | D4 Activity and transaction management | completed |
-| D5 Plan, savings, obligations and Insights | in_progress |
-| D6 Settings, auth, secure sync/offline and backup | pending |
+| D5 Plan, savings, obligations and Insights | completed |
+| D6 Settings, auth, secure sync/offline and backup | in_progress |
 | D7 Final integrated physical S24 owner acceptance | pending |
 | D8 Production-signed release and deployment | pending |
 
-Current: D5
-Next: PR #412 D5 native Plan→Forecast/Budget and Insights safe reports final 4/4 CI, then merge only after exact-head success and continue savings/loans/scheduled obligations/Insights acceptance. D6 security/offline/backup, D7 physical S24 #149, D8 signing remain pending.
+Current: D6
+Next: Finish PR #413 D5 savings/loan/obligations native software integration with one final exact-head 4/4 CI and merge, then count deploy 5/8. D6 security/settings/auth/offline/backup functional acceptance next; D7 physical Galaxy S24 owner issue #149 and D8 signed production deploy remain pending/unauthorized.
 
 
 ## Active Web parity progress
@@ -75,10 +75,10 @@ Next: PR #412 D5 native Plan→Forecast/Budget and Insights safe reports final 4
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #412, branch android/d5-native-plan-insights-report-20261030
-Current W5.4: PR #411 final head 6df932190eb9cbeb61d941727a2fb4188abebf2b passed 4/4, merged develop e52d7e402b77e99ec8233e1b5369da998a80118d, so native D3/D4 software acceptance completed: deploy 4/8. Draft #412 D5 phone Plan navigation and Insights read-only imported invalid money/percentage/trend/credit/operational and privacy guards with JVM and hosted Compose regressions; four CI gates pending. D5 active, D6–D8 pending, physical owner #149 not accepted.
+Issue #155, PR #413, branch android/d5-goals-loans-obligations-acceptance-20261030
+Current W4.3: PR #412 D5 native Plan/Insights safety and app-level navigation passed four exact-head gates on a4e1bc2e7bc15ad4a48b55ec2e6639de44b1de57 and merged develop 233f0381581634b43856fa810a33037aacf64221. Draft PR #413 D5 savings goal identity/progress privacy + loan invalid debt read-only + app-level Plan→Savings/Loans/Scheduled/Recurring journeys, Kotlin and hosted Compose tests authored; CI pending. D5 software gate provisionally completed and D6 in progress in PR tracking, but integrated deployment remains 4/8 until PR #413 4/4+merge, then 5/8. Historical Web parity 1/6 implementations, 11/24 subtasks unchanged; physical owner S24 #149 pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run final four-gate CI #412, correct actual app-level Plan navigation or Insights invalid finance/privacy test failures on same PR, merge only 4/4 green and stable develop. Then complete D5 consolidated native savings/loans/obligations/Insights and proceed D6. Do not conflate signed CI or emulator with physical signoff.
+Next Validate PR #413 exact immutable-head four-gate CI, including Money savings goal duplicates/stale confirmation/invalid percentages/privacy and loan malformed source no-payment, real mobile Plan savings/loans/scheduled/recurring navigation, stable base/reviews. Merge only on four PASS, then begin D6 secure native settings/auth/sync/offline/backup acceptance. No owner physical #149 or signing inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
