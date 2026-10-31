@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,15 @@ import app.myfinhub.android.designsystem.MyFinHubOutlinedAction
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
+
+/** Only a unique, nonblank, non-current server session can be revoked. */
+internal fun revocableDeviceSession(
+    sessionId: String?,
+    deviceSessions: List<DeviceSessionRecord>,
+): DeviceSessionRecord? = sessionId
+    ?.takeIf(String::isNotBlank)
+    ?.let { id -> deviceSessions.singleOrNull { it.sessionId == id } }
+    ?.takeUnless(DeviceSessionRecord::current)
 
 /** Production settings expose only controls that change real application behavior. */
 @Composable
@@ -122,8 +132,13 @@ fun ProductionSettingsScreen(
     var visibleServerHistoryCount by remember(
         serverHistory?.generation, serverHistory?.financeRevision,
     ) { mutableStateOf(24) }
-    val confirmDevice = deviceSessions.singleOrNull {
-        it.sessionId == pendingDeviceRevokeId && !it.current
+    val confirmDevice = revocableDeviceSession(pendingDeviceRevokeId, deviceSessions)
+    // A refresh/auth transition must not silently resurrect an old confirmation.
+    LaunchedEffect(deviceSessionsLoaded, deviceSessionRevocationInFlight, deviceSessions) {
+        if (pendingDeviceRevokeId != null &&
+            (!deviceSessionsLoaded || deviceSessionRevocationInFlight || confirmDevice == null)) {
+            pendingDeviceRevokeId = null
+        }
     }
     if (confirmDevice != null && deviceSessionsLoaded &&
         onRevokeDeviceSession != null && !deviceSessionRevocationInFlight) {
@@ -135,8 +150,10 @@ fun ProductionSettingsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        val target = revocableDeviceSession(pendingDeviceRevokeId, deviceSessions)
+                            ?.takeIf { deviceSessionsLoaded && !deviceSessionRevocationInFlight }
                         pendingDeviceRevokeId = null
-                        onRevokeDeviceSession(confirmDevice.sessionId)
+                        if (target != null) onRevokeDeviceSession(target.sessionId)
                     },
                     modifier = Modifier.testTag("s9_device_revoke_confirm"),
                 ) { Text("Αποσύνδεση") }
@@ -528,7 +545,8 @@ fun ProductionSettingsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
-                                if (!device.current && onRevokeDeviceSession != null) {
+                                if (onRevokeDeviceSession != null &&
+                                    revocableDeviceSession(device.sessionId, deviceSessions) != null) {
                                     MyFinHubOutlinedAction(
                                         label = "Αποσύνδεση συσκευής",
                                         onClick = { pendingDeviceRevokeId = device.sessionId },
