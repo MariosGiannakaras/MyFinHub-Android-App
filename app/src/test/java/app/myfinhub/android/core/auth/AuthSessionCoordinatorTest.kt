@@ -2,6 +2,8 @@ package app.myfinhub.android.core.auth
 
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.security.SessionStore
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -139,6 +141,27 @@ class AuthSessionCoordinatorTest {
         assertEquals(1, gateway.signOutCalls)
     }
 
+    @Test
+    fun logoutClearsLocalSessionBeforeSlowRemoteSignoutFinishes() = runBlocking {
+        val session = aal2Session()
+        val store = InMemorySessionStore(session)
+        val requestStarted = CompletableDeferred<Unit>()
+        val releaseRequest = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(onSignOut = {
+            requestStarted.complete(Unit)
+            releaseRequest.await()
+        })
+        val coordinator = AuthSessionCoordinator(configured, gateway, store)
+
+        val remote = async { coordinator.logout(session) }
+        requestStarted.await()
+
+        assertNull("Local credentials must be cleared before remote sign-out returns", store.value)
+        assertEquals(1, gateway.signOutCalls)
+        releaseRequest.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, remote.await())
+    }
+
     private fun aal1Session() = AuthSession(
         accessToken = "synthetic-aal1-token",
         refreshToken = "synthetic-refresh",
@@ -172,6 +195,7 @@ private class FakeAuthGateway(
     private val challengeResult: AuthResult<AuthChallenge> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
     private val verifyResult: AuthResult<AuthSession> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
     private val throwOnSignOut: Boolean = false,
+    private val onSignOut: suspend () -> Unit = {},
 ) : AuthGateway {
     var validateCalls: Int = 0
     var signOutCalls: Int = 0
@@ -192,6 +216,7 @@ private class FakeAuthGateway(
     ) = verifyResult
     override suspend fun signOut(accessToken: String): AuthResult<Unit> {
         signOutCalls += 1
+        onSignOut()
         if (throwOnSignOut) error("synthetic remote revoke failure")
         return AuthResult.Success(Unit)
     }
