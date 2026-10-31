@@ -68,7 +68,7 @@ fun CanonicalFinanceBackupExport(
         pendingSnapshot = null
         if (uri == null) {
             feedback = "Η εξαγωγή ακυρώθηκε."
-        } else if (!isCurrentBackupExportCandidate(
+        } else if (selectedSnapshot == null || !isCurrentBackupExportCandidate(
                 selectedSnapshot, canonicalDocument, pendingChangeCount, mutationBlocked,
             )) {
             // The document picker leaves the app: recheck the live finance snapshot
@@ -85,7 +85,7 @@ fun CanonicalFinanceBackupExport(
                         val writer = context.contentResolver.openOutputStream(uri, "wt")
                             ?: error("Document provider did not create an output stream")
                         writer.bufferedWriter(Charsets.UTF_8).use { out ->
-                            out.write(prettyJson.encodeToString(JsonObject.serializer(), selectedSnapshot!!))
+                            out.write(prettyJson.encodeToString(JsonObject.serializer(), selectedSnapshot))
                             out.flush()
                         }
                     }
