@@ -27,6 +27,7 @@ import app.myfinhub.android.core.ui.offlineUserNotice
 import app.myfinhub.android.core.ui.toUserNotice
 import app.myfinhub.android.core.ui.unexpectedUserNotice
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -68,6 +69,20 @@ sealed interface AuthShellUiState {
     ) : AuthShellUiState
 }
 
+/**
+ * A reconnect response belongs only to the offline-ready owner and auth generation
+ * which started it. A logout or session transition must never re-open the finance UI.
+ */
+internal fun mayPublishOfflineRevalidation(
+    expectedSession: AuthSession,
+    currentState: AuthShellUiState,
+    attemptEpoch: Long,
+    currentEpoch: Long,
+): Boolean {
+    val ready = currentState as? AuthShellUiState.Ready ?: return false
+    return attemptEpoch == currentEpoch && ready.offline && ready.session == expectedSession
+}
+
 class AuthShellViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
@@ -94,6 +109,16 @@ class AuthShellViewModel(
     val notices: SharedFlow<UserNotice> = mutableNotices.asSharedFlow()
 
     private var offlineValidationInFlight = false
+    private var offlineValidationJob: Job? = null
+    private var authTransitionEpoch = 0L
+
+    private fun invalidateOfflineRevalidation() {
+        authTransitionEpoch += 1
+        offlineValidationJob?.cancel()
+        offlineValidationJob = null
+        offlineValidationInFlight = false
+    }
+
 
     init {
         initialize()
@@ -107,6 +132,7 @@ class AuthShellViewModel(
     }
 
     fun initialize() {
+        invalidateOfflineRevalidation()
         viewModelScope.launch {
             mutableState.value = AuthShellUiState.Loading
             try {
@@ -351,8 +377,11 @@ class AuthShellViewModel(
             is AuthShellUiState.Mfa -> current.session
             else -> null
         }
+        // Revoke visible finance access synchronously, before asynchronous server sign-out.
+        // Cancel the reconnect check: its stale result must not restore Ready after logout.
+        invalidateOfflineRevalidation()
+        mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
-            mutableState.value = AuthShellUiState.Loading
             try {
                 coordinator.logout(session)
             } catch (cancelled: CancellationException) {
@@ -423,12 +452,20 @@ class AuthShellViewModel(
     }
 
     private fun validateOfflineReadySession(session: AuthSession) {
-        if (offlineValidationInFlight) return
+        val epoch = authTransitionEpoch
+        if (offlineValidationInFlight ||
+            !mayPublishOfflineRevalidation(session, mutableState.value, epoch, authTransitionEpoch)
+        ) return
         offlineValidationInFlight = true
-        viewModelScope.launch {
+        offlineValidationJob = viewModelScope.launch {
+            fun stillCurrent() = mayPublishOfflineRevalidation(
+                session, mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
-                when (val result = coordinator.afterLocalUnlock(session)) {
-                    is AuthAppState.Ready -> routeReady(result.session)
+                val result = coordinator.afterLocalUnlock(session)
+                if (!stillCurrent()) return@launch
+                when (result) {
+                    is AuthAppState.Ready -> routeReady(result.session, ::stillCurrent)
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login(
                         "Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.",
                     )
@@ -439,31 +476,43 @@ class AuthShellViewModel(
                     is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Επαλήθευση συνεδρίας μετά την επανασύνδεση")
-                        mutableState.value = AuthShellUiState.Ready(
-                            session = result.recoverableSession ?: session,
-                            offline = true,
-                        )
+                        if (stillCurrent()) {
+                            mutableState.value = AuthShellUiState.Ready(
+                                session = result.recoverableSession ?: session,
+                                offline = true,
+                            )
+                        }
                     }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Επαλήθευση συνεδρίας μετά την επανασύνδεση",
-                        throwable = error,
-                        message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
-                    ),
-                )
+                if (stillCurrent()) {
+                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Επαλήθευση συνεδρίας μετά την επανασύνδεση",
+                            throwable = error,
+                            message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
+                        ),
+                    )
+                }
             } finally {
-                offlineValidationInFlight = false
+                if (authTransitionEpoch == epoch) {
+                    offlineValidationInFlight = false
+                    offlineValidationJob = null
+                }
             }
         }
     }
 
-    private suspend fun routeReady(session: AuthSession) {
-        mutableState.value = if (pinVerifier.isEnrolled()) {
+    private suspend fun routeReady(
+        session: AuthSession,
+        stillAuthorized: () -> Boolean = { true },
+    ) {
+        val pinEnrolled = pinVerifier.isEnrolled()
+        if (!stillAuthorized()) return
+        mutableState.value = if (pinEnrolled) {
             AuthShellUiState.Ready(session = session, offline = false)
         } else {
             AuthShellUiState.PinEnrollment(session)
