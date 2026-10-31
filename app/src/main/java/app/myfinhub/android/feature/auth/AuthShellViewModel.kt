@@ -473,7 +473,10 @@ class AuthShellViewModel(
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
                         "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                     )
-                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                    is AuthAppState.Locked -> {
+                        val locked = lockedState(result.session)
+                        if (stillCurrent()) mutableState.value = locked
+                    }
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Επαλήθευση συνεδρίας μετά την επανασύνδεση")
                         if (stillCurrent()) {
