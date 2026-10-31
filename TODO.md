@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #413 single final immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 UI checks, covering source ID collisions, stale savings target confirmation, nonfinite goal rates/loan debt, privacy and full Plan savings/loans/scheduled/recurring route acceptance. Fix only real failures in same PR; merge with four PASS, stable develop and clear reviews. Then D6 secure settings/auth/offline/backup. Owner physical S24 #149 and signed release remain independent.
+- [ ] Complete Android D6 device-session revocation source-safety checkpoint on branch android/d6-settings-device-session-safety-20261031: validate hosted Compose tests for stale refresh, duplicate/blank IDs and current-session promotion; require four exact-head CI gates and merge. Then continue D6 auth, sync/offline and backup functional acceptance. Physical owner Galaxy S24 Ultra #149 and release/signing remain independent.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D6
-Next: Finish PR #413 D5 savings/loan/obligations native software integration with one final exact-head 4/4 CI and merge, then count deploy 5/8. D6 security/settings/auth/offline/backup functional acceptance next; D7 physical Galaxy S24 owner issue #149 and D8 signed production deploy remain pending/unauthorized.
+Next: D5 merged at 5/8. Finish D6 secure Settings/device session confirmation regression checkpoint, then accept auth/session, encrypted offline and backup native journeys using existing implementations and exact-head CI. D7 owner physical S24 #149 and D8 authorized signed release remain pending.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: Finish PR #413 D5 savings/loan/obligations native software integration wit
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #413, branch android/d5-goals-loans-obligations-acceptance-20261030
-Current W4.3: PR #412 D5 native Plan/Insights safety and app-level navigation passed four exact-head gates on a4e1bc2e7bc15ad4a48b55ec2e6639de44b1de57 and merged develop 233f0381581634b43856fa810a33037aacf64221. Draft PR #413 D5 savings goal identity/progress privacy + loan invalid debt read-only + app-level Plan→Savings/Loans/Scheduled/Recurring journeys, Kotlin and hosted Compose tests authored; CI pending. D5 software gate provisionally completed and D6 in progress in PR tracking, but integrated deployment remains 4/8 until PR #413 4/4+merge, then 5/8. Historical Web parity 1/6 implementations, 11/24 subtasks unchanged; physical owner S24 #149 pending.
+Issue #155, PR #413, branch android/d6-settings-device-session-safety-20261031
+Current W5.2: D5 PR #413 passed all four exact-head CI gates at 6241cd81ae89b11331d33f16c5a0ed9b0ee1cde8 and merged develop d2c8d3103edd791cf864ded0743216cfd48821b3: 5/8 deploy integration accepted. Current D6 branch contains source-safe remote-device revocation confirmation and hosted Compose regressions; CI/merge pending and D6 incomplete. Last merged PR #413, historical Web parity 1/6 · 11/24 unchanged; physical owner S24 #149 and release/signing pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #413 exact immutable-head four-gate CI, including Money savings goal duplicates/stale confirmation/invalid percentages/privacy and loan malformed source no-payment, real mobile Plan savings/loans/scheduled/recurring navigation, stable base/reviews. Merge only on four PASS, then begin D6 secure native settings/auth/sync/offline/backup acceptance. No owner physical #149 or signing inferred.
+Next Open consolidated D6 Settings source-safety PR from current branch, validate four exact-head CI gates and merge only if all pass; then cover auth/session, offline/sync and backup native journeys before accepting D6. Keep main, signing, physical owner S24 and backend unchanged.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
