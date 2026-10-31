@@ -26,6 +26,18 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
+/** The picker may return after the finance document or mutation state has changed. */
+internal fun isCurrentBackupExportCandidate(
+    selectedSnapshot: JsonObject?,
+    currentDocument: JsonObject?,
+    pendingChangeCount: Int,
+    mutationBlocked: Boolean,
+): Boolean = selectedSnapshot != null &&
+    currentDocument != null &&
+    selectedSnapshot == currentDocument &&
+    pendingChangeCount == 0 &&
+    !mutationBlocked
+
 /**
  * Export the complete canonical Web FinanceData document via Android's document picker.
  *
@@ -56,8 +68,13 @@ fun CanonicalFinanceBackupExport(
         pendingSnapshot = null
         if (uri == null) {
             feedback = "Η εξαγωγή ακυρώθηκε."
-        } else if (selectedSnapshot == null) {
-            feedback = "Το αντίγραφο δεν είναι διαθέσιμο. Άνοιξε ξανά τη διαδικασία."
+        } else if (!isCurrentBackupExportCandidate(
+                selectedSnapshot, canonicalDocument, pendingChangeCount, mutationBlocked,
+            )) {
+            // The document picker leaves the app: recheck the live finance snapshot
+            // before writing an unencrypted file. Never export stale or pending data.
+            feedback = "Τα οικονομικά δεδομένα άλλαξαν ή εκκρεμεί συγχρονισμός. " +
+                "Ξεκίνησε νέα εξαγωγή όταν ολοκληρωθεί."
         } else {
             exporting = true
             feedback = null
@@ -68,7 +85,7 @@ fun CanonicalFinanceBackupExport(
                         val writer = context.contentResolver.openOutputStream(uri, "wt")
                             ?: error("Document provider did not create an output stream")
                         writer.bufferedWriter(Charsets.UTF_8).use { out ->
-                            out.write(prettyJson.encodeToString(JsonObject.serializer(), selectedSnapshot))
+                            out.write(prettyJson.encodeToString(JsonObject.serializer(), selectedSnapshot!!))
                             out.flush()
                         }
                     }
@@ -120,11 +137,17 @@ fun CanonicalFinanceBackupExport(
                 )
             }
             TextButton(
-                enabled = canonicalDocument != null && pendingChangeCount == 0 &&
-                    !mutationBlocked && !exporting,
+                enabled = isCurrentBackupExportCandidate(
+                    canonicalDocument, canonicalDocument, pendingChangeCount, mutationBlocked,
+                ) && !exporting && pendingSnapshot == null,
                 modifier = Modifier.fillMaxWidth().testTag("s9_finance_backup_save"),
                 onClick = {
-                    val snapshot = canonicalDocument ?: return@TextButton
+                    val snapshot = canonicalDocument
+                        ?.takeIf {
+                            isCurrentBackupExportCandidate(
+                                it, canonicalDocument, pendingChangeCount, mutationBlocked,
+                            )
+                        } ?: return@TextButton
                     pendingSnapshot = snapshot
                     feedback = null
                     val filename = "MyFinHub-backup-" +
