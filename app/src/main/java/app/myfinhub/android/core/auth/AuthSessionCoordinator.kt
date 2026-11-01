@@ -51,7 +51,12 @@ class AuthSessionCoordinator(
     }
 
     suspend fun signIn(email: String, password: CharArray): AuthAppState {
-        val epoch = captureCredentialEpoch()
+        // A new password login is a new owner/bearer authorization boundary.
+        // It invalidates any older unlock/refresh/MFA request still in flight.
+        val epoch = credentialMutex.withLock {
+            credentialEpoch += 1
+            credentialEpoch
+        }
         val result = authGateway.signInWithPassword(email, password)
         if (!isCredentialEpochCurrent(epoch)) return AuthAppState.LoginRequired
         return when (result) {
