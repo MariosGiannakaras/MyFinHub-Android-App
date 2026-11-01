@@ -76,7 +76,7 @@ Next: D1–D5 accepted 5/8. D6 secure auth/offline/legacy backup compatibility P
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #421, branch android/d6-mobile-settings-journey-20261101
-Current W5.2: D6 #414–#420 auth, secure offline queue, legacy backup compatibility tests passed four immutable-head gates each and merged develop; latest #420 5c8c433ae5a8f595157b916f3c5e95bddbd5e522. Owner mobile scope keeps backup/restore, finance auditing and rules Web-only; actual phone Settings route is MobileDeviceSettingsScreen. Active draft #421 adds hosted Compose full Home→phone Settings/logout navigation and device privacy tests, final-head CI pending. D6 unaccepted, deploy 5/8, Web parity historical 1/6 · 11/24, owner S24 #149 and release separate.
+Current W5.4: D6 #414–#420 auth, secure offline queue, legacy backup compatibility tests passed four immutable-head gates each and merged develop; latest #420 5c8c433ae5a8f595157b916f3c5e95bddbd5e522. Owner mobile scope keeps backup/restore, finance auditing and rules Web-only; actual phone Settings route is MobileDeviceSettingsScreen. Active draft #421 adds hosted Compose full Home→phone Settings/logout navigation and device privacy tests, final-head CI pending. D6 unaccepted, deploy 5/8, Web parity historical 1/6 · 11/24, owner S24 #149 and release separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
 Next Validate draft #421 exact final-head four-gate Android CI/Project Tracking/screenshot/hosted S24 checks, review and stable develop. Merge only on PASS, then complete evidence-backed D6 mobile Settings/auth/offline integration acceptance without surfacing excluded Web backup/admin features. Physical S24 and release separate.
 
