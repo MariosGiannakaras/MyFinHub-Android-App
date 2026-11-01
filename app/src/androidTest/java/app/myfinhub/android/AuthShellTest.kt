@@ -1,6 +1,11 @@
 package app.myfinhub.android
 
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -81,6 +86,27 @@ class AuthShellTest {
         composeRule.onNodeWithText("Ξεκλείδωμα με βιομετρικά").assertIsDisplayed()
     }
 
+    @Test
+    fun logoutTransitionImmediatelyHidesOfflineFinanceContent() {
+        var currentState by mutableStateOf<AuthShellUiState>(
+            AuthShellUiState.Ready(aal2Session(), offline = true),
+        )
+        composeRule.setContent {
+            AuthShellTestContent(
+                state = currentState,
+                biometricGateway = FakeBiometricGateway(BiometricCapability.UNAVAILABLE),
+                readyContent = { Text("Ιδιωτικό οικονομικό περιεχόμενο") },
+            )
+        }
+
+        composeRule.onNodeWithText("Ιδιωτικό οικονομικό περιεχόμενο").assertIsDisplayed()
+        composeRule.runOnIdle { currentState = AuthShellUiState.Loading }
+        composeRule.onNodeWithText("Ιδιωτικό οικονομικό περιεχόμενο").assertDoesNotExist()
+        composeRule.runOnIdle { currentState = AuthShellUiState.Login() }
+        composeRule.onNodeWithText("Σύνδεση στο MyFinHub").assertIsDisplayed()
+        composeRule.onNodeWithText("Ιδιωτικό οικονομικό περιεχόμενο").assertDoesNotExist()
+    }
+
     private fun aal1Session() = AuthSession(
         accessToken = "synthetic-aal1",
         refreshToken = "synthetic-refresh",
@@ -97,6 +123,7 @@ private fun AuthShellTestContent(
     state: AuthShellUiState,
     biometricGateway: BiometricGateway,
     onPinFallbackRequested: () -> Unit = {},
+    readyContent: @Composable () -> Unit = {},
 ) {
     MyFinHubTheme {
         AuthShellScreen(
@@ -110,7 +137,7 @@ private fun AuthShellTestContent(
             onVerifyPin = { pin -> pin.fill('\u0000') },
             onBiometricSuccess = {},
             onPinFallbackRequested = onPinFallbackRequested,
-            readyContent = {},
+            readyContent = readyContent,
             biometricGateway = biometricGateway,
         )
     }

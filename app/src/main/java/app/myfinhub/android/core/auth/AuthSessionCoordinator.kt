@@ -84,13 +84,10 @@ class AuthSessionCoordinator(
     }
 
     suspend fun logout(session: AuthSession?): AuthAppState {
-        try {
-            session?.let { authGateway.signOut(it.accessToken) }
-        } finally {
-            // Remote revoke is best-effort. A transport/library failure must never leave the local
-            // encrypted session available after the user has explicitly requested logout.
-            sessionStore.clear()
-        }
+        // Clear locally before awaiting remote sign-out: the network request can be slow,
+        // fail or never return. An explicit logout must not leave reusable local credentials.
+        sessionStore.clear()
+        session?.let { authGateway.signOut(it.accessToken) }
         return AuthAppState.LoginRequired
     }
 

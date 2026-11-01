@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Native Android D1–D5 software integration accepted 5/8. D6 Settings source-safe remote device revocation PR #414 passed four exact-head gates at 8de746582d1bb144673139a5180c38431c5f1aab and merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. D6 backup picker snapshot validation PR #415 passed four gates at ec80319fede39b39f7dda20989a2f069b7cef811 and merged develop 74be00ce3314a36d742441b6c06519dae236d0a3. Current draft PR #416 closes the gap between UI-hidden online pending counts and the true durable pending mutation queue used to block backup exports, with JVM regression tests. D6 auth/session, offline/sync and integrated backup acceptance are still in progress; D7 physical owner Galaxy S24 Ultra issue #149 and D8 authorized production-signed release are pending. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345, production signing or main.
+Native Android D1–D5 integrated (5/8). D6 secure Settings remote-device revoke #414 merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358, backup picker validation #415 merged develop 74be00ce3314a36d742441b6c06519dae236d0a3, and all-durable-pending backup gate #416 passed exact-head 4/4 at de20bd4f586685ac99dc1bfb06b4eb9ebff45d7e and merged develop bd653216a95381c869edf52a71c5bda248dbdffb. Active draft PR #417 adds fail-closed offline auth revalidation vs logout/session transitions, immediate private UI hiding and local encrypted credential clearing before slow remote sign-out, plus JVM and hosted Compose regressions. D6 overall auth/session, offline replay, settings and backup software acceptance is not yet completed; D7 physical owner Galaxy S24 Ultra #149 and D8 authorized production-signed release remain separate. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345 or signing/main changes.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #416 D6 backup export/secure pending sync integrity: use all durable pending writes, even when the online UI intentionally suppresses pending banners, to block backup; avoid double-counting NEEDS_REVIEW. Run four final immutable-head CI gates, review, merge only if successful, then continue consolidated D6 auth/session, offline sync and backup workflow acceptance. Physical owner Galaxy S24 Ultra #149 and production-signed deploy remain separate.
+1. Validate draft PR #417 D6 auth/logout and offline session revalidation lifecycle at immutable final head using Project Tracking, Android CI, screenshot regression and hosted S24 Compose checks. Fix only actual failures in PR, require stable develop and clear reviews before merge. Then complete integrated D6 auth, offline queue and backup acceptance with existing implementation. Do not claim owner physical Galaxy S24 signoff #149 or authorized signed deployment.
 
 ## Non-negotiable constraints
 
@@ -62,7 +62,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D6
-Next: D5 accepted 5/8; D6 Settings #414 and backup picker #415 safely merged. Current PR #416 backup gating on unresolved durable pending intents is unmerged; remaining D6 auth/session, secure offline replay and backup functional integration pending. D7 physical Galaxy S24 #149 and D8 owner-authorized signed release independent.
+Next: D1–D5 5/8 accepted. D6 device session #414, backup picker #415 and durable pending backup safety #416 merged. Current draft #417 offline auth/logout race and local session revocation safety; D6 integration/acceptance still pending. D7 owner physical S24 #149 and D8 authorized signed production deploy remain separate.
 
 
 ## Active Web parity progress
@@ -71,10 +71,10 @@ Next: D5 accepted 5/8; D6 Settings #414 and backup picker #415 safely merged. Cu
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #416, branch android/d6-backup-pending-sync-integrity-20261031
-Current W5.2: D6 PR #414 Settings session revocation passed four exact-head gates at 8de746582d1bb144673139a5180c38431c5f1aab and merged develop 90379d118572ed98fe73f7cd6cb7c3d38ac82358. D6 PR #415 backup SAF picker stale snapshot safety passed four exact-head gates at ec80319fede39b39f7dda20989a2f069b7cef811 and squash merged develop 74be00ce3314a36d742441b6c06519dae236d0a3. Active draft PR #416 guards backup against internal durable queue regardless of online UI banner visibility, and adds JVM tests; final-head CI pending. Deploy 5/8 with D6 incomplete, Web parity 1/6 · 11/24 unchanged; owner physical S24 #149/signing pending.
+Issue #155, PR #417, branch android/d6-auth-offline-revalidation-20261031
+Current W5.2: D6 device sessions PR #414, backup picker PR #415, and durable pending sync/backup PR #416 passed exact-head four CI gates and merged develop; last merge #416 bd653216a95381c869edf52a71c5bda248dbdffb. Current draft #417 fixes delayed offline auth revalidation after logout, clears local credentials before slow remote revoke and hides private finance immediately; JVM and hosted Compose tests authored, final-head CI pending. D6 incomplete and deploy stays 5/8; Web parity remains historical 1/6 · 11/24, physical owner S24 #149 and signing independent.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify PR #416 full durable pending sync count and backup-block safety with four exact-head CI gates, clear review and stable develop; merge only if PASS. Continue D6 auth/session, secure offline write replay and backup functional acceptance. Owner physical S24 #149 and production release remain pending.
+Next Complete #417 one final exact-head four-gate CI, fix real auth failures in same PR and merge only with all PASS, stable develop and no review blockers. Then validate remaining integrated D6 authentication, encrypted offline replay/NEEDS_REVIEW and backup/Settings acceptance. No physical S24 approval or signed production deploy inferred.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
