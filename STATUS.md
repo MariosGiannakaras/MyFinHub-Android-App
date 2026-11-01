@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Native Android D1–D5 accepted (5/8). D6 secure Settings device session #414, backup picker #415, durable pending backup #416, and offline reconnect/logout auth #417 passed all four exact-head gates and merged to develop (latest #417 eb2c3b2b043cd4093c29bb81c8f114312e884ca8). Draft PR #418 closes remaining initial PIN/biometric unlock + initial bootstrap/enrollment late-result race with logout and owner-token transitions, adding source generation guards and JVM regressions. D6 integrated auth, secure offline replay and backup software acceptance is not yet complete; D7 owner physical Galaxy S24 Ultra #149 and D8 production signed release remain separate. Historic Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345 or release/main.
+Native Android D1–D5 integrated (5/8). D6 Settings device safety #414, backup picker #415, durable pending backup #416, offline reconnect/logout #417 and initial PIN/biometric unlock #418 all passed four exact-head CI gates and squash-merged develop (latest #418 c050ce7a6779bdedcb425d7a7bb0ec612567843b). Current draft PR #419 protects encrypted session persistence from delayed password, TOTP and server-refresh responses after logout or newer account login, using atomic auth generations, synchronized local save/clear, UI auth epoch guards and four deterministic JVM race tests. D6 integrated auth, secure offline replay and backup acceptance remains in progress. D7 physical owner Galaxy S24 Ultra #149 and D8 authorized signed production release remain pending. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, live finance writes, SMS #146, global PIN #345 or production signing/main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate D6 draft PR #418 initial locked PIN/biometric unlock and PIN enrollment against stale logout, new owner/bearer and generation changes; require all four exact-final-head checks (Project Tracking, Android CI, screenshot regression, hosted S24), stable develop and clear reviews before merge. Then complete D6 consolidated auth/session, encrypted offline sync and backup functional acceptance before incrementing deploy counter. Owner physical #149 and production release remain pending.
+1. Validate draft PR #419 durable encrypted auth session lifecycle after concurrent logout, login, TOTP and refresh: require immutable final-head Project Tracking, Android CI, screenshot and hosted S24 SUCCESS, stable develop and clear reviews before merge. Then complete the remaining integrated D6 auth/offline replay/backup acceptance without reopening already validated work. D7 owner physical S24 #149 and D8 signed release remain separate.
 
 ## Non-negotiable constraints
 
@@ -62,7 +62,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D6
-Next: D1–D5 accepted 5/8. D6 Settings #414, backup #415, durable sync #416 and reconnect logout auth #417 merged; current draft PR #418 guards initial PIN/biometric/session bootstrap stale auth after logout. Integrated D6 sync/offline/backup/auth acceptance pending. D7 physical Galaxy S24 #149 and D8 authorized signed production deploy remain independent.
+Next: D1–D5 accepted 5/8. D6 merged Settings #414, backup picker #415, durable pending #416, offline reconnect #417 and initial local unlock #418. Current draft PR #419 durable encrypted auth credential generation and concurrent logout/new login/TOTP race checks; consolidated D6 auth/offline/sync/backup acceptance pending. D7 physical Galaxy S24 #149 and D8 production signed release separate.
 
 
 ## Active Web parity progress
@@ -71,10 +71,10 @@ Next: D1–D5 accepted 5/8. D6 Settings #414, backup #415, durable sync #416 and
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #418, branch android/d6-auth-initial-unlock-generation-20261101
-Current W5.2: D6 PR #414 secure Settings, #415 backup picker, #416 true unresolved queue backup blocker and #417 offline auth revalidation/logout each passed exact-head 4/4 CI and merged develop, latest #417 eb2c3b2b043cd4093c29bb81c8f114312e884ca8. Draft PR #418 guards initial locked PIN/biometric validation, PIN enrollment and app bootstrap from stale logout/owner/session results, with JVM cases; final-head CI pending. Deploy 5/8 D6 incomplete, historic Web parity 1/6 · 11/24, owner physical S24 #149 and signed deploy separate.
+Issue #155, PR #419, branch android/d6-auth-durable-session-boundary-20261101
+Current W5.2: D6 PRs #414–#418 passed all four exact-head CI gates and merged develop, latest initial PIN/biometric lifecycle #418 head d36155725c8e4f616829264a1a5368733f8ba4ba merged develop c050ce7a6779bdedcb425d7a7bb0ec612567843b. Draft #419 addresses stale password/TOTP/refresh encrypted session writes across logout/new auth and stale UI responses with atomic generation, mutex write gate and JVM concurrent tests; CI/merge pending. Deploy 5/8 D6 incomplete; historical Web parity 1/6 · 11/24 unchanged; physical S24 #149 and signing independent.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate final exact-head four-gate CI and review on draft PR #418 then merge only if all PASS with unchanged develop. Complete D6 auth/offline/sync/backup integrated journey acceptance next; no physical owner S24 or signed release claim.
+Next Validate PR #419 coordinator local encrypted session save/clear and UI auth transition race handling with final-head four mandatory checks; merge only after all PASS, develop unchanged and review clear. Finish remaining D6 integration/acceptance of offline replay and backup; physical owner S24 #149 and authorized signed release pending.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
