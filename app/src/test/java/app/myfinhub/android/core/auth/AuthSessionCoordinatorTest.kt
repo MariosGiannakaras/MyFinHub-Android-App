@@ -228,6 +228,56 @@ class AuthSessionCoordinatorTest {
     }
 
     @Test
+    fun newAccountLoginInvalidatesSlowPriorUnlockWithoutLogout() = runBlocking {
+        val old = aal2Session()
+        val next = old.copy(userId = "replacement-owner", accessToken = "replacement-bearer")
+        val store = InMemorySessionStore(old)
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(
+            validateResult = AuthResult.Success(Unit),
+            signInResult = AuthResult.Success(next),
+            onValidate = { started.complete(Unit); release.await() },
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store, nowEpochSeconds = { 1_000 })
+
+        val oldUnlock = async { coordinator.afterLocalUnlock(old) }
+        started.await()
+        assertEquals(AuthAppState.Ready(next), coordinator.signIn(
+            "another-owner@example.test", "synthetic-password".toCharArray(),
+        ))
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, oldUnlock.await())
+        assertEquals(next, store.value)
+    }
+
+    @Test
+    fun newAccountLoginInvalidatesSlowMfaResponseWithoutOverwritingToken() = runBlocking {
+        val old = aal1Session()
+        val next = aal2Session().copy(userId = "replacement-owner", accessToken = "replacement-bearer")
+        val store = InMemorySessionStore()
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(
+            challengeResult = AuthResult.Success(AuthChallenge("old-challenge")),
+            verifyResult = AuthResult.Success(aal2Session()),
+            signInResult = AuthResult.Success(next),
+            onVerify = { started.complete(Unit); release.await() },
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store)
+        val verification = async {
+            coordinator.completeTotp(old, "factor-1", "123456".toCharArray())
+        }
+        started.await()
+        assertEquals(AuthAppState.Ready(next), coordinator.signIn(
+            "another-owner@example.test", "synthetic-password".toCharArray(),
+        ))
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, verification.await())
+        assertEquals(next, store.value)
+    }
+
+    @Test
     fun lateUnauthorizedResponseMustNotClearNewerSession() = runBlocking {
         val old = aal2Session()
         val replacement = old.copy(accessToken = "next-login-token")
