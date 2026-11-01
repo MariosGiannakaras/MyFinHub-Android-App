@@ -199,14 +199,16 @@ class AuthShellViewModel(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = AuthShellUiState.Login("Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Αρχικοποίηση ασφαλούς συνεδρίας",
-                        throwable = error,
-                        message = "Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.",
-                    ),
-                )
+                if (mayPublishInitialUnlock(mutableState.value, epoch, authTransitionEpoch)) {
+                    mutableState.value = AuthShellUiState.Login("Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.")
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Αρχικοποίηση ασφαλούς συνεδρίας",
+                            throwable = error,
+                            message = "Η ασφαλής συνεδρία δεν μπόρεσε να αρχικοποιηθεί.",
+                        ),
+                    )
+                }
             }
         }
     }
