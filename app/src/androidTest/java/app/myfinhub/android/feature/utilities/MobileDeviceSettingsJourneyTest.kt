@@ -1,6 +1,8 @@
 package app.myfinhub.android.feature.utilities
 
 import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -38,6 +40,30 @@ class MobileDeviceSettingsJourneyTest {
         compose.onNodeWithText("Αυτόματη ταξινόμηση").assertDoesNotExist()
         compose.onNodeWithText("Ιστορικό αλλαγών στον server").assertDoesNotExist()
         compose.onNodeWithText("Συνδεδεμένες συσκευές").assertDoesNotExist()
+    }
+
+    @Test fun privacySwitchUpdatesSharedDevicePreferenceWithoutFinanceWrite() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val originallyVisible = AmountVisibilityPreference.read(context)
+        try {
+            AmountVisibilityPreference.write(context, false)
+            compose.setContent {
+                MyFinHubTheme {
+                    MobileDeviceSettingsScreen(onBack = {}, onLogout = {})
+                }
+            }
+            compose.onNodeWithContentDescription("Εμφάνιση ποσών")
+                .performScrollTo().performClick()
+            compose.runOnIdle {
+                assertEquals(true, AmountVisibilityPreference.read(context))
+            }
+            compose.onNodeWithContentDescription("Εμφάνιση ποσών").performClick()
+            compose.runOnIdle {
+                assertEquals(false, AmountVisibilityPreference.read(context))
+            }
+        } finally {
+            AmountVisibilityPreference.write(context, originallyVisible)
+        }
     }
 
     @Test fun unauthenticatedPhoneSettingsCannotExposeLogoutAction() {
