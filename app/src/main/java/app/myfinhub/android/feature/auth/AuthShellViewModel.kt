@@ -83,6 +83,31 @@ internal fun mayPublishOfflineRevalidation(
     return attemptEpoch == currentEpoch && ready.offline && ready.session == expectedSession
 }
 
+/** A locked PIN/biometric completion may only act on the same visible locked session. */
+internal fun mayResumeLockedAuth(
+    expectedSession: AuthSession,
+    state: AuthShellUiState,
+    startedEpoch: Long,
+    currentEpoch: Long,
+): Boolean = startedEpoch == currentEpoch &&
+    (state as? AuthShellUiState.Locked)?.session == expectedSession
+
+/** Loading is the only valid destination of a pending initial server session validation. */
+internal fun mayPublishInitialUnlock(
+    state: AuthShellUiState,
+    startedEpoch: Long,
+    currentEpoch: Long,
+): Boolean = startedEpoch == currentEpoch && state is AuthShellUiState.Loading
+
+/** PIN enrollment cannot unlock a different owner or a session which has logged out. */
+internal fun mayFinishPinEnrollment(
+    expectedSession: AuthSession,
+    state: AuthShellUiState,
+    startedEpoch: Long,
+    currentEpoch: Long,
+): Boolean = startedEpoch == currentEpoch &&
+    (state as? AuthShellUiState.PinEnrollment)?.session == expectedSession
+
 class AuthShellViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
@@ -110,6 +135,7 @@ class AuthShellViewModel(
 
     private var offlineValidationInFlight = false
     private var offlineValidationJob: Job? = null
+    private var initialUnlockJob: Job? = null
     private var authTransitionEpoch = 0L
 
     private fun invalidateOfflineRevalidation() {
@@ -117,6 +143,8 @@ class AuthShellViewModel(
         offlineValidationJob?.cancel()
         offlineValidationJob = null
         offlineValidationInFlight = false
+        initialUnlockJob?.cancel()
+        initialUnlockJob = null
     }
 
 
@@ -133,26 +161,36 @@ class AuthShellViewModel(
 
     fun initialize() {
         invalidateOfflineRevalidation()
+        val epoch = authTransitionEpoch
+        mutableState.value = AuthShellUiState.Loading
         viewModelScope.launch {
-            mutableState.value = AuthShellUiState.Loading
             try {
-                when (val result = coordinator.initialize()) {
+                val result = coordinator.initialize()
+                if (!mayPublishInitialUnlock(mutableState.value, epoch, authTransitionEpoch)) return@launch
+                when (result) {
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
                         "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                     )
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
                     is AuthAppState.Locked -> {
                         if (pinVerifier.isEnrolled()) {
-                            mutableState.value = lockedState(result.session)
+                            val locked = lockedState(result.session)
+                            if (mayPublishInitialUnlock(mutableState.value, epoch, authTransitionEpoch)) {
+                                mutableState.value = locked
+                            }
                         } else {
                             coordinator.logout(result.session)
                             pinLimiter.recordSuccess()
-                            mutableState.value = AuthShellUiState.Login(
-                                "Η τοπική ρύθμιση ξεκλειδώματος δεν ολοκληρώθηκε. Συνδέσου ξανά.",
-                            )
+                            if (mayPublishInitialUnlock(mutableState.value, epoch, authTransitionEpoch)) {
+                                mutableState.value = AuthShellUiState.Login(
+                                    "Η τοπική ρύθμιση ξεκλειδώματος δεν ολοκληρώθηκε. Συνδέσου ξανά.",
+                                )
+                            }
                         }
                     }
-                    is AuthAppState.Ready -> routeReady(result.session)
+                    is AuthAppState.Ready -> routeReady(result.session) {
+                        mayPublishInitialUnlock(mutableState.value, epoch, authTransitionEpoch)
+                    }
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Αρχικοποίηση συνεδρίας")
@@ -281,12 +319,18 @@ class AuthShellViewModel(
             pin.fill('\u0000')
             return
         }
+        val epoch = authTransitionEpoch
         val pinCopy = pin.copyOf()
         pin.fill('\u0000')
         viewModelScope.launch {
+            fun stillLocked() = mayResumeLockedAuth(
+                current.session, mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
+                if (!stillLocked()) return@launch
                 val now = System.currentTimeMillis()
                 val status = pinLimiter.status(now)
+                if (!stillLocked()) return@launch
                 if (!status.allowed) {
                     mutableState.value = current.copy(
                         showPin = true,
@@ -297,31 +341,37 @@ class AuthShellViewModel(
                 }
 
                 if (pinVerifier.verify(pinCopy)) {
+                    if (!stillLocked()) return@launch
                     pinLimiter.recordSuccess()
-                    validateUnlockedSession(current.session)
+                    if (stillLocked()) validateUnlockedSession(current.session)
                 } else {
+                    if (!stillLocked()) return@launch
                     val next = pinLimiter.recordFailure(now)
-                    mutableState.value = current.copy(
-                        showPin = true,
-                        pinStatus = next,
-                        message = if (next.allowed) {
-                            "Λάθος PIN. Απομένουν ${next.attemptsRemaining} προσπάθειες."
-                        } else {
-                            lockMessage(next)
-                        },
-                    )
+                    if (stillLocked()) {
+                        mutableState.value = current.copy(
+                            showPin = true,
+                            pinStatus = next,
+                            message = if (next.allowed) {
+                                "Λάθος PIN. Απομένουν ${next.attemptsRemaining} προσπάθειες."
+                            } else {
+                                lockMessage(next)
+                            },
+                        )
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = current.copy(showPin = true, message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Έλεγχος τοπικού PIN",
-                        throwable = error,
-                        message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.",
-                    ),
-                )
+                if (stillLocked()) {
+                    mutableState.value = current.copy(showPin = true, message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.")
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Έλεγχος τοπικού PIN",
+                            throwable = error,
+                            message = "Το τοπικό ξεκλείδωμα δεν ολοκληρώθηκε.",
+                        ),
+                    )
+                }
             } finally {
                 pinCopy.fill('\u0000')
             }
@@ -334,12 +384,17 @@ class AuthShellViewModel(
             confirmation.fill('\u0000')
             return
         }
+        val epoch = authTransitionEpoch
         val pinCopy = pin.copyOf()
         val confirmationCopy = confirmation.copyOf()
         pin.fill('\u0000')
         confirmation.fill('\u0000')
         viewModelScope.launch {
+            fun stillEnrolling() = mayFinishPinEnrollment(
+                current.session, mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
+                if (!stillEnrolling()) return@launch
                 if (!pinCopy.contentEquals(confirmationCopy)) {
                     mutableState.value = current.copy(message = "Τα PIN δεν ταιριάζουν.")
                     return@launch
@@ -349,19 +404,22 @@ class AuthShellViewModel(
                     return@launch
                 }
                 pinVerifier.enroll(pinCopy)
+                if (!stillEnrolling()) return@launch
                 pinLimiter.recordSuccess()
-                mutableState.value = AuthShellUiState.Ready(current.session)
+                if (stillEnrolling()) mutableState.value = AuthShellUiState.Ready(current.session)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = current.copy(message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Ρύθμιση τοπικού PIN",
-                        throwable = error,
-                        message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.",
-                    ),
-                )
+                if (stillEnrolling()) {
+                    mutableState.value = current.copy(message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.")
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Ρύθμιση τοπικού PIN",
+                            throwable = error,
+                            message = "Η ασφαλής αποθήκευση του PIN δεν ολοκληρώθηκε.",
+                        ),
+                    )
+                }
             } finally {
                 pinCopy.fill('\u0000')
                 confirmationCopy.fill('\u0000')
@@ -401,52 +459,68 @@ class AuthShellViewModel(
     }
 
     private fun validateUnlockedSession(session: AuthSession) {
-        viewModelScope.launch {
-            if (connectivityObserver.current() != NetworkStatus.ONLINE) {
-                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
-                mutableNotices.emit(
-                    UserNotice(
-                        message = "Άνοιξε σε λειτουργία χωρίς σύνδεση.",
-                        details = "Ενέργεια: Τοπικό ξεκλείδωμα\nΚατηγορία: OFFLINE_LOCAL_UNLOCK\nΧρησιμοποιούνται μόνο κρυπτογραφημένα δεδομένα αυτής της συσκευής. Η server συνεδρία θα επαληθευτεί πριν από συγχρονισμό.",
-                        diagnosticCode = "MFH-AUTH-OFFLINE-LOCAL-UNLOCK",
-                    ),
-                )
-                return@launch
-            }
-            mutableState.value = AuthShellUiState.Loading
+        if ((mutableState.value as? AuthShellUiState.Locked)?.session != session) return
+        // Enter Loading and invalidate prior work before a potentially long server check.
+        invalidateOfflineRevalidation()
+        val epoch = authTransitionEpoch
+        mutableState.value = AuthShellUiState.Loading
+        initialUnlockJob = viewModelScope.launch {
+            fun stillCurrent() = mayPublishInitialUnlock(
+                mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
-                when (val result = coordinator.afterLocalUnlock(session)) {
-                    is AuthAppState.Ready -> routeReady(result.session)
+                if (!stillCurrent()) return@launch
+                if (connectivityObserver.current() != NetworkStatus.ONLINE) {
+                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    mutableNotices.emit(
+                        UserNotice(
+                            message = "Άνοιξε σε λειτουργία χωρίς σύνδεση.",
+                            details = "Ενέργεια: Τοπικό ξεκλείδωμα\\nΚατηγορία: OFFLINE_LOCAL_UNLOCK\\nΧρησιμοποιούνται μόνο κρυπτογραφημένα δεδομένα αυτής της συσκευής. Η server συνεδρία θα επαληθευτεί πριν από συγχρονισμό.",
+                            diagnosticCode = "MFH-AUTH-OFFLINE-LOCAL-UNLOCK",
+                        ),
+                    )
+                    return@launch
+                }
+                val result = coordinator.afterLocalUnlock(session)
+                if (!stillCurrent()) return@launch
+                when (result) {
+                    is AuthAppState.Ready -> routeReady(result.session, ::stillCurrent)
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login(
                         "Η προηγούμενη συνεδρία έληξε. Συνδέσου ξανά.",
                     )
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Έλεγχος συνεδρίας μετά το ξεκλείδωμα")
-                        // Local authentication already succeeded. A transient server/network failure
-                        // must not re-lock the owner or force a full login; product access stays
-                        // cache-only until the stored server session can be revalidated.
-                        mutableState.value = AuthShellUiState.Ready(
-                            session = result.recoverableSession ?: session,
-                            offline = true,
-                        )
+                        if (stillCurrent()) {
+                            mutableState.value = AuthShellUiState.Ready(
+                                session = result.recoverableSession ?: session,
+                                offline = true,
+                            )
+                        }
                     }
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
                         "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                     )
-                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                    is AuthAppState.Locked -> {
+                        val locked = lockedState(result.session)
+                        if (stillCurrent()) mutableState.value = locked
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",
-                        throwable = error,
-                        message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
-                    ),
-                )
+                if (stillCurrent()) {
+                    mutableState.value = AuthShellUiState.Ready(session = session, offline = true)
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Έλεγχος συνεδρίας μετά το ξεκλείδωμα",
+                            throwable = error,
+                            message = "Η επαλήθευση της συνεδρίας δεν ολοκληρώθηκε. Τα τοπικά δεδομένα παραμένουν διαθέσιμα.",
+                        ),
+                    )
+                }
+            } finally {
+                if (authTransitionEpoch == epoch) initialUnlockJob = null
             }
         }
     }
