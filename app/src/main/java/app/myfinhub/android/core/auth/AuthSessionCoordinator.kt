@@ -38,7 +38,8 @@ class AuthSessionCoordinator(
     }
 
     suspend fun signIn(email: String, password: CharArray): AuthAppState {
-        val generation = authGeneration.get()
+        // A new password login supersedes any old validation or MFA challenge.
+        val generation = authGeneration.incrementAndGet()
         return when (val result = authGateway.signInWithPassword(email, password)) {
             is AuthResult.Success -> routeAuthenticatedSession(result.value, generation)
             is AuthResult.Failure -> if (authGeneration.get() == generation) {
