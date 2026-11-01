@@ -162,6 +162,97 @@ class AuthSessionCoordinatorTest {
         assertEquals(AuthAppState.LoginRequired, remote.await())
     }
 
+    @Test
+    fun slowValidatedUnlockCannotRecreateStoredCredentialsAfterLogout() = runBlocking {
+        val old = aal2Session()
+        val store = InMemorySessionStore(old)
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(onValidate = {
+            started.complete(Unit)
+            release.await()
+        })
+        val coordinator = AuthSessionCoordinator(configured, gateway, store, nowEpochSeconds = { 1_000 })
+
+        val unlock = async { coordinator.afterLocalUnlock(old) }
+        started.await()
+        assertEquals(AuthAppState.LoginRequired, coordinator.logout(old))
+        assertNull(store.value)
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, unlock.await())
+        assertNull(store.value)
+    }
+
+    @Test
+    fun staleRefreshCannotPersistBearerAfterLogout() = runBlocking {
+        val old = aal2Session(expiresAt = 1_002)
+        val refreshed = old.copy(accessToken = "new-token", expiresAtEpochSeconds = 20_000)
+        val store = InMemorySessionStore(old)
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(
+            refreshResult = AuthResult.Success(refreshed),
+            onRefresh = { started.complete(Unit); release.await() },
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store, nowEpochSeconds = { 1_000 })
+
+        val unlock = async { coordinator.afterLocalUnlock(old) }
+        started.await()
+        coordinator.logout(old)
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, unlock.await())
+        assertNull(store.value)
+    }
+
+    @Test
+    fun slowMfaVerificationCannotPersistAal2AfterLogout() = runBlocking {
+        val verified = aal2Session()
+        val store = InMemorySessionStore()
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(
+            challengeResult = AuthResult.Success(AuthChallenge("challenge")),
+            verifyResult = AuthResult.Success(verified),
+            onVerify = { started.complete(Unit); release.await() },
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store)
+
+        val verification = async {
+            coordinator.completeTotp(aal1Session(), "factor-1", "123456".toCharArray())
+        }
+        started.await()
+        coordinator.logout(aal1Session())
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, verification.await())
+        assertNull(store.value)
+    }
+
+    @Test
+    fun lateUnauthorizedResponseMustNotClearNewerSession() = runBlocking {
+        val old = aal2Session()
+        val replacement = old.copy(accessToken = "next-login-token")
+        val store = InMemorySessionStore(old)
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val gateway = FakeAuthGateway(
+            validateResult = AuthResult.Failure(AuthFailureKind.UNAUTHORIZED),
+            refreshResult = AuthResult.Failure(AuthFailureKind.SESSION_EXPIRED),
+            signInResult = AuthResult.Success(replacement),
+            onValidate = { started.complete(Unit); release.await() },
+        )
+        val coordinator = AuthSessionCoordinator(configured, gateway, store, nowEpochSeconds = { 1_000 })
+
+        val previous = async { coordinator.afterLocalUnlock(old) }
+        started.await()
+        coordinator.logout(old)
+        assertEquals(AuthAppState.Ready(replacement), coordinator.signIn(
+            "owner@example.test", "synthetic-password".toCharArray(),
+        ))
+        release.complete(Unit)
+        assertEquals(AuthAppState.LoginRequired, previous.await())
+        assertEquals(replacement, store.value)
+    }
+
     private fun aal1Session() = AuthSession(
         accessToken = "synthetic-aal1-token",
         refreshToken = "synthetic-refresh",
@@ -196,14 +287,21 @@ private class FakeAuthGateway(
     private val verifyResult: AuthResult<AuthSession> = AuthResult.Failure(AuthFailureKind.INVALID_MFA_CODE),
     private val throwOnSignOut: Boolean = false,
     private val onSignOut: suspend () -> Unit = {},
+    private val onValidate: suspend () -> Unit = {},
+    private val onRefresh: suspend () -> Unit = {},
+    private val onVerify: suspend () -> Unit = {},
 ) : AuthGateway {
     var validateCalls: Int = 0
     var signOutCalls: Int = 0
 
     override suspend fun signInWithPassword(email: String, password: CharArray) = signInResult
-    override suspend fun refreshSession(refreshToken: String) = refreshResult
+    override suspend fun refreshSession(refreshToken: String): AuthResult<AuthSession> {
+        onRefresh()
+        return refreshResult
+    }
     override suspend fun validateSession(accessToken: String): AuthResult<Unit> {
         validateCalls += 1
+        onValidate()
         return validateResult
     }
     override suspend fun listFactors(accessToken: String) = factorsResult
@@ -213,7 +311,10 @@ private class FakeAuthGateway(
         factorId: String,
         challengeId: String,
         code: CharArray,
-    ) = verifyResult
+    ): AuthResult<AuthSession> {
+        onVerify()
+        return verifyResult
+    }
     override suspend fun signOut(accessToken: String): AuthResult<Unit> {
         signOutCalls += 1
         onSignOut()
