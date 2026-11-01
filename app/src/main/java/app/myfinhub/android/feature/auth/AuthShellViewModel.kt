@@ -147,7 +147,6 @@ class AuthShellViewModel(
         initialUnlockJob = null
     }
 
-
     init {
         initialize()
         viewModelScope.launch {
@@ -475,7 +474,7 @@ class AuthShellViewModel(
                     mutableNotices.emit(
                         UserNotice(
                             message = "Άνοιξε σε λειτουργία χωρίς σύνδεση.",
-                            details = "Ενέργεια: Τοπικό ξεκλείδωμα\\nΚατηγορία: OFFLINE_LOCAL_UNLOCK\\nΧρησιμοποιούνται μόνο κρυπτογραφημένα δεδομένα αυτής της συσκευής. Η server συνεδρία θα επαληθευτεί πριν από συγχρονισμό.",
+                            details = "Ενέργεια: Τοπικό ξεκλείδωμα\nΚατηγορία: OFFLINE_LOCAL_UNLOCK\nΧρησιμοποιούνται μόνο κρυπτογραφημένα δεδομένα αυτής της συσκευής. Η server συνεδρία θα επαληθευτεί πριν από συγχρονισμό.",
                             diagnosticCode = "MFH-AUTH-OFFLINE-LOCAL-UNLOCK",
                         ),
                     )
