@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.myfinhub.android.BuildConfig
+import app.myfinhub.android.core.auth.AuthSession
 import app.myfinhub.android.core.config.AppConfiguration
 import app.myfinhub.android.core.network.NetworkStatus
 import app.myfinhub.android.core.network.NetworkClientFactory
@@ -75,6 +76,21 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
+
+/**
+ * A server read started for one owner/bearer may only publish into that same online
+ * authenticated session. The network call may complete after Compose effect cancellation;
+ * checking the ViewModel's live state avoids using the stale snapshot captured by the effect.
+ */
+internal fun mayPublishRootServerSnapshot(
+    expectedSession: AuthSession,
+    currentAuth: AuthShellUiState,
+): Boolean {
+    val ready = currentAuth as? AuthShellUiState.Ready ?: return false
+    return !ready.offline &&
+        ready.session.userId == expectedSession.userId &&
+        ready.session.accessToken == expectedSession.accessToken
+}
 
 /**
  * Production application root.
@@ -183,9 +199,11 @@ fun MyFinHubRoot(
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadAccountMetadata(ready.session)) {
                 is ApiResult.Success -> {
-                    accountMetadata = result.value
-                    metadataSessionKey = ready.session.userId to ready.session.accessToken
-                    accountMetadataLoaded = true
+                    if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
+                        accountMetadata = result.value
+                        metadataSessionKey = ready.session.userId to ready.session.accessToken
+                        accountMetadataLoaded = true
+                    }
                 }
                 is ApiResult.Failure -> Unit
             }
@@ -202,9 +220,11 @@ fun MyFinHubRoot(
         if (ready != null && !ready.offline) {
             when (val result = accountMetadataApi.loadServerFinanceHistory(ready.session)) {
                 is ApiResult.Success -> {
-                    serverHistory = result.value
-                    serverHistorySessionKey = ready.session.userId to ready.session.accessToken
-                    serverHistoryLoaded = true
+                    if (mayPublishRootServerSnapshot(ready.session, authViewModel.state.value)) {
+                        serverHistory = result.value
+                        serverHistorySessionKey = ready.session.userId to ready.session.accessToken
+                        serverHistoryLoaded = true
+                    }
                 }
                 is ApiResult.Failure -> Unit
             }
