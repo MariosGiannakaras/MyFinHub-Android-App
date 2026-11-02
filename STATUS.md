@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Native Android D1–D5 accepted (5/8). D6 Settings device sessions #414, backup picker #415, durable pending export #416, offline reconnect/logout #417 and initial PIN/biometric guard #418 all passed four exact-head checks and merged to develop (latest #418 c050ce7a6779bdedcb425d7a7bb0ec612567843b). Active draft PR #420 integrates encrypted session-store epoch fencing across logout/new password login and delayed refresh/MFA/validation, with deterministic concurrency regressions and synthetic cross-feature offline replay/Settings backup acceptance tests. D6 authentication, secure offline sync and backup integrated software acceptance is still in progress; D7 physical owner Galaxy S24 Ultra #149 and D8 signed release remain independent. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, production finance mutations, SMS #146, global PIN #345, signing or main.
+Native Android D1–D5 accepted (5/8). D6 auth/session, encrypted offline queue and legacy backup compatibility safety #414–#420 each passed four exact-head CI gates and merged develop; latest PR #420 at 5c8c433ae5a8f595157b916f3c5e95bddbd5e522 protects persisted credentials from stale logout/owner login and verifies synthetic offline replay/backup contract. Owner-approved phone Settings is mobile-only (docs/ANDROID_OWNER_MOBILE_SCOPE_2026-10-27.md): appearance, amount privacy, PIN/biometric session, Android notifications, safe update and logout; backup/restore, server history, rule authoring and Web administration remain Web-only, despite legacy utilities components. Active draft PR #421 adds hosted Compose actual Home-to-device Settings, logout, device privacy and Web-only exclusion acceptance. D6 mobile software signoff pending final PR review/gates/merge and remaining validation; D7 owner physical Galaxy S24 Ultra issue #149 and D8 authorized signed release independent. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged; no Web/backend/schema, real finance writes, SMS #146, global PIN #345, signing or main.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate draft PR #420 secure credential-store epoch + D6 offline replay/backup acceptance on final head with Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation. Correct actual failures inside same branch, ensure stable develop and review clear, then merge. Continue integrated D6 auth, offline reconciliation and backup software acceptance; do not infer owner physical S24 signoff #149 or release.
+1. Verify draft PR #421 actual Home→mobile Settings + privacy and logout user journey on one immutable final head, with Project Tracking, Android CI, screenshot regression and hosted S24 all PASS, stable develop and clear reviews. Merge only after all gates, then assess whether D6 native software acceptance can be evidence-backed closed under owner-approved mobile-only scope. Do not introduce Web-only backup/admin screens into the mobile route or infer physical owner S24 signoff #149 or signed deployment.
 
 ## Non-negotiable constraints
 
@@ -62,7 +62,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D6
-Next: D1–D5 accepted 5/8. D6 Settings #414, backup #415, queue-backed export #416, reconnect auth #417 and initial unlock #418 merged; draft #420 secures persisted auth tokens against stale network operations and adds cross-feature offline replay/backup acceptance tests. D6 software acceptance pending, D7 owner physical S24 #149 and D8 authorized signed release separate.
+Next: D1–D5 accepted 5/8. D6 secure auth/offline/legacy backup compatibility PRs #414–#420 merged. Current draft #421 validates real owner-approved phone Settings route (privacy, update, logout) rather than Web-only backup/rules/history. D6 software acceptance pending four gates, merge and integrated review; D7 owner physical S24 #149 and D8 signed release separate.
 
 
 ## Active Web parity progress
@@ -71,10 +71,10 @@ Next: D1–D5 accepted 5/8. D6 Settings #414, backup #415, queue-backed export #
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #420, branch android/d6-auth-session-store-boundary-20261101
-Current W5.2: D6 PRs #414–#418 passed four immutable-head gates and merged develop; most recent #418 c050ce7a6779bdedcb425d7a7bb0ec612567843b guards PIN/biometric and initial auth. Draft #420 fences encrypted credential-store writes and clears against stale logout/new owner auth and adds deterministic six-case concurrency plus synthetic integrated offline replay/backup acceptance matrix. CI pending, D6 incomplete, deploy 5/8; historical Web parity 1/6 · 11/24, physical Galaxy S24 #149 and signed release separate.
+Issue #155, PR #421, branch android/d6-mobile-settings-journey-20261101
+Current W5.4: D6 #414–#420 auth, secure offline queue, legacy backup compatibility tests passed four immutable-head gates each and merged develop; latest #420 5c8c433ae5a8f595157b916f3c5e95bddbd5e522. Owner mobile scope keeps backup/restore, finance auditing and rules Web-only; actual phone Settings route is MobileDeviceSettingsScreen. Active draft #421 adds hosted Compose full Home→phone Settings/logout navigation and device privacy tests, final-head CI pending. D6 unaccepted, deploy 5/8, Web parity historical 1/6 · 11/24, owner S24 #149 and release separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #420 at final head with all four CI gates, clear review and unchanged develop. Merge only on PASS; continue final D6 integrated auth, secure offline replay, Settings backup software acceptance. No owner S24 physical approval or signed release claim.
+Next Validate draft #421 exact final-head four-gate Android CI/Project Tracking/screenshot/hosted S24 checks, review and stable develop. Merge only on PASS, then complete evidence-backed D6 mobile Settings/auth/offline integration acceptance without surfacing excluded Web backup/admin features. Physical S24 and release separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
