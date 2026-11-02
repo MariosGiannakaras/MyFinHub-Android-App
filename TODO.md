@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify draft PR #421 actual Home→mobile Settings + privacy and logout user journey on one immutable final head, with Project Tracking, Android CI, screenshot regression and hosted S24 all PASS, stable develop and clear reviews. Merge only after all gates, then assess whether D6 native software acceptance can be evidence-backed closed under owner-approved mobile-only scope. Do not introduce Web-only backup/admin screens into the mobile route or infer physical owner S24 signoff #149 or signed deployment.
+- [ ] Validate final draft PR #422 with exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator all PASS, unchanged develop base and clear reviews, then merge D6 software completion. Next D7 is real owner Galaxy S24 Ultra end-to-end physical acceptance #149 with actual installed build evidence, screenshots and explicit feedback; no hosted emulator substitutes. D8 production-signed deployment requires separate approval, stable signer and release gate. Keep Web-only admin/backup excluded from the phone UI.
 
 ## Completed foundations
 
@@ -56,7 +56,7 @@ Do not append historical TODO sections here. Git history and closed issues/PRs a
 
 ## Android deploy progress
 
-**Μέχρι deploy: 5/8 stages**
+**Μέχρι deploy: 6/8 stages**
 
 Evidence-backed release milestones, not percent of code written.
 
@@ -67,12 +67,12 @@ Evidence-backed release milestones, not percent of code written.
 | D3 Cards, credit and Quick Entry end-to-end | completed |
 | D4 Activity and transaction management | completed |
 | D5 Plan, savings, obligations and Insights | completed |
-| D6 Settings, auth, secure sync/offline and backup | in_progress |
+| D6 Settings, auth, secure sync/offline and backup | completed |
 | D7 Final integrated physical S24 owner acceptance | pending |
 | D8 Production-signed release and deployment | pending |
 
-Current: D6
-Next: D1–D5 accepted 5/8. D6 secure auth/offline/legacy backup compatibility PRs #414–#420 merged. Current draft #421 validates real owner-approved phone Settings route (privacy, update, logout) rather than Web-only backup/rules/history. D6 software acceptance pending four gates, merge and integrated review; D7 owner physical S24 #149 and D8 signed release separate.
+Current: D7
+Next: D1–D6 native Android software milestones 6/8 after #422 merges with all four exact-head gates PASS. D6 includes #414–#421 verified auth/session, encrypted offline queue, legacy backup safety and mobile phone Settings, plus #422 final stale owner metadata/history protection. D7 physical owner Galaxy S24 Ultra acceptance #149 requires real on-device evidence and explicit owner confirmation, still pending; D8 production-signed release independent and requires authorization. Historical Web parity unchanged.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D5 accepted 5/8. D6 secure auth/offline/legacy backup compatibility P
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #421, branch android/d6-mobile-settings-journey-20261101
-Current W5.4: D6 #414–#420 auth, secure offline queue, legacy backup compatibility tests passed four immutable-head gates each and merged develop; latest #420 5c8c433ae5a8f595157b916f3c5e95bddbd5e522. Owner mobile scope keeps backup/restore, finance auditing and rules Web-only; actual phone Settings route is MobileDeviceSettingsScreen. Active draft #421 adds hosted Compose full Home→phone Settings/logout navigation and device privacy tests, final-head CI pending. D6 unaccepted, deploy 5/8, Web parity historical 1/6 · 11/24, owner S24 #149 and release separate.
+Issue #155, PR #422, branch android/d6-final-root-auth-acceptance-20261102
+Current W5.4: D6 native Android software acceptance targeted for final draft PR #422. Merged #414–#421 exact-head four-gate PASS (latest #421 f1580a3cd9c8e60238afd687319ec5a145152182); auth, secure offline/sync, compatibility backup safety and actual Home→mobile Settings tested. Draft #422 guards stale IBAN metadata and server history after logout and user/token change, with JVM regressions; CI and merge required before the tracker completion becomes authoritative on develop. Deploy 6/8 only on merge, D7 physical owner S24 #149 pending, D8 signed production release pending. Historical Web parity 1/6 · 11/24 unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft #421 exact final-head four-gate Android CI/Project Tracking/screenshot/hosted S24 checks, review and stable develop. Merge only on PASS, then complete evidence-backed D6 mobile Settings/auth/offline integration acceptance without surfacing excluded Web backup/admin features. Physical S24 and release separate.
+Next Verify #422 exact final-head all four CI gates, clean review and stable develop then merge. D7 physical Galaxy S24 Ultra acceptance #149 requires real owner/device evidence and cannot be simulated; D8 signed release requires separate authorization. Web parity 1/6 · 11/24 tracked independently.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
