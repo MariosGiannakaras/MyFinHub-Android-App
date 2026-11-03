@@ -18,6 +18,8 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.version_name = "1.0.0-rc12"
         self.version_code = 10011
         self.error = None
+        self.path_override = None
+        self.dumpsys_override = None
 
     def run_adb(self, args, **kwargs):
         self.commands.append(args)
@@ -39,6 +41,10 @@ class PhysicalS24PreflightTests(unittest.TestCase):
                 "    synthetic-SECRET-PAN=4111111111111111\n",
         }
         self.assertIn(tuple(args[2:]), safe_queries, "Unapproved ADB command")
+        if self.path_override is not None:
+            safe_queries[("shell", "pm", "path", preflight.PACKAGE)] = self.path_override
+        if self.dumpsys_override is not None:
+            safe_queries[("shell", "dumpsys", "package", preflight.PACKAGE)] = self.dumpsys_override
         if self.error is not None:
             return subprocess.CompletedProcess(
                 args=args, returncode=1, stdout="", stderr=self.error,
@@ -96,6 +102,51 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.version_name = "bad version"
         with self.assertRaisesRegex(preflight.PreflightError, "not valid"):
             self.check()
+
+    def test_package_version_is_scoped_to_exact_package_not_first_unrelated_version(self):
+        self.dumpsys_override = (
+            "Packages:\n  Package [com.unrelated.app]\n"
+            "    versionCode=99999 minSdk=24\n    versionName=not-myfinhub\n"
+            f"  Package [{preflight.PACKAGE}]\n"
+            "    versionCode=10012 minSdk=26\n    versionName=1.0.0-rc13\n"
+        )
+        result = self.check()
+        self.assertEqual(result["version_code"], 10012)
+        self.assertEqual(
+            result["candidate_check"], "newer_build_requires_source_and_signer_verification",
+        )
+
+    def test_missing_exact_package_section_fails_closed(self):
+        self.dumpsys_override = (
+            "Packages:\n  Package [com.unrelated.app]\n"
+            "    versionCode=10013 minSdk=26\n    versionName=1.0.0-rc14\n"
+        )
+        with self.assertRaisesRegex(preflight.PreflightError, "identity"):
+            self.check()
+
+    def test_duplicate_exact_package_sections_fail_closed(self):
+        section = (
+            f"  Package [{preflight.PACKAGE}]\n"
+            "    versionCode=10012 minSdk=26\n    versionName=1.0.0-rc13\n"
+        )
+        self.dumpsys_override = "Packages:\n" + section + section
+        with self.assertRaisesRegex(preflight.PreflightError, "identity"):
+            self.check()
+
+    def test_duplicate_version_fields_fail_closed(self):
+        self.dumpsys_override = (
+            f"Packages:\n  Package [{preflight.PACKAGE}]\n"
+            "    versionCode=10012 minSdk=26\n    versionCode=10013 minSdk=26\n"
+            "    versionName=1.0.0-rc13\n"
+        )
+        with self.assertRaisesRegex(preflight.PreflightError, "not readable"):
+            self.check()
+
+    def test_malformed_pm_path_does_not_masquerade_as_not_installed(self):
+        self.path_override = "Error: permission denied for package"
+        with self.assertRaisesRegex(preflight.PreflightError, "path was not readable"):
+            self.check()
+        self.assertFalse(any("dumpsys" in cmd for cmd in self.commands))
 
     def test_adb_failure_never_leaks_raw_stderr_or_credential(self):
         self.error = "Bearer top-secret-credential"
