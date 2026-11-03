@@ -8,6 +8,8 @@ on:
       - 'app/**'
       - 'scripts/install-android-sdk.sh'
       - 'scripts/run-connected-android-tests.sh'
+      - 'scripts/s24_device_preflight.py'
+      - 'scripts/test_s24_device_preflight.py'
       - 'build.gradle.kts'
       - 'gradle.properties'
       - '.github/workflows/android-ui-quality.yml'
