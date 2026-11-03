@@ -81,7 +81,7 @@ def inspect() -> dict[str, object]:
 
     info = _adb("shell", "dumpsys", "package", PACKAGE)
     code_match = re.search(r"(?m)^\s*versionCode=(\d+)\b", info)
-    name_match = re.search(r"(?m)^\s*versionName=([^\s]+)", info)
+    name_match = re.search(r"(?m)^\s*versionName=(.+?)\s*$", info)
     if code_match is None or name_match is None:
         raise PreflightError("Installed package version was not readable.")
 
