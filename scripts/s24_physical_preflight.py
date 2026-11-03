@@ -16,9 +16,9 @@ import sys
 
 PACKAGE = "app.myfinhub.android"
 LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12, released 2026-10-14
-MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\\Z")
-VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\\Z")
-ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\\Z")
+MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
+VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
+ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\Z")
 
 
 class PreflightError(Exception):
@@ -80,8 +80,8 @@ def inspect() -> dict[str, object]:
         }
 
     info = _adb("shell", "dumpsys", "package", PACKAGE)
-    code_match = re.search(r"(?m)^\\s*versionCode=(\\d+)\\b", info)
-    name_match = re.search(r"(?m)^\\s*versionName=([^\\s]+)", info)
+    code_match = re.search(r"(?m)^\s*versionCode=(\d+)\b", info)
+    name_match = re.search(r"(?m)^\s*versionName=([^\s]+)", info)
     if code_match is None or name_match is None:
         raise PreflightError("Installed package version was not readable.")
 
