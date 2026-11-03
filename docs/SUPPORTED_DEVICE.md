@@ -41,3 +41,18 @@ The owner's physical Samsung Galaxy S24 Ultra remains the final authority for:
 - physical-device Auth/API smoke validation.
 
 Production signing is already enrolled and protected. Ordinary implementation work must still not create, rotate or expose signing material or publish signed releases. Each new production candidate requires an explicit release checkpoint and physical S24 Ultra acceptance before stable promotion.
+
+## Read-only D7 installed-build preflight
+
+For an owner-authorized, production-signed **new** candidate installed **in place** on the physical Galaxy S24 Ultra, a desktop with Android Platform Tools can run:
+
+```bash
+python3 scripts/s24_device_preflight.py \
+  --previous-version-code 10011 \
+  --expected-version-code NEW_SIGNED_VERSION_CODE \
+  --expected-version-name NEW_SIGNED_VERSION_NAME
+```
+
+Substitute the version fields from the actual, separately approved protected release; **do not** assume a future version or reuse rc12. With multiple connected Android devices, use `--serial` to select the intended device. The script performs read-only `adb devices`, `getprop`, and `dumpsys package` queries. Its JSON report contains only model, Android release, package/version metadata and explicit unverified acceptance fields: it never prints device serials, financial data, credentials, signer material, raw dumpsys or app-private storage.
+
+A matching report **does not** attest to production signing, in-place-update preservation, owner+AAL2/PIN/biometric/vault continuity, appearance, functionality or D7 acceptance. These require direct owner verification and privacy-safe evidence in [issue #149](https://github.com/MariosGiannakaras/MyFinHub-Android-App/issues/149). No script action installs, updates, exports files or launches the protected publisher.
