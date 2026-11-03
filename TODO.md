@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate final draft PR #422 with exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator all PASS, unchanged develop base and clear reviews, then merge D6 software completion. Next D7 is real owner Galaxy S24 Ultra end-to-end physical acceptance #149 with actual installed build evidence, screenshots and explicit feedback; no hosted emulator substitutes. D8 production-signed deployment requires separate approval, stable signer and release gate. Keep Web-only admin/backup excluded from the phone UI.
+- [ ] Validate draft PR #423 D7 read-only S24 installed-build preflight at exact final head with Project Tracking (including synthetic ADB tests), Android CI, screenshot regression and hosted S24 instrumentation, unchanged develop and clear reviews; merge only on 4/4 PASS. D7 then waits for separate owner authorization of a new same-signer build and real S24 Ultra privacy-safe acceptance evidence #149. Do not claim the hosted emulator or old rc12 meets D7 or authorize D8 signed production release.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 native Android software milestones 6/8 after #422 merges with all four exact-head gates PASS. D6 includes #414–#421 verified auth/session, encrypted offline queue, legacy backup safety and mobile phone Settings, plus #422 final stale owner metadata/history protection. D7 physical owner Galaxy S24 Ultra acceptance #149 requires real on-device evidence and explicit owner confirmation, still pending; D8 production-signed release independent and requires authorization. Historical Web parity unchanged.
+Next: D1–D6 completed on develop with #422 four-gate PASS. D7 awaits physical owner Galaxy S24 Ultra acceptance #149 and a separately authorized newer same-signer candidate; last owner-installed rc12/10011 is an older source. Draft #423 adds metadata-only ADB preflight with tests, without installation or release. D8 signed publication requires explicit authorization. Historical Web parity 1/6 · 11/24.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 native Android software milestones 6/8 after #422 merges with all 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #422, branch android/d6-final-root-auth-acceptance-20261102
-Current W5.4: D6 native Android software acceptance targeted for final draft PR #422. Merged #414–#421 exact-head four-gate PASS (latest #421 f1580a3cd9c8e60238afd687319ec5a145152182); auth, secure offline/sync, compatibility backup safety and actual Home→mobile Settings tested. Draft #422 guards stale IBAN metadata and server history after logout and user/token change, with JVM regressions; CI and merge required before the tracker completion becomes authoritative on develop. Deploy 6/8 only on merge, D7 physical owner S24 #149 pending, D8 signed production release pending. Historical Web parity 1/6 · 11/24 unchanged.
+Issue #155, PR #423, branch android/d7-s24-readonly-device-preflight-20261103
+Current W5.4: D6 completed on develop after final #422 four-gate PASS and squash merge 29ee13e8c5f9d6da3f567cd5872f1291f7ee1b07. D7 pending owner physical S24 acceptance; last installed rc12/10011 predates D6. Active draft #423 adds safe read-only ADB model/package/version preflight with synthetic tests, not release or physical acceptance. Web parity historical 1/6 · 11/24; D8 separately gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify #422 exact final-head all four CI gates, clean review and stable develop then merge. D7 physical Galaxy S24 Ultra acceptance #149 requires real owner/device evidence and cannot be simulated; D8 signed release requires separate authorization. Web parity 1/6 · 11/24 tracked independently.
+Next Validate #423 exact-head CI four-gate checks, clean review and stable develop then merge. Real D7 owner S24 #149 requires a separately authorized same-signer candidate newer than rc12 and actual owner evidence; D8 release authorization independent. Web parity remains 1/6 · 11/24.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
