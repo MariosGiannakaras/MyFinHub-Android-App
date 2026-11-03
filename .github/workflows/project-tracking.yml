@@ -28,6 +28,9 @@ jobs:
       - name: Verify redesign checkpoint integrity
         run: python3 -m unittest discover -s scripts -p 'test_project_tracking.py'
 
+      - name: Test privacy-safe physical S24 metadata preflight
+        run: python3 -m unittest discover -s scripts -p 'test_s24_device_preflight.py'
+
       - name: Require canonical-state update on product/release PRs
         if: github.event_name == 'pull_request'
         run: python3 scripts/render_project_tracking.py --check --enforce-pr-tracking-change
