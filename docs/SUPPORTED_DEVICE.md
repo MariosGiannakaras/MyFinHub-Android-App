@@ -41,3 +41,15 @@ The owner's physical Samsung Galaxy S24 Ultra remains the final authority for:
 - physical-device Auth/API smoke validation.
 
 Production signing is already enrolled and protected. Ordinary implementation work must still not create, rotate or expose signing material or publish signed releases. Each new production candidate requires an explicit release checkpoint and physical S24 Ultra acceptance before stable promotion.
+
+## D7 physical-device read-only preflight
+
+For owner-supervised physical acceptance, connect the **actual S24 Ultra via USB** with authorized ADB access, then run:
+
+```sh
+python3 scripts/s24_physical_preflight.py --json
+```
+
+This is an optional, reproducible **read-only inspection**, not an installation or acceptance test. It queries only the Samsung SM-S928 model family, Android release, font scale and the installed `app.myfinhub.android` package/version. It does not retrieve the USB serial, account identifiers, finance data, session tokens, card secrets, app files or APK; it never modifies device settings, requests permissions or installs an update. All ADB failures are summarized without printing raw device diagnostics. The script requires a single authorized physical **USB** phone, not an emulator or a Wi-Fi ADB endpoint.
+
+A reported `older_or_equal_to_rc12` build is insufficient for post-D6 acceptance. A higher version code still requires independent release-source and **same-signer** verification, an in-place installation/continuity check and explicit owner acceptance of the real user journeys. The script always reports `physical_acceptance: not_assessed`. Never expose account details, PAN/CVV or unmasked balances in issue screenshots or logs. The current required checklist and blocked release-source gate remain in issue #149; owner authorization is required for a new signed candidate.
