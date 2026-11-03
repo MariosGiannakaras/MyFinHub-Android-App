@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-Native Android D1–D6 software milestones completed (6/8) on develop; latest D6 PR #422 passed four immutable-head checks and squash merged as 29ee13e8c5f9d6da3f567cd5872f1291f7ee1b07. D7 real owner Samsung Galaxy S24 Ultra physical acceptance remains pending: signed installed rc12/10011 predates D6 and has no owner-approved new candidate or current-build physical signoff. PR #424 prepares an optional, read-only USB phone/build preflight with synthetic private-data-free ADB contract tests and existing supported-device guidance. It neither authorizes signing/installation nor supplies physical acceptance. D8 protected production-signed release is a separate owner-authorized gate. Owner-approved phone Settings excludes Web-only finance administration and backup/restore; no Web/backend/schema, live financial writes, SMS #146, global PIN #345, main or signing changes. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged.
+Native Android D1–D6 software milestones completed (6/8) on develop. D7 read-only S24 USB preflight PR #424 passed all four exact-head checks and merged as 42d3000fd35b76ed4030737a84fe431b378f5da2; it does not establish physical acceptance. Draft PR #425 adds exact installed-package identity and ambiguous-version fail-closed checks with synthetic regressions; its new head remains unvalidated/unmerged. Owner-installed production-signed rc12/10011 predates D1–D6. D7 still requires a separately owner-authorized current-source same-signer candidate, actual in-place S24 upgrade and explicit privacy-safe functional signoff (#149); D8 requires separate protected release authorization. Phone Settings remains device-only; no Web/backend/schema, live finance writes, SMS #146, global PIN #345, main or signing changes. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate D7 read-only S24 preflight PR #424 with exact immutable-head Project Tracking, Android CI, screenshot and hosted S24 checks, stable develop and clear reviews. D7 physical acceptance still requires a separate owner-approved same-signer candidate built from the accepted source, actual in-place S24 upgrade and explicit privacy-safe owner functional signoff in issue #149. D8 needs separate release authorization; do not sideload a differently signed debug APK, reset installed app data or infer physical approval from CI.
+1. Validate draft D7 exact-package preflight PR #425 on its immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 must all succeed, with stable develop and no unresolved reviews, before merge. This is read-only metadata safety, NOT real-device acceptance. D7 still needs separate owner-approved same-signer current-source release candidate and actual physical S24 in-place upgrade, continuity and owner signoff (#149). D8 requires separate release authorization; do not install a debug APK, erase app data or infer owner acceptance from CI.
 
 ## Non-negotiable constraints
 
@@ -62,7 +62,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 native software accepted 6/8 through PR #422. D7 physical S24 acceptance pending an owner-authorized current-source same-signer signed candidate, real in-place upgrade and explicit owner signoff (#149). PR #424 adds read-only installed-build preflight only, not acceptance or release authorization. D8 production-signed release pending separate approval; installed rc12/10011 is older than D6.
+Next: D1–D6 accepted 6/8 on develop; #424 read-only S24 preflight passed four exact-head gates and merged. Draft #425 hardens exact installed-package identity; tests/checks and merge pending. D7 remains blocked on separate owner-approved current-source same-signer candidate, real in-place S24 upgrade and explicit physical signoff (#149). D8 protected release is separately gated; installed rc12/10011 predates D1–D6.
 
 
 ## Active Web parity progress
@@ -71,10 +71,10 @@ Next: D1–D6 native software accepted 6/8 through PR #422. D7 physical S24 acce
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #424, branch android/d7-physical-read-only-preflight-20261103
-Current W5.4: D1–D6 native software stages 6/8 accepted in develop, latest #422 29ee13e8c5f9d6da3f567cd5872f1291f7ee1b07. D7 is physical Galaxy S24 Ultra and current signed candidate/owner signoff remain unavailable. PR #424 prepares only a read-only USB preflight to report device and installed version with synthetic privacy tests; no signed release or owner acceptance. Historical Web parity 1/6 · 11/24 unchanged.
+Issue #155, PR #425, branch android/d7-preflight-exact-package-version-20261103
+Current W5.4: D1–D6 native software accepted 6/8; read-only S24 preflight #424 passed 4/4 and merged to develop 42d3000fd35b76ed4030737a84fe431b378f5da2. Draft #425 adds fail-closed package-scoped installed-version parsing and synthetic regressions, without any signed build or physical acceptance. CI unverified and unmerged. D7 physical Galaxy S24 Ultra approval and a separately authorized current-source same-signer candidate remain unavailable; Web parity 1/6 · 11/24 unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify #424 exact-final-head four CI gates, review and stable develop, then merge on success. D7 needs new owner-authorized same-signer current-source candidate plus actual physical S24 in-place upgrade and owner verification; D8 independently authorized production release. Web parity 1/6 · 11/24 separate.
+Next Validate #425 final-head four CI gates and reviews with stable develop, then merge only if green. D7 requires separate authorized same-signer signed candidate, actual S24 in-place upgrade and privacy-safe owner signoff; D8 requires independent release authorization. No Web/backend, signing, main or SMS changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
