@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-02",
+  "updated_at": "2026-11-03",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Native Android D1–D6 software milestones evidence-backed (6/8 after merge of draft PR #422). D6 auth/PIN/biometric offline reconnect, encrypted credential/session generation, persistent offline finance NEEDS_REVIEW and safe replay, compatibility backup guards and native phone Settings all covered by merged PRs #414–#421 with exact-final-head four-gate PASS; latest #421 merged develop f1580a3cd9c8e60238afd687319ec5a145152182. Draft final PR #422 additionally rejects stale root IBAN/account metadata and server-history responses after logout/offline or owner/token changes, with JVM tests. D6 completion in develop depends on #422 final four checks and merge, never on code authored alone. D7 real owner physical Galaxy S24 Ultra acceptance issue #149 remains pending, independent of hosted S24 emulator; D8 separate explicitly approved production-signed release still pending. Owner-approved phone Settings excludes Web-only backup/restore, finance administration/rules/history; no Web/backend/schema, live finance writes, SMS #146, global PIN #345, signing/main. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged.",
+    "summary": "Native Android D1–D6 software milestones completed (6/8) on develop; latest D6 PR #422 passed four immutable-head checks and squash merged as 29ee13e8c5f9d6da3f567cd5872f1291f7ee1b07. D7 real owner Samsung Galaxy S24 Ultra physical acceptance remains pending: signed installed rc12/10011 predates D6 and has no owner-approved new candidate or current-build physical signoff. PR #424 prepares an optional, read-only USB phone/build preflight with synthetic private-data-free ADB contract tests and existing supported-device guidance. It neither authorizes signing/installation nor supplies physical acceptance. D8 protected production-signed release is a separate owner-authorized gate. Owner-approved phone Settings excludes Web-only finance administration and backup/restore; no Web/backend/schema, live financial writes, SMS #146, global PIN #345, main or signing changes. Historical Web parity 1/6 implementations · 11/24 subtasks unchanged.",
     "next": [
-      "Validate final draft PR #422 with exact-head Project Tracking, Android CI, screenshot regression and hosted S24 emulator all PASS, unchanged develop base and clear reviews, then merge D6 software completion. Next D7 is real owner Galaxy S24 Ultra end-to-end physical acceptance #149 with actual installed build evidence, screenshots and explicit feedback; no hosted emulator substitutes. D8 production-signed deployment requires separate approval, stable signer and release gate. Keep Web-only admin/backup excluded from the phone UI."
+      "Validate D7 read-only S24 preflight PR #424 with exact immutable-head Project Tracking, Android CI, screenshot and hosted S24 checks, stable develop and clear reviews. D7 physical acceptance still requires a separate owner-approved same-signer candidate built from the accepted source, actual in-place S24 upgrade and explicit privacy-safe owner functional signoff in issue #149. D8 needs separate release authorization; do not sideload a differently signed debug APK, reset installed app data or infer physical approval from CI."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/d6-final-root-auth-acceptance-20261102",
-    "checkpoint": "D6 native Android software acceptance targeted for final draft PR #422. Merged #414–#421 exact-head four-gate PASS (latest #421 f1580a3cd9c8e60238afd687319ec5a145152182); auth, secure offline/sync, compatibility backup safety and actual Home→mobile Settings tested. Draft #422 guards stale IBAN metadata and server history after logout and user/token change, with JVM regressions; CI and merge required before the tracker completion becomes authoritative on develop. Deploy 6/8 only on merge, D7 physical owner S24 #149 pending, D8 signed production release pending. Historical Web parity 1/6 · 11/24 unchanged.",
+    "branch": "android/d7-physical-read-only-preflight-20261103",
+    "checkpoint": "D1–D6 native software stages 6/8 accepted in develop, latest #422 29ee13e8c5f9d6da3f567cd5872f1291f7ee1b07. D7 is physical Galaxy S24 Ultra and current signed candidate/owner signoff remain unavailable. PR #424 prepares only a read-only USB preflight to report device and installed version with synthetic privacy tests; no signed release or owner acceptance. Historical Web parity 1/6 · 11/24 unchanged.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1196,15 +1196,15 @@
         ]
       }
     ],
-    "next_action": "Verify #422 exact final-head all four CI gates, clean review and stable develop then merge. D7 physical Galaxy S24 Ultra acceptance #149 requires real owner/device evidence and cannot be simulated; D8 signed release requires separate authorization. Web parity 1/6 · 11/24 tracked independently.",
+    "next_action": "Verify #424 exact-final-head four CI gates, review and stable develop, then merge on success. D7 needs new owner-authorized same-signer current-source candidate plus actual physical S24 in-place upgrade and owner verification; D8 independently authorized production release. Web parity 1/6 · 11/24 separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 422,
+    "pr": 424,
     "current_subtask": "W5.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D1–D6 native Android software milestones 6/8 after #422 merges with all four exact-head gates PASS. D6 includes #414–#421 verified auth/session, encrypted offline queue, legacy backup safety and mobile phone Settings, plus #422 final stale owner metadata/history protection. D7 physical owner Galaxy S24 Ultra acceptance #149 requires real on-device evidence and explicit owner confirmation, still pending; D8 production-signed release independent and requires authorization. Historical Web parity unchanged.",
+    "next_action": "D1–D6 native software accepted 6/8 through PR #422. D7 physical S24 acceptance pending an owner-authorized current-source same-signer signed candidate, real in-place upgrade and explicit owner signoff (#149). PR #424 adds read-only installed-build preflight only, not acceptance or release authorization. D8 production-signed release pending separate approval; installed rc12/10011 is older than D6.",
     "stages": [
       {
         "id": "D1",
