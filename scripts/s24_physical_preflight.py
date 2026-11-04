@@ -19,6 +19,7 @@ LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12, released 2026-10-14
 MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
 ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\Z")
+PACKAGE_HEADER = re.compile(r"(?m)^[ \t]*Package \[([^\]\r\n]+)\]")
 
 
 class PreflightError(Exception):
@@ -41,6 +42,29 @@ def _adb(*args: str) -> str:
     if result.returncode != 0:
         raise PreflightError("ADB query failed. Connect and authorize one physical USB phone.")
     return result.stdout.strip()
+
+
+
+def _installed_version(info: str) -> tuple[int, str]:
+    """Read exactly one version from the exact package section of dumpsys."""
+    headers = list(PACKAGE_HEADER.finditer(info))
+    owners = [i for i, header in enumerate(headers) if header.group(1) == PACKAGE]
+    if len(owners) != 1:
+        raise PreflightError("Installed package identity was not readable.")
+
+    index = owners[0]
+    end = headers[index + 1].start() if index + 1 < len(headers) else len(info)
+    section = info[headers[index].end():end]
+    codes = re.findall(r"(?m)^[ \t]*versionCode=([0-9]+)(?=\s|$)", section)
+    names = re.findall(r"(?m)^[ \t]*versionName=([^\r\n]*)$", section)
+    if len(codes) != 1 or len(names) != 1 or len(codes[0]) > 18:
+        raise PreflightError("Installed package version was not readable.")
+
+    code = int(codes[0])
+    name = names[0].strip()
+    if code <= 0 or VERSION_PATTERN.fullmatch(name) is None:
+        raise PreflightError("Installed package version was not valid.")
+    return code, name
 
 
 def inspect() -> dict[str, object]:
@@ -68,7 +92,7 @@ def inspect() -> dict[str, object]:
         font_scale = None
 
     installed_path = _adb("shell", "pm", "path", PACKAGE)
-    if not installed_path.startswith("package:"):
+    if not installed_path:
         return {
             "supported_device": "Samsung Galaxy S24 Ultra (SM-S928 family)",
             "android_release": release,
@@ -79,16 +103,11 @@ def inspect() -> dict[str, object]:
             "physical_acceptance": "not_assessed",
         }
 
-    info = _adb("shell", "dumpsys", "package", PACKAGE)
-    code_match = re.search(r"(?m)^\s*versionCode=(\d+)\b", info)
-    name_match = re.search(r"(?m)^\s*versionName=(.+?)\s*$", info)
-    if code_match is None or name_match is None:
-        raise PreflightError("Installed package version was not readable.")
+    if not all(re.fullmatch(r"package:/[^\s]+\.apk", line) for line in installed_path.splitlines()):
+        raise PreflightError("Installed package path was not readable.")
 
-    version_code = int(code_match.group(1))
-    version_name = name_match.group(1)
-    if version_code <= 0 or VERSION_PATTERN.fullmatch(version_name) is None:
-        raise PreflightError("Installed package version was not valid.")
+    info = _adb("shell", "dumpsys", "package", PACKAGE)
+    version_code, version_name = _installed_version(info)
 
     # A newer code alone does NOT establish trusted signer, source provenance,
     # safe in-place upgrade, or product/owner acceptance.
