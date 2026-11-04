@@ -41,6 +41,28 @@ class InitialUnlockGenerationSafetyTest {
         assertFalse(mayPublishInitialUnlock(AuthShellUiState.Ready(session), 2L, 2L))
     }
 
+    @Test fun stalePasswordResponseCannotPublishAfterLogoutOrNewAuthentication() {
+        // Login and TOTP callbacks now use this same epoch and Loading-state gate,
+        // rather than allowing a cancelled network response to reopen a previous UI.
+        assertTrue(mayPublishInitialUnlock(AuthShellUiState.Loading, 17L, 17L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Loading, 17L, 18L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Login(), 17L, 17L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Ready(session), 17L, 17L))
+    }
+
+    @Test fun staleTotpResponseCannotRestoreAnOldMfaOrReadyState() {
+        assertTrue(mayPublishInitialUnlock(AuthShellUiState.Loading, 23L, 23L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Loading, 23L, 24L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Mfa(
+            session = session.copy(accessToken = "fresh-owner-token"),
+            factor = app.myfinhub.android.core.auth.AuthFactor(
+                id = "synthetic-factor", factorType = "totp", status = "verified",
+                friendlyName = "Authenticator",
+            ),
+        ), 23L, 23L))
+        assertFalse(mayPublishInitialUnlock(AuthShellUiState.Ready(session), 23L, 23L))
+    }
+
     @Test fun pinEnrollmentCannotReopenFinanceAfterSessionTransition() {
         val enrolling = AuthShellUiState.PinEnrollment(session = session)
         assertTrue(mayFinishPinEnrollment(session, enrolling, 4L, 4L))
