@@ -56,7 +56,7 @@ class InitialUnlockGenerationSafetyTest {
         assertFalse(mayPublishInitialUnlock(AuthShellUiState.Mfa(
             session = session.copy(accessToken = "fresh-owner-token"),
             factor = app.myfinhub.android.core.auth.AuthFactor(
-                id = "synthetic-factor", factorType = "totp", status = "verified",
+                id = "synthetic-factor", type = "totp", status = "verified",
                 friendlyName = "Authenticator",
             ),
         ), 23L, 23L))
