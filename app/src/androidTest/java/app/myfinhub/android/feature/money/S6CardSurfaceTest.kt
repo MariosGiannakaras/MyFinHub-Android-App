@@ -1,10 +1,13 @@
 package app.myfinhub.android.feature.money
 
+import android.app.Activity
+import android.view.WindowManager
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
@@ -340,6 +343,65 @@ class S6CardSurfaceTest {
         composeRule.onNodeWithText("Εκκρεμεί: τοπικά στοιχεία κάρτας.").assertIsDisplayed()
         composeRule.onNodeWithText("Δοκιμή καθαρισμού ξανά").performClick()
         composeRule.runOnIdle { assertEquals("credit", retryCardId) }
+    }
+
+    @Test
+    fun cardSecretRevealIsScreenshotProtectedAndRestoresThePreviousWindowFlag() {
+        var secretState by mutableStateOf<CardSecretUiState>(CardSecretUiState.Hidden("credit"))
+        var screenVisible by mutableStateOf(true)
+        var hostActivity: Activity? = null
+        composeRule.setContent {
+            hostActivity = LocalContext.current.findSecureCardHostActivity()
+            MyFinHubTheme {
+                if (screenVisible) {
+                    CanonicalCardSecureDetailsScreen(
+                        cardId = "credit",
+                        card = credit,
+                        secretState = secretState,
+                        onReveal = {},
+                        onSaveServerSecrets = { pan, expiry ->
+                            pan.fill('\u0000')
+                            expiry.fill('\u0000')
+                        },
+                        onSaveCvv = { cvv -> cvv.fill('\u0000') },
+                        onBack = {},
+                    )
+                }
+            }
+        }
+        val window = requireNotNull(hostActivity?.window) { "Host Activity required" }
+        val flag = WindowManager.LayoutParams.FLAG_SECURE
+        composeRule.runOnIdle {
+            assertEquals(0, window.attributes.flags and flag)
+            secretState = CardSecretUiState.Revealed("credit", "4111111111111111", "12/30", "123")
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            secretState = CardSecretUiState.AuthRejected
+        }
+        composeRule.runOnIdle {
+            assertEquals(0, window.attributes.flags and flag)
+            secretState = CardSecretUiState.Revealed("credit", "4111111111111111", "12/30", "123")
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            screenVisible = false
+        }
+        composeRule.runOnIdle {
+            assertEquals(0, window.attributes.flags and flag)
+            // Respect FLAG_SECURE established independently before a reveal.
+            window.addFlags(flag)
+            screenVisible = true
+            secretState = CardSecretUiState.Revealed("credit", "4111111111111111", "12/30", "123")
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            secretState = CardSecretUiState.AuthRejected
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            window.clearFlags(flag)
+        }
     }
 
     @Test

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-04",
+  "updated_at": "2026-11-05",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,9 +12,9 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "D1–D6 native software accepted (6/8) on develop. Read-only D7 preflight #424 and strict installed-package identity #425 both passed four immutable-head CI checks and squash merged, most recently #425 as 0a5042d77b7ece0bd0f30cfb8456cf36a7252783. During D7 handoff review, older draft #419 revealed a remaining auth UI race: late password or TOTP ViewModel callbacks could mutate the visible auth state despite the already integrated secure credential-store generation fence #420. New draft PR #426 restores only the isolated UI auth-job cancellation/epoch guard to current develop, with targeted guard regressions; final-head CI and merge are pending. No new signed build or physical S24 approval. Owner-installed rc12/10011 predates D1–D6; D7 still requires separate owner-approved current-source same-signer candidate, actual in-place upgrade and privacy-safe functional signoff (#149). D8 requires independent protected release authorization. No Web/backend/schema, live financial writes, SMS #146, global PIN #345, main or signing changes. Historical Web parity 1/6 · 11/24 unchanged.",
+    "summary": "D1–D6 native Android software accepted (6/8). D7 preflight #424 and installed-package identity #425 both passed 4/4 exact-head checks and merged; stale authentication UI result guard #426 passed 4/4 and squash merged as 3a41572e695be9adf584b6ba466ebca28c9a8cf4. Current W2.4 source review found full PAN/expiry/CVV visible on the secure card screen without scoped Android FLAG_SECURE screenshot/Recents protection. Draft PR #427 scopes FLAG_SECURE to actual revealed secrets, preserves any previously secure window state, and adds hosted Compose lifecycle regression. #427 final-head CI and merge remain pending. W2.4 is still partial; historical Web parity 1/6 implementations · 11/24 subtasks unchanged. No signed candidate or owner physical S24 approval. Installed rc12/10011 predates D1–D6. D7 needs separately owner-approved same-signer current-source signed candidate, real in-place upgrade and physical signoff (#149); D8 separately authorized protected release. No Web/backend/schema, live financial writes, SMS #146, global PIN #345, main or signing changes.",
     "next": [
-      "Validate draft #426 on exact final head with Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation, clean reviews and stable develop; merge only after 4/4 success. #426 covers only late auth UI callbacks, not a release. D7 still awaits separately owner-authorized same-signer current-source signed candidate, actual S24 in-place upgrade, continuity evidence and explicit owner acceptance (#149). D8 requires separate authorization; no debug APK installation or data erasure."
+      "Validate draft #427 scoped secure-card FLAG_SECURE and hosted Compose regression on immutable final PR head with Project Tracking, Android CI, screenshot regression and hosted S24, stable develop and no unresolved reviews. Merge only after 4/4 success. W2.4 remains partial; D7 separately needs owner-approved same-signer current-source candidate, real S24 in-place upgrade and explicit owner physical signoff (#149); D8 independent authorized release."
     ]
   },
   "latest_production_candidate": {
@@ -633,8 +633,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/auth-ui-stale-login-totp-transition-20261104",
-    "checkpoint": "D1–D6 native software previously accepted 6/8; #425 strict D7 installed package parsing passed 4/4 exact-final-head gates and merged develop 0a5042d77b7ece0bd0f30cfb8456cf36a7252783. Open prior draft #419 contained an unmerged AuthShellViewModel protection for stale password/TOTP responses; #420 had already integrated encrypted credential-store fencing, but not this UI guard. New draft #426 ports only the missing UI-generation/cancellable auth-job fix to current develop and adds regression assertions. Final-head CI and merge pending. No S24 owner physical acceptance or authorized new signed candidate; historical Web parity 1/6 · 11/24 unchanged.",
+    "branch": "android/w2-4-secure-card-window-20261105",
+    "checkpoint": "Native Android D1–D6 completed 6/8. Auth UI PR #426 passed 4/4 immutable-head CI and merged develop 3a41572e695be9adf584b6ba466ebca28c9a8cf4. W2.4 concrete privacy gap: full card PAN/expiry/CVV can be captured in Android screenshots/Recents because revealed view lacks FLAG_SECURE. Draft #427 adds reveal-scoped, prior-window-state-preserving flag and hosted Compose tests; CI/merge pending. W2.4 remains partial; D7 requires owner-authorized same-signer signed candidate and real S24 physical acceptance #149; D8 separate. Web parity remains 1/6 · 11/24.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -775,7 +775,8 @@
               "Next Android W2.4 card cross-ledger route integrity source authored/unmerged: apply full canonical Activity ID multiplicity in Wallet inline credit, Card Detail and statement-linked rows plus route callbacks; unit/hosted Compose tests authored, new-head CI pending; physical owner S24 acceptance remains pending.",
               "PR #399 globally source-safe card, inline credit and statement-linked activity routing passed all 4 exact-final-head CI gates at da9624818000b280813071a0ed980c9e3533b902; squash merged into develop 820676fc17c1b7be01465bd8ea09c81debb2bba8. W2.4 remains partial and owner physical S24 #149 is still pending.",
               "Draft PR #406 (branch android/wallet-direct-statement-payment-20261030) adds direct statement repayment from Wallet inline credit workspace to existing native Quick Entry with all-source identity verification, finite/current source debt checks, three-plus-row native history filter and targeted tests; final-head CI pending.",
-              "Draft PR #409 extends D3 native credit card/statement purchase/pay Quick Entry actions with current active-card and canonical kind revalidation, prevents deprecated/archived/debit/invalid-debt prefill routes, preserves actual legacy credit cards; tests authored CI pending."
+              "Draft PR #409 extends D3 native credit card/statement purchase/pay Quick Entry actions with current active-card and canonical kind revalidation, prevents deprecated/archived/debit/invalid-debt prefill routes, preserves actual legacy credit cards; tests authored CI pending.",
+              "Draft #427 W2.4 Android-only secure-card FLAG_SECURE reveal lifecycle and hosted Compose regression; owner S24 acceptance and final CI pending; no W2.4 completion claim."
             ]
           }
         ]
@@ -1196,15 +1197,15 @@
         ]
       }
     ],
-    "next_action": "Validate #426's exact-final-head 4/4 CI gates, clean reviews and unchanged develop; merge only on success. After the checkpoint, preserve D7 physical acceptance and newer same-signer candidate as explicit owner-controlled gates; D8 independently authorized release. Do not change Web/backend, production signer, main, actual finances, PIN #345 or SMS #146.",
+    "next_action": "Validate PR #427 on exact final head with all four CI gates, no unresolved reviews, stable develop; merge only if PASS. Then pursue confirmed mobile W2.4 gaps. D7 physical S24 acceptance and separately owner-approved signed candidate remain blocked; D8 independent release. No backend/Web, signing, main, live finance writes, PIN #345 or SMS #146.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 426,
-    "current_subtask": "W5.2",
+    "pr": 427,
+    "current_subtask": "W2.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D1–D6 integrated on develop, 6/8. D7 preflight #424 and package-identity safety #425 passed four final-head CI gates and merged (#425 0a5042d77b7ece0bd0f30cfb8456cf36a7252783). Draft #426 corrects previously unmerged UI login/TOTP stale-callback safety; CI and merge pending. D7 physical S24 acceptance remains pending new separately approved same-signer signed build, real in-place upgrade and owner signoff (#149). D8 protected release separately gated. Current installed rc12/10011 is older than native D1–D6 source.",
+    "next_action": "D1–D6 integrated on develop 6/8. D7 read-only preflight #424/#425 and auth UI fix #426 all merged, #426 four final-head checks PASS (develop 3a41572e695be9adf584b6ba466ebca28c9a8cf4). Draft #427 adds secure-card FLAG_SECURE window protection, CI and merge pending. D7 physical S24 signoff still awaits separately owner-approved current-source same-signer signed candidate and real in-place continuity check (#149). D8 separately authorized protected release. Installed rc12/10011 is older than D1–D6.",
     "stages": [
       {
         "id": "D1",
