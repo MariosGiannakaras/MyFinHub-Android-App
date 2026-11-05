@@ -1,5 +1,9 @@
 package app.myfinhub.android.feature.money
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,6 +62,23 @@ fun CanonicalCardSecureDetailsScreen(
 ) {
     val relevantState = secretState.forCard(cardId)
     val context = LocalContext.current
+    val vaultReadAuthorized = relevantState is CardSecretUiState.Revealed
+    // Secure full PAN/expiry/CVV only, leaving ordinary finance screens screenshot-capable.
+    val secureWindow = remember(context) { context.findSecureCardHostActivity()?.window }
+    DisposableEffect(secureWindow, vaultReadAuthorized) {
+        if (vaultReadAuthorized && secureWindow != null) {
+            val previouslySecure =
+                secureWindow.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE != 0
+            secureWindow.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            onDispose {
+                if (!previouslySecure) {
+                    secureWindow.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
+        } else {
+            onDispose {}
+        }
+    }
     val providedClipboard = LocalSensitiveClipboardController.current
     val clipboard = remember(cardId, providedClipboard) {
         providedClipboard ?: SensitiveCardClipboard(context.applicationContext)
@@ -89,7 +110,6 @@ fun CanonicalCardSecureDetailsScreen(
     }
     // Never leave a composed PAN/expiry editor or CVV draft accessible when the
     // owner+AAL2 vault read loses authority, even if navigation retains the screen.
-    val vaultReadAuthorized = relevantState is CardSecretUiState.Revealed
     LaunchedEffect(cardId, vaultReadAuthorized) {
         if (!vaultReadAuthorized) {
             clipboard.clear()
@@ -306,6 +326,13 @@ private fun SecureValueRow(
         )
         if (value != null) TextButton(onClick = { onCopy(value) }) { Text("Αντιγραφή") }
     }
+}
+
+/** Resolve the Activity even when Compose provides a themed ContextWrapper. */
+internal tailrec fun Context.findSecureCardHostActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext?.findSecureCardHostActivity()
+    else -> null
 }
 
 private fun CardSecretUiState.forCard(cardId: String): CardSecretUiState = when (this) {
