@@ -572,7 +572,7 @@ private fun LazyListScope.walletCardsContent(
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     Text(card.nickname, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        if (card.last4.isBlank()) card.kind else "${card.kind} · •••• ${card.last4}",
+                        canonicalCardMaskedLastFour(card.last4)?.let { "${card.kind} · $it" } ?: card.kind,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

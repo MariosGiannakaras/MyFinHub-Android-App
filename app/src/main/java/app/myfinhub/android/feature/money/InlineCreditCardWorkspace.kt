@@ -144,7 +144,7 @@ fun InlineCreditCardWorkspace(
         MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
             Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
                 Text(card.nickname, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text(if (card.last4.isBlank()) card.kind else "${card.kind} · •••• ${card.last4}",
+                Text(canonicalCardMaskedLastFour(card.last4)?.let { "${card.kind} · $it" } ?: card.kind,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (credit) {
                     Text("Τρέχουσα οφειλή", style = MaterialTheme.typography.titleMedium)

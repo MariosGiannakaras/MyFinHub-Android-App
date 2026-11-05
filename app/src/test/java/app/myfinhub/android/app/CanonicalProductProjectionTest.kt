@@ -31,6 +31,30 @@ import org.junit.Test
 
 class CanonicalProductProjectionTest {
     @Test
+    fun malformedCanonicalCardLastFourDoesNotLeakIntoMoneyOrActivityProjection() {
+        val document = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Cash"}]},
+             "state":{"cards":[
+                 {"id":"pan-import","kind":"credit","nickname":"Sensitive",
+                  "last4":"4242424242424242","active":true},
+                 {"id":"good-import","kind":"credit","nickname":"Valid",
+                  "last4":"1881","active":true}
+             ],"events":[
+                 {"id":"purchase-import","kind":"card_purchase","cardId":"pan-import",
+                  "date":"2026-10-20","amount":12}
+             ]}}
+        """.trimIndent()).jsonObject)
+        val original = document.raw
+        val projection = projectCanonicalProduct(document, LocalDate.of(2026, 10, 21))
+        assertEquals("", projection.moneyState.cards.single { it.id == "pan-import" }.last4)
+        assertEquals("1881", projection.moneyState.cards.single { it.id == "good-import" }.last4)
+        assertTrue(projection.activityState.items.none {
+            it.cardLabel?.contains("4242424242424242") == true
+        })
+        assertEquals(original, document.raw)
+    }
+
+    @Test
     fun historicalEmptyAndWhitespaceEventLegAccountsMatchWebTransactionsPage() {
         // Web event accountIds = [...new Set(legs.map(accountId).filter(id => id !== 'credit-card'))].
         // Historical IDs are preserved verbatim, even if unusable for new writes.

@@ -80,6 +80,21 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.runOnIdle { assertEquals(1, pays) }
     }
 
+    @Test fun malformedImportedCardLastFourNeverAppearsInDetailOrCardPicker() {
+        val imported = credit().copy(last4 = "4242424242424242")
+        val valid = imported.copy(id = "second-card", nickname = "Another", last4 = "1881")
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardDetailScreen(
+                card = imported, cards = listOf(imported, valid),
+                onBack = {}, amountsVisibleOverride = true,
+            )
+        } }
+        rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
+        rule.onNodeWithTag("card_switcher").performScrollTo().performClick()
+        rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("•••• 1881", substring = true).assertExists()
+    }
+
     @Test fun archiveDialogExplainsProtectedSecretsAreRetainedAndArchivesOnlyChosenCard() {
         var archivedId: String? = null
         rule.setContent { MyFinHubTheme {

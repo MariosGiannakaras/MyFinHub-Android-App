@@ -148,7 +148,7 @@ fun CanonicalCardDetailScreen(
                                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
-                        Text(if (card.last4.isBlank()) "••••" else "•••• ${card.last4}", style = MaterialTheme.typography.labelLarge)
+                        Text(canonicalCardMaskedLastFour(card.last4) ?: "••••", style = MaterialTheme.typography.labelLarge)
                     }
                     Text(
                         listOf(card.kind, card.network).filter { it.isNotBlank() }.joinToString(" · "),
@@ -553,7 +553,7 @@ private fun CardPickerSheet(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(option.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Text(
-                                "•••• ${option.last4.ifBlank { "—" }} · ${option.kind}",
+                                "${canonicalCardMaskedLastFour(option.last4) ?: "••••"} · ${option.kind}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
