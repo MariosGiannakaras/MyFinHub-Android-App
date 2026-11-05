@@ -95,6 +95,17 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.onNodeWithText("•••• 1881", substring = true).assertExists()
     }
 
+    @Test fun nativeCardDeleteDialogNeverExposesMalformedFullPanSuffix() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardDeleteDialog(
+                card = credit().copy(last4 = "4242424242424242"),
+                onConfirm = {}, onDismiss = {},
+            )
+        } }
+        rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("Η Visa Credit •••• θα αφαιρεθεί.", substring = true).assertExists()
+    }
+
     @Test fun archiveDialogExplainsProtectedSecretsAreRetainedAndArchivesOnlyChosenCard() {
         var archivedId: String? = null
         rule.setContent { MyFinHubTheme {

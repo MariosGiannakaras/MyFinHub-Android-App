@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W2.4 card last-four redaction PR #427 on exact immutable head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation must all succeed, with unchanged develop and clean reviews; merge only then. No new Web-parity or deploy completions inferred from this privacy checkpoint. D7 remains awaiting owner-authorized same-signer current-source candidate, real S24 in-place upgrade and explicit physical signoff (#149); D8 release separately gated.
+- [ ] Validate W2.4 PR #428 on its corrected immutable final head: Project Tracking, Android CI, screenshot regression (preserving the accepted card delete reference), and hosted S24 instrumentation must all succeed; require stable develop and clear reviews before merge. W2.4 and Web parity remain partial; D7 still needs separately approved same-signer current-source candidate, actual physical owner S24 upgrade/signoff (#149), with D8 independently authorized.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 integrated on develop, 6/8. D7 ADB read-only preflight #424/#425 and auth UI lifecycle #426 all passed four final-head CI gates and merged. Active W2.4 PR #427 addresses non-vault card last-four display privacy only, final CI/merge pending. D7 requires separately owner-approved current-source same-signer signed candidate, actual S24 in-place upgrade and explicit owner functional acceptance (#149); D8 protected signed release still separately gated. Current installed rc12/10011 predates native D1–D6 source.
+Next: D1–D6 native software accepted 6/8. D7 read-only preflight #424/#425, auth UI #426 and secure card-vault screen FLAG_SECURE #427 all passed four immutable-head CI checks and merged; latest develop 7fac8862b1435f03b57c75840144809d578ba559. Draft W2.4 #428 masks malformed card last-four metadata and preserves legitimate screenshot baseline; final CI/merge pending. D7 remains blocked on separately owner-approved current-source same-signer signed candidate, real in-place S24 upgrade and owner functional acceptance (#149); D8 protected release requires separate authorization. Installed rc12/10011 predates current Android source.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 integrated on develop, 6/8. D7 ADB read-only preflight #424/#425 a
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #427, branch android/w2-card-last4-display-redaction-20261105
-Current W2.4: D1–D6 integrated (6/8), most recent auth UI race fix #426 passed exact-final-head 4/4 CI and merged develop 3a41572e695be9adf584b6ba466ebca28c9a8cf4. Older overlapping drafts #419 and #423 closed unmerged and superseded. New W2.4 PR #427 prevents malformed imported card.last4 (including full PAN) from leaking into canonical Money/Activity projection, pending notices, Wallet, inline/detail/picker/card-stack text, while preserving valid 4 ASCII digits and authorized vault reveal. Focused JVM + Compose tests authored, final-head CI and merge pending. Web parity 1/6 · 11/24 unchanged; physical S24 D7 and signed D8 externally gated.
+Issue #155, PR #428, branch android/w2-card-last4-display-redaction-20261105
+Current W2.4: D1–D6 native Android completed 6/8; latest W2.4 secure owner+AAL2 card-vault reveal screenshot protection PR #427 passed 4/4 exact-head checks and merged develop 7fac8862b1435f03b57c75840144809d578ba559. Draft #428 adds shared fail-closed exact-four-ASCII-digit display policy for imported card.last4 in Money/Activity projections and multiple native UI surfaces (including deletion/pending notices), without changing persisted canonical finance or authorized vault reveal. Initial #428 head 3/4 PASS, screenshot regression 1 of 102 failed due only to a space before valid card last-four in deletion dialog; this checkpoint preserves the accepted baseline, adds malformed-delete Compose regression and merges #427's source changes. Fresh 4/4 final-head CI and merge pending. Web parity 1/6 · 11/24 unchanged; D7 owner S24 physical acceptance and D8 signed release separately gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #427 full four exact-final-head checks and clean reviews/stable develop, merge only on PASS. Then return to owner S24 D7 separately signed current-source candidate and physical acceptance (#149) when authorized; D8 release independently approved. No Web/backend/schema, actual finance writes, signing, main, SMS #146 or global PIN #345.
+Next Validate PR #428 all four exact-final-head CI gates SUCCESS, stable develop and clear reviews, then squash merge; do not mark W2.4 complete. D7 remains owner-authorized same-signer candidate and real S24 physical signoff (#149); D8 needs separately authorized production release. Exclude Web/backend/schema/main/signing/SMS #146/global PIN #345/real finance changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
