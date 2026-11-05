@@ -136,6 +136,7 @@ class AuthShellViewModel(
     private var offlineValidationInFlight = false
     private var offlineValidationJob: Job? = null
     private var initialUnlockJob: Job? = null
+    private var authenticationJob: Job? = null
     private var authTransitionEpoch = 0L
 
     private fun invalidateOfflineRevalidation() {
@@ -145,6 +146,8 @@ class AuthShellViewModel(
         offlineValidationInFlight = false
         initialUnlockJob?.cancel()
         initialUnlockJob = null
+        authenticationJob?.cancel()
+        authenticationJob = null
     }
 
     init {
@@ -226,11 +229,18 @@ class AuthShellViewModel(
             mutableNotices.tryEmit(offlineUserNotice("Σύνδεση"))
             return
         }
+        invalidateOfflineRevalidation()
+        val epoch = authTransitionEpoch
         mutableState.value = AuthShellUiState.Loading
-        viewModelScope.launch {
+        authenticationJob = viewModelScope.launch {
+            fun stillCurrent() = mayPublishInitialUnlock(
+                mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
-                when (val result = coordinator.signIn(email.trim(), passwordCopy)) {
-                    is AuthAppState.Ready -> routeReady(result.session)
+                val result = coordinator.signIn(email.trim(), passwordCopy)
+                if (!stillCurrent()) return@launch
+                when (result) {
+                    is AuthAppState.Ready -> routeReady(result.session, ::stillCurrent)
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
@@ -238,17 +248,23 @@ class AuthShellViewModel(
                     )
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Σύνδεση")
-                        mutableState.value = AuthShellUiState.Login(authFailureMessage(result.failure.kind))
+                        if (stillCurrent()) mutableState.value = AuthShellUiState.Login(authFailureMessage(result.failure.kind))
                     }
-                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                    is AuthAppState.Locked -> {
+                        val locked = lockedState(result.session)
+                        if (stillCurrent()) mutableState.value = locked
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = AuthShellUiState.Login("Η σύνδεση δεν ολοκληρώθηκε.")
-                mutableNotices.emit(unexpectedUserNotice("Σύνδεση", error, "Η σύνδεση δεν ολοκληρώθηκε."))
+                if (stillCurrent()) {
+                    mutableState.value = AuthShellUiState.Login("Η σύνδεση δεν ολοκληρώθηκε.")
+                    mutableNotices.emit(unexpectedUserNotice("Σύνδεση", error, "Η σύνδεση δεν ολοκληρώθηκε."))
+                }
             } finally {
                 passwordCopy.fill('\u0000')
+                if (authTransitionEpoch == epoch) authenticationJob = null
             }
         }
     }
@@ -266,41 +282,54 @@ class AuthShellViewModel(
             mutableNotices.tryEmit(offlineUserNotice("Επαλήθευση δύο παραγόντων"))
             return
         }
+        invalidateOfflineRevalidation()
+        val epoch = authTransitionEpoch
         mutableState.value = AuthShellUiState.Loading
-        viewModelScope.launch {
+        authenticationJob = viewModelScope.launch {
+            fun stillCurrent() = mayPublishInitialUnlock(
+                mutableState.value, epoch, authTransitionEpoch,
+            )
             try {
-                when (
-                    val result = coordinator.completeTotp(
-                        session = current.session,
-                        factorId = current.factor.id,
-                        code = codeCopy,
-                    )
-                ) {
-                    is AuthAppState.Ready -> routeReady(result.session)
+                val result = coordinator.completeTotp(
+                    session = current.session,
+                    factorId = current.factor.id,
+                    code = codeCopy,
+                )
+                if (!stillCurrent()) return@launch
+                when (result) {
+                    is AuthAppState.Ready -> routeReady(result.session, ::stillCurrent)
                     is AuthAppState.Failure -> {
                         reportAuthFailure(result.failure, "Επαλήθευση δύο παραγόντων")
-                        mutableState.value = current.copy(message = authFailureMessage(result.failure.kind))
+                        if (stillCurrent()) {
+                            mutableState.value = current.copy(message = authFailureMessage(result.failure.kind))
+                        }
                     }
                     AuthAppState.LoginRequired -> mutableState.value = AuthShellUiState.Login()
                     is AuthAppState.MfaRequired -> mutableState.value = AuthShellUiState.Mfa(result.session, result.factor)
                     is AuthAppState.Unconfigured -> mutableState.value = AuthShellUiState.Unconfigured(
                         "Η έκδοση της εφαρμογής δεν έχει έγκυρη public client configuration.",
                     )
-                    is AuthAppState.Locked -> mutableState.value = lockedState(result.session)
+                    is AuthAppState.Locked -> {
+                        val locked = lockedState(result.session)
+                        if (stillCurrent()) mutableState.value = locked
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                mutableState.value = current.copy(message = "Η επαλήθευση δεν ολοκληρώθηκε.")
-                mutableNotices.emit(
-                    unexpectedUserNotice(
-                        operation = "Επαλήθευση δύο παραγόντων",
-                        throwable = error,
-                        message = "Η επαλήθευση δεν ολοκληρώθηκε.",
-                    ),
-                )
+                if (stillCurrent()) {
+                    mutableState.value = current.copy(message = "Η επαλήθευση δεν ολοκληρώθηκε.")
+                    mutableNotices.emit(
+                        unexpectedUserNotice(
+                            operation = "Επαλήθευση δύο παραγόντων",
+                            throwable = error,
+                            message = "Η επαλήθευση δεν ολοκληρώθηκε.",
+                        ),
+                    )
+                }
             } finally {
                 codeCopy.fill('\u0000')
+                if (authTransitionEpoch == epoch) authenticationJob = null
             }
         }
     }

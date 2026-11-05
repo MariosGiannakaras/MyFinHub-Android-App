@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft D7 exact-package preflight PR #425 on its immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 must all succeed, with stable develop and no unresolved reviews, before merge. This is read-only metadata safety, NOT real-device acceptance. D7 still needs separate owner-approved same-signer current-source release candidate and actual physical S24 in-place upgrade, continuity and owner signoff (#149). D8 requires separate release authorization; do not install a debug APK, erase app data or infer owner acceptance from CI.
+- [ ] Validate draft #426 on exact final head with Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation, clean reviews and stable develop; merge only after 4/4 success. #426 covers only late auth UI callbacks, not a release. D7 still awaits separately owner-authorized same-signer current-source signed candidate, actual S24 in-place upgrade, continuity evidence and explicit owner acceptance (#149). D8 requires separate authorization; no debug APK installation or data erasure.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 accepted 6/8 on develop; #424 read-only S24 preflight passed four exact-head gates and merged. Draft #425 hardens exact installed-package identity; tests/checks and merge pending. D7 remains blocked on separate owner-approved current-source same-signer candidate, real in-place S24 upgrade and explicit physical signoff (#149). D8 protected release is separately gated; installed rc12/10011 predates D1–D6.
+Next: D1–D6 integrated on develop, 6/8. D7 preflight #424 and package-identity safety #425 passed four final-head CI gates and merged (#425 0a5042d77b7ece0bd0f30cfb8456cf36a7252783). Draft #426 corrects previously unmerged UI login/TOTP stale-callback safety; CI and merge pending. D7 physical S24 acceptance remains pending new separately approved same-signer signed build, real in-place upgrade and owner signoff (#149). D8 protected release separately gated. Current installed rc12/10011 is older than native D1–D6 source.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 accepted 6/8 on develop; #424 read-only S24 preflight passed four 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #425, branch android/d7-preflight-exact-package-version-20261103
-Current W5.4: D1–D6 native software accepted 6/8; read-only S24 preflight #424 passed 4/4 and merged to develop 42d3000fd35b76ed4030737a84fe431b378f5da2. Draft #425 adds fail-closed package-scoped installed-version parsing and synthetic regressions, without any signed build or physical acceptance. CI unverified and unmerged. D7 physical Galaxy S24 Ultra approval and a separately authorized current-source same-signer candidate remain unavailable; Web parity 1/6 · 11/24 unchanged.
+Issue #155, PR #426, branch android/auth-ui-stale-login-totp-transition-20261104
+Current W5.2: D1–D6 native software previously accepted 6/8; #425 strict D7 installed package parsing passed 4/4 exact-final-head gates and merged develop 0a5042d77b7ece0bd0f30cfb8456cf36a7252783. Open prior draft #419 contained an unmerged AuthShellViewModel protection for stale password/TOTP responses; #420 had already integrated encrypted credential-store fencing, but not this UI guard. New draft #426 ports only the missing UI-generation/cancellable auth-job fix to current develop and adds regression assertions. Final-head CI and merge pending. No S24 owner physical acceptance or authorized new signed candidate; historical Web parity 1/6 · 11/24 unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate #425 final-head four CI gates and reviews with stable develop, then merge only if green. D7 requires separate authorized same-signer signed candidate, actual S24 in-place upgrade and privacy-safe owner signoff; D8 requires independent release authorization. No Web/backend, signing, main or SMS changes.
+Next Validate #426's exact-final-head 4/4 CI gates, clean reviews and unchanged develop; merge only on success. After the checkpoint, preserve D7 physical acceptance and newer same-signer candidate as explicit owner-controlled gates; D8 independently authorized release. Do not change Web/backend, production signer, main, actual finances, PIN #345 or SMS #146.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
