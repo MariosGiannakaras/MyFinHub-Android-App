@@ -13,6 +13,16 @@ import kotlinx.serialization.json.JsonPrimitive
  * The original loan identity, paidCount, forgivenAmount and unrelated metadata
  * survive expected-row optimistic replay.
  */
+/**
+ * Require a single physical canonical money account globally. A duplicate
+ * credit/other row with the same ID must not authorize a loan payer.
+ */
+fun CanonicalFinanceDocument.hasUniqueLoanMetadataPayer(id: String): Boolean {
+    if (id.isBlank() || id != id.trim()) return false
+    val rows = canonicalAccounts().filter { it.id == id }
+    return rows.size == 1 && rows.single().kind in setOf("cash", "bank", "savings")
+}
+
 data class UpsertCanonicalLoanMetadata(
     val source: String,
     val loan: JsonObject,
@@ -63,9 +73,8 @@ data class UpsertCanonicalLoanMetadata(
             "Μη έγκυρη πρώτη ημερομηνία δόσης."
         }
         val accountId = loan.string("defaultAccountId").orEmpty()
-        require(accountId.isNotBlank() &&
-            document.canonicalAccounts().count { it.id == accountId && it.kind != "credit" } == 1) {
-            "Διάλεξε έναν υπαρκτό μη πιστωτικό λογαριασμό."
+        require(document.hasUniqueLoanMetadataPayer(accountId)) {
+            "Διάλεξε έναν μοναδικό διαθέσιμο μη πιστωτικό λογαριασμό."
         }
         require(loan.string("accountingMode") in
             setOf("expense-per-installment", "liability-repayment")) {

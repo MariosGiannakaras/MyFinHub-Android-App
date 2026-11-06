@@ -64,6 +64,7 @@ import app.myfinhub.android.core.data.SetCanonicalSavingsTargetRate
 import app.myfinhub.android.core.data.SetCanonicalTransactionRuleEnabled
 import app.myfinhub.android.core.data.UpsertCanonicalTransactionRule
 import app.myfinhub.android.core.data.UpsertCanonicalLoanMetadata
+import app.myfinhub.android.core.data.hasUniqueLoanMetadataPayer
 import app.myfinhub.android.feature.money.LoanMetadataEditRequest
 import app.myfinhub.android.core.data.DeleteCanonicalTransactionRule
 import app.myfinhub.android.core.data.ReorderCanonicalTransactionRule
@@ -752,10 +753,7 @@ class FinanceProductViewModel(application: Application) : AndroidViewModel(appli
             request.installments !in 1..1200 ||
             !request.total.isFinite() || request.total <= 0.0 ||
             !request.installment.isFinite() || request.installment <= 0.0 ||
-            request.defaultAccountId.isBlank() ||
-            document.canonicalAccounts().count {
-                it.id == request.defaultAccountId && it.kind != "credit"
-            } != 1) return
+            !document.hasUniqueLoanMetadataPayer(request.defaultAccountId)) return
         if (Regex("\\bHELP\\b|ΒΟΗΘΕΙΑ", RegexOption.IGNORE_CASE)
                 .containsMatchIn(request.name + " " + request.provider)) return
         fun validMoney(value: Double): Boolean {

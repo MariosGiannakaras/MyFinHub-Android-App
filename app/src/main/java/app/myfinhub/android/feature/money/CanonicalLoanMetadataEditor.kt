@@ -27,6 +27,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import java.time.LocalDate
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.math.abs
 import kotlin.math.round
 
@@ -52,6 +54,36 @@ private fun moneyDraftValue(value: String): Double? {
     return raw.takeIf { scaled.isFinite() && scaled > 0.0 &&
         abs(round(scaled) - scaled) < 0.00001 }
 }
+
+/**
+ * Web LoansPage recalculates the companion monetary field only when the
+ * owner edits total, installment or count; simply opening a historical
+ * record must never silently re-price its saved schedule.
+ */
+internal fun loanEditorInstallmentFromTotal(totalText: String, countText: String): String? {
+    val total = moneyDraftValue(totalText) ?: return null
+    val count = countText.toIntOrNull()?.takeIf { it in 1..1200 } ?: return null
+    val rounded = BigDecimal.valueOf(total)
+        .divide(BigDecimal.valueOf(count.toLong()), 2, RoundingMode.HALF_UP)
+    return rounded.takeIf { it.signum() > 0 }?.stripTrailingZeros()?.toPlainString()
+}
+
+internal fun loanEditorTotalFromInstallment(installmentText: String, countText: String): String? {
+    val installment = moneyDraftValue(installmentText) ?: return null
+    val count = countText.toIntOrNull()?.takeIf { it in 1..1200 } ?: return null
+    val total = BigDecimal.valueOf(installment)
+        .multiply(BigDecimal.valueOf(count.toLong()))
+    return total.takeIf { it.toDouble().isFinite() && it.signum() > 0 }
+        ?.stripTrailingZeros()?.toPlainString()
+}
+
+/** Keep the same payer identity as the owner-approved loan payment dialog. */
+internal fun loanEditorCurrentDefaultAccount(
+    initial: LoanItem?,
+    accounts: List<MoneyAccount>,
+): String = initial?.defaultAccountId?.takeIf { id ->
+    eligibleCanonicalLoanPayers(accounts).count { it.id == id } == 1
+}.orEmpty()
 
 @Composable
 fun CanonicalLoanMetadataEditor(
@@ -81,12 +113,13 @@ fun CanonicalLoanMetadataEditor(
         mutableStateOf(initial?.firstExpectedDate.orEmpty())
     }
     var accountId by rememberSaveable(initial?.id) {
-        mutableStateOf(initial?.defaultAccountId?.takeIf { it.isNotEmpty() }
-            ?: accounts.firstOrNull { it.canonicalKind != "credit" }?.id.orEmpty())
+        // Creation needs an explicit payer; imported missing defaults must not
+        // silently become the first unrelated real bank/cash account.
+        mutableStateOf(loanEditorCurrentDefaultAccount(initial, accounts))
     }
     var category by rememberSaveable(initial?.id) {
         mutableStateOf(initial?.expenseCategory?.takeIf(String::isNotBlank)
-            ?: categories.firstOrNull().orEmpty())
+            ?: categories.firstOrNull()?.takeIf(String::isNotBlank) ?: "Άλλο")
     }
     var recurring by rememberSaveable(initial?.id) { mutableStateOf(false) }
     var accountMenu by remember { mutableStateOf(false) }
@@ -97,7 +130,8 @@ fun CanonicalLoanMetadataEditor(
     val installment = moneyDraftValue(installmentText)
     val installments = installmentsText.toIntOrNull()
     val dateValid = date.isBlank() || runCatching { LocalDate.parse(date) }.isSuccess
-    val accountEligible = accounts.count { it.id == accountId && it.canonicalKind != "credit" } == 1
+    val eligiblePayers = remember(accounts) { eligibleCanonicalLoanPayers(accounts) }
+    val accountEligible = eligiblePayers.count { it.id == accountId } == 1
     val categoryValid = category.isNotBlank() &&
         (categories.isEmpty() || category in categories || category == initial?.expenseCategory)
     val nameValid = name.trim().isNotBlank() && name.length <= 500 &&
@@ -149,19 +183,31 @@ fun CanonicalLoanMetadataEditor(
                     modifier = Modifier.fillMaxWidth().testTag("loan_editor_provider"),
                 )
                 OutlinedTextField(
-                    value = totalText, onValueChange = { totalText = it },
+                    value = totalText, onValueChange = {
+                        totalText = it
+                        if (installmentsText.toIntOrNull() in 1..1200)
+                            installmentText = loanEditorInstallmentFromTotal(it, installmentsText).orEmpty()
+                    },
                     label = { Text("Συνολικό ποσό (€)") }, singleLine = true,
                     enabled = !mutationBlocked,
                     modifier = Modifier.fillMaxWidth().testTag("loan_editor_total"),
                 )
                 OutlinedTextField(
-                    value = installmentsText, onValueChange = { installmentsText = it },
+                    value = installmentsText, onValueChange = {
+                        installmentsText = it
+                        if (totalText.isNotBlank())
+                            installmentText = loanEditorInstallmentFromTotal(totalText, it).orEmpty()
+                    },
                     label = { Text("Αριθμός δόσεων") }, singleLine = true,
                     enabled = !mutationBlocked,
                     modifier = Modifier.fillMaxWidth().testTag("loan_editor_count"),
                 )
                 OutlinedTextField(
-                    value = installmentText, onValueChange = { installmentText = it },
+                    value = installmentText, onValueChange = {
+                        installmentText = it
+                        if (installmentsText.toIntOrNull() in 1..1200)
+                            totalText = loanEditorTotalFromInstallment(it, installmentsText).orEmpty()
+                    },
                     label = { Text("Ποσό ανά δόση (€)") }, singleLine = true,
                     enabled = !mutationBlocked,
                     modifier = Modifier.fillMaxWidth().testTag("loan_editor_installment"),
@@ -174,12 +220,22 @@ fun CanonicalLoanMetadataEditor(
                 )
                 TextButton(
                     onClick = { accountMenu = true }, enabled = !mutationBlocked,
-                    modifier = Modifier.fillMaxWidth().testTag("loan_editor_account"),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .testTag("loan_editor_account"),
                 ) { Text("Λογαριασμός: " +
-                    (accounts.firstOrNull { it.id == accountId }?.name ?: "Επίλεξε")) }
+                    (eligiblePayers.singleOrNull { it.id == accountId }?.name ?: "Επίλεξε")) }
+                if (!accountEligible) {
+                    Text(
+                        "Επίλεξε διαθέσιμο, μοναδικό λογαριασμό πληρωμής. Δεν γίνεται αυτόματη επιλογή.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.testTag("loan_editor_account_required"),
+                    )
+                }
                 DropdownMenu(expanded = accountMenu, onDismissRequest = { accountMenu = false }) {
-                    accounts.filter { it.canonicalKind != "credit" }.forEach { account ->
+                    eligiblePayers.forEach { account ->
                         DropdownMenuItem(text = { Text(account.name) },
+                            modifier = Modifier.testTag("loan_editor_account_choice_" + account.id),
                             onClick = { accountId = account.id; accountMenu = false })
                     }
                 }
@@ -189,7 +245,8 @@ fun CanonicalLoanMetadataEditor(
                 ) { Text("Κατηγορία δόσης: " + category.ifBlank { "Επίλεξε" }) }
                 DropdownMenu(expanded = categoryMenu, onDismissRequest = { categoryMenu = false }) {
                     (categories + listOfNotNull(initial?.expenseCategory)
-                        .filter(String::isNotBlank)).distinct().forEach { option ->
+                        .filter(String::isNotBlank) + if (categories.isEmpty()) listOf("Άλλο")
+                        else emptyList()).distinct().forEach { option ->
                         DropdownMenuItem(text = { Text(option) },
                             onClick = { category = option; categoryMenu = false })
                     }
@@ -212,7 +269,9 @@ fun CanonicalLoanMetadataEditor(
             TextButton(
                 enabled = valid,
                 onClick = {
-                    if (valid) onSave(LoanMetadataEditRequest(
+                    if (valid && eligibleCanonicalLoanPayers(accounts).count {
+                            it.id == accountId
+                        } == 1) onSave(LoanMetadataEditRequest(
                         id = initial?.id,
                         kind = kind,
                         name = name.trim(),
