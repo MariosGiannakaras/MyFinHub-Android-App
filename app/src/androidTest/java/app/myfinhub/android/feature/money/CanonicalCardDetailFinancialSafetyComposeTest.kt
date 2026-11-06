@@ -1,5 +1,6 @@
 package app.myfinhub.android.feature.money
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -131,12 +132,22 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
             remaining = Double.NaN, status = "invalid", sourceIntegrityValid = false,
         )
         var payments = 0
+        val showDetail = mutableStateOf(true)
         rule.setContent { MyFinHubTheme {
-            CanonicalCardDetailScreen(
-                card = credit(), statements = listOf(bad), onBack = {},
-                amountsVisibleOverride = true, onPayStatement = { _, _ -> payments++ },
-                fullStatementIdCounts = mapOf(bad.id to 1),
-            )
+            if (showDetail.value) {
+                CanonicalCardDetailScreen(
+                    card = credit(), statements = listOf(bad), onBack = {},
+                    amountsVisibleOverride = true, onPayStatement = { _, _ -> payments++ },
+                    fullStatementIdCounts = mapOf(bad.id to 1),
+                )
+            } else {
+                InlineCreditCardWorkspace(
+                    card = credit(), statements = listOf(bad), amountsVisible = true,
+                    onPayCard = {}, onAddPurchase = {}, onOpenActivity = {},
+                    onOpenDetails = {}, onPayStatement = { _, _ -> payments++ },
+                    fullStatementIdCounts = mapOf(bad.id to 1),
+                )
+            }
         } }
         rule.onNodeWithTag("card_statement_history").assertExists()
         rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
@@ -145,14 +156,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
         rule.runOnIdle { assertEquals(0, payments) }
 
-        rule.setContent { MyFinHubTheme {
-            InlineCreditCardWorkspace(
-                card = credit(), statements = listOf(bad), amountsVisible = true,
-                onPayCard = {}, onAddPurchase = {}, onOpenActivity = {},
-                onOpenDetails = {}, onPayStatement = { _, _ -> payments++ },
-                fullStatementIdCounts = mapOf(bad.id to 1),
-            )
-        } }
+        rule.runOnIdle { showDetail.value = false }
         rule.onNodeWithTag("inline_credit_pay_statement_0").assertDoesNotExist()
         rule.onNodeWithTag("inline_credit_statement_identity_warning_0").assertExists()
         rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
