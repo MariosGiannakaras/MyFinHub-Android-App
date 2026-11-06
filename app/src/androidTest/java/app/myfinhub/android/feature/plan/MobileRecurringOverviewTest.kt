@@ -128,4 +128,18 @@ class MobileRecurringOverviewTest {
         assertTrue(rule.onAllNodesWithText("35,00", substring = true).fetchSemanticsNodes().isEmpty())
         rule.onNodeWithText("Προβολή · διαχείριση από το Web").assertIsDisplayed()
     }
+    @Test fun overviewExposesNativeManagementActionOnlyWhenConnected() {
+        var opened = 0
+        rule.setContent { MyFinHubTheme {
+            MobileRecurringOverviewContent(
+                items = emptyList(), amountsVisible = false, onBack = {},
+                onOpenManagement = { opened++ },
+            )
+        } }
+        rule.onNodeWithTag("mobile_recurring_manage_open").assertIsDisplayed().performClick()
+        rule.runOnIdle { org.junit.Assert.assertEquals(1, opened) }
+        rule.onNodeWithText("Ιστορικό · διαχείριση στην εφαρμογή").assertExists()
+    }
+
+
 }

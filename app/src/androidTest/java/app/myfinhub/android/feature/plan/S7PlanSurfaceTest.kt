@@ -4,6 +4,8 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -190,10 +192,11 @@ class S7PlanSurfaceTest {
                 forecastWindows = listOf(window),
             ), onBack = {})
         } }
+        composeRule.onNodeWithTag("s7_forecast_root")
+            .performScrollToNode(hasTestTag("s7_forecast_omitted_toggle_30"))
         composeRule.onNodeWithText("1 κινήσεις παραλείφθηκαν", substring = true)
-            .performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("s7_forecast_omitted_toggle_30")
-            .performScrollTo().performClick()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_forecast_omitted_toggle_30").performClick()
         composeRule.onNodeWithText("Corrupt scheduled", substring = true)
             .performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("opaque", substring = true).assertDoesNotExist()

@@ -62,6 +62,8 @@ import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
 import app.myfinhub.android.feature.plan.MobileRecurringOverviewScreen
+import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
+import app.myfinhub.android.feature.plan.RecurringManageItem
 import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
@@ -74,6 +76,7 @@ import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
+import app.myfinhub.android.feature.quickentry.toCurrencyCentsOrNull
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
@@ -765,6 +768,40 @@ internal fun MyFinHubAppContent(
                     MobileRecurringOverviewScreen(
                         items = planState.recurringManageItems,
                         onBack = { planBackStack.removeLastOrNull() },
+                        onOpenManagement = { planBackStack.pushIfNew(AppRoute.PlanRecurringManage) },
+                    )
+                }
+                entry<AppRoute.PlanRecurringManage> {
+                    val payerIdCounts = quickEntryState.accounts
+                        .groupingBy { it.id }.eachCount()
+                    val eligiblePayers = quickEntryState.accounts.filter {
+                        it.id.isNotBlank() && it.kind != "credit" &&
+                            payerIdCounts[it.id] == 1
+                    }.map { it.id }.toSet()
+                    CanonicalRecurringManagementScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onStatusChanged = onSetRecurringStatus,
+                        onCreate = onCreateRecurring,
+                        onEdit = onEditRecurring,
+                        onRecordPayment = { recurring ->
+                            val current = planState.recurringManageItems
+                                .singleOrNull { it.id == recurring.id }
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                current != null && current.status == "active"
+                            ) {
+                                val actions = recurringPaymentQuickEntryPrefillActions(
+                                    current, quickEntryState,
+                                )
+                                if (actions.isNotEmpty()) {
+                                    actions.forEach(onQuickEntryAction)
+                                    planBackStack.pushIfNew(AppRoute.QuickEntry)
+                                }
+                            }
+                        },
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
+                        paymentAccountAvailable = eligiblePayers.isNotEmpty(),
+                        paymentAccountIds = eligiblePayers,
                     )
                 }
                 entry<AppRoute.PlanScheduled> {
@@ -782,17 +819,31 @@ internal fun MyFinHubAppContent(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
                         onRecordItem = { item ->
-                            if (item.kind == PlannedKind.SCHEDULED) {
-                                // Never create an unrelated Quick Entry event and leave
-                                // the scheduled charge pending in the forecast.
-                                planBackStack.pushIfNew(AppRoute.PlanScheduled)
-                            } else {
-                                val actions = plannedItemQuickEntryPrefillActions(item, quickEntryState)
-                                if (actions.isNotEmpty()) {
-                                    actions.forEach(onQuickEntryAction)
-                                    planBackStack.pushIfNew(AppRoute.QuickEntry)
+                            if (!planMutationInFlight && !planMutationBlocked) {
+                                when (item.kind) {
+                                    PlannedKind.SCHEDULED -> {
+                                        // Closing a pending scheduled item must remain
+                                        // inside the canonical Scheduled lifecycle.
+                                        planBackStack.pushIfNew(AppRoute.PlanScheduled)
+                                    }
+                                    PlannedKind.RECURRING -> {
+                                        val actions = forecastRecurringPaymentQuickEntryActions(
+                                            item, planState, quickEntryState,
+                                        )
+                                        if (actions.isNotEmpty()) {
+                                            actions.forEach(onQuickEntryAction)
+                                            planBackStack.pushIfNew(AppRoute.QuickEntry)
+                                        }
+                                    }
                                 }
                             }
+                        },
+                        canRecordItem = { item ->
+                            !planMutationInFlight && !planMutationBlocked &&
+                                (item.kind != PlannedKind.RECURRING ||
+                                    forecastRecurringPaymentQuickEntryActions(
+                                        item, planState, quickEntryState,
+                                    ).isNotEmpty())
                         },
                     )
                 }
@@ -881,6 +932,58 @@ internal fun MyFinHubAppContent(
     } else {
         navigationContent()
     }
+}
+
+/**
+ * Open an editable recurring EXPENSE draft, never book a transaction. A
+ * historical missing/ambiguous/credit payer is not silently substituted.
+ * A variable estimate is not a recorded payment amount.
+ */
+internal fun recurringPaymentQuickEntryPrefillActions(
+    recurring: RecurringManageItem,
+    quickEntryState: QuickEntryUiState,
+): List<QuickEntryAction> {
+    if (recurring.id.isBlank() || recurring.id != recurring.id.trim() ||
+        recurring.status != "active" ||
+        quickEntryState.accounts.count { it.id == recurring.accountId } != 1 ||
+        quickEntryState.accounts.none {
+            it.id == recurring.accountId && it.id.isNotBlank() && it.kind != "credit"
+        }
+    ) return emptyList()
+    return buildList {
+        add(QuickEntryAction.Reset)
+        add(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+        add(QuickEntryAction.RecurringChanged(recurring.id, recurring.category))
+        add(QuickEntryAction.AccountChanged(recurring.accountId))
+        add(QuickEntryAction.NoteChanged(recurring.title.trim().ifEmpty { "Πάγια πληρωμή" }))
+        if (recurring.amountMode == "fixed" && recurring.amountValidationError == null &&
+            recurring.amount.isFinite() && recurring.amount > 0.0 &&
+            recurring.amount.toString().toCurrencyCentsOrNull() != null
+        ) {
+            add(QuickEntryAction.AmountChanged(recurring.amount.toString()))
+        }
+    }
+}
+
+/**
+ * Forecast rows are projections, not authoritative payment owners. Resolve
+ * exactly one current recurring record and eligible payer before opening
+ * Quick Entry. Never convert a variable forecast estimate into a payment.
+ * The onClick path revalidates after any state changes.
+ */
+internal fun forecastRecurringPaymentQuickEntryActions(
+    item: PlannedItem,
+    state: PlanUiState,
+    quickEntryState: QuickEntryUiState,
+): List<QuickEntryAction> {
+    if (item.kind != PlannedKind.RECURRING || item.flow != PlannedFlow.OBLIGATION ||
+        item.id.isBlank() || state.items.count {
+            it.kind == PlannedKind.RECURRING && it.id == item.id
+        } != 1
+    ) return emptyList()
+    val owner = state.recurringManageItems.singleOrNull { it.id == item.id }
+        ?: return emptyList()
+    return recurringPaymentQuickEntryPrefillActions(owner, quickEntryState)
 }
 
 internal fun plannedItemQuickEntryPrefillActions(
