@@ -24,12 +24,9 @@ import kotlin.math.abs
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
-import java.text.NumberFormat
-import java.util.Locale
 import kotlin.math.min
 
-private fun loanMoneyLabel(amount: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+private fun loanMoneyLabel(amount: Double): String = safeHistoricalMoneyLabel(amount)
 
 /** Reject rounded-up or sub-cent input in the read-only payment preview. */
 private fun exactLoanPreviewCents(amount: Double): Long? {
@@ -102,7 +99,11 @@ fun CanonicalLoanPaymentDialog(
     var date by remember(loan.id) { mutableStateOf(LocalDate.now().toString()) }
     var count by remember(loan.id) { mutableStateOf("1") }
     var amount by remember(loan.id) {
-        mutableStateOf(min(loan.remaining, loan.monthlyPayment).toString())
+        // An invalid imported loan must not prefill a plausible repayment
+        // from NaN/Infinity, even though the guarded confirm remains disabled.
+        mutableStateOf(min(loan.remaining, loan.monthlyPayment).let { candidate ->
+            if (exactLoanPreviewCents(candidate) == null) "" else candidate.toString()
+        })
     }
     var source by remember(loan.id) {
         mutableStateOf(
