@@ -3,6 +3,8 @@ package app.myfinhub.android.feature.plan
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -169,6 +171,34 @@ class S7PlanSurfaceTest {
         composeRule.onNodeWithTag("s7_forecast_record_SCHEDULED:legacy_duplicate_1")
             .performScrollTo().assertIsNotEnabled()
         composeRule.runOnIdle { assertEquals(false, recorded) }
+    }
+
+
+    @Test fun forecastExplainsOmittedInvalidSourcesWithoutInventingMoney() {
+        val warning = "Η προγραμματισμένη κίνηση «Corrupt scheduled» " +
+            "δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο."
+        val window = ForecastWindow(
+            days = 30, label = "30 ημέρες",
+            expectedIncome = 0.0, expectedOutflow = 45.0,
+            balanceDeltaFromThirtyDays = 0.0,
+            projectedPortfolio = 955.0, minimumPortfolio = 955.0,
+            omittedSourceCount = 1, omittedWarnings = listOf(warning),
+            currentPortfolio = 1000.0,
+            sourceCounts = mapOf("scheduled" to 1),
+        )
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(state.copy(
+                forecastWindows = listOf(window),
+            ), onBack = {})
+        } }
+        composeRule.onNodeWithTag("s7_forecast_root")
+            .performScrollToNode(hasTestTag("s7_forecast_omitted_toggle_30"))
+        composeRule.onNodeWithText("1 κινήσεις παραλείφθηκαν", substring = true)
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_forecast_omitted_toggle_30").performClick()
+        composeRule.onNodeWithText("Corrupt scheduled", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("opaque", substring = true).assertDoesNotExist()
     }
 
 

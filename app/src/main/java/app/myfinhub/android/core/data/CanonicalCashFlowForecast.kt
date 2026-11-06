@@ -57,8 +57,15 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     val omitted = mutableListOf<String>()
     fun leg(id: String, amount: Double) = CanonicalLedgerLeg(id, amount)
     fun add(id: String, date: LocalDate, source: String, label: String, legs: List<CanonicalLedgerLeg>) {
-        rows += CanonicalForecastMovement(id, date, source, label, legs,
-            legs.filter { it.accountId in ids }.sumOf(CanonicalLedgerLeg::amount))
+        // Never allow invalid imported legs or overflow from otherwise finite
+        // source money to poison all 30/60/90-day portfolio projections.
+        val portfolioDelta = legs.filter { it.accountId in ids }
+            .sumOf(CanonicalLedgerLeg::amount)
+        if (legs.any { !it.amount.isFinite() } || !portfolioDelta.isFinite()) {
+            omitted += "Η κίνηση πρόβλεψης «$label» δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο."
+            return
+        }
+        rows += CanonicalForecastMovement(id, date, source, label, legs, portfolioDelta)
     }
     // Match Web forecast omitted reasons: explain the affected named record,
     // never expose opaque canonical IDs as user-facing forecast diagnostics.
@@ -72,6 +79,10 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             return@forEach
         }
         if (due.isAfter(end)) return@forEach
+        if (!scheduled.amount.isFinite()) {
+            omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο."
+            return@forEach
+        }
         val date = if (due.isBefore(asOf)) asOf else due
         if (scheduled.kind == "transfer") {
             val from = scheduled.fromAccountId
@@ -95,6 +106,10 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     activeCanonicalRecurringItems().forEach { item ->
         if (item.accountId !in ids) {
             omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος."
+            return@forEach
+        }
+        if (!item.amount.isFinite()) {
+            omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή η εκτίμηση ποσού δεν είναι έγκυρη."
             return@forEach
         }
         var next = nextCanonicalRecurringDate(item, asOf)
