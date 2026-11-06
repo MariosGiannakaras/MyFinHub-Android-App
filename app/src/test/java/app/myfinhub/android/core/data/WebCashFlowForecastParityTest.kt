@@ -242,4 +242,61 @@ class WebCashFlowForecastParityTest {
             document().cashFlowForecast(today,45)
         }
     }
+    @Test fun corruptedFutureScheduledRecurringAndEventMoneyNeverPoisonPortfolio() {
+        val scheduled = """
+          {"id":"bad-scheduled","dueDate":"2026-10-20","kind":"expense",
+           "status":"pending","note":"Bad scheduled amount",
+           "amount":1e309,"accountId":"bank"},
+          {"id":"good-scheduled","dueDate":"2026-10-21","kind":"expense",
+           "status":"pending","note":"Valid expense",
+           "amount":10,"accountId":"bank"}
+        """.trimIndent()
+        val recurring = """
+          {"id":"bad-recurring","name":"Bad recurring estimate","amount":-1e309,
+           "day":23,"active":true,"accountId":"bank"},
+          {"id":"good-recurring","name":"Valid subscription","amount":20,
+           "day":24,"active":true,"accountId":"bank"}
+        """.trimIndent()
+        val events = """
+          {"id":"bad-event","date":"2026-10-22","kind":"expense","amount":15,
+           "note":"Invalid future leg",
+           "legs":[{"accountId":"bank","amount":1e309}]},
+          {"id":"good-event","date":"2026-10-25","kind":"expense","amount":5,
+           "note":"Valid future leg",
+           "legs":[{"accountId":"bank","amount":-5}]}
+        """.trimIndent()
+        val source = document(scheduled, recurring, loans="", events=events)
+        val original = source.raw
+        val result = source.cashFlowForecast(today,30)
+        assertEquals(965.0,result.projectedPortfolio,0.001)
+        assertEquals(mapOf("scheduled" to 1,"recurring" to 1,"loan" to 0,
+            "dated_event" to 1),result.sourceCounts)
+        assertEquals(3,result.omitted.size)
+        assertTrue(result.omitted.all { it.contains("δεν είναι έγκυρ") })
+        assertFalse(result.omitted.joinToString().contains("bad-scheduled"))
+        assertFalse(result.omitted.joinToString().contains("bad-recurring"))
+        assertFalse(result.omitted.joinToString().contains("bad-event"))
+        assertTrue(result.movements.all { it.portfolioDelta.isFinite() })
+        assertTrue(result.points.all { it.portfolio.isFinite() })
+        assertTrue(result.accounts.all { it.projected.isFinite() })
+        assertEquals(original,source.raw)
+        assertTrue(source.canonicalEvents().none { it.id=="forecast-generated" })
+    }
+
+    @Test fun invalidFutureLegRejectsWholeEventInsteadOfSilentlySplittingTransfer() {
+        val mixed = """
+            {"id":"bad-transfer","date":"2026-10-18","kind":"transfer",
+             "note":"Future malformed transfer",
+             "legs":[{"accountId":"bank","amount":-100},
+                     {"accountId":"savings","amount":1e309}]}
+        """.trimIndent()
+        val source = document(scheduled="",recurring="",loans="",events=mixed)
+        val result = source.cashFlowForecast(today,30)
+        assertTrue(result.insufficientData)
+        assertEquals(1000.0,result.projectedPortfolio,0.001)
+        assertEquals(0,result.sourceCounts["dated_event"])
+        assertEquals(1,result.omitted.size)
+        assertTrue(result.omitted.single().contains("Future malformed transfer"))
+    }
+
 }
