@@ -944,7 +944,9 @@ private fun ForecastS7ItemCard(
             if (item.flow != PlannedFlow.TRANSFER) {
                 if (!recordEnabled) {
                     Text(
-                        "Μη επαληθευμένη εγγραφή ή λογαριασμός · η καταχώριση δεν είναι διαθέσιμη",
+                        if (tagSuffix.isNotBlank())
+                            "Ιστορικό διπλό ID · Καταχώριση μόνο από επαληθευμένη μοναδική εγγραφή"
+                        else "Μη επαληθευμένη εγγραφή ή λογαριασμός · η καταχώριση δεν είναι διαθέσιμη",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
