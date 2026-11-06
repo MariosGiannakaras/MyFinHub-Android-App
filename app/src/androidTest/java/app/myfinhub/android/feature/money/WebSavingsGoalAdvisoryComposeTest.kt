@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.money
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -76,4 +77,28 @@ class WebSavingsGoalAdvisoryComposeTest {
         rule.onNodeWithText("290,00", substring = true).assertDoesNotExist()
         rule.onNodeWithText("50,00", substring = true).assertDoesNotExist()
     }
+    @Test fun nonfiniteImportedSavingsProjectionCannotRenderFictitiousEuroAmounts() {
+        val corrupted = projection.copy(
+            sharedSavingsBalance = Double.POSITIVE_INFINITY,
+            remaining = Double.NaN,
+            suggestedMonthly = Double.NEGATIVE_INFINITY,
+            scenarios = listOf(
+                CanonicalGoalScenario("suggested", Double.POSITIVE_INFINITY,
+                    Double.NaN, Double.NEGATIVE_INFINITY),
+            ),
+        )
+        rule.setContent { MyFinHubTheme {
+            CanonicalSavingsGoalAdvisoryDetails(
+                SavingsGoalAdvisoryUiItem(corrupted, null),
+                amountsVisible = true,
+            )
+        } }
+        org.junit.Assert.assertTrue(
+            rule.onAllNodesWithText("Μη έγκυρο ποσό", substring = true)
+                .fetchSemanticsNodes().size >= 3,
+        )
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("∞", substring = true).assertDoesNotExist()
+    }
+
 }

@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.2 consolidated PR #432 on one immutable final head with Project Tracking, Android CI, screenshot regression and hosted S24 emulator 4/4 SUCCESS; stable develop, no open review threads, squash merge only if green. Keep W4.2 partially complete unless comprehensive source-backed parity evidence warrants completion; then continue larger W3.2/W4.3–W5 mobile-native financial journeys. D7 separately approved current-source same-signer signed APK, actual owner S24 physical in-place upgrade/acceptance (#149); D8 independently authorized release.
+- [ ] Validate W4.3 PR #433 in one final immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumented run; merge only after all four SUCCESS, stable develop and clean reviews. Keep W4.3 in_progress and 2/6 · 14/24 parity until wider criteria are fulfilled. Continue source-backed grouped Android W3.2/W4–W5 work. D7 physical owner S24 newer same-signer candidate/in-place upgrade and explicit approval (#149), and D8 protected release remain independently gated.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 native accepted 6/8. W4.1 #431 final 4/4 CI passed and squash merged develop 89994b0203efb7aa71683123ede13180952a0f52; parity 2/6 implementations · 14/24 subtasks. W4.2 #432 follow-on source-safe forecast money and omission transparency is pending final CI/merge, no additional completed parity count. D7 still requires a separately owner-approved same-signer current-source signed APK, real physical S24 Ultra in-place upgrade and explicit functional acceptance (#149). D8 signed production delivery independently gated. Installed rc12/10011 predates the integrated source; neither release nor signing performed.
+Next: D1–D6 native accepted on develop, 6/8. W4.1 #431 and W4.2 #432 passed 4/4 exact-head CI and squash merged, latest develop cedecad242a1cacafd636d8d9e3585ecc75187e0. W4.3 #433 finite-only historical native financial labels and Compose/JVM regressions are pending exact-head CI and merge; accepted parity remains 2/6 · 14/24. D7 still requires separately authorized current-source same-signer signed APK, real owner S24 in-place upgrade and explicit functional acceptance (#149); D8 separately approved protected release. Installed rc12/10011 predates source. No signing or real device installation undertaken.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 native accepted 6/8. W4.1 #431 final 4/4 CI passed and squash merg
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #432, branch android/w4-forecast-import-money-safety-20261106
-Current W3.2: W4.1 consolidated PR #431 passed all four exact-final-head Project Tracking/Android CI/screenshot/hosted S24 gates SUCCESS at 56b51bd80feda5989d3f7075b1122b67a40b5b2a, squash merged develop 89994b0203efb7aa71683123ede13180952a0f52, accepted parity 2/6 implementations · 14/24 subtasks. Integrated native recurring manager and source-linked Forecast Quick Entry actual payment drafts, not automatic financial writes. W4.2 #432 extends safe 30/60/90 read-only forecasting over malformed/nonfinite historical scheduled/recurring/event-ledger imports, preserves valid projections and shows named omitted rows. Kotlin and hosted Compose tests authored; final exact-head CI and merge pending. W4.2 remains partial, 14/24 unchanged. D7 owner physical S24 and D8 signed publication remain separately gated.
+Issue #155, PR #433, branch android/w43-readable-imported-money-20261106
+Current W3.2: W4.1 #431 merged 4/4; W4.2 #432 imported nonfinite/overflow 30/60/90 forecast safe omissions passed all four immutable-head CI gates at d08f1e4b980738472567d0f2c2fa9642683e0ed8 and squash merged develop cedecad242a1cacafd636d8d9e3585ecc75187e0. Accepted historical parity is 2/6 implementations · 14/24 subtasks; W4.2 remains partial. W4.3 PR #433 adds shared fail-closed native money formatting for imported nonfinite loan/receivable/savings projections and preserves repayment validation and real owner masked/visible states, backed by JVM+Compose tests. W4.3 completion is NOT asserted; final CI/merge pending. D7 physical S24 and D8 protected production signed release remain independently gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Pass #432 exactly once as coherent W4.2 source-safe forecast batch with four immutable-head SUCCESS gates (Project Tracking, Android CI, screenshot regression and hosted S24), stable develop and no unresolved reviews, then squash merge and log outcome on issue #155. Continue only concrete W3.2/W4.3–W5 remaining source-backed Android tasks in larger batches. No new signing, live S24 install, production deployment, main/Web/backend/schema, real finance, SMS #146 or global PIN #345 modifications.
+Next Complete one immutable-final-head four-gate CI on W4.3 PR #433, verify unchanged develop, no blocking reviews, squash merge only with all SUCCESS and note outcome in issue #155. Continue grouped W3.2/W4.2–W5 tasks, no mechanical Web cloning. D7 same-signer current-source candidate, physical S24 upgrade/owner signoff and D8 protected release each require separate authorization. Exclude Web/backend/schema/main, SMS #146, global PIN #345 and actual financial writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

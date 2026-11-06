@@ -98,4 +98,22 @@ class CanonicalLoanPaymentDialogComposeTest {
         } }
         rule.onNodeWithTag("loan_record_payment_loan").assertIsNotEnabled()
     }
+    @Test fun importedNonfiniteLoanIsNotPresentedAsAValidBalanceOrPayableDebt() {
+        val invalid = LoanItem("bad","Ιστορικό","",Double.NaN,100.0,"",300.0,
+            remainingInstallments=2, totalInstallments=3, defaultAccountId="salary")
+        var posts = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalLoanPaymentDialog(
+                invalid, accounts, onDismiss = {},
+                onConfirm = { _,_,_,_,_->posts++ }, amountsVisible = true,
+            )
+        } }
+        rule.onNodeWithTag("loan_payment_remaining").assertIsDisplayed()
+        rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.onNodeWithText("∞", substring = true).assertDoesNotExist()
+        rule.runOnIdle { assertEquals(0, posts) }
+    }
+
 }

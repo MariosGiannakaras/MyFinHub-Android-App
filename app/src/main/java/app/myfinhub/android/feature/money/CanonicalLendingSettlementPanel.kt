@@ -16,11 +16,8 @@ import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.core.data.canonicalLendingSettlementProposal
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.amountVisibilityText
-import java.text.NumberFormat
-import java.util.Locale
 
-private fun lendingProposalEuro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+private fun lendingProposalEuro(value: Double): String = safeHistoricalMoneyLabel(value)
 
 /**
  * Advisory only. A proposed repayment is not a booked receivable reduction,

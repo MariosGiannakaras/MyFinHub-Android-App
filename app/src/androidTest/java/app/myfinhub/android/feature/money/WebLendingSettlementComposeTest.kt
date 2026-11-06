@@ -87,4 +87,16 @@ class WebLendingSettlementComposeTest {
         rule.onNodeWithText("100,00", substring = true).assertDoesNotExist()
         rule.onNodeWithText("33,34", substring = true).assertDoesNotExist()
     }
+    @Test fun corruptedReceivableDisplaysAnUnknownAmountAndNeverInventsASchedule() {
+        rule.setContent { MyFinHubTheme {
+            CanonicalLendingSettlementPanel(
+                "Alex", Double.POSITIVE_INFINITY, "2026-08-17", amountsVisible = true,
+            )
+        } }
+        rule.onNodeWithText("Μη έγκυρο ποσό", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("lending_settlement_amount").performTextReplacement("100")
+        rule.onNodeWithTag("lending_settlement_schedule").assertDoesNotExist()
+        rule.onNodeWithText("∞", substring = true).assertDoesNotExist()
+    }
+
 }

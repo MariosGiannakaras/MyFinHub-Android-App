@@ -17,8 +17,6 @@ import androidx.compose.ui.platform.testTag
 import app.myfinhub.android.core.data.canonicalCustomGoalScenario
 import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.designsystem.MyFinHubSpacing
-import java.text.NumberFormat
-import java.util.Locale
 
 /**
  * Web SavingsGoalProjectionPanel: advisory-only detail embedded in an existing
@@ -134,5 +132,4 @@ internal fun CanonicalSavingsGoalAdvisoryDetails(
     }
 }
 
-private fun formatGoalAdvisoryEuro(value: Double): String =
-    NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(value)
+private fun formatGoalAdvisoryEuro(value: Double): String = safeHistoricalMoneyLabel(value)
