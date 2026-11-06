@@ -1,6 +1,10 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.feature.plan.RecurringManageItem
+import app.myfinhub.android.feature.plan.PlanUiState
+import app.myfinhub.android.feature.plan.PlannedItem
+import app.myfinhub.android.feature.plan.PlannedFlow
+import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.quickentry.QuickEntryAccountOption
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
@@ -84,4 +88,51 @@ class NativeRecurringQuickEntryPrefillTest {
             item().copy(amountValidationError = "Imported invalid amount"), source)
         assertFalse(invalid.any { it is QuickEntryAction.AmountChanged })
     }
+    private fun planned() = PlannedItem(
+        id = "electric", title = "Ρεύμα", dueLabel = "30 Νοε", amount = 125.0,
+        kind = PlannedKind.RECURRING, flow = PlannedFlow.OBLIGATION,
+        dueDateIso = "2026-11-30",
+    )
+    @Test fun forecastMustResolveCurrentUniqueRecurringOwnerRatherThanItsEstimatedProjection() {
+        val variable = item().copy(amountMode = "variable", amount = 125.0,
+            estimateMin = 80.0, estimateMax = 150.0)
+        val state = PlanUiState(
+            items = listOf(planned()),
+            recurringManageItems = listOf(variable),
+        )
+        val actions = forecastRecurringPaymentQuickEntryActions(planned(), state, source)
+        val draft = actions.fold(source, ::reduceQuickEntry)
+        assertTrue(actions.isNotEmpty())
+        assertEquals("electric", draft.recurringId)
+        assertEquals("cash", draft.accountId)
+        assertEquals("", draft.amountText)
+        assertFalse(actions.contains(QuickEntryAction.Save))
+        assertFalse(draft.persisted)
+        // Forecast row amount is not a payment authorization: current source wins.
+        val mismatched = planned().copy(amount = 9999.0)
+        assertEquals(actions,
+            forecastRecurringPaymentQuickEntryActions(mismatched,state,source))
+    }
+
+    @Test fun forecastFinancialActionFailsClosedForMissingDuplicateOrInactiveSource() {
+        val base = PlanUiState(
+            items = listOf(planned()), recurringManageItems = listOf(item()),
+        )
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base.copy(recurringManageItems = emptyList()), source).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base.copy(recurringManageItems = listOf(item(),item())), source).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base.copy(items = listOf(planned(), planned())), source).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base.copy(recurringManageItems=listOf(item().copy(status="paused"))),source).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base, source.copy(accounts=listOf(cash,cash))).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned(), base, source.copy(accounts=listOf(credit))).isEmpty())
+        assertTrue(forecastRecurringPaymentQuickEntryActions(
+            planned().copy(kind=PlannedKind.SCHEDULED),base,source).isEmpty())
+    }
+
+
 }
