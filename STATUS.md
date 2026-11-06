@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-D1–D6 native Android software milestones remain completed (6/8). PR #426 protected stale login/TOTP UI transitions; PR #427 secured owner+AAL2 full card-vault reveal against screenshots/Recents only while visible, passed 4/4 immutable-head CI gates, and squash merged develop 7fac8862b1435f03b57c75840144809d578ba559. Current W2.4 draft PR #428 blocks malformed/full-PAN imported card.last4 metadata across Android Money/Activity projections, pending changes, Wallet, card stack, Card Detail/picker and confirmation. The initial #428 head passed 3/4 CI gates; the sole screenshot failure changed the accepted spacing of a legitimate delete-dialog card suffix. This correction preserves the existing valid visual, adds malformed-delete regression and integrates #427 into the branch; fresh exact-final-head CI remains pending. Web parity 1/6 implementations · 11/24 subtasks unchanged; D7 requires separately owner-authorized same-signer signed candidate, real S24 in-place upgrade and explicit owner signoff (#149), and D8 independently authorized release. No Web/backend/schema, main, signer, SMS #146, global PIN #345 or real finance writes.
+D1–D6 native software is integrated 6/8. PR #428 exact-four-ASCII last4 display redaction passed all four immutable-head CI gates and squash merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110. Consolidated W2.4 final PR #429 protects full owner+AAL2 PAN/expiry/CVV on both Wallet's revealed credit card stack and protected Card Details using shared reference-counted FLAG_SECURE leases across concurrent navigation; archive now dispatches the guarded mutation immediately and accurately describes encrypted vault retention. Targeted hosted Compose overlap/flag-restoration/archive regressions authored; final four CI checks and merge pending. W2.4 completed in this PR is provisional until integrated. Accepted Web parity stays 1/6 implementations · 11/24 subtasks before PR merge; becomes 2/6 · 12/24 after all gates and merge. W3.1 is the next unfinished domain task. Real owner S24 Ultra D7 physical acceptance (#149), a separately approved current-source same-signer candidate and D8 separately authorized production release remain pending. No Web/backend/schema, real finance writes, signing, main, SMS #146 or global PIN #345 changes.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate W2.4 PR #428 on its corrected immutable final head: Project Tracking, Android CI, screenshot regression (preserving the accepted card delete reference), and hosted S24 instrumentation must all succeed; require stable develop and clear reviews before merge. W2.4 and Web parity remain partial; D7 still needs separately approved same-signer current-source candidate, actual physical owner S24 upgrade/signoff (#149), with D8 independently authorized.
+1. Pass consolidated W2.4 PR #429 four exact-final-head CI gates (Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation), stable develop and clean reviews, then squash merge; only then accept W2.4 and the 2/6 · 12/24 Web parity count. Continue W3.1 concrete historical statement/debt source gaps without re-auditing completed work. D7 requires separately authorized current-source same-signer signed candidate, in-place physical Galaxy S24 Ultra upgrade and explicit owner functional acceptance (#149); D8 protected release independently authorized.
 
 ## Non-negotiable constraints
 
@@ -62,24 +62,24 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 native software accepted 6/8. D7 read-only preflight #424/#425, auth UI #426 and secure card-vault screen FLAG_SECURE #427 all passed four immutable-head CI checks and merged; latest develop 7fac8862b1435f03b57c75840144809d578ba559. Draft W2.4 #428 masks malformed card last-four metadata and preserves legitimate screenshot baseline; final CI/merge pending. D7 remains blocked on separately owner-approved current-source same-signer signed candidate, real in-place S24 upgrade and owner functional acceptance (#149); D8 protected release requires separate authorization. Installed rc12/10011 predates current Android source.
+Next: Native D1–D6 integrated 6/8. PR #428 metadata last4 protection passed 4/4 immutable-head checks and merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110. Final W2.4 PR #429 consolidates shared screenshot privacy across full-secret Wallet/Card Details and immediate reversible archive mutation, four-gate CI/merge pending. D7 real S24 owner acceptance still requires separately approved current-source same-signer candidate and actual in-place upgrade; D8 protected signed release independently gated. Installed rc12/10011 predates D1–D6 source.
 
 
 ## Active Web parity progress
 
-**Implementations: 1/6 · Subtasks: 11/24**
+**Implementations: 2/6 · Subtasks: 12/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #428, branch android/w2-card-last4-display-redaction-20261105
-Current W2.4: D1–D6 native Android completed 6/8; latest W2.4 secure owner+AAL2 card-vault reveal screenshot protection PR #427 passed 4/4 exact-head checks and merged develop 7fac8862b1435f03b57c75840144809d578ba559. Draft #428 adds shared fail-closed exact-four-ASCII-digit display policy for imported card.last4 in Money/Activity projections and multiple native UI surfaces (including deletion/pending notices), without changing persisted canonical finance or authorized vault reveal. Initial #428 head 3/4 PASS, screenshot regression 1 of 102 failed due only to a space before valid card last-four in deletion dialog; this checkpoint preserves the accepted baseline, adds malformed-delete Compose regression and merges #427's source changes. Fresh 4/4 final-head CI and merge pending. Web parity 1/6 · 11/24 unchanged; D7 owner S24 physical acceptance and D8 signed release separately gated.
+Issue #155, PR #429, branch android/w2-final-card-security-lifecycle-20261106
+Current W3.1: W2.4 native card/credit user journey final checkpoint PR #429 based on merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110: shared reference-counted FLAG_SECURE screenshot/Recents leases for concurrent revealed Wallet card and secure Card Details; immediate archive dispatch without visual 620ms delay; truthfully preserved encrypted card vault. Hosted Compose regression and previously integrated card actions, secure clipboard, archive/restore, canonical credit statements and mobile visuals provide acceptance evidence. W2.4 completion and Web parity 2/6 implementations · 12/24 subtasks are conditional until exact final-head 4/4 CI PASS and merge; prior integrated baseline 1/6 · 11/24. W3.1 remains next incomplete financial domain flow. D7 physical owner S24 and D8 protected release independent.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #428 all four exact-final-head CI gates SUCCESS, stable develop and clear reviews, then squash merge; do not mark W2.4 complete. D7 remains owner-authorized same-signer candidate and real S24 physical signoff (#149); D8 needs separately authorized production release. Exclude Web/backend/schema/main/signing/SMS #146/global PIN #345/real finance changes.
+Next Validate final #429 Project Tracking, Android CI, screenshot regression and hosted S24 tests all SUCCESS on one exact immutable head, with unchanged develop and no unresolved reviews; then squash merge and record factual completion. Resume W3.1 historical statement debt only with concrete evidence of remaining production UX/domain gaps. D7 newer same-signer candidate/physical owner acceptance and D8 protected release remain separately gated; no Web/backend/schema, main/signing, SMS #146, global PIN #345 or real finance writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
-| W2 Card identity and integrated credit experience | 3/4 | W2.4 Card interactions and secure details (in_progress) |
+| W2 Card identity and integrated credit experience | 4/4 | Complete |
 | W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
@@ -94,7 +94,7 @@ Next Validate PR #428 all four exact-final-head CI gates SUCCESS, stable develop
 - [x] W2.1 Canonical card metadata/lifecycle — completed
 - [x] W2.2 Shared native card visual — completed
 - [x] W2.3 Credit information on card screen — completed
-- [ ] W2.4 Card interactions and secure details — in_progress
+- [x] W2.4 Card interactions and secure details — completed
 - [ ] W3.1 Statement cycle and historical debt — in_progress
 - [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
