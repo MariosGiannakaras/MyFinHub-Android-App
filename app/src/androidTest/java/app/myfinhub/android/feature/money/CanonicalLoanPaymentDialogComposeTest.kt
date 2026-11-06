@@ -127,10 +127,10 @@ class CanonicalLoanPaymentDialogComposeTest {
             CanonicalLoanPaymentDialog(loan,accounts,onDismiss={},
                 onConfirm={ _,src,_,_,_ -> payments+=src },amountsVisible=true)
         } }
-        rule.onNodeWithTag("loan_payment_payer_required").assertIsDisplayed()
+        rule.onNodeWithTag("loan_payment_payer_required").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0,payments.size) }
-        rule.onNodeWithTag("loan_payment_source_salary").performClick()
+        rule.onNodeWithTag("loan_payment_source_salary").performScrollTo().performClick()
         rule.onNodeWithTag("loan_payment_confirm").assertIsEnabled().performClick()
         rule.runOnIdle { assertEquals(listOf("salary"),payments) }
     }
@@ -143,7 +143,7 @@ class CanonicalLoanPaymentDialogComposeTest {
             CanonicalLoanPaymentDialog(loan,accounts,onDismiss={},
                 onConfirm={ _,src,_,_,target -> pairs+=src to target },amountsVisible=true)
         } }
-        rule.onNodeWithTag("loan_payment_savings_required").assertIsDisplayed()
+        rule.onNodeWithTag("loan_payment_savings_required").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0,pairs.size) }
         rule.onNodeWithTag("loan_payment_savings_savings").performScrollTo().performClick()
@@ -177,7 +177,7 @@ class CanonicalLoanPaymentDialogComposeTest {
         } }
         rule.onNodeWithTag("loan_payment_confirm").assertIsEnabled()
         rule.runOnIdle { live.value=accounts.filterNot { it.id == "salary" } }
-        rule.onNodeWithTag("loan_payment_payer_required").assertIsDisplayed()
+        rule.onNodeWithTag("loan_payment_payer_required").performScrollTo().assertIsDisplayed()
         rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0,payments) }
     }
