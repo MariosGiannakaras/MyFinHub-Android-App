@@ -450,6 +450,7 @@ fun CanonicalPlanForecastScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onRecordItem: (PlannedItem) -> Unit = {},
+    canRecordItem: (PlannedItem) -> Boolean = { true },
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val mobileWindow = mobilePlanForecastWindow(state.forecastWindows)
@@ -673,7 +674,8 @@ fun CanonicalPlanForecastScreen(
                         } == 1
                         ForecastS7ItemCard(
                             item = item, amountsVisible = amountsVisible,
-                            onRecordItem = onRecordItem, recordEnabled = uniqueSource,
+                            onRecordItem = onRecordItem,
+                            recordEnabled = uniqueSource && canRecordItem(item),
                             tagSuffix = if (uniqueSource) "" else "_duplicate_$index",
                             categoryGlyphOverrides = state.categoryGlyphOverrides,
                         )
@@ -942,7 +944,7 @@ private fun ForecastS7ItemCard(
             if (item.flow != PlannedFlow.TRANSFER) {
                 if (!recordEnabled) {
                     Text(
-                        "Ιστορικό διπλό ID · Καταχώριση μόνο από επαληθευμένη μοναδική εγγραφή",
+                        "Μη επαληθευμένη εγγραφή ή λογαριασμός · η καταχώριση δεν είναι διαθέσιμη",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
