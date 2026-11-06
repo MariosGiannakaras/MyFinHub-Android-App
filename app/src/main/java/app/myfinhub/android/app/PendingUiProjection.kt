@@ -1,5 +1,7 @@
 package app.myfinhub.android.app
 
+import app.myfinhub.android.feature.money.canonicalCardDisplayLastFour
+
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.PendingCanonicalMutationIntent
 import app.myfinhub.android.core.data.PendingMutationKind
@@ -134,7 +136,7 @@ private fun pendingCardChangeMessage(
                     projectCanonicalProduct(next, today).moneyState.cards.firstOrNull { it.id == cardId }
                 }.getOrNull()
                 if (card != null) {
-                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    val last4 = canonicalCardDisplayLastFour(card.last4)?.let { " ••••$it" }.orEmpty()
                     linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί προσθήκη · ${intent.syncState.pendingStatusLabel()}"
                 }
             }
@@ -144,7 +146,7 @@ private fun pendingCardChangeMessage(
                     projectCanonicalProduct(before, today).moneyState.cards.firstOrNull { it.id == cardId }
                 }.getOrNull()
                 if (card != null) {
-                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    val last4 = canonicalCardDisplayLastFour(card.last4)?.let { " ••••$it" }.orEmpty()
                     linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί αρχειοθέτηση · ${intent.syncState.pendingStatusLabel()}"
                 }
             }
@@ -154,7 +156,7 @@ private fun pendingCardChangeMessage(
                     projectCanonicalProduct(next, today).moneyState.cards.firstOrNull { it.id == cardId }
                 }.getOrNull()
                 if (card != null) {
-                    val last4 = card.last4.takeIf(String::isNotBlank)?.let { " ••••$it" }.orEmpty()
+                    val last4 = canonicalCardDisplayLastFour(card.last4)?.let { " ••••$it" }.orEmpty()
                     linesByCardId[cardId] = "${card.nickname}$last4 · Εκκρεμεί επαναφορά · ${intent.syncState.pendingStatusLabel()}"
                 }
             }

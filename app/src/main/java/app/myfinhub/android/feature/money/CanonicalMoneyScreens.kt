@@ -414,7 +414,7 @@ internal fun CanonicalCardDeleteDialog(
         title = { Text("Διαγραφή κάρτας;") },
         text = {
             Text(
-                "Η ${card.nickname} ••••${card.last4.ifBlank { "••••" }} θα αφαιρεθεί. Η ενέργεια δεν αναιρείται.",
+                "Η ${card.nickname} ••••${canonicalCardDisplayLastFour(card.last4).orEmpty()} θα αφαιρεθεί. Η ενέργεια δεν αναιρείται.",
             )
         },
         confirmButton = {

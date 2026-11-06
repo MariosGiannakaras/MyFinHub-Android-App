@@ -730,7 +730,7 @@ private fun ReferenceCardFace(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 ReferenceSecretLine(
-                    text = revealed?.pan?.let(::referenceFormatPan) ?: "•••• •••• •••• " + card.last4.takeLast(4).padStart(4, '•'),
+                    text = revealed?.pan?.let(::referenceFormatPan) ?: ("•••• •••• •••• " + (canonicalCardDisplayLastFour(card.last4) ?: "••••")),
                     color = visual.text,
                     copyLabel = "Αντιγραφή αριθμού",
                     copyEnabled = revealed?.pan != null,

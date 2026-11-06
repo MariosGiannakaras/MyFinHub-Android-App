@@ -78,6 +78,7 @@ import app.myfinhub.android.feature.money.LoanPaymentHistoryItem
 import app.myfinhub.android.feature.money.LendingHistoryItem
 import app.myfinhub.android.feature.money.LendingItem
 import app.myfinhub.android.feature.money.MoneyCard
+import app.myfinhub.android.feature.money.canonicalCardDisplayLastFour
 import app.myfinhub.android.feature.money.CardAnnualRateVersion
 import app.myfinhub.android.feature.money.MoneyCardActivity
 import app.myfinhub.android.feature.money.MoneyCardActivityKind
@@ -211,8 +212,8 @@ val eventSignedFlow = events.map { event ->
 }
 val activityCardLabels = document.canonicalCards().associate { card ->
     val base = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } }
-    val last4 = card.last4.orEmpty()
-    card.id to if (last4.isBlank()) base else "$base • $last4"
+    val last4 = canonicalCardDisplayLastFour(card.last4)
+    card.id to if (last4 == null) base else "$base • $last4"
 }
 val legacyOverrideIds = (document.state["overrides"] as? JsonObject)?.keys.orEmpty()
 val uniqueEventCounterpartyIds = document.state.array("events")
@@ -482,7 +483,7 @@ val activityItems = buildActivityItems(
             MoneyCard(
                 id = card.id,
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
-                last4 = card.last4.orEmpty(),
+                last4 = canonicalCardDisplayLastFour(card.last4).orEmpty(),
                 kind = cardKindLabel(card.kind),
                 currentBalance = document.creditDebtForCardAt(card.id, asOf),
                 limit = card.creditLimit,
@@ -524,7 +525,7 @@ val activityItems = buildActivityItems(
             MoneyCard(
                 id = card.id,
                 nickname = card.nickname.ifBlank { card.network.ifBlank { "Κάρτα" } },
-                last4 = card.last4.orEmpty(),
+                last4 = canonicalCardDisplayLastFour(card.last4).orEmpty(),
                 kind = cardKindLabel(card.kind),
                 currentBalance = eventOutstanding,
                 limit = card.creditLimit,
