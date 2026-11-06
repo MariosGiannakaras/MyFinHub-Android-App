@@ -405,6 +405,71 @@ class S6CardSurfaceTest {
     }
 
     @Test
+    fun revealedWalletAndDetailsShareScreenshotProtectionUntilLastSurfaceCloses() {
+        var state by mutableStateOf<CardSecretUiState>(CardSecretUiState.Hidden("credit"))
+        var showWallet by mutableStateOf(true)
+        var showDetails by mutableStateOf(false)
+        var host: Activity? = null
+        composeRule.setContent {
+            host = LocalContext.current.findSecureCardHostActivity()
+            MyFinHubTheme {
+                Column {
+                    if (showWallet) {
+                        CreditCardStack(
+                            cards = listOf(credit), secretState = state,
+                            onActiveCardChanged = {}, onOpenCard = {}, onDeleteCard = {},
+                        )
+                    }
+                    if (showDetails) {
+                        CanonicalCardSecureDetailsScreen(
+                            cardId = "credit", card = credit, secretState = state,
+                            onReveal = {}, onSaveServerSecrets = { pan, expiry ->
+                                pan.fill('\\u0000')
+                                expiry.fill('\\u0000')
+                            },
+                            onSaveCvv = { it.fill('\\u0000') }, onBack = {},
+                        )
+                    }
+                }
+            }
+        }
+        val window = requireNotNull(host?.window)
+        val flag = WindowManager.LayoutParams.FLAG_SECURE
+        composeRule.runOnIdle {
+            assertEquals(0, window.attributes.flags and flag)
+            state = CardSecretUiState.Revealed("credit", "5555444433331881", "09/31", "731")
+        }
+        composeRule.runOnIdle {
+            assertTrue("Wallet full-secret face must block screenshots", window.attributes.flags and flag != 0)
+            showDetails = true
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            showWallet = false
+        }
+        composeRule.runOnIdle {
+            assertTrue("Details still reveals secrets", window.attributes.flags and flag != 0)
+            state = CardSecretUiState.AuthRejected
+        }
+        composeRule.runOnIdle {
+            assertEquals("All leases revoked", 0, window.attributes.flags and flag)
+            showDetails = false
+            window.addFlags(flag)
+            showWallet = true
+            state = CardSecretUiState.Revealed("credit", "5555444433331881", "09/31", "731")
+        }
+        composeRule.runOnIdle {
+            assertTrue(window.attributes.flags and flag != 0)
+            showWallet = false
+        }
+        composeRule.runOnIdle {
+            assertTrue("Pre-existing FLAG_SECURE must survive lease release",
+                window.attributes.flags and flag != 0)
+            window.clearFlags(flag)
+        }
+    }
+
+    @Test
     fun secureEditor_dropsSensitiveDraftsImmediatelyWhenVaultAuthorityIsRevoked() {
         var state by mutableStateOf<CardSecretUiState>(
             CardSecretUiState.Revealed(cardId = "credit", pan = null, expiry = null, cvv = null),

@@ -245,6 +245,8 @@ class CreditCardStackTest {
 
     @Test
     fun archiveAboveThreshold_requestsStableId_andParentCommitAllowsEmptyStack() {
+        // Use normal motion: the canonical write must not wait for decoration.
+        setAnimatorDurationScale(1f)
         val deleted = mutableListOf<String>()
         val cards = mutableStateOf(testCards(1))
 
@@ -264,10 +266,15 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").performClick()
+        composeRule.onNodeWithText("κρυπτογραφημένα στοιχεία διατηρούνται", substring = true)
+            .assertIsDisplayed()
         val slider = composeRule.onNodeWithTag("card_delete_slider")
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(.91f) }
         slider.performSemanticsAction(SemanticsActions.RequestFocus) { it() }
         slider.performKeyInput { pressKey(Key.Enter) }
+        composeRule.runOnIdle {
+            assertEquals("Archive must not wait for animation", listOf("card-a"), deleted)
+        }
 
         composeRule.waitUntil(timeoutMillis = TimeUnit.SECONDS.toMillis(5)) {
             deleted == listOf("card-a") && cards.value.isEmpty()
