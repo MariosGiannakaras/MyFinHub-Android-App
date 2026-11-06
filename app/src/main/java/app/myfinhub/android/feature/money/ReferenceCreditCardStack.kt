@@ -288,6 +288,9 @@ fun CreditCardStack(
     }
 
     val revealed = (secretState as? CardSecretUiState.Revealed)?.takeIf { it.cardId == activeId }
+    // The Wallet card face can reveal full PAN/expiry/CVV. Protect the host
+    // window as long as this card face contains any owner+AAL2 secret.
+    ProtectSensitiveCardWindow(revealed != null)
 
     // The stack shows owner+AAL2 card secrets just like the secure detail screen.
     // Never bypass its 30-second, ownership-aware clipboard policy with Compose's
@@ -379,16 +382,15 @@ fun CreditCardStack(
     }
 
     fun commitDelete(cardId: String) {
-        if (deletingId != null) return
+        if (deletingId != null || activeId != cardId) return
         deleteArmedId = null
         deleteProgress = 0f
         statusMessage = "Η αρχειοθέτηση της κάρτας ξεκίνησε"
         deletingId = cardId
+        // Confirmation is complete: dispatch the guarded canonical mutation
+        // immediately; visual decoration must never defer an online write.
+        onDeleteCard(cardId)
         scope.launch {
-            // Keep the canonical card in the projected list until the approved shred/collapse
-            // transition has actually been visible. Reduced-motion users skip decoration.
-            if (!reducedMotion) delay(620)
-            onDeleteCard(cardId)
             if (!reducedMotion) delay(80)
             if (deletingId == cardId) deletingId = null
         }
@@ -1021,7 +1023,7 @@ private fun ReferenceDeleteConfirmation(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα μπορεί να επανέλθει· το ιστορικό διατηρείται. Τα ασφαλή στοιχεία θα καθαριστούν.",
+                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα επανέρχεται, ενώ το ιστορικό και τα κρυπτογραφημένα στοιχεία διατηρούνται.",
                     color = Color.White.copy(alpha = .76f),
                     fontSize = 9.sp,
                 )
