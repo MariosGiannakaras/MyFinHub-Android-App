@@ -820,16 +820,27 @@ internal fun MyFinHubAppContent(
                         onBack = { planBackStack.removeLastOrNull() },
                         onRecordItem = { item ->
                             if (item.kind == PlannedKind.SCHEDULED) {
-                                // Never create an unrelated Quick Entry event and leave
-                                // the scheduled charge pending in the forecast.
+                                // Never create an unrelated Quick Entry event while the
+                                // canonical scheduled source would stay pending.
                                 planBackStack.pushIfNew(AppRoute.PlanScheduled)
-                            } else {
-                                val actions = plannedItemQuickEntryPrefillActions(item, quickEntryState)
+                            } else if (!planMutationInFlight && !planMutationBlocked) {
+                                // Re-evaluate current, unique owner identity and payer when
+                                // the button is tapped, not the stale forecast snapshot.
+                                val actions = forecastRecurringPaymentQuickEntryPrefillActions(
+                                    item, planState, quickEntryState,
+                                )
                                 if (actions.isNotEmpty()) {
                                     actions.forEach(onQuickEntryAction)
                                     planBackStack.pushIfNew(AppRoute.QuickEntry)
                                 }
                             }
+                        },
+                        canRecordItem = { item ->
+                            item.kind != PlannedKind.RECURRING ||
+                                (!planMutationInFlight && !planMutationBlocked &&
+                                    forecastRecurringPaymentQuickEntryPrefillActions(
+                                        item, planState, quickEntryState,
+                                    ).isNotEmpty())
                         },
                     )
                 }
@@ -949,6 +960,30 @@ internal fun recurringPaymentQuickEntryPrefillActions(
             add(QuickEntryAction.AmountChanged(recurring.amount.toString()))
         }
     }
+}
+
+
+/**
+ * A Plan forecast is a read-only estimate, never the authority for a paid
+ * recurring event. Resolve the uniquely identified *current* recurring
+ * profile and use exactly the same guarded unsaved expense draft as
+ * Plan > Recurring > Native Management.
+ *
+ * No fallback account, no guessed recurringId, no amount from a potentially
+ * variable forecast estimate, and no auto-save.
+ */
+internal fun forecastRecurringPaymentQuickEntryPrefillActions(
+    item: PlannedItem,
+    plan: PlanUiState,
+    quickEntry: QuickEntryUiState,
+): List<QuickEntryAction> {
+    if (item.kind != PlannedKind.RECURRING || item.flow != PlannedFlow.OBLIGATION ||
+        item.id.isBlank() || item.id != item.id.trim() ||
+        plan.items.count { it.kind == PlannedKind.RECURRING && it.id == item.id } != 1
+    ) return emptyList()
+    val current = plan.recurringManageItems.singleOrNull { it.id == item.id }
+        ?: return emptyList()
+    return recurringPaymentQuickEntryPrefillActions(current, quickEntry)
 }
 
 internal fun plannedItemQuickEntryPrefillActions(

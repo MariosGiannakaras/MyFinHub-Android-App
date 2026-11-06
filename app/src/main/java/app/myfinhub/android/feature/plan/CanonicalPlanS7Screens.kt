@@ -450,6 +450,8 @@ fun CanonicalPlanForecastScreen(
     state: PlanUiState,
     onBack: () -> Unit,
     onRecordItem: (PlannedItem) -> Unit = {},
+    /** Caller may reject stale source/payer identities without changing history. */
+    canRecordItem: ((PlannedItem) -> Boolean)? = null,
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val mobileWindow = mobilePlanForecastWindow(state.forecastWindows)
@@ -671,9 +673,16 @@ fun CanonicalPlanForecastScreen(
                         val uniqueSource = state.items.count {
                             it.kind == item.kind && it.id == item.id
                         } == 1
+                        val currentSourceValid = canRecordItem?.invoke(item) != false
                         ForecastS7ItemCard(
                             item = item, amountsVisible = amountsVisible,
-                            onRecordItem = onRecordItem, recordEnabled = uniqueSource,
+                            onRecordItem = onRecordItem,
+                            recordEnabled = uniqueSource && currentSourceValid,
+                            recordWarning = if (!uniqueSource)
+                                "Ιστορικό διπλό ID · Καταχώριση μόνο από επαληθευμένη μοναδική εγγραφή"
+                            else if (!currentSourceValid)
+                                "Το πάγιο ή ο λογαριασμός πληρωμής χρειάζεται έλεγχο πριν από καταχώριση."
+                            else null,
                             tagSuffix = if (uniqueSource) "" else "_duplicate_$index",
                             categoryGlyphOverrides = state.categoryGlyphOverrides,
                         )
@@ -910,6 +919,7 @@ private fun ForecastS7ItemCard(
     item: PlannedItem, amountsVisible: Boolean,
     onRecordItem: (PlannedItem) -> Unit,
     recordEnabled: Boolean = true, tagSuffix: String = "",
+    recordWarning: String? = null,
     categoryGlyphOverrides: Map<String, String> = emptyMap(),
 ) {
     val tone = planS7Tone(item.flow)
@@ -942,7 +952,7 @@ private fun ForecastS7ItemCard(
             if (item.flow != PlannedFlow.TRANSFER) {
                 if (!recordEnabled) {
                     Text(
-                        "Ιστορικό διπλό ID · Καταχώριση μόνο από επαληθευμένη μοναδική εγγραφή",
+                        recordWarning ?: "Η καταχώριση δεν είναι διαθέσιμη.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

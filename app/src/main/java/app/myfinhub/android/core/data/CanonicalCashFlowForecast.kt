@@ -72,6 +72,10 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
             return@forEach
         }
         if (due.isAfter(end)) return@forEach
+        if (!scheduled.amount.isFinite()) {
+            omitted += "Η προγραμματισμένη κίνηση «${scheduled.note}» δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο."
+            return@forEach
+        }
         val date = if (due.isBefore(asOf)) asOf else due
         if (scheduled.kind == "transfer") {
             val from = scheduled.fromAccountId
@@ -93,6 +97,10 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         }
     }
     activeCanonicalRecurringItems().forEach { item ->
+        if (!item.amount.isFinite() || item.amount < 0.0) {
+            omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή η εκτίμηση ποσού δεν είναι έγκυρη."
+            return@forEach
+        }
         if (item.accountId !in ids) {
             omitted += "Το πάγιο «${item.name}» δεν προβλήθηκε επειδή ο λογαριασμός του δεν είναι διαθέσιμος."
             return@forEach
@@ -184,6 +192,10 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
         val date = forecastDate(event.date) ?: return@forEach
         if (!date.isAfter(asOf) || date.isAfter(end)) return@forEach
         val legs = event.legs.filter { it.accountId in ids }
+        if (legs.any { !it.amount.isFinite() }) {
+            omitted += "Η μελλοντική κίνηση «${event.note}» δεν προβλήθηκε επειδή κάποιο ποσό λογαριασμού δεν είναι έγκυρο."
+            return@forEach
+        }
         if (legs.isNotEmpty()) add("forecast-event-${event.id}", date, "dated_event", event.note, legs)
     }
     // Web forecast.ts uses localeCompare for same-day source and ID ties.
