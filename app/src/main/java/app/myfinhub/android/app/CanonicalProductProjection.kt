@@ -18,6 +18,7 @@ import app.myfinhub.android.core.data.canonicalSavingsGoals
 import app.myfinhub.android.core.data.canonicalSavingsGoalProjection
 import app.myfinhub.android.core.data.cashFlowForecast
 import app.myfinhub.android.core.data.creditStatementViews
+import app.myfinhub.android.core.data.canonicalStatementPurchaseAmount
 import app.myfinhub.android.core.data.canonicalStatementSourceIdCounts
 import app.myfinhub.android.core.data.canonicalEvents
 import app.myfinhub.android.core.data.canonicalScheduled
@@ -192,10 +193,17 @@ fun projectCanonicalProduct(
     val legacy = document.effectiveLegacyTransactions()
     // Never collapse chronology by ID. Real events may share an imported ID
     // or another event ID; preserve the corresponding raw source ordinal.
-    val eventChronology = document.state.array("events").mapNotNull { raw ->
+    val physicalEventRows = document.state.array("events").mapNotNull { raw ->
         val event = raw as? JsonObject ?: return@mapNotNull null
         if (event.string("id") == null) return@mapNotNull null
+        event
+    }
+    val eventChronology = physicalEventRows.map { event ->
         event.string("createdAt") ?: event.string("updatedAt") ?: event.string("date").orEmpty()
+    }
+    val mixedCreditPurchases = physicalEventRows.map { raw ->
+        if (raw.string("kind") != "expense") return@map null
+        canonicalStatementPurchaseAmount(raw).takeIf { it.isFinite() && it > 0.005 }
     }
 // Never key financial metadata by a bare ID. Canonical seed rows can share an
 // ID, and a legacy ID can collide with an event ID. Such a join incorrectly
@@ -506,19 +514,26 @@ val activityItems = buildActivityItems(
             // A card may have multiple events sharing an imported ID. Sort
             // by each event's own source ordinal chronology, not an ID lookup.
             val cardActivity = events.withIndex()
-                .filter { (_, event) -> event.cardId == card.id && event.kind in setOf("card_purchase", "card_payment") }
+                .filter { (index, event) ->
+                    event.cardId == card.id &&
+                        (event.kind in setOf("card_purchase", "card_payment") ||
+                            (event.kind == "expense" && mixedCreditPurchases.getOrNull(index) != null))
+                }
                 .sortedWith(
                     compareByDescending<IndexedValue<CanonicalEvent>> { it.value.date }
                         .thenByDescending { eventChronology.getOrNull(it.index).orEmpty() }
                         .thenByDescending { it.value.id },
                 )
-                .map { (_, event) ->
+                .map { (sourceIndex, event) ->
                     val payment = event.kind == "card_payment"
+                    val creditPortion = if (event.kind == "expense") {
+                        mixedCreditPurchases.getOrNull(sourceIndex) ?: 0.0
+                    } else event.amount
                     MoneyCardActivity(
                         id = event.id,
                         dateLabel = formatDate(event.date),
                         title = event.note.ifBlank { if (payment) "Πληρωμή κάρτας" else event.category ?: "Αγορά" },
-                        amount = if (payment) abs(event.amount) else -abs(event.amount),
+                        amount = if (payment) abs(event.amount) else -abs(creditPortion),
                         kind = if (payment) MoneyCardActivityKind.PAYMENT else MoneyCardActivityKind.PURCHASE,
                     )
                 }

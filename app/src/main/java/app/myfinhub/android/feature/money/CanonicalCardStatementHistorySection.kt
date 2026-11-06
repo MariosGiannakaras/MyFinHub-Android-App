@@ -40,6 +40,7 @@ private fun statementHistoryStatus(status: String) = when (status) {
     "closed" -> "Κλειστή"
     "due" -> "Προς εξόφληση"
     "paid" -> "Εξοφλημένη"
+    "invalid" -> "Χρειάζεται έλεγχος"
     else -> "Άγνωστη κατάσταση"
 }
 
@@ -73,7 +74,7 @@ internal fun filteredCardStatements(
 ): List<CanonicalCreditStatementView> = when (filter) {
     CardStatementFilter.ALL -> statements
     CardStatementFilter.PAYABLE ->
-        statements.filter { it.remaining.isFinite() && it.remaining > 0.005 }
+        statements.filter { it.sourceIntegrityValid && it.remaining.isFinite() && it.remaining > 0.005 }
 }
 
 /** A selected statement must be unique, current and payable before linking it to a
@@ -90,7 +91,7 @@ internal fun canOpenCreditStatementPayment(
     val scoped = canonicalStatementsForCard(cardId, statements)
     if (!canonicalStatementIdentityUnique(statementId, scoped, fullStatementIdCounts)) return false
     val selected = scoped.singleOrNull { it.id == statementId } ?: return false
-    return selected.remaining.isFinite() && selected.remaining > 0.005 &&
+    return selected.sourceIntegrityValid && selected.remaining.isFinite() && selected.remaining > 0.005 &&
         kotlin.math.abs(selected.remaining - requestedRemaining) < 0.005
 }
 
@@ -187,16 +188,18 @@ internal fun CanonicalCardStatementHistorySection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (identityUnique && statement.remaining.isFinite() && statement.remaining > 0.005) {
+                    if (identityUnique && statement.sourceIntegrityValid &&
+                    statement.remaining.isFinite() && statement.remaining > 0.005) {
                         TextButton(
                             onClick = { onPayStatement(statement.id, statement.remaining) },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                 .testTag("card_statement_pay_$index"),
                         ) { Text("Πληρωμή αυτής της κατάστασης") }
                     }
-                    if (!identityUnique) {
+                    if (!identityUnique || !statement.sourceIntegrityValid) {
                         Text(
-                            "Μη έγκυρο ή μη μοναδικό ID κατάστασης · οι συνδεδεμένες κινήσεις είναι μόνο για προβολή.",
+                            if (!identityUnique) "Μη έγκυρο ή μη μοναδικό ID κατάστασης · οι συνδεδεμένες κινήσεις είναι μόνο για προβολή."
+                            else "Ασυνεπή ιστορικά στοιχεία κατάστασης · απαιτείται έλεγχος πριν από πληρωμή ή άνοιγμα συνδέσεων.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )

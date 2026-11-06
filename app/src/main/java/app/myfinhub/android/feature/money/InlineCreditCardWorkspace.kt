@@ -100,6 +100,7 @@ private fun creditStatementStatusLabel(status: String): String = when (status) {
     "closed" -> "Κλειστή"
     "open" -> "Ανοιχτή"
     "paid" -> "Εξοφλημένη"
+    "invalid" -> "Χρειάζεται έλεγχος"
     else -> "Κατάσταση"
 }
 
@@ -257,14 +258,15 @@ fun InlineCreditCardWorkspace(
                                     + " · Πληρωμές: " + creditWorkspaceMoney(statement.paymentTotal, amountsVisible),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (onPayStatement != null && unique && statement.remaining.isFinite() &&
+                                if (onPayStatement != null && unique && statement.sourceIntegrityValid &&
+                                    statement.remaining.isFinite() &&
                                     statement.remaining > 0.005) {
                                     TextButton(
                                         onClick = { onPayStatement(statement.id, statement.remaining) },
                                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                             .testTag("inline_credit_pay_statement_$index"),
                                     ) { Text("Πληρωμή κατάστασης") }
-                                } else if (onPayStatement != null && !unique) {
+                                } else if (onPayStatement != null && (!unique || !statement.sourceIntegrityValid)) {
                                     Text("Μη μοναδική κατάσταση · η πληρωμή δεν είναι διαθέσιμη.",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.error,
