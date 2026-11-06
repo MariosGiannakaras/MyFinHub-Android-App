@@ -62,6 +62,8 @@ import app.myfinhub.android.feature.plan.CanonicalBudget2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlan2026Screen
 import app.myfinhub.android.feature.plan.CanonicalPlanForecastScreen
 import app.myfinhub.android.feature.plan.MobileRecurringOverviewScreen
+import app.myfinhub.android.feature.plan.CanonicalRecurringManagementScreen
+import app.myfinhub.android.feature.plan.RecurringManageItem
 import app.myfinhub.android.feature.plan.CanonicalScheduledManagementScreen
 import app.myfinhub.android.feature.plan.PlannedKind
 import app.myfinhub.android.feature.plan.ScheduledCreateRequest
@@ -74,6 +76,7 @@ import app.myfinhub.android.feature.quickentry.ProductionQuickEntryScreen
 import app.myfinhub.android.feature.quickentry.QuickEntryAction
 import app.myfinhub.android.feature.quickentry.QuickEntryBackGuard
 import app.myfinhub.android.feature.quickentry.QuickEntryKind
+import app.myfinhub.android.feature.quickentry.toCurrencyCentsOrNull
 import app.myfinhub.android.feature.quickentry.QuickEntryUiState
 import app.myfinhub.android.feature.quickentry.QuickEntryViewModel
 import app.myfinhub.android.feature.utilities.AppDiagnosticsSnapshot
@@ -765,6 +768,36 @@ internal fun MyFinHubAppContent(
                     MobileRecurringOverviewScreen(
                         items = planState.recurringManageItems,
                         onBack = { planBackStack.removeLastOrNull() },
+                        onOpenManagement = { planBackStack.pushIfNew(AppRoute.PlanRecurringManage) },
+                    )
+                }
+                entry<AppRoute.PlanRecurringManage> {
+                    val eligiblePayers = quickEntryState.accounts.filter {
+                        it.id.isNotBlank() && it.kind != "credit"
+                    }.map { it.id }.toSet()
+                    CanonicalRecurringManagementScreen(
+                        state = planState,
+                        onBack = { planBackStack.removeLastOrNull() },
+                        onStatusChanged = onSetRecurringStatus,
+                        onCreate = onCreateRecurring,
+                        onEdit = onEditRecurring,
+                        onRecordPayment = { recurring ->
+                            if (!planMutationInFlight && !planMutationBlocked &&
+                                planState.recurringManageItems.count { it.id == recurring.id } == 1 &&
+                                recurring.status == "active"
+                            ) {
+                                val actions = recurringPaymentQuickEntryPrefillActions(
+                                    recurring, quickEntryState,
+                                )
+                                if (actions.isNotEmpty()) {
+                                    actions.forEach(onQuickEntryAction)
+                                    planBackStack.pushIfNew(AppRoute.QuickEntry)
+                                }
+                            }
+                        },
+                        mutationBlocked = planMutationInFlight || planMutationBlocked,
+                        paymentAccountAvailable = eligiblePayers.isNotEmpty(),
+                        paymentAccountIds = eligiblePayers,
                     )
                 }
                 entry<AppRoute.PlanScheduled> {
@@ -880,6 +913,35 @@ internal fun MyFinHubAppContent(
         }
     } else {
         navigationContent()
+    }
+}
+
+/**
+ * Open an editable recurring EXPENSE draft, never book a transaction. A
+ * historical missing/ambiguous/credit payer is not silently substituted.
+ * A variable estimate is not a recorded payment amount.
+ */
+internal fun recurringPaymentQuickEntryPrefillActions(
+    recurring: RecurringManageItem,
+    quickEntryState: QuickEntryUiState,
+): List<QuickEntryAction> {
+    if (recurring.id.isBlank() || recurring.status != "active" ||
+        quickEntryState.accounts.count {
+            it.id == recurring.accountId && it.id.isNotBlank() && it.kind != "credit"
+        } != 1
+    ) return emptyList()
+    return buildList {
+        add(QuickEntryAction.Reset)
+        add(QuickEntryAction.SelectKind(QuickEntryKind.EXPENSE))
+        add(QuickEntryAction.RecurringChanged(recurring.id, recurring.category))
+        add(QuickEntryAction.AccountChanged(recurring.accountId))
+        add(QuickEntryAction.NoteChanged(recurring.title.trim().ifEmpty { "Πάγια πληρωμή" }))
+        if (recurring.amountMode == "fixed" && recurring.amountValidationError == null &&
+            recurring.amount.isFinite() && recurring.amount > 0.0 &&
+            recurring.amount.toString().toCurrencyCentsOrNull() != null
+        ) {
+            add(QuickEntryAction.AmountChanged(recurring.amount.toString()))
+        }
     }
 }
 

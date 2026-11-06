@@ -143,11 +143,13 @@ internal fun mobileRecurringVisibleHistoryCount(total: Int, batches: Int): Int =
 fun MobileRecurringOverviewScreen(
     items: List<RecurringManageItem>,
     onBack: () -> Unit,
+    onOpenManagement: (() -> Unit)? = null,
 ) {
     MobileRecurringOverviewContent(
         items = items,
         onBack = onBack,
         amountsVisible = rememberAmountVisibilityPreference(),
+        onOpenManagement = onOpenManagement,
     )
 }
 
@@ -157,6 +159,7 @@ internal fun MobileRecurringOverviewContent(
     items: List<RecurringManageItem>,
     onBack: () -> Unit,
     amountsVisible: Boolean,
+    onOpenManagement: (() -> Unit)? = null,
 ) {
     val money = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
     fun displayAmount(amount: Double) = if (!amountsVisible) "•••• €"
@@ -171,7 +174,8 @@ internal fun MobileRecurringOverviewContent(
         topBar = {
             MyFinHubScreenHeader(
                 title = "Πάγια και συνδρομές",
-                subtitle = "Προβολή · διαχείριση από το Web",
+                subtitle = if (onOpenManagement != null)
+                    "Ιστορικό · διαχείριση στην εφαρμογή" else "Προβολή · διαχείριση από το Web",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -193,6 +197,13 @@ internal fun MobileRecurringOverviewContent(
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.testTag("mobile_recurring_summary"),
                     )
+                    if (onOpenManagement != null) {
+                        TextButton(
+                            onClick = onOpenManagement,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .testTag("mobile_recurring_manage_open"),
+                        ) { Text("Δημιουργία και διαχείριση παγίων") }
+                    }
                     Text(
                         "Οι προβλεπόμενες χρεώσεις δεν αποτελούν πραγματοποιημένες πληρωμές.",
                         style = MaterialTheme.typography.bodySmall,

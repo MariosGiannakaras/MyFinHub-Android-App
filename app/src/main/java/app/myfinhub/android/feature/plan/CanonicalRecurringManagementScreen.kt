@@ -50,6 +50,13 @@ import java.util.Locale
 import java.time.LocalDate
 import kotlin.math.abs
 
+/** Read-only money text never emits non-finite historical imports as NaN or infinity. */
+internal fun recurringManagementMoney(amount: Double, visible: Boolean): String = when {
+    !visible -> "•••• €"
+    !amount.isFinite() -> "Μη έγκυρο ποσό"
+    else -> NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR")).format(amount)
+}
+
 /** Native real-state management for Web recurringOverrides/custom lifecycle. */
 @Composable
 fun CanonicalRecurringManagementScreen(
@@ -61,6 +68,8 @@ fun CanonicalRecurringManagementScreen(
     onRecordPayment: (RecurringManageItem) -> Unit = {},
     mutationBlocked: Boolean = false,
     paymentAccountAvailable: Boolean = true,
+    /** Null preserves older previews. Production supplies current eligible payer IDs. */
+    paymentAccountIds: Set<String>? = null,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
     val serviceAssetCatalog = LocalRecurringServiceAssets.current
@@ -144,8 +153,12 @@ fun CanonicalRecurringManagementScreen(
 
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Text(amountVisibilityText(currency.format(item.amount), showAmounts),
-                            style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            if (item.amountValidationError != null && showAmounts)
+                                "Μη έγκυρη εκτίμηση"
+                            else recurringManagementMoney(item.amount, showAmounts),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                         // Variable Web amountMode is an estimate, never a recorded payment.
                         Text(
                             when {
@@ -171,11 +184,11 @@ fun CanonicalRecurringManagementScreen(
                             Text(
                                 "Εύρος εκτίμησης: " +
                                     (item.estimateMin?.let {
-                                        amountVisibilityText(currency.format(it), showAmounts)
+                                        recurringManagementMoney(it, showAmounts)
                                     } ?: "—") +
                                     " – " +
                                     (item.estimateMax?.let {
-                                        amountVisibilityText(currency.format(it), showAmounts)
+                                        recurringManagementMoney(it, showAmounts)
                                     } ?: "—"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -186,7 +199,7 @@ fun CanonicalRecurringManagementScreen(
                         if (uniqueId && item.lastActualPaymentAmount != null) {
                             Text(
                                 "Τελευταία πραγματική πληρωμή: " +
-                                    amountVisibilityText(currency.format(item.lastActualPaymentAmount), showAmounts) +
+                                    recurringManagementMoney(item.lastActualPaymentAmount, showAmounts) +
                                     (item.lastActualPaymentDateIso?.let { " · $it" }.orEmpty()),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -197,7 +210,7 @@ fun CanonicalRecurringManagementScreen(
                             item.actualPaymentsThisMonth > 0) {
                             Text(
                                 "Καταχωρισμένο έως σήμερα στον μήνα: " +
-                                    amountVisibilityText(currency.format(item.actualPaidThisMonth), showAmounts) +
+                                    recurringManagementMoney(item.actualPaidThisMonth, showAmounts) +
                                     " · " + item.actualPaymentsThisMonth + " πληρωμές",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -224,7 +237,7 @@ fun CanonicalRecurringManagementScreen(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                         Text(
-                                            amountVisibilityText(currency.format(payment.amount), showAmounts),
+                                            recurringManagementMoney(payment.amount, showAmounts),
                                             style = MaterialTheme.typography.bodySmall,
                                             modifier = Modifier.testTag(
                                                 "recurring_actual_history_" + item.id + "_" + paymentIndex,
@@ -257,6 +270,16 @@ fun CanonicalRecurringManagementScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        if (uniqueId && item.status == "active" && paymentAccountIds != null &&
+                            item.accountId !in paymentAccountIds) {
+                            Text(
+                                "Ο λογαριασμός πληρωμής δεν είναι διαθέσιμος. " +
+                                    "Επίλεξε ενεργό λογαριασμό από την επεξεργασία παγίου.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.testTag("recurring_invalid_payment_account_" + item.id),
+                            )
+                        }
                         if (!uniqueId) {
                             Text(
                                 "Ιστορικό διπλό ID · Μόνο προβολή, χωρίς αλλαγές ή πληρωμή",
@@ -275,7 +298,8 @@ fun CanonicalRecurringManagementScreen(
                             // No financial event is created until its Save action.
                             TextButton(
                                 enabled = !mutationBlocked && uniqueId &&
-                                    item.status == "active" && paymentAccountAvailable,
+                                    item.status == "active" && paymentAccountAvailable &&
+                                    (paymentAccountIds == null || item.accountId in paymentAccountIds),
                                 onClick = { onRecordPayment(item) },
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                                     .testTag("recurring_record_payment_" + item.id),
