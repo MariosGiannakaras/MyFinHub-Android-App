@@ -2,6 +2,7 @@ package app.myfinhub.android.core.data
 
 import kotlin.math.max
 import kotlin.math.floor
+import java.time.LocalDate
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 
@@ -19,6 +20,8 @@ data class CanonicalCreditStatementView(
     val paymentTotal: Double,
     val remaining: Double,
     val status: String,
+    /** True only when this historical source can safely inform debt/payment actions. */
+    val sourceIntegrityValid: Boolean = true,
 )
 
 /**
@@ -69,11 +72,11 @@ fun CanonicalFinanceDocument.creditStatementViews(
     val rawEvents = state.array("events")
         .mapNotNull { it as? JsonObject }
         .filter { it.string("id") != null }
+    val sourceCounts = canonicalStatementSourceIdCounts()
     val events = canonicalEvents().zip(rawEvents)
         .filter { (event, raw) ->
-            event.date <= asOf &&
-                (event.kind == "card_payment" || canonicalStatementPurchaseAmount(raw) > 0.005) &&
-                raw.string("statementId") != null
+            event.date <= asOf && raw.string("statementId") != null &&
+                event.kind in setOf("card_purchase", "card_payment", "expense")
         }.sortedWith(
             compareBy<Pair<CanonicalEvent, JsonObject>> { it.first.date }
                 .thenBy { it.second.string("createdAt").orEmpty() }
@@ -83,22 +86,51 @@ fun CanonicalFinanceDocument.creditStatementViews(
     return state.array("creditStatements").mapNotNull { raw ->
         val record = raw as? JsonObject ?: return@mapNotNull null
         val id = record.string("id")?.takeIf(String::isNotBlank) ?: return@mapNotNull null
-        val linkedCard = record.string("cardId") ?: return@mapNotNull null
+        val linkedCard = record.string("cardId")?.takeIf(String::isNotBlank)
+            ?: return@mapNotNull null
         if (cardId != linkedCard) return@mapNotNull null
         val openDate = record.string("openDate") ?: return@mapNotNull null
         val closeDate = record.string("closeDate") ?: return@mapNotNull null
         val dueDate = record.string("dueDate") ?: return@mapNotNull null
         val associated = events[id].orEmpty()
-        val purchases = associated.filter { (_, raw) ->
+        // Old imported records may omit event.cardId, but an explicit different
+        // cardId is never allowed to create another card's apparent debt.
+        val owned = associated.filter { (event, _) ->
+            event.cardId == null || event.cardId == linkedCard
+        }
+        val purchases = owned.filter { (_, raw) ->
             canonicalStatementPurchaseAmount(raw) > 0.005
         }
-        val payments = associated.filter { (event, _) -> event.kind == "card_payment" }
-        val purchaseTotal = roundCreditMoney(purchases.sumOf { (_, raw) ->
-            canonicalStatementPurchaseAmount(raw)
-        })
-        val paymentTotal = roundCreditMoney(payments.sumOf { (event, _) -> event.amount })
-        val remaining = roundCreditMoney(max(0.0, purchaseTotal - paymentTotal))
+        val payments = owned.filter { (event, _) -> event.kind == "card_payment" }
+        val rawPurchase = purchases.sumOf { (_, raw) -> canonicalStatementPurchaseAmount(raw) }
+        val rawPayment = payments.sumOf { (event, _) -> event.amount }
+        fun realDate(rawDate: String) =
+            runCatching { LocalDate.parse(rawDate).toString() == rawDate }.getOrDefault(false)
+        val validDates = realDate(openDate) && realDate(closeDate) && realDate(dueDate) &&
+            openDate <= closeDate && closeDate < dueDate
+        val invalidOwnedEvent = owned.any { (event, raw) ->
+            when (event.kind) {
+                "card_purchase", "card_payment" -> raw.number("amount")
+                    ?.let { it.isFinite() && it > 0.0 } != true
+                "expense" -> raw["funding"] is JsonArray &&
+                    (raw.number("amount")?.isFinite() != true ||
+                        raw.number("creditDelta")?.isFinite() != true)
+                else -> false
+            }
+        }
+        val sourceIntegrityValid = sourceCounts[id] == 1 && validDates &&
+            associated.size == owned.size && !invalidOwnedEvent &&
+            rawPurchase.isFinite() && rawPayment.isFinite() &&
+            (rawPurchase - rawPayment).isFinite()
+        // Do not display invented zero/paid balances for ambiguous imported
+        // statement IDs, foreign-card links, invalid dates or corrupt money.
+        val purchaseTotal = if (sourceIntegrityValid) roundCreditMoney(rawPurchase) else Double.NaN
+        val paymentTotal = if (sourceIntegrityValid) roundCreditMoney(rawPayment) else Double.NaN
+        val remaining = if (sourceIntegrityValid) {
+            roundCreditMoney(max(0.0, purchaseTotal - paymentTotal))
+        } else Double.NaN
         val status = when {
+            !sourceIntegrityValid -> "invalid"
             remaining <= 0.005 -> "paid"
             asOf < closeDate -> "open"
             asOf >= dueDate -> "due"
@@ -110,6 +142,7 @@ fun CanonicalFinanceDocument.creditStatementViews(
             purchaseIds = purchases.map { it.first.id }, paymentIds = payments.map { it.first.id },
             purchaseTotal = purchaseTotal, paymentTotal = paymentTotal,
             remaining = remaining, status = status,
+            sourceIntegrityValid = sourceIntegrityValid,
         )
     }.sortedWith(compareByDescending<CanonicalCreditStatementView> { it.closeDate }.thenByDescending { it.id })
 }
@@ -121,7 +154,7 @@ fun CanonicalFinanceDocument.recommendedPayableStatement(
 ): CanonicalCreditStatementView? {
     val priority = mapOf("due" to 0, "closed" to 1, "open" to 2, "paid" to 3)
     return creditStatementViews(cardId, asOf)
-        .filter { it.remaining > 0.005 }
+        .filter { it.sourceIntegrityValid && it.remaining.isFinite() && it.remaining > 0.005 }
         .minWithOrNull(compareBy<CanonicalCreditStatementView> {
             priority[it.status] ?: 3
         }.thenBy { it.dueDate }.thenBy { it.closeDate })
