@@ -774,7 +774,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.PlanRecurringManage> {
                     val eligiblePayers = quickEntryState.accounts.filter {
                         it.id.isNotBlank() && it.kind != "credit"
-                    }.map { it.id }.toSet()
+                    }.groupingBy { it.id }.eachCount().filterValues { it == 1 }.keys
                     CanonicalRecurringManagementScreen(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
@@ -782,12 +782,13 @@ internal fun MyFinHubAppContent(
                         onCreate = onCreateRecurring,
                         onEdit = onEditRecurring,
                         onRecordPayment = { recurring ->
+                            val current = planState.recurringManageItems
+                                .singleOrNull { it.id == recurring.id }
                             if (!planMutationInFlight && !planMutationBlocked &&
-                                planState.recurringManageItems.count { it.id == recurring.id } == 1 &&
-                                recurring.status == "active"
+                                current != null && current.status == "active"
                             ) {
                                 val actions = recurringPaymentQuickEntryPrefillActions(
-                                    recurring, quickEntryState,
+                                    current, quickEntryState,
                                 )
                                 if (actions.isNotEmpty()) {
                                     actions.forEach(onQuickEntryAction)

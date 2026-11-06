@@ -148,7 +148,7 @@ fun CanonicalRecurringManagementScreen(
                                 else -> "Διακομμένο"
                             } + item.cadenceLabel.takeIf(String::isNotBlank)
                                 ?.let { " · " + it }.orEmpty() +
-                                (if (item.nextDueDateIso.isNotBlank())
+                                (if (item.status == "active" && item.nextDueDateIso.isNotBlank())
                                     " · Επόμενο: " + item.nextDueDateIso else ""),
 
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -333,7 +333,7 @@ fun CanonicalRecurringManagementScreen(
         }
     }
     stopCandidate?.let { candidate ->
-        val unique = state.recurringManageItems.count { it.id == candidate.id } == 1
+        val current = state.recurringManageItems.singleOrNull { it.id == candidate.id }
         AlertDialog(
             onDismissRequest = { if (!mutationBlocked) stopCandidate = null },
             title = { Text("Διακοπή παγίου;") },
@@ -344,10 +344,10 @@ fun CanonicalRecurringManagementScreen(
             },
             confirmButton = {
                 TextButton(
-                    enabled = !mutationBlocked && unique && candidate.status != "stopped",
+                    enabled = !mutationBlocked && current != null && current.status != "stopped",
                     modifier = Modifier.testTag("recurring_stop_confirm"),
                     onClick = {
-                        onStatusChanged(candidate.id, "stopped")
+                        current?.let { onStatusChanged(it.id, "stopped") }
                         stopCandidate = null
                     },
                 ) { Text("Διακοπή παγίου") }
