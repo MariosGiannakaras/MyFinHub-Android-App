@@ -120,4 +120,30 @@ class NativeRecurringManagementJourneyComposeTest {
         rule.onNodeWithTag("recurring_invalid_payment_account_bill").performScrollTo().assertExists()
         rule.onNodeWithTag("recurring_record_payment_bill").assertIsNotEnabled()
     }
+    @Test fun productionRouteCreatesRecurringOnlyAfterExplicitFormSave() {
+        val created = mutableListOf<RecurringCreateRequest>()
+        rule.setContent { MyFinHubTheme {
+            MyFinHubAppContent(
+                homeState = syntheticHomeUiState(), onHomeAction = {},
+                planState = plan(), quickEntryState = QuickEntryUiState(accounts = listOf(cash)),
+                onCreateRecurring = { created += it },
+            )
+        } }
+        enterManagement()
+        rule.onNodeWithTag("recurring_create_open").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(0, created.size) }
+        rule.onNodeWithTag("recurring_create_name").performScrollTo()
+            .performTextInput("Ασφάλεια κατοικίας")
+        rule.onNodeWithTag("recurring_create_amount").performScrollTo()
+            .performTextInput("85")
+        rule.onNodeWithTag("recurring_create_save").performScrollTo().performClick()
+        rule.runOnIdle {
+            assertEquals(1, created.size)
+            assertEquals("Ασφάλεια κατοικίας", created.single().name)
+            assertEquals(85.0, created.single().amount, 0.001)
+            assertEquals("cash", created.single().accountId)
+        }
+    }
+
+
 }

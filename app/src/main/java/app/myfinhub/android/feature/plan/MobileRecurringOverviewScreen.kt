@@ -136,8 +136,9 @@ internal fun mobileRecurringVisibleHistoryCount(total: Int, batches: Int): Int =
         batches.coerceAtLeast(1).toLong() * MOBILE_RECURRING_HISTORY_BATCH).toInt()
 
 /**
- * Phone-only recurring overview: real payment events are read-only projections.
- * Authoring, recurrence editing and lifecycle mutation remain exclusively in Web.
+ * Phone-first recurring overview: real payment events are read-only projections.
+ * A separate protected native management route owns create/edit/status and explicit
+ * Quick Entry drafts. Displaying this history never records money.
  */
 @Composable
 fun MobileRecurringOverviewScreen(

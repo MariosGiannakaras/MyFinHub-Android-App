@@ -43,7 +43,6 @@ import app.myfinhub.android.designsystem.MyFinHubDesignMetrics
 import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
-import app.myfinhub.android.feature.utilities.amountVisibilityText
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.text.NumberFormat
 import java.util.Locale
@@ -73,7 +72,6 @@ fun CanonicalRecurringManagementScreen(
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
     val serviceAssetCatalog = LocalRecurringServiceAssets.current
-    val currency = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("el-GR"))
     var creating by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<RecurringManageItem?>(null) }
     var stopCandidate by remember { mutableStateOf<RecurringManageItem?>(null) }
