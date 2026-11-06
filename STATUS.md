@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-D1–D6 native software is integrated 6/8. PR #428 exact-four-ASCII last4 display redaction passed all four immutable-head CI gates and squash merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110. Consolidated W2.4 final PR #429 protects full owner+AAL2 PAN/expiry/CVV on both Wallet's revealed credit card stack and protected Card Details using shared reference-counted FLAG_SECURE leases across concurrent navigation; archive now dispatches the guarded mutation immediately and accurately describes encrypted vault retention. Targeted hosted Compose overlap/flag-restoration/archive regressions authored; final four CI checks and merge pending. W2.4 completed in this PR is provisional until integrated. Accepted Web parity stays 1/6 implementations · 11/24 subtasks before PR merge; becomes 2/6 · 12/24 after all gates and merge. W3.1 is the next unfinished domain task. Real owner S24 Ultra D7 physical acceptance (#149), a separately approved current-source same-signer candidate and D8 separately authorized production release remain pending. No Web/backend/schema, real finance writes, signing, main, SMS #146 or global PIN #345 changes.
+D1-D6 native software complete, deploy 6/8. W2.4 PR #429 passed four immutable-head CI gates and squash merged develop a27a5f052557175c46d80bf42e3ea5e12632affd; accepted parity 2/6 implementations and 12/24 subtasks. Consolidated W3.1/W3.2 PR #430 prevents foreign-card statement linkage, duplicate global statement IDs, impossible historical dates and malformed imported money from falsely appearing payable/settled; legitimate Web-derived statement/legacy semantics remain. Wallet and Card Detail safely mark invalid statements and block actions. Partial-credit-funded mixed expenses now appear in card Activity and statement link history with their actual credit portion, without creating new finance events or altering the ledger. Focused JVM and hosted Compose regressions authored; final 4/4 CI and merge pending. Conditional W3.1 completion would make parity 2/6 and 13/24, while W3.2/W4/W5 stay partial. D7 owner same-signer current-source physical S24 upgrade and signoff (#149), plus D8 protected release, remain separately gated. No Web/backend/schema, main, signing, SMS #146, global PIN #345 or actual finance writes.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Pass consolidated W2.4 PR #429 four exact-final-head CI gates (Project Tracking, Android CI, screenshot regression, hosted S24 instrumentation), stable develop and clean reviews, then squash merge; only then accept W2.4 and the 2/6 · 12/24 Web parity count. Continue W3.1 concrete historical statement/debt source gaps without re-auditing completed work. D7 requires separately authorized current-source same-signer signed candidate, in-place physical Galaxy S24 Ultra upgrade and explicit owner functional acceptance (#149); D8 protected release independently authorized.
+1. Validate complete W3.1/W3.2 PR #430 in a single immutable-head four-gate Project Tracking, Android CI, screenshot regression and hosted S24 run. Merge only after all four SUCCESS, stable develop and clean reviews; then W3.1 is accepted at 2/6 implementations and 13/24 subtasks. Continue next meaningful mobile-native W3.2/W4/W5 batch; no micro-PRs. D7 same-signer current-source signed candidate, physical S24 upgrade and owner acceptance (#149), and D8 release require independent authorization.
 
 ## Non-negotiable constraints
 
@@ -62,25 +62,25 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: Native D1–D6 integrated 6/8. PR #428 metadata last4 protection passed 4/4 immutable-head checks and merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110. Final W2.4 PR #429 consolidates shared screenshot privacy across full-secret Wallet/Card Details and immediate reversible archive mutation, four-gate CI/merge pending. D7 real S24 owner acceptance still requires separately approved current-source same-signer candidate and actual in-place upgrade; D8 protected signed release independently gated. Installed rc12/10011 predates D1–D6 source.
+Next: D1-D6 accepted on develop (6/8). W2.4 #429 passed 4/4 CI and merged a27a5f052557175c46d80bf42e3ea5e12632affd. W3.1/W3.2 consolidated PR #430 adds historical statement/source safety and mixed-credit Activity, final CI/merge pending. D7 remains separately authorized current-source same-signer signed APK and actual physical S24 in-place upgrade/owner acceptance (#149); D8 independently approved protected publication. Installed rc12/10011 predates current source.
 
 
 ## Active Web parity progress
 
-**Implementations: 2/6 · Subtasks: 12/24**
+**Implementations: 2/6 · Subtasks: 13/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #429, branch android/w2-final-card-security-lifecycle-20261106
-Current W3.1: W2.4 native card/credit user journey final checkpoint PR #429 based on merged develop aaf5971bf213b41e5d4ae62f8933ad9573986110: shared reference-counted FLAG_SECURE screenshot/Recents leases for concurrent revealed Wallet card and secure Card Details; immediate archive dispatch without visual 620ms delay; truthfully preserved encrypted card vault. Hosted Compose regression and previously integrated card actions, secure clipboard, archive/restore, canonical credit statements and mobile visuals provide acceptance evidence. W2.4 completion and Web parity 2/6 implementations · 12/24 subtasks are conditional until exact final-head 4/4 CI PASS and merge; prior integrated baseline 1/6 · 11/24. W3.1 remains next incomplete financial domain flow. D7 physical owner S24 and D8 protected release independent.
+Issue #155, PR #430, branch android/w3-statement-activity-integrity-20261106
+Current W3.2: W2.4 #429 passed all four same-head CI gates and merged develop a27a5f052557175c46d80bf42e3ea5e12632affd; baseline Web parity 2/6 implementations and 12/24 subtasks. Current Android-only W3.1/W3.2 PR #430 combines source-safe global credit statement identity, explicit owner correctness, finite billing amounts, valid date/status and mixed-funded credit activity/statement presentation, with JVM and hosted Compose regressions. W3.1 completion and 13/24 in tracker apply only after PR #430 final four CI SUCCESS and merge; W3.2 stays partial. D7 S24 physical acceptance and D8 signed release are independent.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate final #429 Project Tracking, Android CI, screenshot regression and hosted S24 tests all SUCCESS on one exact immutable head, with unchanged develop and no unresolved reviews; then squash merge and record factual completion. Resume W3.1 historical statement debt only with concrete evidence of remaining production UX/domain gaps. D7 newer same-signer candidate/physical owner acceptance and D8 protected release remain separately gated; no Web/backend/schema, main/signing, SMS #146, global PIN #345 or real finance writes.
+Next Complete consolidated PR #430 with 4/4 exact-final-head successful CI gates and clean reviews/stable develop, then squash merge and log factual evidence to issue #155. Continue W3.2 source-backed native Activity and W4/W5 journeys as large related batches, no speculative Web UI duplication. D7 and D8 remain separately authorized; no Web/backend/schema/main/signing/real money/SMS #146/global PIN #345 changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 4/4 | Complete |
-| W3 Events, statements and mutation semantics | 2/4 | W3.1 Statement cycle and historical debt (in_progress); W3.2 Event and classification parity (in_progress) |
+| W3 Events, statements and mutation semantics | 3/4 | W3.2 Event and classification parity (in_progress) |
 | W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
 | W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
@@ -95,7 +95,7 @@ Next Validate final #429 Project Tracking, Android CI, screenshot regression and
 - [x] W2.2 Shared native card visual — completed
 - [x] W2.3 Credit information on card screen — completed
 - [x] W2.4 Card interactions and secure details — completed
-- [ ] W3.1 Statement cycle and historical debt — in_progress
+- [x] W3.1 Statement cycle and historical debt — completed
 - [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
 - [x] W3.4 Single mutation pipeline — completed
