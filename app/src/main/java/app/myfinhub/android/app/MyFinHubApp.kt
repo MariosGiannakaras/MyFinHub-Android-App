@@ -772,9 +772,12 @@ internal fun MyFinHubAppContent(
                     )
                 }
                 entry<AppRoute.PlanRecurringManage> {
+                    val payerIdCounts = quickEntryState.accounts
+                        .groupingBy { it.id }.eachCount()
                     val eligiblePayers = quickEntryState.accounts.filter {
-                        it.id.isNotBlank() && it.kind != "credit"
-                    }.groupingBy { it.id }.eachCount().filterValues { it == 1 }.keys
+                        it.id.isNotBlank() && it.kind != "credit" &&
+                            payerIdCounts[it.id] == 1
+                    }.map { it.id }.toSet()
                     CanonicalRecurringManagementScreen(
                         state = planState,
                         onBack = { planBackStack.removeLastOrNull() },
@@ -926,10 +929,12 @@ internal fun recurringPaymentQuickEntryPrefillActions(
     recurring: RecurringManageItem,
     quickEntryState: QuickEntryUiState,
 ): List<QuickEntryAction> {
-    if (recurring.id.isBlank() || recurring.status != "active" ||
-        quickEntryState.accounts.count {
+    if (recurring.id.isBlank() || recurring.id != recurring.id.trim() ||
+        recurring.status != "active" ||
+        quickEntryState.accounts.count { it.id == recurring.accountId } != 1 ||
+        quickEntryState.accounts.none {
             it.id == recurring.accountId && it.id.isNotBlank() && it.kind != "credit"
-        } != 1
+        }
     ) return emptyList()
     return buildList {
         add(QuickEntryAction.Reset)

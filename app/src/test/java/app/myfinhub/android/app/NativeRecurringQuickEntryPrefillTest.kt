@@ -66,6 +66,10 @@ class NativeRecurringQuickEntryPrefillTest {
             item().copy(status = "stopped"), source).isEmpty())
         assertTrue(recurringPaymentQuickEntryPrefillActions(
             item().copy(id = ""), source).isEmpty())
+        assertTrue(recurringPaymentQuickEntryPrefillActions(
+            item().copy(id = " electric "), source).isEmpty())
+        assertTrue(recurringPaymentQuickEntryPrefillActions(
+            item(), source.copy(accounts = listOf(cash, credit.copy(id = "cash")))).isEmpty())
     }
 
     @Test fun malformedFixedMoneyCannotBecomeSilentlyAcceptedActualAmount() {
