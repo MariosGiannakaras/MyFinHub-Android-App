@@ -1133,4 +1133,43 @@ class CanonicalProductProjectionTest {
         assertEquals(0.0, projection.homeState.monthFlow.income, 0.001)
         assertEquals(0.0, projection.homeState.monthFlow.expense, 0.001)
     }
+    @Test
+    fun mixedFundingExpenseAppearsInCreditActivityWithOnlyCreditShareAndStableStatementLink() {
+        val doc = CanonicalFinanceDocument(Json.parseToJsonElement("""
+            {"seed":{"accounts":[{"id":"cash","kind":"cash","name":"Cash"}]},
+             "state":{"cards":[{"id":"card-A","kind":"credit","active":true,
+                                 "nickname":"Main credit"}],
+               "creditStatements":[{"id":"statement-A","cardId":"card-A",
+                   "openDate":"2026-09-26","closeDate":"2026-10-25",
+                   "dueDate":"2026-11-05","boundaryRule":"next-cycle"}],
+               "events":[
+                 {"id":"credit-split","date":"2026-10-20","kind":"expense",
+                   "note":"Mixed 100 euro purchase","cardId":"card-A",
+                   "statementId":"statement-A","amount":100,
+                   "creditDelta":-40,"funding":[
+                     {"kind":"cash","amount":60},{"kind":"credit","amount":40}]},
+                 {"id":"cash-only","date":"2026-10-21","kind":"expense",
+                   "cardId":"card-A","statementId":"statement-A","amount":30,
+                   "creditDelta":-30}
+               ]}}
+        """.trimIndent()).jsonObject)
+        val before = doc.raw
+        val projected = projectCanonicalProduct(doc, LocalDate.of(2026, 10, 22))
+        val card = projected.moneyState.cards.single { it.id == "card-A" }
+        assertEquals(listOf("credit-split"), card.activity.map { it.id })
+        assertEquals(-40.0, card.activity.single().amount, 0.001)
+        assertEquals(app.myfinhub.android.feature.money.MoneyCardActivityKind.PURCHASE,
+            card.activity.single().kind)
+        val statement = projected.moneyState.creditStatementsByCard
+            .getValue("card-A").single()
+        assertTrue(statement.sourceIntegrityValid)
+        assertEquals(40.0, statement.purchaseTotal, 0.001)
+        val linked = app.myfinhub.android.feature.money.canonicalStatementLinkedRows(
+            statement, card.activity, mapOf("credit-split" to 1),
+        )
+        assertEquals("credit-split", linked.single().openActivityId)
+        assertEquals(-40.0, linked.single().amount ?: Double.NaN, 0.001)
+        assertEquals(before, doc.raw)
+    }
+
 }

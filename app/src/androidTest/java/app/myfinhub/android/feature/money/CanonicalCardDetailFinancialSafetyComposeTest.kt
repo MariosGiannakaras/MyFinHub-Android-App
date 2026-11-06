@@ -121,4 +121,42 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
         rule.onNodeWithTag("confirm_remove_card").performClick()
         rule.runOnIdle { assertEquals("credit-integrity", archivedId) }
     }
+    @Test fun invalidStatementCannotOfferPaymentInDetailOrInlineWallet() {
+        val bad = app.myfinhub.android.core.data.CanonicalCreditStatementView(
+            id = "imported-corrupt", cardId = "credit-integrity",
+            openDate = "2026-09-26", closeDate = "2026-10-25",
+            dueDate = "2026-11-05", boundaryRule = "next-cycle",
+            purchaseIds = listOf("purchase-source"), paymentIds = emptyList(),
+            purchaseTotal = Double.NaN, paymentTotal = Double.NaN,
+            remaining = Double.NaN, status = "invalid", sourceIntegrityValid = false,
+        )
+        var payments = 0
+        rule.setContent { MyFinHubTheme {
+            CanonicalCardDetailScreen(
+                card = credit(), statements = listOf(bad), onBack = {},
+                amountsVisibleOverride = true, onPayStatement = { _, _ -> payments++ },
+                fullStatementIdCounts = mapOf(bad.id to 1),
+            )
+        } }
+        rule.onNodeWithTag("card_statement_history").assertExists()
+        rule.onNodeWithTag("card_statement_pay_0").assertDoesNotExist()
+        rule.onNodeWithText("Χρειάζεται έλεγχος", substring = true).assertExists()
+        rule.onNodeWithText("Ασυνεπή ιστορικά στοιχεία", substring = true).assertExists()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.runOnIdle { assertEquals(0, payments) }
+
+        rule.setContent { MyFinHubTheme {
+            InlineCreditCardWorkspace(
+                card = credit(), statements = listOf(bad), amountsVisible = true,
+                onPayCard = {}, onAddPurchase = {}, onOpenActivity = {},
+                onOpenDetails = {}, onPayStatement = { _, _ -> payments++ },
+                fullStatementIdCounts = mapOf(bad.id to 1),
+            )
+        } }
+        rule.onNodeWithTag("inline_credit_pay_statement_0").assertDoesNotExist()
+        rule.onNodeWithTag("inline_credit_statement_identity_warning_0").assertExists()
+        rule.onNodeWithText("NaN", substring = true).assertDoesNotExist()
+        rule.runOnIdle { assertEquals(0, payments) }
+    }
+
 }
