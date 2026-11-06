@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate W4.3 PR #433 in one final immutable-head Project Tracking, Android CI, screenshot regression and hosted S24 instrumented run; merge only after all four SUCCESS, stable develop and clean reviews. Keep W4.3 in_progress and 2/6 · 14/24 parity until wider criteria are fulfilled. Continue source-backed grouped Android W3.2/W4–W5 work. D7 physical owner S24 newer same-signer candidate/in-place upgrade and explicit approval (#149), and D8 protected release remain independently gated.
+- [ ] Validate W4.3 owner-source loan-payment PR #434 on one immutable final head through Project Tracking, Android CI, screenshot regression and hosted S24 UI tests; require stable develop, clean reviews/threads, squash merge only at 4/4 SUCCESS. W4.3 stays partial and accepted parity 2/6 · 14/24. Continue next source-backed grouped W3.2/W4.2–W5 Android user journeys, not speculative legacy microchecks. D7 needs approved current-source same-signer signed candidate, physical owner Galaxy S24 Ultra in-place upgrade/acceptance (#149) and D8 separately authorized release.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 native accepted on develop, 6/8. W4.1 #431 and W4.2 #432 passed 4/4 exact-head CI and squash merged, latest develop cedecad242a1cacafd636d8d9e3585ecc75187e0. W4.3 #433 finite-only historical native financial labels and Compose/JVM regressions are pending exact-head CI and merge; accepted parity remains 2/6 · 14/24. D7 still requires separately authorized current-source same-signer signed APK, real owner S24 in-place upgrade and explicit functional acceptance (#149); D8 separately approved protected release. Installed rc12/10011 predates source. No signing or real device installation undertaken.
+Next: Native D1–D6 accepted on develop (6/8). W4.3 display safety #433 final 4/4 CI SUCCESS and squash merged develop 9330a7bf08f33a7c7058ccddedf98f9febd3b335. Accepted Web parity 2/6 implementations · 14/24 subtasks. Current W4.3 #434 fixes invalid/missing default payer and inferred self-loan target on real loan-payment dialog; exact-head CI/merge pending. D7 separately requires owner-approved current-source same-signer signed APK, actual physical S24 Ultra in-place upgrade and explicit functional signoff (#149). D8 independently approved protected publication. Installed rc12/10011 predates current development; no new signing/install/release performed.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 native accepted on develop, 6/8. W4.1 #431 and W4.2 #432 passed 4/
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #433, branch android/w43-readable-imported-money-20261106
-Current W3.2: W4.1 #431 merged 4/4; W4.2 #432 imported nonfinite/overflow 30/60/90 forecast safe omissions passed all four immutable-head CI gates at d08f1e4b980738472567d0f2c2fa9642683e0ed8 and squash merged develop cedecad242a1cacafd636d8d9e3585ecc75187e0. Accepted historical parity is 2/6 implementations · 14/24 subtasks; W4.2 remains partial. W4.3 PR #433 adds shared fail-closed native money formatting for imported nonfinite loan/receivable/savings projections and preserves repayment validation and real owner masked/visible states, backed by JVM+Compose tests. W4.3 completion is NOT asserted; final CI/merge pending. D7 physical S24 and D8 protected production signed release remain independently gated.
+Issue #155, PR #434, branch android/w43-explicit-loan-payment-payer-20261106
+Current W3.2: W4.1 #431, W4.2 #432 integrated; W4.3 native invalid historical euro displays #433 head 2c101793c192692e96c694d924bc35c33576ac86 passed 4/4 Project Tracking/Android CI/screenshot/hosted S24 immutable-head checks SUCCESS and squash merged develop 9330a7bf08f33a7c7058ccddedf98f9febd3b335. Accepted parity 2/6 implementations · 14/24 subtasks; W4.3 stays in_progress. Current W4.3 #434 completes a distinct real native Loan Payment user-journey safety batch: no automatic orphaned payer fallback, no guessed self-loan savings target, unique current account owners with disabled controls and explicit confirmation, dynamic account-refresh fail-closed. JVM and hosted Compose tests authored, exact-final-head 4/4 CI and merge pending. D7 physical owner Galaxy S24 and D8 protected signed release remain independently gated.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete one immutable-final-head four-gate CI on W4.3 PR #433, verify unchanged develop, no blocking reviews, squash merge only with all SUCCESS and note outcome in issue #155. Continue grouped W3.2/W4.2–W5 tasks, no mechanical Web cloning. D7 same-signer current-source candidate, physical S24 upgrade/owner signoff and D8 protected release each require separate authorization. Exclude Web/backend/schema/main, SMS #146, global PIN #345 and actual financial writes.
+Next Run one final immutable head CI for #434: Project Tracking, Android CI, screenshot regression, hosted S24 instrumented all SUCCESS, stable develop and no unresolved review threads; merge only then, post factual outcome on issue #155. Continue meaningful mobile-native W3.2/W4.2–W5 feature batches. Do not infer D7 physical S24 acceptance from hosted CI; no main, Web/backend/schema, real finance write, signing, release, SMS #146 or global PIN #345 changes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

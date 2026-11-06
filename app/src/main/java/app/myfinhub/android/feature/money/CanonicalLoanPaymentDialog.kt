@@ -3,6 +3,7 @@ package app.myfinhub.android.feature.money
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -37,6 +38,19 @@ private fun exactLoanPreviewCents(amount: Double): Long? {
     return cents
 }
 
+/**
+ * Payment sources are physical canonical identities, not first-match UI rows.
+ * Duplicate IDs (even when one is marked credit), blank/padded IDs and
+ * credit-only accounts must never become an implicit money route.
+ */
+internal fun eligibleCanonicalLoanPayers(accounts: List<MoneyAccount>): List<MoneyAccount> {
+    val counts = accounts.groupingBy { it.id }.eachCount()
+    return accounts.filter {
+        it.id.isNotBlank() && it.id == it.id.trim() &&
+            counts[it.id] == 1 && it.canonicalKind in setOf("cash", "bank", "savings")
+    }
+}
+
 data class CanonicalLoanPaymentPreview(
     val date: String,
     val sourceAccountId: String,
@@ -58,10 +72,10 @@ fun canonicalLoanPaymentPreview(
 ): CanonicalLoanPaymentPreview? {
     val outstandingCents = exactLoanPreviewCents(loan.remaining) ?: return null
     if (runCatching { LocalDate.parse(date) }.isFailure) return null
-    val usable = accounts.filter { it.canonicalKind in setOf("cash","bank","savings") }
-    if (usable.none { it.id == source }) return null
+    val usable = eligibleCanonicalLoanPayers(accounts)
+    if (usable.count { it.id == source } != 1) return null
     if (loan.isSelfLoan) {
-        val target = usable.firstOrNull { it.id == savings &&
+        val target = usable.singleOrNull { it.id == savings &&
             (it.canonicalKind == "savings" ||
                 (it.canonicalKind == "bank" && it.bankAccountCategory == "savings")) }
             ?: return null
@@ -93,7 +107,7 @@ fun CanonicalLoanPaymentDialog(
     amountsVisible: Boolean? = null,
 ) {
     val revealAmounts = amountsVisible ?: rememberAmountVisibilityPreference()
-    val usable = remember(accounts) { accounts.filter { it.canonicalKind in setOf("cash","bank","savings") } }
+    val usable = remember(accounts) { eligibleCanonicalLoanPayers(accounts) }
     val savings = usable.filter { it.canonicalKind == "savings" ||
         (it.canonicalKind == "bank" && it.bankAccountCategory == "savings") }
     var date by remember(loan.id) { mutableStateOf(LocalDate.now().toString()) }
@@ -106,12 +120,14 @@ fun CanonicalLoanPaymentDialog(
         })
     }
     var source by remember(loan.id) {
-        mutableStateOf(
-            loan.defaultAccountId.takeIf { id -> usable.any { it.id == id } }
-                ?: usable.firstOrNull()?.id.orEmpty(),
-        )
+        // Respect a valid explicitly configured payer only; never silently
+        // redirect an orphaned or missing default to the first other account.
+        mutableStateOf(loan.defaultAccountId.takeIf { id ->
+            usable.count { it.id == id } == 1
+        }.orEmpty())
     }
-    var saving by remember(loan.id) { mutableStateOf(savings.firstOrNull { it.id != source }?.id.orEmpty()) }
+    // Internal transfers always need an explicit savings destination choice.
+    var saving by remember(loan.id) { mutableStateOf("") }
     val review = canonicalLoanPaymentPreview(loan,accounts,date,source,count,amount,saving)
 
     AlertDialog(
@@ -150,18 +166,41 @@ fun CanonicalLoanPaymentDialog(
                     )
                 }
                 Text("Λογαριασμός πληρωμής", style = MaterialTheme.typography.labelLarge)
+                if (usable.none { it.id == source }) {
+                    Text(
+                        "Επίλεξε ρητά διαθέσιμο λογαριασμό πληρωμής.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.testTag("loan_payment_payer_required"),
+                    )
+                }
                 usable.forEach { acc ->
                     TextButton(
-                        onClick = { source = acc.id },
-                        modifier = Modifier.fillMaxWidth().testTag("loan_payment_source_" + acc.id),
+                        onClick = {
+                            source = acc.id
+                            // A previously selected destination cannot also
+                            // become the payer of the same internal transfer.
+                            if (loan.isSelfLoan && saving == source) saving = ""
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .testTag("loan_payment_source_" + acc.id),
                     ) { Text((if (source == acc.id) "✓ " else "") + acc.name) }
                 }
                 if (loan.isSelfLoan) {
                     Text("Λογαριασμός αποταμίευσης",style=MaterialTheme.typography.labelLarge)
+                    if (savings.none { it.id == saving && it.id != source }) {
+                        Text(
+                            "Επίλεξε ρητά διαφορετικό αποταμιευτικό λογαριασμό.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("loan_payment_savings_required"),
+                        )
+                    }
                     savings.forEach { acc ->
                         TextButton(
                             onClick = { saving = acc.id },
-                            modifier = Modifier.fillMaxWidth().testTag("loan_payment_savings_" + acc.id),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .testTag("loan_payment_savings_" + acc.id),
                         ) { Text((if (saving == acc.id) "✓ " else "") + acc.name) }
                     }
                 }
@@ -181,9 +220,15 @@ fun CanonicalLoanPaymentDialog(
         confirmButton = {
             TextButton(
                 enabled = review != null,
-                modifier = Modifier.testTag("loan_payment_confirm"),
+                modifier = Modifier.heightIn(min = 48.dp).testTag("loan_payment_confirm"),
                 onClick = {
-                    review?.let { onConfirm(it.date,it.sourceAccountId,it.count,it.amount,it.savingsAccountId) }
+                    // Re-read the current source/target and debt on tap, not
+                    // merely the previous preview captured by composition.
+                    canonicalLoanPaymentPreview(
+                        loan, accounts, date, source, count, amount, saving,
+                    )?.let {
+                        onConfirm(it.date,it.sourceAccountId,it.count,it.amount,it.savingsAccountId)
+                    }
                 },
             ) { Text("Καταχώριση") }
         },

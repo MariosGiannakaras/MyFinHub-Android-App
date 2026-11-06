@@ -42,4 +42,42 @@ class CanonicalLoanPaymentDialogTest {
         assertNull(canonicalLoanPaymentPreview(help,accounts,"2026-10-17","salary",
             "1","0","save"))
     }
+    @Test fun missingOrDuplicatedOwnerAccountsNeverBecomeAutomaticLoanPayers() {
+        val missing = regular.copy(defaultAccountId = "removed")
+        assertNull(canonicalLoanPaymentPreview(
+            missing, accounts, "2026-10-17", "", "1", "", "",
+        ))
+        val duplicate = accounts + accounts.first().copy(name = "Duplicate salary")
+        assertEquals(listOf("save"), eligibleCanonicalLoanPayers(duplicate).map { it.id })
+        assertNull(canonicalLoanPaymentPreview(
+            regular, duplicate, "2026-10-17", "salary", "1", "", "",
+        ))
+        val creditCollision = accounts + accounts.first().copy(
+            canonicalKind = "credit", name = "Collision with credit",
+        )
+        assertNull(canonicalLoanPaymentPreview(
+            regular, creditCollision, "2026-10-17", "salary", "1", "", "",
+        ))
+        assertEquals(listOf("salary", "save"),
+            eligibleCanonicalLoanPayers(accounts).map { it.id })
+        assertEquals(100.0, canonicalLoanPaymentPreview(
+            regular, accounts, "2026-10-17", "salary", "1", "", "",
+        )!!.shownAmount, 0.001)
+    }
+
+    @Test fun selfLoanRequiresExplicitUniqueDestinationAndCannotPayIntoItsSource() {
+        assertNull(canonicalLoanPaymentPreview(help, accounts, "2026-10-17",
+            "salary", "1", "50", ""))
+        assertNull(canonicalLoanPaymentPreview(help, accounts, "2026-10-17",
+            "save", "1", "50", "save"))
+        val duplicatedTarget = accounts + accounts.last().copy(name = "Duplicate savings")
+        assertNull(canonicalLoanPaymentPreview(help, duplicatedTarget, "2026-10-17",
+            "salary", "1", "50", "save"))
+        val valid = canonicalLoanPaymentPreview(help, accounts, "2026-10-17",
+            "salary", "1", "50", "save")!!
+        assertEquals("salary", valid.sourceAccountId)
+        assertEquals("save", valid.savingsAccountId)
+    }
+
+
 }
