@@ -185,7 +185,7 @@ fun CanonicalLoanMetadataEditor(
                 OutlinedTextField(
                     value = totalText, onValueChange = {
                         totalText = it
-                        if (installmentsText.toIntOrNull() in 1..1200)
+                        if (installmentsText.toIntOrNull()?.let { it in 1..1200 } == true)
                             installmentText = loanEditorInstallmentFromTotal(it, installmentsText).orEmpty()
                     },
                     label = { Text("Συνολικό ποσό (€)") }, singleLine = true,
@@ -205,7 +205,7 @@ fun CanonicalLoanMetadataEditor(
                 OutlinedTextField(
                     value = installmentText, onValueChange = {
                         installmentText = it
-                        if (installmentsText.toIntOrNull() in 1..1200)
+                        if (installmentsText.toIntOrNull()?.let { it in 1..1200 } == true)
                             totalText = loanEditorTotalFromInstallment(it, installmentsText).orEmpty()
                     },
                     label = { Text("Ποσό ανά δόση (€)") }, singleLine = true,
