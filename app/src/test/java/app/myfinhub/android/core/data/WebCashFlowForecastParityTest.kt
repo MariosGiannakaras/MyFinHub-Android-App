@@ -242,4 +242,62 @@ class WebCashFlowForecastParityTest {
             document().cashFlowForecast(today,45)
         }
     }
+    @Test fun invalidImportedScheduledAndRecurringMoneyCannotContaminateValidForecast() {
+        val scheduled = """
+          {"id":"bad-scheduled","note":"Corrupt scheduled","dueDate":"2026-10-17",
+           "kind":"expense","amount":1e309,"accountId":"bank","status":"pending"},
+          {"id":"valid-scheduled","note":"Valid scheduled","dueDate":"2026-10-18",
+           "kind":"expense","amount":45,"accountId":"bank","status":"pending"}
+        """.trimIndent()
+        val recurring = """
+          {"id":"bad-recurring","name":"Corrupt subscription","amount":1e309,
+           "day":20,"accountId":"bank","active":true},
+          {"id":"valid-recurring","name":"Valid subscription","amount":12.50,
+           "day":21,"accountId":"bank","active":true}
+        """.trimIndent()
+        val data = document(scheduled=scheduled,recurring=recurring,loans="",events="")
+        val before = data.raw
+        val forecast = data.cashFlowForecast(today,30)
+        assertEquals(listOf("forecast-scheduled-valid-scheduled",
+            "forecast-recurring-valid-recurring-2026-10-21"),
+            forecast.movements.map { it.id })
+        assertEquals(942.50,forecast.projectedPortfolio,0.001)
+        assertEquals(1,forecast.sourceCounts["scheduled"])
+        assertEquals(1,forecast.sourceCounts["recurring"])
+        assertEquals(listOf(
+            "Η προγραμματισμένη κίνηση «Corrupt scheduled» δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο.",
+            "Το πάγιο «Corrupt subscription» δεν προβλήθηκε επειδή η εκτίμηση ποσού δεν είναι έγκυρη.",
+        ),forecast.omitted)
+        assertTrue(forecast.currentPortfolio.isFinite())
+        assertTrue(forecast.projectedPortfolio.isFinite())
+        assertEquals(before,data.raw)
+    }
+
+    @Test fun invalidFutureEventLegsAndFiniteOverflowCannotCorruptOtherForecast() {
+        val events = """
+          {"id":"valid","kind":"expense","date":"2026-10-19",
+           "amount":10,"note":"Valid future","legs":[{"accountId":"bank","amount":-10}]},
+          {"id":"bad-nonfinite","kind":"expense","date":"2026-10-20",
+           "amount":1e309,"note":"Invalid future","legs":[{"accountId":"bank","amount":-1e309}]},
+          {"id":"bad-overflow","kind":"transfer","date":"2026-10-21",
+           "amount":1e308,"note":"Overflow future","legs":[
+             {"accountId":"bank","amount":1e308},
+             {"accountId":"bank","amount":1e308}]}
+        """.trimIndent()
+        val data = document(scheduled="",recurring="",loans="",events=events)
+        val before = data.raw
+        val result = data.cashFlowForecast(today,30)
+        assertEquals(listOf("forecast-event-valid"),result.movements.map { it.id })
+        assertEquals(990.0,result.projectedPortfolio,0.001)
+        assertEquals(1,result.sourceCounts["dated_event"])
+        assertEquals(2,result.omitted.size)
+        assertTrue(result.omitted.any { it.contains("Invalid future") })
+        assertTrue(result.omitted.any { it.contains("Overflow future") })
+        assertFalse(result.omitted.joinToString().contains("bad-nonfinite"))
+        assertFalse(result.omitted.joinToString().contains("bad-overflow"))
+        assertTrue(result.points.all { it.portfolio.isFinite() })
+        assertEquals(before,data.raw)
+    }
+
+
 }
