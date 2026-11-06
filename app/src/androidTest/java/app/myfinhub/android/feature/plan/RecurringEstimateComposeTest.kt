@@ -125,4 +125,45 @@ class RecurringEstimateComposeTest {
             .fetchSemanticsNodes().let { org.junit.Assert.assertTrue(it.isEmpty()) }
     }
 
+    @Test fun malformedRecurringMoneyInNativeManagementNeverShowsNaNOrInfinity() {
+        val context = androidx.test.platform.app.InstrumentationRegistry
+            .getInstrumentation().targetContext
+        val before = app.myfinhub.android.feature.utilities.AmountVisibilityPreference.read(context)
+        try {
+            app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, true)
+            rule.setContent { MyFinHubTheme {
+                CanonicalRecurringManagementScreen(
+                    PlanUiState(recurringManageItems = listOf(
+                        RecurringManageItem(
+                            id = "corrupt", title = "Ιστορικό", amount = Double.POSITIVE_INFINITY,
+                            status = "active", amountMode = "variable",
+                            estimateMin = Double.NEGATIVE_INFINITY, estimateMax = 90.0,
+                            lastActualPaymentAmount = Double.NaN,
+                            actualPaidThisMonth = Double.POSITIVE_INFINITY,
+                            actualPaymentsThisMonth = 2,
+                            actualPaymentHistory = listOf(RecurringActualPaymentRow(
+                                "event-corrupt", "2026-10-20", Double.NaN,
+                            )),
+                        ),
+                    )), onBack = {}, onStatusChanged = { _, _ -> },
+                    mutationBlocked = true,
+                )
+            } }
+            rule.onNodeWithTag("recurring_manage_item_corrupt").performScrollTo().assertIsDisplayed()
+            rule.onNodeWithTag("recurring_last_actual_corrupt").performScrollTo()
+                .assertTextContains("Μη έγκυρο ποσό", substring = true)
+            rule.onNodeWithTag("recurring_actual_paid_month_corrupt").performScrollTo()
+                .assertTextContains("Μη έγκυρο ποσό", substring = true)
+            rule.onNodeWithTag("recurring_actual_history_corrupt_0").performScrollTo()
+                .assertTextContains("Μη έγκυρο ποσό", substring = true)
+            for (unsafe in listOf("NaN", "Infinity", "∞")) {
+                org.junit.Assert.assertTrue(
+                    rule.onAllNodesWithText(unsafe, substring = true).fetchSemanticsNodes().isEmpty())
+            }
+        } finally {
+            app.myfinhub.android.feature.utilities.AmountVisibilityPreference.write(context, before)
+        }
+    }
+
+
 }

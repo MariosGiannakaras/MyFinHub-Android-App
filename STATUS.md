@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-D1-D6 native software complete, deploy 6/8. W2.4 PR #429 passed four immutable-head CI gates and squash merged develop a27a5f052557175c46d80bf42e3ea5e12632affd; accepted parity 2/6 implementations and 12/24 subtasks. Consolidated W3.1/W3.2 PR #430 prevents foreign-card statement linkage, duplicate global statement IDs, impossible historical dates and malformed imported money from falsely appearing payable/settled; legitimate Web-derived statement/legacy semantics remain. Wallet and Card Detail safely mark invalid statements and block actions. Partial-credit-funded mixed expenses now appear in card Activity and statement link history with their actual credit portion, without creating new finance events or altering the ledger. Focused JVM and hosted Compose regressions authored; final 4/4 CI and merge pending. Conditional W3.1 completion would make parity 2/6 and 13/24, while W3.2/W4/W5 stay partial. D7 owner same-signer current-source physical S24 upgrade and signoff (#149), plus D8 protected release, remain separately gated. No Web/backend/schema, main, signing, SMS #146, global PIN #345 or actual finance writes.
+D1–D6 native Android completed, deploy remains 6/8. Consolidated W3.1/W3.2 PR #430 passed four exact-head Project Tracking, Android CI, screenshot and hosted S24 tests and squash merged develop 576c9beebb454e1b1d856a8be32b415401b5cfa3. Accepted Web parity is 2/6 implementations and 13/24 subtasks. Current cohesive W4.1 plus partial W4.2 PR #431 finally connects the already-developed native recurring management from live Plan > Recurring overview, so owner can create, edit, pause, resume and stop recurring subscriptions on Android rather than being sent to Web. Maintains mobile search/filter/history and service metadata, and adds safe real-payment Quick Entry draft with fresh recurring and globally unique actual non-credit payer identity, explicit owner Save, no variable-estimate amount prefill and no guessed account. Fixes nonfinite historical recurring/actual amounts in management UI. Additionally corrects Plan Forecast recurring payment routing to exact current recurring owner/eligible payer and prevents variable projections being mistaken for paid ledger amounts, with JVM and hosted Compose journey regressions. JVM and hosted Compose navigation/financial safety/privacy tests authored; exact-final-head four-gate CI/merge pending. Conditional W4.1 completion will raise parity to 2/6 implementations and 14/24 subtasks only after successful merge. W3.2, W4.2–W4.4 and W5 remain partial. D7 #149 still needs separately owner-approved same-signer current-source signed APK and real physical Galaxy S24 Ultra in-place upgrade/signoff; D8 independently authorized release. No Web/backend/schema, main/signing, actual finance writes, SMS #146 or global PIN #345 edits.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Validate complete W3.1/W3.2 PR #430 in a single immutable-head four-gate Project Tracking, Android CI, screenshot regression and hosted S24 run. Merge only after all four SUCCESS, stable develop and clean reviews; then W3.1 is accepted at 2/6 implementations and 13/24 subtasks. Continue next meaningful mobile-native W3.2/W4/W5 batch; no micro-PRs. D7 same-signer current-source signed candidate, physical S24 upgrade and owner acceptance (#149), and D8 release require independent authorization.
+1. Validate consolidated native recurring W4.1 PR #431 with exactly one immutable final-head four-gate Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation run, stable develop and clear reviews, then squash merge only at 4/4 SUCCESS. W4.1 completion and parity 14/24 become accepted upon merge; continue next large source-backed W3.2/W4.2–W5 user journey batch without micro-PRs. D7 physical owner Galaxy S24 approval of a new current-source same-signer candidate (#149) and D8 protected release remain distinct gates.
 
 ## Non-negotiable constraints
 
@@ -62,26 +62,26 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1-D6 accepted on develop (6/8). W2.4 #429 passed 4/4 CI and merged a27a5f052557175c46d80bf42e3ea5e12632affd. W3.1/W3.2 consolidated PR #430 adds historical statement/source safety and mixed-credit Activity, final CI/merge pending. D7 remains separately authorized current-source same-signer signed APK and actual physical S24 in-place upgrade/owner acceptance (#149); D8 independently approved protected publication. Installed rc12/10011 predates current source.
+Next: Native D1–D6 integrated on develop (6/8). W3.1 #430 passed all four exact-head CI gates and squash merged develop 576c9beebb454e1b1d856a8be32b415401b5cfa3; accepted 2/6 implementations · 13/24 subtasks. Live native recurring management W4.1 consolidated PR #431 connects existing owner-safe CRUD/status/actual payment draft, four final CI gates and merge pending. D7 still requires separately approved current-source same-signer signed APK, physical owner S24 in-place upgrade and explicit functional acceptance (#149); D8 protected production release independent. Current installed rc12/10011 predates current source, and no signer/release/device actions were performed.
 
 
 ## Active Web parity progress
 
-**Implementations: 2/6 · Subtasks: 13/24**
+**Implementations: 2/6 · Subtasks: 14/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #430, branch android/w3-statement-activity-integrity-20261106
-Current W3.2: W2.4 #429 passed all four same-head CI gates and merged develop a27a5f052557175c46d80bf42e3ea5e12632affd; baseline Web parity 2/6 implementations and 12/24 subtasks. Current Android-only W3.1/W3.2 PR #430 combines source-safe global credit statement identity, explicit owner correctness, finite billing amounts, valid date/status and mixed-funded credit activity/statement presentation, with JVM and hosted Compose regressions. W3.1 completion and 13/24 in tracker apply only after PR #430 final four CI SUCCESS and merge; W3.2 stays partial. D7 S24 physical acceptance and D8 signed release are independent.
+Issue #155, PR #431, branch android/w4-native-recurring-management-20261106
+Current W3.2: W3.1 #430 was 4/4 SUCCESS on immutable PR head 19137a6310186fd4fb01079505a9d2b73093d6d2 and squash merged Android develop 576c9beebb454e1b1d856a8be32b415401b5cfa3, confirming Web parity 2/6 implementations · 13/24 subtasks; W3.2 remains partial. Native W4.1 PR #431 adds production Plan > Recurring > native management route, integrates already-implemented owner-bound canonical recurring create/edit/pause/stop, preserves bounded read-only paid history and verified service branding, adds actual recurring Quick Entry prefill with source/account uniqueness and variable estimate restrictions, and invalid historical amount display privacy. Partial W4.2 native Forecast recurring actions now reuse this same current-source/unique-payer guarded Quick Entry prefill, leaving variable estimates blank and scheduled actions inside their canonical lifecycle; full W4.2 remains in_progress. JVM and hosted S24 Compose regressions authored; W4.1 and 14/24 are conditional on #431 four exact-final-head CI SUCCESS + merge. D7 physical owner S24 and D8 production release remain separate.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Complete consolidated PR #430 with 4/4 exact-final-head successful CI gates and clean reviews/stable develop, then squash merge and log factual evidence to issue #155. Continue W3.2 source-backed native Activity and W4/W5 journeys as large related batches, no speculative Web UI duplication. D7 and D8 remain separately authorized; no Web/backend/schema/main/signing/real money/SMS #146/global PIN #345 changes.
+Next Check PR #431 on its one immutable final head for Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all SUCCESS; require unchanged develop and no unresolved reviews, squash merge only then, and record factual checkpoint in issue #155. Continue W3.2, W4.2–W4.4/W5 only for concrete missing native journeys in larger cohesive batches. Never infer physical D7 from hosted S24; no main/signing/release/Web/backend/SMS #146/global PIN #345 or real finance writes.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 4/4 | Complete |
 | W3 Events, statements and mutation semantics | 3/4 | W3.2 Event and classification parity (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 0/4 | W4.1 Recurring lifecycle (in_progress); W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
+| W4 Recurring, forecast, savings and reporting | 1/4 | W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
 | W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
 | W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
@@ -99,7 +99,7 @@ Next Complete consolidated PR #430 with 4/4 exact-final-head successful CI gates
 - [ ] W3.2 Event and classification parity — in_progress
 - [x] W3.3 Card repayment provider validation — completed
 - [x] W3.4 Single mutation pipeline — completed
-- [ ] W4.1 Recurring lifecycle — in_progress
+- [x] W4.1 Recurring lifecycle — completed
 - [ ] W4.2 Scheduled forecast — in_progress
 - [ ] W4.3 Savings, loans, lending and budgets — in_progress
 - [ ] W4.4 Transactions and analytics completeness — in_progress
