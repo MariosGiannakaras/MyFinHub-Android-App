@@ -172,4 +172,31 @@ class S7PlanSurfaceTest {
     }
 
 
+    @Test fun forecastExplainsOmittedInvalidSourcesWithoutInventingMoney() {
+        val warning = "Η προγραμματισμένη κίνηση «Corrupt scheduled» " +
+            "δεν προβλήθηκε επειδή το ποσό της δεν είναι έγκυρο."
+        val window = ForecastWindow(
+            days = 30, label = "30 ημέρες",
+            expectedIncome = 0.0, expectedOutflow = 45.0,
+            balanceDeltaFromThirtyDays = 0.0,
+            projectedPortfolio = 955.0, minimumPortfolio = 955.0,
+            omittedSourceCount = 1, omittedWarnings = listOf(warning),
+            currentPortfolio = 1000.0,
+            sourceCounts = mapOf("scheduled" to 1),
+        )
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(state.copy(
+                forecastWindows = listOf(window),
+            ), onBack = {})
+        } }
+        composeRule.onNodeWithText("1 κινήσεις παραλείφθηκαν", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("s7_forecast_omitted_toggle_30")
+            .performScrollTo().performClick()
+        composeRule.onNodeWithText("Corrupt scheduled", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("opaque", substring = true).assertDoesNotExist()
+    }
+
+
 }
