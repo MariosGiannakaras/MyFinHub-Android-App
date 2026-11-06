@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.runtime.mutableStateOf
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import org.junit.Assert.assertEquals
@@ -144,7 +146,7 @@ class CanonicalLoanPaymentDialogComposeTest {
         rule.onNodeWithTag("loan_payment_savings_required").assertIsDisplayed()
         rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0,pairs.size) }
-        rule.onNodeWithTag("loan_payment_savings_savings").performClick()
+        rule.onNodeWithTag("loan_payment_savings_savings").performScrollTo().performClick()
         rule.onNodeWithTag("loan_payment_confirm").assertIsEnabled().performClick()
         rule.runOnIdle { assertEquals(listOf("salary" to "savings"),pairs) }
     }
@@ -161,6 +163,23 @@ class CanonicalLoanPaymentDialogComposeTest {
         rule.onNodeWithTag("loan_payment_source_salary").assertDoesNotExist()
         rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0,calls) }
+    }
+
+
+    @Test fun accountRefreshInvalidatesAnAlreadySelectedPayerWithoutPosting() {
+        val loan=LoanItem("loan","Προσωπικό","",180.0,100.0,"",300.0,
+            remainingInstallments=2,defaultAccountId="salary")
+        val live=mutableStateOf(accounts)
+        var payments=0
+        rule.setContent { MyFinHubTheme {
+            CanonicalLoanPaymentDialog(loan, live.value, onDismiss={},
+                onConfirm={ _,_,_,_,_->payments++ }, amountsVisible=true)
+        } }
+        rule.onNodeWithTag("loan_payment_confirm").assertIsEnabled()
+        rule.runOnIdle { live.value=accounts.filterNot { it.id == "salary" } }
+        rule.onNodeWithTag("loan_payment_payer_required").assertIsDisplayed()
+        rule.onNodeWithTag("loan_payment_confirm").assertIsNotEnabled()
+        rule.runOnIdle { assertEquals(0,payments) }
     }
 
 
