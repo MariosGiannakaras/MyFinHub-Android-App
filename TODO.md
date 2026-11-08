@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Verify W4.2 atomic cumulative-overflow forecast PR #436 against one immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all SUCCESS, stable develop and no blocking reviews. Squash merge only after four passes; keep W4.2 partial and Web parity 2/6 · 14/24 pending broader journeys. Continue coherent W3.2/W4.2–W5 Android batches; D7 physical S24 and D8 release separately gated.
+- [ ] Validate CI sharding efficiency/coverage PR #437: both hosted S24 emulator shards execute nonempty disjoint test sets, their combined coverage includes the baseline 343 tests, required aggregate S24 check fails on either shard failure/skip, and existing Android CI, screenshot and Project Tracking pass on the same immutable head. Merge only after complete evidence. Then resume cohesive Android W3.2/W4.2–W5 feature batches. D7 physical S24 and D8 protected release separately gated.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 accepted on develop (6/8). #435 passed four exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24) on 9c842b1454d8da740e7550da6dfd8c0c7b4a7e0e and squash merged develop dd9bcf13ed466110daaaff8261dd475d8e4b9b09. W4.2 forecast overflow batch PR #436 authored with JVM/Compose tests; four-gate CI and merge pending, accepted Web parity 2/6 · 14/24 unchanged. D7 separately requires owner-authorized current-source same-signer signed candidate and physical Galaxy S24 Ultra in-place upgrade/functional signoff (#149); D8 protected production publishing separately gated. Published rc12/10011 installation predates merged feature source.
+Next: D1–D6 accepted develop (6/8). #436 passed Project Tracking, Android CI, screenshot and hosted S24 emulator on final head 23b9ff17971338a3c3e81cb94a520cbb0ad40f78 and squash merged develop f43bf29f15acf09307a1b06c833552252fbd6128. Draft CI speed checkpoint PR #437 replaces one serial 343-test hosted Android instrumented run with two parallel full-suite AndroidJUnitRunner shards, plus a fail-closed aggregate S24 required gate; no test or release security check is removed. GitHub exact-head CI and merge pending. Web parity 2/6 · 14/24 unchanged. D7 requires separately authorized current-source same-signer signed candidate and actual Galaxy S24 Ultra physical in-place upgrade/owner functional acceptance (#149); D8 protected production publishing separately gated. Published installed rc12/10011 predates merged Android feature source.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 accepted on develop (6/8). #435 passed four exact-head gates (Proj
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #436, branch android/w42-forecast-atomic-cumulative-overflow-20261108
-Current W4.2: #435 passed four exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24) on 9c842b1454d8da740e7550da6dfd8c0c7b4a7e0e and squash merged develop dd9bcf13ed466110daaaff8261dd475d8e4b9b09. Accepted Web parity remains 2/6 implementations · 14/24 subtasks and deploy 6/8. Draft W4.2 PR #436 handles cumulative account and portfolio forecast overflow by atomically omitting unsafe otherwise finite movements, with clear Greek warnings and exact source counts. Two JVM and one hosted Compose regression authored, four-gate CI and merge pending. No actual finance mutation, Web/backend/schema, signing, main, SMS #146 or global PIN #345.
+Issue #155, PR #437, branch android/ci-two-shard-s24-gate-20261108
+Current W4.2: #436 passed Project Tracking, Android CI, screenshot and hosted S24 emulator on final head 23b9ff17971338a3c3e81cb94a520cbb0ad40f78 and squash merged develop f43bf29f15acf09307a1b06c833552252fbd6128. Draft CI speed checkpoint PR #437 replaces one serial 343-test hosted Android instrumented run with two parallel full-suite AndroidJUnitRunner shards, plus a fail-closed aggregate S24 required gate; no test or release security check is removed. GitHub exact-head CI and merge pending. Workstream remains W4.2 in_progress and Web parity 2/6 implementations · 14/24 subtasks; deploy 6/8. Shards preserve fail-closed financial/test gating and existing privacy/release constraints; physical owner S24 acceptance is NOT provided by the emulator.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #436 at one immutable final head on Project Tracking, Android CI, screenshots and hosted S24 instrumentation. Require stable develop and clean reviews, squash merge after four SUCCESS only. Then resume next substantive native W3.2/W4.2–W5 checkpoint. Physical S24 D7 and protected D8 remain separate owner gates; do not change Web/backend/schema, finance ledger, main/signing, SMS #146 or global PIN #345.
+Next Validate PR #437 single final head, verify both S24 shards' test counts/coverage and four mandatory results including stable aggregate gate, then squash merge after clean reviews. Resume W3.2/W4.2–W5 mobile feature batches. Do not relax tests, change Web/backend/schema/main, real finance data, signing, SMS #146 or global PIN #345; D7/D8 remain separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

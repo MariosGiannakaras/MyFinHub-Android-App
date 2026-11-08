@@ -80,6 +80,19 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Use DSL runner arguments rather than CLI -P flags, preserving Gradle
+        // configuration caching while sharding the hosted S24 test suite.
+        val shardCountRaw = providers.environmentVariable("MYFINHUB_ANDROID_TEST_SHARD_COUNT").orNull
+        val shardIndexRaw = providers.environmentVariable("MYFINHUB_ANDROID_TEST_SHARD_INDEX").orNull
+        if (shardCountRaw != null || shardIndexRaw != null) {
+            val count = shardCountRaw?.toIntOrNull()
+            val index = shardIndexRaw?.toIntOrNull()
+            require(count != null && count in 1..8 && index != null && index in 0 until count) {
+                "Invalid Android instrumentation shard; both count and 0-based index are required."
+            }
+            testInstrumentationRunnerArguments["numShards"] = count.toString()
+            testInstrumentationRunnerArguments["shardIndex"] = index.toString()
+        }
         vectorDrawables.useSupportLibrary = true
 
         buildConfigField("String", "MYFINHUB_API_BASE_URL", myFinHubApiBaseUrl.get().asBuildConfigString())
