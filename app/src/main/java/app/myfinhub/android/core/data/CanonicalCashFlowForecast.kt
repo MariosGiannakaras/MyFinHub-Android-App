@@ -219,10 +219,31 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     var portfolioMin = start
     var portfolioMinDate = asOf
     val points = mutableListOf(CanonicalForecastPoint(asOf, portfolio, balances.toMap()))
+    // Even individually finite finance movements can overflow when combined.
+    // Stage each movement atomically: do not poison another source or account.
+    val acceptedRows = mutableListOf<CanonicalForecastMovement>()
     rows.groupBy(CanonicalForecastMovement::date).forEach { (date, daily) ->
-        daily.forEach { item -> item.legs.forEach { l ->
-            if (l.accountId in ids) balances[l.accountId] = (balances[l.accountId] ?: 0.0) + l.amount
-        } }
+        var appliedToday = false
+        daily.forEach { item ->
+            val tentative = balances.toMutableMap()
+            val safe = item.legs.all { movementLeg ->
+                if (movementLeg.accountId !in ids) true else {
+                    val nextBalance = (tentative[movementLeg.accountId] ?: 0.0) + movementLeg.amount
+                    if (!nextBalance.isFinite()) false else {
+                        tentative[movementLeg.accountId] = nextBalance
+                        true
+                    }
+                }
+            } && tentative.values.sum().isFinite()
+            if (!safe) {
+                omitted += "Η κίνηση πρόβλεψης «${item.label}» δεν προβλήθηκε επειδή θα δημιουργούσε μη έγκυρο υπόλοιπο."
+            } else {
+                balances.putAll(tentative)
+                acceptedRows += item
+                appliedToday = true
+            }
+        }
+        if (!appliedToday) return@forEach
         portfolio = balances.values.sum()
         if (portfolio < portfolioMin) { portfolioMin = portfolio; portfolioMinDate = date }
         accounts.forEach { account ->
@@ -237,12 +258,12 @@ fun CanonicalFinanceDocument.cashFlowForecast(asOf: LocalDate, horizonDays: Int)
     }
     if (points.last().date != end) points += CanonicalForecastPoint(end, portfolio, balances.toMap())
     return CanonicalCashFlowForecast(
-        asOf, end, horizonDays, start, portfolio, portfolioMin, portfolioMinDate, points, rows,
+        asOf, end, horizonDays, start, portfolio, portfolioMin, portfolioMinDate, points, acceptedRows,
         accounts.map { account ->
             CanonicalForecastAccount(account.id, initial[account.id] ?: 0.0,
                 balances[account.id] ?: 0.0, minimum[account.id] ?: 0.0,
                 low[account.id], negative[account.id])
         }, omitted, listOf("scheduled", "recurring", "loan", "dated_event")
-            .associateWith { source -> rows.count { it.source == source } },
+            .associateWith { source -> acceptedRows.count { it.source == source } },
     )
 }

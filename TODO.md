@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate one consolidated W4.3 native loan metadata editor PR #435 with Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all SUCCESS at the same immutable final-head SHA, stable develop and clean review threads. Squash merge only when 4/4 green. Keep W4.3 partial and parity 2/6 · 14/24 absent broader savings/loans/lending/budgets evidence. Continue remaining source-backed W3.2/W4.2–W5 Android feature batches. D7 separately approved same-signer current-source signed candidate and actual owner S24 physical in-place upgrade/signoff (#149); D8 separate production authorization.
+- [ ] Verify W4.2 atomic cumulative-overflow forecast PR #436 against one immutable final head: Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all SUCCESS, stable develop and no blocking reviews. Squash merge only after four passes; keep W4.2 partial and Web parity 2/6 · 14/24 pending broader journeys. Continue coherent W3.2/W4.2–W5 Android batches; D7 physical S24 and D8 release separately gated.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 accepted on develop (6/8). #434 final 4/4 immutable-head CI SUCCESS, squash merged Android develop d89e8d9259876845d61e52c7490cba50695ecce9. W4.3 metadata create/edit payer and installment recalculation #435 authored with JVM/Compose tests, final CI/merge pending; accepted parity 2/6 implementations · 14/24 subtasks unchanged. D7 separately requires owner-authorized current-source same-signer signed APK and actual physical Galaxy S24 Ultra in-place upgrade plus explicit owner acceptance (#149). D8 signed protected production publishing independently gated. Existing rc12/10011 physical install predates merged source; no signing or real device installation took place.
+Next: D1–D6 accepted on develop (6/8). #435 passed four exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24) on 9c842b1454d8da740e7550da6dfd8c0c7b4a7e0e and squash merged develop dd9bcf13ed466110daaaff8261dd475d8e4b9b09. W4.2 forecast overflow batch PR #436 authored with JVM/Compose tests; four-gate CI and merge pending, accepted Web parity 2/6 · 14/24 unchanged. D7 separately requires owner-authorized current-source same-signer signed candidate and physical Galaxy S24 Ultra in-place upgrade/functional signoff (#149); D8 protected production publishing separately gated. Published rc12/10011 installation predates merged feature source.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 accepted on develop (6/8). #434 final 4/4 immutable-head CI SUCCES
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #435, branch android/w43-loan-metadata-editor-identity-schedule-20261106
-Current W3.2: W4.3 #434 exact immutable head 6ddcc6ed3f0686a82822da10dc14c8bc4f75e4f5 passed Project Tracking, Android CI, screenshot regression and hosted S24 instrumentation all SUCCESS and squash merged develop d89e8d9259876845d61e52c7490cba50695ecce9. Accepted parity remains 2/6 implementations · 14/24 subtasks and deploy D1–D6 (6/8). Current W4.3 #435 consolidates native ordinary loan/installment creation/editing with deliberate verified non-credit default payment account and no first-account silent fallback, globally unique identity guard at UI/VM/Upsert, responsive account refresh and Web-compatible total/installment/count cent rounding after edits. No auto loan repayments or funding; valid historical paid progress unchanged. Kotlin domain/logic and hosted Compose tests authored, four CI gates and merge pending. W4.3 and other W3/W4/W5 remain incomplete; D7 owner physical S24 and D8 protected production remain separately gated.
+Issue #155, PR #436, branch android/w42-forecast-atomic-cumulative-overflow-20261108
+Current W4.2: #435 passed four exact-head gates (Project Tracking, Android CI, screenshot regression, hosted S24) on 9c842b1454d8da740e7550da6dfd8c0c7b4a7e0e and squash merged develop dd9bcf13ed466110daaaff8261dd475d8e4b9b09. Accepted Web parity remains 2/6 implementations · 14/24 subtasks and deploy 6/8. Draft W4.2 PR #436 handles cumulative account and portfolio forecast overflow by atomically omitting unsafe otherwise finite movements, with clear Greek warnings and exact source counts. Two JVM and one hosted Compose regression authored, four-gate CI and merge pending. No actual finance mutation, Web/backend/schema, signing, main, SMS #146 or global PIN #345.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Run single final immutable-head four-gate CI on PR #435 and require stable develop/no blocking reviews; squash merge only when Project Tracking, Android CI, screenshot regression and hosted S24 SUCCESS. Log factual integration on issue #155. Continue coherent source-backed W3.2/W4.2–W5 mobile-native user journeys; no micro PRs. Physical owner S24 D7 approval and protected D8 release separately authorized; exclude Web/backend/schema/main, actual finance writes, signing, SMS #146/global PIN #345.
+Next Validate PR #436 at one immutable final head on Project Tracking, Android CI, screenshots and hosted S24 instrumentation. Require stable develop and clean reviews, squash merge after four SUCCESS only. Then resume next substantive native W3.2/W4.2–W5 checkpoint. Physical S24 D7 and protected D8 remain separate owner gates; do not change Web/backend/schema, finance ledger, main/signing, SMS #146 or global PIN #345.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
