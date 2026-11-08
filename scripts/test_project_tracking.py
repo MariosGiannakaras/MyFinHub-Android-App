@@ -128,9 +128,9 @@ class WorkflowGateConsistencyTests(unittest.TestCase):
 
     def test_ui_jobs_fail_fast_on_stale_tracking_before_sdk_bootstrap(self):
         source = (tracking.ROOT / ".github" / "workflows" / "android-ui-quality.yml").read_text(encoding="utf-8")
-        jobs = source.split("  s24-ultra-target-instrumented:\n", 1)
-        self.assertEqual(len(jobs), 2)
-        for job in jobs:
+        screenshot, rest = source.split("  s24-emulator-shard:\n", 1)
+        emulator, gate = rest.split("  s24-ultra-target-instrumented:\n", 1)
+        for job in (screenshot, emulator):
             check = job.index("      - name: Fail fast on canonical tracking drift")
             setup = job.index("      - name: Set up JDK 17")
             self.assertLess(check, setup)
@@ -143,11 +143,30 @@ class WorkflowGateConsistencyTests(unittest.TestCase):
         checks = (root / "project-tracking.yml").read_text(encoding="utf-8")
         self.assertIn("jobs:\n  android-verify:", ci)
         self.assertIn("  screenshot-regression:", ui)
+        self.assertIn("  s24-emulator-shard:", ui)
         self.assertIn("  s24-ultra-target-instrumented:", ui)
         self.assertIn("jobs:\n  tracking-verify:", checks)
         self.assertIn("validateDebugScreenshotTest", ui)
         self.assertIn("scripts/run-connected-android-tests.sh", ui)
         self.assertIn("python3 scripts/render_project_tracking.py --check", checks)
+
+    def test_hosted_s24_shards_keep_full_suite_and_required_gate(self):
+        ui = (tracking.ROOT / ".github" / "workflows" / "android-ui-quality.yml").read_text(encoding="utf-8")
+        gradle = (tracking.ROOT / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+        shard, gate = ui.split("  s24-ultra-target-instrumented:", 1)
+        self.assertIn("  s24-emulator-shard:", shard)
+        self.assertIn("fail-fast: false", shard)
+        self.assertIn("shard: [0, 1]", shard)
+        self.assertIn("MYFINHUB_ANDROID_TEST_SHARD_COUNT: '2'", shard)
+        self.assertIn("MYFINHUB_ANDROID_TEST_SHARD_INDEX: ${{ matrix.shard }}", shard)
+        self.assertIn("scripts/run-connected-android-tests.sh", shard)
+        self.assertIn("needs: s24-emulator-shard", gate)
+        self.assertIn("if: always()", gate)
+        self.assertIn('[[ "$SHARD_RESULT" != "success" ]]', gate)
+        self.assertIn('MYFINHUB_ANDROID_TEST_SHARD_COUNT', gradle)
+        self.assertIn('MYFINHUB_ANDROID_TEST_SHARD_INDEX', gradle)
+        self.assertIn('testInstrumentationRunnerArguments["numShards"]', gradle)
+        self.assertIn('testInstrumentationRunnerArguments["shardIndex"]', gradle)
 
     def test_all_four_gates_use_immutable_pull_request_merge_checkout(self):
         root = tracking.ROOT / ".github" / "workflows"
@@ -159,7 +178,8 @@ class WorkflowGateConsistencyTests(unittest.TestCase):
             self.assertNotIn("ref: ${{ github.head_ref }}", source, name)
             self.assertIn(pinned, source, name)
         ui = (root / "android-ui-quality.yml").read_text(encoding="utf-8")
-        screenshot, emulator = ui.split("  s24-ultra-target-instrumented:", 1)
+        screenshot, rest = ui.split("  s24-emulator-shard:", 1)
+        emulator, gate = rest.split("  s24-ultra-target-instrumented:", 1)
         for job in (screenshot, emulator):
             self.assertEqual(job.count(pinned), 1)
             step = job.split(pinned, 1)[1].split("      - name:", 1)[0]

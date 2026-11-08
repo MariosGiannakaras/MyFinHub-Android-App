@@ -77,7 +77,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  s24-ultra-target-instrumented:
+  s24-emulator-shard:
+    # Independent full-suite shards; aggregate required check below fails unless BOTH succeed.
+    name: S24 emulator shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    env:
+      MYFINHUB_ANDROID_TEST_SHARD_COUNT: '2'
+      MYFINHUB_ANDROID_TEST_SHARD_INDEX: ${{ matrix.shard }}
     # A stock compact-phone emulator is only a representative automated host.
     # The user's physical Samsung Galaxy S24 Ultra is the sole supported device
     # and remains the authoritative device-specific acceptance target.
@@ -136,3 +145,21 @@ jobs:
             -gpu swiftshader_indirect
             -camera-back none -camera-front none
           script: bash scripts/run-connected-android-tests.sh
+
+  s24-ultra-target-instrumented:
+    # Stable historical required-check identity: both matrix shards MUST pass.
+    needs: s24-emulator-shard
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require successful S24 instrumentation across both shards
+        shell: bash
+        env:
+          SHARD_RESULT: ${{ needs.s24-emulator-shard.result }}
+        run: |
+          if [[ "$SHARD_RESULT" != "success" ]]; then
+            echo "S24 instrumentation shards not all successful ($SHARD_RESULT)." >&2
+            exit 1
+          fi
+          echo 'Both S24 shards succeeded; required instrumentation gate passed.'
