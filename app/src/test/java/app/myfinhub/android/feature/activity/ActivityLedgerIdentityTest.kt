@@ -18,6 +18,18 @@ class ActivityLedgerIdentityTest {
         rawDate = "2026-10-19",
     )
 
+    @Test fun editableLegacyActivityAccountsRejectAmbiguousAndBlankIds() {
+        val options = listOf(
+            ActivityAccountOption("cash", "Μετρητά A"),
+            ActivityAccountOption("cash", "Μετρητά B"),
+            ActivityAccountOption("reserve", "Αποταμίευση"),
+            ActivityAccountOption("  ", "Ιστορικός κενός"),
+        )
+        assertEquals(
+            listOf("reserve"), selectableLegacyActivityAccounts(options).map { it.id },
+        )
+    }
+
     @Test fun blankAndWhitespaceIdsCannotNavigateEvenWhenOnlyOneRowExists() {
         for (id in listOf("", "   ", "\t")) {
             val ledger = ActivityUiState(items = listOf(row(id, "Παλιά κίνηση")))

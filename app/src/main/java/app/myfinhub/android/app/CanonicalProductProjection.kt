@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.data.CREDIT_ACCOUNT_ID
 import app.myfinhub.android.core.data.CanonicalEvent
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
+import app.myfinhub.android.core.data.CanonicalAccount
 import app.myfinhub.android.core.data.CanonicalLegacyTransaction
 import app.myfinhub.android.core.data.accountBalances
 import app.myfinhub.android.core.data.dashboardAccountHistory
@@ -146,6 +147,16 @@ internal fun primaryHomeRoles(accounts: List<app.myfinhub.android.core.data.Cano
     }
 }
 
+
+/** Exclude globally ambiguous IDs, including bank/credit ID collisions, from edits. */
+internal fun canonicalEditableActivityAccounts(
+    accounts: List<CanonicalAccount>,
+): List<ActivityAccountOption> {
+    val idCounts = accounts.groupingBy(CanonicalAccount::id).eachCount()
+    return accounts.filter {
+        it.id.isNotBlank() && it.kind != "credit" && idCounts[it.id] == 1
+    }.map { ActivityAccountOption(it.id, it.name) }
+}
 
 /** Web TransactionsPage has an arbitrary user-selected reporting month.
  * Produce only the requested month and its comparison; neither ledger amounts
@@ -370,9 +381,7 @@ val activityItems = buildActivityItems(
     val monthRolledWhileSelected = oldActivity?.monthSourceSelected == true &&
         !oldActivity.overviewMonthManuallySelected &&
         oldActivity.monthOverview?.month != selectedMonth.toString()
-    val activityAccountOptions = accounts
-        .filter { it.kind != "credit" }
-        .map { account -> ActivityAccountOption(account.id, account.name) }
+    val activityAccountOptions = canonicalEditableActivityAccounts(accounts)
     val activity = ActivityUiState(
         query = oldActivity?.query.orEmpty(),
         filter = oldActivity?.filter ?: ActivityFilter.ALL,
