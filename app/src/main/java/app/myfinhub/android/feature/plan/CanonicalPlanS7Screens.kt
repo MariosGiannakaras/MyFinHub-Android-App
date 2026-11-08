@@ -333,7 +333,7 @@ private fun ForecastS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onCl
             }
         }
         Text(
-            "Επαληθευμένες γνωστές ροές · ανάλυση διαθέσιμου και χαρτοφυλακίου.",
+            "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -500,19 +500,12 @@ fun CanonicalPlanForecastScreen(
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         ForecastS7Metric("Άνοιγμα", state.forecastStartBalance, FinanceTone.Neutral, amountsVisible = amountsVisible)
-                        ForecastS7Metric("Γνωστά έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true, amountsVisible = amountsVisible)
-                        ForecastS7Metric("Γνωστές εκροές", -state.forecastObligations, FinanceTone.Expense, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Προγραμματισμένα έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Υποχρεώσεις", -state.forecastObligations, FinanceTone.Expense, amountsVisible = amountsVisible)
                         ForecastS7Metric("Επίδραση μεταφορών", state.forecastTransferImpact, FinanceTone.Neutral, showPositive = true, amountsVisible = amountsVisible)
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
-                            "Άνοιγμα + γνωστά έσοδα − γνωστές εκροές ± μεταφορές = προβλεπόμενο διαθέσιμο.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            "Υπολογίζονται μόνο οι επαληθευμένες γνωστές ροές από " +
-                                "προγραμματισμένες κινήσεις, πάγια, δόσεις και μελλοντικές " +
-                                "εγγραφές. Το διαθέσιμο εξαιρεί μη διαθέσιμους λογαριασμούς.",
+                            "Άνοιγμα + έσοδα − υποχρεώσεις ± επίδραση μεταφορών = προβλεπόμενο διαθέσιμο.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -666,8 +659,8 @@ fun CanonicalPlanForecastScreen(
             item("forecast-items-heading") {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     MyFinHubSectionHeading(
-                        title = "Καταγεγραμμένες εκκρεμότητες",
-                        subtitle = "${included.size} προγραμματισμένες κινήσεις και πάγια · οι δόσεις και τα μελλοντικά γεγονότα εμφανίζονται στην ανάλυση χαρτοφυλακίου",
+                        title = "Κινήσεις που υπολογίζονται",
+                        subtitle = "${included.size} καταγεγραμμένες πηγές · χωρίς περικοπή ή συγχώνευση όμοιων τίτλων",
                         icon = MyFinHubIcons.Plan,
                         tone = FinanceTone.Neutral,
                     )

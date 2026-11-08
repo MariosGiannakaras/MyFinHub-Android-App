@@ -224,9 +224,9 @@ class S7PlanSurfaceTest {
             )
         } }
         composeRule.onNodeWithTag("s7_forecast_spendable_partial").assertIsDisplayed()
-        composeRule.onNodeWithText("Γνωστά έσοδα").assertIsDisplayed()
-        composeRule.onNodeWithText("Γνωστές εκροές").assertIsDisplayed()
-        composeRule.onNodeWithText("Υπολογίζονται μόνο οι επαληθευμένες", substring = true)
+        composeRule.onNodeWithText("Προγραμματισμένα έσοδα").assertIsDisplayed()
+        composeRule.onNodeWithText("Υποχρεώσεις").assertIsDisplayed()
+        composeRule.onNodeWithText("1 γνωστές ροές παραλείφθηκαν", substring = true)
             .assertIsDisplayed()
     }
 
