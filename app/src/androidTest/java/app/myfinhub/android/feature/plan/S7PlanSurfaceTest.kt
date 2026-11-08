@@ -203,6 +203,33 @@ class S7PlanSurfaceTest {
 
 
 
+    @Test fun forecastSpendableSummaryDisclosesOmissionsAndCanonicalSourceScope() {
+        val omitted = ForecastWindow(
+            days = 30, label = "30 ημέρες",
+            expectedIncome = 100.0, expectedOutflow = 20.0,
+            balanceDeltaFromThirtyDays = 0.0,
+            currentPortfolio = 1_500.0, projectedPortfolio = 1_580.0,
+            minimumPortfolio = 1_500.0, omittedSourceCount = 1,
+            omittedWarnings = listOf("Η δόση «Άγνωστο δάνειο» δεν προβλήθηκε."),
+        )
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(
+                state.copy(
+                    forecastWindows = listOf(omitted),
+                    forecastExpectedIncome = 100.0,
+                    forecastObligations = 20.0,
+                    forecastEndBalance = 1_280.0,
+                ),
+                onBack = {},
+            )
+        } }
+        composeRule.onNodeWithTag("s7_forecast_spendable_partial").assertIsDisplayed()
+        composeRule.onNodeWithText("Γνωστά έσοδα").assertIsDisplayed()
+        composeRule.onNodeWithText("Γνωστές εκροές").assertIsDisplayed()
+        composeRule.onNodeWithText("Υπολογίζονται μόνο οι επαληθευμένες", substring = true)
+            .assertIsDisplayed()
+    }
+
     @Test fun cumulativeOverflowWarningIsVisibleWithoutExposingMovementId() {
         val warning = "Η κίνηση πρόβλεψης «Large savings income» " +
             "δεν προβλήθηκε επειδή θα δημιουργούσε μη έγκυρο υπόλοιπο."

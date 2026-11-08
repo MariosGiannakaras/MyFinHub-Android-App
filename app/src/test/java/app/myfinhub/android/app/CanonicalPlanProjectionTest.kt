@@ -87,7 +87,89 @@ class CanonicalPlanProjectionTest {
         val state = projectCanonicalPlanState(withPlanRows(scheduled, recurring), LocalDate.of(2026, 9, 10), null)
 
         assertEquals(setOf("scheduled", "rec-one", "rec-two"), state.items.map { it.id }.toSet())
-        assertEquals(300.0, state.forecastObligations, 0.001)
+        // The Web portfolio has all three physical obligations, but spendable
+        // cash excludes the savings-funded one: do not count it twice in cash.
+        assertEquals(200.0, state.forecastObligations, 0.001)
+        assertEquals(800.0, state.forecastEndBalance, 0.001)
+        assertEquals(3, state.forecastWindows.first().sourceCounts["scheduled"]!!.plus(
+            state.forecastWindows.first().sourceCounts["recurring"] ?: 0))
+        assertEquals(1_200.0, state.forecastWindows.first().projectedPortfolio, 0.001)
+    }
+
+
+    @Test
+    fun spendableHeadlineExcludesUnresolvedAccountsButPreservesVisiblePendingSources() {
+        val scheduled = """
+          {"id":"orphan-expense","dueDate":"2026-09-12","kind":"expense",
+           "amount":400,"note":"Μη διαθέσιμο έξοδο","accountId":"deleted","status":"pending"},
+          {"id":"valid-expense","dueDate":"2026-09-13","kind":"expense",
+           "amount":50,"note":"Έγκυρο έξοδο","accountId":"bank","status":"pending"}
+        """.trimIndent()
+        val recurring = """
+          {"id":"orphan-subscription","name":"Μη διαθέσιμο πάγιο",
+           "amount":20,"firstExpectedDate":"2026-09-14","accountId":"deleted","active":true}
+        """.trimIndent()
+        val document = withPlanRows(scheduled, recurring)
+        val before = document.raw
+        val projected = projectCanonicalPlanState(document, LocalDate.of(2026, 9, 10), null)
+        assertEquals(3, projected.items.size)
+        assertEquals(1_000.0, projected.forecastStartBalance, 0.001)
+        assertEquals(0.0, projected.forecastExpectedIncome, 0.001)
+        assertEquals(50.0, projected.forecastObligations, 0.001)
+        assertEquals(950.0, projected.forecastEndBalance, 0.001)
+        val window = projected.forecastWindows.first { it.days == 30 }
+        assertEquals(1, window.sourceCounts["scheduled"])
+        assertEquals(0, window.sourceCounts["recurring"])
+        assertEquals(2, window.omittedSourceCount)
+        assertTrue(window.omittedWarnings.any { it.contains("Μη διαθέσιμο έξοδο") })
+        assertTrue(window.omittedWarnings.any { it.contains("Μη διαθέσιμο πάγιο") })
+        assertEquals(1_450.0, window.projectedPortfolio, 0.001)
+        assertEquals(before, document.raw)
+    }
+
+    @Test
+    fun spendableHeadlineIncludesCanonicalLoansAndFutureEventsWithoutTreatingSavingsAsCash() {
+        val scheduled = """
+          {"id":"income","dueDate":"2026-09-15","kind":"income",
+           "amount":70,"note":"Μισθός","accountId":"bank","status":"pending"},
+          {"id":"savings-to-bank","dueDate":"2026-09-17","kind":"transfer",
+           "amount":50,"note":"Ανάληψη στόχου","fromAccountId":"savings",
+           "toAccountId":"bank","status":"pending"}
+        """.trimIndent()
+        val recurring = """
+          {"id":"subscription","name":"Συνδρομή","amount":20,
+           "firstExpectedDate":"2026-09-11","accountId":"bank","active":true}
+        """.trimIndent()
+        val base = withPlanRows(scheduled, recurring)
+        val loans = Json.parseToJsonElement("""
+          [{"id":"loan","name":"Δόση","installment":40,"total":80,
+            "installments":2,"day":"13","firstExpectedDate":"2026-09-13",
+            "defaultAccountId":"bank"}]
+        """.trimIndent())
+        val events = Json.parseToJsonElement("""
+          [{"id":"future","kind":"expense","date":"2026-09-18","amount":35,
+            "note":"Μελλοντική δαπάνη","legs":[{"accountId":"bank","amount":-35}]}]
+        """.trimIndent())
+        val document = CanonicalFinanceDocument(JsonObject(base.raw + mapOf(
+            "seed" to JsonObject(base.seed + ("loans" to loans)),
+            "state" to JsonObject(base.state + ("events" to events)),
+        )))
+        val before = document.raw
+        val projected = projectCanonicalPlanState(document, LocalDate.of(2026, 9, 10), null)
+        assertEquals(1_000.0, projected.forecastStartBalance, 0.001)
+        assertEquals(70.0, projected.forecastExpectedIncome, 0.001)
+        assertEquals(95.0, projected.forecastObligations, 0.001)
+        assertEquals(50.0, projected.forecastTransferImpact, 0.001)
+        assertEquals(1_025.0, projected.forecastEndBalance, 0.001)
+        val window = projected.forecastWindows.first { it.days == 30 }
+        assertEquals(mapOf(
+            "scheduled" to 2, "recurring" to 1,
+            "loan" to 1, "dated_event" to 1,
+        ), window.sourceCounts)
+        assertEquals(5, window.knownMovements.size)
+        assertEquals(1_475.0, window.projectedPortfolio, 0.001)
+        assertEquals(0, window.omittedSourceCount)
+        assertEquals(before, document.raw)
     }
 
     private fun withPlanRows(scheduled: String, recurring: String): CanonicalFinanceDocument {

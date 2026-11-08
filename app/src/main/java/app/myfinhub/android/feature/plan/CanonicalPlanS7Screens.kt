@@ -333,10 +333,19 @@ private fun ForecastS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onCl
             }
         }
         Text(
-            "Άνοιγμα, έσοδα, υποχρεώσεις και επίδραση μεταφορών σε ξεχωριστή ανάλυση.",
+            "Επαληθευμένες γνωστές ροές · ανάλυση διαθέσιμου και χαρτοφυλακίου.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        val omitted = mobilePlanForecastWindow(state.forecastWindows)?.omittedSourceCount ?: 0
+        if (omitted > 0) {
+            Text(
+                "$omitted ροές παραλείφθηκαν από την πρόβλεψη.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.testTag("s7_forecast_link_partial"),
+            )
+        }
     }
 }
 
@@ -491,15 +500,31 @@ fun CanonicalPlanForecastScreen(
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         ForecastS7Metric("Άνοιγμα", state.forecastStartBalance, FinanceTone.Neutral, amountsVisible = amountsVisible)
-                        ForecastS7Metric("Προγραμματισμένα έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true, amountsVisible = amountsVisible)
-                        ForecastS7Metric("Υποχρεώσεις", -state.forecastObligations, FinanceTone.Expense, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Γνωστά έσοδα", state.forecastExpectedIncome, FinanceTone.Income, showPositive = true, amountsVisible = amountsVisible)
+                        ForecastS7Metric("Γνωστές εκροές", -state.forecastObligations, FinanceTone.Expense, amountsVisible = amountsVisible)
                         ForecastS7Metric("Επίδραση μεταφορών", state.forecastTransferImpact, FinanceTone.Neutral, showPositive = true, amountsVisible = amountsVisible)
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
-                            "Άνοιγμα + έσοδα − υποχρεώσεις ± επίδραση μεταφορών = προβλεπόμενο διαθέσιμο.",
+                            "Άνοιγμα + γνωστά έσοδα − γνωστές εκροές ± μεταφορές = προβλεπόμενο διαθέσιμο.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        Text(
+                            "Υπολογίζονται μόνο οι επαληθευμένες γνωστές ροές από " +
+                                "προγραμματισμένες κινήσεις, πάγια, δόσεις και μελλοντικές " +
+                                "εγγραφές. Το διαθέσιμο εξαιρεί μη διαθέσιμους λογαριασμούς.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if ((mobileWindow?.omittedSourceCount ?: 0) > 0) {
+                            Text(
+                                "${mobileWindow!!.omittedSourceCount} γνωστές ροές παραλείφθηκαν " +
+                                    "λόγω μη έγκυρων ή ελλιπών στοιχείων.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.testTag("s7_forecast_spendable_partial"),
+                            )
+                        }
                         if (overdueIncluded) {
                             Text(
                                 "Περιλαμβάνονται καθυστερημένες εκκρεμείς υποχρεώσεις που παραμένουν απλήρωτες.",
@@ -641,8 +666,8 @@ fun CanonicalPlanForecastScreen(
             item("forecast-items-heading") {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
                     MyFinHubSectionHeading(
-                        title = "Κινήσεις που υπολογίζονται",
-                        subtitle = "${included.size} καταγεγραμμένες πηγές · χωρίς περικοπή ή συγχώνευση όμοιων τίτλων",
+                        title = "Καταγεγραμμένες εκκρεμότητες",
+                        subtitle = "${included.size} προγραμματισμένες κινήσεις και πάγια · οι δόσεις και τα μελλοντικά γεγονότα εμφανίζονται στην ανάλυση χαρτοφυλακίου",
                         icon = MyFinHubIcons.Plan,
                         tone = FinanceTone.Neutral,
                     )
