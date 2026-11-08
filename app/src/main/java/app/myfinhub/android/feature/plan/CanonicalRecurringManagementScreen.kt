@@ -71,6 +71,9 @@ fun CanonicalRecurringManagementScreen(
     paymentAccountIds: Set<String>? = null,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
+    val selectableAccounts = remember(state.scheduledAccounts) {
+        selectablePlanPaymentAccounts(state.scheduledAccounts)
+    }
     val serviceAssetCatalog = LocalRecurringServiceAssets.current
     var creating by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<RecurringManageItem?>(null) }
@@ -94,7 +97,7 @@ fun CanonicalRecurringManagementScreen(
         ) {
             item("new-recurring") {
                 TextButton(
-                    enabled = !mutationBlocked && state.scheduledAccounts.isNotEmpty(),
+                    enabled = !mutationBlocked && selectableAccounts.isNotEmpty(),
                     onClick = { creating = true },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .testTag("recurring_create_open"),
@@ -360,7 +363,7 @@ fun CanonicalRecurringManagementScreen(
     if (creating || editing != null) {
         val activeEdit = editing
         CanonicalRecurringCreateDialog(
-            accounts = state.scheduledAccounts,
+            accounts = selectableAccounts,
             initial = activeEdit,
             mutationBlocked = mutationBlocked,
             onDismiss = { creating = false; editing = null },
@@ -392,7 +395,7 @@ private fun CanonicalRecurringCreateDialog(
     var subcategory by remember(initial?.id) { mutableStateOf(initial?.subcategory.orEmpty()) }
     var accountId by remember(initial?.id) {
         // Existing orphaned payer stays unresolved until explicitly replaced.
-        mutableStateOf(initial?.accountId ?: accounts.firstOrNull()?.id.orEmpty())
+        mutableStateOf(initial?.accountId.orEmpty())
     }
     var accountMenu by remember { mutableStateOf(false) }
     var mode by remember(initial?.id) {

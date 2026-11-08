@@ -21,6 +21,20 @@ class WebScheduledCompletionAccountSelectionTest {
         assertFalse(scheduledCompletionAccountIsValid("transfer",ids,null,"cash",null))
     }
 
+    @Test fun importedDuplicateAccountOptionsAreNotSelectableAsPayers() {
+        val options = listOf(
+            ScheduledAccountOption("same","Payroll A"),
+            ScheduledAccountOption("same","Payroll B"),
+            ScheduledAccountOption("valid","Μετρητά"),
+            ScheduledAccountOption("","Unknown"),
+        )
+        assertTrue(selectablePlanPaymentAccounts(options).map { it.id } == listOf("valid"))
+        assertFalse(scheduledCompletionAccountIsValid(
+            "expense", selectablePlanPaymentAccounts(options).map { it.id }.toSet(),
+            "same", null, null,
+        ))
+    }
+
     @Test fun completionRequestCarriesOnlyTheActualSelectedMoneyRoute() {
         val request=ScheduledCompletionRequest(
             id="old-rent",date="2026-10-17",amount=39.5,accountId="cash")
