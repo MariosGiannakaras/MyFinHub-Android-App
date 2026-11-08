@@ -300,4 +300,45 @@ class WebCashFlowForecastParityTest {
     }
 
 
+
+    @Test fun sequentialFiniteIncomesCannotOverflowOneAccountAndOtherSourcesRemainSafe() {
+        val scheduled = """
+          {"id":"first","note":"First large income","dueDate":"2026-10-17",
+           "kind":"income","amount":1e308,"accountId":"bank","status":"pending"},
+          {"id":"second","note":"Second large income","dueDate":"2026-10-18",
+           "kind":"income","amount":1e308,"accountId":"bank","status":"pending"},
+          {"id":"safe","note":"Valid expense","dueDate":"2026-10-19",
+           "kind":"expense","amount":30,"accountId":"savings","status":"pending"}
+        """.trimIndent()
+        val data = document(scheduled=scheduled,recurring="",loans="",events="")
+        val before = data.raw
+        val p = data.cashFlowForecast(today,30)
+        assertEquals(listOf("forecast-scheduled-first","forecast-scheduled-safe"),p.movements.map { it.id })
+        assertEquals(2,p.sourceCounts["scheduled"])
+        assertEquals(1,p.omitted.size)
+        assertTrue(p.omitted.single().contains("Second large income"))
+        assertTrue(p.omitted.single().contains("μη έγκυρο υπόλοιπο"))
+        assertFalse(p.omitted.single().contains("forecast-scheduled-second"))
+        assertTrue(p.points.all { it.portfolio.isFinite() && it.balances.values.all { amount -> amount.isFinite() } })
+        assertEquals(1e308,p.projectedPortfolio,1e294)
+        assertEquals(before,data.raw)
+    }
+
+    @Test fun finiteIndividualAccountsCannotOverflowCombinedPortfolio() {
+        val scheduled = """
+          {"id":"first","note":"Large payroll income","dueDate":"2026-10-17",
+           "kind":"income","amount":1e308,"accountId":"bank","status":"pending"},
+          {"id":"second","note":"Large savings income","dueDate":"2026-10-18",
+           "kind":"income","amount":1e308,"accountId":"savings","status":"pending"}
+        """.trimIndent()
+        val data = document(scheduled=scheduled,recurring="",loans="",events="")
+        val p = data.cashFlowForecast(today,30)
+        assertEquals(listOf("forecast-scheduled-first"),p.movements.map { it.id })
+        assertEquals(1,p.sourceCounts["scheduled"])
+        assertEquals(1,p.omitted.size)
+        assertTrue(p.omitted.single().contains("Large savings income"))
+        assertTrue(p.points.all { it.portfolio.isFinite() })
+        assertEquals(200.0,p.accounts.single { it.accountId=="savings" }.projected,0.001)
+        assertEquals(1e308,p.projectedPortfolio,1e294)
+    }
 }

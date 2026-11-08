@@ -202,4 +202,25 @@ class S7PlanSurfaceTest {
     }
 
 
+
+    @Test fun cumulativeOverflowWarningIsVisibleWithoutExposingMovementId() {
+        val warning = "Η κίνηση πρόβλεψης «Large savings income» " +
+            "δεν προβλήθηκε επειδή θα δημιουργούσε μη έγκυρο υπόλοιπο."
+        val window = ForecastWindow(
+            days = 30, label = "30 ημέρες", expectedIncome = 0.0,
+            expectedOutflow = 0.0, balanceDeltaFromThirtyDays = 0.0,
+            projectedPortfolio = 1000.0, minimumPortfolio = 1000.0,
+            omittedSourceCount = 1, omittedWarnings = listOf(warning),
+            currentPortfolio = 1000.0, sourceCounts = emptyMap(),
+        )
+        composeRule.setContent { MyFinHubTheme {
+            CanonicalPlanForecastScreen(state.copy(forecastWindows = listOf(window)), onBack = {})
+        } }
+        composeRule.onNodeWithTag("s7_forecast_root")
+            .performScrollToNode(hasTestTag("s7_forecast_omitted_toggle_30"))
+        composeRule.onNodeWithTag("s7_forecast_omitted_toggle_30").performClick()
+        composeRule.onNodeWithText("Large savings income", substring = true)
+            .performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("forecast-scheduled-second", substring = true).assertDoesNotExist()
+    }
 }
