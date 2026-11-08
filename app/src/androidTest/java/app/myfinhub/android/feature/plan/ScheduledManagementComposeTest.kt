@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.plan
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -37,7 +38,10 @@ class ScheduledManagementComposeTest {
         compose.onNodeWithTag("scheduled_create_open").performClick()
         compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("20")
         compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-10")
-        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_new_source").performClick()
+        compose.onNodeWithText("Μισθοδοσία").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsEnabled().performClick()
         compose.runOnIdle {
             assertEquals(1,calls.size)
             assertEquals("expense",calls.single().kind)
@@ -168,7 +172,10 @@ class ScheduledManagementComposeTest {
         compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-15")
         compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("40.5")
         compose.onNodeWithTag("scheduled_new_note").performTextReplacement("Κινητό")
-        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_new_source").performClick()
+        compose.onNodeWithText("Μισθοδοσία").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsEnabled().performClick()
         compose.runOnIdle {
             assertEquals(1,requests.size)
             assertEquals("expense",requests.single().kind)
@@ -192,7 +199,13 @@ class ScheduledManagementComposeTest {
         compose.onNodeWithTag("scheduled_new_kind_transfer").performClick()
         compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("50")
         compose.onNodeWithTag("scheduled_new_date").performTextReplacement("2026-11-03")
-        compose.onNodeWithTag("scheduled_new_confirm").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_new_source").performClick()
+        compose.onNodeWithText("Μισθοδοσία").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_new_destination").performClick()
+        compose.onNodeWithText("Αποταμίευση").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsEnabled().performClick()
         compose.runOnIdle {
             assertEquals(1,calls.size)
             val request=calls.single()
@@ -200,6 +213,72 @@ class ScheduledManagementComposeTest {
             assertEquals("bank",request.fromAccountId)
             assertEquals("save",request.toAccountId)
             assertEquals(null,request.accountId)
+        }
+    }
+
+
+    @Test fun orphanedScheduledSourceNeverDefaultsToUnrelatedPayerDuringActualPayment() {
+        val orphan = data.copy(scheduledManageItems = listOf(
+            ScheduledManageItem("old","Παλαιό","expense","2026-10-12",25.0,"due",
+                accountId="deleted-account"),
+        ))
+        val calls = mutableListOf<ScheduledCompletionRequest>()
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(orphan,onBack={},
+                onComplete={calls += it},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_complete_old").performClick()
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_confirm_source").performClick()
+        compose.onNodeWithText("Αποταμίευση").performClick()
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsEnabled().performClick()
+        compose.runOnIdle {
+            assertEquals(1,calls.size)
+            assertEquals("save",calls.single().accountId)
+        }
+    }
+
+    @Test fun accountRemovedDuringScheduledCreateRevokesEarlierSelection() {
+        val source = mutableStateOf(data)
+        val calls = mutableListOf<ScheduledCreateRequest>()
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(source.value,onBack={},
+                onCreate={calls += it},onComplete={_->},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_create_open").performClick()
+        compose.onNodeWithTag("scheduled_new_amount").performTextReplacement("25")
+        compose.onNodeWithTag("scheduled_new_source").performClick()
+        compose.onNodeWithText("Μισθοδοσία").performClick()
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsEnabled()
+        compose.runOnIdle {
+            source.value = source.value.copy(
+                scheduledAccounts = listOf(ScheduledAccountOption("save","Αποταμίευση")))
+        }
+        compose.onNodeWithTag("scheduled_new_confirm").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(0,calls.size) }
+    }
+
+    @Test fun transferCompletionRequiresNewDestinationWhenSourceIsChangedToDestination() {
+        val transfer = data.copy(scheduledManageItems = listOf(
+            ScheduledManageItem("shift","Μεταφορά","transfer","2026-10-12",15.0,
+                "due",fromAccountId="bank",toAccountId="save"),
+        ))
+        val calls = mutableListOf<ScheduledCompletionRequest>()
+        compose.setContent { MyFinHubTheme {
+            CanonicalScheduledManagementScreen(transfer,onBack={},
+                onComplete={calls += it},onClose={_,_->})
+        } }
+        compose.onNodeWithTag("scheduled_complete_shift").performClick()
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsEnabled()
+        compose.onNodeWithTag("scheduled_confirm_source").performClick()
+        compose.onNodeWithText("Αποταμίευση").performClick()
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsNotEnabled()
+        compose.onNodeWithTag("scheduled_confirm_destination").performClick()
+        compose.onNodeWithText("Μισθοδοσία").performClick()
+        compose.onNodeWithTag("scheduled_confirm_action").assertIsEnabled().performClick()
+        compose.runOnIdle {
+            assertEquals("save",calls.single().fromAccountId)
+            assertEquals("bank",calls.single().toAccountId)
         }
     }
 

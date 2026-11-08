@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -140,7 +141,11 @@ class NativeRecurringManagementJourneyComposeTest {
             .performTextInput("Ασφάλεια κατοικίας")
         rule.onNodeWithTag("recurring_create_amount").performScrollTo()
             .performTextInput("85")
-        rule.onNodeWithTag("recurring_create_save").performClick()
+        rule.onNodeWithTag("recurring_create_save").assertIsNotEnabled()
+        rule.runOnIdle { assertEquals(0, created.size) }
+        rule.onNodeWithTag("recurring_create_account").performScrollTo().performClick()
+        rule.onNodeWithText("Μετρητά").performClick()
+        rule.onNodeWithTag("recurring_create_save").assertIsEnabled().performClick()
         rule.runOnIdle {
             assertEquals(1, created.size)
             assertEquals("Ασφάλεια κατοικίας", created.single().name)

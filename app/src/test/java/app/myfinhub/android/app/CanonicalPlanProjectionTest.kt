@@ -1,5 +1,6 @@
 package app.myfinhub.android.app
 
+import app.myfinhub.android.core.data.CanonicalAccount
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.feature.plan.PlannedKind
 import java.time.LocalDate
@@ -170,6 +171,20 @@ class CanonicalPlanProjectionTest {
         assertEquals(1_475.0, window.projectedPortfolio, 0.001)
         assertEquals(0, window.omittedSourceCount)
         assertEquals(before, document.raw)
+    }
+
+    @Test
+    fun planPaymentPickerExcludesGloballyDuplicatedCreditAndNonCreditAccountIds() {
+        fun account(id: String, kind: String) = CanonicalAccount(
+            id = id, name = id, shortName = null, kind = kind, excludeFromAvailable = false,
+        )
+        val options = canonicalPlanPaymentAccountOptions(listOf(
+            account("payroll", "bank"), account("payroll", "bank"),
+            account("collision", "cash"), account("collision", "credit"),
+            account("savings", "savings"),
+        ))
+        assertEquals(listOf("savings"), options.map { it.id })
+        assertTrue(options.none { it.id in listOf("payroll", "collision") })
     }
 
     private fun withPlanRows(scheduled: String, recurring: String): CanonicalFinanceDocument {

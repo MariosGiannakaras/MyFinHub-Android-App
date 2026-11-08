@@ -84,6 +84,15 @@ data class ScheduledManageItem(
 )
 
 data class ScheduledAccountOption(val id: String, val label: String)
+
+/** Ambiguous imported account IDs are never offered as payment sources. */
+internal fun selectablePlanPaymentAccounts(
+    options: List<ScheduledAccountOption>,
+): List<ScheduledAccountOption> {
+    val counts = options.groupingBy(ScheduledAccountOption::id).eachCount()
+    return options.filter { it.id.isNotBlank() && counts[it.id] == 1 }
+}
+
 /** A plan only: no money is booked until a separate explicit expense action. */
 data class RecurringCreateRequest(
     val name: String,

@@ -71,6 +71,23 @@ import kotlin.math.roundToInt
  * Rejected/unsafe scheduled, recurring, loan or dated-event rows never leak
  * into the headline through the legacy list of actionable obligations.
  */
+/** A payer must have one physical canonical identity, including against credit IDs. */
+internal fun canonicalPlanPaymentAccountOptions(
+    accounts: List<CanonicalAccount>,
+): List<ScheduledAccountOption> {
+    val counts = accounts.groupingBy(CanonicalAccount::id).eachCount()
+    return accounts.filter {
+        it.id.isNotBlank() && it.kind != "credit" && counts[it.id] == 1
+    }.map { account ->
+        ScheduledAccountOption(
+            account.id,
+            financialAccountDisplayName(
+                account.id, account.name, account.kind, account.providerId,
+            ),
+        )
+    }
+}
+
 internal data class SpendablePlanForecast(
     val income: Double,
     val outflow: Double,
@@ -256,14 +273,7 @@ internal fun projectCanonicalPlanState(
     return PlanUiState(
         items = items,
         recurringManageItems = management,
-        scheduledAccounts = document.canonicalAccounts()
-            .filter { it.kind != "credit" }
-            .map { account ->
-                ScheduledAccountOption(
-                    account.id,
-                    financialAccountDisplayName(account.id,account.name,account.kind,account.providerId),
-                )
-            },
+        scheduledAccounts = canonicalPlanPaymentAccountOptions(document.canonicalAccounts()),
         scheduledManageItems = document.canonicalScheduledManagementOrder().map { row ->
             ScheduledManageItem(
                 id = row.id,

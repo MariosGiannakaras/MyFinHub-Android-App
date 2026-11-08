@@ -84,6 +84,9 @@ fun CanonicalScheduledManagementScreen(
     mutationBlocked: Boolean = false,
 ) {
     val showAmounts = rememberAmountVisibilityPreference()
+    val selectableAccounts = remember(state.scheduledAccounts) {
+        selectablePlanPaymentAccounts(state.scheduledAccounts)
+    }
     val idCounts = remember(state.scheduledManageItems) {
         state.scheduledManageItems.groupingBy { it.id }.eachCount()
     }
@@ -122,7 +125,7 @@ fun CanonicalScheduledManagementScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
         ) {
-            if(state.scheduledAccounts.isNotEmpty()) {
+            if(selectableAccounts.isNotEmpty()) {
                 item("create") {
                     TextButton(
                         enabled = !mutationBlocked,
@@ -133,9 +136,8 @@ fun CanonicalScheduledManagementScreen(
                             createDate = LocalDate.now().toString()
                             createAmount = ""
                             createNote = ""
-                            sourceId = state.scheduledAccounts.first().id
-                            destinationId = state.scheduledAccounts.drop(1).firstOrNull()?.id
-                                ?: state.scheduledAccounts.first().id
+                            sourceId = ""
+                            destinationId = ""
                             creating = true
                         },
                     ) { Text("Νέα προγραμματισμένη κίνηση") }
@@ -198,14 +200,14 @@ fun CanonicalScheduledManagementScreen(
                                         action = "complete"
                                         dateText = LocalDate.now().toString()
                                         amountText = item.amount.toString()
-                                        val available=state.scheduledAccounts.map { it.id }
-                                        actualAccountId=item.accountId?.takeIf { it in available }
-                                            ?: available.firstOrNull().orEmpty()
-                                        actualFromAccountId=item.fromAccountId?.takeIf { it in available }
-                                            ?: available.firstOrNull().orEmpty()
+                                        val available=selectableAccounts.map { it.id }
+                                        // Existing valid source is a trusted suggestion;
+                                        // orphaned rows require a new explicit payer choice.
+                                        actualAccountId=item.accountId?.takeIf { it in available }.orEmpty()
+                                        actualFromAccountId=item.fromAccountId?.takeIf { it in available }.orEmpty()
                                         actualToAccountId=item.toAccountId?.takeIf {
                                             it in available && it!=actualFromAccountId
-                                        } ?: available.firstOrNull { it!=actualFromAccountId }.orEmpty()
+                                        }.orEmpty()
                                     },
                                     modifier = Modifier.weight(1f).heightIn(min=48.dp)
                                         .testTag("scheduled_complete_" + item.id + rowSuffix),
@@ -234,7 +236,7 @@ fun CanonicalScheduledManagementScreen(
         val value=createAmount.replace(',', '.').toDoubleOrNull()
         val dateValid=runCatching { LocalDate.parse(createDate) }.isSuccess
         val isTransfer=createKind=="transfer"
-        val availableIds = state.scheduledAccounts.mapTo(mutableSetOf()) { it.id }
+        val availableIds = selectableAccounts.mapTo(mutableSetOf()) { it.id }
         val ready=value!=null && value.isFinite() && value>0 && dateValid &&
             sourceId in availableIds &&
             (!isTransfer || (destinationId in availableIds && destinationId!=sourceId))
@@ -269,12 +271,14 @@ fun CanonicalScheduledManagementScreen(
                         TextButton(onClick={sourceMenu=true},
                             modifier=Modifier.fillMaxWidth().testTag("scheduled_new_source")) {
                             Text((if(isTransfer)"Από: " else "Λογαριασμός: ") +
-                                (state.scheduledAccounts.firstOrNull { it.id==sourceId }?.label ?: "Επιλογή"))
+                                (selectableAccounts.firstOrNull { it.id==sourceId }?.label ?: "Επιλογή"))
                         }
                         DropdownMenu(expanded=sourceMenu,onDismissRequest={sourceMenu=false}) {
-                            state.scheduledAccounts.forEach { account ->
+                            selectableAccounts.forEach { account ->
                                 DropdownMenuItem(text={Text(account.label)},onClick={
-                                    sourceId=account.id; sourceMenu=false
+                                    sourceId=account.id
+                                    if (destinationId == sourceId) destinationId = ""
+                                    sourceMenu=false
                                 })
                             }
                         }
@@ -283,12 +287,12 @@ fun CanonicalScheduledManagementScreen(
                         Box {
                             TextButton(onClick={destinationMenu=true},
                                 modifier=Modifier.fillMaxWidth().testTag("scheduled_new_destination")) {
-                                Text("Προς: " + (state.scheduledAccounts.firstOrNull {
+                                Text("Προς: " + (selectableAccounts.firstOrNull {
                                     it.id==destinationId }?.label ?: "Επιλογή"))
                             }
                             DropdownMenu(expanded=destinationMenu,
                                 onDismissRequest={destinationMenu=false}) {
-                                state.scheduledAccounts.forEach { account ->
+                                selectableAccounts.forEach { account ->
                                     DropdownMenuItem(text={Text(account.label)},onClick={
                                         destinationId=account.id;destinationMenu=false
                                     })
@@ -326,7 +330,7 @@ fun CanonicalScheduledManagementScreen(
         val amount = amountText.replace(',', '.').toDoubleOrNull()
         val dateValid = runCatching { LocalDate.parse(dateText) }.isSuccess
         val routeValid = scheduledCompletionAccountIsValid(
-            item.kind,state.scheduledAccounts.mapTo(mutableSetOf()) { it.id },
+            item.kind,selectableAccounts.mapTo(mutableSetOf()) { it.id },
             actualAccountId,actualFromAccountId,actualToAccountId,
         )
         AlertDialog(
@@ -362,15 +366,19 @@ fun CanonicalScheduledManagementScreen(
                                     .testTag("scheduled_confirm_source")) {
                                 val selectedId=if(transfer)actualFromAccountId else actualAccountId
                                 Text((if(transfer)"Από: " else "Λογαριασμός: ") +
-                                    (state.scheduledAccounts.firstOrNull { it.id==selectedId }?.label
+                                    (selectableAccounts.firstOrNull { it.id==selectedId }?.label
                                         ?: "Επιλογή"))
                             }
                             DropdownMenu(expanded=actualSourceMenu,
                                 onDismissRequest={actualSourceMenu=false}) {
-                                state.scheduledAccounts.forEach { account ->
+                                selectableAccounts.forEach { account ->
                                     DropdownMenuItem(text={Text(account.label)},onClick={
-                                        if(transfer)actualFromAccountId=account.id
-                                        else actualAccountId=account.id
+                                        if (transfer) {
+                                            actualFromAccountId = account.id
+                                            if (actualToAccountId == actualFromAccountId) {
+                                                actualToAccountId = ""
+                                            }
+                                        } else actualAccountId = account.id
                                         actualSourceMenu=false
                                     })
                                 }
@@ -381,12 +389,12 @@ fun CanonicalScheduledManagementScreen(
                                 TextButton(onClick={actualDestinationMenu=true},enabled=!mutationBlocked,
                                     modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)
                                         .testTag("scheduled_confirm_destination")) {
-                                    Text("Προς: " + (state.scheduledAccounts.firstOrNull {
+                                    Text("Προς: " + (selectableAccounts.firstOrNull {
                                         it.id==actualToAccountId }?.label ?: "Επιλογή"))
                                 }
                                 DropdownMenu(expanded=actualDestinationMenu,
                                     onDismissRequest={actualDestinationMenu=false}) {
-                                    state.scheduledAccounts.forEach { account ->
+                                    selectableAccounts.forEach { account ->
                                         DropdownMenuItem(text={Text(account.label)},onClick={
                                             actualToAccountId=account.id
                                             actualDestinationMenu=false
