@@ -1,6 +1,7 @@
 package app.myfinhub.android.app
 
 import app.myfinhub.android.core.data.CanonicalAccount
+import app.myfinhub.android.core.data.CanonicalCashFlowForecast
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.array
 import app.myfinhub.android.core.data.availableMoney
@@ -52,6 +53,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -62,6 +64,49 @@ import kotlin.math.roundToInt
  * included once per next occurrence. Independently keyed scheduled/recurring records are retained:
  * matching display fields do not establish a canonical relationship between obligations.
  */
+/**
+ * One accepted 30-day canonical movement trace for both the spendable headline
+ * and the full portfolio detail. Savings/reserves contribute to portfolio, not
+ * spendable cash; a transfer between them changes only the spendable headline.
+ * Rejected/unsafe scheduled, recurring, loan or dated-event rows never leak
+ * into the headline through the legacy list of actionable obligations.
+ */
+internal data class SpendablePlanForecast(
+    val income: Double,
+    val outflow: Double,
+    val transferImpact: Double,
+    val closingBalance: Double,
+)
+
+internal fun spendablePlanForecast(
+    forecast: CanonicalCashFlowForecast?,
+    availableAccountIds: Set<String>,
+    openingBalance: Double,
+): SpendablePlanForecast {
+    if (forecast == null) return SpendablePlanForecast(0.0, 0.0, 0.0, openingBalance)
+    var income = 0.0
+    var outflow = 0.0
+    var transferImpact = 0.0
+    forecast.movements.forEach { movement ->
+        val eligible = movement.legs.filter { it.accountId in availableAccountIds }
+        // Neutral two-sided movements (including scheduled transfers) move
+        // money between accounts without changing the overall portfolio.
+        if (movement.legs.size >= 2 && abs(movement.portfolioDelta) < 0.005) {
+            transferImpact += eligible.sumOf { it.amount }
+        } else {
+            eligible.forEach { leg ->
+                if (leg.amount >= 0.0) income += leg.amount
+                else outflow -= leg.amount
+            }
+        }
+    }
+    // Read the accepted canonical final account balances, rather than
+    // recomputing from unverified item rows or reapplying finance movements.
+    val closing = forecast.accounts.filter { it.accountId in availableAccountIds }
+        .sumOf { it.projected }
+    return SpendablePlanForecast(income, outflow, transferImpact, closing)
+}
+
 internal fun projectCanonicalPlanState(
     document: CanonicalFinanceDocument,
     today: LocalDate,
@@ -142,30 +187,10 @@ internal fun projectCanonicalPlanState(
     val horizonDays = 30
     val horizonEnd = today.plusDays(horizonDays.toLong())
     val items = canonicalPlannedItems(document, today)
-    val forecastItems = items.filter { item ->
-        item.dueDateIso.toLocalDateOrNull()?.let { due -> !due.isAfter(horizonEnd) } == true
-    }
-    val forecastObligations = forecastItems
-        .filter { it.flow == PlannedFlow.OBLIGATION }
-        .sumOf(PlannedItem::amount)
-    val forecastIncome = forecastItems
-        .filter { it.flow == PlannedFlow.INCOME }
-        .sumOf(PlannedItem::amount)
     val accountsById = document.canonicalAccounts().associateBy(CanonicalAccount::id)
-    val transferImpact = document.canonicalScheduled()
-        .filter { item ->
-            item.status == "pending" &&
-                item.kind == "transfer" &&
-                item.dueDate.toLocalDateOrNull()?.let { due -> !due.isAfter(horizonEnd) } == true
-        }
-        .sumOf { item ->
-            scheduledTransferAvailableImpact(
-                amount = item.amount,
-                fromAccountId = item.fromAccountId,
-                toAccountId = item.toAccountId,
-                accountsById = accountsById,
-            )
-        }
+    val availableAccountIds = accountsById.values.filter {
+        it.kind != "credit" && !it.excludeFromAvailable
+    }.mapTo(mutableSetOf(), CanonicalAccount::id)
     val startBalance = document.availableMoney(today.toString())
     // Web portfolio windows remain a separate projection from the existing H7 spendable headline.
     val webForecasts = if (document.canonicalAccounts().any { it.kind != "credit" }) {
@@ -174,6 +199,9 @@ internal fun projectCanonicalPlanState(
         emptyList()
     }
     val webThirty = webForecasts.firstOrNull()?.projectedPortfolio ?: 0.0
+    val spendableForecast = spendablePlanForecast(
+        webForecasts.firstOrNull(), availableAccountIds, startBalance,
+    )
 
     val recurringIdentityCounts = document.allCanonicalRecurringItems().groupingBy { it.id }.eachCount()
     val management = document.canonicalWebRecurringManagementOrder(today).map { recurring ->
@@ -404,10 +432,10 @@ internal fun projectCanonicalPlanState(
         forecastStartDateIso = today.toString(),
         forecastEndDateIso = horizonEnd.toString(),
         forecastStartBalance = startBalance,
-        forecastExpectedIncome = forecastIncome,
-        forecastObligations = forecastObligations,
-        forecastTransferImpact = transferImpact,
-        forecastEndBalance = startBalance + forecastIncome - forecastObligations + transferImpact,
+        forecastExpectedIncome = spendableForecast.income,
+        forecastObligations = spendableForecast.outflow,
+        forecastTransferImpact = spendableForecast.transferImpact,
+        forecastEndBalance = spendableForecast.closingBalance,
         forecastEndDateLabel = horizonEnd.format(
             DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")),
         ),
@@ -492,23 +520,6 @@ private fun urgencyFor(dueDate: LocalDate?, today: LocalDate): PlannedUrgency = 
     dueDate.isBefore(today) -> PlannedUrgency.OVERDUE
     !dueDate.isAfter(today.plusDays(7)) -> PlannedUrgency.THIS_WEEK
     else -> PlannedUrgency.LATER
-}
-
-private fun scheduledTransferAvailableImpact(
-    amount: Double,
-    fromAccountId: String?,
-    toAccountId: String?,
-    accountsById: Map<String, CanonicalAccount>,
-): Double {
-    val from = fromAccountId?.let(accountsById::get) ?: return 0.0
-    val to = toAccountId?.let(accountsById::get) ?: return 0.0
-    val fromAvailable = from.kind != "credit" && !from.excludeFromAvailable
-    val toAvailable = to.kind != "credit" && !to.excludeFromAvailable
-    return when {
-        fromAvailable && !toAvailable -> -amount
-        !fromAvailable && toAvailable -> amount
-        else -> 0.0
-    }
 }
 
 private fun transferRouteLabel(

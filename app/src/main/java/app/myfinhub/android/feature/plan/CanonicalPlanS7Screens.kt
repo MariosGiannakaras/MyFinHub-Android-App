@@ -337,6 +337,15 @@ private fun ForecastS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onCl
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        val omitted = mobilePlanForecastWindow(state.forecastWindows)?.omittedSourceCount ?: 0
+        if (omitted > 0) {
+            Text(
+                "$omitted ροές παραλείφθηκαν από την πρόβλεψη.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.testTag("s7_forecast_link_partial"),
+            )
+        }
     }
 }
 
@@ -500,6 +509,15 @@ fun CanonicalPlanForecastScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if ((mobileWindow?.omittedSourceCount ?: 0) > 0) {
+                            Text(
+                                "${mobileWindow!!.omittedSourceCount} γνωστές ροές παραλείφθηκαν " +
+                                    "λόγω μη έγκυρων ή ελλιπών στοιχείων.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.testTag("s7_forecast_spendable_partial"),
+                            )
+                        }
                         if (overdueIncluded) {
                             Text(
                                 "Περιλαμβάνονται καθυστερημένες εκκρεμείς υποχρεώσεις που παραμένουν απλήρωτες.",
