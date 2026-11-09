@@ -16,7 +16,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Deploy: **6/8**; current physical/release stage: `D7`.
-- Web parity: **2/6 implementations · 14/24 subtasks**.
+- Web parity: **5/6 implementations · 22/24 subtasks**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
@@ -25,11 +25,12 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Native software acceptance remains D1–D6 (deploy 6/8). PR #442 Activity blank-note edit/save recovery passed exact-head Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate and squash merged develop 86a6a4f6e0b0703ea1bfa0108e45e30e21f5add0. Draft PR #443 now addresses Activity historical payer label collisions, stale-filter presentation, event-type taxonomy switching and optimized agent/chat bootstrap in one W3.2/W4.4 workflow batch; source/tests authored, final CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; D7 real owner S24 Ultra acceptance and D8 protected release remain independent.
+Native integration acceptance: W1–W5 satisfy the owner-approved Android mobile scope in merged and verified develop. PR #443 passed immutable-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards/aggregate, squash merged 974998194aaeb063cfe682ca8e1da09817f6f06e. W3.2, W4.2–W4.4 and W5.1–W5.4 accepted from real routed source, regression coverage and explicit Web-only exclusions: Web parity 5/6 implementations · 22/24 subtasks. W6.2 Compose visual/accessibility and W6.4 physical/release isolation remain open. Deploy D1–D6 accepted (6/8), D7 real owner Galaxy S24 Ultra and D8 protected promotion remain unaccepted; installed rc12 predates later source. No release, real financial writes or backend changes.
 
 ## Immediate work
 
-- Validate PR #443 full immutable-head Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate after the consolidated Activity classification/selection + agent workflow batch. On success merge to stable develop; continue grouped Activity/reporting, Plan and Settings work from current evidence without reopening merged PRs. D7/D8 separate.
+- Validate grouped PR #444 native scope acceptance/renderer regression on its exact final head, merge with green applicable CI and stable base/reviews. Continue W6.2 real Compose screenshots/accessibility/privacy/touch acceptance from existing app screens; fix only substantiated problems, never reopen accepted W1–W5 without new evidence.
+- D7 requires a separately authorized, newer same-signer protected candidate and owner-supervised in-place physical S24 Ultra functional/session/data continuity signoff; installed rc12 cannot validate later develop code. D8 final protected promotion/publication requires separate explicit approval.
 
 ## Constraints
 

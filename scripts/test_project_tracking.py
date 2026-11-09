@@ -124,13 +124,32 @@ class CurrentAgentHandoffTests(unittest.TestCase):
     def test_brief_handoff_shows_actual_counters_without_duplicate_tables(self):
         handoff = tracking.rendered(self.state)[tracking.ROOT / "docs/CURRENT_HANDOFF.md"]
         self.assertIn("Deploy: **6/8**", handoff)
-        self.assertIn("Web parity: **2/6 implementations · 14/24 subtasks**", handoff)
+        self.assertIn("Web parity: **5/6 implementations · 22/24 subtasks**", handoff)
         self.assertNotIn("## Active Web parity progress", handoff)
         self.assertNotIn("## Android redesign progress", handoff)
         self.assertNotIn("### Subtasks", handoff)
         self.assertIn("Verify live `develop`, the active PR exact head", handoff)
         self.assertIn("avoid idle polling", handoff)
         self.assertNotIn("recent merged PRs and relevant workflow results", handoff)
+
+    def test_native_software_acceptance_leaves_physical_gates_open(self):
+        stages = self.state["reconciliation_workstream"]["stages"]
+        self.assertTrue(all(
+            sub["status"] == "completed" and sub["evidence"]
+            for stage in stages[:5] for sub in stage["subtasks"]
+        ))
+        self.assertEqual(
+            ["W6.2", "W6.4"],
+            [sub["id"] for sub in stages[5]["subtasks"] if sub["status"] != "completed"],
+        )
+        self.assertEqual(
+            ["D7", "D8"],
+            [stage["id"] for stage in self.state["deployment_progress"]["stages"]
+             if stage["status"] != "completed"],
+        )
+        detail = "\n".join(tracking.reconciliation_lines(self.state))
+        self.assertIn("Implementations: 5/6 · Subtasks: 22/24", detail)
+        self.assertIn("W6.4", detail)
 
     def test_merged_pr_cannot_render_as_open_or_none_literal(self):
         self.state["reconciliation_workstream"]["pr"] = None

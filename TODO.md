@@ -5,7 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #443 full immutable-head Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate after the consolidated Activity classification/selection + agent workflow batch. On success merge to stable develop; continue grouped Activity/reporting, Plan and Settings work from current evidence without reopening merged PRs. D7/D8 separate.
+- [ ] Validate grouped PR #444 native scope acceptance/renderer regression on its exact final head, merge with green applicable CI and stable base/reviews. Continue W6.2 real Compose screenshots/accessibility/privacy/touch acceptance from existing app screens; fix only substantiated problems, never reopen accepted W1–W5 without new evidence.
+- [ ] D7 requires a separately authorized, newer same-signer protected candidate and owner-supervised in-place physical S24 Ultra functional/session/data continuity signoff; installed rc12 cannot validate later develop code. D8 final protected promotion/publication requires separate explicit approval.
 
 ## Completed foundations
 
@@ -72,27 +73,27 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 pending physical S24 Ultra owner in-place upgrade, data/session continuity and functional signoff. Installed rc12 predates recent develop sources. D8 protected production release stays separately gated; no new release published.
+Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer merged develop, and cannot prove its behavior. Only an explicitly authorized newer same-signer protected-published candidate, installed in place without uninstall or data clearing, can validate real S24 Ultra session/PIN/biometric/finance/card-vault continuity and native journeys. No new candidate was built or published here. D8 separate final protected promotion/release approval required; no CI result counts as owner acceptance.
 
 
 ## Active Web parity progress
 
-**Implementations: 2/6 · Subtasks: 14/24**
+**Implementations: 5/6 · Subtasks: 22/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #443, branch android/w32-w44-activity-taxonomy-choice-20261109
-Current W3.2: PR #442 passed exact-head Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate; squash merged develop 86a6a4f6e0b0703ea1bfa0108e45e30e21f5add0. Current draft PR #443 groups distinct account payer dropdown labels, active stale-filter indication, historical type/category taxonomy constraints and faster generated agent bootstrap. No owner physical S24 acceptance.
+Issue #155, PR #444, branch android/native-w3-w5-acceptance-20261109
+Current W6.2: PR #443 final source afd234a728791092b5a9dae13644236e9360db0c passed exact-head Project Tracking/Android CI/screenshots/dual hosted S24 emulator and aggregate gates and squash merged develop 974998194aaeb063cfe682ca8e1da09817f6f06e. Draft grouped PR #444 accepts owner-approved native W1–W5 software integration by source, tests and merged evidence: 5/6 implementations, 22/24 subtasks. W6.2 visual/accessibility and W6.4 physical/release isolation remain open; #444 CI/merge pending.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate draft #443 grouped W3.2/W4.4 code, tests, tracker and generated handoff on one exact final head and merge only with all four required gates green. Continue grouped feature completion; no SMS/global PIN, physical signoff or release without owner.
+Next Validate grouped PR #444 canonical software acceptance and generated files on exact final head; merge only with all applicable checks green. Then complete W6.2 existing Compose visual/a11y acceptance and owner-gated D7/D8, not unnecessary Web-only cloning.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
 | W1 Canonical accounts and Home | 4/4 | Complete |
 | W2 Card identity and integrated credit experience | 4/4 | Complete |
-| W3 Events, statements and mutation semantics | 3/4 | W3.2 Event and classification parity (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 1/4 | W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
-| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
+| W3 Events, statements and mutation semantics | 4/4 | Complete |
+| W4 Recurring, forecast, savings and reporting | 4/4 | Complete |
+| W5 Providers, API, security and settings | 4/4 | Complete |
 | W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
@@ -106,17 +107,17 @@ Next Validate draft #443 grouped W3.2/W4.4 code, tests, tracker and generated ha
 - [x] W2.3 Credit information on card screen — completed
 - [x] W2.4 Card interactions and secure details — completed
 - [x] W3.1 Statement cycle and historical debt — completed
-- [ ] W3.2 Event and classification parity — in_progress
+- [x] W3.2 Event and classification parity — completed
 - [x] W3.3 Card repayment provider validation — completed
 - [x] W3.4 Single mutation pipeline — completed
 - [x] W4.1 Recurring lifecycle — completed
-- [ ] W4.2 Scheduled forecast — in_progress
-- [ ] W4.3 Savings, loans, lending and budgets — in_progress
-- [ ] W4.4 Transactions and analytics completeness — in_progress
-- [ ] W5.1 Dynamic provider/IBAN/assets contract — in_progress
-- [ ] W5.2 Auth/sync/history consistency — in_progress
-- [ ] W5.3 Card vault and security endpoints — in_progress
-- [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
+- [x] W4.2 Scheduled forecast — completed
+- [x] W4.3 Savings, loans, lending and budgets — completed
+- [x] W4.4 Transactions and analytics completeness — completed
+- [x] W5.1 Dynamic provider/IBAN/assets contract — completed
+- [x] W5.2 Auth/sync/history consistency — completed
+- [x] W5.3 Card vault and security endpoints — completed
+- [x] W5.4 Settings, backup, rules and ancillary parity — completed
 - [x] W6.1 Golden cross-client fixture tests — completed
 - [ ] W6.2 Real Compose accessibility/visual verification — in_progress
 - [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
