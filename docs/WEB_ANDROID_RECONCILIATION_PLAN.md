@@ -97,6 +97,6 @@ Owner original approval: 2026-10-14. **Owner implementation update: 2026-10-30 â
 - Web FinanceData, Supabase/private ledger, owner+AAL2, security/RLS, optimistic revision/history, encrypted offline pending intent, server card vault and release signing are invariants. Kotlin/Jetpack Compose is native; no mechanical desktop cloning, WebView, competing Android DB or unapproved backend API edits.
 - No new production release or physical acceptance may be assumed. Existing rc12 physical follow-up #149 is independent. SMS/notification import #146 excluded. No real finance data/secrets committed.
 
-## Current handoff at plan creation
+## Current handoff and historical scope
 
-Branch `android/web-parity-home-20261014`, unmerged draft PR #156: first account/domain and Home source is committed but lacks verified exact-head Kotlin/Compose tests, real-render screenshots, shared card system and complete reconciliation. W1.1 and W1.2 are in_progress; all other subtasks pending. Read live tracking for fresher evidence.
+This file is a **stable functional scope reference**, not the current implementation handoff. Its initial October 2026 branch/PR checkpoint was historical and has been removed to prevent new chats from reopening already integrated work. Follow `tracking/android-project-state.json` for accepted W1â€“W6 progress, active PR/branch and next action, `docs/CURRENT_HANDOFF.md` for generated orientation, and live GitHub for CI/merge truth. Keep this stable plan free of changing PR numbers, CI statuses and per-chat updates.
