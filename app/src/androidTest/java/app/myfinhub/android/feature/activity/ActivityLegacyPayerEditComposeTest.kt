@@ -100,7 +100,7 @@ class ActivityLegacyPayerEditComposeTest {
         rule.onNodeWithText("Μετρητά").performClick()
         // The currently selected destination and the open dropdown item both
         // contain this label; target the menu choice, not the underlying field.
-        rule.onAllNodesWithText("Αποταμίευση").onLast().performClick()
+        rule.onAllNodesWithText("Αποταμίευση")[1].performClick()
         rule.onNodeWithText("Επίλεξε προορισμό").assertIsDisplayed()
         rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsNotEnabled()
         rule.onNodeWithText("Επίλεξε προορισμό").performClick()
