@@ -1196,6 +1196,9 @@ fun ActivityEditScreen(
     val eligibleAccounts = remember(accountOptions) {
         selectableLegacyActivityAccounts(accountOptions)
     }
+    val eligibleAccountChoices = remember(accountOptions) {
+        selectableLegacyActivityAccountChoices(accountOptions)
+    }
 
     if (item.pendingSync && !saveRequested) {
         Scaffold(
@@ -1248,8 +1251,15 @@ fun ActivityEditScreen(
     } else categoryOptions
     val effectiveCategoryOptions = buildList {
         addAll(selectableCategories)
-        item.category?.takeIf(String::isNotBlank)?.let { current ->
-            if (none { it.name == current }) add(ActivityCategoryOption(current, listOfNotNull(item.subcategory)))
+        // Preserve an imported category only while its event type is unchanged.
+        // After expense → income (or vice versa), an old foreign category must
+        // not be reintroduced to the opposite taxonomy's picker.
+        if (!isLegacy || legacyType == item.canonicalKind) {
+            item.category?.takeIf(String::isNotBlank)?.let { current ->
+                if (none { it.name == current }) {
+                    add(ActivityCategoryOption(current, listOfNotNull(item.subcategory)))
+                }
+            }
         }
     }
     val subcategoryOptions = effectiveCategoryOptions.firstOrNull { it.name == category }?.subcategories.orEmpty()
@@ -1451,7 +1461,7 @@ fun ActivityEditScreen(
                     S3ChoiceField(
                         label = "Από λογαριασμό",
                         selectedId = legacyFromAccountId,
-                        choices = eligibleAccounts.map { it.id to it.label },
+                        choices = eligibleAccountChoices,
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { selected ->
                             legacyFromAccountId = selected
@@ -1462,7 +1472,7 @@ fun ActivityEditScreen(
                     S3ChoiceField(
                         label = "Προς λογαριασμό",
                         selectedId = legacyToAccountId,
-                        choices = eligibleAccounts.map { it.id to it.label },
+                        choices = eligibleAccountChoices,
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { legacyToAccountId = it },
                         placeholder = "Επίλεξε προορισμό",
@@ -1476,7 +1486,7 @@ fun ActivityEditScreen(
                     S3ChoiceField(
                         label = "Λογαριασμός ιστορικής κίνησης",
                         selectedId = legacyAccountId,
-                        choices = eligibleAccounts.map { it.id to it.label },
+                        choices = eligibleAccountChoices,
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { legacyAccountId = it },
                         placeholder = "Επίλεξε λογαριασμό",
@@ -1598,10 +1608,12 @@ private fun S3ChoiceField(
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    // Never show an unrelated first choice as the owner's selected value.
+    // A deleted/renamed historic filter still represents an active selection.
     val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second
         ?: placeholder
-        ?: choices.firstOrNull()?.second
-        ?: "Δεν υπάρχει διαθέσιμη επιλογή"
+        ?: if (selectedId.isNotBlank()) "Η επιλογή δεν είναι πλέον διαθέσιμη"
+            else "Επίλεξε επιλογή"
     Box(modifier = Modifier.fillMaxWidth()) {
         MyFinHubSelectorButton(
             label = label,

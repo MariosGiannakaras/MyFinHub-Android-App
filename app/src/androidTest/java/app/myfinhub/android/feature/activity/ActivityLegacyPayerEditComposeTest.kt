@@ -1,6 +1,7 @@
 package app.myfinhub.android.feature.activity
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -184,6 +185,62 @@ class ActivityLegacyPayerEditComposeTest {
         rule.runOnIdle { inFlight.value = true }
         rule.onNodeWithText("Αποθήκευση…").assertIsNotEnabled()
         rule.runOnIdle { assertEquals(0, writes) }
+    }
+
+    @Test fun sameNamedHistoricalSourcesAreDistinctAndKeepExactChosenId() {
+        val named = listOf(
+            ActivityAccountOption("cash-00000001", "Κοινός"),
+            ActivityAccountOption("cash-00000002", "Κοινός"),
+        )
+        val writes = mutableListOf<ActivityLegacyEdit?>()
+        rule.setContent { MyFinHubTheme {
+            ActivityEditScreen(
+                item = historical(), categoryOptions = emptyList(),
+                accountOptions = named, mutationInFlight = false, mutationBlocked = false,
+                onBack = {}, onSave = { _, _, _, _, edit -> writes += edit }, onSaved = {},
+            )
+        } }
+        rule.onNodeWithText("Επίλεξε λογαριασμό").performClick()
+        rule.onNodeWithText("Κοινός · 00000002").performClick()
+        rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals("cash-00000002", writes.single()?.accountId)
+        }
+    }
+
+    @Test fun staleAccountFilterMustNotPresentAllAccountsAsSelected() {
+        val state = ActivityUiState(
+            items = emptyList(),
+            accountOptions = accounts,
+            accountFilterId = "no-longer-present",
+        )
+        rule.setContent { MyFinHubTheme {
+            ActivityFilterSheetContent(
+                state = state,
+                onApply = { _, _, _, _, _ -> },
+                onReset = {},
+            )
+        } }
+        rule.onNodeWithText("Η επιλογή δεν είναι πλέον διαθέσιμη").assertIsDisplayed()
+    }
+
+    @Test fun changingHistoricalTypeNeverReintroducesOppositeCategory() {
+        rule.setContent { MyFinHubTheme {
+            ActivityEditScreen(
+                item = historical(accountId = "cash"),
+                categoryOptions = listOf(ActivityCategoryOption("Άλλο")),
+                expenseCategoryOptions = listOf(ActivityCategoryOption("Άλλο")),
+                incomeCategoryOptions = listOf(ActivityCategoryOption("Μισθός")),
+                accountOptions = accounts,
+                mutationInFlight = false, mutationBlocked = false,
+                onBack = {}, onSave = { _, _, _, _, _ -> }, onSaved = {},
+            )
+        } }
+        rule.onNodeWithText("Έξοδο").performClick()
+        rule.onNodeWithText("Έσοδο").performClick()
+        rule.onNodeWithText("Επίλεξε επιλογή").performClick()
+        rule.onNodeWithText("Μισθός").assertIsDisplayed()
+        rule.onNodeWithText("Άλλο").assertDoesNotExist()
     }
 
 }

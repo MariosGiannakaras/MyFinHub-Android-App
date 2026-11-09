@@ -128,6 +128,9 @@ class CurrentAgentHandoffTests(unittest.TestCase):
         self.assertNotIn("## Active Web parity progress", handoff)
         self.assertNotIn("## Android redesign progress", handoff)
         self.assertNotIn("### Subtasks", handoff)
+        self.assertIn("Verify live `develop`, the active PR exact head", handoff)
+        self.assertIn("avoid idle polling", handoff)
+        self.assertNotIn("recent merged PRs and relevant workflow results", handoff)
 
     def test_merged_pr_cannot_render_as_open_or_none_literal(self):
         self.state["reconciliation_workstream"]["pr"] = None

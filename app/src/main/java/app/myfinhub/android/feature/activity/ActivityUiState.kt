@@ -119,6 +119,29 @@ internal fun selectableLegacyActivityAccounts(
     return options.filter { it.id.isNotBlank() && idCounts[it.id] == 1 }
 }
 
+/**
+ * Different canonical accounts may share the same name. A historical payer
+ * editor must make each eligible account visually distinguishable before an
+ * explicit owner selection, not present identical labels for different IDs.
+ */
+internal fun selectableLegacyActivityAccountChoices(
+    options: List<ActivityAccountOption>,
+): List<Pair<String, String>> {
+    val eligible = selectableLegacyActivityAccounts(options)
+    val normalizedLabels = eligible.groupingBy {
+        it.label.trim().lowercase(Locale.forLanguageTag("el-GR"))
+    }.eachCount()
+    val suffixCounts = eligible.groupingBy { it.id.takeLast(8) }.eachCount()
+    return eligible.map { option ->
+        val label = option.label.trim().ifBlank { "Λογαριασμός" }
+        val duplicateLabel = option.label.isBlank() ||
+            normalizedLabels[option.label.trim().lowercase(Locale.forLanguageTag("el-GR"))] != 1
+        val suffix = option.id.takeLast(8)
+        val distinguishable = if (suffixCounts[suffix] == 1) suffix else option.id
+        option.id to if (duplicateLabel) "$label · $distinguishable" else label
+    }
+}
+
 data class ActivityTypeOption(
     val id: String,
     val label: String,

@@ -52,4 +52,37 @@ class ActivityLedgerIdentityTest {
         assertFalse(filtered.isUniqueMutationTarget("same"))
         assertFalse(filtered.isUniqueMutationTarget("not-present"))
     }
+    @Test fun legacyAccountLabelsDisambiguateSameNamedSourcesWithoutChangingIds() {
+        val options = listOf(
+            ActivityAccountOption("bank-00000001", "Μετρητά"),
+            ActivityAccountOption("wallet-00000002", "μετρητά"),
+            ActivityAccountOption("salary-00000003", "Μισθοδοσία"),
+            ActivityAccountOption("same", "Πρώτη"),
+            ActivityAccountOption("same", "Δεύτερη"),
+            ActivityAccountOption(" ", "Κενός"),
+        )
+        assertEquals(
+            listOf(
+                "bank-00000001" to "Μετρητά · 00000001",
+                "wallet-00000002" to "μετρητά · 00000002",
+                "salary-00000003" to "Μισθοδοσία",
+            ),
+            selectableLegacyActivityAccountChoices(options),
+        )
+    }
+
+    @Test fun collidingLastEightIdCharactersUseFullIdentifierToStayDistinct() {
+        val options = listOf(
+            ActivityAccountOption("bank-duplicate", "Κοινός"),
+            ActivityAccountOption("cash-duplicate", "Κοινός"),
+        )
+        assertEquals(
+            listOf(
+                "bank-duplicate" to "Κοινός · bank-duplicate",
+                "cash-duplicate" to "Κοινός · cash-duplicate",
+            ),
+            selectableLegacyActivityAccountChoices(options),
+        )
+    }
+
 }
