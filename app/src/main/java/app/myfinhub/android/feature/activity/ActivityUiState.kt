@@ -111,6 +111,14 @@ data class ActivityAccountOption(
     val label: String,
 )
 
+/** A legacy finance override may target only an unambiguous eligible account. */
+internal fun selectableLegacyActivityAccounts(
+    options: List<ActivityAccountOption>,
+): List<ActivityAccountOption> {
+    val idCounts = options.groupingBy(ActivityAccountOption::id).eachCount()
+    return options.filter { it.id.isNotBlank() && idCounts[it.id] == 1 }
+}
+
 data class ActivityTypeOption(
     val id: String,
     val label: String,

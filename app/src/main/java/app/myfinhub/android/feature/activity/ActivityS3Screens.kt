@@ -1191,6 +1191,11 @@ fun ActivityEditScreen(
 
     var saveRequested by rememberSaveable(item.id) { mutableStateOf(false) }
     val amountsVisible = rememberAmountVisibilityPreference()
+    // UI state may contain synthetic or malformed duplicate option IDs; never
+    // make a legacy finance override payable through an ambiguous identity.
+    val eligibleAccounts = remember(accountOptions) {
+        selectableLegacyActivityAccounts(accountOptions)
+    }
 
     if (item.pendingSync && !saveRequested) {
         Scaffold(
@@ -1218,15 +1223,13 @@ fun ActivityEditScreen(
         mutableStateOf((if (item.canonicalKind == "expense") -item.amount else item.amount).toString())
     }
     var legacyAccountId by rememberSaveable(item.id) {
-        mutableStateOf(item.accountId ?: accountOptions.firstOrNull()?.id.orEmpty())
+        mutableStateOf(item.accountId.orEmpty())
     }
     var legacyFromAccountId by rememberSaveable(item.id) {
-        mutableStateOf(item.fromAccountId ?: item.accountId ?: accountOptions.firstOrNull()?.id.orEmpty())
+        mutableStateOf(item.fromAccountId ?: item.accountId.orEmpty())
     }
     var legacyToAccountId by rememberSaveable(item.id) {
-        mutableStateOf(item.toAccountId ?: accountOptions.firstOrNull {
-            it.id != (item.fromAccountId ?: item.accountId)
-        }?.id.orEmpty())
+        mutableStateOf(item.toAccountId.orEmpty())
     }
     var requestedLegacyType by rememberSaveable(item.id) { mutableStateOf("") }
     var requestedLegacyAmount by rememberSaveable(item.id) { mutableStateOf("") }
@@ -1258,9 +1261,9 @@ fun ActivityEditScreen(
         (if (legacyType == "adjustment") legacyCents != 0L else legacyCents > 0L)
     val legacyAccountValid = if (legacyType == "transfer") {
         legacyFromAccountId != legacyToAccountId &&
-            accountOptions.any { it.id == legacyFromAccountId } &&
-            accountOptions.any { it.id == legacyToAccountId }
-    } else accountOptions.any { it.id == legacyAccountId }
+            eligibleAccounts.any { it.id == legacyFromAccountId } &&
+            eligibleAccounts.any { it.id == legacyToAccountId }
+    } else eligibleAccounts.any { it.id == legacyAccountId }
     val originalLegacyAmount = if (item.canonicalKind == "expense") -item.amount else item.amount
     val legacyDirty = isLegacy && (
         legacyType != item.canonicalKind ||
@@ -1411,9 +1414,7 @@ fun ActivityEditScreen(
                         if (next == "transfer") {
                             if (legacyFromAccountId.isBlank()) legacyFromAccountId = legacyAccountId
                             if (legacyToAccountId == legacyFromAccountId) {
-                                legacyToAccountId = accountOptions.firstOrNull {
-                                    it.id != legacyFromAccountId
-                                }?.id.orEmpty()
+                                legacyToAccountId = ""
                             }
                         } else if (legacyAccountId.isBlank()) {
                             legacyAccountId = legacyFromAccountId
@@ -1441,19 +1442,24 @@ fun ActivityEditScreen(
                     S3ChoiceField(
                         label = "Από λογαριασμό",
                         selectedId = legacyFromAccountId,
-                        choices = accountOptions.map { it.id to it.label },
+                        choices = eligibleAccounts.map { it.id to it.label },
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
-                        onSelected = { legacyFromAccountId = it },
+                        onSelected = { selected ->
+                            legacyFromAccountId = selected
+                            if (legacyToAccountId == selected) legacyToAccountId = ""
+                        },
+                        placeholder = "Επίλεξε πηγή μεταφοράς",
                     )
                     S3ChoiceField(
                         label = "Προς λογαριασμό",
                         selectedId = legacyToAccountId,
-                        choices = accountOptions.map { it.id to it.label },
+                        choices = eligibleAccounts.map { it.id to it.label },
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { legacyToAccountId = it },
+                        placeholder = "Επίλεξε προορισμό",
                     )
                     if (!legacyAccountValid) Text(
-                        "Η μεταφορά χρειάζεται δύο διαφορετικούς διαθέσιμους λογαριασμούς.",
+                        "Επίλεξε ρητά δύο διαφορετικούς, διαθέσιμους λογαριασμούς.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -1461,12 +1467,13 @@ fun ActivityEditScreen(
                     S3ChoiceField(
                         label = "Λογαριασμός ιστορικής κίνησης",
                         selectedId = legacyAccountId,
-                        choices = accountOptions.map { it.id to it.label },
+                        choices = eligibleAccounts.map { it.id to it.label },
                         enabled = !mutationInFlight && !saveRequested && !item.pendingSync,
                         onSelected = { legacyAccountId = it },
+                        placeholder = "Επίλεξε λογαριασμό",
                     )
                     if (!legacyAccountValid) Text(
-                        "Επίλεξε διαθέσιμο λογαριασμό.",
+                        "Επίλεξε ρητά διαθέσιμο λογαριασμό.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
@@ -1578,10 +1585,12 @@ private fun S3ChoiceField(
     choices: List<Pair<String, String>>,
     enabled: Boolean = true,
     choiceIcon: ((String) -> ImageVector?)? = null,
+    placeholder: String? = null,
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedLabel = choices.firstOrNull { it.first == selectedId }?.second
+        ?: placeholder
         ?: choices.firstOrNull()?.second
         ?: "Δεν υπάρχει διαθέσιμη επιλογή"
     Box(modifier = Modifier.fillMaxWidth()) {

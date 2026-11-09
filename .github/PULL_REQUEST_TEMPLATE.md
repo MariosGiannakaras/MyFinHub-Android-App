@@ -12,10 +12,10 @@ Refs #
 
 - [ ] Code and changed-contract scope reviewed
 - [ ] Narrow tests actually run (or explicitly note why none ran)
-- [ ] Canonical `tracking/android-project-state.json` and its generated handoff updated
+- [ ] For product/release changes, canonical `tracking/android-project-state.json` and all three generated views updated (docs-only instructions PRs need not invent a product-state change)
 - [ ] Remaining implementation gaps documented without inflating W1–W6 completion
 
-## GitHub CI (independent; record exact PR head)
+## GitHub CI (independent; record exact PR head for each applicable/required check)
 
 - [ ] Project Tracking — successful on final commit
 - [ ] Android CI (Kotlin/unit/lint/debug/unsigned release) — successful on final commit

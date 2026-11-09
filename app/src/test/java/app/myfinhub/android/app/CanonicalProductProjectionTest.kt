@@ -3,6 +3,7 @@ package app.myfinhub.android.app
 import app.myfinhub.android.core.data.accountBalances
 import app.myfinhub.android.core.data.categoryTotalsBetween
 import app.myfinhub.android.core.data.flowBetween
+import app.myfinhub.android.core.data.CanonicalAccount
 import app.myfinhub.android.core.data.CanonicalFinanceDocument
 import app.myfinhub.android.core.data.canonicalOperationalMonthlyFlow
 import app.myfinhub.android.core.data.canonicalFixture
@@ -30,6 +31,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CanonicalProductProjectionTest {
+    @Test
+    fun nativeHistoricalActivityEditOnlyOffersGloballyUniqueNonCreditAccountIdentity() {
+        fun account(id: String, kind: String) = CanonicalAccount(
+            id = id, name = id, shortName = null, kind = kind, excludeFromAvailable = false,
+        )
+        val eligible = canonicalEditableActivityAccounts(listOf(
+            account("normal", "bank"),
+            account("duplicate", "cash"), account("duplicate", "savings"),
+            account("collision", "bank"), account("collision", "credit"),
+            account("", "cash"), account("credit-only", "credit"),
+        ))
+        assertEquals(listOf("normal"), eligible.map { it.id })
+    }
+
     @Test
     fun malformedCanonicalCardLastFourDoesNotLeakIntoMoneyOrActivityProjection() {
         val document = CanonicalFinanceDocument(Json.parseToJsonElement("""

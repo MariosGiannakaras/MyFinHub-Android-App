@@ -12,10 +12,8 @@ Primary integration branch. Completed Android implementation/research batches ar
 Long-lived holding branch for future/deferred expansion specifications, experiments and prototypes that are intentionally outside the current product delivery path. Do not merge unfinished extension code into `develop`. When an extension is approved for product work, create/update a dedicated Issue and implement it from a fresh branch based on current `develop`; promote only the validated delta through PR review. Keep `extensions` periodically synchronized enough to avoid misleading stale documentation, but do not use it as a second integration branch.
 
 ### Short-lived Android-repository work branches
-- `feature/<scope>`
-- `fix/<scope>`
-- `research/<scope>`
-- `docs/<scope>`
+- `android/<coherent-scope>` (current Android convention)
+- `feature/<scope>`, `fix/<scope>`, `research/<scope>`, `docs/<scope>` (also accepted)
 
 Default base: `develop` unless the issue explicitly documents another base.
 
@@ -65,7 +63,7 @@ PRs normally target `develop`, link the owning Issue and contain:
 - tests/validation performed;
 - remaining blockers or intentionally deferred work.
 
-Keep PRs coherent and small enough to verify. Preserve unrelated changes. Squash merge is preferred for completed batches unless history structure requires otherwise.
+Keep PRs coherent and reviewable, but group related Android journey fixes into substantial batches rather than opening a separate PR for each guard, assertion or documentation update. Preserve unrelated changes. Squash merge is preferred for completed batches unless history structure requires otherwise.
 
 ## UI review discipline
 
@@ -74,15 +72,16 @@ Keep PRs coherent and small enough to verify. Preserve unrelated changes. Squash
 - Review images must render the actual production-intended Compose hierarchy, using synthetic data when required for privacy/testing.
 - Screenshot artifacts may be generated continuously for CI, but only meaningful application UI checkpoints are surfaced for product review.
 
-## Progress tracking
+## Progress tracking and agent handoff
 
-- durable rules/architecture: `AGENTS.md`, `docs/`;
-- current project state: `STATUS.md`;
-- phased backlog/checklists: `TODO.md`;
-- work-level progress/evidence: Issues and PRs;
-- implementation history: commits.
+- Durable rules and architecture: root `AGENTS.md` and stable specifications in `docs/`.
+- **Only hand-edited current status/backlog:** `tracking/android-project-state.json`.
+- Derived views: `STATUS.md`, `TODO.md` and `docs/CURRENT_HANDOFF.md`, generated together by `python3 scripts/render_project_tracking.py`; do not manually edit them independently.
+- Work-level evidence: live Issues, PRs, exact-head CI and commits. Issue #27 is a permanent **index**, not a second mutable status document.
+- A new chat begins with the short AGENTS startup contract, current canonical state and the active live PR; inspect other documents only as needed. Historical issue bodies and dated plans never override the canonical state.
+- Track coherent checkpoints with verified commits; do not run a full CI cycle per tiny edit. Separate final owner physical acceptance from hosted checks.
 
-Do not duplicate large stable instructions across every Issue.
+Do not duplicate large stable instructions across every Issue or chat.
 
 ## Validation
 
