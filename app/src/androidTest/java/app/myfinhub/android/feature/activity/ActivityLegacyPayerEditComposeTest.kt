@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -113,4 +114,76 @@ class ActivityLegacyPayerEditComposeTest {
             assertEquals(null, writes.single()?.accountId)
         }
     }
+    @Test fun historicalExpenseWithoutNoteCanBeCorrectedWithoutInventingDescription() {
+        val writes = mutableListOf<Pair<String, ActivityLegacyEdit?>>()
+        rule.setContent { MyFinHubTheme {
+            ActivityEditScreen(
+                item = historical(accountId = "cash").copy(note = ""),
+                categoryOptions = emptyList(), accountOptions = accounts,
+                mutationInFlight = false, mutationBlocked = false,
+                onBack = {},
+                onSave = { _, note, _, _, edit -> writes += note to edit },
+                onSaved = {},
+            )
+        } }
+        rule.onNodeWithText("Μετρητά").performClick()
+        rule.onNodeWithText("Αποταμίευση").performClick()
+        rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsEnabled().performClick()
+        rule.runOnIdle {
+            assertEquals(1, writes.size)
+            assertEquals("", writes.single().first)
+            assertEquals("savings", writes.single().second?.accountId)
+        }
+    }
+
+    @Test fun rejectedEditReleasesSubmitLockAndAllowsDiscardInsteadOfTrappingOwner() {
+        val blocked = mutableStateOf(false)
+        var writes = 0
+        var backs = 0
+        rule.setContent { MyFinHubTheme {
+            ActivityEditScreen(
+                item = historical(), categoryOptions = emptyList(),
+                accountOptions = accounts, mutationInFlight = false,
+                mutationBlocked = blocked.value,
+                onBack = { backs++ },
+                onSave = { _, _, _, _, _ ->
+                    writes++
+                    blocked.value = true
+                },
+                onSaved = {},
+            )
+        } }
+        rule.onNodeWithText("Επίλεξε λογαριασμό").performClick()
+        rule.onNodeWithText("Μετρητά").performClick()
+        rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsEnabled().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsNotEnabled()
+        rule.onNodeWithContentDescription("Πίσω").performClick()
+        rule.onNodeWithText("Απόρριψη αλλαγών;").assertIsDisplayed()
+        rule.onNodeWithText("Απόρριψη").performClick()
+        rule.runOnIdle {
+            assertEquals(1, writes)
+            assertEquals(1, backs)
+        }
+    }
+
+    @Test fun externalMutationInFlightDisablesHistoricalSaveEvenBeforeOwnerSubmits() {
+        val inFlight = mutableStateOf(false)
+        var writes = 0
+        rule.setContent { MyFinHubTheme {
+            ActivityEditScreen(
+                item = historical(), categoryOptions = emptyList(),
+                accountOptions = accounts, mutationInFlight = inFlight.value,
+                mutationBlocked = false,
+                onBack = {}, onSave = { _, _, _, _, _ -> writes++ }, onSaved = {},
+            )
+        } }
+        rule.onNodeWithText("Επίλεξε λογαριασμό").performClick()
+        rule.onNodeWithText("Μετρητά").performClick()
+        rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsEnabled()
+        rule.runOnIdle { inFlight.value = true }
+        rule.onNodeWithText("Αποθήκευση…").assertIsNotEnabled()
+        rule.runOnIdle { assertEquals(0, writes) }
+    }
+
 }

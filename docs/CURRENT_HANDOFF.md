@@ -25,11 +25,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-D1–D6 software integration accepted (deploy 6/8). PRs #439 (e7f0ee6) and #440 (9e3f359) merged to develop. #440 completed legacy Activity payer/transfer source correction plus evergreen agent/chat instructions; exact-head Project Tracking, Android CI, screenshots and hosted S24 shards (174+177=351 tests) passed. Web parity remains 2/6 implementations and 14/24 subtasks. D7 physical owner Galaxy S24 Ultra acceptance and D8 protected release are separate.
+D1–D6 native software integration accepted (deploy 6/8); PR #440 historical account-source safety and PR #441 current agent handoff are merged to develop with applicable CI green. Web parity 2/6 implementations and 14/24 subtasks. Draft PR #442: W4.4 Activity edit correction for legitimately blank historical descriptions, synchronous rejected-save recovery/Back navigation and disabling Save while another mutation is in flight. Three hosted Compose regression tests authored; PR final-head CI/merge pending. Physical D7 and protected release D8 remain separate; no production finance writes.
 
 ## Immediate work
 
-- Continue one coherent W4.4 Activity/analytics user-journey batch from develop, with regression tests and one final exact-head CI checkpoint. Do not reopen merged PR #440. Preserve separate D7 physical S24 acceptance and D8 protected release.
+- Validate draft PR #442 full final-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards plus aggregate. Confirm blank-note historical account corrections, rejected-save Back/Discard and external in-flight Save disabled. Merge only if all required checks succeed with stable develop and clean reviews; continue W4.4 afterward. Physical D7/D8 remain separate.
 
 ## Constraints
 

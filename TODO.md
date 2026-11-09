@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Continue one coherent W4.4 Activity/analytics user-journey batch from develop, with regression tests and one final exact-head CI checkpoint. Do not reopen merged PR #440. Preserve separate D7 physical S24 acceptance and D8 protected release.
+- [ ] Validate draft PR #442 full final-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards plus aggregate. Confirm blank-note historical account corrections, rejected-save Back/Discard and external in-flight Save disabled. Merge only if all required checks succeed with stable develop and clean reviews; continue W4.4 afterward. Physical D7/D8 remain separate.
 
 ## Completed foundations
 
@@ -81,10 +81,10 @@ Next: D7 pending physical S24 Ultra owner in-place upgrade, data/session continu
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch develop
-Current W4.4: PR #440 passed all four immutable-head CI gates (hosted S24 174+177=351 tests) and squash merged develop 9e3f3594e152c59e9c20465b54585899ce4428ef. Legacy Activity edits require unambiguous chosen payers and preserve transfer identity; agent/chat handoff guidance is integrated. No open PR; W4.4 remains in progress.
+Issue #155, PR #442, branch android/w44-activity-editor-recovery-20261109
+Current W4.4: Merged PR #441 agent handoff sync to develop 9029276e026fcec479c30b40b6867c4becf38dac. Draft PR #442 W4.4 Activity editor recovery: allow empty source note while correcting category/account, release submit lock on synchronous mutation rejection and disable Save for external mutation in-flight. Three Compose regression tests authored; hosted CI not yet run. W4.4 remains in progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next From develop, complete a meaningful W4.4 Activity/analytics feature batch with direct tests; review before one final CI cycle. Never treat merged #440 as active, infer physical S24 acceptance or publish.
+Next Validate PR #442 at exact final head against Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate; merge only when all green with clean stable develop. Continue substantive Activity/analytics afterward.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
