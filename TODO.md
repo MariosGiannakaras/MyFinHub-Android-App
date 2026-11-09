@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate grouped PR #444 native scope acceptance/renderer regression on its exact final head, merge with green applicable CI and stable base/reviews. Continue W6.2 real Compose screenshots/accessibility/privacy/touch acceptance from existing app screens; fix only substantiated problems, never reopen accepted W1–W5 without new evidence.
-- [ ] D7 requires a separately authorized, newer same-signer protected candidate and owner-supervised in-place physical S24 Ultra functional/session/data continuity signoff; installed rc12 cannot validate later develop code. D8 final protected promotion/publication requires separate explicit approval.
+- [ ] Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.
+- [ ] W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either.
 
 ## Completed foundations
 
@@ -78,14 +78,14 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 
 ## Active Web parity progress
 
-**Implementations: 5/6 · Subtasks: 22/24**
+**Implementations: 5/6 · Subtasks: 23/24**
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #444, branch android/native-w3-w5-acceptance-20261109
-Current W6.2: PR #443 final source afd234a728791092b5a9dae13644236e9360db0c passed exact-head Project Tracking/Android CI/screenshots/dual hosted S24 emulator and aggregate gates and squash merged develop 974998194aaeb063cfe682ca8e1da09817f6f06e. Draft grouped PR #444 accepts owner-approved native W1–W5 software integration by source, tests and merged evidence: 5/6 implementations, 22/24 subtasks. W6.2 visual/accessibility and W6.4 physical/release isolation remain open; #444 CI/merge pending.
+Issue #155, PR #445, branch android/w62-official-compose-visual-reference-20261109
+Current W6.4: PR #444 source 5ca9cec6de3284cc423b9ff3bc13f475d6beef9c Project Tracking and Android CI passed and squash merged develop 908df4620141cd9ae7de9690314462c6bca7c9ff. W3–W5 accepted. PR #445 refreshes the public screenshot guide as 29 exact byte-mirrors of official Compose golden files, adds Reports views, visually reviews core phone-size/light/dark/large-type surfaces and enforces future mirror integrity; final CI/merge pending. W6.2 proposed completed: Web parity 5/6 · 23/24. Only W6.4 owner S24/release gate open.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate grouped PR #444 canonical software acceptance and generated files on exact final head; merge only with all applicable checks green. Then complete W6.2 existing Compose visual/a11y acceptance and owner-gated D7/D8, not unnecessary Web-only cloning.
+Next Validate exact-head Project Tracking/Android CI and visual mirror byte-consistency on PR #445, then squash merge with stable base/clean review. W6.4 and D7 require real owner device and separately authorized same-signer publication; D8 final protected release remains gated. No additional generic UI-hardening PRs absent a specific defect.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
@@ -94,7 +94,7 @@ Next Validate grouped PR #444 canonical software acceptance and generated files 
 | W3 Events, statements and mutation semantics | 4/4 | Complete |
 | W4 Recurring, forecast, savings and reporting | 4/4 | Complete |
 | W5 Providers, API, security and settings | 4/4 | Complete |
-| W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
+| W6 Parity validation, cleanup and device acceptance | 3/4 | W6.4 Owner physical acceptance and release isolation (pending) |
 
 ### Subtasks
 
@@ -119,7 +119,7 @@ Next Validate grouped PR #444 canonical software acceptance and generated files 
 - [x] W5.3 Card vault and security endpoints — completed
 - [x] W5.4 Settings, backup, rules and ancillary parity — completed
 - [x] W6.1 Golden cross-client fixture tests — completed
-- [ ] W6.2 Real Compose accessibility/visual verification — in_progress
+- [x] W6.2 Real Compose accessibility/visual verification — completed
 - [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
 - [ ] W6.4 Owner physical acceptance and release isolation — pending
 

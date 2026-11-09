@@ -16,7 +16,7 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 - Overall progress: **6/6**.
 - Deploy: **6/8**; current physical/release stage: `D7`.
-- Web parity: **5/6 implementations · 22/24 subtasks**.
+- Web parity: **5/6 implementations · 23/24 subtasks**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
@@ -25,12 +25,12 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Native integration acceptance: W1–W5 satisfy the owner-approved Android mobile scope in merged and verified develop. PR #443 passed immutable-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards/aggregate, squash merged 974998194aaeb063cfe682ca8e1da09817f6f06e. W3.2, W4.2–W4.4 and W5.1–W5.4 accepted from real routed source, regression coverage and explicit Web-only exclusions: Web parity 5/6 implementations · 22/24 subtasks. W6.2 Compose visual/accessibility and W6.4 physical/release isolation remain open. Deploy D1–D6 accepted (6/8), D7 real owner Galaxy S24 Ultra and D8 protected promotion remain unaccepted; installed rc12 predates later source. No release, real financial writes or backend changes.
+Merged PR #444 accepted the owner-approved native Android W1–W5 software journeys on develop 908df4620141cd9ae7de9690314462c6bca7c9ff, Project Tracking + Android CI green. W6.2 visual/Compose checkpoint #445 now synchronizes 26 public screenshot paths with their current official rendered golden files plus adds Reports light/dark/large-type, verifies all 29 byte-identically in Project Tracking, and records the inspected phone-size/light/dark/large-type UI evidence; exact-head CI and merge pending. Proposed Web parity 5/6 implementations · 23/24 subtasks. Only W6.4 owner physical S24 acceptance/release isolation remains; deploy stays 6/8 (D7/D8 pending), installed rc12 is older than merged product code. No new production build, real financial writes, signing or backend changes.
 
 ## Immediate work
 
-- Validate grouped PR #444 native scope acceptance/renderer regression on its exact final head, merge with green applicable CI and stable base/reviews. Continue W6.2 real Compose screenshots/accessibility/privacy/touch acceptance from existing app screens; fix only substantiated problems, never reopen accepted W1–W5 without new evidence.
-- D7 requires a separately authorized, newer same-signer protected candidate and owner-supervised in-place physical S24 Ultra functional/session/data continuity signoff; installed rc12 cannot validate later develop code. D8 final protected promotion/publication requires separate explicit approval.
+- Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.
+- W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either.
 
 ## Constraints
 
