@@ -15,6 +15,8 @@ This file exists so a new chat/agent can continue correctly without relying on c
 ## Current facts
 
 - Overall progress: **6/6**.
+- Deploy: **6/8**; current physical/release stage: `D7`.
+- Web parity: **2/6 implementations · 14/24 subtasks**.
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
@@ -23,11 +25,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-Native D1–D6 accepted (6/8). #439 corrected final head 00407b83e1dda1cc39d2f849b059096c8d5a568f passed Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards 173+175=348/348 with required fail-closed aggregate. Squash merged develop e7f0ee6ac7921f6835d50ac9b9bd0806c7e2e6e8. New scheduled/recurring payers require explicit choice; existing sources remain suggested only when verified, duplicate global account IDs are excluded, refreshed removed accounts and transfer route conflicts block confirmation. #438 canonical accepted-movement Plan forecast is also merged. Draft PR #440 W4.4 native historical Activity editor journey: do not silently select the first available account when a legacy imported transaction has no payer or an orphaned source; do not show a fake first-account label. Only globally unique non-credit account IDs, including credit-vs-noncredit collisions, are selectable for historical override edits. Preserve valid existing source; transfer switches require explicit destination and invalidate a conflicting destination when source changes; stale owner account refresh invalidates previously selected payer and blocks saving. JVM source-identity tests plus hosted Compose expense/transfer/stale-refresh regression authored, CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; deployment 6/8, D7 real same-signer Galaxy S24 Ultra owner in-place acceptance and D8 protected release remain separate. No Web/backend/schema/main/signing, real finance writes, SMS #146 or global PIN #345.
+D1–D6 software integration accepted (deploy 6/8). PRs #439 (e7f0ee6) and #440 (9e3f359) merged to develop. #440 completed legacy Activity payer/transfer source correction plus evergreen agent/chat instructions; exact-head Project Tracking, Android CI, screenshots and hosted S24 shards (174+177=351 tests) passed. Web parity remains 2/6 implementations and 14/24 subtasks. D7 physical owner Galaxy S24 Ultra acceptance and D8 protected release are separate.
 
 ## Immediate work
 
-- Validate draft PR #440 Android Activity historical expense/transfer edit exact payer identity, human-visible no-fake-default form, stale source refresh revoke, duplicate cross-kind canonical IDs and read-only history invariants. Run all exact-head four gates: Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards plus fail-closed aggregate, require stable develop and clean reviews, then squash merge. Continue W3.2/W4.2–W5. Physical D7 and protected D8 remain separately gated.
+- Continue one coherent W4.4 Activity/analytics user-journey batch from develop, with regression tests and one final exact-head CI checkpoint. Do not reopen merged PR #440. Preserve separate D7 physical S24 acceptance and D8 protected release.
 
 ## Constraints
 
@@ -47,111 +49,3 @@ Native D1–D6 accepted (6/8). #439 corrected final head 00407b83e1dda1cc39d2f84
 ## Tracking discipline
 
 `tracking/android-project-state.json` is the only hand-edited current-state file. Run `python3 scripts/render_project_tracking.py` after changing it. CI checks that generated files match and, on product/release PRs, that the canonical state changed in the same PR.
-
-## Android deploy progress
-
-**Μέχρι deploy: 6/8 stages**
-
-Evidence-backed release milestones, not percent of code written.
-
-| Stage | Status |
-|---|---|
-| D1 Native Android foundation and installed app | completed |
-| D2 Home and canonical accounts native journey | completed |
-| D3 Cards, credit and Quick Entry end-to-end | completed |
-| D4 Activity and transaction management | completed |
-| D5 Plan, savings, obligations and Insights | completed |
-| D6 Settings, auth, secure sync/offline and backup | completed |
-| D7 Final integrated physical S24 owner acceptance | pending |
-| D8 Production-signed release and deployment | pending |
-
-Current: D7
-Next: D1–D6 accepted on develop (6/8). #439 corrected final head 00407b83e1dda1cc39d2f849b059096c8d5a568f passed Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards 173+175=348/348 with required fail-closed aggregate. Squash merged develop e7f0ee6ac7921f6835d50ac9b9bd0806c7e2e6e8. New scheduled/recurring payers require explicit choice; existing sources remain suggested only when verified, duplicate global account IDs are excluded, refreshed removed accounts and transfer route conflicts block confirmation. #438 canonical accepted-movement Plan forecast is also merged. Draft PR #440 W4.4 native historical Activity editor journey: do not silently select the first available account when a legacy imported transaction has no payer or an orphaned source; do not show a fake first-account label. Only globally unique non-credit account IDs, including credit-vs-noncredit collisions, are selectable for historical override edits. Preserve valid existing source; transfer switches require explicit destination and invalidate a conflicting destination when source changes; stale owner account refresh invalidates previously selected payer and blocks saving. JVM source-identity tests plus hosted Compose expense/transfer/stale-refresh regression authored, CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; deployment 6/8, D7 real same-signer Galaxy S24 Ultra owner in-place acceptance and D8 protected release remain separate. No Web/backend/schema/main/signing, real finance writes, SMS #146 or global PIN #345. Installed signed rc12/10011 predates merged sources; hosted emulator is not owner physical acceptance and no signing/deployment occurred.
-
-
-## Active Web parity progress
-
-**Implementations: 2/6 · Subtasks: 14/24**
-
-Evidence-backed current progress, separate from historical September redesign.
-
-Issue #155, PR #440, branch android/w44-legacy-activity-edit-payer-safety-20261108
-Current W4.4: #439 corrected final head 00407b83e1dda1cc39d2f849b059096c8d5a568f passed Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards 173+175=348/348 with required fail-closed aggregate. Squash merged develop e7f0ee6ac7921f6835d50ac9b9bd0806c7e2e6e8. New scheduled/recurring payers require explicit choice; existing sources remain suggested only when verified, duplicate global account IDs are excluded, refreshed removed accounts and transfer route conflicts block confirmation. #438 canonical accepted-movement Plan forecast is also merged. Draft PR #440 W4.4 native historical Activity editor journey: do not silently select the first available account when a legacy imported transaction has no payer or an orphaned source; do not show a fake first-account label. Only globally unique non-credit account IDs, including credit-vs-noncredit collisions, are selectable for historical override edits. Preserve valid existing source; transfer switches require explicit destination and invalidate a conflicting destination when source changes; stale owner account refresh invalidates previously selected payer and blocks saving. JVM source-identity tests plus hosted Compose expense/transfer/stale-refresh regression authored, CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; deployment 6/8, D7 real same-signer Galaxy S24 Ultra owner in-place acceptance and D8 protected release remain separate. No Web/backend/schema/main/signing, real finance writes, SMS #146 or global PIN #345.
-Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #440 exact-final-head Project Tracking, Android CI, screenshot and both hosted S24 shards with AND aggregate before merge. Check explicit historical Activity payer chooser, preserve current valid source, reject missing/deleted/duplicate physical IDs and credit/noncredit collisions, stale account-refresh form invalidation, distinct source and destination; no synthetic money writes. Continue meaningful native W3.2/W4.2–W5; D7/D8 remain separately gated.
-
-| Implementation | Completed | Outstanding |
-|---|---|---|
-| W1 Canonical accounts and Home | 4/4 | Complete |
-| W2 Card identity and integrated credit experience | 4/4 | Complete |
-| W3 Events, statements and mutation semantics | 3/4 | W3.2 Event and classification parity (in_progress) |
-| W4 Recurring, forecast, savings and reporting | 1/4 | W4.2 Scheduled forecast (in_progress); W4.3 Savings, loans, lending and budgets (in_progress); W4.4 Transactions and analytics completeness (in_progress) |
-| W5 Providers, API, security and settings | 0/4 | W5.1 Dynamic provider/IBAN/assets contract (in_progress); W5.2 Auth/sync/history consistency (in_progress); W5.3 Card vault and security endpoints (in_progress); W5.4 Settings, backup, rules and ancillary parity (in_progress) |
-| W6 Parity validation, cleanup and device acceptance | 2/4 | W6.2 Real Compose accessibility/visual verification (in_progress); W6.4 Owner physical acceptance and release isolation (pending) |
-
-### Subtasks
-
-- [x] W1.1 Canonical account merge and roles — completed
-- [x] W1.2 Home total and three primary account slots — completed
-- [x] W1.3 Chart/target/IBAN web-fidelity — completed
-- [x] W1.4 Home tests and shared projections — completed
-- [x] W2.1 Canonical card metadata/lifecycle — completed
-- [x] W2.2 Shared native card visual — completed
-- [x] W2.3 Credit information on card screen — completed
-- [x] W2.4 Card interactions and secure details — completed
-- [x] W3.1 Statement cycle and historical debt — completed
-- [ ] W3.2 Event and classification parity — in_progress
-- [x] W3.3 Card repayment provider validation — completed
-- [x] W3.4 Single mutation pipeline — completed
-- [x] W4.1 Recurring lifecycle — completed
-- [ ] W4.2 Scheduled forecast — in_progress
-- [ ] W4.3 Savings, loans, lending and budgets — in_progress
-- [ ] W4.4 Transactions and analytics completeness — in_progress
-- [ ] W5.1 Dynamic provider/IBAN/assets contract — in_progress
-- [ ] W5.2 Auth/sync/history consistency — in_progress
-- [ ] W5.3 Card vault and security endpoints — in_progress
-- [ ] W5.4 Settings, backup, rules and ancillary parity — in_progress
-- [x] W6.1 Golden cross-client fixture tests — completed
-- [ ] W6.2 Real Compose accessibility/visual verification — in_progress
-- [x] W6.3 Exact-head CI, deduplication and tracking handoff — completed
-- [ ] W6.4 Owner physical acceptance and release isolation — pending
-
-### Blockers
-
-- None recorded.
-
-
-## Android redesign progress
-
-**Tasks: 10/10 · Subtasks: 40/40 · Preparation: 4/4**
-
-These counts are separate from historical overall project progress. Documents do not count as implemented Android screens.
-
-Working branch: `develop`. PR: 122.
-Checkpoint: `s10_complete_merged_to_develop`.
-Specification: `docs/UI_2026_REDESIGN_HANDOFF.md`.
-Next action: September redesign S1–S10 (40/40) remains historical and complete. The separate new owner-approved Web-parity workstream is issue #155 and reconciliation_workstream; prior completion counts do not establish Web parity. Signed rc12 physical acceptance remains pending under issue #149. SMS/notification import issue #146 remains deferred.
-
-| Slice | Completed subtasks | Remaining |
-|---|---|---|
-| S1 Financial truth and capability | 4/4 | Complete |
-| S2 Foundation and navigation | 4/4 | Complete |
-| S3 Activity | 4/4 | Complete |
-| S4 Quick Entry | 4/4 | Complete |
-| S5 Home and accounts | 4/4 | Complete |
-| S6 Cards | 4/4 | Complete |
-| S7 Plan and debts | 4/4 | Complete |
-| S8 Analysis | 4/4 | Complete |
-| S9 Settings and authentication | 4/4 | Complete |
-| S10 Integration and acceptance | 4/4 | Complete |
-
-### Preparation
-
-- [x] P1 Inspect live repository, instructions and existing tracking — completed
-- [x] P2 Reconcile durable instructions and old design authority — completed
-- [x] P3 Persist design decisions and ten-slice implementation specification — completed
-- [x] P4 Validate counters and generated tracking — completed
-
-### Blockers
-
-- No recorded blocker.
