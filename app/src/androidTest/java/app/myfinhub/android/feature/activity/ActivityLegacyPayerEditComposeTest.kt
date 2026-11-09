@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import app.myfinhub.android.designsystem.MyFinHubTheme
@@ -97,7 +98,9 @@ class ActivityLegacyPayerEditComposeTest {
             )
         } }
         rule.onNodeWithText("Μετρητά").performClick()
-        rule.onNodeWithText("Αποταμίευση").performClick()
+        // The currently selected destination and the open dropdown item both
+        // contain this label; target the menu choice, not the underlying field.
+        rule.onAllNodesWithText("Αποταμίευση").onLast().performClick()
         rule.onNodeWithText("Επίλεξε προορισμό").assertIsDisplayed()
         rule.onNodeWithText("Αποθήκευση αλλαγών").assertIsNotEnabled()
         rule.onNodeWithText("Επίλεξε προορισμό").performClick()
