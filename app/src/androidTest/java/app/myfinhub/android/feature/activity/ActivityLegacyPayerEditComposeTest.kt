@@ -1,7 +1,6 @@
 package app.myfinhub.android.feature.activity
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -240,7 +239,7 @@ class ActivityLegacyPayerEditComposeTest {
         rule.onNodeWithText("Έσοδο").performClick()
         rule.onNodeWithText("Επίλεξε επιλογή").performClick()
         rule.onNodeWithText("Μισθός").assertIsDisplayed()
-        rule.onNodeWithText("Άλλο").assertDoesNotExist()
+        assertEquals(0, rule.onAllNodesWithText("Άλλο").fetchSemanticsNodes().size)
     }
 
 }
