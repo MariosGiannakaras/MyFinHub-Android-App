@@ -5,12 +5,12 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Mandatory startup sequence
 
-1. Read root `AGENTS.md`.
-2. Read `tracking/android-project-state.json` and this file.
-3. Read permanent issue #27.
-4. Inspect live `develop`, open PRs/issues, recent merged PRs and relevant workflow results.
-5. Treat live GitHub state as authoritative if it is newer than generated files; fix tracking drift before product work.
-6. Continue the active workstream without repeating completed discovery.
+1. Read this compact handoff for the current task and last verified checkpoint.
+2. Verify live `develop`, the active PR exact head and required CI/review results.
+3. Read only relevant `AGENTS.md` sections and canonical tracking fields; open issue #27 as a durable index when needed.
+4. Inspect changed source/tests and direct dependencies; avoid rereading 200 KB tracker and historical issues across chats.
+5. If active CI is green with clean base/reviews, merge. If failing, repair the same PR. If pending, avoid idle polling.
+6. Continue the next substantive feature batch without repeating completed discovery or claiming owner physical acceptance.
 
 ## Current facts
 
@@ -25,11 +25,11 @@ This file exists so a new chat/agent can continue correctly without relying on c
 
 ## Why implementation is open
 
-D1–D6 native software integration accepted (deploy 6/8); PR #440 historical account-source safety and PR #441 current agent handoff are merged to develop with applicable CI green. Web parity 2/6 implementations and 14/24 subtasks. Draft PR #442: W4.4 Activity edit correction for legitimately blank historical descriptions, synchronous rejected-save recovery/Back navigation and disabling Save while another mutation is in flight. Three hosted Compose regression tests authored; PR final-head CI/merge pending. Physical D7 and protected release D8 remain separate; no production finance writes.
+Native software acceptance remains D1–D6 (deploy 6/8). PR #442 Activity blank-note edit/save recovery passed exact-head Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate and squash merged develop 86a6a4f6e0b0703ea1bfa0108e45e30e21f5add0. Draft PR #443 now addresses Activity historical payer label collisions, stale-filter presentation, event-type taxonomy switching and optimized agent/chat bootstrap in one W3.2/W4.4 workflow batch; source/tests authored, final CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; D7 real owner S24 Ultra acceptance and D8 protected release remain independent.
 
 ## Immediate work
 
-- Validate draft PR #442 full final-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards plus aggregate. Confirm blank-note historical account corrections, rejected-save Back/Discard and external in-flight Save disabled. Merge only if all required checks succeed with stable develop and clean reviews; continue W4.4 afterward. Physical D7/D8 remain separate.
+- Validate PR #443 full immutable-head Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate after the consolidated Activity classification/selection + agent workflow batch. On success merge to stable develop; continue grouped Activity/reporting, Plan and Settings work from current evidence without reopening merged PRs. D7/D8 separate.
 
 ## Constraints
 

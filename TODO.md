@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #442 full final-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards plus aggregate. Confirm blank-note historical account corrections, rejected-save Back/Discard and external in-flight Save disabled. Merge only if all required checks succeed with stable develop and clean reviews; continue W4.4 afterward. Physical D7/D8 remain separate.
+- [ ] Validate PR #443 full immutable-head Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards and aggregate after the consolidated Activity classification/selection + agent workflow batch. On success merge to stable develop; continue grouped Activity/reporting, Plan and Settings work from current evidence without reopening merged PRs. D7/D8 separate.
 
 ## Completed foundations
 
@@ -81,10 +81,10 @@ Next: D7 pending physical S24 Ultra owner in-place upgrade, data/session continu
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #442, branch android/w44-activity-editor-recovery-20261109
-Current W4.4: Merged PR #441 agent handoff sync to develop 9029276e026fcec479c30b40b6867c4becf38dac. Draft PR #442 W4.4 Activity editor recovery: allow empty source note while correcting category/account, release submit lock on synchronous mutation rejection and disable Save for external mutation in-flight. Three Compose regression tests authored; hosted CI not yet run. W4.4 remains in progress.
+Issue #155, PR #443, branch android/w32-w44-activity-taxonomy-choice-20261109
+Current W3.2: PR #442 passed exact-head Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate; squash merged develop 86a6a4f6e0b0703ea1bfa0108e45e30e21f5add0. Current draft PR #443 groups distinct account payer dropdown labels, active stale-filter indication, historical type/category taxonomy constraints and faster generated agent bootstrap. No owner physical S24 acceptance.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #442 at exact final head against Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate; merge only when all green with clean stable develop. Continue substantive Activity/analytics afterward.
+Next Validate draft #443 grouped W3.2/W4.4 code, tests, tracker and generated handoff on one exact final head and merge only with all four required gates green. Continue grouped feature completion; no SMS/global PIN, physical signoff or release without owner.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
