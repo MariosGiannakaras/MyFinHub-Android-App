@@ -11,7 +11,7 @@
 Issue #155 — **Reconcile Android finance contracts and restore web-parity Home and cards**
 State: `in_progress`
 
-D1–D6 software integration accepted (deploy 6/8). PRs #439 (e7f0ee6) and #440 (9e3f359) merged to develop. #440 completed legacy Activity payer/transfer source correction plus evergreen agent/chat instructions; exact-head Project Tracking, Android CI, screenshots and hosted S24 shards (174+177=351 tests) passed. Web parity remains 2/6 implementations and 14/24 subtasks. D7 physical owner Galaxy S24 Ultra acceptance and D8 protected release are separate.
+D1–D6 native software integration accepted (deploy 6/8); PR #440 historical account-source safety and PR #441 current agent handoff are merged to develop with applicable CI green. Web parity 2/6 implementations and 14/24 subtasks. Draft PR #442: W4.4 Activity edit correction for legitimately blank historical descriptions, synchronous rejected-save recovery/Back navigation and disabling Save while another mutation is in flight. Three hosted Compose regression tests authored; PR final-head CI/merge pending. Physical D7 and protected release D8 remain separate; no production finance writes.
 
 ## Current production candidate
 
@@ -21,7 +21,7 @@ Protected release workflow run 38552478100 published production-signed MyFinHub 
 
 ## Next
 
-1. Continue one coherent W4.4 Activity/analytics user-journey batch from develop, with regression tests and one final exact-head CI checkpoint. Do not reopen merged PR #440. Preserve separate D7 physical S24 acceptance and D8 protected release.
+1. Validate draft PR #442 full final-head Project Tracking, Android CI, screenshot regression and both hosted S24 shards plus aggregate. Confirm blank-note historical account corrections, rejected-save Back/Discard and external in-flight Save disabled. Merge only if all required checks succeed with stable develop and clean reviews; continue W4.4 afterward. Physical D7/D8 remain separate.
 
 ## Non-negotiable constraints
 
@@ -71,10 +71,10 @@ Next: D7 pending physical S24 Ultra owner in-place upgrade, data/session continu
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, no open PR, branch develop
-Current W4.4: PR #440 passed all four immutable-head CI gates (hosted S24 174+177=351 tests) and squash merged develop 9e3f3594e152c59e9c20465b54585899ce4428ef. Legacy Activity edits require unambiguous chosen payers and preserve transfer identity; agent/chat handoff guidance is integrated. No open PR; W4.4 remains in progress.
+Issue #155, PR #442, branch android/w44-activity-editor-recovery-20261109
+Current W4.4: Merged PR #441 agent handoff sync to develop 9029276e026fcec479c30b40b6867c4becf38dac. Draft PR #442 W4.4 Activity editor recovery: allow empty source note while correcting category/account, release submit lock on synchronous mutation rejection and disable Save for external mutation in-flight. Three Compose regression tests authored; hosted CI not yet run. W4.4 remains in progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next From develop, complete a meaningful W4.4 Activity/analytics feature batch with direct tests; review before one final CI cycle. Never treat merged #440 as active, infer physical S24 acceptance or publish.
+Next Validate PR #442 at exact final head against Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards/aggregate; merge only when all green with clean stable develop. Continue substantive Activity/analytics afterward.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

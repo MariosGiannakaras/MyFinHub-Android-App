@@ -1276,12 +1276,14 @@ fun ActivityEditScreen(
         note != item.note ||
         category != item.category.orEmpty() ||
         subcategory != item.subcategory.orEmpty() || legacyDirty
-    val valid = parsedDate != null && note.isNotBlank() &&
+    // Imported and canonical transactions may have no description; account/date/
+    // category corrections must not force the owner to fabricate a note.
+    val valid = parsedDate != null &&
         (!isLegacy || (legacyAmountValid && legacyAccountValid))
 
     val requestBack = {
         when {
-            mutationInFlight || saveRequested -> Unit
+            mutationInFlight || (saveRequested && !mutationBlocked) -> Unit
             dirty -> discardDialogOpen = true
             else -> onBack()
         }
@@ -1326,6 +1328,12 @@ fun ActivityEditScreen(
                 saveRequested = false
                 observedMutationInFlight = false
                 onSaved()
+            }
+            // A synchronous mutation rejection can block before any in-flight
+            // callback. Release the submit lock so Back/Discard still works.
+            saveRequested && mutationBlocked && !mutationInFlight -> {
+                saveRequested = false
+                observedMutationInFlight = false
             }
             saveRequested && mutationInFlight -> observedMutationInFlight = true
             saveRequested && observedMutationInFlight && !mutationInFlight -> {
@@ -1375,7 +1383,8 @@ fun ActivityEditScreen(
                         .padding(horizontal = MyFinHubDesignMetrics.screenHorizontalPadding, vertical = MyFinHubSpacing.xs)
                         .navigationBarsPadding()
                         .imePadding(),
-                    enabled = dirty && valid && !mutationBlocked && !saveRequested && !item.pendingSync,
+                    enabled = dirty && valid && !mutationInFlight && !mutationBlocked &&
+                        !saveRequested && !item.pendingSync,
                     icon = null,
                 )
             }
