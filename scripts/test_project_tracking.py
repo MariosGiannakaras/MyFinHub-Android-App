@@ -19,8 +19,12 @@ class RedesignTrackingTests(unittest.TestCase):
             status="completed", evidence=["Rendered fixture reviewed"]
         )
         tracking.validate_redesign(self.state)
-        for content in tracking.rendered(self.state).values():
-            self.assertIn("Tasks: 1/10 · Subtasks: 5/40", content)
+        outputs = tracking.rendered(self.state)
+        for path, content in outputs.items():
+            if path.name == "CURRENT_HANDOFF.md":
+                self.assertNotIn("## Android redesign progress", content)
+            else:
+                self.assertIn("Tasks: 1/10 · Subtasks: 5/40", content)
 
     def test_completion_requires_evidence(self):
         self.state["redesign_tasks"][0]["subtasks"][0]["status"] = "completed"
@@ -111,6 +115,26 @@ class WebParityTrackingTests(unittest.TestCase):
         tracking.validate_reconciliation(self.state)
         self.assertEqual(tracking.reconciliation_lines(self.state), [])
 
+
+
+class CurrentAgentHandoffTests(unittest.TestCase):
+    def setUp(self):
+        self.state = copy.deepcopy(tracking.load_state())
+
+    def test_brief_handoff_shows_actual_counters_without_duplicate_tables(self):
+        handoff = tracking.rendered(self.state)[tracking.ROOT / "docs/CURRENT_HANDOFF.md"]
+        self.assertIn("Deploy: **6/8**", handoff)
+        self.assertIn("Web parity: **2/6 implementations · 14/24 subtasks**", handoff)
+        self.assertNotIn("## Active Web parity progress", handoff)
+        self.assertNotIn("## Android redesign progress", handoff)
+        self.assertNotIn("### Subtasks", handoff)
+
+    def test_merged_pr_cannot_render_as_open_or_none_literal(self):
+        self.state["reconciliation_workstream"]["pr"] = None
+        self.state["reconciliation_workstream"]["branch"] = "develop"
+        details = "\n".join(tracking.reconciliation_lines(self.state))
+        self.assertIn("no open PR, branch develop", details)
+        self.assertNotIn("PR #None", details)
 
 
 class WorkflowGateConsistencyTests(unittest.TestCase):

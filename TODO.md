@@ -5,7 +5,7 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate draft PR #440 Android Activity historical expense/transfer edit exact payer identity, human-visible no-fake-default form, stale source refresh revoke, duplicate cross-kind canonical IDs and read-only history invariants. Run all exact-head four gates: Project Tracking, Android CI, screenshot regression, both hosted S24 emulator shards plus fail-closed aggregate, require stable develop and clean reviews, then squash merge. Continue W3.2/W4.2–W5. Physical D7 and protected D8 remain separately gated.
+- [ ] Continue one coherent W4.4 Activity/analytics user-journey batch from develop, with regression tests and one final exact-head CI checkpoint. Do not reopen merged PR #440. Preserve separate D7 physical S24 acceptance and D8 protected release.
 
 ## Completed foundations
 
@@ -72,7 +72,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D1–D6 accepted on develop (6/8). #439 corrected final head 00407b83e1dda1cc39d2f849b059096c8d5a568f passed Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards 173+175=348/348 with required fail-closed aggregate. Squash merged develop e7f0ee6ac7921f6835d50ac9b9bd0806c7e2e6e8. New scheduled/recurring payers require explicit choice; existing sources remain suggested only when verified, duplicate global account IDs are excluded, refreshed removed accounts and transfer route conflicts block confirmation. #438 canonical accepted-movement Plan forecast is also merged. Draft PR #440 W4.4 native historical Activity editor journey: do not silently select the first available account when a legacy imported transaction has no payer or an orphaned source; do not show a fake first-account label. Only globally unique non-credit account IDs, including credit-vs-noncredit collisions, are selectable for historical override edits. Preserve valid existing source; transfer switches require explicit destination and invalidate a conflicting destination when source changes; stale owner account refresh invalidates previously selected payer and blocks saving. JVM source-identity tests plus hosted Compose expense/transfer/stale-refresh regression authored, CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; deployment 6/8, D7 real same-signer Galaxy S24 Ultra owner in-place acceptance and D8 protected release remain separate. No Web/backend/schema/main/signing, real finance writes, SMS #146 or global PIN #345. Installed signed rc12/10011 predates merged sources; hosted emulator is not owner physical acceptance and no signing/deployment occurred.
+Next: D7 pending physical S24 Ultra owner in-place upgrade, data/session continuity and functional signoff. Installed rc12 predates recent develop sources. D8 protected production release stays separately gated; no new release published.
 
 
 ## Active Web parity progress
@@ -81,10 +81,10 @@ Next: D1–D6 accepted on develop (6/8). #439 corrected final head 00407b83e1dda
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #440, branch android/w44-legacy-activity-edit-payer-safety-20261108
-Current W4.4: #439 corrected final head 00407b83e1dda1cc39d2f849b059096c8d5a568f passed Project Tracking, Android CI, screenshot regression and both hosted S24 emulator shards 173+175=348/348 with required fail-closed aggregate. Squash merged develop e7f0ee6ac7921f6835d50ac9b9bd0806c7e2e6e8. New scheduled/recurring payers require explicit choice; existing sources remain suggested only when verified, duplicate global account IDs are excluded, refreshed removed accounts and transfer route conflicts block confirmation. #438 canonical accepted-movement Plan forecast is also merged. Draft PR #440 W4.4 native historical Activity editor journey: do not silently select the first available account when a legacy imported transaction has no payer or an orphaned source; do not show a fake first-account label. Only globally unique non-credit account IDs, including credit-vs-noncredit collisions, are selectable for historical override edits. Preserve valid existing source; transfer switches require explicit destination and invalidate a conflicting destination when source changes; stale owner account refresh invalidates previously selected payer and blocks saving. JVM source-identity tests plus hosted Compose expense/transfer/stale-refresh regression authored, CI/merge pending. Web parity 2/6 implementations · 14/24 subtasks; deployment 6/8, D7 real same-signer Galaxy S24 Ultra owner in-place acceptance and D8 protected release remain separate. No Web/backend/schema/main/signing, real finance writes, SMS #146 or global PIN #345.
+Issue #155, no open PR, branch develop
+Current W4.4: PR #440 passed all four immutable-head CI gates (hosted S24 174+177=351 tests) and squash merged develop 9e3f3594e152c59e9c20465b54585899ce4428ef. Legacy Activity edits require unambiguous chosen payers and preserve transfer identity; agent/chat handoff guidance is integrated. No open PR; W4.4 remains in progress.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #440 exact-final-head Project Tracking, Android CI, screenshot and both hosted S24 shards with AND aggregate before merge. Check explicit historical Activity payer chooser, preserve current valid source, reject missing/deleted/duplicate physical IDs and credit/noncredit collisions, stale account-refresh form invalidation, distinct source and destination; no synthetic money writes. Continue meaningful native W3.2/W4.2–W5; D7/D8 remain separately gated.
+Next From develop, complete a meaningful W4.4 Activity/analytics feature batch with direct tests; review before one final CI cycle. Never treat merged #440 as active, infer physical S24 acceptance or publish.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|

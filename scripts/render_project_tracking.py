@@ -166,7 +166,7 @@ def reconciliation_lines(s: dict) -> list[str]:
     lines=['','## Active Web parity progress','',
            f'**Implementations: {count}/{len(stages)} · Subtasks: {sum(map(done,subs))}/{len(subs)}**','',
            'Evidence-backed current progress, separate from historical September redesign.','',
-           f"Issue #{r['issue']}, PR #{r['pr']}, branch {r['branch']}",
+           f"Issue #{r['issue']}, {('PR #' + str(r['pr'])) if r.get('pr') else 'no open PR'}, branch {r.get('branch') or 'develop'}",
            f"Current {r['current_subtask']}: {r['checkpoint']}",
            f"Plan {r['plan_doc']}",f"Next {r['next_action']}",'',
            '| Implementation | Completed | Outstanding |','|---|---|---|']
@@ -287,6 +287,11 @@ def render_handoff(s: dict) -> str:
     p = s["overall_progress"]
     w = s["active_workstream"]
     r = s["latest_production_candidate"]
+    deployment = s.get("deployment_progress", {}).get("stages", [])
+    reconciled = s.get("reconciliation_workstream", {}).get("stages", [])
+    done_deploy = sum(row["status"] == "completed" for row in deployment)
+    done_parity = sum(all(sub["status"] == "completed" for sub in row["subtasks"]) for row in reconciled)
+    done_subtasks = sum(sub["status"] == "completed" for row in reconciled for sub in row["subtasks"])
     lines = [
         header().rstrip(),
         "# MyFinHub Android — Current Handoff",
@@ -305,6 +310,8 @@ def render_handoff(s: dict) -> str:
         "## Current facts",
         "",
         f"- Overall progress: **{p['completed']}/{p['total']}**.",
+        f"- Deploy: **{done_deploy}/{len(deployment)}**; current physical/release stage: `{s.get('deployment_progress', {}).get('current_stage', 'unknown')}`.",
+        f"- Web parity: **{done_parity}/{len(reconciled)} implementations · {done_subtasks}/{sum(len(row['subtasks']) for row in reconciled)} subtasks**.",
         f"- Supported device: **{s['supported_device']} only**.",
         f"- {'Last completed workstream' if w['status'] == 'completed' else 'Active workstream'}: issue #{w['issue']} — {w['title']}.",
         f"- Workstream state: `{w['status']}`.",
@@ -338,7 +345,12 @@ def rendered(s: dict) -> dict[Path, str]:
         ROOT / "docs/CURRENT_HANDOFF.md": render_handoff(s),
     }
     progress = "\n".join(deployment_lines(s) + reconciliation_lines(s) + redesign_lines(s))
-    return {path: content + progress for path, content in outputs.items()}
+    # Avoid duplicating full W1-W6, D1-D8 and historical redesign tables in the
+    # new-chat handoff. Detailed progress remains in generated STATUS/TODO.
+    return {
+        path: content if path.name == "CURRENT_HANDOFF.md" else content + progress
+        for path, content in outputs.items()
+    }
 
 
 def changed_files(base_ref: str) -> list[str]:

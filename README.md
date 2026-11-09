@@ -27,14 +27,14 @@ Phases 0–5, the full-app 2026 Android redesign, post-review reliability harden
 
 Operational auth/session, finance-sync and secure card-secret failures use a shared safe error-notice contract. System/operation failures are surfaced through a global Snackbar with an optional safe-details dialog; field validation remains inline. User-visible diagnostics must never expose raw server bodies, credentials, tokens, PAN or CVV.
 
-See `STATUS.md`, `TODO.md`, `docs/SUPPORTED_DEVICE.md`, `docs/MOBILE_DESIGN_CONTRACT.md`, `docs/ANDROID_ARCHITECTURE.md` and the active phase issues for the exact implementation checkpoint.
+For the current implementation/agent handoff, start at `AGENTS.md` and the **only hand-edited tracker** `tracking/android-project-state.json`; `docs/CURRENT_HANDOFF.md` is its compact generated resume view. `STATUS.md` and `TODO.md` are derived detailed views, not separate status authorities. Use live GitHub `develop` and active PR/check results for changes newer than the tracker. Device/design/architecture references remain under `docs/`.
 
 ## Branch model
 
 - `main`: release/promotion baseline
 - `develop`: normal integration branch
 - `extensions`: future/deferred expansion holding branch only
-- short-lived `feature/*`, `fix/*`, `research/*`, `chore/*`: issue-scoped work into `develop`
+- short-lived `android/*` (preferred for Android batches), `feature/*`, `fix/*`, `research/*`, `chore/*`: issue-scoped work into `develop`
 
 See `CONTRIBUTING.md` for the full workflow.
 
@@ -55,7 +55,7 @@ Normal CI also validates benchmark/profile tooling and the optimized unsigned re
 
 `.github/workflows/android-ci.yml` runs those checks and audits the processed release manifest plus unsigned-APK policy. `.github/workflows/android-ui-quality.yml` runs real screenshot regression and one representative compact-phone instrumentation suite for the S24 Ultra phone target.
 
-The completed redesign/hardening acceptance includes canonical screenshot regression, all 31 representative S24 Ultra-target phone instrumentation tests, benchmark/Baseline Profile tooling compilation, unit/instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and the unsigned-release policy audit.
+The completed redesign/hardening acceptance includes canonical screenshot regression, hosted S24-target instrumentation, benchmark/Baseline Profile tooling compilation, unit/instrumentation compile, lint, debug assembly, optimized unsigned release/R8 analysis and the unsigned-release policy audit. For current test counts and acceptance, consult the **exact-head** hosted CI jobs rather than historical README totals.
 
 Hosted-emulator Baseline Profile/Macrobenchmark runs remain available through the manual `.github/workflows/android-performance.yml` workflow as diagnostic evidence, but they are not treated as device-specific S24 Ultra performance acceptance.
 
