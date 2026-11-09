@@ -3,6 +3,7 @@ import copy
 import unittest
 
 import render_project_tracking as tracking
+import verify_visual_reference_mirrors as visual_mirrors
 
 
 class RedesignTrackingTests(unittest.TestCase):
@@ -124,7 +125,7 @@ class CurrentAgentHandoffTests(unittest.TestCase):
     def test_brief_handoff_shows_actual_counters_without_duplicate_tables(self):
         handoff = tracking.rendered(self.state)[tracking.ROOT / "docs/CURRENT_HANDOFF.md"]
         self.assertIn("Deploy: **6/8**", handoff)
-        self.assertIn("Web parity: **5/6 implementations · 22/24 subtasks**", handoff)
+        self.assertIn("Web parity: **5/6 implementations · 23/24 subtasks**", handoff)
         self.assertNotIn("## Active Web parity progress", handoff)
         self.assertNotIn("## Android redesign progress", handoff)
         self.assertNotIn("### Subtasks", handoff)
@@ -139,7 +140,7 @@ class CurrentAgentHandoffTests(unittest.TestCase):
             for stage in stages[:5] for sub in stage["subtasks"]
         ))
         self.assertEqual(
-            ["W6.2", "W6.4"],
+            ["W6.4"],
             [sub["id"] for sub in stages[5]["subtasks"] if sub["status"] != "completed"],
         )
         self.assertEqual(
@@ -148,7 +149,7 @@ class CurrentAgentHandoffTests(unittest.TestCase):
              if stage["status"] != "completed"],
         )
         detail = "\n".join(tracking.reconciliation_lines(self.state))
-        self.assertIn("Implementations: 5/6 · Subtasks: 22/24", detail)
+        self.assertIn("Implementations: 5/6 · Subtasks: 23/24", detail)
         self.assertIn("W6.4", detail)
 
     def test_merged_pr_cannot_render_as_open_or_none_literal(self):
@@ -157,6 +158,23 @@ class CurrentAgentHandoffTests(unittest.TestCase):
         details = "\n".join(tracking.reconciliation_lines(self.state))
         self.assertIn("no open PR, branch develop", details)
         self.assertNotIn("PR #None", details)
+
+
+class PublicVisualReferenceTests(unittest.TestCase):
+    def test_current_public_images_match_the_reviewed_compose_goldens(self):
+        self.assertEqual([], visual_mirrors.verify_mirrors())
+
+    def test_all_primary_native_journeys_have_reviewable_public_examples(self):
+        self.assertEqual(29, len(visual_mirrors.MIRRORS))
+        for name in ("home", "activity", "money", "plan", "quick-entry",
+                     "utilities", "reports", "auth"):
+            self.assertTrue(any(key.startswith(f"screenshots/{name}/")
+                                for key in visual_mirrors.MIRRORS), name)
+        for suffix in ("compact", "dark", "large-font"):
+            self.assertIn(f"screenshots/reports/reports-{suffix}.png",
+                          visual_mirrors.MIRRORS)
+        self.assertNotIn("screenshots/utilities/change-history.png",
+                         visual_mirrors.MIRRORS)
 
 
 class WorkflowGateConsistencyTests(unittest.TestCase):
