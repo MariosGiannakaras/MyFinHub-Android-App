@@ -515,6 +515,8 @@ internal fun MyFinHubAppContent(
                     CanonicalWalletScreen(
                         state = moneyProviderState,
                         cardsOnly = true,
+                        companionMode = true,
+                        onOpenQuickEntry = { openFastExpense(moneyBackStack) },
                         onOpenAccount = { accountId -> moneyBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         accountMetadata = accountMetadata,
                         accountMetadataLoaded = accountMetadataLoaded,
