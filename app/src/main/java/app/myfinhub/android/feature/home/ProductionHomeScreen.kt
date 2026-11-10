@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Path
@@ -72,16 +75,17 @@ fun ProductionHomeScreen(
     state: HomeUiState,
     @Suppress("UNUSED_PARAMETER") onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onOpenSettings: () -> Unit = {},
     onOpenQuickEntry: () -> Unit,
     onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)? = null,
     onAccountTransactions: ((String) -> Unit)? = null,
     onOpenAccount: (String) -> Unit = {},
     onOpenAllAccounts: () -> Unit = {},
-    @Suppress("UNUSED_PARAMETER") onOpenRecent: (String) -> Unit = {},
+    onOpenRecent: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
+    onLogout: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -100,6 +104,7 @@ fun ProductionHomeScreen(
     val primaryAccounts = homePrimaryAccounts(state.accounts)
     val primaryIds = primaryAccounts.mapTo(mutableSetOf(), HomeAccount::id)
     val secondaryAccounts = state.accounts.filterNot { it.id in primaryIds }
+    var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -118,15 +123,35 @@ fun ProductionHomeScreen(
                             modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
                         )
                     }
-                    IconButton(
-                        onClick = onOpenSettings,
-                        modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
-                    ) {
-                        Icon(
-                            imageVector = MyFinHubIcons.Settings,
-                            contentDescription = "Ρυθμίσεις",
-                            modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
-                        )
+                    // Finance configuration belongs to the Web; this mobile app only needs
+                    // a session action, never a desktop-style Settings entry point.
+                    if (onLogout != null) {
+                        Box {
+                            IconButton(
+                                onClick = { accountMenuOpen = true },
+                                modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget)
+                                    .testTag("home_account_menu"),
+                            ) {
+                                Icon(
+                                    imageVector = MyFinHubIcons.Account,
+                                    contentDescription = "Λογαριασμός",
+                                    modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = accountMenuOpen,
+                                onDismissRequest = { accountMenuOpen = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Αποσύνδεση") },
+                                    onClick = {
+                                        accountMenuOpen = false
+                                        onLogout()
+                                    },
+                                    modifier = Modifier.testTag("home_logout"),
+                                )
+                            }
+                        }
                     }
                 },
             )
@@ -151,6 +176,11 @@ fun ProductionHomeScreen(
                     onOpenQuickEntry = onOpenQuickEntry,
                 )
             }
+            if (state.attentionItems.isNotEmpty()) {
+                item(key = "home-attention") {
+                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
+                }
+            }
             item {
                 HomePrimaryAccountsSection(
                     accounts = primaryAccounts,
@@ -162,6 +192,15 @@ fun ProductionHomeScreen(
                     onAccountQuickEntry = onAccountQuickEntry,
                     onAccountTransactions = onAccountTransactions,
                 )
+            }
+            if (state.recentItems.isNotEmpty()) {
+                item(key = "home-recent") {
+                    HomeRecentSection(
+                        items = state.recentItems.take(4),
+                        amountsVisible = amountsVisible,
+                        onOpen = onOpenRecent,
+                    )
+                }
             }
             if (secondaryAccounts.isNotEmpty()) {
                 item {
@@ -229,6 +268,65 @@ private fun HomeAvailableSummary(
             onClick = onOpenQuickEntry,
             modifier = Modifier.fillMaxWidth().testTag("home_global_quick_entry"),
         )
+    }
+}
+
+@Composable
+private fun HomeRecentSection(
+    items: List<HomeRecentItem>,
+    amountsVisible: Boolean,
+    onOpen: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+        Text(
+            "Πρόσφατες κινήσεις",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        MyFinHubSectionCard(
+            modifier = Modifier.fillMaxWidth().testTag("home_recent_summary"),
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Column {
+                items.forEachIndexed { index, item ->
+                    Surface(
+                        onClick = { onOpen(item.id) },
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("home_recent_${item.id}"),
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(
+                                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                                vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                                Text(
+                                    item.dateLabel,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            MyFinHubAmountText(
+                                text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
+                                tone = when (item.tone) {
+                                    HomeRecentTone.INCOME -> FinanceTone.Income
+                                    HomeRecentTone.EXPENSE -> FinanceTone.Expense
+                                    HomeRecentTone.TRANSFER -> FinanceTone.Transfer
+                                },
+                            )
+                        }
+                    }
+                    if (index != items.lastIndex) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
+            }
+        }
     }
 }
 
