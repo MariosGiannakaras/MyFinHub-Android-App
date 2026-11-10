@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,23 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.text.NumberFormat
+
+/** Display only: no changes to canonical rate precision or payment calculations. */
+internal fun formatGreekCreditRate(raw: String): String {
+    val rate = raw.toDoubleOrNull()
+    if (rate == null || !rate.isFinite()) return "Μη έγκυρο επιτόκιο"
+    return NumberFormat.getNumberInstance(Locale.forLanguageTag("el-GR")).apply {
+        minimumFractionDigits = 0
+        maximumFractionDigits = 2
+    }.format(rate) + "%"
+}
+
+internal fun formatGreekCreditDate(iso: String): String = runCatching {
+    LocalDate.parse(iso).format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")))
+}.getOrDefault(iso)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +104,7 @@ fun CanonicalCardDetailScreen(
     var editProfileOpen by remember(cardId) { mutableStateOf(false) }
     var billingEditorOpen by remember(cardId) { mutableStateOf(false) }
     var rateEditorOpen by remember(cardId) { mutableStateOf(false) }
+    var creditToolsExpanded by rememberSaveable(cardId) { mutableStateOf(false) }
     val provider = card?.let { financialProviderForCard(it.bankId, it.nickname) }
     val ownerCatalog = LocalFinancialProviderCatalog.current
     val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
@@ -217,6 +236,14 @@ fun CanonicalCardDetailScreen(
                     }
                 }
 
+                TextButton(
+                    onClick = { creditToolsExpanded = !creditToolsExpanded },
+                    modifier = Modifier.fillMaxWidth().testTag("card_credit_tools_toggle"),
+                ) {
+                    Text(if (creditToolsExpanded) "Απόκρυψη όρων και προσομοίωσης"
+                         else "Όροι και προσομοίωση αποπληρωμής")
+                }
+                if (creditToolsExpanded) {
                 if (onSaveCreditBillingSettings != null || onAddCreditRateVersion != null) {
                     MyFinHubSectionCard(
                         modifier = Modifier.fillMaxWidth()
@@ -234,8 +261,8 @@ fun CanonicalCardDetailScreen(
                                 when (currentRate) {
                                     is CreditRateSelection.Selected ->
                                         "Ονομαστικό ετήσιο επιτόκιο: " +
-                                            currentRate.record.annualPercent + "% · από " +
-                                            currentRate.record.effectiveFrom
+                                            formatGreekCreditRate(currentRate.record.annualPercent.toString()) + " · από " +
+                                            formatGreekCreditDate(currentRate.record.effectiveFrom)
                                     CreditRateSelection.Missing -> "Ονομαστικό ετήσιο επιτόκιο: άγνωστο"
                                     CreditRateSelection.Invalid -> "Ονομαστικό ετήσιο επιτόκιο: μη έγκυρη τιμή"
                                 },
@@ -280,6 +307,7 @@ fun CanonicalCardDetailScreen(
                     card = card,
                     amountsVisible = amountsVisible,
                 )
+                }
                 CanonicalCardStatementHistorySection(
                     card = card,
                     statements = statements,
@@ -319,7 +347,7 @@ fun CanonicalCardDetailScreen(
                         ) { Text("Επεξεργασία προφίλ κάρτας") }
                     }
                     MyFinHubDestructiveTextAction(
-                        label = "Αρχειοθέτηση κάρτας",
+                        label = "Αφαίρεση από το MyFinHub",
                         onClick = { removeDialogOpen = true },
                     )
                 }
