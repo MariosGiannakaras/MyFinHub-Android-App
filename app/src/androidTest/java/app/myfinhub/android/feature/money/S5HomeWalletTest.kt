@@ -100,7 +100,7 @@ class S5HomeWalletTest {
 
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
         composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
         composeRule.onNodeWithText("Όλοι οι λογαριασμοί").performClick()
@@ -108,8 +108,8 @@ class S5HomeWalletTest {
     }
 
     @Test
-    fun companionHome_exposesLogoutWithoutSettingsOrFinancialAdministration() {
-        val loggedOut = AtomicBoolean(false)
+    fun companionHome_opensAndroidSettingsShortcut() {
+        val settingsOpened = AtomicBoolean(false)
         composeRule.setContent {
             MyFinHubTheme {
                 ProductionHomeScreen(
@@ -117,16 +117,15 @@ class S5HomeWalletTest {
                     onAction = {},
                     onOpenAttention = {},
                     onOpenQuickEntry = {},
-                    onLogout = { loggedOut.set(true) },
+                    onOpenSettings = { settingsOpened.set(true) },
                     amountsVisibleOverride = false,
                 )
             }
         }
 
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
-        composeRule.onNodeWithTag("home_account_menu").performClick()
-        composeRule.onNodeWithTag("home_logout").assertIsDisplayed().performClick()
-        assertTrue(loggedOut.get())
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_settings").performClick()
+        assertTrue(settingsOpened.get())
     }
 
     @Test
