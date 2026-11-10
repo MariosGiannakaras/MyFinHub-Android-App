@@ -69,7 +69,7 @@ fun ProductionHomeScreen(
     onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)? = null,
     onAccountTransactions: ((String) -> Unit)? = null,
     onOpenAccount: (String) -> Unit = {},
-    onOpenAllAccounts: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onOpenAllAccounts: () -> Unit = {},
     onOpenRecent: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
@@ -145,11 +145,6 @@ fun ProductionHomeScreen(
                     onOpenQuickEntry = onOpenQuickEntry,
                 )
             }
-            if (state.attentionItems.isNotEmpty()) {
-                item(key = "home-attention") {
-                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
-                }
-            }
             item {
                 HomePrimaryAccountsSection(
                     accounts = primaryAccounts,
@@ -161,6 +156,11 @@ fun ProductionHomeScreen(
                     onAccountQuickEntry = onAccountQuickEntry,
                     onAccountTransactions = onAccountTransactions,
                 )
+            }
+            if (state.attentionItems.isNotEmpty()) {
+                item(key = "home-attention") {
+                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
+                }
             }
             if (state.recentItems.isNotEmpty()) {
                 item(key = "home-recent") {
@@ -178,15 +178,7 @@ fun ProductionHomeScreen(
                         accounts = secondaryAccounts,
                         amountsVisible = amountsVisible,
                         onOpenAccount = onOpenAccount,
-                        onOpenAllAccounts = onOpenAllAccounts,
                     )
-                }
-            } else {
-                item {
-                    TextButton(
-                        onClick = onOpenAllAccounts,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Όλοι οι λογαριασμοί") }
                 }
             }
         }
@@ -491,7 +483,6 @@ private fun HomeSecondaryAccountsSection(
     accounts: List<HomeAccount>,
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
-    onOpenAllAccounts: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text("Λοιποί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -504,9 +495,6 @@ private fun HomeSecondaryAccountsSection(
                     }
                 }
             }
-        }
-        TextButton(onClick = onOpenAllAccounts, modifier = Modifier.align(Alignment.End)) {
-            Text("Όλοι οι λογαριασμοί")
         }
     }
 }
