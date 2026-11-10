@@ -324,6 +324,7 @@ internal fun MyFinHubAppContent(
                         },
                         onOpenAccount = { accountId -> homeBackStack.pushIfNew(AppRoute.AccountDetail(accountId)) },
                         onOpenAllAccounts = { homeBackStack.pushIfNew(AppRoute.Accounts) },
+                        canOpenRecent = activityState::isUniqueMutationTarget,
                         onOpenRecent = { eventId ->
                             if (activityState.isUniqueMutationTarget(eventId)) {
                                 homeBackStack.pushIfNew(AppRoute.ActivityDetail(eventId))
