@@ -112,6 +112,7 @@ private fun ReferenceCardStackScreenshotSurface() {
                 onActiveCardChanged = {},
                 onOpenCard = {},
                 onDeleteCard = {},
+                allowArchive = false,
             )
         }
     }
