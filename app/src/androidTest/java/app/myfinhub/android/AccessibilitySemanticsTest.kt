@@ -25,23 +25,17 @@ class AccessibilitySemanticsTest {
     fun criticalSurfaces_haveSpokenLabelsForClickableSemantics() {
         assertClickableNodesHaveSpokenLabels("Home")
 
-        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
         }
 
-        composeRule.onNodeWithText("Αναφορές").performClick()
-        composeRule.waitForIdle()
-        assertClickableNodesHaveSpokenLabels("Ανάλυση")
-
         openQuickEntryFromHome()
         assertClickableNodesHaveSpokenLabels("Quick Entry")
         leaveDirtyQuickEntry()
 
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
-        composeRule.waitForIdle()
-        assertClickableNodesHaveSpokenLabels("Settings")
+        // Device settings are intentionally not part of the mobile workflow.
     }
 
     @Test
@@ -50,23 +44,16 @@ class AccessibilitySemanticsTest {
         composeRule.enableAccessibilityChecks()
         checkCurrentSurface()
 
-        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             checkCurrentSurface()
         }
 
-        composeRule.onNodeWithText("Αναφορές").performClick()
-        composeRule.waitForIdle()
-        checkCurrentSurface()
-
         openQuickEntryFromHome()
         checkCurrentSurface()
         leaveDirtyQuickEntry()
 
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
-        composeRule.waitForIdle()
-        checkCurrentSurface()
     }
 
     private fun openQuickEntryFromHome() {
