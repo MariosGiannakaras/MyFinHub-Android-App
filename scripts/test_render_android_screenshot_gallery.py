@@ -23,13 +23,15 @@ class ScreenshotGalleryTests(unittest.TestCase):
             (src / "utilities").mkdir(parents=True)
             (src / "home/Home Preview.png").write_bytes(FAKE_PNG)
             (src / "utilities/settings_compact.png").write_bytes(FAKE_PNG)
+            (src / "app.myfinhub.android.feature.activity.ActivityPreview.png").write_bytes(FAKE_PNG)
             output = root / "app/build/reports/screenshotTest/gallery/index.html"
 
-            self.assertEqual(module.render_gallery(src, output), 2)
+            self.assertEqual(module.render_gallery(src, output), 3)
             html = output.read_text(encoding="utf-8")
-            self.assertIn("2 πραγματικά PNG", html)
+            self.assertIn("3 πραγματικά PNG", html)
             self.assertIn("Αρχική", html)
             self.assertIn("Ρυθμίσεις Android", html)
+            self.assertIn("Κινήσεις", html)
             self.assertIn("Home%20Preview.png", html)
             self.assertIn("../../../../src/screenshotTestDebug/reference", html)
             self.assertNotIn("data:image", html)
