@@ -246,7 +246,7 @@ private fun HomeAvailableSummary(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Μετρητά + μισθοδοσία · εξαιρούνται αποταμίευση, καβάτζα και άλλες τράπεζες",
+                text = "Μετρητά και μισθοδοσία",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -456,116 +456,59 @@ private fun HomePrimaryAccountsSection(
 private fun HomePrimaryAccountCard(
     account: HomeAccount,
     amountsVisible: Boolean,
-    ibanRecord: AccountMetadataRecord?,
-    accountMetadataLoaded: Boolean,
-    onQuickEntry: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") ibanRecord: AccountMetadataRecord?,
+    @Suppress("UNUSED_PARAMETER") accountMetadataLoaded: Boolean,
+    @Suppress("UNUSED_PARAMETER") onQuickEntry: () -> Unit,
     onTransactions: () -> Unit,
 ) {
-    val savings = account.primaryRole == HomePrimaryRole.SAVINGS
-    val delta = account.balanceChange30d
-    val color = when {
-        savings -> Color(0xFF2463F4)
-        account.primaryRole == HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
-        else -> Color(0xFF31C77B)
-    }
-    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-            val deltaLabel = delta?.let { change ->
-                val arrow = if (change > .005) "↑" else if (change < -.005) "↓" else "→"
-                val prefix = if (change > .005) "+" else if (change < -.005) "−" else ""
-                "30ημ. $arrow " +
-                    if (amountsVisible) prefix + formatHomeEuro(kotlin.math.abs(change)) else "•••• €"
-            }
-            val enlarged = LocalDensity.current.fontScale >= 1.3f
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.Top,
+    val amountText = if (amountsVisible) formatHomeEuro(account.balance) else "•••• €"
+    val tone = if (account.balance < 0.0) FinanceTone.Expense else FinanceTone.Income
+    val largeFont = LocalDensity.current.fontScale >= 1.3f
+
+    // A mobile balance list is not a dashboard of charts, goals, IBAN and buttons.
+    // Account tap opens the filtered ledger; Quick Entry stays one global Home action.
+    MyFinHubSectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+        Surface(
+            onClick = onTransactions,
+            modifier = Modifier.fillMaxWidth()
+                .testTag("home_account_${account.id}")
+                .semantics(mergeDescendants = true) {
+                    contentDescription = if (amountsVisible) {
+                        "${account.name}, $amountText. Προβολή κινήσεων"
+                    } else "${account.name}, ποσό κρυφό. Προβολή κινήσεων"
+                },
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                    vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                ),
+                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
             ) {
-                HomeAccountIdentityMark(account)
-                Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    HomeAccountIdentityMark(account)
                     if (account.primaryRole == HomePrimaryRole.CASH) {
-                        // Web renders one cash label followed by the wallet context;
-                        // HomeAccountIdentity would duplicate "Μετρητά" here.
-                        Text(account.name, style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold)
-                        Text("Πορτοφόλι", style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(account.name, style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold)
+                            Text("Πορτοφόλι", style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     } else {
-                        HomeAccountIdentity(account, Modifier.fillMaxWidth())
-                        AccountIbanRow(ibanRecord, accountMetadataLoaded, amountsVisible)
+                        HomeAccountIdentity(account, Modifier.weight(1f))
+                    }
+                    if (!largeFont) {
+                        MyFinHubAmountText(amountText, tone)
                     }
                 }
-                if (!enlarged && deltaLabel != null) {
-                    Text(deltaLabel, style = MaterialTheme.typography.labelSmall,
-                        color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
-                        modifier = Modifier.testTag("home_account_delta_${account.id}")
-                            .semantics {
-                                contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
-                                    else "Μεταβολή 30 ημερών: κρυφό ποσό"
-                            })
+                if (largeFont) {
+                    MyFinHubAmountText(amountText, tone, modifier = Modifier.align(Alignment.End))
                 }
-            }
-            if (enlarged && deltaLabel != null) {
-                Text(deltaLabel, style = MaterialTheme.typography.labelMedium,
-                    color = if ((delta ?: 0.0) < -.005) MaterialTheme.colorScheme.error else color,
-                    modifier = Modifier.testTag("home_account_delta_${account.id}")
-                        .semantics {
-                            contentDescription = if (amountsVisible) "Μεταβολή 30 ημερών: $deltaLabel"
-                                else "Μεταβολή 30 ημερών: κρυφό ποσό"
-                        })
-            }
-            // Keep the balance and series in independent layout cells; overlaying them
-            // obscured the chart or clipped large EUR amounts at accessibility font sizes.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                )
-                HomeAccountTrendChart(
-                    account = account,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            Text(
-                "Εξέλιξη υπολοίπου · προηγ. και τρέχων μήνας" +
-                    if (savings && account.savingsTarget != null) " · γραμμή στόχου" else "",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (savings) {
-                Text(
-                    text = when {
-                        account.savingsTarget != null ->
-                            "Στόχος " + if (amountsVisible) formatHomeEuro(account.savingsTarget) else "•••• €"
-                        account.savingsTargetRate != null ->
-                            "Στόχος ${(account.savingsTargetRate * 100).toInt()}% εσόδων"
-                        else -> "Δεν έχει οριστεί στόχος"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
-            ) {
-                TextButton(
-                    onClick = onQuickEntry,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp)
-                        .testTag("home_account_quick_entry_${account.id}")
-                        .semantics { contentDescription = if (savings) "Μεταφορά για ${account.name}" else "Νέα κίνηση για ${account.name}" },
-                ) { Text(if (savings) "Μεταφορά" else "Νέα κίνηση") }
-                TextButton(
-                    onClick = onTransactions,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                ) { Text("Συναλλαγές") }
             }
         }
     }
