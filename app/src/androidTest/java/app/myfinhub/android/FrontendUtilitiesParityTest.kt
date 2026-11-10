@@ -38,6 +38,8 @@ class FrontendUtilitiesParityTest {
         composeRule.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
         composeRule.onNodeWithText("Εμφάνιση").assertIsDisplayed()
         composeRule.onNodeWithText("Ειδοποιήσεις Android").assertIsDisplayed()
+        composeRule.onNodeWithText("Σχετικά με την εφαρμογή").assertIsDisplayed()
+        composeRule.onNodeWithText("Πληροφορίες και άδειες Android").assertIsDisplayed()
         composeRule.onNodeWithText("Διαχείριση κατηγοριών").assertDoesNotExist()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithTag("home_list").assertIsDisplayed()
