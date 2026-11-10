@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-09",
+  "updated_at": "2026-11-10",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Merged PR #444 accepted the owner-approved native Android W1–W5 software journeys on develop 908df4620141cd9ae7de9690314462c6bca7c9ff, Project Tracking + Android CI green. W6.2 visual/Compose checkpoint #445 now synchronizes 26 public screenshot paths with their current official rendered golden files plus adds Reports light/dark/large-type, verifies all 29 byte-identically in Project Tracking, and records the inspected phone-size/light/dark/large-type UI evidence; exact-head CI and merge pending. Proposed Web parity 5/6 implementations · 23/24 subtasks. Only W6.4 owner physical S24 acceptance/release isolation remains; deploy stays 6/8 (D7/D8 pending), installed rc12 is older than merged product code. No new production build, real financial writes, signing or backend changes.",
+    "summary": "The owner-approved native Android W1–W5 journeys were accepted in merged #444; W6.2 exact 29 Compose visual mirrors and tracking validation passed Project Tracking and Android CI on #445, squash merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4. W6.4 is the sole incomplete reconciliation subtask: Web parity 5/6 implementations · 23/24 subtasks. D1–D6 software accepted (deploy 6/8); D7 owner physical Galaxy S24 Ultra acceptance and D8 final protected release are distinct. Source PR #446 is an OPEN, UNMERGED, nonfunctional proposed 1.0.0-rc13 candidate off exact develop ed973a31d9947c05706e9cb57125a7f3b8025fa4; full four required PR gates and guarded publication are pending. Latest published/signed version is still rc12/10011. No installer/device acceptance or new release is claimed.",
     "next": [
-      "Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.",
-      "W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either."
+      "Validate open release-source PR #446 exact final-head Project Tracking, Android CI, screenshot regression and both S24 emulator shards plus aggregate, stable develop and clean reviews. Mark ready for review but keep this source-only PR UNMERGED for the protected production publisher. Never claim CI is passed until its results are verified.",
+      "After all required source checks pass, initiate only the existing owner-actor/environment-gated Protected Production Release on trusted develop for source_pr=446 and proposed version_name=1.0.0-rc13. Record real run/asset/versionCode/checksum/signer evidence or an explicit automation blocker. Only the owner can perform an in-place same-signer upgrade and confirm real physical S24 financial/session/PIN/biometric/vault and UX continuity (D7); D8 remains a separate final stable-release/promotion gate."
     ]
   },
   "latest_production_candidate": {
@@ -634,8 +634,8 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w62-official-compose-visual-reference-20261109",
-    "checkpoint": "PR #444 source 5ca9cec6de3284cc423b9ff3bc13f475d6beef9c Project Tracking and Android CI passed and squash merged develop 908df4620141cd9ae7de9690314462c6bca7c9ff. W3–W5 accepted. PR #445 refreshes the public screenshot guide as 29 exact byte-mirrors of official Compose golden files, adds Reports views, visually reviews core phone-size/light/dark/large-type surfaces and enforces future mirror integrity; final CI/merge pending. W6.2 proposed completed: Web parity 5/6 · 23/24. Only W6.4 owner S24/release gate open.",
+    "branch": "android/rc13-source-s24-acceptance-20261110",
+    "checkpoint": "PR #445 final source 6b27bb9dfe701a09a48313c5d5695051a609c1cb passed Project Tracking and Android CI, squash merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4; 29 official Compose public mirrors verified. Owner-approved W1–W5 and W6.2 are accepted (Web parity 5/6 · 23/24). Open PR #446 is an unmerged nonfunctional release-source marker to validate exact integrated develop code for proposed rc13. Full four CI gates and guarded owner release invocation pending. W6.4/D7/D8 remain incomplete.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1201,7 +1201,8 @@
               "W6.2 PR #211 150% font-scale native security password confirmation and recurring-management Compose accessibility regressions plus bounded vertically scrollable credential inputs; real S24 physical owner signoff and actual image review still pending, new exact-head CI required.",
               "W6.2 #211 large-text account-security and recurring Compose tests merged as db46b69fc14bd9fc5f52b1caf24389bddab8b86a, 4/4 exact-head green; S24 physical approval outstanding.",
               "PR #411 native app-level Wallet→card statement→Quick Entry and Activity ledger→detail/editor/delete-confirm hosted Compose regression authored; final-head CI pending. Deploy D3/D4 software integration acceptance conditional on 4/4 final-head CI and PR merge; physical owner S24 still D7.",
-              "W6.2 owner-approved native visual/accessibility checkpoint: reviewed actual production Compose goldens (light/dark/150% where present) for Home, Activity, unified Cards/inline credit, Plan/budgets, Quick Entry, Reports/Insights and Settings, including privacy masking and readable larger text; exact-head merged PR #443 Project Tracking/Android CI/screenshot regression and both S24 emulator shards + aggregate SUCCESS; W1–W5 native source accepted in merged PR #444. PR #445 mirrors 26 existing public references byte-identically to their official screenshotTestDebug PNG blobs and adds three Reports light/dark/large-type public examples (29 mirrors), with fail-closed Project Tracking Python byte-identity tests, preserving the prior separate historical server-history guide. These are synthetic Compose fixtures, not real owner Galaxy S24 Ultra signoff, which stays solely W6.4/D7. Visual evidence / mirror PR CI must pass before merged acceptance."
+              "W6.2 owner-approved native visual/accessibility checkpoint: reviewed actual production Compose goldens (light/dark/150% where present) for Home, Activity, unified Cards/inline credit, Plan/budgets, Quick Entry, Reports/Insights and Settings, including privacy masking and readable larger text; exact-head merged PR #443 Project Tracking/Android CI/screenshot regression and both S24 emulator shards + aggregate SUCCESS; W1–W5 native source accepted in merged PR #444. PR #445 mirrors 26 existing public references byte-identically to their official screenshotTestDebug PNG blobs and adds three Reports light/dark/large-type public examples (29 mirrors), with fail-closed Project Tracking Python byte-identity tests, preserving the prior separate historical server-history guide. These are synthetic Compose fixtures, not real owner Galaxy S24 Ultra signoff, which stays solely W6.4/D7. Visual evidence / mirror PR CI must pass before merged acceptance.",
+              "PR #445 final head 6b27bb9dfe701a09a48313c5d5695051a609c1cb passed Project Tracking and Android CI with 29 public screenshot mirrors byte-identical to official Compose golden sources, squash merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4. W6.2 software visual evidence accepted; synthetic hosted screenshot checks do not constitute D7 physical Galaxy S24 Ultra owner signoff."
             ]
           },
           {
@@ -1224,15 +1225,15 @@
         ]
       }
     ],
-    "next_action": "Validate exact-head Project Tracking/Android CI and visual mirror byte-consistency on PR #445, then squash merge with stable base/clean review. W6.4 and D7 require real owner device and separately authorized same-signer publication; D8 final protected release remains gated. No additional generic UI-hardening PRs absent a specific defect.",
+    "next_action": "Validate PR #446 exact final-head four gates, base/reviews, mark ready and KEEP OPEN/UNMERGED. If able through owner-authorized trusted develop publisher after green gates, request proposed rc13; record actual run and immutable artifacts. Never publish unvalidated source, infer physical S24 D7 acceptance or promote main/D8.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 445,
+    "pr": 446,
     "current_subtask": "W6.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },
   "deployment_progress": {
     "current_stage": "D7",
-    "next_action": "D7 physical owner acceptance pending: installed rc12/10011 predates newer merged develop, and cannot prove its behavior. Only an explicitly authorized newer same-signer protected-published candidate, installed in place without uninstall or data clearing, can validate real S24 Ultra session/PIN/biometric/finance/card-vault continuity and native journeys. No new candidate was built or published here. D8 separate final protected promotion/release approval required; no CI result counts as owner acceptance.",
+    "next_action": "D7 pending: PR #446 prepares the 1.0.0-rc13 release-source marker from merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4, with exact-head full CI and any owner-actor-gated release workflow still pending. Last published same-signer rc12/10011 is older than W1–W5/W6.2. When a newer signed candidate is actually published, owner in-place Galaxy S24 Ultra functional + session/data/PIN/biometric/vault acceptance is independently required. D8 final stable release/main promotion is separately gated; no physical acceptance or new release claimed.",
     "stages": [
       {
         "id": "D1",

@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.
-- [ ] W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either.
+- [ ] Validate open release-source PR #446 exact final-head Project Tracking, Android CI, screenshot regression and both S24 emulator shards plus aggregate, stable develop and clean reviews. Mark ready for review but keep this source-only PR UNMERGED for the protected production publisher. Never claim CI is passed until its results are verified.
+- [ ] After all required source checks pass, initiate only the existing owner-actor/environment-gated Protected Production Release on trusted develop for source_pr=446 and proposed version_name=1.0.0-rc13. Record real run/asset/versionCode/checksum/signer evidence or an explicit automation blocker. Only the owner can perform an in-place same-signer upgrade and confirm real physical S24 financial/session/PIN/biometric/vault and UX continuity (D7); D8 remains a separate final stable-release/promotion gate.
 
 ## Completed foundations
 
@@ -73,7 +73,7 @@ Evidence-backed release milestones, not percent of code written.
 | D8 Production-signed release and deployment | pending |
 
 Current: D7
-Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer merged develop, and cannot prove its behavior. Only an explicitly authorized newer same-signer protected-published candidate, installed in place without uninstall or data clearing, can validate real S24 Ultra session/PIN/biometric/finance/card-vault continuity and native journeys. No new candidate was built or published here. D8 separate final protected promotion/release approval required; no CI result counts as owner acceptance.
+Next: D7 pending: PR #446 prepares the 1.0.0-rc13 release-source marker from merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4, with exact-head full CI and any owner-actor-gated release workflow still pending. Last published same-signer rc12/10011 is older than W1–W5/W6.2. When a newer signed candidate is actually published, owner in-place Galaxy S24 Ultra functional + session/data/PIN/biometric/vault acceptance is independently required. D8 final stable release/main promotion is separately gated; no physical acceptance or new release claimed.
 
 
 ## Active Web parity progress
@@ -82,10 +82,10 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #445, branch android/w62-official-compose-visual-reference-20261109
-Current W6.4: PR #444 source 5ca9cec6de3284cc423b9ff3bc13f475d6beef9c Project Tracking and Android CI passed and squash merged develop 908df4620141cd9ae7de9690314462c6bca7c9ff. W3–W5 accepted. PR #445 refreshes the public screenshot guide as 29 exact byte-mirrors of official Compose golden files, adds Reports views, visually reviews core phone-size/light/dark/large-type surfaces and enforces future mirror integrity; final CI/merge pending. W6.2 proposed completed: Web parity 5/6 · 23/24. Only W6.4 owner S24/release gate open.
+Issue #155, PR #446, branch android/rc13-source-s24-acceptance-20261110
+Current W6.4: PR #445 final source 6b27bb9dfe701a09a48313c5d5695051a609c1cb passed Project Tracking and Android CI, squash merged develop ed973a31d9947c05706e9cb57125a7f3b8025fa4; 29 official Compose public mirrors verified. Owner-approved W1–W5 and W6.2 are accepted (Web parity 5/6 · 23/24). Open PR #446 is an unmerged nonfunctional release-source marker to validate exact integrated develop code for proposed rc13. Full four CI gates and guarded owner release invocation pending. W6.4/D7/D8 remain incomplete.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate exact-head Project Tracking/Android CI and visual mirror byte-consistency on PR #445, then squash merge with stable base/clean review. W6.4 and D7 require real owner device and separately authorized same-signer publication; D8 final protected release remains gated. No additional generic UI-hardening PRs absent a specific defect.
+Next Validate PR #446 exact final-head four gates, base/reviews, mark ready and KEEP OPEN/UNMERGED. If able through owner-authorized trusted develop publisher after green gates, request proposed rc13; record actual run and immutable artifacts. Never publish unvalidated source, infer physical S24 D7 acceptance or promote main/D8.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
