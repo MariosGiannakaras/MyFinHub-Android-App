@@ -40,7 +40,7 @@ import app.myfinhub.android.designsystem.MyFinHubScreenHeader
 import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 
-/** Owner-approved phone-only preferences; no web finance administration. */
+/** Local Android preferences and app information; no Web financial administration. */
 @Composable
 fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
     val context = LocalContext.current
@@ -52,8 +52,8 @@ fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             MyFinHubScreenHeader(
-                title = "Εφαρμογή",
-                subtitle = "Ρυθμίσεις συσκευής",
+                title = "Ρυθμίσεις",
+                subtitle = "Εφαρμογή και συσκευή",
                 navigation = { MyFinHubBackButton(onBack) },
             )
         },
@@ -142,9 +142,19 @@ fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
                     onAuthRecovery = onLogout ?: {},
                 )
             }
-            Text("MyFinHub " + BuildConfig.VERSION_NAME,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+                    Text(
+                        "Σχετικά με την εφαρμογή",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "MyFinHub Android · Έκδοση " + BuildConfig.VERSION_NAME,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
             onLogout?.let { logout ->
                 MyFinHubOutlinedAction(
                     label = "Αποσύνδεση από αυτή τη συσκευή",
