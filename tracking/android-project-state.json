@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "PR #445 visual reference mirror acceptance is merged into develop ed973a31d9947c05706e9cb57125a7f3b8025fa4. Owner direction on 2026-11-10 supersedes five-tab and detailed Web parity UI: draft PR #448 (android/physical-ui-audit-batch-20261110) implements three daily-use roots (Home, Activity, Cards), Web-style primary Cash/Payroll/Savings cards with account-history graphs, 30-day deltas, savings goal/period comparison and per-account actions, plus compact secondary balances and quick transactions, card-debt glance, and a secondary native Android Settings screen. Latest work retargets Compose screenshot previews to current active routes and adds a per-run PNG gallery. First PR CI revealed missing Compose dp import, incompatible screenshot task Gradle configuration-cache serialization, and missing canonical tracking delta; corrections are authored on this draft branch and not yet verified on its final head. Only verified screenshots from this branch may be reviewed as current; historical develop goldens are not valid proof of the new UI. No merger, production signing, real device tests, D7 acceptance or D8 release.",
+    "summary": "Owner-approved three-tab Android companion remains in draft PR #448. Preserve the three Web-style primary Home account cards with real trend curves, 30-day changes, IBAN/context, savings goal and per-account actions; other accounts stay compact. Settings is Android-native; Web-only finance administration remains hidden. 2026-11-10: screenshot renderer generated and visually reviewed the active Home, Activity, Cards, card details, Quick Entry and Settings in light/dark/150% font; one-time scoped workflow committed 29 changed official golden PNGs and 15 public screenshot mirrors at 6e5ebd413f3e46812292d2803666971feaf639d2, then was removed. Kotlin+unit/lint Android CI passed at previous head 235d1a60. Prior emulator run included obsolete navigation/settings expectations and emulator touch/device issues; narrow test repairs are authored, exact final-head mandatory gates are pending. No merge or device acceptance/release claimed; deployment stays 6/8.",
     "next": [
-      "Complete exact-head four-gate validation of draft PR #448 after the Kotlin import, screenshot Gradle cache and tracking fixes. Inspect freshly rendered Compose PNGs for actual Home, Activity, Cards, Quick Entry and Android-only Settings, update official goldens and approved public mirrors only from reviewed real renders, and present the actual new images to the owner in chat. Never substitute earlier develop screenshots for this branch.",
-      "Keep draft #448 unmerged until screenshot visual review, Kotlin/instrumentation and Project Tracking checks pass on one final head. D7 still needs separately approved same-signer in-place physical Galaxy S24 Ultra acceptance; D8 is a separate protected release."
+      "Run and inspect exact-head Project Tracking, Android CI and Android UI Quality after approved PNG baseline commit; the screenshot gate must validate the committed real PNGs with no automatic reapproval and all hosted instrumentation shards must pass. Repair any remaining concrete emulator/test failures, preserving three-tab UI and all account-chart visual parity.",
+      "With all exact-head checks green, clean review and screenshot evidence, integrate draft PR #448 only after accepted product verification. D7 requires separately authorized same-signer in-place S24 Ultra functional acceptance; D8 is separate protected production release. No hosted result substitutes for D7."
     ]
   },
   "latest_production_candidate": {
@@ -635,7 +635,7 @@
   "reconciliation_workstream": {
     "issue": 155,
     "branch": "android/physical-ui-audit-batch-20261110",
-    "checkpoint": "W6.2 29 official Compose screenshot mirrors merged to develop via PR #445 ed973a31. Current owner-approved streamlined Android visual/functional correction is draft PR #448, with Home/Activity/Cards top-level, secondary native Android Settings and new real screenshot preview/gallery coverage. Initial CI failure root causes were dp import, Gradle screenshot task configuration-cache incompatibility and missing PR tracking update; fixes committed, final-head CI/screenshots pending. Remains Web parity 5/6 implementations · 23/24 subtasks; W6.4 physical D7 acceptance not claimed. Owner explicitly required all three Home primary account graphs and Web visual structure; original Web-matching primary card/chart code was restored in draft PR #448, with regression tests for all three charts under privacy masking. Fresh screenshot CI and owner visual review still required; D7/D8 unchanged.",
+    "checkpoint": "Owner-approved three-tab Android UI correction PR #448. Actual new Compose phone screenshots inspected in chat; one-time constrained CI sync at 6e5ebd413f3e46812292d2803666971feaf639d2 committed 29 updated official renderer PNGs and 15 approved exact-byte public mirrors. Temporary sync workflow was then deleted, restoring mandatory immutable acceptance jobs. Other production differences remain under exact-head CI and emulator validation; 5/6 parity implementations, 23/24 accepted Web subtasks and D7/D8 milestones unchanged.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
@@ -1224,7 +1224,7 @@
         ]
       }
     ],
-    "next_action": "Validate PR #448 exact final head, especially new rendered active-screen screenshot artifact and four mandatory gates; correct visual goldens only after actual review. Merge only with all checks green, clean review and owner-ready UI evidence. D7 physical S24 Ultra and D8 protected release remain separate.",
+    "next_action": "Verify exact current-head four mandatory PR gates against newly committed screenshot goldens (no automatic updates); repair targeted device-test failures and review all real screenshot changes. Merge only after protected checks and owner-ready UI acceptance, with D7 physical S24 and D8 signed distribution separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
     "pr": 448,
     "current_subtask": "W6.4",
