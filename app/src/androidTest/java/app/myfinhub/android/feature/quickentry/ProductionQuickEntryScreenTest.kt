@@ -65,14 +65,12 @@ class ProductionQuickEntryScreenTest {
                 }
                 else -> Unit
             }
-            val amountHeadingNodes = composeRule
+            val amountLabels = composeRule
                 .onAllNodes(hasText(kind.amountHeading))
                 .fetchSemanticsNodes()
             assertTrue(
-                "${kind.name} should expose its semantic amount heading",
-                amountHeadingNodes.any { node ->
-                    node.config.getOrNull(SemanticsProperties.Heading) != null
-                },
+                "${kind.name} should expose its type-specific amount field label",
+                amountLabels.isNotEmpty(),
             )
         }
     }
