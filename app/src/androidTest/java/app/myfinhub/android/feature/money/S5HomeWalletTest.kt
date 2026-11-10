@@ -47,26 +47,26 @@ class S5HomeWalletTest {
     }
 
     @Test
-    fun homeCardChartsRemainVisibleWhenAmountsAreHidden() {
+    fun homeOnlyShowsQuickBalanceRowsWithoutAnalyticsWhenAmountsHidden() {
         composeRule.setContent {
             MyFinHubTheme {
                 ProductionHomeScreen(
                     state = syntheticHomeUiState(),
                     onAction = {},
                     onOpenAttention = {},
-                    onOpenSettings = {},
                     onOpenQuickEntry = {},
                     amountsVisibleOverride = false,
                 )
             }
         }
         composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("home_account_history_cash"))
-        composeRule.onNodeWithTag("home_account_history_cash").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasTestTag("home_account_delta_cash"))
-        composeRule.onNodeWithTag("home_account_delta_cash").assertIsDisplayed()
-        composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
+            .performScrollToNode(hasTestTag("home_account_cash"))
+        composeRule.onNodeWithTag("home_account_cash").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_account_history_cash").assertDoesNotExist()
+        composeRule.onNodeWithTag("home_account_delta_cash").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(
+            "Μετρητά, ποσό κρυφό. Προβολή κινήσεων",
+        ).assertIsDisplayed()
     }
 
     @get:Rule
