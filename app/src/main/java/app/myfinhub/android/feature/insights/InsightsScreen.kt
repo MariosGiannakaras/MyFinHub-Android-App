@@ -585,7 +585,7 @@ private fun MonthlyReportSignalsCard(
         Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
             Text("Δείκτες μήνα", style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold)
-            Text("Web Reports · ο τρέχων μήνας μπορεί να είναι μερικός",
+            Text("Ο τρέχων μήνας μπορεί να μην έχει ολοκληρωθεί.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             ComparisonFact(
@@ -594,14 +594,14 @@ private fun MonthlyReportSignalsCard(
                 Modifier.testTag("insights_report_net_flow"),
             )
             ComparisonFact(
-                "Ρυθμός αποταμίευσης · προηγούμενος",
+                "Ρυθμός αποταμίευσης (τρέχων · προηγούμενος)",
                 percentage(signals.savingsRate) + " · " + percentage(signals.previousSavingsRate),
                 Modifier.testTag("insights_report_savings_rate"),
             )
             ComparisonFact(
-                "Μεταβολή εσόδων / εξόδων / αποταμίευσης",
-                percentage(signals.incomeChange) + " / " +
-                    percentage(signals.expenseChange) + " / " +
+                "Μεταβολή: έσοδα · έξοδα · αποταμίευση",
+                percentage(signals.incomeChange) + " · " +
+                    percentage(signals.expenseChange) + " · " +
                     percentage(signals.savingChange),
             )
             ComparisonFact(
