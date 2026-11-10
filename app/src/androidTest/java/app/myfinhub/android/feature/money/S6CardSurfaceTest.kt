@@ -340,7 +340,7 @@ class S6CardSurfaceTest {
 
         composeRule.onNodeWithTag("card_secure_details").performScrollTo().performClick()
         composeRule.runOnIdle { assertEquals("credit", secureCardId) }
-        composeRule.onNodeWithText("Αρχειοθέτηση κάρτας").performScrollTo().performClick()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").performScrollTo().performClick()
         composeRule.onNodeWithText("Δεν ακυρώνεται στην τράπεζα.", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("μπορεί να επανέλθει", substring = true).assertIsDisplayed()
         composeRule.onNodeWithTag("confirm_remove_card").performClick()
