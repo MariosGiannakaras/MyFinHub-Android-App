@@ -20,7 +20,7 @@ class FrontendUtilitiesParityTest {
     fun homeAndTabs_areSimple_andDoNotOfferDesktopManagement() {
         composeRule.onNodeWithTag("home_list").assertIsDisplayed()
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Πλάνο").assertDoesNotExist()
         composeRule.onNodeWithText("Αναφορές").assertDoesNotExist()
 
@@ -32,5 +32,14 @@ class FrontendUtilitiesParityTest {
         composeRule.onNodeWithText("Αρχική").performClick()
         composeRule.onNodeWithTag("home_list").performScrollToIndex(0)
         composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
+
+        // Android device/app preferences remain available; Web finance administration does not.
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+        composeRule.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
+        composeRule.onNodeWithText("Εμφάνιση").assertIsDisplayed()
+        composeRule.onNodeWithText("Ειδοποιήσεις Android").assertIsDisplayed()
+        composeRule.onNodeWithText("Διαχείριση κατηγοριών").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Πίσω").performClick()
+        composeRule.onNodeWithTag("home_list").assertIsDisplayed()
     }
 }
