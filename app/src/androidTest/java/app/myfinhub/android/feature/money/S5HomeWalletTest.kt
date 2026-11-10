@@ -2,6 +2,7 @@ package app.myfinhub.android.feature.money
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -104,6 +105,28 @@ class S5HomeWalletTest {
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
         composeRule.onNodeWithText("Όλοι οι λογαριασμοί").performClick()
         assertTrue(openedAccounts.get())
+    }
+
+    @Test
+    fun companionHome_exposesLogoutWithoutSettingsOrFinancialAdministration() {
+        val loggedOut = AtomicBoolean(false)
+        composeRule.setContent {
+            MyFinHubTheme {
+                ProductionHomeScreen(
+                    state = syntheticHomeUiState(),
+                    onAction = {},
+                    onOpenAttention = {},
+                    onOpenQuickEntry = {},
+                    onLogout = { loggedOut.set(true) },
+                    amountsVisibleOverride = false,
+                )
+            }
+        }
+
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
+        composeRule.onNodeWithTag("home_account_menu").performClick()
+        composeRule.onNodeWithTag("home_logout").assertIsDisplayed().performClick()
+        assertTrue(loggedOut.get())
     }
 
     @Test
