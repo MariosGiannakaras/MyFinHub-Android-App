@@ -41,7 +41,7 @@ class ActivityQuickEntryTest {
 
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
         composeRule.onNodeWithText("Ποσό εξόδου").assertIsDisplayed()
-        composeRule.onNodeWithText("Περισσότερα").assertIsDisplayed()
+        composeRule.onNodeWithText("Περισσότεροι τύποι").assertIsDisplayed()
         composeRule.onNodeWithText("Ημερομηνία").assertIsDisplayed()
 
         composeRule.onNodeWithText("Μεταφορά").performClick()
@@ -57,7 +57,7 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Κινήσεις").performClick()
         composeRule.onNodeWithText("Νέα κίνηση", useUnmergedTree = true).performClick()
 
-        composeRule.onNodeWithText("Περισσότερα").performClick()
+        composeRule.onNodeWithText("Περισσότεροι τύποι").performClick()
         composeRule.onNodeWithTag("quick_entry_kind_list")
             .performScrollToNode(hasText("Σύνθετη αγορά"))
         composeRule.onNodeWithText("Σύνθετη αγορά").performClick()
@@ -86,7 +86,7 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
 
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
-        composeRule.onNodeWithText("Συνέχεια").assertIsDisplayed()
-        composeRule.onNodeWithText("Απόρριψη").assertIsDisplayed()
+        composeRule.onNodeWithText("Παραμονή στην επεξεργασία").assertIsDisplayed()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").assertIsDisplayed()
     }
 }
