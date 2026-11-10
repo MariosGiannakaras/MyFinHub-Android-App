@@ -143,6 +143,8 @@ fun CanonicalPlan2026Screen(
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val urgent = planUrgentObligations(state)
+    val overdue = urgent.filter { it.urgency == PlannedUrgency.OVERDUE }
+    val dueSoon = urgent.filter { it.urgency == PlannedUrgency.THIS_WEEK }
     val remaining = planRemainingItems(state)
 
     Scaffold(
@@ -163,17 +165,32 @@ fun CanonicalPlan2026Screen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
-            if (urgent.isNotEmpty()) {
-                item("urgent-heading") {
+            if (overdue.isNotEmpty()) {
+                item("overdue-heading") {
                     MyFinHubSectionHeading(
-                        title = "Πρώτα",
-                        subtitle = "Καθυστερημένες και κοντινές υποχρεώσεις",
+                        title = "Ληξιπρόθεσμες υποχρεώσεις",
+                        subtitle = "${overdue.size} εκκρεμείς · προηγούνται των επόμενων πληρωμών",
                         icon = MyFinHubIcons.Attention,
                         tone = FinanceTone.Expense,
                     )
                 }
-                itemsIndexed(urgent, key = { index, item ->
-                    "urgent-${plannedItemSourceKey(item)}-row-$index"
+                itemsIndexed(overdue, key = { index, item ->
+                    "urgent-${plannedItemSourceKey(item)}-overdue-$index"
+                }) { _, item ->
+                    PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
+                }
+            }
+            if (dueSoon.isNotEmpty()) {
+                item("due-soon-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Επόμενες 7 ημέρες",
+                        subtitle = "${dueSoon.size} προσεχείς υποχρεώσεις",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(dueSoon, key = { index, item ->
+                    "urgent-${plannedItemSourceKey(item)}-soon-$index"
                 }) { _, item ->
                     PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                 }
