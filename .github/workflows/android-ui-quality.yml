@@ -53,18 +53,18 @@ jobs:
         shell: bash
         run: |
           if find app/src/screenshotTestDebug/reference -type f -name '*.png' -print -quit 2>/dev/null | grep -q .; then
-            ./gradlew validateDebugScreenshotTest --stacktrace
+            ./gradlew validateDebugScreenshotTest --no-configuration-cache --stacktrace
           else
             echo 'No committed product screenshot references yet; smoke the official renderer only.'
-            ./gradlew updateDebugScreenshotTest --stacktrace
-            ./gradlew validateDebugScreenshotTest --stacktrace
+            ./gradlew updateDebugScreenshotTest --no-configuration-cache --stacktrace
+            ./gradlew validateDebugScreenshotTest --no-configuration-cache --stacktrace
           fi
 
       - name: Render candidate references after regression failure
         id: render-candidates
         if: failure()
         shell: bash
-        run: ./gradlew updateDebugScreenshotTest --stacktrace
+        run: ./gradlew updateDebugScreenshotTest --no-configuration-cache --stacktrace
 
       - name: Build screenshot gallery from official rendered PNGs
         if: always()
