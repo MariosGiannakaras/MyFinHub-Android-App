@@ -50,6 +50,21 @@ For owner-supervised physical acceptance, connect the **actual S24 Ultra via USB
 python3 scripts/s24_physical_preflight.py --json
 ```
 
+When a **newer, owner-authorized same-signer candidate** has actually been published and its
+exact versionCode is known from verified release metadata, the same read-only tool may
+enforce that the installed package matches that candidate, for example:
+
+```sh
+python3 scripts/s24_physical_preflight.py --json --expected-version-code 10012
+```
+
+The number **10012 is illustrative only**, not a published version or release authorization.
+Supply the real code from the protected publisher; rc12/10011 or older values are rejected
+in this mode. A missing/mismatched installed candidate exits nonzero without exposing
+package paths or raw ADB diagnostics. A matching code **does not verify the signing
+certificate, source provenance, that the update happened in place, account/session
+continuity, or owner acceptance**. Those remain separate D7 checks.
+
 This is an optional, reproducible **read-only inspection**, not an installation or acceptance test. It queries only the Samsung SM-S928 model family, Android release, font scale and the installed `app.myfinhub.android` package/version. It does not retrieve the USB serial, account identifiers, finance data, session tokens, card secrets, app files or APK; it never modifies device settings, requests permissions or installs an update. All ADB failures are summarized without printing raw device diagnostics. The script requires a single authorized physical **USB** phone, not an emulator or a Wi-Fi ADB endpoint.
 
 Installed-version checks fail closed unless `pm path` returns an empty absent-result or valid APK paths and `dumpsys package` contains exactly one matching `Package [app.myfinhub.android]` section with a single valid version code and name. Unrelated package version records, duplicate records and malformed package output are never treated as the target build; raw output remains private.
