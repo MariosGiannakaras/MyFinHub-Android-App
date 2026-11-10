@@ -410,29 +410,32 @@ private fun HomePrimaryAccountCard(
                                 else "Μεταβολή 30 ημερών: κρυφό ποσό"
                         })
             }
-            // Desktop Web uses a shared amount/chart zone; on compact screens
-            // the amount overlays the left while the chart fills the right.
-            // Monetary privacy never removes the chart or exposes EUR via semantics.
-            Box(modifier = Modifier.fillMaxWidth().height(90.dp)) {
-                HomeAccountTrendChart(
-                    account = account,
-                    modifier = Modifier.fillMaxWidth(.67f).align(Alignment.BottomEnd),
-                )
+            // Keep the balance and series in independent layout cells; overlaying them
+            // obscured the chart or clipped large EUR amounts at accessibility font sizes.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     if (amountsVisible) formatHomeEuro(account.balance) else "•••• €",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.TopStart),
+                    modifier = Modifier.weight(1f),
+                )
+                HomeAccountTrendChart(
+                    account = account,
+                    modifier = Modifier.weight(1f),
                 )
             }
+            Text(
+                "Εξέλιξη υπολοίπου · προηγ. και τρέχων μήνας" +
+                    if (savings && account.savingsTarget != null) " · γραμμή στόχου" else "",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (savings) {
-                Text(
-                    "Τρέχων μήνας · Προηγ. μήνας" +
-                        if (account.savingsTarget != null) " · Στόχος" else "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 Text(
                     text = when {
                         account.savingsTarget != null ->
@@ -442,12 +445,6 @@ private fun HomePrimaryAccountCard(
                         else -> "Δεν έχει οριστεί στόχος"
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                )
-            } else {
-                Text(
-                    "Προηγ. μήνας · Τρέχων μήνας",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Row(
@@ -481,7 +478,7 @@ private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Mod
     val comparison = account.previousMonthTrend
     val rawTarget = account.savingsTarget
     Canvas(
-        modifier = modifier.height(83.dp)
+        modifier = modifier.height(60.dp)
             .testTag("home_account_history_${account.id}")
             .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
     ) {
