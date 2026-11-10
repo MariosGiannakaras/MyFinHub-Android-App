@@ -22,13 +22,13 @@ class NativeD5ObligationsJourneyComposeTest {
     @Test fun savingsLoansScheduledAndRecurringOpenFromNativePlanWithBackNavigation() {
         rule.setContent { MyFinHubTheme {
             MyFinHubAppContent(
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
                 homeState = syntheticHomeUiState(), onHomeAction = {},
                 moneyState = syntheticMoneyUiState(),
                 planState = syntheticPlanUiState(),
                 onSaveSavingsGoal = { _, _, _, _ -> },
             )
         } }
-        rule.onNodeWithContentDescription("Πλάνο", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("s7_plan_root")
             .performScrollToNode(hasTestTag("s7_savings_link"))
         rule.onNodeWithTag("s7_savings_link").performClick()

@@ -11,6 +11,26 @@ copies** of those official screenshots, rather than independent renderings.
 These cover Activity, authentication, Home, cards/money, Plan, Quick Entry,
 Settings and Reports in selected light, dark and large-type states.
 
+## Gallery from the current CI run
+
+The `Android UI Quality / screenshot-regression` workflow uploads
+`android-ui-screenshots-<run-id>` as a GitHub Actions artifact for 14 days.
+The artifact contains the **official PNGs** and
+`build/reports/screenshotTest/gallery/index.html`.
+
+Download and extract the artifact, then open `index.html` in a browser to
+view **all** images grouped by screen, with links to the original full-size
+PNG files. The index is produced from the real renderer output by
+`scripts/render_android_screenshot_gallery.py`; it does not generate
+screenshots or replace golden images. The separate `screenshots/` paths in
+this repository are reviewed copies for the integrated `develop` branch and
+can be older than an unmerged feature branch.
+
+When reviewing CI screenshots in chat, always show the actual rendered
+images associated with the specified commit/run and clearly distinguish
+them from integrated `develop` references. Never describe legacy previews
+of hidden Web-only features as current Android navigation.
+
 For Android UI changes:
 
 1. Review the actual rendered Compose candidate and its accessibility/privacy

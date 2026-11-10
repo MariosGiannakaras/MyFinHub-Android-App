@@ -256,10 +256,20 @@ fun CanonicalMoneyScreen(
                         }
                     }
                     if (goal != null && goal > 0.0) {
-                        if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
-                            progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) {
+                            if (state.savingsCurrent <= 0.0) {
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    thickness = 4.dp,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                            } else {
+                                LinearProgressIndicator(
+                                    progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
                     } else {
                         Text(
                             "Δεν έχει οριστεί στόχος αποταμίευσης.",
@@ -318,7 +328,7 @@ fun CanonicalMoneyScreen(
                         )
                         activeCardId?.let { cardId ->
                             MyFinHubDestructiveTextAction(
-                                label = "Διαγραφή ενεργής κάρτας",
+                                label = "Αφαίρεση ενεργής κάρτας",
                                 onClick = { cardDeleteConfirmationId = cardId },
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -411,15 +421,15 @@ internal fun CanonicalCardDeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Διαγραφή κάρτας;") },
+        title = { Text("Αφαίρεση κάρτας από το MyFinHub;") },
         text = {
             Text(
-                "Η ${card.nickname} ••••${canonicalCardDisplayLastFour(card.last4).orEmpty()} θα αφαιρεθεί. Η ενέργεια δεν αναιρείται.",
+                "Η ${card.nickname} ••••${canonicalCardDisplayLastFour(card.last4).orEmpty()} θα αφαιρεθεί από τις ενεργές κάρτες. Οι κινήσεις και τυχόν οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Διαγραφή", color = MaterialTheme.colorScheme.error)
+                Text("Αφαίρεση", color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
@@ -499,10 +509,20 @@ fun CanonicalSavingsScreen(
                         )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0 && state.savingsGoalItems.isEmpty()) {
-                            if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
-                                progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) {
+                                if (state.savingsCurrent <= 0.0) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        thickness = 4.dp,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                    )
+                                } else {
+                                    LinearProgressIndicator(
+                                        progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                            }
                             Text(
                                 "Στόχος ${amountVisibilityText(formatCanonicalEuro(goal), amountsVisible)}",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,

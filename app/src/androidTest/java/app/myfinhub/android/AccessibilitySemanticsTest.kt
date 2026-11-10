@@ -25,15 +25,11 @@ class AccessibilitySemanticsTest {
     fun criticalSurfaces_haveSpokenLabelsForClickableSemantics() {
         assertClickableNodesHaveSpokenLabels("Home")
 
-        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             assertClickableNodesHaveSpokenLabels(destination)
         }
-
-        composeRule.onNodeWithText("Αναφορές").performClick()
-        composeRule.waitForIdle()
-        assertClickableNodesHaveSpokenLabels("Ανάλυση")
 
         openQuickEntryFromHome()
         assertClickableNodesHaveSpokenLabels("Quick Entry")
@@ -41,7 +37,7 @@ class AccessibilitySemanticsTest {
 
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
         composeRule.waitForIdle()
-        assertClickableNodesHaveSpokenLabels("Settings")
+        assertClickableNodesHaveSpokenLabels("Android Settings")
     }
 
     @Test
@@ -50,15 +46,11 @@ class AccessibilitySemanticsTest {
         composeRule.enableAccessibilityChecks()
         checkCurrentSurface()
 
-        listOf("Κινήσεις", "Κάρτες", "Πλάνο", "Αναφορές").forEach { destination ->
+        listOf("Κινήσεις", "Κάρτες").forEach { destination ->
             composeRule.onNodeWithText(destination).performClick()
             composeRule.waitForIdle()
             checkCurrentSurface()
         }
-
-        composeRule.onNodeWithText("Αναφορές").performClick()
-        composeRule.waitForIdle()
-        checkCurrentSurface()
 
         openQuickEntryFromHome()
         checkCurrentSurface()
@@ -80,7 +72,7 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Έσοδο").performClick()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
-        composeRule.onNodeWithText("Απόρριψη").performClick()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("home_list").assertIsDisplayed()
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()

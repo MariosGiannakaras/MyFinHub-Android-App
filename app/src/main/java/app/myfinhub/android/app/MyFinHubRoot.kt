@@ -1,6 +1,8 @@
 package app.myfinhub.android.app
 
+import android.app.Activity
 import android.content.Context
+import androidx.compose.foundation.background
 import android.os.SystemClock
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -137,6 +141,14 @@ fun MyFinHubRoot(
         AppAppearance.SYSTEM -> systemDark
         AppAppearance.LIGHT -> false
         AppAppearance.DARK -> true
+    }
+    // The manual appearance preference must control system-bar glyph contrast as well as Compose.
+    // enableEdgeToEdge() by itself only reacts to the phone's system theme.
+    SideEffect {
+        (context as? Activity)?.let { activity ->
+            WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+                .isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
     val accountMetadataScope = rememberCoroutineScope()
@@ -344,7 +356,12 @@ fun MyFinHubRoot(
 
     MyFinHubTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalUpdateController provides updateController) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .statusBarsPadding(),
+            ) {
                 AuthShellScreen(
                     state = authState,
                     onSignIn = authViewModel::signIn,

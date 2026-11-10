@@ -266,7 +266,7 @@ class CreditCardStackTest {
         }
 
         composeRule.onNodeWithContentDescription("Αρχειοθέτηση κάρτας").performClick()
-        composeRule.onNodeWithText("κρυπτογραφημένα στοιχεία διατηρούνται", substring = true)
+        composeRule.onNodeWithText("Δεν ακυρώνεται η τραπεζική κάρτα", substring = true)
             .assertIsDisplayed()
         val slider = composeRule.onNodeWithTag("card_delete_slider")
         slider.performSemanticsAction(SemanticsActions.SetProgress) { it(.91f) }

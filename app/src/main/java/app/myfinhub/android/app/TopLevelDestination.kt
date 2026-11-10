@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import app.myfinhub.android.R
 import app.myfinhub.android.designsystem.MyFinHubIcons
 
-/** Five owner-approved native mobile roots. */
+/** Retained route identities for installed-state compatibility; only three primary tabs are visible. */
 enum class TopLevelDestination(
     @param:StringRes val label: Int,
     val icon: ImageVector,
@@ -17,3 +17,10 @@ enum class TopLevelDestination(
     PLAN(R.string.nav_plan, MyFinHubIcons.Plan, AppRoute.Plan),
     INSIGHTS(R.string.nav_reports, MyFinHubIcons.Insights, AppRoute.Insights),
 }
+
+/** Daily-use Android navigation; advanced reports/planning stay Web-owned. */
+internal val primaryMobileDestinations = listOf(
+    TopLevelDestination.HOME,
+    TopLevelDestination.ACTIVITY,
+    TopLevelDestination.MONEY,
+)

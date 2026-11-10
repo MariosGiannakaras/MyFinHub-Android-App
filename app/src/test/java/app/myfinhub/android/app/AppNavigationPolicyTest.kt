@@ -8,24 +8,26 @@ import org.junit.Test
 
 class AppNavigationPolicyTest {
     @Test
-    fun topLevelContract_hasFiveOwnerApprovedDestinations() {
+    fun mobileCompanion_hasOnlyThreeVisiblePrimaryDestinations() {
         assertEquals(
             listOf(
                 TopLevelDestination.HOME,
                 TopLevelDestination.ACTIVITY,
                 TopLevelDestination.MONEY,
-                TopLevelDestination.PLAN,
-                TopLevelDestination.INSIGHTS,
             ),
-            TopLevelDestination.entries,
+            primaryMobileDestinations,
         )
+        assertFalse(primaryMobileDestinations.contains(TopLevelDestination.PLAN))
+        assertFalse(primaryMobileDestinations.contains(TopLevelDestination.INSIGHTS))
+        // Historical enum identities are retained for restored installed state.
+        assertEquals(5, TopLevelDestination.entries.size)
     }
 
     @Test
     fun insights_isIndependentReportsRoot() {
         assertEquals(TopLevelDestination.INSIGHTS, AppRoute.Insights.topLevelDestination)
         assertEquals(TopLevelDestination.ACTIVITY, AppRoute.Activity.topLevelDestination)
-        assertTrue(AppRoute.Insights.showsGlobalNavigation)
+        assertFalse(AppRoute.Insights.showsGlobalNavigation)
     }
 
     @Test
@@ -33,10 +35,15 @@ class AppNavigationPolicyTest {
         listOf(
             AppRoute.Home,
             AppRoute.Activity,
-            AppRoute.Insights,
             AppRoute.Money,
-            AppRoute.Plan,
         ).forEach { route -> assertTrue("$route should show global navigation", route.showsGlobalNavigation) }
+
+        // Legacy roots have stable destination identities for restored state,
+        // but they no longer render the primary navigation bar.
+        assertEquals(TopLevelDestination.PLAN, AppRoute.Plan.topLevelDestination)
+        assertEquals(TopLevelDestination.INSIGHTS, AppRoute.Insights.topLevelDestination)
+        assertFalse(AppRoute.Plan.showsGlobalNavigation)
+        assertFalse(AppRoute.Insights.showsGlobalNavigation)
 
         listOf(
             AppRoute.Settings,

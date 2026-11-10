@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-11-09",
+  "updated_at": "2026-11-10",
   "overall_progress": {
     "completed": 6,
     "total": 6
@@ -12,10 +12,10 @@
     "issue": 155,
     "title": "Reconcile Android finance contracts and restore web-parity Home and cards",
     "status": "in_progress",
-    "summary": "Merged PR #444 accepted the owner-approved native Android W1–W5 software journeys on develop 908df4620141cd9ae7de9690314462c6bca7c9ff, Project Tracking + Android CI green. W6.2 visual/Compose checkpoint #445 now synchronizes 26 public screenshot paths with their current official rendered golden files plus adds Reports light/dark/large-type, verifies all 29 byte-identically in Project Tracking, and records the inspected phone-size/light/dark/large-type UI evidence; exact-head CI and merge pending. Proposed Web parity 5/6 implementations · 23/24 subtasks. Only W6.4 owner physical S24 acceptance/release isolation remains; deploy stays 6/8 (D7/D8 pending), installed rc12 is older than merged product code. No new production build, real financial writes, signing or backend changes.",
+    "summary": "Owner-approved three-tab Android companion remains in draft PR #448. Preserve the three Web-style primary Home account cards with real trend curves, 30-day changes, IBAN/context, savings goal and per-account actions; other accounts stay compact. Settings is Android-native; Web-only finance administration remains hidden. 2026-11-10: screenshot renderer generated and visually reviewed the active Home, Activity, Cards, card details, Quick Entry and Settings in light/dark/150% font; one-time scoped workflow committed 29 changed official golden PNGs and 15 public screenshot mirrors at 6e5ebd413f3e46812292d2803666971feaf639d2, then was removed. Kotlin+unit/lint Android CI passed at previous head 235d1a60. Prior emulator run included obsolete navigation/settings expectations and emulator touch/device issues; narrow test repairs are authored, exact final-head mandatory gates are pending. No merge or device acceptance/release claimed; deployment stays 6/8.",
     "next": [
-      "Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.",
-      "W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either."
+      "Run and inspect exact-head Project Tracking, Android CI and Android UI Quality after approved PNG baseline commit; the screenshot gate must validate the committed real PNGs with no automatic reapproval and all hosted instrumentation shards must pass. Repair any remaining concrete emulator/test failures, preserving three-tab UI and all account-chart visual parity.",
+      "With all exact-head checks green, clean review and screenshot evidence, integrate draft PR #448 only after accepted product verification. D7 requires separately authorized same-signer in-place S24 Ultra functional acceptance; D8 is separate protected production release. No hosted result substitutes for D7."
     ]
   },
   "latest_production_candidate": {
@@ -634,15 +634,15 @@
   ],
   "reconciliation_workstream": {
     "issue": 155,
-    "branch": "android/w62-official-compose-visual-reference-20261109",
-    "checkpoint": "PR #444 source 5ca9cec6de3284cc423b9ff3bc13f475d6beef9c Project Tracking and Android CI passed and squash merged develop 908df4620141cd9ae7de9690314462c6bca7c9ff. W3–W5 accepted. PR #445 refreshes the public screenshot guide as 29 exact byte-mirrors of official Compose golden files, adds Reports views, visually reviews core phone-size/light/dark/large-type surfaces and enforces future mirror integrity; final CI/merge pending. W6.2 proposed completed: Web parity 5/6 · 23/24. Only W6.4 owner S24/release gate open.",
+    "branch": "android/physical-ui-audit-batch-20261110",
+    "checkpoint": "Owner-approved three-tab Android UI correction PR #448. Actual new Compose phone screenshots inspected in chat; one-time constrained CI sync at 6e5ebd413f3e46812292d2803666971feaf639d2 committed 29 updated official renderer PNGs and 15 approved exact-byte public mirrors. Temporary sync workflow was then deleted, restoring mandatory immutable acceptance jobs. Other production differences remain under exact-head CI and emulator validation; 5/6 parity implementations, 23/24 accepted Web subtasks and D7/D8 milestones unchanged.",
     "status": "in_progress",
     "owner_decisions": [
       "Home leading total includes only semantic daily cash and payroll; excludes reserves, savings, other banks and other available balances",
-      "Three web-semantic primary accounts each have a chart, followed by simple secondary account rows",
-      "Cards and credit use one web-parity PaymentCard identity and integrated credit workspace",
+      "Latest explicit owner clarification (2026-11-10): Home Cash, Payroll and Savings primary cards must retain the Web Dashboard presentation and content — real history graphs, 30-day delta, account IBAN/context, savings comparison/target, account-specific Quick Entry/Transfer and Transactions. Only secondary accounts are compact rows. Never flatten primary account cards to amounts only.",
+      "Cards use a compact credit/debit stack with debt glance, purchase/payment Quick Entry and accessible secure details; hide Web-only card creation, archive, statements, APR and finance administration in primary Android journey.",
       "Use consolidated reviewable implementation batches (code, tests, UI, tracker together) and fewer but full exact-head CI checkpoints; no per-file CI pushes, never weaken finance/security validation.",
-      "27 Oct mobile scope: five roots Home/Activity/Cards/Plan/Reports; Home account-only; combined debit-credit card stack uses uploaded HTML appearance and vertical restack with inline credit movement history; phone-only Settings. docs/ANDROID_OWNER_MOBILE_SCOPE_2026-10-27.md."
+      "10 Nov mobile scope supersedes former five roots: three visible tabs Home/Activity/Cards, secondary native Android Settings (appearance, privacy, notifications, version/update, permissions, logout); all detailed analytics/planning, taxonomy and financial administration remain Web-owned. docs/ADR-0002-mobile-top-level-navigation.md."
     ],
     "stages": [
       {
@@ -1224,9 +1224,9 @@
         ]
       }
     ],
-    "next_action": "Validate exact-head Project Tracking/Android CI and visual mirror byte-consistency on PR #445, then squash merge with stable base/clean review. W6.4 and D7 require real owner device and separately authorized same-signer publication; D8 final protected release remains gated. No additional generic UI-hardening PRs absent a specific defect.",
+    "next_action": "Verify exact current-head four mandatory PR gates against newly committed screenshot goldens (no automatic updates); repair targeted device-test failures and review all real screenshot changes. Merge only after protected checks and owner-ready UI acceptance, with D7 physical S24 and D8 signed distribution separate.",
     "plan_doc": "docs/WEB_ANDROID_RECONCILIATION_PLAN.md",
-    "pr": 445,
+    "pr": 448,
     "current_subtask": "W6.4",
     "completion_rule": "Only evidence-backed merged-to-develop subtasks may be completed. Unmerged/untested sources remain in_progress. A phase is complete only when all four subtasks are complete. Derived counters are never manually edited."
   },

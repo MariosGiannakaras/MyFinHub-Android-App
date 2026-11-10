@@ -18,10 +18,12 @@ class NativePlanInsightsJourneyComposeTest {
 
     @Test fun nativePlanForecastAndBudgetAreReachableFromSamePhoneTab() {
         rule.setContent { MyFinHubTheme {
-            MyFinHubAppContent(homeState = syntheticHomeUiState(), onHomeAction = {},
-                planState = syntheticPlanUiState())
+            MyFinHubAppContent(
+                homeState = syntheticHomeUiState(), onHomeAction = {},
+                planState = syntheticPlanUiState(),
+                legacyTestInitialDestination = TopLevelDestination.PLAN,
+            )
         } }
-        rule.onNodeWithContentDescription("Πλάνο", useUnmergedTree = true).performClick()
         rule.onNodeWithTag("s7_plan_root")
             .performScrollToNode(hasTestTag("s7_forecast_link"))
         rule.onNodeWithTag("s7_forecast_link").performClick()
@@ -32,7 +34,19 @@ class NativePlanInsightsJourneyComposeTest {
         rule.onNodeWithTag("s7_budget_link").performClick()
         rule.onNodeWithTag("s7_budget_root").assertExists()
         rule.onNodeWithContentDescription("Πίσω").performClick()
-        rule.onNodeWithContentDescription("Αναφορές", useUnmergedTree = true).performClick()
+    }
+
+    @Test fun retainedInsightsStillRendersWithoutPrimaryReportsTab() {
+        rule.setContent { MyFinHubTheme {
+            MyFinHubAppContent(
+                homeState = syntheticHomeUiState(),
+                onHomeAction = {},
+                legacyTestInitialDestination = TopLevelDestination.INSIGHTS,
+            )
+        } }
         rule.onNodeWithTag("insights_list").assertExists()
+        org.junit.Assert.assertFalse(
+            primaryMobileDestinations.contains(TopLevelDestination.INSIGHTS),
+        )
     }
 }

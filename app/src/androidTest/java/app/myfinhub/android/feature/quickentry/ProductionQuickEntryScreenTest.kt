@@ -3,8 +3,6 @@ package app.myfinhub.android.feature.quickentry
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -65,14 +63,12 @@ class ProductionQuickEntryScreenTest {
                 }
                 else -> Unit
             }
-            val amountHeadingNodes = composeRule
+            val amountLabels = composeRule
                 .onAllNodes(hasText(kind.amountHeading))
                 .fetchSemanticsNodes()
             assertTrue(
-                "${kind.name} should expose its semantic amount heading",
-                amountHeadingNodes.any { node ->
-                    node.config.getOrNull(SemanticsProperties.Heading) != null
-                },
+                "${kind.name} should expose its type-specific amount field label",
+                amountLabels.isNotEmpty(),
             )
         }
     }

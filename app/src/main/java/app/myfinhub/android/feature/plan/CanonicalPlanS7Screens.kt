@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import app.myfinhub.android.designsystem.FinanceTone
 import app.myfinhub.android.designsystem.MyFinHubActionCard
 import app.myfinhub.android.designsystem.MyFinHubAmountText
@@ -143,6 +144,8 @@ fun CanonicalPlan2026Screen(
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     val urgent = planUrgentObligations(state)
+    val overdue = urgent.filter { it.urgency == PlannedUrgency.OVERDUE }
+    val dueSoon = urgent.filter { it.urgency == PlannedUrgency.THIS_WEEK }
     val remaining = planRemainingItems(state)
 
     Scaffold(
@@ -163,17 +166,32 @@ fun CanonicalPlan2026Screen(
             ),
             verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.md),
         ) {
-            if (urgent.isNotEmpty()) {
-                item("urgent-heading") {
+            if (overdue.isNotEmpty()) {
+                item("overdue-heading") {
                     MyFinHubSectionHeading(
-                        title = "Πρώτα",
-                        subtitle = "Καθυστερημένες και κοντινές υποχρεώσεις",
+                        title = "Ληξιπρόθεσμες υποχρεώσεις",
+                        subtitle = "${overdue.size} εκκρεμείς · προηγούνται των επόμενων πληρωμών",
                         icon = MyFinHubIcons.Attention,
                         tone = FinanceTone.Expense,
                     )
                 }
-                itemsIndexed(urgent, key = { index, item ->
-                    "urgent-${plannedItemSourceKey(item)}-row-$index"
+                itemsIndexed(overdue, key = { index, item ->
+                    "urgent-${plannedItemSourceKey(item)}-overdue-$index"
+                }) { _, item ->
+                    PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
+                }
+            }
+            if (dueSoon.isNotEmpty()) {
+                item("due-soon-heading") {
+                    MyFinHubSectionHeading(
+                        title = "Επόμενες 7 ημέρες",
+                        subtitle = "${dueSoon.size} προσεχείς υποχρεώσεις",
+                        icon = MyFinHubIcons.Plan,
+                        tone = FinanceTone.Neutral,
+                    )
+                }
+                itemsIndexed(dueSoon, key = { index, item ->
+                    "urgent-${plannedItemSourceKey(item)}-soon-$index"
                 }) { _, item ->
                     PlanS7Row(item = item, amountsVisible = amountsVisible, glyphOverrides = state.categoryGlyphOverrides)
                 }
@@ -376,11 +394,20 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                 )
             }
-            LinearProgressIndicator(
-                progress = { progress.progress },
-                modifier = Modifier.fillMaxWidth(),
-                color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-            )
+            // Material3 draws a stop-dot even at 0%, which looked like full progress.
+            if (progress.progress <= 0f) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = 4.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                )
+            } else {
+                LinearProgressIndicator(
+                    progress = { progress.progress },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                )
+            }
             Text(
                 if (progress.remaining >= 0.0) "Υπόλοιπο προϋπολογισμού" else "Υπέρβαση προϋπολογισμού",
                 style = MaterialTheme.typography.bodySmall,
@@ -1279,11 +1306,19 @@ fun CanonicalBudget2026Screen(
                                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                                 )
                             }
-                            LinearProgressIndicator(
-                                progress = { progress.progress },
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                            )
+                            if (progress.progress <= 0f) {
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    thickness = 4.dp,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                            } else {
+                                LinearProgressIndicator(
+                                    progress = { progress.progress },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                                )
+                            }
                             Text(
                                 "${progress.percent}% του ορίου",
                                 style = MaterialTheme.typography.bodySmall,

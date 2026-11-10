@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,23 @@ import app.myfinhub.android.designsystem.MyFinHubSectionCard
 import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.feature.utilities.rememberAmountVisibilityPreference
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.text.NumberFormat
+
+/** Display only: no changes to canonical rate precision or payment calculations. */
+internal fun formatGreekCreditRate(raw: String): String {
+    val rate = raw.toDoubleOrNull()
+    if (rate == null || !rate.isFinite()) return "Μη έγκυρο επιτόκιο"
+    return NumberFormat.getNumberInstance(Locale.forLanguageTag("el-GR")).apply {
+        minimumFractionDigits = 0
+        maximumFractionDigits = 2
+    }.format(rate) + "%"
+}
+
+internal fun formatGreekCreditDate(iso: String): String = runCatching {
+    LocalDate.parse(iso).format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("el-GR")))
+}.getOrDefault(iso)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,6 +95,7 @@ fun CanonicalCardDetailScreen(
     amountsVisibleOverride: Boolean? = null,
     fullActivityIdCounts: Map<String, Int>? = null,
     fullStatementIdCounts: Map<String, Int>? = null,
+    companionMode: Boolean = false,
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
@@ -86,6 +105,7 @@ fun CanonicalCardDetailScreen(
     var editProfileOpen by remember(cardId) { mutableStateOf(false) }
     var billingEditorOpen by remember(cardId) { mutableStateOf(false) }
     var rateEditorOpen by remember(cardId) { mutableStateOf(false) }
+    var creditToolsExpanded by rememberSaveable(cardId) { mutableStateOf(false) }
     val provider = card?.let { financialProviderForCard(it.bankId, it.nickname) }
     val ownerCatalog = LocalFinancialProviderCatalog.current
     val surfaceTone = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) "dark" else "light"
@@ -200,12 +220,32 @@ fun CanonicalCardDetailScreen(
                             enabled = (creditFinancial?.outstanding ?: 0.0) > 0.005,
                             icon = null,
                         )
+                        if ((creditFinancial?.outstanding ?: 0.0) <= 0.005) {
+                            Text(
+                                if (creditFinancial?.outstanding == null)
+                                    "Η οφειλή δεν είναι διαθέσιμη."
+                                else
+                                    "Δεν υπάρχει οφειλή προς εξόφληση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("card_detail_payment_unavailable_reason"),
+                            )
+                        }
                         OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
                             Text("Καταχώριση αγοράς")
                         }
                     }
                 }
 
+                if (!companionMode) {
+                TextButton(
+                    onClick = { creditToolsExpanded = !creditToolsExpanded },
+                    modifier = Modifier.fillMaxWidth().testTag("card_credit_tools_toggle"),
+                ) {
+                    Text(if (creditToolsExpanded) "Απόκρυψη όρων και προσομοίωσης"
+                         else "Όροι και προσομοίωση αποπληρωμής")
+                }
+                if (creditToolsExpanded) {
                 if (onSaveCreditBillingSettings != null || onAddCreditRateVersion != null) {
                     MyFinHubSectionCard(
                         modifier = Modifier.fillMaxWidth()
@@ -223,8 +263,8 @@ fun CanonicalCardDetailScreen(
                                 when (currentRate) {
                                     is CreditRateSelection.Selected ->
                                         "Ονομαστικό ετήσιο επιτόκιο: " +
-                                            currentRate.record.annualPercent + "% · από " +
-                                            currentRate.record.effectiveFrom
+                                            formatGreekCreditRate(currentRate.record.annualPercent.toString()) + " · από " +
+                                            formatGreekCreditDate(currentRate.record.effectiveFrom)
                                     CreditRateSelection.Missing -> "Ονομαστικό ετήσιο επιτόκιο: άγνωστο"
                                     CreditRateSelection.Invalid -> "Ονομαστικό ετήσιο επιτόκιο: μη έγκυρη τιμή"
                                 },
@@ -269,6 +309,7 @@ fun CanonicalCardDetailScreen(
                     card = card,
                     amountsVisible = amountsVisible,
                 )
+                }
                 CanonicalCardStatementHistorySection(
                     card = card,
                     statements = statements,
@@ -278,6 +319,7 @@ fun CanonicalCardDetailScreen(
                     fullActivityIdCounts = fullActivityIdCounts,
                     fullStatementIdCounts = fullStatementIdCounts,
                 )
+                }
                 CardActivitySection(
                     card = card,
                     amountsVisible = amountsVisible,
@@ -290,7 +332,7 @@ fun CanonicalCardDetailScreen(
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    Text("Διαχείριση κάρτας", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(if (companionMode) "Στοιχεία κάρτας" else "Διαχείριση κάρτας", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     OutlinedButton(
                         onClick = { onOpenSecureDetails(card.id) },
                         modifier = Modifier.fillMaxWidth().testTag("card_secure_details"),
@@ -300,15 +342,15 @@ fun CanonicalCardDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (onSaveCardProfile != null) {
+                    if (!companionMode && onSaveCardProfile != null) {
                         OutlinedButton(
                             onClick = { editProfileOpen = true },
                             enabled = !profileMutationBlocked,
                             modifier = Modifier.fillMaxWidth().testTag("card_edit_profile"),
                         ) { Text("Επεξεργασία προφίλ κάρτας") }
                     }
-                    MyFinHubDestructiveTextAction(
-                        label = "Αρχειοθέτηση κάρτας",
+                    if (!companionMode) MyFinHubDestructiveTextAction(
+                        label = "Αφαίρεση από το MyFinHub",
                         onClick = { removeDialogOpen = true },
                     )
                 }
@@ -328,7 +370,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
+    if (!companionMode && billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
         CanonicalCreditBillingSettingsEditor(
             card = card,
             mutationBlocked = profileMutationBlocked,
@@ -339,7 +381,7 @@ fun CanonicalCardDetailScreen(
             },
         )
     }
-    if (rateEditorOpen && card != null && onAddCreditRateVersion != null) {
+    if (!companionMode && rateEditorOpen && card != null && onAddCreditRateVersion != null) {
         CanonicalCreditRateVersionEditor(
             card = card,
             mutationBlocked = profileMutationBlocked,
@@ -352,7 +394,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (editProfileOpen && card != null && onSaveCardProfile != null) {
+    if (!companionMode && editProfileOpen && card != null && onSaveCardProfile != null) {
         CanonicalCardProfileEditor(
             card = card,
             providerOptions = cardProviderOptions,
@@ -365,7 +407,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (removeDialogOpen && card != null) {
+    if (!companionMode && removeDialogOpen && card != null) {
         AlertDialog(
             onDismissRequest = { removeDialogOpen = false },
             title = { Text("Αρχειοθέτηση στο MyFinHub;") },

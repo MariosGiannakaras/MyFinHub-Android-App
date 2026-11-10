@@ -1,16 +1,20 @@
 package app.myfinhub.android.feature.home
 
 import android.content.Context
+import app.myfinhub.android.core.ui.AccountIbanRow
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Path
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,10 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.ui.financialProviderForAccount
-import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,16 +72,17 @@ fun ProductionHomeScreen(
     state: HomeUiState,
     @Suppress("UNUSED_PARAMETER") onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpenSettings: () -> Unit = {},
     onOpenQuickEntry: () -> Unit,
     onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)? = null,
     onAccountTransactions: ((String) -> Unit)? = null,
     onOpenAccount: (String) -> Unit = {},
-    onOpenAllAccounts: () -> Unit = {},
-    @Suppress("UNUSED_PARAMETER") onOpenRecent: (String) -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") onOpenAllAccounts: () -> Unit = {},
+    onOpenRecent: (String) -> Unit = {},
     amountsVisibleOverride: Boolean? = null,
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
+    canOpenRecent: (String) -> Boolean = { true },
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -120,7 +121,8 @@ fun ProductionHomeScreen(
                     }
                     IconButton(
                         onClick = onOpenSettings,
-                        modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget),
+                        modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("home_settings"),
                     ) {
                         Icon(
                             imageVector = MyFinHubIcons.Settings,
@@ -163,21 +165,28 @@ fun ProductionHomeScreen(
                     onAccountTransactions = onAccountTransactions,
                 )
             }
+            if (state.attentionItems.isNotEmpty()) {
+                item(key = "home-attention") {
+                    HomeAttentionSection(items = state.attentionItems.take(2), onOpen = onOpenAttention)
+                }
+            }
+            if (state.recentItems.isNotEmpty()) {
+                item(key = "home-recent") {
+                    HomeRecentSection(
+                        items = state.recentItems.take(4),
+                        amountsVisible = amountsVisible,
+                        onOpen = onOpenRecent,
+                        canOpen = canOpenRecent,
+                    )
+                }
+            }
             if (secondaryAccounts.isNotEmpty()) {
                 item {
                     HomeSecondaryAccountsSection(
                         accounts = secondaryAccounts,
                         amountsVisible = amountsVisible,
                         onOpenAccount = onOpenAccount,
-                        onOpenAllAccounts = onOpenAllAccounts,
                     )
-                }
-            } else {
-                item {
-                    TextButton(
-                        onClick = onOpenAllAccounts,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Όλοι οι λογαριασμοί") }
                 }
             }
         }
@@ -207,7 +216,7 @@ private fun HomeAvailableSummary(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Μόνο καθημερινά μετρητά και λογαριασμός μισθοδοσίας · χωρίς καβάτζα, αποταμίευση ή άλλες τράπεζες",
+                text = "Μετρητά και μισθοδοσία",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -217,11 +226,79 @@ private fun HomeAvailableSummary(
             tone = if (amount >= 0.0) FinanceTone.Income else FinanceTone.Expense,
             style = MaterialTheme.typography.displaySmall,
         )
+        if (amountsVisible && amount.isFinite() && amount < 0.0) {
+            Text(
+                "Το άθροισμα των καθημερινών υπολοίπων είναι αρνητικό.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         MyFinHubPrimaryAction(
             label = "Νέα κίνηση",
             onClick = onOpenQuickEntry,
             modifier = Modifier.fillMaxWidth().testTag("home_global_quick_entry"),
         )
+    }
+}
+
+@Composable
+private fun HomeRecentSection(
+    items: List<HomeRecentItem>,
+    amountsVisible: Boolean,
+    onOpen: (String) -> Unit,
+    canOpen: (String) -> Boolean,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
+        Text(
+            "Πρόσφατες κινήσεις",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+        MyFinHubSectionCard(
+            modifier = Modifier.fillMaxWidth().testTag("home_recent_summary"),
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Column {
+                items.forEachIndexed { index, item ->
+                    Surface(
+                        onClick = { onOpen(item.id) },
+                        enabled = canOpen(item.id),
+                        modifier = Modifier.fillMaxWidth()
+                            .testTag("home_recent_${item.id}"),
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(
+                                horizontal = MyFinHubDesignMetrics.rowHorizontalPadding,
+                                vertical = MyFinHubDesignMetrics.rowVerticalPadding,
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(item.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+                                Text(
+                                    item.dateLabel,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            MyFinHubAmountText(
+                                text = if (amountsVisible) formatHomeEuro(item.amount) else "•••• €",
+                                tone = when (item.tone) {
+                                    HomeRecentTone.INCOME -> FinanceTone.Income
+                                    HomeRecentTone.EXPENSE -> FinanceTone.Expense
+                                    HomeRecentTone.TRANSFER -> FinanceTone.Transfer
+                                },
+                            )
+                        }
+                    }
+                    if (index != items.lastIndex) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -580,7 +657,6 @@ private fun HomeSecondaryAccountsSection(
     accounts: List<HomeAccount>,
     amountsVisible: Boolean,
     onOpenAccount: (String) -> Unit,
-    onOpenAllAccounts: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text("Λοιποί λογαριασμοί", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -593,9 +669,6 @@ private fun HomeSecondaryAccountsSection(
                     }
                 }
             }
-        }
-        TextButton(onClick = onOpenAllAccounts, modifier = Modifier.align(Alignment.End)) {
-            Text("Όλοι οι λογαριασμοί")
         }
     }
 }

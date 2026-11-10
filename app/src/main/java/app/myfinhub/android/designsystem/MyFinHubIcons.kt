@@ -21,6 +21,7 @@ object MyFinHubIcons {
     val Add by lazy { icon("MyFinHubAdd") { strokePath { moveTo(12f, 5f); lineTo(12f, 19f); moveTo(5f, 12f); lineTo(19f, 12f) } } }
     val Back by lazy { icon("MyFinHubBack", autoMirror = true) { strokePath { moveTo(19f, 12f); lineTo(5f, 12f); moveTo(11f, 6f); lineTo(5f, 12f); lineTo(11f, 18f) } } }
     val Search by lazy { icon("MyFinHubSearch") { strokePath { circle(10.5f, 10.5f, 5.5f); moveTo(14.5f, 14.5f); lineTo(20f, 20f) } } }
+    val ChevronDown by lazy { icon("MyFinHubChevronDown") { strokePath { moveTo(6f, 9f); lineTo(12f, 15f); lineTo(18f, 9f) } } }
     val Visibility by lazy {
         icon("MyFinHubVisibility") { strokePath {
             moveTo(3f, 12f); curveTo(6.5f, 6.8f, 17.5f, 6.8f, 21f, 12f)

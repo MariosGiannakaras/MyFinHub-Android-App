@@ -79,13 +79,9 @@ private fun WalletCardsFixture(darkTheme: Boolean) {
     MyFinHubTheme(darkTheme = darkTheme) {
         CanonicalWalletScreen(
             state = syntheticMoneyUiState(),
-            initiallyShowCards = true,
-            cardSecretState = CardSecretUiState.Revealed(
-                cardId = "card-1",
-                pan = "4242424242424242",
-                expiry = "12/30",
-                cvv = "418",
-            ),
+            cardsOnly = true,
+            companionMode = true,
+            cardSecretState = CardSecretUiState.Hidden(),
             onOpenAccount = {},
             onOpenNetPosition = {},
             onOpenCard = {},

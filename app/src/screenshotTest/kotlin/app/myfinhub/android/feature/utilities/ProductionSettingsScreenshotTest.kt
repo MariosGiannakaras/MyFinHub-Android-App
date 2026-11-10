@@ -17,7 +17,7 @@ import app.myfinhub.android.designsystem.MyFinHubSpacing
 import app.myfinhub.android.designsystem.MyFinHubTheme
 import com.android.tools.screenshot.PreviewTest
 
-// These production previews are the canonical Settings/update acceptance surfaces for the S24 workstream.
+// Capture the active Android-only Settings screen; Web financial administration is not a mobile route.
 @PreviewTest
 @Preview(name = "production_settings_compact_light", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
@@ -122,11 +122,8 @@ private fun ProductionSettingsFixture(darkTheme: Boolean) {
                 state = UpdateUiState.Available(updateRelease()),
             ),
         ) {
-            ProductionSettingsScreen(
-                state = FrontendUtilitiesUiState(),
-                onAction = {},
+            MobileDeviceSettingsScreen(
                 onBack = {},
-                diagnostics = null,
                 onLogout = {},
             )
         }

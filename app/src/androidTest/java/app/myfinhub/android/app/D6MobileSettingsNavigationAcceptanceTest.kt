@@ -29,7 +29,7 @@ class D6MobileSettingsNavigationAcceptanceTest {
         }
 
         compose.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed().performClick()
-        compose.onNodeWithText("Ρυθμίσεις συσκευής").assertIsDisplayed()
+        compose.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
         compose.onNodeWithText("Εμφάνιση ποσών").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Αποσύνδεση από αυτή τη συσκευή")
             .performScrollTo().assertIsDisplayed().performClick()
