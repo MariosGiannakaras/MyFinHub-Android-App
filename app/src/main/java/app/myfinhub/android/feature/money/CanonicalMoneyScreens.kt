@@ -256,10 +256,20 @@ fun CanonicalMoneyScreen(
                         }
                     }
                     if (goal != null && goal > 0.0) {
-                        if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
-                            progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) {
+                            if (state.savingsCurrent <= 0.0) {
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    thickness = 4.dp,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                            } else {
+                                LinearProgressIndicator(
+                                    progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
                     } else {
                         Text(
                             "Δεν έχει οριστεί στόχος αποταμίευσης.",
@@ -499,10 +509,20 @@ fun CanonicalSavingsScreen(
                         )
                         val goal = state.savingsGoal
                         if (goal != null && goal > 0.0 && state.savingsGoalItems.isEmpty()) {
-                            if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) LinearProgressIndicator(
-                                progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            if (amountsVisible && goal.isFinite() && state.savingsCurrent.isFinite()) {
+                                if (state.savingsCurrent <= 0.0) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        thickness = 4.dp,
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                    )
+                                } else {
+                                    LinearProgressIndicator(
+                                        progress = { (state.savingsCurrent / goal).coerceIn(0.0, 1.0).toFloat() },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                            }
                             Text(
                                 "Στόχος ${amountVisibilityText(formatCanonicalEuro(goal), amountsVisible)}",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
