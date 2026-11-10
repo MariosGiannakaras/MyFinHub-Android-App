@@ -1,16 +1,12 @@
 package app.myfinhub.android.feature.home
 
 import android.content.Context
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,10 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +36,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.myfinhub.android.core.ui.financialProviderForAccount
-import app.myfinhub.android.core.ui.AccountIbanRow
 import app.myfinhub.android.core.network.AccountMetadataRecord
 import app.myfinhub.android.core.ui.FinancialProvider
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -491,112 +483,6 @@ private fun HomePrimaryAccountCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HomeAccountTrendChart(account: HomeAccount, modifier: Modifier = Modifier) {
-    val mainColor = when (account.primaryRole) {
-        HomePrimaryRole.CASH -> Color(0xFF31C77B)
-        HomePrimaryRole.PAYROLL -> Color(0xFFA15CFF)
-        HomePrimaryRole.SAVINGS, null -> Color(0xFF2463F4)
-    }
-    val comparisonColor = Color(0xFFA9C5FF)
-    val values = account.balanceTrend
-    val comparison = account.previousMonthTrend
-    val rawTarget = account.savingsTarget
-    Canvas(
-        modifier = modifier.height(60.dp)
-            .testTag("home_account_history_${account.id}")
-            .semantics { contentDescription = "Εξέλιξη υπολοίπου ${account.name}" },
-    ) {
-        val current = if (values.size > 1) values else listOf(values.firstOrNull() ?: account.balance,
-            values.firstOrNull() ?: account.balance)
-        val original = current + comparison
-        val low = original.minOrNull() ?: 0.0
-        val high = original.maxOrNull() ?: 0.0
-        val observedSpan = maxOf(1.0, high - low)
-        val allowance = maxOf(observedSpan * 2.5, maxOf(kotlin.math.abs(low), kotlin.math.abs(high), 1.0) * .08)
-        val target = rawTarget?.takeIf { it.isFinite() && it >= low - allowance && it <= high + allowance }
-        val all = original + listOfNotNull(target)
-        val rawMin = all.minOrNull() ?: 0.0
-        val rawMax = all.maxOrNull() ?: 0.0
-        val rawSpan = maxOf(1.0, rawMax - rawMin)
-        val minimum = rawMin - rawSpan * .07
-        val maximum = rawMax + rawSpan * .07
-        val span = maxOf(1.0, maximum - minimum)
-        val horizontalPad = 3.dp.toPx()
-        val verticalPad = 3.dp.toPx()
-        val availableWidth = (size.width - 2 * horizontalPad).coerceAtLeast(1f)
-        val availableHeight = (size.height - 2 * verticalPad).coerceAtLeast(1f)
-        fun x(index: Int): Float =
-            horizontalPad + availableWidth * index / current.lastIndex
-        fun y(value: Double): Float =
-            verticalPad + ((maximum - value) / span * availableHeight).toFloat()
-        val boundary = account.monthBoundaryIndex.coerceIn(0, current.lastIndex)
-        val boundaryX = x(boundary)
-        // The three selected-month guides and the month-boundary curtain
-        // are read-only chart geometry, not additional canonical data.
-        if (boundary > 0 && boundaryX > horizontalPad + 1f) {
-            drawLine(comparisonColor.copy(alpha = .38f),
-                androidx.compose.ui.geometry.Offset(boundaryX, 0f),
-                androidx.compose.ui.geometry.Offset(boundaryX, size.height), 1.dp.toPx())
-        }
-        for (fraction in listOf(.25f, .5f, .75f)) {
-            val guideX = boundaryX + (size.width - horizontalPad - boundaryX) * fraction
-            drawLine(comparisonColor.copy(alpha = .20f),
-                androidx.compose.ui.geometry.Offset(guideX, 3.dp.toPx()),
-                androidx.compose.ui.geometry.Offset(guideX, size.height - 3.dp.toPx()),
-                .8.dp.toPx())
-        }
-        val points = current.mapIndexed { index, value -> HomeCurvePoint(x(index), y(value)) }
-        fun drawCurve(first: Int, last: Int, color: Color, width: Float = 2.35f) {
-            if (last <= first) return
-            val segments = homeMonotoneSegments(points, first, last)
-            if (segments.isEmpty()) return
-            val path = Path().apply {
-                moveTo(points[first].x, points[first].y)
-                segments.forEach { segment ->
-                    cubicTo(segment.control1.x, segment.control1.y,
-                        segment.control2.x, segment.control2.y,
-                        segment.end.x, segment.end.y)
-                }
-            }
-            drawPath(path, color, style = Stroke(width = width.dp.toPx()))
-        }
-        if (comparison.size > 1) {
-            val overlay = comparison.mapIndexed { index, value ->
-                HomeCurvePoint(boundaryX + (size.width - horizontalPad - boundaryX) *
-                    index / comparison.lastIndex, y(value))
-            }
-            val path = Path().apply {
-                moveTo(overlay.first().x, overlay.first().y)
-                homeMonotoneSegments(overlay).forEach { segment ->
-                    cubicTo(segment.control1.x, segment.control1.y,
-                        segment.control2.x, segment.control2.y, segment.end.x, segment.end.y)
-                }
-            }
-            drawPath(path, comparisonColor, style = Stroke(width = 1.9.dp.toPx()))
-        }
-        target?.let {
-            drawLine(mainColor.copy(alpha = .65f),
-                androidx.compose.ui.geometry.Offset(boundaryX, y(it)),
-                androidx.compose.ui.geometry.Offset(size.width - horizontalPad, y(it)),
-                strokeWidth = 1.3.dp.toPx(),
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 5f)))
-        }
-        if (boundary > 1) drawCurve(0, boundary - 1, mainColor.copy(alpha = .55f))
-        if (boundary > 0) drawCurve(boundary - 1, boundary, mainColor.copy(alpha = .72f), 1.8f)
-        drawCurve(boundary, current.lastIndex, mainColor)
-        // Web: dots for changed selected-month closing balances only.
-        for (index in maxOf(1, boundary)..(current.lastIndex - 1)) {
-            if (kotlin.math.abs(current[index] - current[index - 1]) > .005) {
-                drawCircle(mainColor, radius = 1.35.dp.toPx(),
-                    center = androidx.compose.ui.geometry.Offset(x(index), y(current[index])))
-            }
-        }
-        drawCircle(mainColor, radius = 2.35.dp.toPx(),
-            center = androidx.compose.ui.geometry.Offset(x(current.lastIndex), y(current.last())))
     }
 }
 
