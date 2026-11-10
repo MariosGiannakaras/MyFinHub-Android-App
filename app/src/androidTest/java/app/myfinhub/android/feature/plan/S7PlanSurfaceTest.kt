@@ -48,7 +48,7 @@ class S7PlanSurfaceTest {
     @Test
     fun plan_exposesUrgencyForecastAndBudget_asDecisionHierarchy() {
         composeRule.setContent { MyFinHubTheme { CanonicalPlan2026Screen(state, {}, {}) } }
-        composeRule.onNodeWithText("Πρώτα").assertIsDisplayed()
+        composeRule.onNodeWithText("Ληξιπρόθεσμες υποχρεώσεις").assertIsDisplayed()
         composeRule.onNodeWithTag("s7_forecast_link").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("s7_budget_link").performScrollTo().assertIsDisplayed()
     }
