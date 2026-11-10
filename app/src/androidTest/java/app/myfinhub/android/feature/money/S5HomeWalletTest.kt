@@ -46,26 +46,37 @@ class S5HomeWalletTest {
     }
 
     @Test
-    fun homeOnlyShowsQuickBalanceRowsWithoutAnalyticsWhenAmountsHidden() {
+    fun homePrimaryAccounts_keepWebChartsAndSavingsTargetWhileAmountsAreHidden() {
         composeRule.setContent {
             MyFinHubTheme {
                 ProductionHomeScreen(
                     state = syntheticHomeUiState(),
                     onAction = {},
                     onOpenAttention = {},
+                    onOpenSettings = {},
                     onOpenQuickEntry = {},
                     amountsVisibleOverride = false,
                 )
             }
         }
+        // All three primary roles must retain their real Web-equivalent trends,
+        // even when numerical balances and the 30-day delta are masked.
+        listOf("cash", "piraeus-payroll", "piraeus-savings").forEach { id ->
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_history_$id"))
+            composeRule.onNodeWithTag("home_account_history_$id").assertIsDisplayed()
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_delta_$id"))
+            composeRule.onNodeWithTag("home_account_delta_$id").assertIsDisplayed()
+            composeRule.onNodeWithTag("home_list")
+                .performScrollToNode(hasTestTag("home_account_quick_entry_$id"))
+            composeRule.onNodeWithTag("home_account_quick_entry_$id").assertIsDisplayed()
+        }
         composeRule.onNodeWithTag("home_list")
-            .performScrollToNode(hasTestTag("home_account_cash"))
-        composeRule.onNodeWithTag("home_account_cash").assertIsDisplayed()
-        composeRule.onNodeWithTag("home_account_history_cash").assertDoesNotExist()
-        composeRule.onNodeWithTag("home_account_delta_cash").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription(
-            "Μετρητά, ποσό κρυφό. Προβολή κινήσεων",
-        ).assertIsDisplayed()
+            .performScrollToNode(hasText("Τρέχων μήνας · Προηγ. μήνας · Στόχος"))
+        composeRule.onNodeWithText("Τρέχων μήνας · Προηγ. μήνας · Στόχος")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Η εξέλιξη υπολοίπου είναι κρυφή").assertDoesNotExist()
     }
 
     @get:Rule
