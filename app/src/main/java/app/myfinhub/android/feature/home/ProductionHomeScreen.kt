@@ -86,6 +86,7 @@ fun ProductionHomeScreen(
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
     onLogout: (() -> Unit)? = null,
+    canOpenRecent: (String) -> Boolean = { true },
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -146,7 +147,7 @@ fun ProductionHomeScreen(
                                     text = { Text("Αποσύνδεση") },
                                     onClick = {
                                         accountMenuOpen = false
-                                        onLogout()
+                                        onLogout?.invoke()
                                     },
                                     modifier = Modifier.testTag("home_logout"),
                                 )
@@ -199,6 +200,7 @@ fun ProductionHomeScreen(
                         items = state.recentItems.take(4),
                         amountsVisible = amountsVisible,
                         onOpen = onOpenRecent,
+                        canOpen = canOpenRecent,
                     )
                 }
             }
@@ -276,6 +278,7 @@ private fun HomeRecentSection(
     items: List<HomeRecentItem>,
     amountsVisible: Boolean,
     onOpen: (String) -> Unit,
+    canOpen: (String) -> Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs)) {
         Text(
@@ -291,6 +294,7 @@ private fun HomeRecentSection(
                 items.forEachIndexed { index, item ->
                     Surface(
                         onClick = { onOpen(item.id) },
+                        enabled = canOpen(item.id),
                         modifier = Modifier.fillMaxWidth()
                             .testTag("home_recent_${item.id}"),
                         color = MaterialTheme.colorScheme.surface,
