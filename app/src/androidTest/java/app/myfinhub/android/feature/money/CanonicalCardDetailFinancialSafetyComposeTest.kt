@@ -104,7 +104,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
             )
         } }
         rule.onNodeWithText("4242424242424242", substring = true).assertDoesNotExist()
-        rule.onNodeWithText("Η Visa Credit •••• θα αφαιρεθεί.", substring = true).assertExists()
+        rule.onNodeWithText("Η Visa Credit •••• θα αφαιρεθεί από τις ενεργές κάρτες.", substring = true).assertExists()
     }
 
     @Test fun archiveDialogExplainsProtectedSecretsAreRetainedAndArchivesOnlyChosenCard() {
@@ -115,7 +115,7 @@ class CanonicalCardDetailFinancialSafetyComposeTest {
                 onRemoveCard = { archivedId = it },
             )
         } }
-        rule.onNodeWithText("Αρχειοθέτηση κάρτας").performScrollTo().performClick()
+        rule.onNodeWithText("Αφαίρεση από το MyFinHub").performScrollTo().performClick()
         rule.onNodeWithText("Η αρχειοθέτηση δεν διαγράφει τα κρυπτογραφημένα στοιχεία", substring = true)
             .assertExists()
         rule.onNodeWithText("θα χρειαστεί νέα καταχώριση", substring = true).assertDoesNotExist()
