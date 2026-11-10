@@ -73,8 +73,7 @@ class S5HomeWalletTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun compactHome_limitsAttentionAndKeepsPrimaryRoutesReachable() {
-        val openedAccounts = AtomicBoolean(false)
+    fun compactHome_limitsAttentionAndShowsAccountsWithoutAdminShortcut() {
         val thirdAttention = HomeAttentionItem(
             id = "third",
             title = "Δεν πρέπει να εμφανίζεται",
@@ -92,7 +91,6 @@ class S5HomeWalletTest {
                     onOpenAttention = {},
                     onOpenSettings = {},
                     onOpenQuickEntry = {},
-                    onOpenAllAccounts = { openedAccounts.set(true) },
                     amountsVisibleOverride = true,
                 )
             }
@@ -102,9 +100,10 @@ class S5HomeWalletTest {
         composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
-        composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
-        composeRule.onNodeWithText("Όλοι οι λογαριασμοί").performClick()
-        assertTrue(openedAccounts.get())
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasText("Λοιποί λογαριασμοί"))
+        composeRule.onNodeWithText("Λοιποί λογαριασμοί").assertIsDisplayed()
+        composeRule.onNodeWithText("Όλοι οι λογαριασμοί").assertDoesNotExist()
     }
 
     @Test
