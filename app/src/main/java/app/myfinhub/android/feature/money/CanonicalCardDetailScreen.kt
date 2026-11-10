@@ -200,6 +200,17 @@ fun CanonicalCardDetailScreen(
                             enabled = (creditFinancial?.outstanding ?: 0.0) > 0.005,
                             icon = null,
                         )
+                        if ((creditFinancial?.outstanding ?: 0.0) <= 0.005) {
+                            Text(
+                                if (creditFinancial?.outstanding == null)
+                                    "Η οφειλή δεν είναι διαθέσιμη."
+                                else
+                                    "Δεν υπάρχει οφειλή προς εξόφληση.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.testTag("card_detail_payment_unavailable_reason"),
+                            )
+                        }
                         OutlinedButton(onClick = onAddPurchase, modifier = Modifier.fillMaxWidth()) {
                             Text("Καταχώριση αγοράς")
                         }
