@@ -376,11 +376,20 @@ private fun BudgetS7LinkCard(state: PlanUiState, amountsVisible: Boolean, onClic
                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                 )
             }
-            LinearProgressIndicator(
-                progress = { progress.progress },
-                modifier = Modifier.fillMaxWidth(),
-                color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-            )
+            // Material3 draws a stop-dot even at 0%, which looked like full progress.
+            if (progress.progress <= 0f) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = 4.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                )
+            } else {
+                LinearProgressIndicator(
+                    progress = { progress.progress },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                )
+            }
             Text(
                 if (progress.remaining >= 0.0) "Υπόλοιπο προϋπολογισμού" else "Υπέρβαση προϋπολογισμού",
                 style = MaterialTheme.typography.bodySmall,
@@ -1279,11 +1288,19 @@ fun CanonicalBudget2026Screen(
                                     if (progress.remaining >= 0.0) FinanceTone.Savings else FinanceTone.Expense,
                                 )
                             }
-                            LinearProgressIndicator(
-                                progress = { progress.progress },
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                            )
+                            if (progress.progress <= 0f) {
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    thickness = 4.dp,
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                            } else {
+                                LinearProgressIndicator(
+                                    progress = { progress.progress },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = if (progress.thresholdReached) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                                )
+                            }
                             Text(
                                 "${progress.percent}% του ορίου",
                                 style = MaterialTheme.typography.bodySmall,
