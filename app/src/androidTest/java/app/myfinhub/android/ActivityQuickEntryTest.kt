@@ -49,7 +49,7 @@ class ActivityQuickEntryTest {
         composeRule.onNodeWithText("Προς λογαριασμό").assertIsDisplayed()
         composeRule.onNodeWithText(
             "Η εσωτερική μεταφορά αλλάζει υπόλοιπα, όχι έσοδα ή έξοδα.",
-        ).assertIsDisplayed()
+        ).performScrollTo().assertIsDisplayed()
     }
 
     @Test
