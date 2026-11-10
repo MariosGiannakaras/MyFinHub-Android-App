@@ -620,6 +620,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.CardDetail> { route ->
                     val card = moneyState.cards.firstOrNull { it.id == route.cardId }
                     CanonicalCardDetailScreen(
+                        companionMode = true,
                         cardId = route.cardId,
                         card = card,
                         cards = moneyState.cards,
