@@ -44,7 +44,7 @@ class TopLevelParityTest {
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
         composeRule.onNodeWithText("Πλάνο").assertDoesNotExist()
         composeRule.onNodeWithText("Αναφορές").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
 
         selectDestination("Κινήσεις")
         composeRule.onNodeWithText("Αναζήτηση κινήσεων", useUnmergedTree = true)
