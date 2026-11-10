@@ -54,6 +54,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -539,12 +540,19 @@ private fun CompactChoice(
         label = label,
         onClick = { sheetOpen = true },
         enabled = choices.isNotEmpty(),
+        modifier = Modifier.semantics {
+            contentDescription = "$label: $selectedLabel. Αλλαγή επιλογής"
+        },
     ) {
         choiceIcon?.invoke(selectedId)?.let { vector ->
             Icon(imageVector = vector, contentDescription = null, modifier = Modifier.size(20.dp))
         }
         Text(selectedLabel, modifier = Modifier.weight(1f))
-        Text("Αλλαγή", style = MaterialTheme.typography.labelMedium)
+        Icon(
+            imageVector = MyFinHubIcons.ChevronDown,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+        )
     }
 
     if (sheetOpen) {
