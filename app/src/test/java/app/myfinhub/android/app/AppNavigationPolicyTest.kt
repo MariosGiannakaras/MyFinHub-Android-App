@@ -38,10 +38,15 @@ class AppNavigationPolicyTest {
             AppRoute.Money,
         ).forEach { route -> assertTrue("$route should show global navigation", route.showsGlobalNavigation) }
 
+        // Legacy roots have stable destination identities for restored state,
+        // but they no longer render the primary navigation bar.
+        assertEquals(TopLevelDestination.PLAN, AppRoute.Plan.topLevelDestination)
+        assertEquals(TopLevelDestination.INSIGHTS, AppRoute.Insights.topLevelDestination)
+        assertFalse(AppRoute.Plan.showsGlobalNavigation)
+        assertFalse(AppRoute.Insights.showsGlobalNavigation)
+
         listOf(
             AppRoute.Settings,
-            AppRoute.Plan,
-            AppRoute.Insights,
             AppRoute.Accounts,
             AppRoute.QuickEntry,
             AppRoute.CardCreate,
