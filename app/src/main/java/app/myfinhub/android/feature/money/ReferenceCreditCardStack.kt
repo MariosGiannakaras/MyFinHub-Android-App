@@ -1023,9 +1023,9 @@ private fun ReferenceDeleteConfirmation(
             Column(modifier = Modifier.weight(1f)) {
                 Text("Αρχειοθέτηση κάρτας;", color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
-                    "Σύρε δεξιά για αρχειοθέτηση. Η κάρτα επανέρχεται, ενώ το ιστορικό και τα κρυπτογραφημένα στοιχεία διατηρούνται.",
+                    "Σύρε δεξιά για αφαίρεση από τις ενεργές κάρτες. Οι κινήσεις και οι οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
                     color = Color.White.copy(alpha = .76f),
-                    fontSize = 9.sp,
+                    fontSize = 12.sp,
                 )
             }
             ReferenceActionButton(label = "Ακύρωση", onClick = onCancel) {
