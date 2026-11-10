@@ -99,7 +99,7 @@ class S5HomeWalletTest {
 
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
         composeRule.onNodeWithTag("home_global_quick_entry").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").assertDoesNotExist()
         composeRule.onNodeWithText("Δεν πρέπει να εμφανίζεται").assertDoesNotExist()
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasText("Όλοι οι λογαριασμοί"))
         composeRule.onNodeWithText("Όλοι οι λογαριασμοί").performClick()
