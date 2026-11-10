@@ -35,7 +35,9 @@ class AccessibilitySemanticsTest {
         assertClickableNodesHaveSpokenLabels("Quick Entry")
         leaveDirtyQuickEntry()
 
-        // Device settings are intentionally not part of the mobile workflow.
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+        composeRule.waitForIdle()
+        assertClickableNodesHaveSpokenLabels("Android Settings")
     }
 
     @Test
@@ -54,6 +56,9 @@ class AccessibilitySemanticsTest {
         checkCurrentSurface()
         leaveDirtyQuickEntry()
 
+        composeRule.onNodeWithContentDescription("Ρυθμίσεις").performClick()
+        composeRule.waitForIdle()
+        checkCurrentSurface()
     }
 
     private fun openQuickEntryFromHome() {
