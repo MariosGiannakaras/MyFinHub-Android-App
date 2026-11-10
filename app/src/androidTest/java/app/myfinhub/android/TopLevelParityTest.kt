@@ -58,6 +58,10 @@ class TopLevelParityTest {
             .performScrollToNode(hasTestTag("credit_card_stack"))
         composeRule.onNodeWithTag("credit_card_card-1")
             .assertIsDisplayed().performClick()
+        // Account administration and interest simulators are Web-only in the companion.
+        composeRule.onNodeWithTag("card_credit_tools_toggle").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_edit_profile").assertDoesNotExist()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").assertDoesNotExist()
         composeRule.onNodeWithTag("card_secure_details")
             .assertIsDisplayed().performClick()
         composeRule.onNodeWithText(
