@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Complete exact-head four-gate validation of draft PR #448 after the Kotlin import, screenshot Gradle cache and tracking fixes. Inspect freshly rendered Compose PNGs for actual Home, Activity, Cards, Quick Entry and Android-only Settings, update official goldens and approved public mirrors only from reviewed real renders, and present the actual new images to the owner in chat. Never substitute earlier develop screenshots for this branch.
-- [ ] Keep draft #448 unmerged until screenshot visual review, Kotlin/instrumentation and Project Tracking checks pass on one final head. D7 still needs separately approved same-signer in-place physical Galaxy S24 Ultra acceptance; D8 is a separate protected release.
+- [ ] Run and inspect exact-head Project Tracking, Android CI and Android UI Quality after approved PNG baseline commit; the screenshot gate must validate the committed real PNGs with no automatic reapproval and all hosted instrumentation shards must pass. Repair any remaining concrete emulator/test failures, preserving three-tab UI and all account-chart visual parity.
+- [ ] With all exact-head checks green, clean review and screenshot evidence, integrate draft PR #448 only after accepted product verification. D7 requires separately authorized same-signer in-place S24 Ultra functional acceptance; D8 is separate protected production release. No hosted result substitutes for D7.
 
 ## Completed foundations
 
@@ -83,9 +83,9 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 Evidence-backed current progress, separate from historical September redesign.
 
 Issue #155, PR #448, branch android/physical-ui-audit-batch-20261110
-Current W6.4: W6.2 29 official Compose screenshot mirrors merged to develop via PR #445 ed973a31. Current owner-approved streamlined Android visual/functional correction is draft PR #448, with Home/Activity/Cards top-level, secondary native Android Settings and new real screenshot preview/gallery coverage. Initial CI failure root causes were dp import, Gradle screenshot task configuration-cache incompatibility and missing PR tracking update; fixes committed, final-head CI/screenshots pending. Remains Web parity 5/6 implementations · 23/24 subtasks; W6.4 physical D7 acceptance not claimed. Owner explicitly required all three Home primary account graphs and Web visual structure; original Web-matching primary card/chart code was restored in draft PR #448, with regression tests for all three charts under privacy masking. Fresh screenshot CI and owner visual review still required; D7/D8 unchanged.
+Current W6.4: Owner-approved three-tab Android UI correction PR #448. Actual new Compose phone screenshots inspected in chat; one-time constrained CI sync at 6e5ebd413f3e46812292d2803666971feaf639d2 committed 29 updated official renderer PNGs and 15 approved exact-byte public mirrors. Temporary sync workflow was then deleted, restoring mandatory immutable acceptance jobs. Other production differences remain under exact-head CI and emulator validation; 5/6 parity implementations, 23/24 accepted Web subtasks and D7/D8 milestones unchanged.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate PR #448 exact final head, especially new rendered active-screen screenshot artifact and four mandatory gates; correct visual goldens only after actual review. Merge only with all checks green, clean review and owner-ready UI evidence. D7 physical S24 Ultra and D8 protected release remain separate.
+Next Verify exact current-head four mandatory PR gates against newly committed screenshot goldens (no automatic updates); repair targeted device-test failures and review all real screenshot changes. Merge only after protected checks and owner-ready UI acceptance, with D7 physical S24 and D8 signed distribution separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
