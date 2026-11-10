@@ -72,7 +72,7 @@ class AccessibilitySemanticsTest {
         composeRule.onNodeWithText("Έσοδο").performClick()
         composeRule.onNodeWithContentDescription("Πίσω").performClick()
         composeRule.onNodeWithText("Απόρριψη νέας κίνησης;").assertIsDisplayed()
-        composeRule.onNodeWithText("Απόρριψη").performClick()
+        composeRule.onNodeWithText("Απόρριψη αλλαγών").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("home_list").assertIsDisplayed()
         composeRule.onNodeWithText("Διαθέσιμα τώρα").assertIsDisplayed()
