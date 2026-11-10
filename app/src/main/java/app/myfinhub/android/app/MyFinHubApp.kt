@@ -233,6 +233,13 @@ internal fun MyFinHubAppContent(
     }
 
     var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    // Older installed versions persisted the five-tab selection. Safely restore
+    // a visible primary destination while retaining finance data and route code.
+    LaunchedEffect(currentDestination) {
+        if (currentDestination !in primaryMobileDestinations) {
+            currentDestination = TopLevelDestination.HOME
+        }
+    }
     var walletAccountsRequest by rememberSaveable { mutableStateOf(0) }
     var insightsPeriodId by rememberSaveable { mutableStateOf(insightsState.defaultPeriodId) }
     var frontendUtilitiesState by remember { mutableStateOf(FrontendUtilitiesUiState()) }
@@ -293,7 +300,7 @@ internal fun MyFinHubAppContent(
                         accountMetadataLoaded = accountMetadataLoaded,
                         onAction = onHomeAction,
                         onOpenAttention = { id -> homeBackStack.pushIfNew(AppRoute.HomeAttention(id)) },
-                        onOpenSettings = { homeBackStack.pushIfNew(AppRoute.Settings) },
+                        onLogout = onLogout,
                         onOpenQuickEntry = { openFastExpense(homeBackStack) },
                         onAccountQuickEntry = { accountId, role ->
                             onQuickEntryAction(QuickEntryAction.Reset)
@@ -341,8 +348,8 @@ internal fun MyFinHubAppContent(
                                 currentDestination = TopLevelDestination.ACTIVITY
                                 activityBackStack.popToRoot()
                             } else {
-                                currentDestination = TopLevelDestination.PLAN
-                                planBackStack.popToRoot()
+                                // A contextual scheduled-item action does not need a Plan tab.
+                                homeBackStack.pushIfNew(AppRoute.PlanScheduled)
                             }
                         },
                     )
@@ -807,7 +814,7 @@ internal fun MyFinHubAppContent(
                 entry<AppRoute.PlanScheduled> {
                     CanonicalScheduledManagementScreen(
                         state = planState,
-                        onBack = { planBackStack.removeLastOrNull() },
+                        onBack = { activeBackStack.removeLastOrNull() },
                         onCreate = onCreateScheduled,
                         onComplete = onCompleteScheduled,
                         onClose = onCloseScheduled,
@@ -899,7 +906,7 @@ internal fun MyFinHubAppContent(
     if (activeRoute?.showsGlobalNavigation == true) {
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                TopLevelDestination.entries.forEach { destination ->
+                primaryMobileDestinations.forEach { destination ->
                     item(
                         selected = currentDestination == destination,
                         onClick = {
