@@ -214,6 +214,9 @@ internal fun MyFinHubAppContent(
     diagnostics: AppDiagnosticsSnapshot? = null,
     noticeHistory: List<PrivacySafeNoticeRecord> = emptyList(),
     onLogout: (() -> Unit)? = null,
+    // Internal test-only entry for exercising retained Plan/Insights routes without
+    // exposing them as mobile tabs or weakening installed-state migration.
+    legacyTestInitialDestination: TopLevelDestination? = null,
 ) {
     // Display server-owned provider names only for exact canonical provider IDs.
     // Never use a matching label as a surrogate owner ID or load an unverified URL.
@@ -232,11 +235,16 @@ internal fun MyFinHubAppContent(
         })
     }
 
-    var currentDestination by rememberSaveable { mutableStateOf(TopLevelDestination.HOME) }
+    var currentDestination by rememberSaveable {
+        mutableStateOf(legacyTestInitialDestination ?: TopLevelDestination.HOME)
+    }
     // Older installed versions persisted the five-tab selection. Safely restore
-    // a visible primary destination while retaining finance data and route code.
-    LaunchedEffect(currentDestination) {
-        if (currentDestination !in primaryMobileDestinations) {
+    // a visible primary destination. The optional internal test-only entry lets
+    // regression tests exercise hidden legacy screens without adding tabs.
+    LaunchedEffect(currentDestination, legacyTestInitialDestination) {
+        if (legacyTestInitialDestination == null &&
+            currentDestination !in primaryMobileDestinations
+        ) {
             currentDestination = TopLevelDestination.HOME
         }
     }
