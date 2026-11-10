@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -62,6 +63,32 @@ class S6CardSurfaceTest {
         bankId = "revolut",
         canonicalKind = "credit",
     )
+
+    @Test
+    fun companionCreditDetail_keepsPaymentsAndSecureCardAccessWithoutWebManagement() {
+        composeRule.setContent {
+            MyFinHubTheme {
+                CanonicalCardDetailScreen(
+                    card = credit,
+                    onBack = {},
+                    companionMode = true,
+                    onSaveCardProfile = {},
+                    onSaveCreditBillingSettings = {},
+                    onAddCreditRateVersion = {},
+                    onRemoveCard = {},
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("card_detail_payment_action").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Καταχώριση αγοράς").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("card_credit_tools_toggle").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_credit_terms").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_edit_profile").assertDoesNotExist()
+        composeRule.onNodeWithText("Αφαίρεση από το MyFinHub").assertDoesNotExist()
+        composeRule.onNodeWithText("Διαχείριση κάρτας").assertDoesNotExist()
+        composeRule.onNodeWithTag("card_secure_details").performScrollTo().assertIsDisplayed()
+    }
 
     @Test
     fun walletCards_useStackedPresentation_andRouteByStableId() {
