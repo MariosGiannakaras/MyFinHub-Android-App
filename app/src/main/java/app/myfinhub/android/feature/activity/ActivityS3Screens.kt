@@ -173,6 +173,7 @@ fun ActivityLedgerScreen(
 ) {
     val amountsVisible = rememberAmountVisibilityPreference()
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
+    var monthOverviewExpanded by rememberSaveable { mutableStateOf(false) }
     val analyticsScope = state.isAnalyticsScope
 
     Scaffold(
@@ -228,24 +229,7 @@ fun ActivityLedgerScreen(
                         }
                     }
                 }
-                state.monthOverview?.let { overview ->
-                    item(key = "monthly-overview") {
-                        ActivityMonthlyOverviewSurface(
-                            overview = overview,
-                            amountsVisible = amountsVisible,
-                            showingMonth = state.showingOverviewMonth,
-                            onToggleMonth = {
-                                onAction(
-                                    if (state.showingOverviewMonth) ActivityAction.ClearSearchAndFilters
-                                    else ActivityAction.ShowOverviewMonth,
-                                )
-                            },
-                            onNavigateMonth = { delta ->
-                                onAction(ActivityAction.NavigateOverviewMonth(delta))
-                            },
-                        )
-                    }
-                }
+
                 item(key = "search") {
                     MyFinHubSearchField(
                         value = state.query,
@@ -274,6 +258,36 @@ fun ActivityLedgerScreen(
                             ) {
                                 Text("Καθαρισμός")
                             }
+                        }
+                    }
+                }
+                // Month analysis is secondary to search and the transaction list.
+                // Keep it available without occupying the top half of a compact phone.
+                state.monthOverview?.let { overview ->
+                    item(key = "month-summary-toggle") {
+                        TextButton(
+                            onClick = { monthOverviewExpanded = !monthOverviewExpanded },
+                            modifier = Modifier.testTag("activity_month_summary_toggle"),
+                        ) {
+                            Text(if (monthOverviewExpanded) "Απόκρυψη σύνοψης μήνα" else "Σύνοψη μήνα")
+                        }
+                    }
+                    if (monthOverviewExpanded) {
+                        item(key = "monthly-overview") {
+                            ActivityMonthlyOverviewSurface(
+                                overview = overview,
+                                amountsVisible = amountsVisible,
+                                showingMonth = state.showingOverviewMonth,
+                                onToggleMonth = {
+                                    onAction(
+                                        if (state.showingOverviewMonth) ActivityAction.ClearSearchAndFilters
+                                        else ActivityAction.ShowOverviewMonth,
+                                    )
+                                },
+                                onNavigateMonth = { delta ->
+                                    onAction(ActivityAction.NavigateOverviewMonth(delta))
+                                },
+                            )
                         }
                     }
                 }
