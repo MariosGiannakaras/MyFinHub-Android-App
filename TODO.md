@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Run and inspect exact-head Project Tracking, Android CI and Android UI Quality after approved PNG baseline commit; the screenshot gate must validate the committed real PNGs with no automatic reapproval and all hosted instrumentation shards must pass. Repair any remaining concrete emulator/test failures, preserving three-tab UI and all account-chart visual parity.
-- [ ] With all exact-head checks green, clean review and screenshot evidence, integrate draft PR #448 only after accepted product verification. D7 requires separately authorized same-signer in-place S24 Ultra functional acceptance; D8 is separate protected production release. No hosted result substitutes for D7.
+- [ ] D7: prepare the post-merge same-signer S24 Ultra acceptance source from develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. The existing rc12/10011 cannot validate these changes. Do not publish, sign, install or promote a new production build without the owner's explicit authorization and all protected release gates.
+- [ ] After an explicitly authorized newer same-signer candidate is installed IN PLACE on the owner's actual Galaxy S24 Ultra (no uninstall or data clearing), record session/PIN/biometric/card-vault/offline/Quick Entry continuity and visual acceptance from the physical phone. Only then may D7 complete; D8 requires a separate authorized protected production-release promotion.
 
 ## Completed foundations
 
@@ -82,10 +82,10 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #448, branch android/physical-ui-audit-batch-20261110
-Current W6.4: Owner-approved three-tab Android UI correction PR #448. Actual new Compose phone screenshots inspected in chat; one-time constrained CI sync at 6e5ebd413f3e46812292d2803666971feaf639d2 committed 29 updated official renderer PNGs and 15 approved exact-byte public mirrors. Temporary sync workflow was then deleted, restoring mandatory immutable acceptance jobs. Other production differences remain under exact-head CI and emulator validation; 5/6 parity implementations, 23/24 accepted Web subtasks and D7/D8 milestones unchanged.
+Issue #155, PR #448, branch develop
+Current W6.4: W6.2 visual parity and Android companion UI correction integrated by merged PR #448, develop 66c0440353eacd3c239fd82eb61306ea5bf6cbb3. Exact PR head 67aeed4223b894d41bfd656669853dda86122e10 passed all four required gates: Project Tracking, Android CI, screenshot regression of 29 real Compose goldens and hosted S24 two-shard instrumentation (180 + 177 tests). Source includes three Web-matching primary Home account charts, minimal three-tab mobile UI, Quick Entry and native Android Settings. W6.4 owner physical S24 acceptance remains pending; Web parity remains 5/6 implementations and 23/24 subtasks.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Verify exact current-head four mandatory PR gates against newly committed screenshot goldens (no automatic updates); repair targeted device-test failures and review all real screenshot changes. Merge only after protected checks and owner-ready UI acceptance, with D7 physical S24 and D8 signed distribution separate.
+Next Proceed only with D7 actual Galaxy S24 Ultra in-place same-signer acceptance using a separately authorized candidate from merged develop, preserving existing installed app data and signing identity. Rc12 predates this source. D8 protected production publication is a separate owner-authorized gate; no physical check or release has been performed.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
