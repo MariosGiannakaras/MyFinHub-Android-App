@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -158,6 +159,7 @@ fun ProductionQuickEntryScreen(
         },
         bottomBar = {
             Surface(
+                modifier = Modifier.imePadding(),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = MyFinHubDesignMetrics.cardElevation,
                 shadowElevation = MyFinHubDesignMetrics.cardElevation,
@@ -217,30 +219,23 @@ fun ProductionQuickEntryScreen(
                 }
             }
 
-            TextButton(onClick = { advancedMenuOpen = true }) {
-                Text("Περισσότερα")
+            if (state.kind in FastKinds) {
+                TextButton(onClick = { advancedMenuOpen = true }) {
+                    Text("Περισσότεροι τύποι")
+                }
+            } else {
+                // A special accounting operation must remain visibly selected outside the picker.
+                FilterChip(
+                    selected = true,
+                    onClick = { advancedMenuOpen = true },
+                    label = { Text("${state.kind.label} · Αλλαγή τύπου") },
+                    modifier = Modifier.testTag("quick_entry_selected_special_kind"),
+                )
             }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.xs),
-            ) {
+            if (state.kind == QuickEntryKind.SPLIT) {
                 Text(
-                    text = "ΠΟΣΟ",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = state.kind.amountHeading,
-                    modifier = Modifier.semantics { heading() },
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                Text(
-                    text = if (state.kind == QuickEntryKind.SPLIT) {
-                        "Δήλωσε το σύνολο και μοίρασέ το ακριβώς στα επιμέρους μέρη."
-                    } else {
-                        "Τα υποχρεωτικά στοιχεία αλλάζουν ανάλογα με τον τύπο."
-                    },
+                    "Δήλωσε το σύνολο και μοίρασέ το ακριβώς στα επιμέρους μέρη.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -263,7 +258,7 @@ fun ProductionQuickEntryScreen(
                 MyFinHubOutlinedField(
                     value = state.amountText,
                     onValueChange = { onAction(QuickEntryAction.AmountChanged(it)) },
-                    label = if (state.kind == QuickEntryKind.SPLIT) "Συνολικό ποσό" else "Ποσό",
+                    label = state.kind.amountHeading,
                     suffix = { Text("€") },
                     errorMessage = state.validationMessage.takeIf {
                         it == "Βάλε ποσό μεγαλύτερο από μηδέν."
@@ -516,10 +511,10 @@ fun ProductionQuickEntryScreen(
                         onAction(QuickEntryAction.Reset)
                         onBack()
                     },
-                ) { Text("Απόρριψη") }
+                ) { Text("Απόρριψη αλλαγών") }
             },
             dismissButton = {
-                TextButton(onClick = { discardDialogOpen = false }) { Text("Συνέχεια") }
+                TextButton(onClick = { discardDialogOpen = false }) { Text("Παραμονή στην επεξεργασία") }
             },
         )
     }
