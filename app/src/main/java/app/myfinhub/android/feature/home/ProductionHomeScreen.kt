@@ -207,7 +207,7 @@ private fun HomeAvailableSummary(
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Μόνο καθημερινά μετρητά και λογαριασμός μισθοδοσίας · χωρίς καβάτζα, αποταμίευση ή άλλες τράπεζες",
+                text = "Μετρητά + μισθοδοσία · εξαιρούνται αποταμίευση, καβάτζα και άλλες τράπεζες",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -217,6 +217,13 @@ private fun HomeAvailableSummary(
             tone = if (amount >= 0.0) FinanceTone.Income else FinanceTone.Expense,
             style = MaterialTheme.typography.displaySmall,
         )
+        if (amountsVisible && amount.isFinite() && amount < 0.0) {
+            Text(
+                "Το άθροισμα των καθημερινών υπολοίπων είναι αρνητικό.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         MyFinHubPrimaryAction(
             label = "Νέα κίνηση",
             onClick = onOpenQuickEntry,
