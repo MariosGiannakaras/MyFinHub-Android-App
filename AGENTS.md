@@ -14,6 +14,12 @@
 
 
 
+## Latest owner product direction — 2026-11-10
+
+- **Android is a minimal daily-use companion.** Its three visible destinations are Αρχική, Κινήσεις, Κάρτες; the primary jobs are checking basic balances/recent activity and entering transactions quickly. Do not expose a Settings workspace or detailed reports, budgets, taxonomy/provider/icon administration as regular Android navigation. These belong in Web.
+- Preserve existing finance/auth/offline/vault invariants and source identities. Hidden legacy UI code remains until independently safe to remove; do not strip persisted user data. Keep sign-out accessible from a minimal account menu and privacy controls on the main screen.
+- `docs/ADR-0002-mobile-top-level-navigation.md` supersedes the prior five-tab mobile navigation decision. On contextual workflows, use progressive disclosure rather than a new permanent root.
+
 ## Owner direction 2026-10-30 — native Android first, batch and final validation
 
 - **Priority order:** correct broken Android user journeys, safe finance persistence, mobile usability/accessibility, then visual polish. The Web app is the authoritative **data/finance/security contract** and may supply domain test vectors, but it is **not** the UI/interaction/design template. Build idiomatic Kotlin/Jetpack Compose navigation, touch-sized actions, compact phone layouts, native privacy states, and meaningful responsive transitions rather than pixel-by-pixel web parity.
