@@ -61,7 +61,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
     def test_old_rc12_reports_insufficient_build_and_never_claims_acceptance(self):
         result = self.check()
         self.assertEqual(result["version_code"], 10011)
-        self.assertEqual(result["candidate_check"], "older_or_equal_to_rc12")
+        self.assertEqual(result["candidate_check"], "older_than_published_rc13")
         self.assertEqual(result["physical_acceptance"], "not_assessed")
         exported = json.dumps(result)
         self.assertNotIn("SECRET", exported)
@@ -70,9 +70,29 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         self.assertTrue(all(cmd[:2] == ["adb", "-d"] for cmd in self.commands))
         self.assertFalse(any("install" in cmd or "pull" in cmd or "put" in cmd for cmd in self.commands))
 
-    def test_newer_version_still_requires_source_and_signer_verification(self):
+    def test_published_rc13_version_alone_cannot_claim_signer_or_owner_acceptance(self):
         self.version_code = 10012
         self.version_name = "1.0.0-rc13"
+        result = self.check()
+        self.assertEqual(
+            result["candidate_check"],
+            "rc13_version_only_requires_signer_and_owner_verification",
+        )
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_unrecognized_same_code_name_is_not_trusted_as_rc13(self):
+        self.version_code = 10012
+        self.version_name = "1.0.0-rc12"
+        result = self.check()
+        self.assertEqual(
+            result["candidate_check"],
+            "unrecognized_build_requires_source_and_signer_verification",
+        )
+        self.assertEqual(result["physical_acceptance"], "not_assessed")
+
+    def test_future_version_still_requires_source_and_signer_verification(self):
+        self.version_code = 10013
+        self.version_name = "1.0.0-rc14"
         result = self.check()
         self.assertEqual(
             result["candidate_check"], "newer_build_requires_source_and_signer_verification",
@@ -113,7 +133,8 @@ class PhysicalS24PreflightTests(unittest.TestCase):
         result = self.check()
         self.assertEqual(result["version_code"], 10012)
         self.assertEqual(
-            result["candidate_check"], "newer_build_requires_source_and_signer_verification",
+            result["candidate_check"],
+            "rc13_version_only_requires_signer_and_owner_verification",
         )
 
     def test_missing_exact_package_section_fails_closed(self):
@@ -162,7 +183,7 @@ class PhysicalS24PreflightTests(unittest.TestCase):
     def test_cli_json_output_only_contains_whitelisted_fields(self):
         sink = io.StringIO()
         with patch.object(preflight, "inspect", return_value={
-            "version_name": "1.0.0-rc12",
+            "version_name": "1.0.0-rc13",
             "physical_acceptance": "not_assessed",
         }):
             with contextlib.redirect_stdout(sink):

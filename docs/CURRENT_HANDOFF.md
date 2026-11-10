@@ -20,17 +20,17 @@ This file exists so a new chat/agent can continue correctly without relying on c
 - Supported device: **Samsung Galaxy S24 Ultra only**.
 - Active workstream: issue #155 — Reconcile Android finance contracts and restore web-parity Home and cards.
 - Workstream state: `in_progress`.
-- Latest private production candidate: `1.0.0-rc12` / `10011` — `installed_pending_functional_acceptance`.
+- Latest private production candidate: `1.0.0-rc13` / `10012` — `published_pending_physical_installation_and_acceptance`.
 - `develop` is the authoritative implementation branch; `main` is release-only.
 
 ## Why implementation is open
 
-Merged PR #444 accepted the owner-approved native Android W1–W5 software journeys on develop 908df4620141cd9ae7de9690314462c6bca7c9ff, Project Tracking + Android CI green. W6.2 visual/Compose checkpoint #445 now synchronizes 26 public screenshot paths with their current official rendered golden files plus adds Reports light/dark/large-type, verifies all 29 byte-identically in Project Tracking, and records the inspected phone-size/light/dark/large-type UI evidence; exact-head CI and merge pending. Proposed Web parity 5/6 implementations · 23/24 subtasks. Only W6.4 owner physical S24 acceptance/release isolation remains; deploy stays 6/8 (D7/D8 pending), installed rc12 is older than merged product code. No new production build, real financial writes, signing or backend changes.
+W1–W5 native Android integration and W6.2 visual verification are accepted on develop ed973a31d9947c05706e9cb57125a7f3b8025fa4 (merged PRs #444/#445). Protected Production Release run #42790602178 completed successfully on 2026-11-10 from exact validated source PR #446 76f5cc7b2be7eb52c63a3600ca5591e1545f1f0d (closed WITHOUT merging after publication); produced same-enrolled-signer 1.0.0-rc13 / versionCode 10012, signed APK SHA-256 4aa586664ac1e2dbc187790ae554cea9a693bbb0e165288280e8c7ed18834449, 3,946,588 bytes, private verified path production/10012/MyFinHub-10012.apk and immutable GitHub prerelease v1.0.0-rc13. Software Web parity remains 5/6 implementations · 23/24 subtasks. Deployment remains 6/8: W6.4/D7 cannot be accepted until the owner installs rc13 in-place on the physical Galaxy S24 Ultra and verifies session, PIN/biometric, finance, vault and journeys; D8 final stable release/promotion needs separate approval. No physical rc13 installation or acceptance is recorded.
 
 ## Immediate work
 
-- Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.
-- W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either.
+- The rc13/10012 production-signed APK is now published. Owner installs the verified same-signer release IN PLACE over the existing app.myfinhub.android without uninstall, data clearing or a debug/test signer. Confirm installed version and unchanged session, PIN/biometric, canonical finance data and owner+AAL2 card vault; test Home, Activity, Cards, Plan, Quick Entry, Reports, Settings, offline/reconnect, privacy and real S24 UI. Record explicit owner signoff or defects in #149; no physical acceptance is inferred from CI or publication.
+- After owner physical D7 acceptance, handle W6.4 completion and separately authorize D8 final stable promotion/release. Current PR #446 was correctly CLOSED UNMERGED after protected source consumption. No source/API/main/signer changes or further speculative product hardening without new regression evidence.
 
 ## Constraints
 

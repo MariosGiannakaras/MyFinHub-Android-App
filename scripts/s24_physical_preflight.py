@@ -15,7 +15,8 @@ import subprocess
 import sys
 
 PACKAGE = "app.myfinhub.android"
-LAST_KNOWN_SIGNED_VERSION_CODE = 10011  # rc12, released 2026-10-14
+LATEST_PUBLISHED_VERSION_CODE = 10012  # rc13, published 2026-11-10
+LATEST_PUBLISHED_VERSION_NAME = "1.0.0-rc13"
 MODEL_PATTERN = re.compile(r"SM-S928[A-Z0-9]*\Z")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9._+-]{1,64}\Z")
 ANDROID_PATTERN = re.compile(r"[A-Za-z0-9.]{1,32}\Z")
@@ -111,11 +112,18 @@ def inspect() -> dict[str, object]:
 
     # A newer code alone does NOT establish trusted signer, source provenance,
     # safe in-place upgrade, or product/owner acceptance.
-    freshness = (
-        "older_or_equal_to_rc12"
-        if version_code <= LAST_KNOWN_SIGNED_VERSION_CODE
-        else "newer_build_requires_source_and_signer_verification"
-    )
+    # An exact version code/name match is only a metadata observation: a
+    # spoofed or incorrectly signed build may report the same strings.
+    if version_code < LATEST_PUBLISHED_VERSION_CODE:
+        freshness = "older_than_published_rc13"
+    elif version_code == LATEST_PUBLISHED_VERSION_CODE:
+        freshness = (
+            "rc13_version_only_requires_signer_and_owner_verification"
+            if version_name == LATEST_PUBLISHED_VERSION_NAME
+            else "unrecognized_build_requires_source_and_signer_verification"
+        )
+    else:
+        freshness = "newer_build_requires_source_and_signer_verification"
     return {
         "supported_device": "Samsung Galaxy S24 Ultra (SM-S928 family)",
         "android_release": release,
