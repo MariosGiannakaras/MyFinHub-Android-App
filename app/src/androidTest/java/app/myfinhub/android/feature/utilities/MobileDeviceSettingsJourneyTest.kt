@@ -26,7 +26,7 @@ class MobileDeviceSettingsJourneyTest {
                 )
             }
         }
-        compose.onNodeWithText("Ρυθμίσεις συσκευής").assertIsDisplayed()
+        compose.onNodeWithText("Εφαρμογή και συσκευή").assertIsDisplayed()
         compose.onNodeWithText("Εμφάνιση ποσών").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Ειδοποιήσεις Android").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Αποσύνδεση από αυτή τη συσκευή")
