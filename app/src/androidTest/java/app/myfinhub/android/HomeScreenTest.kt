@@ -9,7 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
-import org.junit.Assert.assertTrue
+import androidx.compose.ui.test.performScrollToIndex
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,8 +26,11 @@ class HomeScreenTest {
         composeRule.onNodeWithContentDescription("Απόκρυψη ποσών").assertIsDisplayed().performClick()
         composeRule.onNodeWithContentDescription("Εμφάνιση ποσών").assertIsDisplayed()
 
-        // Upcoming obligations live in Plan, not Home.
-        assertTrue(runCatching { composeRule.onNodeWithText("Χρειάζεται προσοχή").fetchSemanticsNode() }.isFailure)
+        // The phone shows brief, actionable context instead of desktop reports.
+        composeRule.onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("home_recent_summary"))
+        composeRule.onNodeWithTag("home_recent_summary").assertIsDisplayed()
+        composeRule.onNodeWithTag("home_list").performScrollToIndex(0)
 
         // Quick entry remains reachable from the account overview.
         composeRule.onNodeWithTag("home_list").performScrollToNode(hasTestTag("home_global_quick_entry"))
