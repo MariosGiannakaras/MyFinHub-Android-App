@@ -124,6 +124,12 @@ internal fun formatSignedEuro(amount: Double): String {
     }
 }
 
+/** A labeled income/expense total is an absolute quantity, not an account credit.
+ * Preserve the minus sign if reversals make the aggregate negative.
+ */
+internal fun formatActivityTotalEuro(amount: Double): String =
+    formatSignedEuro(amount).removePrefix("+")
+
 /**
  * Web TransactionsPage amountPrefix/amountClass derive from flowImpact, not
  * the original legacy bank type. Reviewed historic expenses can become refunds
@@ -280,11 +286,13 @@ fun ActivityLedgerScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            if (!state.hasActiveListScope) {
+                                Text(
+                                    "Εμφανίζονται ${state.visibleItems.size} από ${state.scopeSourceItems.size} κινήσεις",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             TextButton(
                                 onClick = { onAction(ActivityAction.ToggleSortDirection) },
                                 modifier = Modifier.testTag("activity_sort_toggle"),
@@ -315,8 +323,8 @@ fun ActivityLedgerScreen(
                                 )
                             } else {
                                 Text(
-                                    "Έσοδα: ${amountVisibilityText(formatSignedEuro(state.visibleIncome), amountsVisible)}" +
-                                        " · Έξοδα: ${amountVisibilityText(formatSignedEuro(state.visibleExpense), amountsVisible)}",
+                                    "Έσοδα: ${amountVisibilityText(formatActivityTotalEuro(state.visibleIncome), amountsVisible)}" +
+                                        " · Έξοδα: ${amountVisibilityText(formatActivityTotalEuro(state.visibleExpense), amountsVisible)}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -457,6 +465,10 @@ private fun ActivityMonthlyOverviewSurface(
             change < 0 -> "↓"
             else -> "→"
         }
+        // Extreme ratios against a tiny previous base are more useful as actual amounts.
+        if (kotlin.math.abs(change) >= 1_000) {
+            return "$arrow ${formatActivityTotalEuro(previous)} → ${formatActivityTotalEuro(current)}"
+        }
         return "$arrow ${kotlin.math.abs(change)}% από προηγ. μήνα"
     }
     val countChange = overview.transactionCount - overview.previousTransactionCount
@@ -493,8 +505,8 @@ private fun ActivityMonthlyOverviewSurface(
                 }
             }
             Text(
-                "Έσοδα: ${amountVisibilityText(formatSignedEuro(overview.income), amountsVisible)}" +
-                    " · Έξοδα: ${amountVisibilityText(formatSignedEuro(overview.expense), amountsVisible)}",
+                "Έσοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.income), amountsVisible)}" +
+                    " · Έξοδα: ${amountVisibilityText(formatActivityTotalEuro(overview.expense), amountsVisible)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
