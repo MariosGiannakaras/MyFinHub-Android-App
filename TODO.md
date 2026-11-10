@@ -5,8 +5,8 @@ Active tracker: issue #155 — **Reconcile Android finance contracts and restore
 
 ## Open
 
-- [ ] Validate PR #445 public screenshot mirroring, source/golden byte-checks and generated tracking on its exact final head. With all applicable CI gates, unchanged develop and clean review, merge it; W6.2 then accepted at 23/24. Avoid reopening merged W1–W5 unless a concrete regression appears.
-- [ ] W6.4/D7 cannot be completed without a separately authorized newer same-signer production candidate installed in-place on the owner's physical Galaxy S24 Ultra with package/data/session/vault, PIN/biometric and end-to-end journey acceptance. D8 is separately owner-approved protected release. CI/Compose snapshots cannot substitute for either.
+- [ ] Complete exact-head four-gate validation of draft PR #448 after the Kotlin import, screenshot Gradle cache and tracking fixes. Inspect freshly rendered Compose PNGs for actual Home, Activity, Cards, Quick Entry and Android-only Settings, update official goldens and approved public mirrors only from reviewed real renders, and present the actual new images to the owner in chat. Never substitute earlier develop screenshots for this branch.
+- [ ] Keep draft #448 unmerged until screenshot visual review, Kotlin/instrumentation and Project Tracking checks pass on one final head. D7 still needs separately approved same-signer in-place physical Galaxy S24 Ultra acceptance; D8 is a separate protected release.
 
 ## Completed foundations
 
@@ -82,10 +82,10 @@ Next: D7 physical owner acceptance pending: installed rc12/10011 predates newer 
 
 Evidence-backed current progress, separate from historical September redesign.
 
-Issue #155, PR #445, branch android/w62-official-compose-visual-reference-20261109
-Current W6.4: PR #444 source 5ca9cec6de3284cc423b9ff3bc13f475d6beef9c Project Tracking and Android CI passed and squash merged develop 908df4620141cd9ae7de9690314462c6bca7c9ff. W3–W5 accepted. PR #445 refreshes the public screenshot guide as 29 exact byte-mirrors of official Compose golden files, adds Reports views, visually reviews core phone-size/light/dark/large-type surfaces and enforces future mirror integrity; final CI/merge pending. W6.2 proposed completed: Web parity 5/6 · 23/24. Only W6.4 owner S24/release gate open.
+Issue #155, PR #448, branch android/physical-ui-audit-batch-20261110
+Current W6.4: W6.2 29 official Compose screenshot mirrors merged to develop via PR #445 ed973a31. Current owner-approved streamlined Android visual/functional correction is draft PR #448, with Home/Activity/Cards top-level, secondary native Android Settings and new real screenshot preview/gallery coverage. Initial CI failure root causes were dp import, Gradle screenshot task configuration-cache incompatibility and missing PR tracking update; fixes committed, final-head CI/screenshots pending. Remains Web parity 5/6 implementations · 23/24 subtasks; W6.4 physical D7 acceptance not claimed.
 Plan docs/WEB_ANDROID_RECONCILIATION_PLAN.md
-Next Validate exact-head Project Tracking/Android CI and visual mirror byte-consistency on PR #445, then squash merge with stable base/clean review. W6.4 and D7 require real owner device and separately authorized same-signer publication; D8 final protected release remains gated. No additional generic UI-hardening PRs absent a specific defect.
+Next Validate PR #448 exact final head, especially new rendered active-screen screenshot artifact and four mandatory gates; correct visual goldens only after actual review. Merge only with all checks green, clean review and owner-ready UI evidence. D7 physical S24 Ultra and D8 protected release remain separate.
 
 | Implementation | Completed | Outstanding |
 |---|---|---|
