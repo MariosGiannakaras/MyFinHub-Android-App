@@ -318,7 +318,7 @@ fun CanonicalMoneyScreen(
                         )
                         activeCardId?.let { cardId ->
                             MyFinHubDestructiveTextAction(
-                                label = "Διαγραφή ενεργής κάρτας",
+                                label = "Αφαίρεση ενεργής κάρτας",
                                 onClick = { cardDeleteConfirmationId = cardId },
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -411,15 +411,15 @@ internal fun CanonicalCardDeleteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Διαγραφή κάρτας;") },
+        title = { Text("Αφαίρεση κάρτας από το MyFinHub;") },
         text = {
             Text(
-                "Η ${card.nickname} ••••${canonicalCardDisplayLastFour(card.last4).orEmpty()} θα αφαιρεθεί. Η ενέργεια δεν αναιρείται.",
+                "Η ${card.nickname} ••••${canonicalCardDisplayLastFour(card.last4).orEmpty()} θα αφαιρεθεί από τις ενεργές κάρτες. Οι κινήσεις και τυχόν οφειλές διατηρούνται. Δεν ακυρώνεται η τραπεζική κάρτα.",
             )
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Διαγραφή", color = MaterialTheme.colorScheme.error)
+                Text("Αφαίρεση", color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
