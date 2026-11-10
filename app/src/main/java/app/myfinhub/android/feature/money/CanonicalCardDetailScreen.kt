@@ -95,6 +95,7 @@ fun CanonicalCardDetailScreen(
     amountsVisibleOverride: Boolean? = null,
     fullActivityIdCounts: Map<String, Int>? = null,
     fullStatementIdCounts: Map<String, Int>? = null,
+    companionMode: Boolean = false,
 ) {
     val storedAmountsVisible = rememberAmountVisibilityPreference()
     val amountsVisible = amountsVisibleOverride ?: storedAmountsVisible
@@ -236,6 +237,7 @@ fun CanonicalCardDetailScreen(
                     }
                 }
 
+                if (!companionMode) {
                 TextButton(
                     onClick = { creditToolsExpanded = !creditToolsExpanded },
                     modifier = Modifier.fillMaxWidth().testTag("card_credit_tools_toggle"),
@@ -317,6 +319,7 @@ fun CanonicalCardDetailScreen(
                     fullActivityIdCounts = fullActivityIdCounts,
                     fullStatementIdCounts = fullStatementIdCounts,
                 )
+                }
                 CardActivitySection(
                     card = card,
                     amountsVisible = amountsVisible,
@@ -329,7 +332,7 @@ fun CanonicalCardDetailScreen(
 
             MyFinHubSectionCard(modifier = Modifier.fillMaxWidth()) {
                 Column(verticalArrangement = Arrangement.spacedBy(MyFinHubSpacing.sm)) {
-                    Text("Διαχείριση κάρτας", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(if (companionMode) "Στοιχεία κάρτας" else "Διαχείριση κάρτας", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     OutlinedButton(
                         onClick = { onOpenSecureDetails(card.id) },
                         modifier = Modifier.fillMaxWidth().testTag("card_secure_details"),
@@ -339,14 +342,14 @@ fun CanonicalCardDetailScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (onSaveCardProfile != null) {
+                    if (!companionMode && onSaveCardProfile != null) {
                         OutlinedButton(
                             onClick = { editProfileOpen = true },
                             enabled = !profileMutationBlocked,
                             modifier = Modifier.fillMaxWidth().testTag("card_edit_profile"),
                         ) { Text("Επεξεργασία προφίλ κάρτας") }
                     }
-                    MyFinHubDestructiveTextAction(
+                    if (!companionMode) MyFinHubDestructiveTextAction(
                         label = "Αφαίρεση από το MyFinHub",
                         onClick = { removeDialogOpen = true },
                     )
@@ -367,7 +370,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
+    if (!companionMode && billingEditorOpen && card != null && onSaveCreditBillingSettings != null) {
         CanonicalCreditBillingSettingsEditor(
             card = card,
             mutationBlocked = profileMutationBlocked,
@@ -378,7 +381,7 @@ fun CanonicalCardDetailScreen(
             },
         )
     }
-    if (rateEditorOpen && card != null && onAddCreditRateVersion != null) {
+    if (!companionMode && rateEditorOpen && card != null && onAddCreditRateVersion != null) {
         CanonicalCreditRateVersionEditor(
             card = card,
             mutationBlocked = profileMutationBlocked,
@@ -391,7 +394,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (editProfileOpen && card != null && onSaveCardProfile != null) {
+    if (!companionMode && editProfileOpen && card != null && onSaveCardProfile != null) {
         CanonicalCardProfileEditor(
             card = card,
             providerOptions = cardProviderOptions,
@@ -404,7 +407,7 @@ fun CanonicalCardDetailScreen(
         )
     }
 
-    if (removeDialogOpen && card != null) {
+    if (!companionMode && removeDialogOpen && card != null) {
         AlertDialog(
             onDismissRequest = { removeDialogOpen = false },
             title = { Text("Αρχειοθέτηση στο MyFinHub;") },
