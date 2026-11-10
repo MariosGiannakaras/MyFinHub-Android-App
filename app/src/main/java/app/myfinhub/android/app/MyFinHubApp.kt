@@ -253,6 +253,14 @@ internal fun MyFinHubAppContent(
     val planBackStack = rememberNavBackStack(AppRoute.Plan)
     val insightsBackStack = rememberNavBackStack(AppRoute.Insights)
 
+    // A previous Android build could restore Home with its Settings route on top.
+    // That former entry point is no longer part of the companion product.
+    LaunchedEffect(homeBackStack.lastOrNull()) {
+        if (homeBackStack.lastOrNull() == AppRoute.Settings) {
+            homeBackStack.popToRoot()
+        }
+    }
+
     val activeBackStack: NavBackStack<NavKey> = when (currentDestination) {
         TopLevelDestination.HOME -> homeBackStack
         TopLevelDestination.ACTIVITY -> activityBackStack
