@@ -150,8 +150,29 @@ fun MobileDeviceSettingsScreen(onBack: () -> Unit, onLogout: (() -> Unit)?) {
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
-                        "MyFinHub Android · Έκδοση " + BuildConfig.VERSION_NAME,
+                        "MyFinHub Android · Έκδοση " + BuildConfig.VERSION_NAME +
+                            " (build " + BuildConfig.VERSION_CODE + ")",
                         style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        "Συνοδευτική εφαρμογή για υπόλοιπα, κινήσεις και κάρτες. " +
+                            "Η αναλυτική διαχείριση οικονομικών γίνεται στο Web.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    MyFinHubOutlinedAction(
+                        label = "Πληροφορίες και άδειες Android",
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                        Uri.parse("package:" + context.packageName),
+                                    ),
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
