@@ -6,7 +6,7 @@ Status: Supersedes the former five-root decision, per owner direction 2026-11-10
 
 The Android application is a lightweight daily-use companion to the canonical Web app, not a mobile copy of its reporting and administration workspaces. Its primary navigation has **three** destinations:
 
-1. **Αρχική** — today's available cash/payroll balance, account balances, at most two actionable concerns and four recent transactions, plus the short path to Quick Entry.
+1. **Αρχική** — today's available cash/payroll balance, the **three Web-matching primary account cards** (cash, payroll, savings) with their account-history graphs, 30-day change, savings comparison/goal, account details and account-specific actions; secondary accounts as short rows; at most two actionable concerns and four recent transactions, plus the short path to Quick Entry.
 2. **Κινήσεις** — transaction history, search, basic filters, details and edit where allowed, and Quick Entry.
 3. **Κάρτες** — existing cards, a small current-debt glance for credit cards, and transaction/purchase/payment entry. Card creation, archival controls, historical statements and credit-rate administration are not primary mobile content.
 
@@ -19,7 +19,8 @@ The Home privacy toggle and an Android Settings shortcut remain available. Setti
 - A contextual attention action may open a relevant source screen as a secondary route, not an additional tab.
 - Existing signed-in installations with a saved selection of the former Plan or Insights destination return safely to Home.
 - Only the authoritative Web app owns long-form financial administration. Android's own app/device Settings remain available, but must never be required to enter a routine expense, income or transfer.
-- Preserve one clear main Quick Entry action per active screen, adequate touch targets, responsive Compose layout, privacy masking, system back and accessible labels.
+- Preserve the Web's per-account actions in the three primary Home cards alongside the global Quick Entry. Keep adequate touch targets, responsive Compose layout, privacy masking (amounts hidden but chart geometry remains), system back and accessible labels.
+- **Specific visual parity exception:** simplify the mobile navigation and reporting, **not** the Web-designed primary Home accounts. Their graphs, period changes, cash/payroll/savings roles, target and per-account navigation must not be dropped in later mobile simplification passes.
 
 ## Reason for replacing the prior ADR
 
