@@ -66,6 +66,13 @@ jobs:
         shell: bash
         run: ./gradlew updateDebugScreenshotTest --stacktrace
 
+      - name: Build screenshot gallery from official rendered PNGs
+        if: always()
+        shell: bash
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_render_android_screenshot_gallery.py'
+          python3 scripts/render_android_screenshot_gallery.py
+
       - name: Publish rendered UI screenshots
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -74,6 +81,7 @@ jobs:
           path: |
             app/src/screenshotTestDebug/reference/**/*.png
             app/build/reports/screenshotTest/**/*.png
+            app/build/reports/screenshotTest/gallery/index.html
           if-no-files-found: warn
           retention-days: 14
 
