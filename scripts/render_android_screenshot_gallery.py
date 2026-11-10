@@ -15,7 +15,6 @@ from urllib.parse import quote
 
 
 SCREEN_LABELS = {
-    "app": "Εφαρμογή",
     "auth": "Σύνδεση και κλείδωμα",
     "home": "Αρχική",
     "activity": "Κινήσεις",
