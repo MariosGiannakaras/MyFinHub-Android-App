@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +27,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Path
@@ -75,7 +72,7 @@ fun ProductionHomeScreen(
     state: HomeUiState,
     @Suppress("UNUSED_PARAMETER") onAction: (HomeAction) -> Unit,
     onOpenAttention: (String) -> Unit,
-    @Suppress("UNUSED_PARAMETER") onOpenSettings: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     onOpenQuickEntry: () -> Unit,
     onAccountQuickEntry: ((String, HomePrimaryRole) -> Unit)? = null,
     onAccountTransactions: ((String) -> Unit)? = null,
@@ -85,7 +82,6 @@ fun ProductionHomeScreen(
     amountsVisibleOverride: Boolean? = null,
     accountMetadata: Map<String, AccountMetadataRecord> = emptyMap(),
     accountMetadataLoaded: Boolean = false,
-    onLogout: (() -> Unit)? = null,
     canOpenRecent: (String) -> Boolean = { true },
 ) {
     val context = LocalContext.current
@@ -105,7 +101,6 @@ fun ProductionHomeScreen(
     val primaryAccounts = homePrimaryAccounts(state.accounts)
     val primaryIds = primaryAccounts.mapTo(mutableSetOf(), HomeAccount::id)
     val secondaryAccounts = state.accounts.filterNot { it.id in primaryIds }
-    var accountMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -124,35 +119,16 @@ fun ProductionHomeScreen(
                             modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
                         )
                     }
-                    // Finance configuration belongs to the Web; this mobile app only needs
-                    // a session action, never a desktop-style Settings entry point.
-                    if (onLogout != null) {
-                        Box {
-                            IconButton(
-                                onClick = { accountMenuOpen = true },
-                                modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget)
-                                    .testTag("home_account_menu"),
-                            ) {
-                                Icon(
-                                    imageVector = MyFinHubIcons.Account,
-                                    contentDescription = "Λογαριασμός",
-                                    modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
-                                )
-                            }
-                            DropdownMenu(
-                                expanded = accountMenuOpen,
-                                onDismissRequest = { accountMenuOpen = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Αποσύνδεση") },
-                                    onClick = {
-                                        accountMenuOpen = false
-                                        onLogout?.invoke()
-                                    },
-                                    modifier = Modifier.testTag("home_logout"),
-                                )
-                            }
-                        }
+                    IconButton(
+                        onClick = onOpenSettings,
+                        modifier = Modifier.size(MyFinHubDesignMetrics.minimumTouchTarget)
+                            .testTag("home_settings"),
+                    ) {
+                        Icon(
+                            imageVector = MyFinHubIcons.Settings,
+                            contentDescription = "Ρυθμίσεις",
+                            modifier = Modifier.size(MyFinHubDesignMetrics.standardIconSize),
+                        )
                     }
                 },
             )
